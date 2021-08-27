@@ -16,10 +16,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             return new CodeGenerationNamedTypeSymbol(
+                namedType.ContainingAssembly,
                 namedType.ContainingType,
                 namedType.GetAttributes(),
                 namedType.DeclaredAccessibility,
                 namedType.GetSymbolModifiers(),
+                namedType.IsRecord,
                 namedType.TypeKind,
                 namedType.Name,
                 namedType.TypeParameters,

@@ -226,8 +226,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project.SetCompilerOptions(compilerOptions)
                 Assert.Equal("C:\test.dll", project.GetOutputFileName())
 
-                Dim outputs = CType(environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id), CompilationOutputFilesWithImplicitPdbPath)
-                Assert.Equal("C:\test.dll", outputs.AssemblyFilePath)
+                Assert.Equal("C:\test.dll", project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath)
 
                 ' Change output folder from command line arguments - verify that objOutputPath changes.
                 Dim newPath = "C:\NewFolder\test.dll"
@@ -237,8 +236,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project.SetCompilerOptions(compilerOptions)
                 Assert.Equal(newPath, project.GetOutputFileName())
 
-                outputs = CType(environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id), CompilationOutputFilesWithImplicitPdbPath)
-                Assert.Equal("C:\NewFolder\test.dll", outputs.AssemblyFilePath)
+                Assert.Equal("C:\NewFolder\test.dll", project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath)
 
                 ' Change output file name - verify that outputPath changes.
                 newPath = "C:\NewFolder\test2.dll"
@@ -248,8 +246,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project.SetCompilerOptions(compilerOptions)
                 Assert.Equal(newPath, project.GetOutputFileName())
 
-                outputs = CType(environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id), CompilationOutputFilesWithImplicitPdbPath)
-                Assert.Equal("C:\NewFolder\test2.dll", outputs.AssemblyFilePath)
+                Assert.Equal("C:\NewFolder\test2.dll", project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath)
 
                 ' Change output file name and folder - verify that outputPath changes.
                 newPath = "C:\NewFolder3\test3.dll"
@@ -259,8 +256,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project.SetCompilerOptions(compilerOptions)
                 Assert.Equal(newPath, project.GetOutputFileName())
 
-                outputs = CType(environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id), CompilationOutputFilesWithImplicitPdbPath)
-                Assert.Equal("C:\NewFolder3\test3.dll", outputs.AssemblyFilePath)
+                Assert.Equal("C:\NewFolder3\test3.dll", project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath)
 
                 ' Relative path - set by VBIntelliProj in VB Web App project
                 compilerOptions = CreateMinimalCompilerOptions(project)
@@ -268,8 +264,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 compilerOptions.wszExeName = "test3.dll"
                 project.SetCompilerOptions(compilerOptions)
                 Assert.Equal(Nothing, project.GetOutputFileName())
-                outputs = CType(environment.Workspace.GetCompilationOutputs(project.Test_VisualStudioProject.Id), CompilationOutputFilesWithImplicitPdbPath)
-                Assert.Equal(Nothing, outputs.AssemblyFilePath)
+                Assert.Equal(Nothing, project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath)
             End Using
         End Sub
     End Class

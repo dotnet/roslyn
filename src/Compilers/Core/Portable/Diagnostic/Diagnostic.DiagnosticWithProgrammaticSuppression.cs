@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -80,22 +78,22 @@ namespace Microsoft.CodeAnalysis
                 get { return _originalUnsuppressedDiagnostic.AdditionalLocations; }
             }
 
-            public override ImmutableDictionary<string, string> Properties
+            public override ImmutableDictionary<string, string?> Properties
             {
                 get { return _originalUnsuppressedDiagnostic.Properties; }
             }
 
             public override bool Equals(Diagnostic? obj)
             {
+                if (ReferenceEquals(this, obj))
+                {
+                    return true;
+                }
+
                 var other = obj as DiagnosticWithProgrammaticSuppression;
                 if (other == null)
                 {
                     return false;
-                }
-
-                if (ReferenceEquals(this, other))
-                {
-                    return true;
                 }
 
                 return Equals(_originalUnsuppressedDiagnostic, other._originalUnsuppressedDiagnostic) &&

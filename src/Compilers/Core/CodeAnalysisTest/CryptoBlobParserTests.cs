@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void GetSnPublicKeyFromPublicKeyBlob()
         {
-            // An Strongname public key blob includes an additional header on top
+            // A Strongname public key blob includes an additional header on top
             // of the wincrypt.h public key blob
             var snBlob = TestResources.General.snPublicKey;
 

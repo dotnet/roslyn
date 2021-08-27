@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -114,6 +116,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="argument">Additional argument</param>
         /// <returns></returns>
         public virtual TResult VisitPointerType(PointerTypeSymbol symbol, TArgument argument)
+        {
+            return DefaultVisit(symbol, argument);
+        }
+
+        /// <summary>
+        /// Called when visiting a <see cref="FunctionPointerTypeSymbol"/>; Override this with specific
+        /// implementation; Calling <see cref="DefaultVisit"/>  if it's not overridden
+        /// </summary>
+        /// <param name="symbol">The visited symbol</param>
+        /// <param name="argument">Additional argument</param>
+        /// <returns></returns>
+        public virtual TResult VisitFunctionPointerType(FunctionPointerTypeSymbol symbol, TArgument argument)
         {
             return DefaultVisit(symbol, argument);
         }

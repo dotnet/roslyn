@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -11,11 +12,12 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
+    [Obsolete("Use Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteHostClient instead")]
     internal static class RazorLanguageServiceClientFactory
     {
         public static async Task<RazorLanguageServiceClient> CreateAsync(Workspace workspace, CancellationToken cancellationToken = default)
         {
-            var clientFactory = workspace.Services.GetRequiredService<IRemoteHostClientService>();
+            var clientFactory = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
             var client = await clientFactory.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             return client == null ? null : new RazorLanguageServiceClient(client, GetServiceName(workspace));
         }

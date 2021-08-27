@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -198,6 +198,31 @@ namespace NS
             End Function
         End Class
         ]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestAliasReferenceInGlobalSuppression(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using $$AliasToC = N.[|C|];
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("RuleCategory", "RuleId", Scope = "member", Target = "~M:N.[|C|].Goo")]
+
+namespace N
+{
+    class {|Definition:C|}
+    {
+        void Goo()
+        {
+        }
+    }
+}
         </Document>
     </Project>
 </Workspace>

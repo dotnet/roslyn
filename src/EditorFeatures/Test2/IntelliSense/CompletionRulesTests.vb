@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             TestNotMatches("I", wordsToNotMatch)
         End Sub
 
-        Private Sub TestMatches(pattern As String, wordsToMatch() As String)
+        Private Shared Sub TestMatches(pattern As String, wordsToMatch() As String)
             Dim culture = New CultureInfo("tr-TR", useUserOverride:=False)
 
             Dim workspace = New TestWorkspace
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Next
         End Sub
 
-        Private Sub TestNotMatches(pattern As String, wordsToNotMatch() As String)
+        Private Shared Sub TestNotMatches(pattern As String, wordsToNotMatch() As String)
             Dim culture = New CultureInfo("tr-TR", useUserOverride:=False)
             Dim workspace = New TestWorkspace
             Dim helper = New CompletionHelper(isCaseSensitive:=True)

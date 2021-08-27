@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider)), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty), [Shared]>
     Friend Class VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider
         Inherits AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider(Of PropertyStatementSyntax, TypeBlockSyntax)
 
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Return (getAccessor, setAccessor)
         End Function
 
-        Private Function IsReadOnly(propertySyntax As PropertyStatementSyntax) As Boolean
+        Private Shared Function IsReadOnly(propertySyntax As PropertyStatementSyntax) As Boolean
             Dim modifiers = propertySyntax.GetModifiers()
             For Each modifier In modifiers
                 If modifier.IsKind(SyntaxKind.ReadOnlyKeyword) Then

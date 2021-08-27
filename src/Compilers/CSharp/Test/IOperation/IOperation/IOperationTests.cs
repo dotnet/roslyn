@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -13,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.IOperation)]
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.RefLocalsReturns)]
         [Fact]
@@ -129,14 +131,14 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
               Value:
-                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String) (Syntax: 'x')
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.String?) (Syntax: 'x')
         Next (Regular) Block[B4]
     Block[B3] - Block
         Predecessors: [B1]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
               Value:
-                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
+                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String?) (Syntax: 'y')
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
@@ -479,7 +481,7 @@ public class C
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29297")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/45687")]
         public void TestClone()
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
@@ -513,7 +515,7 @@ System.Console.WriteLine();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29297")]
+        [Fact]
         public void TestParentOperations()
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
@@ -690,6 +692,33 @@ class C
                 }
 
                 operation = operation.Parent;
+            }
+        }
+
+        [Fact, WorkItem(45955, "https://github.com/dotnet/roslyn/issues/45955")]
+        public void SemanticModelFieldInitializerRace()
+        {
+            var source = $@"
+#nullable enable
+public class C
+{{
+    // Use a big initializer to increase the odds of hitting the race
+    public static object o = null;
+    public string s = {string.Join(" + ", Enumerable.Repeat("(string)o", 1000))};
+}}";
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var fieldInitializer = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Last().Value;
+
+            for (int i = 0; i < 5; i++)
+            {
+                // We had a race condition where the first attempt to access a field initializer could cause an assert to be hit,
+                // and potentially more work to be done than was necessary. So we kick off a parallel task to attempt to
+                // get info on a bunch of different threads at the same time and reproduce the issue.
+                var model = comp.GetSemanticModel(tree);
+                const int nTasks = 10;
+                Enumerable.Range(0, nTasks).AsParallel()
+                    .ForAll(_ => Assert.Equal("System.String System.String.op_Addition(System.String left, System.String right)", model.GetSymbolInfo(fieldInitializer).Symbol.ToTestDisplayString(includeNonNullable: false)));
             }
         }
     }

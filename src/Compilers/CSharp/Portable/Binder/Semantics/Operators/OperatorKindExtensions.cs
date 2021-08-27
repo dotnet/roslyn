@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text;
@@ -104,6 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnaryOperatorKind.UInt:
                 case UnaryOperatorKind.Long:
                 case UnaryOperatorKind.ULong:
+                case UnaryOperatorKind.NInt:
+                case UnaryOperatorKind.NUInt:
                 case UnaryOperatorKind.Char:
                 case UnaryOperatorKind.Enum:
                 case UnaryOperatorKind.Pointer:
@@ -287,6 +291,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.UInt:
                 case BinaryOperatorKind.Long:
                 case BinaryOperatorKind.ULong:
+                case BinaryOperatorKind.NInt:
+                case BinaryOperatorKind.NUInt:
                 case BinaryOperatorKind.Char:
                 case BinaryOperatorKind.Enum:
                 case BinaryOperatorKind.EnumAndUnderlying:

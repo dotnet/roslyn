@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// due to how solution cralwer calls Start/Stop (see caller of those 2), those 2 can't have a race
         /// and that is all we care for this reporter
         /// </summary>
-        private class SolutionCrawlerProgressReporter : ISolutionCrawlerProgressReporter
+        internal sealed class SolutionCrawlerProgressReporter : ISolutionCrawlerProgressReporter
         {
             // we use ref count here since solution crawler has multiple queues per priority
             // where an item can be enqueued and dequeued independently. 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private int _progressStartCount = 0;
             private int _progressEvaluateCount = 0;
 
-            public event EventHandler<ProgressData> ProgressChanged;
+            public event EventHandler<ProgressData>? ProgressChanged;
 
             public bool InProgress => _progressStartCount > 0;
 
@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void Evaluate() => ChangeProgressStatus(ref _progressEvaluateCount, ProgressStatus.Evaluating);
             private void Pause() => ChangeProgressStatus(ref _progressEvaluateCount, ProgressStatus.Paused);
-
 
             public void UpdatePendingItemCount(int pendingItemCount)
             {
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void ChangeProgressStatus(ref int referenceCount, ProgressStatus status)
             {
-                var start = status == ProgressStatus.Started || status == ProgressStatus.Evaluating;
+                var start = status is ProgressStatus.Started or ProgressStatus.Evaluating;
                 if (start ? (Interlocked.Increment(ref referenceCount) == 1) : (Interlocked.Decrement(ref referenceCount) == 0))
                 {
                     var progressData = new ProgressData(status, pendingItemCount: null);
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// </summary>
         private class NullReporter : ISolutionCrawlerProgressReporter
         {
-            public static readonly NullReporter Instance = new NullReporter();
+            public static readonly NullReporter Instance = new();
 
             public bool InProgress => false;
 

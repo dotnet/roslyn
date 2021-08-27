@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+            => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Collection_initialization_can_be_simplified, createChangedDocument)
+                : base(AnalyzersResources.Collection_initialization_can_be_simplified, createChangedDocument, nameof(AnalyzersResources.Collection_initialization_can_be_simplified))
             {
             }
         }

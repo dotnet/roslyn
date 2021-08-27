@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +29,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly Solution _solution;
         private readonly IStreamingFindLiteralReferencesProgress _progress;
         private readonly IStreamingProgressTracker _progressTracker;
-        private readonly CancellationToken _cancellationToken;
 
         private readonly object _value;
         private readonly string _stringValue;
@@ -36,14 +37,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public FindLiteralsSearchEngine(
             Solution solution,
-            IStreamingFindLiteralReferencesProgress progress, object value,
-            CancellationToken cancellationToken)
+            IStreamingFindLiteralReferencesProgress progress, object value)
         {
             _solution = solution;
             _progress = progress;
             _progressTracker = progress.ProgressTracker;
             _value = value;
-            _cancellationToken = cancellationToken;
 
             switch (value)
             {
@@ -59,10 +58,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     _longValue = BitConverter.DoubleToInt64Bits(f);
                     _searchKind = SearchKind.NumericLiterals;
                     break;
-                case decimal d: // unsupported
+                case decimal _: // unsupported
                     _searchKind = SearchKind.None;
                     break;
-                case char c:
+                case char _:
                     _longValue = IntegerUtilities.ToInt64(value);
                     _searchKind = SearchKind.CharacterLiterals;
                     break;
@@ -73,89 +72,91 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public async Task FindReferencesAsync()
+        public async Task FindReferencesAsync(CancellationToken cancellationToken)
         {
-            await using var _ = await _progressTracker.AddSingleItemAsync().ConfigureAwait(false);
+            var disposable = await _progressTracker.AddSingleItemAsync(cancellationToken).ConfigureAwait(false);
+            await using var _ = disposable.ConfigureAwait(false);
 
             if (_searchKind != SearchKind.None)
             {
-                await FindReferencesWorkerAsync().ConfigureAwait(false);
+                await FindReferencesWorkerAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task FindReferencesWorkerAsync()
+        private async Task FindReferencesWorkerAsync(CancellationToken cancellationToken)
         {
             var count = _solution.Projects.SelectMany(p => p.DocumentIds).Count();
-            await _progressTracker.AddItemsAsync(count).ConfigureAwait(false);
+            await _progressTracker.AddItemsAsync(count, cancellationToken).ConfigureAwait(false);
 
             foreach (var project in _solution.Projects)
             {
-                _cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var documentTasks = new List<Task>();
-                foreach (var document in project.Documents)
+                foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    documentTasks.Add(ProcessDocumentAsync(document));
+                    documentTasks.Add(ProcessDocumentAsync(document, cancellationToken));
                 }
 
                 await Task.WhenAll(documentTasks).ConfigureAwait(false);
             }
         }
 
-        private async Task ProcessDocumentAsync(Document document)
+        private async Task ProcessDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             try
             {
-                await ProcessDocumentWorkerAsync(document).ConfigureAwait(false);
+                await ProcessDocumentWorkerAsync(document, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
-                await _progressTracker.ItemCompletedAsync().ConfigureAwait(false);
+                await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task ProcessDocumentWorkerAsync(Document document)
+        private async Task ProcessDocumentWorkerAsync(Document document, CancellationToken cancellationToken)
         {
             var index = await SyntaxTreeIndex.GetIndexAsync(
-                document, _cancellationToken).ConfigureAwait(false);
+                document, cancellationToken).ConfigureAwait(false);
 
             if (_searchKind == SearchKind.StringLiterals)
             {
                 if (index.ProbablyContainsStringValue(_stringValue))
                 {
-                    await SearchDocumentAsync(document).ConfigureAwait(false);
+                    await SearchDocumentAsync(document, cancellationToken).ConfigureAwait(false);
                 }
             }
             else if (index.ProbablyContainsInt64Value(_longValue))
             {
-                await SearchDocumentAsync(document).ConfigureAwait(false);
+                await SearchDocumentAsync(document, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task SearchDocumentAsync(Document document)
+        private async Task SearchDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var root = await document.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var matches = ArrayBuilder<SyntaxToken>.GetInstance();
-            ProcessNode(syntaxFacts, root, matches);
+            ProcessNode(syntaxFacts, root, matches, cancellationToken);
 
             foreach (var token in matches)
             {
-                await _progress.OnReferenceFoundAsync(document, token.Span).ConfigureAwait(false);
+                await _progress.OnReferenceFoundAsync(document, token.Span, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private void ProcessNode(
-            ISyntaxFactsService syntaxFacts, SyntaxNode node, ArrayBuilder<SyntaxToken> matches)
+            ISyntaxFactsService syntaxFacts, SyntaxNode node,
+            ArrayBuilder<SyntaxToken> matches, CancellationToken cancellationToken)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
             foreach (var child in node.ChildNodesAndTokens())
             {
                 if (child.IsNode)
                 {
-                    ProcessNode(syntaxFacts, child.AsNode(), matches);
+                    ProcessNode(syntaxFacts, child.AsNode(), matches, cancellationToken);
                 }
                 else
                 {

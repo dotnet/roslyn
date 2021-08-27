@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionHelpers;
 using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
@@ -58,48 +59,54 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             Document document, Diagnostic diagnostic,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var ifStatement = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement, cancellationToken)!;
 
             if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
                     syntaxFacts, ifOperation,
+                    out var trueStatement, out var falseStatement,
                     out var trueAssignment, out var falseAssignment))
             {
                 return;
             }
 
             var conditionalExpression = await CreateConditionalExpressionAsync(
-                document, ifOperation, trueAssignment.Parent, falseAssignment.Parent,
-                trueAssignment.Value, falseAssignment.Value,
-                trueAssignment.IsRef, cancellationToken).ConfigureAwait(false);
+                document, ifOperation,
+                trueStatement, falseStatement,
+                trueAssignment?.Value ?? trueStatement,
+                falseAssignment?.Value ?? falseStatement,
+                trueAssignment?.IsRef == true, cancellationToken).ConfigureAwait(false);
 
             // See if we're assigning to a variable declared directly above the if statement. If so,
             // try to inline the conditional directly into the initializer for that variable.
-            if (!TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
+            if (TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
                     syntaxFacts, editor, ifOperation,
                     trueAssignment, falseAssignment, conditionalExpression))
             {
-                // If not, just replace the if-statement with a single assignment of the new
-                // conditional.
-                ConvertOnlyIfToConditionalExpression(
-                    editor, ifOperation, trueAssignment, conditionalExpression);
+                return;
+
             }
+
+            // If not, just replace the if-statement with a single assignment of the new
+            // conditional.
+            ConvertOnlyIfToConditionalExpression(
+                editor, ifOperation, (trueAssignment ?? falseAssignment)!, conditionalExpression);
         }
 
         private void ConvertOnlyIfToConditionalExpression(
             SyntaxEditor editor,
             IConditionalOperation ifOperation,
-            ISimpleAssignmentOperation trueAssignment,
+            ISimpleAssignmentOperation assignment,
             TExpressionSyntax conditionalExpression)
         {
             var generator = editor.Generator;
             var ifStatement = (TIfStatementSyntax)ifOperation.Syntax;
             var expressionStatement = (TStatementSyntax)generator.ExpressionStatement(
                 generator.AssignmentStatement(
-                    trueAssignment.Target.Syntax,
+                    assignment.Target.Syntax,
                     conditionalExpression)).WithTriviaFrom(ifStatement);
 
             editor.ReplaceNode(
@@ -109,7 +116,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         private bool TryConvertWhenAssignmentToLocalDeclaredImmediateAbove(
             ISyntaxFactsService syntaxFacts, SyntaxEditor editor, IConditionalOperation ifOperation,
-            ISimpleAssignmentOperation trueAssignment, ISimpleAssignmentOperation falseAssignment,
+            ISimpleAssignmentOperation? trueAssignment,
+            ISimpleAssignmentOperation? falseAssignment,
             TExpressionSyntax conditionalExpression)
         {
             if (!TryFindMatchingLocalDeclarationImmediatelyAbove(
@@ -139,22 +147,42 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         private bool TryFindMatchingLocalDeclarationImmediatelyAbove(
-            IConditionalOperation ifOperation, ISimpleAssignmentOperation trueAssignment, ISimpleAssignmentOperation falseAssignment,
-            out IVariableDeclarationGroupOperation localDeclaration, out IVariableDeclaratorOperation declarator)
+            IConditionalOperation ifOperation,
+            ISimpleAssignmentOperation? trueAssignment,
+            ISimpleAssignmentOperation? falseAssignment,
+            [NotNullWhen(true)] out IVariableDeclarationGroupOperation? localDeclaration,
+            [NotNullWhen(true)] out IVariableDeclaratorOperation? declarator)
         {
             localDeclaration = null;
             declarator = null;
 
-            // See if both assignments are to the same local.
-            if (!(trueAssignment.Target is ILocalReferenceOperation trueLocal) ||
-                !(falseAssignment.Target is ILocalReferenceOperation falseLocal) ||
-                !Equals(trueLocal.Local, falseLocal.Local))
+            ILocalSymbol? local = null;
+            if (trueAssignment != null)
             {
-                return false;
+                if (trueAssignment.Target is not ILocalReferenceOperation trueLocal)
+                    return false;
+
+                local = trueLocal.Local;
             }
 
+            if (falseAssignment != null)
+            {
+                if (falseAssignment.Target is not ILocalReferenceOperation falseLocal)
+                    return false;
+
+                // See if both assignments are to the same local.
+                if (local != null && !Equals(local, falseLocal.Local))
+                    return false;
+
+                local = falseLocal.Local;
+            }
+
+            // We weren't assigning to a local.
+            if (local == null)
+                return false;
+
             // If so, see if that local was declared immediately above the if-statement.
-            if (!(ifOperation.Parent is IBlockOperation parentBlock))
+            if (ifOperation.Parent is not IBlockOperation parentBlock)
             {
                 return false;
             }
@@ -190,7 +218,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             declarator = declarators[0];
             var variable = declarator.Symbol;
-            if (!Equals(variable, trueLocal.Local))
+            if (!Equals(variable, local))
             {
                 // wasn't a declaration of the local we're assigning to.
                 return false;
@@ -202,8 +230,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 var unwrapped = UnwrapImplicitConversion(variableInitializer.Value);
                 // the variable has to either not have an initializer, or it needs to be basic
                 // literal/default expression.
-                if (!(unwrapped is ILiteralOperation) &&
-                    !(unwrapped is IDefaultValueOperation))
+                if (unwrapped is not ILiteralOperation and
+                    not IDefaultValueOperation)
                 {
                     return false;
                 }

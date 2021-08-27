@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
@@ -43,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // Some projects like web projects give us just a filename; those aren't really useful (they're just filler) so we'll ignore them for purposes of tracking the path
             if (PathUtilities.IsAbsolute(filename))
             {
-                VisualStudioProject.IntermediateOutputFilePath = filename;
+                VisualStudioProject.CompilationOutputAssemblyFilePath = filename;
             }
 
             if (filename != null)

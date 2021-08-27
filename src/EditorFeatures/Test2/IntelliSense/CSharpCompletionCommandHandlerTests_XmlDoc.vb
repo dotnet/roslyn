@@ -669,7 +669,7 @@ class c
             Return InvokeWithKeywordCommitSeeLangword("await", showCompletionInArgumentLists)
         End Function
 
-        Private Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, showCompletionInArgumentLists As Boolean) As Task
+        Private Shared Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 class c
@@ -762,6 +762,25 @@ class c<T>
 
                 ' /// <param name="bar"$$
                 Await state.AssertLineTextAroundCaret("    /// <param name=""bar""", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CommitParam_Record(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+/// <param$$
+record R(int I);
+            ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""I""")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+
+                ' /// <param name="I"$$
+                Await state.AssertLineTextAroundCaret("/// <param name=""I""", "")
             End Using
         End Function
 
@@ -1231,6 +1250,55 @@ class c
                 ' Because the item contains a space, the completionImplementation list should still be present with the same selection
                 Await state.AssertCompletionSession()
                 Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+            End Using
+        End Function
+
+        <WorkItem(44472, "https://github.com/dotnet/roslyn/issues/44472")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function InvokeWithAliasAndImportedNamespace(showCompletionInArgumentLists As Boolean) As Task
+
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace First.NestedA
+{
+    public class MyClass
+    {
+    }
+}
+                        </Document>
+                        <Document>
+using First.NestedA;
+using MyClassLongDescription = First.NestedA.MyClass;
+
+namespace Second.NestedB
+{
+    class OtherClass
+    {
+        /// &lt;summary&gt;
+        /// This is from &lt;see cref="MyClassL$$"/&gt;
+        /// &lt;/summary&gt;
+        public void Method()
+        {
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="MyClassLongDescription")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+
+                Await state.AssertLineTextAroundCaret("        /// This is from <see cref=""MyClassLongDescription", """/>")
             End Using
         End Function
     End Class

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -288,6 +289,37 @@ class C
 </Workspace>
 
             Await TestStreamingFeature(test, host)
+        End Function
+
+        <WpfFact, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestInt32LiteralsUsedInSourceGeneratedDocument() As Task
+            Dim test =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+
+class C
+{
+    void M()
+    {
+        var i = [|$$0|];
+    }
+}
+        </Document>
+        <DocumentFromSourceGenerator>
+
+class D
+{
+    void M()
+    {
+        var i = [|0|];
+    }
+}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+
+            Await TestStreamingFeature(test, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
         End Function
     End Class
 End Namespace

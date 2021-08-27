@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         private static class DefaultDelegatePool<T>
             where T : class, new()
         {
-            public static readonly ObjectPool<T> Instance = new ObjectPool<T>(() => new T(), 20);
+            public static readonly ObjectPool<T> Instance = new(() => new T(), 20);
         }
 
         private static Releaser GetPooledDelegate<TPooled, TArg, TUnboundDelegate, TBoundDelegate>(TUnboundDelegate unboundDelegate, TArg argument, out TBoundDelegate boundDelegate)
@@ -313,6 +313,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// omitted, the object will not be returned to the pool. The behavior of this type if <see cref="Dispose"/> is
         /// called multiple times is undefined.</para>
         /// </remarks>
+        [NonCopyable]
         public struct Releaser : IDisposable
         {
             private readonly Poolable _pooledObject;
@@ -338,6 +339,9 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             protected AbstractDelegateWithBoundArgument()
             {
                 BoundDelegate = Bind();
+
+                UnboundDelegate = null!;
+                Argument = default!;
             }
 
             public TBoundDelegate BoundDelegate { get; }
@@ -353,8 +357,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
             public sealed override void ClearAndFree()
             {
-                Argument = default;
-                UnboundDelegate = null;
+                Argument = default!;
+                UnboundDelegate = null!;
                 DefaultDelegatePool<TSelf>.Instance.Free((TSelf)this);
             }
 
@@ -415,6 +419,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             protected override Func<T1, T2, T3, TResult> Bind()
                 => (arg1, arg2, arg3) => UnboundDelegate(arg1, arg2, arg3, Argument);
+        }
+
+        [AttributeUsage(AttributeTargets.Struct)]
+        private sealed class NonCopyableAttribute : Attribute
+        {
         }
     }
 }

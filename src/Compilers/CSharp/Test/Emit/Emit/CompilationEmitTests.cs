@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,6 +23,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -145,7 +149,7 @@ namespace N {
     }
 }
 
-namespace N.Goo;
+namespace N.;
 ");
 
             EmitResult emitResult;
@@ -157,22 +161,21 @@ namespace N.Goo;
             Assert.False(emitResult.Success);
 
             emitResult.Diagnostics.Verify(
-                // (13,16): error CS1514: { expected
-                // namespace N.Foo;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(13, 16),
-                // (13,17): error CS1513: } expected
-                // namespace N.Foo;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 17),
-                // (4,16): error CS0246: The type or namespace name 'Blah' could not be found (are you missing a using directive or an assembly reference?)
-                //         public Blah field;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Blah").WithArguments("Blah").WithLocation(4, 16),
-                // (8,13): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
-                //             ro = 4;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "ro").WithLocation(8, 13),
-                // (4,21): warning CS0649: Field 'X.field' is never assigned to, and will always have its default value null
-                //         public Blah field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("N.X.field", "null").WithLocation(4, 21)
-                );
+                    // (13,13): error CS1001: Identifier expected
+                    // namespace N.;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(13, 13),
+                    // (13,11): error CS8942: File-scoped namespace must precede all other members in a file.
+                    // namespace N.;
+                    Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "N.").WithLocation(13, 11),
+                    // (4,16): error CS0246: The type or namespace name 'Blah' could not be found (are you missing a using directive or an assembly reference?)
+                    //         public Blah field;
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Blah").WithArguments("Blah").WithLocation(4, 16),
+                    // (8,13): error CS0198: A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)
+                    //             ro = 4;
+                    Diagnostic(ErrorCode.ERR_AssgReadonlyStatic, "ro").WithLocation(8, 13),
+                    // (4,21): warning CS0649: Field 'X.field' is never assigned to, and will always have its default value null
+                    //         public Blah field;
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("N.X.field", "null").WithLocation(4, 21));
         }
 
         // Check that EmitMetadataOnly works
@@ -899,23 +902,23 @@ public class C
             string name = GetUniqueName();
             string source1 = sourceTemplate.Replace("CHANGE", change1);
             CSharpCompilation comp1 = CreateCompilation(Parse(source1), options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
-            ImmutableArray<byte> image1 = comp1.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
+            var image1 = comp1.EmitToStream(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
             var source2 = sourceTemplate.Replace("CHANGE", change2);
             Compilation comp2 = CreateCompilation(Parse(source2), options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
-            ImmutableArray<byte> image2 = comp2.EmitToArray(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
+            var image2 = comp2.EmitToStream(EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
 
             if (expectMatch)
             {
-                AssertEx.Equal(image1, image2, message: $"Expecting match for includePrivateMembers={includePrivateMembers} case, but differences were found.");
+                AssertEx.Equal(image1.GetBuffer(), image2.GetBuffer(), message: $"Expecting match for includePrivateMembers={includePrivateMembers} case, but differences were found.");
             }
             else
             {
-                AssertEx.NotEqual(image1, image2, message: $"Expecting difference for includePrivateMembers={includePrivateMembers} case, but they matched.");
+                AssertEx.NotEqual(image1.GetBuffer(), image2.GetBuffer(), message: $"Expecting difference for includePrivateMembers={includePrivateMembers} case, but they matched.");
             }
 
-            var mvid1 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image1.DangerousGetUnderlyingArray()));
-            var mvid2 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(new MemoryStream(image2.DangerousGetUnderlyingArray()));
+            var mvid1 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(image1);
+            var mvid2 = BuildTasks.MvidReader.ReadAssemblyMvidOrEmpty(image2);
 
             if (!includePrivateMembers)
             {
@@ -2413,12 +2416,12 @@ public class Class1 : CppCli.CppBase2, CppCli.CppInterface1
                 OutputKind.DynamicallyLinkedLibrary, GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             SynthesizedMetadataCompiler.ProcessSynthesizedMembers(libComp, module, default(CancellationToken));
 
-            var class1TypeDef = (Cci.ITypeDefinition)class1;
+            var class1TypeDef = (Cci.ITypeDefinition)class1.GetCciAdapter();
 
-            var symbolSynthesized = class1.GetSynthesizedExplicitImplementations(CancellationToken.None);
+            var symbolSynthesized = class1.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods;
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var cciExplicit = class1TypeDef.GetExplicitImplementationOverrides(context);
-            var cciMethods = class1TypeDef.GetMethods(context).Where(m => ((MethodSymbol)m).MethodKind != MethodKind.Constructor);
+            var cciMethods = class1TypeDef.GetMethods(context).Where(m => ((MethodSymbol)m.GetInternalSymbol()).MethodKind != MethodKind.Constructor);
 
             context.Diagnostics.Verify();
             var symbolsSynthesizedCount = symbolSynthesized.Length;
@@ -3152,7 +3155,7 @@ class C
             var compilation = CSharpCompilation.Create(
                 "v2Fx.exe",
                 new[] { Parse(source) },
-                new[] { TestReferences.NetFx.v2_0_50727.mscorlib });
+                new[] { Net20.mscorlib });
 
             //EDMAURER this is built with a 2.0 mscorlib. The runtimeMetadataVersion should be the same as the runtimeMetadataVersion stored in the assembly
             //that contains System.Object.
@@ -3210,7 +3213,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X86));
+                options: TestOptions.DebugDll.WithPlatform(Platform.X86));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -3244,7 +3247,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.X64));
+                options: TestOptions.DebugDll.WithPlatform(Platform.X64));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -3294,7 +3297,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithPlatform(Platform.Arm));
+                options: TestOptions.DebugDll.WithPlatform(Platform.Arm));
 
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
@@ -3425,7 +3428,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilation(source, options: new CSharpCompilationOptions(OutputKind.WindowsRuntimeApplication));
+            var compilation = CreateCompilation(source, options: TestOptions.CreateTestOptions(OutputKind.WindowsRuntimeApplication, OptimizationLevel.Debug));
             var peHeaders = new PEHeaders(compilation.EmitToStream());
 
             //interesting COFF bits
@@ -5098,10 +5101,10 @@ class C4
                 var expectedNames = new[]
                     {
                         "<Module>",
-                        "<>A{00000004}`3",
-                        "<>A{00000018}`5",
-                        "<>F{00000004}`5",
-                        "<>F{00000008}`5",
+                        "<>A{00000010}`3",
+                        "<>A{00000140}`5",
+                        "<>F{00000010}`5",
+                        "<>F{00000040}`5",
                         "C1",
                         "C2",
                         "C3",
@@ -5169,7 +5172,7 @@ public class X
 
         [Fact]
         [WorkItem(9308, "https://github.com/dotnet/roslyn/issues/9308")]
-        public void FailingEmitterAllowsCancelationExceptionsThrough()
+        public void FailingEmitterAllowsCancellationExceptionsThrough()
         {
             string source = @"
 public class X
@@ -5243,7 +5246,7 @@ public class DerivingClass<T> : BaseClass<T>
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void WarnAsErrorDoesNotEmit_GeneralDiagnosticOption()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            var options = TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
             TestWarnAsErrorDoesNotEmitCore(options);
         }
 
@@ -5251,7 +5254,7 @@ public class DerivingClass<T> : BaseClass<T>
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void WarnAsErrorDoesNotEmit_SpecificDiagnosticOption()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions("CS0169", ReportDiagnostic.Error);
+            var options = TestOptions.DebugDll.WithSpecificDiagnosticOptions("CS0169", ReportDiagnostic.Error);
             TestWarnAsErrorDoesNotEmitCore(options);
         }
 
@@ -5288,7 +5291,7 @@ class X
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void WarnAsErrorWithMetadataOnlyImageDoesEmit_GeneralDiagnosticOption()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, generalDiagnosticOption: ReportDiagnostic.Error);
+            var options = TestOptions.DebugDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
             TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(options);
         }
 
@@ -5296,7 +5299,7 @@ class X
         [WorkItem(37779, "https://github.com/dotnet/roslyn/issues/37779")]
         public void WarnAsErrorWithMetadataOnlyImageDoesEmit_SpecificDiagnosticOptions()
         {
-            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithSpecificDiagnosticOptions("CS0612", ReportDiagnostic.Error);
+            var options = TestOptions.DebugDll.WithSpecificDiagnosticOptions("CS0612", ReportDiagnostic.Error);
             TestWarnAsErrorWithMetadataOnlyImageDoesEmitCore(options);
         }
 

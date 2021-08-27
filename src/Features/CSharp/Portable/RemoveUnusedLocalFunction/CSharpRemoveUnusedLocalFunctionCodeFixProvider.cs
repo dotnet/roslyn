@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -11,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
 
             foreach (var localFunction in localFunctions)
             {
-                editor.RemoveNode(localFunction);
+                editor.RemoveNode(localFunction.IsParentKind(SyntaxKind.GlobalStatement) ? localFunction.Parent : localFunction);
             }
 
             return Task.CompletedTask;

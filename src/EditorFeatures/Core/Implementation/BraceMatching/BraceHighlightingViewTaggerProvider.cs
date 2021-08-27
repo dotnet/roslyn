@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -37,19 +39,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
         public BraceHighlightingViewTaggerProvider(
             IThreadingContext threadingContext,
             IBraceMatchingService braceMatcherService,
-            IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting), notificationService)
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.BraceHighlighting))
         {
             _braceMatcherService = braceMatcherService;
         }
 
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnParseOptionChanged(subjectBuffer, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnTextChanged(subjectBuffer),
+                TaggerEventSources.OnCaretPositionChanged(textView, subjectBuffer),
+                TaggerEventSources.OnParseOptionChanged(subjectBuffer));
         }
 
         protected override Task ProduceTagsAsync(TaggerContext<BraceHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             return (leftOfPosition: null, rightOfPosition);
         }
 
-        private void AddBraces(
+        private static void AddBraces(
             TaggerContext<BraceHighlightTag> context,
             ITextSnapshot snapshot,
             BraceMatchingResult? braces)

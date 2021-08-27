@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -11,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -44,6 +43,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             _scope.RegisterSyntaxTreeAction(_analyzer, action);
+        }
+
+        public override void RegisterAdditionalFileAction(Action<AdditionalFileAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterAdditionalFileAction(_analyzer, action);
         }
 
         public override void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action)
@@ -146,6 +151,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterSyntaxTreeAction(_analyzer, action);
         }
 
+        public override void RegisterAdditionalFileAction(Action<AdditionalFileAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterAdditionalFileAction(_analyzer, action);
+        }
+
         public override void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
@@ -200,10 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 
-        // Issue with enforcing nullability attributes in OHI https://github.com/dotnet/roslyn/issues/42169
-#pragma warning disable CS8765 // Type of parameter doesn't match overridden member because of nullability attributes.
-        internal override bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNull] [NotNullWhen(true)] out TValue value)
-#pragma warning restore CS8765
+        internal override bool TryGetValueCore<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
         {
             var compilationAnalysisValueProvider = _compilationAnalysisValueProviderFactory.GetValueProvider(valueProvider);
             return compilationAnalysisValueProvider.TryGetValue(key, out value);
@@ -348,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal sealed class HostSessionStartAnalysisScope : HostAnalysisScope
     {
         private ImmutableHashSet<DiagnosticAnalyzer> _concurrentAnalyzers = ImmutableHashSet<DiagnosticAnalyzer>.Empty;
-        private ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _generatedCodeConfigurationMap = new ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
+        private readonly ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags> _generatedCodeConfigurationMap = new ConcurrentDictionary<DiagnosticAnalyzer, GeneratedCodeAnalysisFlags>();
 
         public bool IsConcurrentAnalyzer(DiagnosticAnalyzer analyzer)
         {
@@ -510,6 +518,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.GetOrCreateAnalyzerActions(analyzer).Value.AddSyntaxTreeAction(analyzerAction);
         }
 
+        public void RegisterAdditionalFileAction(DiagnosticAnalyzer analyzer, Action<AdditionalFileAnalysisContext> action)
+        {
+            var analyzerAction = new AdditionalFileAnalyzerAction(action, analyzer);
+            this.GetOrCreateAnalyzerActions(analyzer).Value.AddAdditionalFileAction(analyzerAction);
+        }
+
         public void RegisterSymbolAction(DiagnosticAnalyzer analyzer, Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds)
         {
             SymbolAnalyzerAction analyzerAction = new SymbolAnalyzerAction(action, symbolKinds, analyzer);
@@ -644,6 +658,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<CompilationAnalyzerAction> _compilationEndActions;
         private ImmutableArray<CompilationAnalyzerAction> _compilationActions;
         private ImmutableArray<SyntaxTreeAnalyzerAction> _syntaxTreeActions;
+        private ImmutableArray<AdditionalFileAnalyzerAction> _additionalFileActions;
         private ImmutableArray<SemanticModelAnalyzerAction> _semanticModelActions;
         private ImmutableArray<SymbolAnalyzerAction> _symbolActions;
         private ImmutableArray<SymbolStartAnalyzerAction> _symbolStartActions;
@@ -664,6 +679,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilationEndActions = ImmutableArray<CompilationAnalyzerAction>.Empty;
             _compilationActions = ImmutableArray<CompilationAnalyzerAction>.Empty;
             _syntaxTreeActions = ImmutableArray<SyntaxTreeAnalyzerAction>.Empty;
+            _additionalFileActions = ImmutableArray<AdditionalFileAnalyzerAction>.Empty;
             _semanticModelActions = ImmutableArray<SemanticModelAnalyzerAction>.Empty;
             _symbolActions = ImmutableArray<SymbolAnalyzerAction>.Empty;
             _symbolStartActions = ImmutableArray<SymbolStartAnalyzerAction>.Empty;
@@ -686,6 +702,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<CompilationAnalyzerAction> compilationEndActions,
             ImmutableArray<CompilationAnalyzerAction> compilationActions,
             ImmutableArray<SyntaxTreeAnalyzerAction> syntaxTreeActions,
+            ImmutableArray<AdditionalFileAnalyzerAction> additionalFileActions,
             ImmutableArray<SemanticModelAnalyzerAction> semanticModelActions,
             ImmutableArray<SymbolAnalyzerAction> symbolActions,
             ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
@@ -705,6 +722,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilationEndActions = compilationEndActions;
             _compilationActions = compilationActions;
             _syntaxTreeActions = syntaxTreeActions;
+            _additionalFileActions = additionalFileActions;
             _semanticModelActions = semanticModelActions;
             _symbolActions = symbolActions;
             _symbolStartActions = symbolStartActions;
@@ -725,6 +743,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public readonly int CompilationEndActionsCount { get { return _compilationEndActions.Length; } }
         public readonly int CompilationActionsCount { get { return _compilationActions.Length; } }
         public readonly int SyntaxTreeActionsCount { get { return _syntaxTreeActions.Length; } }
+        public readonly int AdditionalFileActionsCount { get { return _additionalFileActions.Length; } }
         public readonly int SemanticModelActionsCount { get { return _semanticModelActions.Length; } }
         public readonly int SymbolActionsCount { get { return _symbolActions.Length; } }
         public readonly int SymbolStartActionsCount { get { return _symbolStartActions.Length; } }
@@ -759,6 +778,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal readonly ImmutableArray<SyntaxTreeAnalyzerAction> SyntaxTreeActions
         {
             get { return _syntaxTreeActions; }
+        }
+
+        internal readonly ImmutableArray<AdditionalFileAnalyzerAction> AdditionalFileActions
+        {
+            get { return _additionalFileActions; }
         }
 
         internal readonly ImmutableArray<SemanticModelAnalyzerAction> SemanticModelActions
@@ -799,6 +823,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal readonly ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
         {
             return _syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
+        }
+
+        internal readonly ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>(DiagnosticAnalyzer analyzer) where TLanguageKindEnum : struct
+        {
+            var builder = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
+            foreach (var action in _syntaxNodeActions)
+            {
+                if (action.Analyzer == analyzer &&
+                    action is SyntaxNodeAnalyzerAction<TLanguageKindEnum> syntaxNodeAction)
+                {
+                    builder.Add(syntaxNodeAction);
+                }
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         internal readonly ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions
@@ -842,6 +881,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void AddSyntaxTreeAction(SyntaxTreeAnalyzerAction action)
         {
             _syntaxTreeActions = _syntaxTreeActions.Add(action);
+            IsEmpty = false;
+        }
+
+        internal void AddAdditionalFileAction(AdditionalFileAnalyzerAction action)
+        {
+            _additionalFileActions = _additionalFileActions.Add(action);
             IsEmpty = false;
         }
 
@@ -938,6 +983,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             actions._compilationEndActions = _compilationEndActions.AddRange(otherActions._compilationEndActions);
             actions._compilationActions = _compilationActions.AddRange(otherActions._compilationActions);
             actions._syntaxTreeActions = _syntaxTreeActions.AddRange(otherActions._syntaxTreeActions);
+            actions._additionalFileActions = _additionalFileActions.AddRange(otherActions._additionalFileActions);
             actions._semanticModelActions = _semanticModelActions.AddRange(otherActions._semanticModelActions);
             actions._symbolActions = _symbolActions.AddRange(otherActions._symbolActions);
             actions._symbolStartActions = appendSymbolStartAndSymbolEndActions ? _symbolStartActions.AddRange(otherActions._symbolStartActions) : _symbolStartActions;

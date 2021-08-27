@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    Friend Partial Class VisualBasicIntroduceVariableService
+    Partial Friend Class VisualBasicIntroduceVariableService
         Protected Overrides Async Function IntroduceFieldAsync(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         End Function
 
-        Private Function MakeFieldModifiers(expressions As IEnumerable(Of ExpressionSyntax),
+        Private Shared Function MakeFieldModifiers(expressions As IEnumerable(Of ExpressionSyntax),
                                             isConstant As Boolean,
                                             inScript As Boolean,
                                             inModule As Boolean) As SyntaxTokenList

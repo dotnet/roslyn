@@ -3,20 +3,25 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentHoverName)]
-    internal class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover>
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(Methods.TextDocumentHoverName)]
+    internal class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -24,10 +29,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<Hover> HandleRequestAsync(Solution solution, TextDocumentPositionParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public override string Method => Methods.TextDocumentHoverName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+
+        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = context.Document;
             if (document == null)
             {
                 return null;
@@ -35,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var quickInfoService = document.Project.LanguageServices.GetService<QuickInfoService>();
+            var quickInfoService = document.Project.LanguageServices.GetRequiredService<QuickInfoService>();
             var info = await quickInfoService.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (info == null)
             {
@@ -43,35 +54,73 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return new Hover
+            return await GetHoverAsync(info, text, document.Project.Language, document, context.ClientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static async Task<Hover?> GetHoverAsync(
+            SemanticModel semanticModel,
+            int position,
+            HostLanguageServices languageServices,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(semanticModel.Language == LanguageNames.CSharp || semanticModel.Language == LanguageNames.VisualBasic);
+
+            // Get the quick info service to compute quick info.
+            // This code path is only invoked for C# and VB, so we can directly cast to QuickInfoServiceWithProviders.
+            var quickInfoService = (QuickInfoServiceWithProviders)languageServices.GetRequiredService<QuickInfoService>();
+            var info = await quickInfoService.GetQuickInfoAsync(languageServices.WorkspaceServices.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+            if (info == null)
             {
-                Range = ProtocolConversions.TextSpanToRange(info.Span, text),
-                Contents = new MarkupContent
-                {
-                    Kind = MarkupKind.Markdown,
-                    Value = GetMarkdownString(info)
-                }
-            };
+                return null;
+            }
 
-            // local functions
-            // TODO - This should return correctly formatted markdown from quick info.
-            // https://github.com/dotnet/roslyn/projects/45#card-20033878
-            static string GetMarkdownString(QuickInfoItem info)
+            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return await GetHoverAsync(info, text, semanticModel.Language, document: null, clientCapabilities: null, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<Hover> GetHoverAsync(
+            QuickInfoItem info,
+            SourceText text,
+            string language,
+            Document? document,
+            ClientCapabilities? clientCapabilities,
+            CancellationToken cancellationToken)
+        {
+            var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
+
+            if (supportsVSExtensions)
             {
-                var stringBuilder = new StringBuilder();
-                var description = info.Sections.FirstOrDefault(s => QuickInfoSectionKinds.Description.Equals(s.Kind))?.Text ?? string.Empty;
-                var documentation = info.Sections.FirstOrDefault(s => QuickInfoSectionKinds.DocumentationComments.Equals(s.Kind))?.Text ?? string.Empty;
-
-                if (!string.IsNullOrEmpty(description))
+                var context = document != null
+                    ? new IntellisenseQuickInfoBuilderContext(document, threadingContext: null, streamingPresenter: null)
+                    : null;
+                return new VSInternalHover
                 {
-                    stringBuilder.Append(description);
-                    if (!string.IsNullOrEmpty(documentation))
-                    {
-                        stringBuilder.Append("\r\n> ").Append(documentation);
-                    }
-                }
+                    Range = ProtocolConversions.TextSpanToRange(info.Span, text),
+                    Contents = new SumType<SumType<string, MarkedString>, SumType<string, MarkedString>[], MarkupContent>(string.Empty),
+                    // Build the classified text without navigation actions - they are not serializable.
+                    // TODO - Switch to markup content once it supports classifications.
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138
+                    RawContent = await IntellisenseQuickInfoBuilder.BuildContentWithoutNavigationActionsAsync(info, context, cancellationToken).ConfigureAwait(false)
+                };
+            }
+            else
+            {
+                return new Hover
+                {
+                    Range = ProtocolConversions.TextSpanToRange(info.Span, text),
+                    Contents = GetContents(info, language, clientCapabilities),
+                };
+            }
 
-                return stringBuilder.ToString();
+            // Local functions.
+            static MarkupContent GetContents(QuickInfoItem info, string language, ClientCapabilities? clientCapabilities)
+            {
+                var clientSupportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat.Contains(MarkupKind.Markdown) == true;
+                // Insert line breaks in between sections to ensure we get double spacing between sections.
+                var tags = info.Sections
+                    .SelectMany(section => section.TaggedParts.Add(new TaggedText(TextTags.LineBreak, Environment.NewLine)))
+                    .ToImmutableArray();
+                return ProtocolConversions.GetDocumentationMarkupContent(tags, language, clientSupportsMarkdown);
             }
         }
     }

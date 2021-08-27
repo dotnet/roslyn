@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -12,7 +14,7 @@ using Microsoft.CodeAnalysis.RuntimeMembers;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// Contains methods related to synthesizing bound nodes in initial binding 
+    /// Contains methods related to synthesizing bound nodes in initial binding
     /// form that needs lowering, primarily method bodies for compiler-generated methods.
     /// </summary>
     internal static class MethodBodySynthesizer
@@ -25,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Script field initializers have to be emitted after the call to the base constructor because they can refer to "this" instance.
             //
-            // Unlike regular field initializers, initializers of global script variables can access "this" instance. 
-            // If the base class had a constructor that initializes its state a global variable would access partially initialized object. 
+            // Unlike regular field initializers, initializers of global script variables can access "this" instance.
+            // If the base class had a constructor that initializes its state a global variable would access partially initialized object.
             // For this reason Script class must always derive directly from a class that has no state (System.Object).
 
             SyntaxNode syntax = loweredBody.Syntax;
@@ -49,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expanded: false,
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: ImmutableArray<int>.Empty,
+                        defaultArguments: BitVector.Empty,
                         resultKind: LookupResultKind.Viable,
-                        binderOpt: null,
                         type: objectType)
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = true };
@@ -172,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(accessor.MethodKind == MethodKind.PropertyGet || accessor.MethodKind == MethodKind.PropertySet);
 
-            var property = (SourcePropertySymbol)accessor.AssociatedSymbol;
+            var property = (SourcePropertySymbolBase)accessor.AssociatedSymbol;
             CSharpSyntaxNode syntax = property.CSharpSyntaxNode;
             BoundExpression thisReference = null;
             if (!accessor.IsStatic)
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generate an accessor for a field-like event.
         /// </summary>
-        internal static BoundBlock ConstructFieldLikeEventAccessorBody(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        internal static BoundBlock ConstructFieldLikeEventAccessorBody(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(eventSymbol.HasAssociatedField);
             return eventSymbol.IsWindowsRuntimeEvent
@@ -219,14 +221,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Generate a thread-safe accessor for a WinRT field-like event.
-        /// 
+        ///
         /// Add:
         ///   return EventRegistrationTokenTable&lt;Event&gt;.GetOrCreateEventRegistrationTokenTable(ref _tokenTable).AddEventHandler(value);
-        /// 
+        ///
         /// Remove:
         ///   EventRegistrationTokenTable&lt;Event&gt;.GetOrCreateEventRegistrationTokenTable(ref _tokenTable).RemoveEventHandler(value);
         /// </summary>
-        internal static BoundBlock ConstructFieldLikeEventAccessorBody_WinRT(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        internal static BoundBlock ConstructFieldLikeEventAccessorBody_WinRT(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             CSharpSyntaxNode syntax = eventSymbol.CSharpSyntaxNode;
 
@@ -247,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)getOrCreateMethod == null)
             {
-                Debug.Assert(diagnostics.HasAnyErrors());
+                Debug.Assert(diagnostics.DiagnosticBag is null || diagnostics.HasAnyErrors());
                 return null;
             }
 
@@ -265,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)processHandlerMethod == null)
             {
-                Debug.Assert(diagnostics.HasAnyErrors());
+                Debug.Assert(diagnostics.DiagnosticBag is null || diagnostics.HasAnyErrors());
                 return null;
             }
 
@@ -302,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // {
                 //     return EventRegistrationTokenTable<Event>.GetOrCreateEventRegistrationTokenTable(ref _tokenTable).AddHandler(value);
-                // }   
+                // }
                 BoundStatement returnStatement = BoundReturnStatement.Synthesized(syntax, RefKind.None, processHandlerCall);
                 return BoundBlock.SynthesizedNoLocals(syntax, returnStatement);
             }
@@ -311,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // {
                 //     EventRegistrationTokenTable<Event>.GetOrCreateEventRegistrationTokenTable(ref _tokenTable).RemoveHandler(value);
                 //     return;
-                // }  
+                // }
                 BoundStatement callStatement = new BoundExpressionStatement(syntax, processHandlerCall);
                 BoundStatement returnStatement = new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null);
                 return BoundBlock.SynthesizedNoLocals(syntax, callStatement, returnStatement);
@@ -320,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Generate a thread-safe accessor for a regular field-like event.
-        /// 
+        ///
         /// DelegateType tmp0 = _event; //backing field
         /// DelegateType tmp1;
         /// DelegateType tmp2;
@@ -329,14 +331,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///     tmp2 = (DelegateType)Delegate.Combine(tmp1, value); //Remove for -=
         ///     tmp0 = Interlocked.CompareExchange&lt;DelegateType&gt;(ref _event, tmp2, tmp1);
         /// } while ((object)tmp0 != (object)tmp1);
-        /// 
+        ///
         /// Note, if System.Threading.Interlocked.CompareExchange&lt;T&gt; is not available,
         /// we emit the following code and mark the method Synchronized (unless it is a struct).
-        /// 
+        ///
         /// _event = (DelegateType)Delegate.Combine(_event, value); //Remove for -=
-        /// 
+        ///
         /// </summary>
-        internal static BoundBlock ConstructFieldLikeEventAccessorBody_Regular(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        internal static BoundBlock ConstructFieldLikeEventAccessorBody_Regular(SourceEventSymbol eventSymbol, bool isAddMethod, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             CSharpSyntaxNode syntax = eventSymbol.CSharpSyntaxNode;
 
@@ -365,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BoundBlock.SynthesizedNoLocals(syntax, @return);
             }
 
-            Binder.ReportUseSiteDiagnostics(updateMethod, diagnostics, syntax);
+            Binder.ReportUseSite(updateMethod, diagnostics, syntax);
 
             BoundThisReference fieldReceiver = eventSymbol.IsStatic ?
                 null :
@@ -413,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             compareExchangeMethod = compareExchangeMethod.Construct(ImmutableArray.Create<TypeSymbol>(delegateType));
 
-            Binder.ReportUseSiteDiagnostics(compareExchangeMethod, diagnostics, syntax);
+            Binder.ReportUseSite(compareExchangeMethod, diagnostics, syntax);
 
             GeneratedLabelSymbol loopLabel = new GeneratedLabelSymbol("loop");
 
@@ -491,6 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 right: boundTmps[1],
                 constantValueOpt: null,
                 methodOpt: null,
+                constrainedToTypeOpt: null,
                 resultKind: LookupResultKind.Viable,
                 type: boolType)
             { WasCompilerGenerated = true };
@@ -522,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.MethodKind == MethodKind.Destructor);
             Debug.Assert(syntax.Kind() == SyntaxKind.Block || syntax.Kind() == SyntaxKind.ArrowExpressionClause);
 
-            // If this is a destructor and a base type has a Finalize method (see GetBaseTypeFinalizeMethod for exact 
+            // If this is a destructor and a base type has a Finalize method (see GetBaseTypeFinalizeMethod for exact
             // requirements), then we need to call that method in a finally block.  Otherwise, just return block as-is.
             // NOTE: the Finalize method need not be a destructor or be overridden by the current method.
             MethodSymbol baseTypeFinalize = GetBaseTypeFinalizeMethod(method);
@@ -572,11 +575,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Look for a base type method named "Finalize" that is protected (or protected internal), has no parameters, 
+        /// Look for a base type method named "Finalize" that is protected (or protected internal), has no parameters,
         /// and returns void.  It doesn't need to be virtual or a destructor.
         /// </summary>
         /// <remarks>
-        /// You may assume that this would share code and logic with PEMethodSymbol.OverridesRuntimeFinalizer, 
+        /// You may assume that this would share code and logic with PEMethodSymbol.OverridesRuntimeFinalizer,
         /// but FUNCBRECCS::bindDestructor has its own loop that performs these checks (differently).
         /// </remarks>
         private static MethodSymbol GetBaseTypeFinalizeMethod(MethodSymbol method)

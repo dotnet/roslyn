@@ -2,8 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -780,98 +780,139 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation1() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation1(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-                    Dim a = 1 + _
-                            2 + _
+                    Dim a = 1 + {continuation}
+                            2 + {continuation}
                             3
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim a = 1 + _
-                2 + _
+        Dim a = 1 + {continuation}
+                2 + {continuation}
                 3
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation2() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation2(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-                    Dim aa = 1 + _
-                             2 + _
+                    Dim aa = 1 + {continuation}
+                             2 + {continuation}
                              3
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim aa = 1 + _
-                 2 + _
+        Dim aa = 1 + {continuation}
+                 2 + {continuation}
                  3
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation3() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation3(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-                    Dim aa = 1 + _
-    2 + _
+                    Dim aa = 1 + {continuation}
+    2 + {continuation}
     3
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim aa = 1 + _
-2 + _
+        Dim aa = 1 + {continuation}
+2 + {continuation}
 3
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation4() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation4(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-                    Dim aa = 1 + _
-            _
-                                          _
-                                     _
-    _
-            _
-    2 + _
+                    Dim aa = 1 + {continuation}
+            {continuation}
+                                          {continuation}
+                                     {continuation}
+    {continuation}
+            {continuation}
+    2 + {continuation}
     3
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim aa = 1 + _
- _
- _
- _
- _
- _
-2 + _
+        Dim aa = 1 + {continuation}
+ {continuation}
+ {continuation}
+ {continuation}
+ {continuation}
+ {continuation}
+2 + {continuation}
 3
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
+        End Function
+
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation5(continuation As String) As Task
+            Dim code = $"Class C
+    Sub Method(Optional ByVal i As Integer = 1)
+        Dim aa = 1 + {continuation}
+            {continuation}
+                                          {continuation}
+                                     {continuation}
+    {continuation}
+            {continuation}
+    2 + {continuation}
+    3
+    End Sub
+End Class"
+
+            Dim expected = $"Class C
+    Sub Method(Optional ByVal i As Integer = 1)
+        Dim aa = 1 + {continuation}
+ {continuation}
+ {continuation}
+ {continuation}
+ {continuation}
+ {continuation}
+    2 + {continuation}
+    3
+    End Sub
+End Class"
+
+            Await AssertFormatAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
@@ -1029,27 +1070,29 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function Trivia3() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function Trivia3(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-Dim a =             _
-                _
-                        _
+Dim a =             {continuation}
+                {continuation}
+                        {continuation}
         1
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim a = _
- _
- _
+        Dim a = {continuation}
+ {continuation}
+ {continuation}
                 1
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
         <WorkItem(538354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")>
@@ -1706,11 +1749,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1734,11 +1777,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1762,11 +1805,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1792,11 +1835,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1822,11 +1865,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1849,11 +1892,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1875,11 +1918,11 @@ End Class</Code>
                 "    End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), False},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, False},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1901,11 +1944,11 @@ End Class</Code>
                 "  End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), False},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 2}
+                {FormattingOptions2.UseTabs, False},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 2}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1927,11 +1970,11 @@ End Class</Code>
                 "      End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), False},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 6}
+                {FormattingOptions2.UseTabs, False},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 6}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1953,11 +1996,11 @@ End Class</Code>
                 "  End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 3},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 2}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 3},
+                {FormattingOptions2.IndentationSize, 2}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -2025,9 +2068,9 @@ End Class</Code>
 	End Sub
 End Class</Code>
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True}
+                {FormattingOptions2.UseTabs, True}
             }
 
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value, optionSet)

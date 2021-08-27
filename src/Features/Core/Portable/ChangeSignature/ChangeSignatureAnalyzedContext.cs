@@ -4,29 +4,35 @@
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
-    internal sealed class ChangeSignatureAnalyzedContext
+    internal abstract class ChangeSignatureAnalyzedContext
     {
-        public readonly bool CanChangeSignature;
-        public readonly Project Project;
+    }
+
+    internal sealed class ChangeSignatureAnalysisSucceededContext : ChangeSignatureAnalyzedContext
+    {
+        public readonly Document Document;
         public readonly ISymbol Symbol;
-        public readonly CannotChangeSignatureReason CannotChangeSignatureReason;
         public readonly ParameterConfiguration ParameterConfiguration;
+        public readonly int PositionForTypeBinding;
 
-        public Solution Solution => Project.Solution;
+        public Solution Solution => Document.Project.Solution;
 
-        public ChangeSignatureAnalyzedContext(
-            Project project, ISymbol symbol, ParameterConfiguration parameterConfiguration)
+        public ChangeSignatureAnalysisSucceededContext(
+            Document document, int positionForTypeBinding, ISymbol symbol, ParameterConfiguration parameterConfiguration)
         {
-            CanChangeSignature = true;
-            Project = project;
+            Document = document;
             Symbol = symbol;
             ParameterConfiguration = parameterConfiguration;
-            CannotChangeSignatureReason = CannotChangeSignatureReason.None;
+            PositionForTypeBinding = positionForTypeBinding;
         }
+    }
 
-        public ChangeSignatureAnalyzedContext(CannotChangeSignatureReason reason)
+    internal sealed class CannotChangeSignatureAnalyzedContext : ChangeSignatureAnalyzedContext
+    {
+        public readonly ChangeSignatureFailureKind CannotChangeSignatureReason;
+
+        public CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind reason)
         {
-            CanChangeSignature = false;
             CannotChangeSignatureReason = reason;
         }
     }

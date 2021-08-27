@@ -20,29 +20,30 @@ namespace Microsoft.CodeAnalysis
     internal partial class Checksum
     {
         private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
-            new ObjectPool<IncrementalHash>(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
+            new(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA256), size: 20);
 
-        public static Checksum Create(string val)
+        public static Checksum Create(IEnumerable<string> values)
         {
             using var pooledHash = s_incrementalHashPool.GetPooledObject();
             using var pooledBuffer = SharedPools.ByteArray.GetPooledObject();
             var hash = pooledHash.Object;
 
-            var stringBytes = MemoryMarshal.AsBytes(val.AsSpan());
-            Debug.Assert(stringBytes.Length == val.Length * 2);
-            var buffer = pooledBuffer.Object;
-
-            var index = 0;
-            while (index < stringBytes.Length)
+            foreach (var value in values)
             {
-                var remaining = stringBytes.Length - index;
-                var toCopy = Math.Min(remaining, buffer.Length);
-
-                stringBytes.Slice(index, toCopy).CopyTo(buffer);
-                hash.AppendData(buffer, 0, toCopy);
-
-                index += toCopy;
+                AppendData(hash, pooledBuffer.Object, value);
+                AppendData(hash, pooledBuffer.Object, "\0");
             }
+
+            return From(hash.GetHashAndReset());
+        }
+
+        public static Checksum Create(string value)
+        {
+            using var pooledHash = s_incrementalHashPool.GetPooledObject();
+            using var pooledBuffer = SharedPools.ByteArray.GetPooledObject();
+            var hash = pooledHash.Object;
+
+            AppendData(hash, pooledBuffer.Object, value);
 
             return From(hash.GetHashAndReset());
         }
@@ -82,13 +83,12 @@ namespace Microsoft.CodeAnalysis
             return From(bytes);
         }
 
-        public static Checksum Create(WellKnownSynchronizationKind kind, IObjectWritable @object)
+        public static Checksum Create(IObjectWritable @object)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
             using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
             {
-                objectWriter.WriteInt32((int)kind);
                 @object.WriteTo(objectWriter);
             }
 
@@ -96,54 +96,106 @@ namespace Microsoft.CodeAnalysis
             return Create(stream);
         }
 
-        public static Checksum Create(WellKnownSynchronizationKind kind, IEnumerable<Checksum> checksums)
+        public static Checksum Create(Checksum checksum1, Checksum checksum2)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                writer.WriteInt32((int)kind);
+                checksum1.WriteTo(writer);
+                checksum2.WriteTo(writer);
+            }
 
+            stream.Position = 0;
+            return Create(stream);
+        }
+
+        public static Checksum Create(Checksum checksum1, Checksum checksum2, Checksum checksum3)
+        {
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                checksum1.WriteTo(writer);
+                checksum2.WriteTo(writer);
+                checksum3.WriteTo(writer);
+            }
+
+            stream.Position = 0;
+            return Create(stream);
+        }
+
+        public static Checksum Create(IEnumerable<Checksum> checksums)
+        {
+            using var stream = SerializableBytes.CreateWritableStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
                 foreach (var checksum in checksums)
-                {
                     checksum.WriteTo(writer);
-                }
             }
 
             stream.Position = 0;
             return Create(stream);
         }
 
-        public static Checksum Create(WellKnownSynchronizationKind kind, ImmutableArray<byte> bytes)
+        public static Checksum Create(ImmutableArray<byte> bytes)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                writer.WriteInt32((int)kind);
-
                 for (var i = 0; i < bytes.Length; i++)
-                {
                     writer.WriteByte(bytes[i]);
-                }
             }
 
             stream.Position = 0;
             return Create(stream);
         }
 
-        public static Checksum Create<T>(WellKnownSynchronizationKind kind, T value, ISerializerService serializer)
+        public static Checksum Create<T>(T value, ISerializerService serializer)
+        {
+            using var stream = SerializableBytes.CreateWritableStream();
+            using var context = SolutionReplicationContext.Create();
+
+            using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
+            {
+                serializer.Serialize(value!, objectWriter, context, CancellationToken.None);
+            }
+
+            stream.Position = 0;
+            return Create(stream);
+        }
+
+        public static Checksum Create(ParseOptions value, ISerializerService serializer)
         {
             using var stream = SerializableBytes.CreateWritableStream();
 
             using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
             {
-                objectWriter.WriteInt32((int)kind);
-                serializer.Serialize(value, objectWriter, CancellationToken.None);
+                serializer.SerializeParseOptions(value, objectWriter);
             }
 
             stream.Position = 0;
             return Create(stream);
+        }
+
+        private static void AppendData(IncrementalHash hash, byte[] buffer, string value)
+        {
+            var stringBytes = MemoryMarshal.AsBytes(value.AsSpan());
+            Debug.Assert(stringBytes.Length == value.Length * 2);
+
+            var index = 0;
+            while (index < stringBytes.Length)
+            {
+                var remaining = stringBytes.Length - index;
+                var toCopy = Math.Min(remaining, buffer.Length);
+
+                stringBytes.Slice(index, toCopy).CopyTo(buffer);
+                hash.AppendData(buffer, 0, toCopy);
+
+                index += toCopy;
+            }
         }
     }
 }

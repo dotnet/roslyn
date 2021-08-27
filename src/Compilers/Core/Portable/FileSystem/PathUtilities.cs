@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +23,7 @@ namespace Roslyn.Utilities
         internal const char AltDirectorySeparatorChar = '/';
         internal const string ParentRelativeDirectory = "..";
         internal const string ThisDirectory = ".";
-        internal static readonly string DirectorySeparatorStr = new string(DirectorySeparatorChar, 1);
+        internal static readonly string DirectorySeparatorStr = new(DirectorySeparatorChar, 1);
         internal const char VolumeSeparatorChar = ':';
         internal static bool IsUnixLikePlatform => PlatformInformation.IsUnix;
 
@@ -91,6 +89,11 @@ namespace Roslyn.Utilities
         }
 
         public static string GetExtension(string path)
+        {
+            return FileNameUtilities.GetExtension(path);
+        }
+
+        public static ReadOnlyMemory<char> GetExtension(ReadOnlyMemory<char> path)
         {
             return FileNameUtilities.GetExtension(path);
         }
@@ -400,13 +403,13 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Combine two paths, the first of which may be absolute.
         /// </summary>
-        /// <param name="rootOpt">First path: absolute, relative, or null.</param>
+        /// <param name="root">First path: absolute, relative, or null.</param>
         /// <param name="relativePath">Second path: relative and non-null.</param>
-        /// <returns>null, if <paramref name="rootOpt"/> is null; a combined path, otherwise.</returns>
+        /// <returns>null, if <paramref name="root"/> is null; a combined path, otherwise.</returns>
         /// <seealso cref="CombineAbsoluteAndRelativePaths"/>
-        public static string? CombinePossiblyRelativeAndRelativePaths(string? rootOpt, string? relativePath)
+        public static string? CombinePossiblyRelativeAndRelativePaths(string? root, string? relativePath)
         {
-            if (RoslynString.IsNullOrEmpty(rootOpt))
+            if (RoslynString.IsNullOrEmpty(root))
             {
                 return null;
             }
@@ -414,7 +417,7 @@ namespace Roslyn.Utilities
             switch (GetPathKind(relativePath))
             {
                 case PathKind.Empty:
-                    return rootOpt;
+                    return root;
 
                 case PathKind.Absolute:
                 case PathKind.RelativeToCurrentRoot:
@@ -422,7 +425,7 @@ namespace Roslyn.Utilities
                     return null;
             }
 
-            return CombinePathsUnchecked(rootOpt, relativePath);
+            return CombinePathsUnchecked(root, relativePath);
         }
 
         public static string CombinePathsUnchecked(string root, string? relativePath)
@@ -436,6 +439,34 @@ namespace Roslyn.Utilities
             }
 
             return root + relativePath;
+        }
+
+        /// <summary>
+        /// Combines paths with the same semantics as <see cref="Path.Combine(string, string)"/>
+        /// but does not throw on null paths or paths with invalid characters.
+        /// </summary>
+        /// <param name="root">First path: absolute, relative, or null.</param>
+        /// <param name="path">Second path: absolute, relative, or null.</param>
+        /// <returns>
+        /// The combined paths. If <paramref name="path"/> contains an absolute path, returns <paramref name="path"/>.
+        /// </returns>
+        /// <remarks>
+        /// Relative and absolute paths treated the same as <see cref="Path.Combine(string, string)"/>.
+        /// </remarks>
+        [return: NotNullIfNotNull("path")]
+        public static string? CombinePaths(string? root, string? path)
+        {
+            if (RoslynString.IsNullOrEmpty(root))
+            {
+                return path;
+            }
+
+            if (RoslynString.IsNullOrEmpty(path))
+            {
+                return root;
+            }
+
+            return IsAbsolute(path) ? path : CombinePathsUnchecked(root, path);
         }
 
         private static string RemoveTrailingDirectorySeparator(string path)
@@ -476,7 +507,7 @@ namespace Roslyn.Utilities
         /// not have "goo" as a component. That's because here "goo" is the server name portion
         /// of the UNC path, and not an actual directory or file name.
         /// </summary>
-        public static bool ContainsPathComponent(string path, string component, bool ignoreCase)
+        public static bool ContainsPathComponent(string? path, string component, bool ignoreCase)
         {
             var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
             if (path?.IndexOf(component, comparison) >= 0)
@@ -507,6 +538,9 @@ namespace Roslyn.Utilities
         public static string GetRelativePath(string directory, string fullPath)
         {
             string relativePath = string.Empty;
+
+            directory = TrimTrailingSeparators(directory);
+            fullPath = TrimTrailingSeparators(fullPath);
 
             if (IsChildPath(directory, fullPath))
             {
@@ -732,6 +766,10 @@ namespace Roslyn.Utilities
         /// If the current environment uses the '\' directory separator, replaces all uses of '\'
         /// in the given string with '/'. Otherwise, returns the string.
         /// </summary>
+        /// <remarks>
+        /// This method is equivalent to Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig.NormalizeWithForwardSlash
+        /// Both methods should be kept in sync.
+        /// </remarks>
         public static string NormalizeWithForwardSlash(string p)
             => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
 

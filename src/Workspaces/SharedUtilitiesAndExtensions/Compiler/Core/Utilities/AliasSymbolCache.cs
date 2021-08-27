@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,11 +16,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         // NOTE : I chose to cache on compilation assuming this cache will be quite small. usually number of times alias is used is quite small.
         //        but if that turns out not true, we can move this cache to be based on semantic model. unlike compilation that would be cached
         //        in compilation cache in certain host (VS), semantic model comes and goes more frequently which will release cache more often.
-        private static readonly ConditionalWeakTable<Compilation, TreeMap> s_treeAliasMap = new ConditionalWeakTable<Compilation, TreeMap>();
+        private static readonly ConditionalWeakTable<Compilation, TreeMap> s_treeAliasMap = new();
         private static readonly ConditionalWeakTable<Compilation, TreeMap>.CreateValueCallback s_createTreeMap = c => new TreeMap();
-        private static readonly Func<ISymbol, string> s_symbolToName = s => s.Name;
 
-        public static bool TryGetAliasSymbol(SemanticModel semanticModel, int namespaceId, INamespaceOrTypeSymbol targetSymbol, out IAliasSymbol aliasSymbol)
+        public static bool TryGetAliasSymbol(SemanticModel semanticModel, int namespaceId, INamespaceOrTypeSymbol targetSymbol, out IAliasSymbol? aliasSymbol)
         {
             // TODO: given semantic model must be not speculative semantic model for now. 
             // currently it can't be checked since it is not exposed to common layer yet.

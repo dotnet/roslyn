@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
@@ -18,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal static class GoToDefinitionHelpers
     {
-        public static ImmutableArray<DefinitionItem> GetDefinitions(
+        public static async Task<ImmutableArray<DefinitionItem>> GetDefinitionsAsync(
             ISymbol symbol,
-            Project project,
+            Solution solution,
             bool thirdPartyNavigationAllowed,
             CancellationToken cancellationToken)
         {
@@ -36,19 +40,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // VB global import aliases have a synthesized SyntaxTree.
             // We can't go to the definition of the alias, so use the target type.
 
-            var solution = project.Solution;
             if (alias != null)
             {
                 var sourceLocations = NavigableItemFactory.GetPreferredSourceLocations(
                     solution, symbol, cancellationToken);
 
-                if (sourceLocations.All(l => project.Solution.GetDocument(l.SourceTree) == null))
+                if (sourceLocations.All(l => solution.GetDocument(l.SourceTree) == null))
                 {
                     symbol = alias.Target;
                 }
             }
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).WaitAndGetResult(cancellationToken);
+            var definition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             symbol = definition ?? symbol;
@@ -73,21 +76,24 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             //
             // Passing along the classified information is valuable for OOP scenarios where we want
             // all that expensive computation done on the OOP side and not in the VS side.
-            // 
+            //
             // However, Go To Definition is all in-process, and is also synchronous.  So we do not
-            // want to fetch the classifications here.  It slows down the command and leads to a 
+            // want to fetch the classifications here.  It slows down the command and leads to a
             // measurable delay in our perf tests.
-            // 
+            //
             // So, if we only have a single location to go to, this does no unnecessary work.  And,
             // if we do have multiple locations to show, it will just be done in the BG, unblocking
             // this command thread so it can return the user faster.
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
 
             if (thirdPartyNavigationAllowed)
             {
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, definitionItem, cancellationToken);
-                definitions.AddIfNotNull(thirdPartyItem);
+                if (factory != null)
+                {
+                    var thirdPartyItem = await factory.GetThirdPartyDefinitionItemAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                    definitions.AddIfNotNull(thirdPartyItem);
+                }
             }
 
             definitions.Add(definitionItem);
@@ -96,34 +102,23 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public static bool TryGoToDefinition(
             ISymbol symbol,
-            Project project,
+            Solution solution,
+            IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter,
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {
-            var definitions = GetDefinitions(symbol, project, thirdPartyNavigationAllowed, cancellationToken);
-
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
-        }
+            return threadingContext.JoinableTaskFactory.Run(
+                async () =>
+                {
+                    var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
 
-        public static bool TryGoToDefinition(
-            ImmutableArray<DefinitionItem> definitions,
-            Project project,
-            string title,
-            IStreamingFindUsagesPresenter streamingPresenter,
-            CancellationToken cancellationToken)
-        {
-            if (definitions.IsDefaultOrEmpty)
-            {
-                return false;
-            }
-
-            return streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
+                    return await streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                        threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
+                });
         }
     }
 }

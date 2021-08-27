@@ -132,4 +132,16 @@
   <data name="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code" xml:space="preserve">
     <value>Warning: Adding parameters to local function declaration may produce invalid code.</value>
   </data>
+  <data name="Convert_typeof_to_nameof" xml:space="preserve">
+    <value>Convert 'typeof' to 'nameof'</value>
+  </data>
+  <data name="Place_statement_on_following_line" xml:space="preserve">
+    <value>Place statement on following line</value>
+  </data>
+  <data name="Remove_blank_lines_between_braces" xml:space="preserve">
+    <value>Remove blank line between braces</value>
+  </data>
+  <data name="Place_colon_on_following_line" xml:space="preserve">
+    <value>Place colon on following line</value>
+  </data>
 </root>

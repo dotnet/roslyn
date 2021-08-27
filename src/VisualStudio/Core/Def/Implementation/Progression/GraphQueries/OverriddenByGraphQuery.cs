@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,15 +21,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                var symbol = graphBuilder.GetSymbolAndProjectId(node);
-                if (symbol.Symbol != null)
+                var symbol = graphBuilder.GetSymbol(node, cancellationToken);
+                if (symbol != null)
                 {
-                    var overriddenMember = symbol.Symbol.OverriddenMember();
+                    var overriddenMember = symbol.GetOverriddenMember();
                     if (overriddenMember != null)
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(
-                            symbol.WithSymbol(overriddenMember), relatedNode: node).ConfigureAwait(false);
-                        graphBuilder.AddLink(node, RoslynGraphCategories.Overrides, symbolNode);
+                            overriddenMember, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                        graphBuilder.AddLink(node, RoslynGraphCategories.Overrides, symbolNode, cancellationToken);
                     }
                 }
             }

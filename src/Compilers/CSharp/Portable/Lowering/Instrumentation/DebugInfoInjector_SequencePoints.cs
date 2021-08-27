@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class DebugInfoInjector
     {
-        private BoundStatement AddSequencePoint(BoundStatement node)
+        private static BoundStatement AddSequencePoint(BoundStatement node)
         {
             return new BoundSequencePoint(node.Syntax, node);
         }

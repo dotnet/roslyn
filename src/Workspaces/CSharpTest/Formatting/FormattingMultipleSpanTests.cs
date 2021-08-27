@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -125,9 +125,9 @@ class A { }";
     System.Console.WriteLine();
     }
 }";
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.IndentBlock, false }
+                { CSharpFormattingOptions2.IndentBlock, false }
             };
             await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
@@ -152,9 +152,9 @@ class A { }";
         System.Console.WriteLine();
     }
 }";
-            var changingOptions = new Dictionary<OptionKey, object>
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { CSharpFormattingOptions.WrappingPreserveSingleLine, false }
+                { CSharpFormattingOptions2.WrappingPreserveSingleLine, false }
             };
             await AssertFormatAsync(code, expected, changedOptionSet: changingOptions);
         }
@@ -172,14 +172,14 @@ class A { }";
             var result = Formatter.Format(await syntaxTree.GetRootAsync(), TextSpan.FromBounds(0, 0), workspace, cancellationToken: CancellationToken.None);
         }
 
-        private Task AssertFormatAsync(string content, string expected, Dictionary<OptionKey, object> changedOptionSet = null)
+        private Task AssertFormatAsync(string content, string expected, OptionsCollection changedOptionSet = null)
         {
             var tuple = PreprocessMarkers(content);
 
             return AssertFormatAsync(expected, tuple.Item1, tuple.Item2, changedOptionSet: changedOptionSet);
         }
 
-        private Tuple<string, List<TextSpan>> PreprocessMarkers(string codeWithMarker)
+        private static Tuple<string, List<TextSpan>> PreprocessMarkers(string codeWithMarker)
         {
             var currentIndex = 0;
             var spans = new List<TextSpan>();

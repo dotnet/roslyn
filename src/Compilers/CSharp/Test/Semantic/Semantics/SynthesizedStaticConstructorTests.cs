@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -265,6 +267,24 @@ class C
             Assert.True(IsBeforeFieldInit(typeSymbol));
         }
 
+        [WorkItem(543606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543606")]
+        [Fact]
+        public void StaticConstructorNullInitializer()
+        {
+            var source = @"
+#nullable enable
+class C
+{
+    static string s1 = null!;
+}";
+
+            var typeSymbol = CompileAndExtractTypeSymbol(source);
+
+            // Although we do not emit the synthesized static constructor, the source type symbol will still appear to have one
+            Assert.True(HasSynthesizedStaticConstructor(typeSymbol));
+            Assert.True(IsBeforeFieldInit(typeSymbol));
+        }
+
         private static SourceNamedTypeSymbol CompileAndExtractTypeSymbol(string source)
         {
             var compilation = CreateCompilation(source);
@@ -286,7 +306,7 @@ class C
 
         private static bool IsBeforeFieldInit(NamedTypeSymbol typeSymbol)
         {
-            return ((Microsoft.Cci.ITypeDefinition)typeSymbol).IsBeforeFieldInit;
+            return ((Microsoft.Cci.ITypeDefinition)typeSymbol.GetCciAdapter()).IsBeforeFieldInit;
         }
     }
 }

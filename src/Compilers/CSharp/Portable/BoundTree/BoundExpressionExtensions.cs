@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -48,9 +46,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == BoundKind.DefaultLiteral;
         }
 
-        public static bool IsLiteralNullOrDefault(this BoundExpression node)
+        public static bool IsImplicitObjectCreation(this BoundExpression node)
         {
-            return node.IsLiteralNull() || node.IsLiteralDefault();
+            return node.Kind == BoundKind.UnconvertedObjectCreationExpression;
+        }
+
+        public static bool IsLiteralDefaultOrImplicitObjectCreation(this BoundExpression node)
+        {
+            return node.IsLiteralDefault() || node.IsImplicitObjectCreation();
         }
 
         // returns true when expression has no side-effects and produces

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private readonly ImmutableList<AbstractFormattingRule> _rules;
 
 #if CODE_STYLE
-        public static readonly CSharpSyntaxFormattingService Instance = new CSharpSyntaxFormattingService();
+        public static readonly CSharpSyntaxFormattingService Instance = new();
 
 #else
         [ImportingConstructor]
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public override IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules()
             => _rules;
 
-        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> formattingSpans = null)
+        protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null)
             => new AggregatedFormattingResult(node, results, formattingSpans);
 
         protected override AbstractFormattingResult Format(SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)

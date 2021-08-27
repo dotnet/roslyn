@@ -23,7 +23,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag
             SyntaxFacts.GetText(SyntaxKind.MustInheritKeyword),
             SyntaxFacts.GetText(SyntaxKind.NotOverridableKeyword),
             SyntaxFacts.GetText(SyntaxKind.AsyncKeyword),
-            SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)
+            SyntaxFacts.GetText(SyntaxKind.AwaitKeyword),
+            SyntaxFacts.GetText(SyntaxKind.MyBaseKeyword),
+            SyntaxFacts.GetText(SyntaxKind.MyClassKeyword)
             }
 
         <ImportingConstructor>

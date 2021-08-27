@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -58,8 +56,8 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         {
             var diagnostic = context.Diagnostics.First();
             var properties = diagnostic.Properties;
-            var missingCases = bool.Parse(properties[PopulateSwitchStatementHelpers.MissingCases]);
-            var missingDefaultCase = bool.Parse(properties[PopulateSwitchStatementHelpers.MissingDefaultCase]);
+            var missingCases = bool.Parse(properties[PopulateSwitchStatementHelpers.MissingCases]!);
+            var missingDefaultCase = bool.Parse(properties[PopulateSwitchStatementHelpers.MissingDefaultCase]!);
 
             Debug.Assert(missingCases || missingDefaultCase);
 
@@ -137,15 +135,15 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             bool addCases, bool addDefaultCase, bool onlyOneDiagnostic,
             CancellationToken cancellationToken)
         {
-            var hasMissingCases = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingCases]);
-            var hasMissingDefaultCase = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingDefaultCase]);
+            var hasMissingCases = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingCases]!);
+            var hasMissingDefaultCase = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingDefaultCase]!);
 
             var switchLocation = diagnostic.AdditionalLocations[0];
             var switchNode = switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken) as TSwitchSyntax;
             if (switchNode == null)
                 return;
 
-            var model = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             // https://github.com/dotnet/roslyn/issues/40505
             var switchStatement = (TSwitchOperation)model.GetOperation(switchNode, cancellationToken)!;
 
@@ -222,7 +220,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

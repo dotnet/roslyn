@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -90,18 +92,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             try
             {
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                return Do(tree, position, cancellationToken);
+                return GetProximityExpressions(tree, position, cancellationToken);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return null;
             }
         }
 
-        // Internal for testing purposes
-        internal static IList<string> Do(SyntaxTree syntaxTree, int position)
-            => Do(syntaxTree, position, CancellationToken.None);
+        public static IList<string> GetProximityExpressions(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            => new Worker(syntaxTree, position).Do(cancellationToken);
 
+        [Obsolete($"Use {nameof(GetProximityExpressions)}.")]
         private static IList<string> Do(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
             => new Worker(syntaxTree, position).Do(cancellationToken);
 

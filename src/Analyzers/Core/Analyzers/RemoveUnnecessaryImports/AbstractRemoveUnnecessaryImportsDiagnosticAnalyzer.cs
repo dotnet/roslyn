@@ -2,16 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CodeActions;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -30,12 +34,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         // The NotConfigurable custom tag ensures that user can't turn this diagnostic into a warning / error via
         // ruleset editor or solution explorer. Setting messageFormat to empty string ensures that we won't display
         // this diagnostic in the preview pane header.
+#pragma warning disable RS0030 // Do not used banned APIs - We cannot use AbstractBuiltInCodeStyleDiagnosticAnalyzer nor AbstractCodeQualityDiagnosticAnalyzer.
+        // This analyzer is run against generated code while the abstract base classes mentioned doesn't.
         private static readonly DiagnosticDescriptor s_fixableIdDescriptor =
-            new DiagnosticDescriptor(DiagnosticFixableId,
+            new(DiagnosticFixableId,
                                      title: "", messageFormat: "", category: "",
                                      defaultSeverity: DiagnosticSeverity.Hidden,
                                      isEnabledByDefault: true,
-                                     customTags: WellKnownDiagnosticTags.NotConfigurable);
+                                     customTags: DiagnosticCustomTags.NotConfigurable);
+#pragma warning restore RS0030 // Do not used banned APIs
 
         protected abstract LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor();
         protected abstract ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports);
@@ -53,6 +60,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             {
                 var titleAndMessageFormat = GetTitleAndMessageFormatForClassificationIdDescriptor();
 
+#pragma warning disable RS0030 // Do not used banned APIs
                 _unnecessaryClassificationIdDescriptor =
                     new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
                                              titleAndMessageFormat,
@@ -60,7 +68,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true,
-                                             customTags: DiagnosticCustomTags.Unnecessary);
+                                             helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
+                                             customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.RemoveUnnecessaryImports.ToCustomTag()).ToArray());
 
                 _classificationIdDescriptor =
                     new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
@@ -68,7 +77,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              titleAndMessageFormat,
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
-                                             isEnabledByDefault: true);
+                                             isEnabledByDefault: true,
+                                             helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
+                                             customTags: EnforceOnBuildValues.RemoveUnnecessaryImports.ToCustomTag());
 
                 _unnecessaryGeneratedCodeClassificationIdDescriptor =
                     new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen",
@@ -77,7 +88,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true,
-                                             customTags: new[] { WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable });
+                                             helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
+                                             customTags: DiagnosticCustomTags.UnnecessaryAndNotConfigurable);
 
                 _generatedCodeClassificationIdDescriptor =
                     new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen",
@@ -86,7 +98,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true,
-                                             customTags: new[] { WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable });
+                                             helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId),
+                                             customTags: DiagnosticCustomTags.NotConfigurable);
+#pragma warning restore RS0030 // Do not used banned APIs
             }
         }
 
@@ -104,6 +118,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             }
         }
 
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
         public bool OpenFileOnly(OptionSet options) => false;
 
         public override void Initialize(AnalysisContext context)
@@ -165,7 +180,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             => null;
 
         // Create one diagnostic for each unnecessary span that will be classified as Unnecessary
-        private IEnumerable<Diagnostic> CreateClassificationDiagnostics(
+        private static IEnumerable<Diagnostic> CreateClassificationDiagnostics(
             IEnumerable<TextSpan> contiguousSpans, SyntaxTree tree,
             DiagnosticDescriptor descriptor, CancellationToken cancellationToken)
         {

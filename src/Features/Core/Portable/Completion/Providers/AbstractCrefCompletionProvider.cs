@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    abstract class AbstractCrefCompletionProvider : LSPCompletionProvider
+    internal abstract class AbstractCrefCompletionProvider : LSPCompletionProvider
     {
         protected const string HideAdvancedMembers = nameof(HideAdvancedMembers);
 

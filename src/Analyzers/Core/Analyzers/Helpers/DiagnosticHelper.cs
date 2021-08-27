@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
@@ -69,11 +72,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="additionalLocations">
         /// An optional set of additional locations related to the diagnostic.
         /// Typically, these are locations of other items referenced in the message.
-        /// If null, <see cref="Diagnostic.AdditionalLocations"/> will return an empty list.
+        /// These locations are joined with <paramref name="additionalUnnecessaryLocations"/> to produce the value for
+        /// <see cref="Diagnostic.AdditionalLocations"/>.
         /// </param>
-        /// <param name="tagIndices">
-        /// a map of location tag to index in additional locations.
-        /// "AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer" for an example of usage.
+        /// <param name="additionalUnnecessaryLocations">
+        /// An optional set of additional locations indicating unnecessary code related to the diagnostic.
+        /// These locations are joined with <paramref name="additionalLocations"/> to produce the value for
+        /// <see cref="Diagnostic.AdditionalLocations"/>.
         /// </param>
         /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
         /// <returns>The <see cref="Diagnostic"/> instance.</returns>
@@ -81,14 +86,110 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticDescriptor descriptor,
             Location location,
             ReportDiagnostic effectiveSeverity,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableArray<Location> additionalUnnecessaryLocations,
+            params object[] messageArgs)
+        {
+            if (additionalUnnecessaryLocations.IsEmpty)
+            {
+                return Create(descriptor, location, effectiveSeverity, additionalLocations, ImmutableDictionary<string, string>.Empty, messageArgs);
+            }
+
+            var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
+                .Add(WellKnownDiagnosticTags.Unnecessary, Enumerable.Range(additionalLocations.Length, additionalUnnecessaryLocations.Length));
+            return CreateWithLocationTags(
+                descriptor,
+                location,
+                effectiveSeverity,
+                additionalLocations.AddRange(additionalUnnecessaryLocations),
+                tagIndices,
+                ImmutableDictionary<string, string>.Empty,
+                messageArgs);
+        }
+
+        /// <summary>
+        /// Create a diagnostic that adds properties specifying a tag for a set of locations.
+        /// </summary>
+        /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
+        /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
+        /// <param name="effectiveSeverity">Effective severity of the diagnostic.</param>
+        /// <param name="additionalLocations">
+        /// An optional set of additional locations related to the diagnostic.
+        /// Typically, these are locations of other items referenced in the message.
+        /// These locations are joined with <paramref name="additionalUnnecessaryLocations"/> to produce the value for
+        /// <see cref="Diagnostic.AdditionalLocations"/>.
+        /// </param>
+        /// <param name="additionalUnnecessaryLocations">
+        /// An optional set of additional locations indicating unnecessary code related to the diagnostic.
+        /// These locations are joined with <paramref name="additionalLocations"/> to produce the value for
+        /// <see cref="Diagnostic.AdditionalLocations"/>.
+        /// </param>
+        /// <param name="properties">
+        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
+        /// can convey more detailed information to the fixer.
+        /// </param>
+        /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
+        /// <returns>The <see cref="Diagnostic"/> instance.</returns>
+        public static Diagnostic CreateWithLocationTags(
+            DiagnosticDescriptor descriptor,
+            Location location,
+            ReportDiagnostic effectiveSeverity,
+            ImmutableArray<Location> additionalLocations,
+            ImmutableArray<Location> additionalUnnecessaryLocations,
+            ImmutableDictionary<string, string> properties,
+            params object[] messageArgs)
+        {
+            if (additionalUnnecessaryLocations.IsEmpty)
+            {
+                return Create(descriptor, location, effectiveSeverity, additionalLocations, ImmutableDictionary<string, string>.Empty, messageArgs);
+            }
+
+            var tagIndices = ImmutableDictionary<string, IEnumerable<int>>.Empty
+                .Add(WellKnownDiagnosticTags.Unnecessary, Enumerable.Range(additionalLocations.Length, additionalUnnecessaryLocations.Length));
+            return CreateWithLocationTags(
+                descriptor,
+                location,
+                effectiveSeverity,
+                additionalLocations.AddRange(additionalUnnecessaryLocations),
+                tagIndices,
+                properties,
+                messageArgs);
+        }
+
+        /// <summary>
+        /// Create a diagnostic that adds properties specifying a tag for a set of locations.
+        /// </summary>
+        /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
+        /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
+        /// <param name="effectiveSeverity">Effective severity of the diagnostic.</param>
+        /// <param name="additionalLocations">
+        /// An optional set of additional locations related to the diagnostic.
+        /// Typically, these are locations of other items referenced in the message.
+        /// </param>
+        /// <param name="tagIndices">
+        /// a map of location tag to index in additional locations.
+        /// "AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer" for an example of usage.
+        /// </param>
+        /// <param name="properties">
+        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
+        /// can convey more detailed information to the fixer.
+        /// </param>
+        /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
+        /// <returns>The <see cref="Diagnostic"/> instance.</returns>
+        private static Diagnostic CreateWithLocationTags(
+            DiagnosticDescriptor descriptor,
+            Location location,
+            ReportDiagnostic effectiveSeverity,
             IEnumerable<Location> additionalLocations,
             IDictionary<string, IEnumerable<int>> tagIndices,
+            ImmutableDictionary<string, string> properties,
             params object[] messageArgs)
         {
             Contract.ThrowIfTrue(additionalLocations.IsEmpty());
             Contract.ThrowIfTrue(tagIndices.IsEmpty());
 
-            var properties = tagIndices.Select(kvp => new KeyValuePair<string, string>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))).ToImmutableDictionary();
+            properties ??= ImmutableDictionary<string, string>.Empty;
+            properties = properties.AddRange(tagIndices.Select(kvp => new KeyValuePair<string, string>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))));
 
             return Create(descriptor, location, effectiveSeverity, additionalLocations, properties, messageArgs);
 
@@ -154,6 +255,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 additionalLocations,
                 descriptor.CustomTags,
                 properties);
+        }
+
+        public static string GetHelpLinkForDiagnosticId(string id)
+        {
+            if (id == "RE0001")
+            {
+                // TODO: Add documentation for Regex analyzer
+                // Tracked with https://github.com/dotnet/roslyn/issues/48530
+                return null;
+            }
+
+            Debug.Assert(id.StartsWith("IDE", StringComparison.Ordinal));
+            return $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{id.ToLowerInvariant()}";
         }
 
         public sealed class LocalizableStringWithArguments : LocalizableString, IObjectWritable

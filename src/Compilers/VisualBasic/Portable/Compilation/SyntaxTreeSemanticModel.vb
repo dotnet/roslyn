@@ -271,9 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim binder As Binder = GetEnclosingBinder(node.SpanStart)
 
             If binder IsNot Nothing Then
-                Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
-                Dim bound As BoundExpression = binder.BindExpression(node, diagnostics)
-                diagnostics.Free()
+                Dim bound As BoundExpression = binder.BindExpression(node, BindingDiagnosticBag.Discarded)
 
                 Dim newSymbolInfo = GetSymbolInfoForNode(options, New BoundNodeSummary(bound, bound, Nothing), binderOpt:=Nothing)
 
@@ -456,24 +454,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function GetTypeOrNamespaceSymbolNotInMember(expression As TypeSyntax) As Symbol
-            Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
-            Try
-                ' Set up the binding context.
-                Dim binder As Binder = GetEnclosingBinder(expression.SpanStart)
+            ' Set up the binding context.
+            Dim binder As Binder = GetEnclosingBinder(expression.SpanStart)
 
-                ' Attempt to bind the type or namespace
-                Dim resultSymbol As Symbol
-                If SyntaxFacts.IsInTypeOnlyContext(expression) Then
-                    resultSymbol = binder.BindTypeOrAliasSyntax(expression, diagnostics)
-                Else
-                    resultSymbol = binder.BindNamespaceOrTypeOrAliasSyntax(expression, diagnostics)
-                End If
+            ' Attempt to bind the type or namespace
+            Dim resultSymbol As Symbol
+            If SyntaxFacts.IsInTypeOnlyContext(expression) Then
+                resultSymbol = binder.BindTypeOrAliasSyntax(expression, BindingDiagnosticBag.Discarded)
+            Else
+                resultSymbol = binder.BindNamespaceOrTypeOrAliasSyntax(expression, BindingDiagnosticBag.Discarded)
+            End If
 
-                ' Create the result.
-                Return resultSymbol
-            Finally
-                diagnostics.Free()
-            End Try
+            ' Create the result.
+            Return resultSymbol
         End Function
 
         ' Get the symbol info of reference from 'cref' or 'name' attribute value
@@ -608,10 +601,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim isTopLevel As Boolean
                 If node.Kind = SyntaxKind.CrefReference Then
                     isTopLevel = True
-                    symbols = docCommentBinder.BindInsideCrefAttributeValue(DirectCast(node, CrefReferenceSyntax), preserveAlias, Nothing, Nothing)
+                    symbols = docCommentBinder.BindInsideCrefAttributeValue(DirectCast(node, CrefReferenceSyntax), preserveAlias, Nothing, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                 Else
                     isTopLevel = node.Parent IsNot Nothing AndAlso node.Parent.Kind = SyntaxKind.CrefReference
-                    symbols = docCommentBinder.BindInsideCrefAttributeValue(DirectCast(node, TypeSyntax), preserveAlias, Nothing, Nothing)
+                    symbols = docCommentBinder.BindInsideCrefAttributeValue(DirectCast(node, TypeSyntax), preserveAlias, Nothing, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                 End If
 
                 If isTopLevel Then
@@ -640,7 +633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Return symbols
             Else
-                Return docCommentBinder.BindXmlNameAttributeValue(DirectCast(node, IdentifierNameSyntax), useSiteDiagnostics:=Nothing)
+                Return docCommentBinder.BindXmlNameAttributeValue(DirectCast(node, IdentifierNameSyntax), useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             End If
         End Function
 
@@ -707,60 +700,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetImplementedMemberAndResultKind(symbolBuilder As ArrayBuilder(Of Symbol), memberName As QualifiedNameSyntax) As LookupResultKind
             Debug.Assert(symbolBuilder.Count = 0)
 
-            Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
             Dim resultKind As LookupResultKind = LookupResultKind.Good
-            Try
 
-                ' Set up the binding context.
-                Dim binder As Binder = GetEnclosingBinder(memberName.SpanStart)
+            ' Set up the binding context.
+            Dim binder As Binder = GetEnclosingBinder(memberName.SpanStart)
 
-                ' Figure out the symbol this implements clause is on, and bind the syntax for it.
-                Dim implementingMemberSyntax = TryCast(memberName.Parent.Parent, MethodBaseSyntax)
-                If implementingMemberSyntax IsNot Nothing Then
-                    Dim implementingMember = GetDeclaredSymbol(implementingMemberSyntax)
+            ' Figure out the symbol this implements clause is on, and bind the syntax for it.
+            Dim implementingMemberSyntax = TryCast(memberName.Parent.Parent, MethodBaseSyntax)
+            If implementingMemberSyntax IsNot Nothing Then
+                Dim implementingMember = GetDeclaredSymbol(implementingMemberSyntax)
 
-                    If implementingMember IsNot Nothing Then
-                        Select Case implementingMember.Kind
-                            Case SymbolKind.Method
-                                ImplementsHelper.FindExplicitlyImplementedMember(Of MethodSymbol)(
-                                                        DirectCast(implementingMember, MethodSymbol),
-                                                        DirectCast(implementingMember, MethodSymbol).ContainingType,
-                                                        memberName,
-                                                        binder,
-                                                        diagnostics,
-                                                        symbolBuilder,
-                                                        resultKind)
+                If implementingMember IsNot Nothing Then
+                    Select Case implementingMember.Kind
+                        Case SymbolKind.Method
+                            ImplementsHelper.FindExplicitlyImplementedMember(Of MethodSymbol)(
+                                                    DirectCast(implementingMember, MethodSymbol),
+                                                    DirectCast(implementingMember, MethodSymbol).ContainingType,
+                                                    memberName,
+                                                    binder,
+                                                    BindingDiagnosticBag.Discarded,
+                                                    symbolBuilder,
+                                                    resultKind)
 
-                            Case SymbolKind.Property
-                                ImplementsHelper.FindExplicitlyImplementedMember(Of PropertySymbol)(
-                                                        DirectCast(implementingMember, PropertySymbol),
-                                                        DirectCast(implementingMember, PropertySymbol).ContainingType,
-                                                        memberName,
-                                                        binder,
-                                                        diagnostics,
-                                                        symbolBuilder,
-                                                        resultKind)
+                        Case SymbolKind.Property
+                            ImplementsHelper.FindExplicitlyImplementedMember(Of PropertySymbol)(
+                                                    DirectCast(implementingMember, PropertySymbol),
+                                                    DirectCast(implementingMember, PropertySymbol).ContainingType,
+                                                    memberName,
+                                                    binder,
+                                                    BindingDiagnosticBag.Discarded,
+                                                    symbolBuilder,
+                                                    resultKind)
 
-                            Case SymbolKind.Event
-                                ImplementsHelper.FindExplicitlyImplementedMember(Of EventSymbol)(
-                                                        DirectCast(implementingMember, EventSymbol),
-                                                        DirectCast(implementingMember, EventSymbol).ContainingType,
-                                                        memberName,
-                                                        binder,
-                                                        diagnostics,
-                                                        symbolBuilder,
-                                                        resultKind)
+                        Case SymbolKind.Event
+                            ImplementsHelper.FindExplicitlyImplementedMember(Of EventSymbol)(
+                                                    DirectCast(implementingMember, EventSymbol),
+                                                    DirectCast(implementingMember, EventSymbol).ContainingType,
+                                                    memberName,
+                                                    binder,
+                                                    BindingDiagnosticBag.Discarded,
+                                                    symbolBuilder,
+                                                    resultKind)
 
-                            Case Else
-                                Throw ExceptionUtilities.UnexpectedValue(implementingMember.Kind)
-                        End Select
-                    End If
+                        Case Else
+                            Throw ExceptionUtilities.UnexpectedValue(implementingMember.Kind)
+                    End Select
                 End If
+            End If
 
-                Return resultKind
-            Finally
-                diagnostics.Free()
-            End Try
+            Return resultKind
         End Function
 
         Private Function GetHandledEventOrContainerSymbolsAndResultKind(eventSymbolBuilder As ArrayBuilder(Of Symbol),
@@ -781,16 +769,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If implementingMember IsNot Nothing Then
                     Dim methodSym = DirectCast(implementingMember, SourceMemberMethodSymbol)
 
-                    Dim diagbag = DiagnosticBag.GetInstance()
                     methodSym.BindSingleHandlesClause(handlesClause,
                                                       binder,
-                                                      diagbag,
+                                                      BindingDiagnosticBag.Discarded,
                                                       eventSymbolBuilder,
                                                       containerSymbolBuilder,
                                                       propertySymbolBuilder,
                                                       resultKind)
-
-                    diagbag.Free()
                 End If
             End If
 
@@ -835,7 +820,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SymbolInfoFactory.Create(symbols, resultKind)
         End Function
 
-        ' Get the symbol info of an withevents sourcing property in a handles clause.
+        ' Get the symbol info of a withevents sourcing property in a handles clause.
         Private Function GetHandlesPropertySymbolInfo(handlesClause As HandlesClauseItemSyntax, options As SymbolInfoOptions) As SymbolInfo
             Dim builder As ArrayBuilder(Of Symbol) = ArrayBuilder(Of Symbol).GetInstance()
             Dim resultKind As LookupResultKind = GetHandledEventOrContainerSymbolsAndResultKind(eventSymbolBuilder:=Nothing,
@@ -1003,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Case SyntaxKind.CompilationUnit
                                     namespaceToLookInForImplicitType = Me._sourceModule.RootNamespace
                                 Case SyntaxKind.NamespaceBlock
-                                    namespaceToLookInForImplicitType = GetDeclaredSymbol(DirectCast(statementSyntax.Parent, NamespaceBlockSyntax))
+                                    namespaceToLookInForImplicitType = GetDeclaredSymbol(DirectCast(statementSyntax.Parent, NamespaceBlockSyntax), cancellationToken)
                             End Select
 
                             If namespaceToLookInForImplicitType IsNot Nothing Then
@@ -1238,7 +1223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Given an FieldInitializerSyntax, get the corresponding symbol of anonymous type creation.
+        ''' Given a FieldInitializerSyntax, get the corresponding symbol of anonymous type creation.
         ''' </summary>
         ''' <param name="fieldInitializerSyntax">The anonymous object creation field initializer syntax.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
@@ -1283,7 +1268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Given an CollectionRangeVariableSyntax, get the corresponding symbol.
+        ''' Given a CollectionRangeVariableSyntax, get the corresponding symbol.
         ''' </summary>
         ''' <param name="rangeVariableSyntax">The range variable syntax that declares a variable.</param>
         ''' <returns>The symbol that was declared, or Nothing if no such symbol exists.</returns>
@@ -1350,9 +1335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' If the alias name was in the map but the location didn't match, then the syntax declares a duplicate alias.
                     ' We'll return a new AliasSymbol to improve the API experience.
                     Dim binder As Binder = GetEnclosingBinder(declarationSyntax.SpanStart)
-                    Dim discardedDiagnostics = DiagnosticBag.GetInstance()
-                    Dim targetSymbol As NamespaceOrTypeSymbol = binder.BindNamespaceOrTypeSyntax(declarationSyntax.Name, discardedDiagnostics)
-                    discardedDiagnostics.Free()
+                    Dim targetSymbol As NamespaceOrTypeSymbol = binder.BindNamespaceOrTypeSyntax(declarationSyntax.Name, BindingDiagnosticBag.Discarded)
                     If targetSymbol IsNot Nothing Then
                         Return New AliasSymbol(binder.Compilation, binder.ContainingNamespaceOrType, aliasName, targetSymbol, declarationSyntax.GetLocation())
                     End If

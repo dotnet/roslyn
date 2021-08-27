@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class TestSyntaxNodes
         Inherits BasicTestBase
 
-        Private _spaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
-        Private _newlineTrivia As SyntaxTriviaList = SyntaxTriviaListBuilder.Create.Add(SyntaxFactory.WhitespaceTrivia(Environment.NewLine)).ToList
+        Private ReadOnly _spaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
+        Private ReadOnly _newlineTrivia As SyntaxTriviaList = SyntaxTriviaListBuilder.Create.Add(SyntaxFactory.WhitespaceTrivia(Environment.NewLine)).ToList
 
         Private Function CreateIntegerLiteral(value As ULong) As LiteralExpressionSyntax
             Return SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(value.ToString(), LiteralBase.Decimal, TypeCharacter.None, value))
@@ -591,7 +591,7 @@ End Class
             Assert.Equal("( ) ", arglist.ToFullString)
         End Sub
 
-        'helper to check an singleton separated list of one type name "goo"
+        'helper to check a singleton separated list of one type name "goo"
         Private Sub CheckSingletonSeparatedList(seplist As SeparatedSyntaxList(Of TypeSyntax), start As Integer)
             Assert.NotNull(seplist)
             Assert.Equal(1, seplist.Count)

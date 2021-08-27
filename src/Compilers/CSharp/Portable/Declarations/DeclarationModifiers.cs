@@ -7,7 +7,7 @@ using System;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [Flags]
-    internal enum DeclarationModifiers
+    internal enum DeclarationModifiers : uint
     {
         None = 0,
         Abstract = 1 << 0,
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         Async = 1 << 20,
         Ref = 1 << 21, // used only for structs
 
-        All = (1 << 22) - 1, // all modifiers
-        Unset = 1 << 22, // used when a modifiers value hasn't yet been computed
+        All = (1 << 23) - 1, // all modifiers
+        Unset = 1 << 23, // used when a modifiers value hasn't yet been computed
 
         AccessibilityMask = PrivateProtected | Private | Protected | Internal | ProtectedInternal | Public,
     }

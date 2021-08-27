@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
     ''' <summary>
     ''' Displays a value in the VisualBasic style.
     ''' </summary>
-    ''' <seealso cref="T:Microsoft.CodeAnalysis.CSharp.Symbols.ObjectDisplay"/>
+    ''' <seealso cref="T:Microsoft.CodeAnalysis.CSharp.ObjectDisplay"/>
 #Enable Warning CA1200 ' Avoid using cref tags with a prefix
     Friend Module ObjectDisplay
 

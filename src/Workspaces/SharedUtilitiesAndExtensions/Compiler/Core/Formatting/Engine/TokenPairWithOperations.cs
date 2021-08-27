@@ -13,16 +13,16 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal struct TokenPairWithOperations
     {
         public TokenStream TokenStream { get; }
-        public AdjustSpacesOperation SpaceOperation { get; }
-        public AdjustNewLinesOperation LineOperation { get; }
+        public AdjustSpacesOperation? SpaceOperation { get; }
+        public AdjustNewLinesOperation? LineOperation { get; }
 
         public int PairIndex { get; }
 
         public TokenPairWithOperations(
             TokenStream tokenStream,
             int tokenPairIndex,
-            AdjustSpacesOperation spaceOperations,
-            AdjustNewLinesOperation lineOperations)
+            AdjustSpacesOperation? spaceOperations,
+            AdjustNewLinesOperation? lineOperations)
             : this()
         {
             Contract.ThrowIfNull(tokenStream);

@@ -12,7 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeActions
 
         Private ReadOnly _document As Document
         Private ReadOnly _node As SyntaxNode
-        Private ReadOnly _cancellationToken As CancellationToken
         Private ReadOnly _title As String
 
         Public Sub New(document As Document, node As SyntaxNode, title As String)

@@ -11,11 +11,6 @@ namespace Microsoft.CodeAnalysis.Features.RQName
     {
         public static string ToParenthesesFormat(SimpleTreeNode tree)
         {
-            if (tree == null)
-            {
-                return null;
-            }
-
             var sb = new StringBuilder();
             WriteNode(tree, sb);
             return sb.ToString();

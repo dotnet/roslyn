@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return CreateComplexTrivia(lineBreaks, spaces, indentation);
             }
 
-            private string CreateString(TriviaDataWithList triviaData, CancellationToken cancellationToken)
+            private static string CreateString(TriviaDataWithList triviaData, CancellationToken cancellationToken)
             {
                 // create string from given trivia data
                 var sb = StringBuilderPool.Allocate();

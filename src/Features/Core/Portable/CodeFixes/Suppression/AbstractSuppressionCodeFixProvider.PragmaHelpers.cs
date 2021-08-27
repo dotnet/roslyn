@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         /// </summary>
         private static class PragmaHelpers
         {
-            internal async static Task<Document> GetChangeDocumentWithPragmaAdjustedAsync(
+            internal static async Task<Document> GetChangeDocumentWithPragmaAdjustedAsync(
                 Document document,
                 TextSpan diagnosticSpan,
                 SuppressionTargetInfo suppressionTargetInfo,
@@ -194,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 else
                 {
                     return endToken.WithTrailingTrivia(trivia.InsertRange(index, pragmaTrivia));
-                };
+                }
             }
 
             internal static void NormalizeTriviaOnTokens(AbstractSuppressionCodeFixProvider fixer, ref Document document, ref SuppressionTargetInfo suppressionTargetInfo)

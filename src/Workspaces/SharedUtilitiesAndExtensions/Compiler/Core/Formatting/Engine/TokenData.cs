@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public override int GetHashCode()
             => this.Token.GetHashCode();
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TokenData data &&
                    this.Equals(data);
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             // this is expansive check. but there is no other way to check.
             var commonRoot = this.Token.GetCommonRoot(other.Token);
-            Debug.Assert(commonRoot != null);
+            RoslynDebug.Assert(commonRoot != null);
 
             var tokens = commonRoot.DescendantTokens();
 
@@ -108,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return index1 - index2;
         }
 
-        private int Index(IEnumerable<SyntaxToken> tokens, SyntaxToken token)
+        private static int Index(IEnumerable<SyntaxToken> tokens, SyntaxToken token)
         {
             var index = 0;
 

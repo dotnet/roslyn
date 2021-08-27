@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -53,9 +52,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Shared Function GenerateMethodDeclaration(method As IMethodSymbol,
                                                          destination As CodeGenerationDestination,
                                                          options As CodeGenerationOptions) As StatementSyntax
-            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)(method, options)
+            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)(method, options)
             If reusableSyntax IsNot Nothing Then
-                Return reusableSyntax
+                Return reusableSyntax.GetDeclarationBlockFromBegin()
             End If
 
             Dim declaration = GenerateMethodDeclarationWorker(method, destination, options)

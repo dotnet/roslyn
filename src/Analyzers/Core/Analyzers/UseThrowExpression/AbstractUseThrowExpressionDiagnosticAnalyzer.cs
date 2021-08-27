@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         protected AbstractUseThrowExpressionDiagnosticAnalyzer(Option2<CodeStyleOption2<bool>> preferThrowExpressionOption, string language)
             : base(IDEDiagnosticIds.UseThrowExpressionDiagnosticId,
+                   EnforceOnBuildValues.UseThrowExpression,
                    preferThrowExpressionOption,
                    language,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_throw_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
@@ -49,12 +52,17 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract bool IsSupported(ParseOptions options);
+        protected abstract bool IsSupported(Compilation compilation);
 
         protected override void InitializeWorker(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(startContext =>
             {
+                if (!IsSupported(startContext.Compilation))
+                {
+                    return;
+                }
+
                 var expressionTypeOpt = startContext.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
                 startContext.RegisterOperationAction(operationContext => AnalyzeOperation(operationContext, expressionTypeOpt), OperationKind.Throw);
             });
@@ -62,12 +70,6 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
 
         private void AnalyzeOperation(OperationAnalysisContext context, INamedTypeSymbol expressionTypeOpt)
         {
-            var syntaxTree = context.Operation.Syntax.SyntaxTree;
-            if (!IsSupported(syntaxTree.Options))
-            {
-                return;
-            }
-
             var cancellationToken = context.CancellationToken;
 
             var throwOperation = (IThrowOperation)context.Operation;
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 return;
             }
 
-            if (!(semanticModel.GetOperation(ifOperation.Syntax.Parent, cancellationToken) is IBlockOperation containingBlock))
+            if (ifOperation.Parent is not IBlockOperation containingBlock)
             {
                 return;
             }
@@ -219,7 +221,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             localOrParameter = null;
 
             var condition = ifStatement.Condition;
-            if (!(condition is IBinaryOperation binaryOperator))
+            if (condition is not IBinaryOperation binaryOperator)
             {
                 return false;
             }
@@ -266,13 +268,13 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
             return false;
         }
 
-        private bool IsNull(IOperation operation)
+        private static bool IsNull(IOperation operation)
         {
             return operation.ConstantValue.HasValue &&
                    operation.ConstantValue.Value == null;
         }
 
-        private IConditionalOperation GetContainingIfOperation(
+        private static IConditionalOperation GetContainingIfOperation(
             SemanticModel semanticModel, IThrowOperation throwOperation,
             CancellationToken cancellationToken)
         {

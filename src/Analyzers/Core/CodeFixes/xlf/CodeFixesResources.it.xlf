@@ -2,39 +2,64 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../CodeFixesResources.resx">
     <body>
+      <trans-unit id="Add_blank_line_after_block">
+        <source>Add blank line after block</source>
+        <target state="translated">Aggiungi una riga vuota dopo il blocco</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_both">
         <source>Add both</source>
-        <target state="new">Add both</target>
+        <target state="translated">Aggiungi entrambi</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_default_case">
         <source>Add default case</source>
-        <target state="new">Add default case</target>
+        <target state="translated">Aggiungi case predefinito</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_file_banner">
-        <source>Add file banner</source>
+      <trans-unit id="Add_file_header">
+        <source>Add file header</source>
         <target state="translated">Aggiungi intestazione del file</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_Name_Violation_colon_0">
         <source>Fix Name Violation: {0}</source>
-        <target state="new">Fix Name Violation: {0}</target>
+        <target state="translated">Correggi violazione del nome: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="translated">Correggi tutte le occorrenze in</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_extra_blank_lines">
+        <source>Remove extra blank lines</source>
+        <target state="translated">Rimuovere le righe vuote aggiuntive</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">
         <source>Remove redundant assignment</source>
-        <target state="new">Remove redundant assignment</target>
+        <target state="translated">Rimuovi l'assegnazione ridondante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="translated">Elimina o configura problemi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Update_suppression_format">
+        <source>Update suppression format</source>
+        <target state="translated">Aggiorna il formato di eliminazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discard_underscore">
         <source>Use discard '_'</source>
-        <target state="new">Use discard '_'</target>
+        <target state="translated">Usa '_' rimosso</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_discarded_local">
         <source>Use discarded local</source>
-        <target state="new">Use discarded local</target>
+        <target state="translated">Usa variabili locali rimosse</target>
         <note />
       </trans-unit>
     </body>

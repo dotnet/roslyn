@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1104,20 +1108,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(expected: include2.Path, actual: includePaths[2]);
         }
 
+        private string[] ParseSeparatedStrings(string arg, char[] separators, bool removeEmptyEntries = true)
+        {
+            var builder = ArrayBuilder<ReadOnlyMemory<char>>.GetInstance();
+            CommandLineParser.ParseSeparatedStrings(arg.AsMemory(), separators, removeEmptyEntries, builder);
+            return builder.Select(x => x.ToString()).ToArray();
+        }
+
         [Fact]
         public void ParseSeparatedStrings_ExcludeSeparatorChar()
         {
             Assert.Equal(
-                CommandLineParser.ParseSeparatedStrings(@"a,b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                ParseSeparatedStrings(@"a,b", new[] { ',' }),
                 new[] { "a", "b" });
 
             Assert.Equal(
-                CommandLineParser.ParseSeparatedStrings(@"a,,b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                ParseSeparatedStrings(@"a,,b", new[] { ',' }),
                 new[] { "a", "b" });
-
-            Assert.Equal(
-                CommandLineParser.ParseSeparatedStrings(@"a,,b", new[] { ',' }, StringSplitOptions.None),
-                new[] { "a", "", "b" });
         }
 
         /// <summary>
@@ -1128,15 +1135,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ParseSeparatedStrings_IncludeQuotes()
         {
             Assert.Equal(
-                CommandLineParser.ParseSeparatedStrings(@"""a"",b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                ParseSeparatedStrings(@"""a"",b", new[] { ',' }),
                 new[] { @"""a""", "b" });
 
             Assert.Equal(
-                CommandLineParser.ParseSeparatedStrings(@"""a,b""", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                ParseSeparatedStrings(@"""a,b""", new[] { ',' }),
                 new[] { @"""a,b""" });
 
             Assert.Equal(
-                CommandLineParser.ParseSeparatedStrings(@"""a"",""b", new[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
+                ParseSeparatedStrings(@"""a"",""b", new[] { ',' }),
                 new[] { @"""a""", @"""b" });
         }
 
@@ -1226,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// as \"\\test.cs\". 
         /// </remarks>
         [Fact]
-        public void RemoveQuotes()
+        public void RemoveQuotesAndSlashes()
         {
             Assert.Equal(@"\\test.cs", CommandLineParser.RemoveQuotesAndSlashes(@"\\test.cs"));
             Assert.Equal(@"\\test.cs", CommandLineParser.RemoveQuotesAndSlashes(@"""\\test.cs"""));
@@ -1238,6 +1245,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"a"" mid ""b.cs", CommandLineParser.RemoveQuotesAndSlashes(@"a\"" mid \""b.cs"));
             Assert.Equal(@"a mid b.cs", CommandLineParser.RemoveQuotesAndSlashes(@"a"" mid ""b.cs"));
             Assert.Equal(@"a.cs", CommandLineParser.RemoveQuotesAndSlashes(@"""a.cs"""));
+            Assert.Equal(@"C:""My Folder\MyBinary.xml", CommandLineParser.RemoveQuotesAndSlashes(@"C:\""My Folder""\MyBinary.xml"));
+        }
+
+        /// <summary>
+        /// Verify that for the standard cases we do not allocate new memory but instead 
+        /// return a <see cref="ReadOnlyMemory{T}"/> to the existing string
+        /// </summary>
+        [Fact]
+        public void RemoveQuotesAndSlashes_NoAllocation()
+        {
+            assertSame(@"c:\test.cs");
+            assertSame(@"""c:\test.cs""");
+            assertSame(@"""c:\\\\\\\\\test.cs""");
+            assertSame(@"""c:\\\\\\\\\test.cs""");
+
+            void assertSame(string arg)
+            {
+                var memory = CommandLineParser.RemoveQuotesAndSlashesEx(arg.AsMemory());
+                Assert.True(MemoryMarshal.TryGetString(memory, out var memoryString, out _, out _));
+                Assert.Same(arg, memoryString);
+            }
         }
     }
 }

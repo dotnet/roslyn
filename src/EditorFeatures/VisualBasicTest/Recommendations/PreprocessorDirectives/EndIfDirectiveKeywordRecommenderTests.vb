@@ -6,62 +6,62 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
     Public Class EndIfDirectiveKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashEndIfNotInFileTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>|</File>, "#End If")
-        End Function
+        Public Sub HashEndIfNotInFileTest()
+            VerifyRecommendationsMissing(<File>|</File>, "#End If")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashEndIfInFileAfterIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub HashEndIfInFileAfterIfTest()
+            VerifyRecommendationsContain(<File>
 #If True Then
 |</File>, "#End If")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashEndIfInFileAfterElseIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub HashEndIfInFileAfterElseIfTest()
+            VerifyRecommendationsContain(<File>
 #If True Then
 #ElseIf True Then
 |</File>, "#End If")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashEndIfNotInFileAfterElse1Test() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub HashEndIfNotInFileAfterElse1Test()
+            VerifyRecommendationsContain(<File>
 #If True Then
 #Else
 |</File>, "#End If")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashEndIfNotInFileAfterElse2Test() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub HashEndIfNotInFileAfterElse2Test()
+            VerifyRecommendationsContain(<File>
 #If True Then
 #ElseIf True Then
 #Else
 |</File>, "#End If")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function IfAfterHashEndIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub IfAfterHashEndIfTest()
+            VerifyRecommendationsContain(<File>
 #If True Then
 #ElseIf True Then
 #End |</File>, "If")
-        End Function
+        End Sub
 
         <WorkItem(957458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957458")>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotIfWithEndPartiallyTypedTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub NotIfWithEndPartiallyTypedTest()
+            VerifyRecommendationsMissing(<File>
 #If True Then
 #En |</File>, "If")
-        End Function
+        End Sub
     End Class
 End Namespace

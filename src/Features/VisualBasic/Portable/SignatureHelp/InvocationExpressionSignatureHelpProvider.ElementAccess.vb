@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class InvocationExpressionSignatureHelpProvider
 
-        Private Function GetElementAccessItems(leftExpression As ExpressionSyntax,
+        Private Shared Function GetElementAccessItems(leftExpression As ExpressionSyntax,
                                                semanticModel As SemanticModel,
                                                anonymousTypeDisplayService As IAnonymousTypeDisplayService,
                                                documentationCommentFormattingService As IDocumentationCommentFormattingService,
@@ -30,15 +30,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             Return accessibleDefaultProperties.Select(
-                Function(s) ConvertIndexer(s, leftExpression.SpanStart, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken))
+                Function(s) ConvertIndexer(s, leftExpression.SpanStart, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService))
         End Function
 
-        Private Function ConvertIndexer(indexer As IPropertySymbol,
+        Private Shared Function ConvertIndexer(indexer As IPropertySymbol,
                                         position As Integer,
                                         semanticModel As SemanticModel,
                                         anonymousTypeDisplayService As IAnonymousTypeDisplayService,
-                                        documentationCommentFormattingService As IDocumentationCommentFormattingService,
-                                        cancellationToken As CancellationToken) As SignatureHelpItem
+                                        documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim item = CreateItem(
                 indexer, semanticModel, position,
                 anonymousTypeDisplayService,
@@ -47,18 +46,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetIndexerPreambleParts(indexer, semanticModel, position),
                 GetSeparatorParts(),
                 GetIndexerPostambleParts(indexer, semanticModel, position),
-                indexer.Parameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService, cancellationToken)).ToList())
+                indexer.Parameters.Select(Function(p) Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList())
             Return item
         End Function
 
-        Private Function GetIndexerPreambleParts(symbol As IPropertySymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
+        Private Shared Function GetIndexerPreambleParts(symbol As IPropertySymbol, semanticModel As SemanticModel, position As Integer) As IList(Of SymbolDisplayPart)
             Dim result = New List(Of SymbolDisplayPart)()
             result.AddRange(symbol.ContainingType.ToMinimalDisplayParts(semanticModel, position))
             result.Add(Punctuation(SyntaxKind.OpenParenToken))
             Return result
         End Function
 
-        Private Function GetIndexerPostambleParts(symbol As IPropertySymbol,
+        Private Shared Function GetIndexerPostambleParts(symbol As IPropertySymbol,
                                                   semanticModel As SemanticModel,
                                                   position As Integer) As IList(Of SymbolDisplayPart)
             Dim parts = New List(Of SymbolDisplayPart)

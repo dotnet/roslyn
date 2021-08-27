@@ -52,14 +52,21 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader, out string? failureReason)
             {
-                var metadataName = reader.ReadString();
+                var metadataName = reader.ReadString()!;
                 var isCompilationGlobalNamespace = reader.ReadBoolean();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var containingSymbolResolution = reader.ReadSymbolKey(out var containingSymbolFailureReason);
+
+                if (containingSymbolFailureReason != null)
+                {
+                    failureReason = $"({nameof(EventSymbolKey)} {nameof(containingSymbolResolution)} failed -> {containingSymbolFailureReason})";
+                    return default;
+                }
 
                 if (isCompilationGlobalNamespace)
                 {
+                    failureReason = null;
                     return new SymbolKeyResolution(reader.Compilation.GlobalNamespace);
                 }
 
@@ -84,11 +91,12 @@ namespace Microsoft.CodeAnalysis
                                     result.AddIfNotNull(childNamespace);
                                 }
                             }
+
                             break;
                     }
                 }
 
-                return CreateResolution(result);
+                return CreateResolution(result, $"({nameof(NamespaceSymbolKey)} '{metadataName}' not found)", out failureReason);
             }
         }
     }

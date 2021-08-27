@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
             Inherits CodeAction
 
             Private ReadOnly _blockKind As SyntaxKind
-            Private _invalidToken As SyntaxToken
+            Private ReadOnly _invalidToken As SyntaxToken
             Private ReadOnly _document As Document
 
             Public Sub New(blockKind As SyntaxKind,

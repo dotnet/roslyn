@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text)
+        private static SelectionInfo ApplySpecialCases(SelectionInfo selectionInfo, SourceText text)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion() || !selectionInfo.SelectionInExpression)
             {
@@ -112,10 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                    text);
         }
 
-        private TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)
+        private static TextSpan GetControlFlowSpan(SelectionInfo selectionInfo)
             => TextSpan.FromBounds(selectionInfo.FirstTokenInFinalSpan.SpanStart, selectionInfo.LastTokenInFinalSpan.Span.End);
 
-        private SelectionInfo AdjustFinalTokensBasedOnContext(
+        private static SelectionInfo AdjustFinalTokensBasedOnContext(
             SelectionInfo selectionInfo,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -166,14 +168,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             if (firstTokenInSelection.Kind() == SyntaxKind.None || lastTokenInSelection.Kind() == SyntaxKind.None)
             {
-                return new SelectionInfo { Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.Invalid_selection), OriginalSpan = adjustedSpan };
+                return new SelectionInfo { Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.Invalid_selection), OriginalSpan = adjustedSpan };
             }
 
             if (!adjustedSpan.Contains(firstTokenInSelection.Span) && !adjustedSpan.Contains(lastTokenInSelection.Span))
             {
                 return new SelectionInfo
                 {
-                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.Selection_does_not_contain_a_valid_token),
+                    Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.Selection_does_not_contain_a_valid_token),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
@@ -184,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 return new SelectionInfo
                 {
-                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.No_valid_selection_to_perform_extraction),
+                    Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.No_valid_selection_to_perform_extraction),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
@@ -192,11 +194,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             var commonRoot = firstTokenInSelection.GetCommonRoot(lastTokenInSelection);
+
             if (commonRoot == null)
             {
                 return new SelectionInfo
                 {
-                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.No_common_root_node_for_extraction),
+                    Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.No_common_root_node_for_extraction),
+                    OriginalSpan = adjustedSpan,
+                    FirstTokenInOriginalSpan = firstTokenInSelection,
+                    LastTokenInOriginalSpan = lastTokenInSelection
+                };
+            }
+
+            if (!commonRoot.ContainedInValidType())
+            {
+                return new SelectionInfo
+                {
+                    Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.Selection_not_contained_inside_a_type),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
@@ -208,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 return new SelectionInfo
                 {
-                    Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.No_valid_selection_to_perform_extraction),
+                    Status = new OperationStatus(OperationStatusFlag.None, FeaturesResources.No_valid_selection_to_perform_extraction),
                     OriginalSpan = adjustedSpan,
                     FirstTokenInOriginalSpan = firstTokenInSelection,
                     LastTokenInOriginalSpan = lastTokenInSelection
@@ -293,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return selectionInfo;
         }
 
-        private SelectionInfo AssignInitialFinalTokens(SelectionInfo selectionInfo, SyntaxNode root, CancellationToken cancellationToken)
+        private static SelectionInfo AssignInitialFinalTokens(SelectionInfo selectionInfo, SyntaxNode root, CancellationToken cancellationToken)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
             {
@@ -341,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                                 .With(s => s.LastTokenInFinalSpan = statement2.GetLastToken(includeZeroWidth: true));
         }
 
-        private SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo, SourceText text)
+        private static SelectionInfo AssignFinalSpan(SelectionInfo selectionInfo, SourceText text)
         {
             if (selectionInfo.Status.FailedWithNoBestEffortSuggestion())
             {
@@ -452,6 +466,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             // get previous line
             Contract.ThrowIfFalse(line.LineNumber > 0);
             var previousLine = text.Lines[line.LineNumber - 1];
+
+            // if the span is past the end of the line (ie, in whitespace) then
+            // return to the end of the line including whitespace
+            if (textSpan.Start > previousLine.End)
+            {
+                return TextSpan.FromBounds(textSpan.Start, previousLine.EndIncludingLineBreak);
+            }
+
             return TextSpan.FromBounds(textSpan.Start, previousLine.End);
         }
 

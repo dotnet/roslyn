@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -56,5 +57,10 @@ namespace Microsoft.CodeAnalysis
         /// Display `System.ValueTuple` instead of tuple syntax `(...)`.
         /// </summary>
         UseValueTuple = 1 << 6,
+
+        /// <summary>
+        /// Display `System.[U]IntPtr` instead of `n[u]int`.
+        /// </summary>
+        UseNativeIntegerUnderlyingType = 1 << 7,
     }
 }

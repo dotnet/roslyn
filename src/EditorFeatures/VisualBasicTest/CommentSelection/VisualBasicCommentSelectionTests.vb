@@ -34,7 +34,6 @@ End Module</code>
             InvokeCommentOperationOnSelectionAfterReplacingLfToCrLf(code.Value, expected.Value, Operation.Comment)
         End Sub
 
-
         <WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)>
         Public Sub UncommentAndFormat1()
             Dim code = <code>Module Program

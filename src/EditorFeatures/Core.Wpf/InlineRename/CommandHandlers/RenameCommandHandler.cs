@@ -4,14 +4,15 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+
+#if !COCOA
+using System.Linq;
+#endif
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -26,87 +27,87 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Order(Before = PredefinedCommandHandlerNames.ChangeSignature)]
     [Order(Before = PredefinedCommandHandlerNames.ExtractInterface)]
     [Order(Before = PredefinedCommandHandlerNames.EncapsulateField)]
-    internal partial class RenameCommandHandler
+    internal partial class RenameCommandHandler : AbstractRenameCommandHandler
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly InlineRenameService _renameService;
-
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public RenameCommandHandler(
-            IThreadingContext threadingContext,
-            InlineRenameService renameService)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RenameCommandHandler(IThreadingContext threadingContext, InlineRenameService renameService)
+            : base(threadingContext, renameService)
         {
-            _threadingContext = threadingContext;
-            _renameService = renameService;
         }
 
-        public string DisplayName => EditorFeaturesResources.Rename;
+#if !COCOA
+        protected override bool DashboardShouldReceiveKeyboardNavigation(ITextView textView)
+            => GetDashboard(textView) is { } dashboard && dashboard.ShouldReceiveKeyboardNavigation;
 
-        private CommandState GetCommandState(Func<CommandState> nextHandler)
+        protected override void SetFocusToTextView(ITextView textView)
         {
-            if (_renameService.ActiveSession != null)
-            {
-                return CommandState.Available;
-            }
-
-            return nextHandler();
+            (textView as IWpfTextView)?.VisualElement.Focus();
         }
 
-        private CommandState GetCommandState()
-            => _renameService.ActiveSession != null ? CommandState.Available : CommandState.Unspecified;
-
-        private void HandlePossibleTypingCommand(EditorCommandArgs args, Action nextHandler, Action<SnapshotSpan> actionIfInsideActiveSpan)
+        protected override void SetFocusToDashboard(ITextView textView)
         {
-            if (_renameService.ActiveSession == null)
+            if (GetDashboard(textView) is { } dashboard)
             {
-                nextHandler();
-                return;
-            }
-
-            var selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
-
-            if (selectedSpans.Count > 1)
-            {
-                // If we have multiple spans active, then that means we have something like box
-                // selection going on. In this case, we'll just forward along.
-                nextHandler();
-                return;
-            }
-
-            var singleSpan = selectedSpans.Single();
-            if (_renameService.ActiveSession.TryGetContainingEditableSpan(singleSpan.Start, out var containingSpan) &&
-                containingSpan.Contains(singleSpan))
-            {
-                actionIfInsideActiveSpan(containingSpan);
-            }
-            else
-            {
-                // It's in a read-only area, so let's commit the rename and then let the character go
-                // through
-
-                CommitIfActiveAndCallNextHandler(args, nextHandler);
+                dashboard.Focus();
             }
         }
 
-        private void CommitIfActive(EditorCommandArgs args)
+        protected override void SetDashboardFocusToNextElement(ITextView textView)
         {
-            if (_renameService.ActiveSession != null)
+            if (GetDashboard(textView) is { } dashboard)
             {
-                var selection = args.TextView.Selection.VirtualSelectedSpans.First();
-
-                _renameService.ActiveSession.Commit();
-
-                var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
-                args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
-                args.TextView.Caret.MoveTo(translatedSelection.End);
+                dashboard.FocusNextElement();
             }
         }
 
-        private void CommitIfActiveAndCallNextHandler(EditorCommandArgs args, Action nextHandler)
+        protected override void SetDashboardFocusToPreviousElement(ITextView textView)
         {
-            CommitIfActive(args);
-            nextHandler();
+            if (GetDashboard(textView) is { } dashboard)
+            {
+                dashboard.FocusNextElement();
+            }
         }
+
+        private static Dashboard? GetDashboard(ITextView textView)
+        {
+            // If our adornment layer somehow didn't get composed, GetAdornmentLayer will throw.
+            // Don't crash if that happens.
+            try
+            {
+                var adornment = ((IWpfTextView)textView).GetAdornmentLayer("RoslynRenameDashboard");
+                return adornment.Elements.Any()
+                    ? adornment.Elements[0].Adornment as Dashboard
+                    : null;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return null;
+            }
+        }
+#else
+        protected override bool DashboardShouldReceiveKeyboardNavigation(ITextView textView)
+            => false;
+
+        protected override void SetFocusToTextView(ITextView textView)
+        {
+            // No action taken for Cocoa
+        }
+
+        protected override void SetFocusToDashboard(ITextView textView)
+        {
+            // No action taken for Cocoa
+        }
+
+        protected override void SetDashboardFocusToNextElement(ITextView textView)
+        {
+            // No action taken for Cocoa
+        }
+
+        protected override void SetDashboardFocusToPreviousElement(ITextView textView)
+        {
+            // No action taken for Cocoa
+        }
+#endif
     }
 }

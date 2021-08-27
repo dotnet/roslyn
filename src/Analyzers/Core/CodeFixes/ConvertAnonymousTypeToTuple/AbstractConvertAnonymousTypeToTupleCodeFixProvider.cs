@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var containingMember = creationNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsMethodLevelMember) ?? creationNode;
+            var containingMember = creationNode.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsMethodLevelMember(node), syntaxFacts) ?? creationNode;
 
             var childCreationNodes = containingMember.DescendantNodesAndSelf()
                                                      .OfType<TAnonymousObjectCreationExpressionSyntax>();
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
                 {
                     // Use the callback form as anonymous types may be nested, and we want to
                     // properly replace them even in that case.
-                    if (!(current is TAnonymousObjectCreationExpressionSyntax anonCreation))
+                    if (current is not TAnonymousObjectCreationExpressionSyntax anonCreation)
                     {
                         return current;
                     }

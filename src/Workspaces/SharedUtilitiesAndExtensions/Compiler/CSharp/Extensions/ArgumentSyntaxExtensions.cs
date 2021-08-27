@@ -4,8 +4,6 @@
 
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -23,43 +21,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return default;
         }
 
-        public static RefKind GetRefKind(this ArgumentSyntax argument)
-        {
-            switch (argument?.RefKindKeyword.Kind())
+        public static RefKind GetRefKind(this ArgumentSyntax? argument)
+            => argument?.RefKindKeyword.Kind() switch
             {
-                case SyntaxKind.RefKeyword:
-                    return RefKind.Ref;
-                case SyntaxKind.OutKeyword:
-                    return RefKind.Out;
-                case SyntaxKind.InKeyword:
-                    return RefKind.In;
-                default:
-                    return RefKind.None;
-            }
-        }
+                SyntaxKind.RefKeyword => RefKind.Ref,
+                SyntaxKind.OutKeyword => RefKind.Out,
+                SyntaxKind.InKeyword => RefKind.In,
+                _ => RefKind.None,
+            };
 
         /// <summary>
         /// Returns the parameter to which this argument is passed. If <paramref name="allowParams"/>
         /// is true, the last parameter will be returned if it is params parameter and the index of
         /// the specified argument is greater than the number of parameters.
         /// </summary>
-        public static IParameterSymbol DetermineParameter(
+        public static IParameterSymbol? DetermineParameter(
             this ArgumentSyntax argument,
             SemanticModel semanticModel,
             bool allowParams = false,
             CancellationToken cancellationToken = default)
         {
-            if (!(argument.Parent is BaseArgumentListSyntax argumentList))
+            if (argument.Parent is not BaseArgumentListSyntax argumentList ||
+                argumentList.Parent is null)
             {
                 return null;
             }
 
-            if (!(argumentList.Parent is ExpressionSyntax invocableExpression))
+            // Get the symbol as long if it's not null or if there is only one candidate symbol
+            var symbolInfo = semanticModel.GetSymbolInfo(argumentList.Parent, cancellationToken);
+            var symbol = symbolInfo.Symbol;
+            if (symbol == null && symbolInfo.CandidateSymbols.Length == 1)
             {
-                return null;
+                symbol = symbolInfo.CandidateSymbols[0];
             }
 
-            var symbol = semanticModel.GetSymbolInfo(invocableExpression, cancellationToken).Symbol;
             if (symbol == null)
             {
                 return null;

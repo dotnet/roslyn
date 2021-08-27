@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -81,14 +79,24 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
             return symbol;
         }
 
-        protected void TryClassifyStaticSymbol(
+        protected static void TryClassifyStaticSymbol(
             ISymbol? symbol,
             TextSpan span,
             ArrayBuilder<ClassifiedSpan> result)
         {
-            if (symbol is null || !symbol.IsStatic)
+            if (!IsStaticSymbol(symbol))
             {
                 return;
+            }
+
+            result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
+        }
+
+        protected static bool IsStaticSymbol(ISymbol? symbol)
+        {
+            if (symbol is null || !symbol.IsStatic)
+            {
+                return false;
             }
 
             if (symbol.IsEnumMember())
@@ -96,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
                 // EnumMembers are not classified as static since there is no
                 // instance equivalent of the concept and they have their own
                 // classification type.
-                return;
+                return false;
             }
 
             if (symbol.IsNamespace())
@@ -104,17 +112,17 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
                 // Namespace names are not classified as static since there is no
                 // instance equivalent of the concept and they have their own
                 // classification type.
-                return;
+                return false;
             }
 
             if (symbol.IsLocalFunction())
             {
                 // Local function names are not classified as static since the
                 // the symbol returning true for IsStatic is an implementation detail.
-                return;
+                return false;
             }
 
-            result.Add(new ClassifiedSpan(span, ClassificationTypeNames.StaticSymbol));
+            return true;
         }
     }
 }

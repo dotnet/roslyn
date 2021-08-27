@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -15,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class TypeTests : CSharpTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         [WorkItem(30023, "https://github.com/dotnet/roslyn/issues/30023")]
         public void Bug18280()
         {
@@ -88,19 +91,19 @@ interface B {
             Assert.Equal(Accessibility.Internal, s.DeclaredAccessibility);
         }
 
-        [Fact]
-        public void InheritedTypesCrossTrees()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void InheritedTypesCrossTrees(string ob, string cb)
         {
-            var text = @"namespace MT {
+            var text = @"namespace MT " + ob + @"
     public interface IGoo { void Goo(); }
     public interface IGoo<T, R> { R Goo(T t); }
-}
+" + cb + @"
 ";
-            var text1 = @"namespace MT {
+            var text1 = @"namespace MT " + ob + @"
     public interface IBar<T> : IGoo { void Bar(T t); }
-}
+" + cb + @"
 ";
-            var text2 = @"namespace NS {
+            var text2 = @"namespace NS " + ob + @"
     using System;
     using MT;
     public class A<T> : IGoo<T, string>, IBar<string> {
@@ -110,11 +113,11 @@ interface B {
     }
 
     public class B : A<int> {}
-}
+" + cb + @"
 ";
-            var text3 = @"namespace NS {
+            var text3 = @"namespace NS " + ob + @"
     public class C : B {}
-}
+" + cb + @"
 ";
 
             var comp = CreateCompilation(new[] { text, text1, text2, text3 });
@@ -530,7 +533,7 @@ public class A {
 }
 ";
 
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(text, new[] { TestMetadata.Net40.mscorlib });
             int[] ary = new int[2];
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
@@ -1450,9 +1453,9 @@ class Program
 
             var errSymbol = comp.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             Assert.NotNull(errSymbol);
-            Assert.Equal("<invalid-global-code>", errSymbol.Name);
+            Assert.Equal(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName, errSymbol.Name);
             Assert.False(errSymbol.IsErrorType(), "ErrorType");
-            Assert.True(errSymbol.IsImplicitClass, "ImplicitClass");
+            Assert.False(errSymbol.IsImplicitClass, "ImplicitClass");
         }
 
         #region "Nullable"
@@ -2323,6 +2326,83 @@ public class TestClass : TestClass.IInnerInterface
 ";
             var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CallingConventionOnMethods_FromSource()
+        {
+            var sourceComp = CreateCompilation(@"
+class C
+{
+    void M1() { }
+    void M2(params object[] p) { }
+    void M3(__arglist) { }
+}");
+
+            sourceComp.VerifyDiagnostics();
+            var c = sourceComp.GetTypeByMetadataName("C").GetPublicSymbol();
+            var m1 = (IMethodSymbol)c.GetMember("M1");
+            Assert.NotNull(m1);
+            Assert.Equal(SignatureCallingConvention.Default, m1.CallingConvention);
+            Assert.Empty(m1.UnmanagedCallingConventionTypes);
+
+            var m2 = (IMethodSymbol)c.GetMember("M2");
+            Assert.NotNull(m2);
+            Assert.Equal(SignatureCallingConvention.Default, m2.CallingConvention);
+            Assert.Empty(m2.UnmanagedCallingConventionTypes);
+
+            var m3 = (IMethodSymbol)c.GetMember("M3");
+            Assert.NotNull(m3);
+            Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
+            Assert.Empty(m3.UnmanagedCallingConventionTypes);
+        }
+
+        [Fact]
+        public void CallingConventionOnMethods_FromMetadata()
+        {
+            var metadataComp = CreateCompilationWithIL("", ilSource: @"
+.class public auto ansi beforefieldinit C extends [mscorlib]System.Object
+{
+    .method public hidebysig instance void M1 () cil managed 
+    {
+        ret
+    }
+
+    .method public hidebysig instance void M2 (object[] p) cil managed 
+    {
+        .param [1] .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00 )
+        ret
+    }
+
+    .method public hidebysig instance vararg void M3 () cil managed 
+    {
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
+    }
+}");
+
+            metadataComp.VerifyDiagnostics();
+            var c = metadataComp.GetTypeByMetadataName("C").GetPublicSymbol();
+            var m1 = (IMethodSymbol)c.GetMember("M1");
+            Assert.NotNull(m1);
+            Assert.Equal(SignatureCallingConvention.Default, m1.CallingConvention);
+            Assert.Empty(m1.UnmanagedCallingConventionTypes);
+
+            var m2 = (IMethodSymbol)c.GetMember("M2");
+            Assert.NotNull(m2);
+            Assert.Equal(SignatureCallingConvention.Default, m2.CallingConvention);
+            Assert.Empty(m2.UnmanagedCallingConventionTypes);
+
+            var m3 = (IMethodSymbol)c.GetMember("M3");
+            Assert.NotNull(m3);
+            Assert.Equal(SignatureCallingConvention.VarArgs, m3.CallingConvention);
+            Assert.Empty(m3.UnmanagedCallingConventionTypes);
         }
     }
 }

@@ -57,8 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     SyntaxKind.LocalDeclarationStatement,
                     SyntaxKind.UsingStatement,
                     SyntaxKind.ForStatement,
-                    SyntaxKind.ForEachStatement,
-                    SyntaxKind.FieldDeclaration) Then
+                    SyntaxKind.ForEachStatement) Then
                 Return False
             End If
 
@@ -74,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return False
             End If
 
-            If (parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.UsingStatement, SyntaxKind.FieldDeclaration) AndAlso
+            If (parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.UsingStatement) AndAlso
                 variableDeclarator.Initializer IsNot Nothing) Then
 
                 ' Type Check
@@ -150,12 +149,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Dim localSymbol = TryCast(declaredSymbol, ILocalSymbol)
             If localSymbol IsNot Nothing AndAlso TypeOf localSymbol IsNot IErrorTypeSymbol AndAlso TypeOf localSymbol.Type IsNot IErrorTypeSymbol Then
                 typeSymbol = localSymbol.Type
-                Return True
-            End If
-
-            Dim fieldSymbol = TryCast(declaredSymbol, IFieldSymbol)
-            If fieldSymbol IsNot Nothing AndAlso TypeOf fieldSymbol IsNot IErrorTypeSymbol AndAlso TypeOf fieldSymbol.Type IsNot IErrorTypeSymbol Then
-                typeSymbol = fieldSymbol.Type
                 Return True
             End If
 

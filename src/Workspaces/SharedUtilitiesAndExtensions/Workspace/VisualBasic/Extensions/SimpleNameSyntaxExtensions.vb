@@ -2,22 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
-Imports System.Linq
 Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
     Friend Module SimpleNameSyntaxExtensions
         <Extension()>
         Public Function GetLeftSideOfDot(name As SimpleNameSyntax) As ExpressionSyntax
-            Debug.Assert(IsMemberAccessExpressionName(name) OrElse IsRightSideOfQualifiedName(name))
-            If IsMemberAccessExpressionName(name) Then
+            Debug.Assert(IsSimpleMemberAccessExpressionName(name) OrElse IsRightSideOfQualifiedName(name))
+            If IsSimpleMemberAccessExpressionName(name) Then
                 Return DirectCast(name.Parent, MemberAccessExpressionSyntax).Expression
             Else
                 Return DirectCast(name.Parent, QualifiedNameSyntax).Left

@@ -18,8 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicIntelliSense(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicIntelliSense))
+        public BasicIntelliSense(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicIntelliSense))
         {
         }
 
@@ -119,7 +119,6 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-
             VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 
             VisualStudio.Editor.Verify.TextContains(@"
@@ -141,7 +140,7 @@ End Module",
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/45234"), Trait(Traits.Feature, Traits.Features.Completion)]
         public void TypeAVariableDeclaration()
         {
             SetUpEditor(@"

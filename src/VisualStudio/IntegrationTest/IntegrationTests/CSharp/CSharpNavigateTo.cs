@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -11,7 +13,6 @@ using Xunit;
 using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
-
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
@@ -19,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpNavigateTo(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpNavigateTo))
+        public CSharpNavigateTo(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpNavigateTo))
         {
         }
 
@@ -35,7 +36,6 @@ class FirstClass
 {
     void FirstMethod() { }
 }");
-
 
             VisualStudio.SolutionExplorer.AddFile(project, "test2.cs", open: true, contents: @"
 ");

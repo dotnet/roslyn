@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -147,18 +145,18 @@ namespace Roslyn.Utilities
             return false;
         }
 
-        internal static bool? GetIsGeneratedCodeFromOptions(ImmutableDictionary<string, string> options)
+        internal static GeneratedKind GetIsGeneratedCodeFromOptions(ImmutableDictionary<string, string> options)
         {
             // Check for explicit user configuration for generated code.
             //     generated_code = true | false
-            if (options.TryGetValue("generated_code", out string optionValue) &&
+            if (options.TryGetValue("generated_code", out string? optionValue) &&
                 bool.TryParse(optionValue, out var boolValue))
             {
-                return boolValue;
+                return boolValue ? GeneratedKind.MarkedGenerated : GeneratedKind.NotGenerated;
             }
 
             // Either no explicit user configuration or we don't recognize the option value.
-            return null;
+            return GeneratedKind.Unknown;
         }
 
         internal static bool? GetIsGeneratedCodeFromOptions(AnalyzerConfigOptions options)

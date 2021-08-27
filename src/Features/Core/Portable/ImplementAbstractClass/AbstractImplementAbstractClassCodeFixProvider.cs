@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                 id = GetCodeActionId(
                     abstractClassType.ContainingAssembly.Name,
                     abstractClassType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                    through.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+                    through.Name);
                 context.RegisterCodeFix(
                     new MyCodeAction(
                         string.Format(FeaturesResources.Implement_through_0, through.Name),

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.InvertIf;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpInvertIfCodeRefactoringProvider();
 
-        private string CreateTreeText(string initial)
+        private static string CreateTreeText(string initial)
         {
             return
 @"class A
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         {
             await TestFixOneAsync(
 @"[||]if (a is Goo) { a(); } else { b(); }",
-@"if (!(a is Goo)) { b(); } else { a(); }");
+@"if (a is not Goo) { b(); } else { a(); }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
@@ -232,7 +234,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
 @"[||]if (a & b) { a(); } else { b(); }",
 @"if (!a | !b) { b(); } else { a(); }");
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         public async Task TestSingleLine_ParenthesizeAndForPrecedence()
@@ -1034,7 +1035,102 @@ class C
         {
             await TestInRegularAndScriptAsync(
 @"class C { void M(object o) { [||]if (o is C) { a(); } else { } } }",
-@"class C { void M(object o) { if (!(o is C)) { } else { a(); } } }");
+@"class C { void M(object o) { if (o is not C) { } else { a(); } } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        public async Task TestEmptyIf()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C { void M(string s){ [||]if (s == ""a""){}else{ s = ""b""}}}",
+                @"class C { void M(string s){ if (s != ""a""){ s = ""b""}}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        public async Task TestOnlySingleLineCommentIf()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class C 
+{
+    void M(string s)
+    {
+        [||]if (s == ""a"")
+        {
+            // A single line comment
+        }
+        else
+        {
+            s = ""b""
+        }
+    }
+}",
+                @"
+class C 
+{
+    void M(string s)
+    {
+        if (s != ""a"")
+        {
+            s = ""b""
+        }
+        else
+        {
+            // A single line comment
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        public async Task TestOnlyMultilineLineCommentIf()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class C 
+{ 
+    void M(string s)
+    {
+        [||]if (s == ""a"")
+        {
+            /*
+            * This is
+            * a multiline
+            * comment with
+            * two words
+            * per line.
+            */
+        }
+        else
+        {
+            s = ""b""
+        }
+    }
+}",
+                @"
+class C 
+{ 
+    void M(string s)
+    {
+        if (s != ""a"")
+        {
+            s = ""b""
+        }
+        else
+        {
+            /*
+            * This is
+            * a multiline
+            * comment with
+            * two words
+            * per line.
+            */
+        }
+    }
+}");
         }
     }
 }

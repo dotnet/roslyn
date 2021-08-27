@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         protected class ModifiedWhitespace : Whitespace
         {
-            private readonly Whitespace _original;
+            private readonly Whitespace? _original;
 
             public ModifiedWhitespace(AnalyzerConfigOptions options, int lineBreaks, int indentation, bool elastic, string language)
                 : base(options, lineBreaks, indentation, elastic, language)

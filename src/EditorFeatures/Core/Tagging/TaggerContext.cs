@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// tags from before and after the sub-span and merge them with the newly produced tags.
         /// </summary>
         public void SetSpansTagged(IEnumerable<DocumentSnapshotSpan> spansTagged)
-            => this._spansTagged = spansTagged ?? throw new ArgumentNullException(nameof(spansTagged));
+            => _spansTagged = spansTagged ?? throw new ArgumentNullException(nameof(spansTagged));
 
         public IEnumerable<ITagSpan<TTag>> GetExistingContainingTags(SnapshotPoint point)
         {

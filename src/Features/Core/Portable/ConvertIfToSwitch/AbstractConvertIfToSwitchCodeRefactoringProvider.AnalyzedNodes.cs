@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -122,6 +120,21 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                 {
                     LowerBound = lowerBound;
                     HigherBound = higherBound;
+                }
+            }
+
+            /// <summary>
+            /// Represents an and-pattern, constructed from two other patterns.
+            /// </summary>
+            internal sealed class And : AnalyzedPattern
+            {
+                public readonly AnalyzedPattern LeftPattern;
+                public readonly AnalyzedPattern RightPattern;
+
+                public And(AnalyzedPattern leftPattern, AnalyzedPattern rightPattern)
+                {
+                    LeftPattern = leftPattern;
+                    RightPattern = rightPattern;
                 }
             }
         }

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertAnonymousTypeToTupleCodeFixProvider)), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ConvertAnonymousTypeToTuple), [Shared]>
     Friend Class VisualBasicConvertAnonymousTypeToTupleCodeFixProvider
         Inherits AbstractConvertAnonymousTypeToTupleCodeFixProvider(Of
             ExpressionSyntax,
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
                 GetExpression(field)).WithTriviaFrom(field)
         End Function
 
-        Private Function GetNameEquals(field As FieldInitializerSyntax) As NameColonEqualsSyntax
+        Private Shared Function GetNameEquals(field As FieldInitializerSyntax) As NameColonEqualsSyntax
             Dim namedField = TryCast(field, NamedFieldInitializerSyntax)
             If namedField Is Nothing Then
                 Return Nothing
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
                 SyntaxFactory.Token(SyntaxKind.ColonEqualsToken).WithTriviaFrom(namedField.EqualsToken))
         End Function
 
-        Private Function GetExpression(field As FieldInitializerSyntax) As ExpressionSyntax
+        Private Shared Function GetExpression(field As FieldInitializerSyntax) As ExpressionSyntax
             Return If(TryCast(field, InferredFieldInitializerSyntax)?.Expression,
                       TryCast(field, NamedFieldInitializerSyntax)?.Expression)
         End Function

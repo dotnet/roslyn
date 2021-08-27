@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -59,9 +61,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private bool IsClassView()
             => Helpers.IsClassView(_flags);
-
-        private bool IsFindSymbol()
-            => Helpers.IsFindSymbol(_flags);
 
         private ObjectListItem GetListItem(uint index)
         {
@@ -601,7 +600,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return false;
             }
 
-            if (ErrorHandler.Failed(pNavInfoNode.get_Type(out var type)))
+            if (ErrorHandler.Failed(pNavInfoNode.get_Type(out _)))
             {
                 return false;
             }

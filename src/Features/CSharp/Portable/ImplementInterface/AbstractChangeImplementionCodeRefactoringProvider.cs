@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -149,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         private static (SyntaxNode?, ExplicitInterfaceSpecifierSyntax?, SyntaxToken) GetContainer(SyntaxToken token)
         {
-            for (SyntaxNode? node = token.Parent; node != null; node = node.Parent)
+            for (var node = token.Parent; node != null; node = node.Parent)
             {
                 var result = node switch
                 {
@@ -166,13 +164,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return default;
         }
 
-        private int TotalCount(MemberImplementationMap dictionary)
+        private static int TotalCount(MemberImplementationMap dictionary)
         {
             var result = 0;
             foreach (var (key, values) in dictionary)
             {
                 result += values.Count;
             }
+
             return result;
         }
 
@@ -250,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }

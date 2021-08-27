@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -17,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             ChainedFormattingRules formattingRules,
             CancellationToken cancellationToken)
         {
-            var root = trivia.GetStructure();
+            var root = trivia.GetStructure() ?? throw new ArgumentException();
             var formatter = new CSharpStructuredTriviaFormatEngine(trivia, initialColumn, options, formattingRules, root.GetFirstToken(includeZeroWidth: true), root.GetLastToken(includeZeroWidth: true));
             return formatter.Format(cancellationToken);
         }
@@ -37,11 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
         }
 
+        internal override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+
         protected override AbstractTriviaDataFactory CreateTriviaFactory()
             => new TriviaDataFactory(this.TreeData, this.Options);
 
         protected override FormattingContext CreateFormattingContext(TokenStream tokenStream, CancellationToken cancellationToken)
-            => new FormattingContext(this, tokenStream);
+            => new(this, tokenStream);
 
         protected override NodeOperations CreateNodeOperations(CancellationToken cancellationToken)
         {

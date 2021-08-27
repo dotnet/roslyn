@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly ImmutableArray<string> s_topLevelSingleUseTagNames = ImmutableArray.Create(SummaryElementName, RemarksElementName, ExampleElementName, CompletionListElementName);
 
         private static readonly Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)> s_tagMap =
-            new Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)>
+            new Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)>()
             {
                 //                                        tagOpen                                  textBeforeCaret       $$  textAfterCaret                            tagClose
                 { ExceptionElementName,              ($"<{ExceptionElementName}",              $" {CrefAttributeName}=\"",  "\"",                                      null) },
@@ -49,7 +52,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 new[] { PermissionElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
                 new[] { SeeElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
                 new[] { SeeElementName, LangwordAttributeName, $"{LangwordAttributeName}=\"", "\"" },
+                new[] { SeeElementName, HrefAttributeName, $"{HrefAttributeName}=\"", "\"" },
                 new[] { SeeAlsoElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { SeeAlsoElementName, HrefAttributeName, $"{HrefAttributeName}=\"", "\"" },
                 new[] { ListElementName, TypeAttributeName, $"{TypeAttributeName}=\"", "\"" },
                 new[] { ParameterElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
                 new[] { ParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
@@ -67,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected AbstractDocCommentCompletionProvider(CompletionItemRules defaultRules)
         {
-            this.defaultRules = defaultRules ?? throw new ArgumentNullException(nameof(defaultRules)); ;
+            this.defaultRules = defaultRules ?? throw new ArgumentNullException(nameof(defaultRules));
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -91,6 +96,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract IEnumerable<string> GetExistingTopLevelElementNames(TSyntax syntax);
 
         protected abstract IEnumerable<string> GetExistingTopLevelAttributeValues(TSyntax syntax, string tagName, string attributeName);
+
+        protected abstract IEnumerable<string> GetKeywordNames();
+
+        /// <summary>
+        /// A temporarily hack that should be removed once/if https://github.com/dotnet/roslyn/issues/53092 is fixed.
+        /// </summary>
+        protected abstract ImmutableArray<IParameterSymbol> GetParameters(ISymbol symbol);
 
         private CompletionItem GetItem(string name)
         {
@@ -147,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private IEnumerable<CompletionItem> GetParamRefItems(ISymbol symbol)
         {
-            var names = symbol.GetParameters().Select(p => p.Name);
+            var names = GetParameters(symbol).Select(p => p.Name);
 
             return names.Select(p => CreateCompletionItem(
                 displayText: FormatParameter(ParameterReferenceElementName, p),
@@ -169,9 +181,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (attributeName == NameAttributeName && symbol != null)
             {
-                if (tagName == ParameterElementName || tagName == ParameterReferenceElementName)
+                if (tagName is ParameterElementName or ParameterReferenceElementName)
                 {
-                    return symbol.GetParameters()
+                    return GetParameters(symbol)
                                  .Select(parameter => CreateCompletionItem(parameter.Name));
                 }
                 else if (tagName == TypeParameterElementName)
@@ -197,20 +209,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
-        protected abstract IEnumerable<string> GetKeywordNames();
-
-        protected IEnumerable<CompletionItem> GetTopLevelItems(ISymbol symbol, TSyntax syntax)
+        protected ImmutableArray<CompletionItem> GetTopLevelItems(ISymbol symbol, TSyntax syntax)
         {
-            var items = new List<CompletionItem>();
+            using var _1 = ArrayBuilder<CompletionItem>.GetInstance(out var items);
+            using var _2 = PooledHashSet<string>.GetInstance(out var existingTopLevelTags);
 
-            var existingTopLevelTags = new HashSet<string>(GetExistingTopLevelElementNames(syntax));
+            existingTopLevelTags.AddAll(GetExistingTopLevelElementNames(syntax));
 
             items.AddRange(s_topLevelSingleUseTagNames.Except(existingTopLevelTags).Select(GetItem));
             items.AddRange(s_topLevelRepeatableTagNames.Select(GetItem));
 
             if (symbol != null)
             {
-                items.AddRange(GetParameterItems(symbol.GetParameters(), syntax, ParameterElementName));
+                items.AddRange(GetParameterItems(GetParameters(symbol), syntax, ParameterElementName));
                 items.AddRange(GetParameterItems(symbol.GetTypeParameters(), syntax, TypeParameterElementName));
 
                 if (symbol is IPropertySymbol && !existingTopLevelTags.Contains(ValueElementName))
@@ -234,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return items;
+            return items.ToImmutable();
         }
 
         protected IEnumerable<CompletionItem> GetItemTagItems()
@@ -253,10 +264,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return names.Select(name => CreateCompletionItem(FormatParameter(tagName, name)));
         }
 
-        private string FormatParameter(string kind, string name)
+        private static string FormatParameter(string kind, string name)
             => $"{kind} {NameAttributeName}=\"{name}\"";
 
-        private string FormatParameterRefTag(string kind, string name)
+        private static string FormatParameterRefTag(string kind, string name)
             => $"<{kind} {NameAttributeName}=\"{name}\"/>";
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = null, CancellationToken cancellationToken = default)
@@ -282,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var replacementText = beforeCaretText;
             var newPosition = replacementSpan.Start + beforeCaretText.Length;
 
-            if (commitChar.HasValue && !char.IsWhiteSpace(commitChar.Value) && commitChar.Value != replacementText[replacementText.Length - 1])
+            if (commitChar.HasValue && !char.IsWhiteSpace(commitChar.Value) && commitChar.Value != replacementText[^1])
             {
                 // include the commit character
                 replacementText += commitChar.Value;
@@ -327,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly CharacterSetModificationRule WithoutQuoteRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '"');
         private static readonly CharacterSetModificationRule WithoutSpaceRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ');
 
-        internal static readonly ImmutableArray<CharacterSetModificationRule> FilterRules = ImmutableArray.Create(
+        protected static readonly ImmutableArray<CharacterSetModificationRule> FilterRules = ImmutableArray.Create(
             CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '!', '-', '['));
 
         private CompletionItemRules GetCompletionItemRules(string displayText)

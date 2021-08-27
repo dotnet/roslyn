@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -24,8 +26,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static int ThrowTestException() => throw new TestException();
+        private static int ThrowTestException() => throw new TestException();
 
-        class TestException : Exception { }
+        private class TestException : Exception { }
     }
 }

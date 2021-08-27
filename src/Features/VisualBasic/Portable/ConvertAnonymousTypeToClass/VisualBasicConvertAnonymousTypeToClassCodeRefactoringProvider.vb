@@ -5,7 +5,7 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
+Imports Microsoft.CodeAnalysis.ConvertAnonymousTypeToClass
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToClass
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToClass
                        CreateArgument(CType(declOrComma, FieldInitializerSyntax)))
         End Function
 
-        Private Function CreateArgument(initializer As FieldInitializerSyntax) As ArgumentSyntax
+        Private Shared Function CreateArgument(initializer As FieldInitializerSyntax) As ArgumentSyntax
             Dim expression = If(TryCast(initializer, InferredFieldInitializerSyntax)?.Expression,
                                 TryCast(initializer, NamedFieldInitializerSyntax)?.Expression)
             Return SyntaxFactory.SimpleArgument(expression)

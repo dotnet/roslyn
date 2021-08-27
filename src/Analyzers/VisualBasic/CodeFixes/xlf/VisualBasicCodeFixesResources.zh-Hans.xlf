@@ -4,12 +4,22 @@
     <body>
       <trans-unit id="Add_Me">
         <source>Add 'Me.'</source>
-        <target state="new">Add 'Me.'</target>
+        <target state="translated">添加 "Me."</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_GetType_to_NameOf">
+        <source>Convert 'GetType' to 'NameOf'</source>
+        <target state="translated">将 "GetType" 转换为 "NameOf"</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Imports">
         <source>Remove Unnecessary Imports</source>
-        <target state="new">Remove Unnecessary Imports</target>
+        <target state="translated">删除不必要的导入</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_object_creation">
+        <source>Simplify object creation</source>
+        <target state="translated">简化对象创建</target>
         <note />
       </trans-unit>
     </body>

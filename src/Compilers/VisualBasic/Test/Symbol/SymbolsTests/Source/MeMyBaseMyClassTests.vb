@@ -1438,7 +1438,7 @@ Module MyExtensionModule
     End Function
 End Module
     </file>
-</compilation>, references:={SystemCoreRef}).VerifyIL("C1.Goo", <![CDATA[
+</compilation>, references:={TestMetadata.Net40.SystemCore}).VerifyIL("C1.Goo", <![CDATA[
 {
   // Code size       12 (0xc)
   .maxstack  1

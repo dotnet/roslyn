@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Throw New NotImplementedException()
         End Function
 
-        Private Function AddInformationTo(Of TTypeSyntax As TypeSyntax)(type As TTypeSyntax, symbol As ISymbol) As TTypeSyntax
+        Private Shared Function AddInformationTo(Of TTypeSyntax As TypeSyntax)(type As TTypeSyntax, symbol As ISymbol) As TTypeSyntax
             type = type.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
             type = type.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol))
             Return type
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(symbol.TypeArguments.[Select](Function(t) t.Accept(Me)))))
         End Function
 
-        Private Function TryCreateSpecializedNamedTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
+        Private Shared Function TryCreateSpecializedNamedTypeSyntax(symbol As INamedTypeSymbol) As TypeSyntax
             Select Case symbol.SpecialType
                 Case SpecialType.System_Object
                     Return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Object"))

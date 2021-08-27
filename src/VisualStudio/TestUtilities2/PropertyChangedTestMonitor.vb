@@ -9,8 +9,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Public Class PropertyChangedTestMonitor
 
         Private ReadOnly _propertyChangedObject As INotifyPropertyChanged
-        Private _expectationCountMap As Dictionary(Of String, Integer)
-        Private _failures As List(Of String)
+        Private ReadOnly _expectationCountMap As Dictionary(Of String, Integer)
+        Private ReadOnly _failures As List(Of String)
 
         Public Sub New(propertyChangedObject As INotifyPropertyChanged, Optional strict As Boolean = False)
             AddHandler propertyChangedObject.PropertyChanged, AddressOf PropertyChangedHandler

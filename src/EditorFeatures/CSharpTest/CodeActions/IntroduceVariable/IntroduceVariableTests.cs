@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -11,8 +12,8 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.IntroduceVariable;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -30,11 +31,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
         private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey2, object> ImplicitTypingEverywhere() =>
-            OptionsSet(
-                SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
-                SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-                SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
+        private OptionsCollection ImplicitTypingEverywhere()
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
         public async Task TestEmptySpan1()
@@ -3225,7 +3228,7 @@ b
 c""|];
     }
 }",
-string.Format(FeaturesResources.Introduce_local_for_0, @"$@""a b c"""));
+string.Format(FeaturesResources.Introduce_constant_for_0, @"$@""a b c"""));
         }
 
         [WorkItem(1097147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097147")]
@@ -4564,7 +4567,7 @@ class TestClass
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TestNoConstantForInterpolatedStrings1()
+        public async Task TestNoConstantForInterpolatedStrings()
         {
             var code =
     @"using System;
@@ -4592,7 +4595,7 @@ class TestClass
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-        public async Task TestNoConstantForInterpolatedStrings2()
+        public async Task TestConstantForInterpolatedStrings()
         {
             var code =
     @"using System;
@@ -4609,9 +4612,69 @@ class TestClass
     @"using System;
 class TestClass
 {
+    private const string {|Rename:Value|} = $""Text{{s}}"";
+
     static void Test(string[] args)
     {
-        var {|Rename:value|} = $""Text{{s}}"";
+        Console.WriteLine(Value);
+        Console.WriteLine(Value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestConstantForInterpolatedStringsNested()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        Console.WriteLine([|$""{""Level 5""} {""Number 3""}""|]);
+        Console.WriteLine($""{""Level 5""} {""Number 3""}"");
+    }
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    private const string {|Rename:Value|} = $""{""Level 5""} {""Number 3""}"";
+
+    static void Test(string[] args)
+    {
+        Console.WriteLine(Value);
+        Console.WriteLine(Value);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: ImplicitTypingEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestConstantForInterpolatedStringsInvalid()
+        {
+            var code =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        Console.WriteLine([|$""Text{0}""|]);
+        Console.WriteLine($""Text{0}"");
+    }
+}";
+
+            var expected =
+    @"using System;
+class TestClass
+{
+    static void Test(string[] args)
+    {
+        var {|Rename:value|} = $""Text{0}"";
         Console.WriteLine(value);
         Console.WriteLine(value);
     }
@@ -4783,6 +4846,44 @@ namespace N
         {
             FormattableString {|Rename:formattable|} = $"""";
             var f = FormattableString.Invariant(formattable);
+        }
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected);
+        }
+
+        [WorkItem(49720, "https://github.com/dotnet/roslyn/issues/49720")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task HandleIFormattableTargetTyping1()
+        {
+            const string code = @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public async Task M()
+        {
+            M([|$""""|]);
+            void M(IFormattable f) {}
+        }
+    }
+}";
+
+            const string expected = @"
+namespace N
+{
+    using System;
+
+    class C
+    {
+        public async Task M()
+        {
+            IFormattable {|Rename:f|} = $"""";
+            M(f);
+            void M(IFormattable f) {}
         }
     }
 }";
@@ -7457,6 +7558,465 @@ class Program
     }
 }",
                 index: 3);
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestKeepExistingNonTrivialCodeInLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.IO;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Task.Run(() => File.Copy(""src"", [|Path.Combine(""dir"", ""file"")|]));
+    }
+}",
+@"using System.IO;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Task.Run(() =>
+        {
+            string {|Rename:destFileName|} = Path.Combine(""dir"", ""file"");
+            File.Copy(""src"", destFileName);
+        });
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroVarInActionSelectingInsideParens()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> goo = x => ([|x.ToString()|]);
+    }
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> goo = x =>
+        {
+            string {|Rename:v|} = x.ToString();
+        };
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroVarInActionSelectingParens()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> goo = x => [|(x.ToString())|];
+    }
+}",
+@"using System;
+
+class Program
+{
+    void M()
+    {
+        Action<int> goo = x =>
+        {
+            string {|Rename:v|} = (x.ToString());
+        };
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestMissingReturnStatementInAsyncTaskMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, Task> f = async x => await [|M2()|];
+    }
+
+    async Task M2()
+    {
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, Task> f = async x =>
+        {
+            Task {|Rename:task|} = M2();
+            await task;
+        };
+    }
+
+    async Task M2()
+    {
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestMissingReturnStatementInAsyncValueTaskMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask
+    {
+    }
+}
+
+class Program
+{
+    void M()
+    {
+        Func<int, ValueTask> f = async x => await [|M2()|];
+    }
+
+    async ValueTask M2()
+    {
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask
+    {
+    }
+}
+
+class Program
+{
+    void M()
+    {
+        Func<int, ValueTask> f = async x =>
+        {
+            ValueTask {|Rename:valueTask|} = M2();
+            await valueTask;
+        };
+    }
+
+    async ValueTask M2()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestReturnStatementInAsyncTaskTypeMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, Task<int>> f = async x => await [|M2()|];
+    }
+
+    async Task<int> M2()
+    {
+        return 0;
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    void M()
+    {
+        Func<int, Task<int>> f = async x =>
+        {
+            Task<int> {|Rename:task|} = M2();
+            return await task;
+        };
+    }
+
+    async Task<int> M2()
+    {
+        return 0;
+    }
+}");
+        }
+
+        [WorkItem(40745, "https://github.com/dotnet/roslyn/issues/40745")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestReturnStatementInAsyncValueTaskTypeMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask<T>
+    {
+    }
+}
+
+class Program
+{
+    void M()
+    {
+        Func<int, ValueTask<int>> f = async x => await [|M2()|];
+    }
+
+    async ValueTask<int> M2()
+    {
+        return 0;
+    }
+}",
+@"using System;
+using System.Threading.Tasks;
+
+namespace System.Threading.Tasks {
+    struct ValueTask<T>
+    {
+    }
+}
+
+class Program
+{
+    void M()
+    {
+        Func<int, ValueTask<int>> f = async x =>
+        {
+            ValueTask<int> {|Rename:valueTask|} = M2();
+            return await valueTask;
+        };
+    }
+
+    async ValueTask<int> M2()
+    {
+        return 0;
+    }
+}");
+        }
+
+        [WorkItem(44291, "https://github.com/dotnet/roslyn/issues/44291")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task TestIntroduceWithAmbiguousExtensionClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" Name=""P1"" CommonReferences=""true"">
+        <Document>
+public static class Extensions
+{
+    public static void Goo(this string s) { }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" Name=""P2"" CommonReferences=""true"">
+        <Document>
+public static class Extensions
+{
+    public static void Bar(this string s) { }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly3"" Name=""P3"" CommonReferences=""true"">
+        <ProjectReference>P1</ProjectReference>
+        <ProjectReference>P2</ProjectReference>
+        <Document>
+public class P
+{
+    public void M(string s)
+    {
+        s.Bar([|$""""|]);
+    }
+}</Document>
+    </Project>
+</Workspace>",
+@"
+public class P
+{
+    private const string {|Rename:V|} = $"""";
+
+    public void M(string s)
+    {
+        s.Bar(V);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(44656, "https://github.com/dotnet/roslyn/issues/44656")]
+        public async Task ImplicitObjectCreation()
+        {
+            await TestInRegularAndScriptAsync(@"
+class A
+{
+    public void Create(A a, B b)
+    {
+    }
+}
+
+class B
+{
+    void M()
+    {
+        new A().Create(new A(), [|new(1)|]);
+    }
+}", @"
+class A
+{
+    public void Create(A a, B b)
+    {
+    }
+}
+
+class B
+{
+    void M()
+    {
+        B {|Rename:b|} = new(1);
+        new A().Create(new A(), b);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(52833, "https://github.com/dotnet/roslyn/issues/52833")]
+        public async Task UniqueParameterName()
+        {
+            await TestInRegularAndScriptAsync(@"
+using System.IO;
+
+public class SomeClass
+{
+    public void Foo()
+    {
+        var somePath = Path.Combine(""one"", ""two"");
+        Other([|""someParam""|]);
+    }
+
+    public void Other(string path)
+    {
+    }
+}",
+@"
+using System.IO;
+
+public class SomeClass
+{
+    public void Foo()
+    {
+        var somePath = Path.Combine(""one"", ""two"");
+        const string {|Rename:Path1|} = ""someParam"";
+        Other(Path1);
+    }
+
+    public void Other(string path)
+    {
+    }
+}", 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
+        public async Task DoNotIntroduceConstantForConstant_Local()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void M()
+    {
+        const int foo = [|10|];
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
+        public async Task DoNotIntroduceConstantForConstant_Member()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    const int foo = [|10|];
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
+        public async Task DoNotIntroduceConstantForConstant_Parentheses()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    const int foo = ([|10|]);
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        [WorkItem(47772, "https://github.com/dotnet/roslyn/issues/47772")]
+        public async Task DoNotIntroduceConstantForConstant_NotForSubExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        const int foo = [|10|] + 10;
+    }
+}
+",
+@"
+class C
+{
+    void M()
+    {
+        const int {|Rename:V|} = 10;
+        const int foo = V + 10;
+    }
+}
+",
+            index: 2);
         }
     }
 }

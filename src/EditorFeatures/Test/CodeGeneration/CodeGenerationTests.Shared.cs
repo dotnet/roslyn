@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -703,7 +705,7 @@ namespace [|N|]
             public static abstract string Property1 { get; }
             public virtual string Property { get; }
 
-            public abstract static void Method2();
+            public static abstract void Method2();
             public virtual void Method1();
         }
 

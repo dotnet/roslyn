@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
@@ -15,23 +15,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return New VisualBasicWrappingCodeRefactoringProvider()
         End Function
 
-        Private ReadOnly Property EndOfLine As IDictionary(Of OptionKey2, Object) = [Option](
+        Private ReadOnly Property EndOfLine As OptionsCollection = [Option](
             CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.EndOfLine)
 
-        Private ReadOnly Property BeginningOfLine As IDictionary(Of OptionKey2, Object) = [Option](
+        Private ReadOnly Property BeginningOfLine As OptionsCollection = [Option](
             CodeStyleOptions2.OperatorPlacementWhenWrapping,
             OperatorPlacementWhenWrappingPreference.BeginningOfLine)
-
-        Private Function TestEndOfLine(markup As String, expected As String) As Task
-            Return TestInRegularAndScript1Async(markup, expected, parameters:=New TestParameters(
-                options:=EndOfLine))
-        End Function
-
-        Private Function TestBeginningOfLine(markup As String, expected As String) As Task
-            Return TestInRegularAndScript1Async(markup, expected, parameters:=New TestParameters(
-                options:=BeginningOfLine))
-        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)>
         Public Async Function TestMissingWithSyntaxError() As Task

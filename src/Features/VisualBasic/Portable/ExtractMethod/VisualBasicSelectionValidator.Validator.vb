@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             If TypeOf node Is ExpressionSyntax Then
                 Return CheckExpression(semanticModel, DirectCast(node, ExpressionSyntax), cancellationToken)
             ElseIf TypeOf node Is StatementSyntax Then
-                Return CheckStatement(semanticModel, DirectCast(node, StatementSyntax), cancellationToken)
+                Return CheckStatement(DirectCast(node, StatementSyntax))
             Else
                 Return False
             End If
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return expression.CanReplaceWithRValue(semanticModel, cancellationToken) AndAlso Not expression.ContainsImplicitMemberAccess()
         End Function
 
-        Private Shared Function CheckStatement(semanticModel As SemanticModel, statement As StatementSyntax, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function CheckStatement(statement As StatementSyntax) As Boolean
             If statement.GetAncestor(Of WithBlockSyntax)() IsNot Nothing Then
                 If statement.ContainsImplicitMemberAccess() Then
                     Return False

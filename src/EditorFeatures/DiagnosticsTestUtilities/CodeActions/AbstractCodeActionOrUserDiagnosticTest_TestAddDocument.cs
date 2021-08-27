@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -28,10 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
                 WithRegularOptions(parameters));
-            await TestAddDocument(
-                initialMarkup, expectedMarkup,
-                expectedContainers, expectedDocumentName,
-                WithScriptOptions(parameters));
+
+            // VB script is not supported:
+            if (GetLanguage() == LanguageNames.CSharp)
+            {
+                await TestAddDocument(
+                    initialMarkup, expectedMarkup,
+                    expectedContainers, expectedDocumentName,
+                    WithScriptOptions(parameters));
+            }
         }
 
         protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
@@ -81,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 expectedDocumentName: expectedDocumentName);
         }
 
-        protected async Task<Tuple<Solution, Solution>> TestAddDocument(
+        protected static async Task<Tuple<Solution, Solution>> TestAddDocument(
             TestWorkspace workspace,
             string expected,
             ImmutableArray<CodeActionOperation> operations,
@@ -109,7 +116,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             AssertEx.Equal(expectedFolders, addedDocument.Folders);
             Assert.Equal(expectedDocumentName, addedDocument.Name);
-            Assert.Equal(expected, (await addedDocument.GetTextAsync()).ToString());
+            var actual = (await addedDocument.GetTextAsync()).ToString();
+            Assert.Equal(expected, actual);
 
             var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
             if (!hasProjectChange)

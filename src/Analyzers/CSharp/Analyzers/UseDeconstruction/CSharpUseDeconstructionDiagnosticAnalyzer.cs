@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -22,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
     {
         public CSharpUseDeconstructionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
+                   EnforceOnBuildValues.UseDeconstruction,
                    CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -63,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         {
             if (!TryAnalyzeVariableDeclaration(
                     context.SemanticModel, variableDeclaration, out _,
-                    out var memberAccessExpressions, context.CancellationToken))
+                    out _, context.CancellationToken))
             {
                 return;
             }
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         {
             if (!TryAnalyzeForEachStatement(
                     context.SemanticModel, forEachStatement, out _,
-                    out var memberAccessExpressions, context.CancellationToken))
+                    out _, context.CancellationToken))
             {
                 return;
             }
@@ -204,8 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                     return false;
                 }
             }
-
-            var variableName = identifier.ValueText;
 
             using var _ = ArrayBuilder<MemberAccessExpressionSyntax>.GetInstance(out var references);
 

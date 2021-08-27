@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -18,18 +20,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly LambdaSimplifierCodeRefactoringProvider _codeIssueProvider;
             private readonly SemanticDocument _document;
             private readonly Func<SyntaxNode, bool> _predicate;
             private readonly CancellationToken _cancellationToken;
 
             public Rewriter(
-                LambdaSimplifierCodeRefactoringProvider codeIssueProvider,
                 SemanticDocument document,
                 Func<SyntaxNode, bool> predicate,
                 CancellationToken cancellationToken)
             {
-                _codeIssueProvider = codeIssueProvider;
                 _document = document;
                 _predicate = predicate;
                 _cancellationToken = cancellationToken;

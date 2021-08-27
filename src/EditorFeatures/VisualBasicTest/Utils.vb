@@ -4,8 +4,6 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Text
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -56,6 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
             If TypeOf (node) Is T Then
                 Return CType(node, T)
             End If
+
             For Each child In node.ChildNodesAndTokens()
                 If child.IsNode Then
                     Dim foundNode = child.AsNode().FindFirstNodeOfType(Of T)()
@@ -64,6 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
                     End If
                 End If
             Next
+
             Return Nothing
         End Function
 
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
             Private ReadOnly _tree As SyntaxTree
             Private ReadOnly _node As T
 
-            Sub New(syntaxTree As SyntaxTree, node As T)
+            Public Sub New(syntaxTree As SyntaxTree, node As T)
 #If Not CODE_STYLE Then
                 Contract.ThrowIfNull(syntaxTree)
                 Contract.ThrowIfNull(node)

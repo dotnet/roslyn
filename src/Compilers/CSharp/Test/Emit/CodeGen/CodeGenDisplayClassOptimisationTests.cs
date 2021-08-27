@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -40,7 +42,7 @@ public static class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release));
+            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: TestOptions.ReleaseExe);
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -124,7 +126,7 @@ public static class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug));
+            var compilation = CompileAndVerify(source, expectedOutput: @"3", options: TestOptions.DebugExe);
 
             VerifyTypeIL(compilation, "Program", @"
 .class public auto ansi abstract sealed beforefieldinit Program
@@ -1678,11 +1680,11 @@ public class Program
 			[0] valuetype Program/'<M>d__0'
 		)
 		IL_0000: ldloca.s 0
-		IL_0002: ldarg.0
-		IL_0003: stfld class C Program/'<M>d__0'::enumerable
-		IL_0008: ldloca.s 0
-		IL_000a: call valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder::Create()
-		IL_000f: stfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program/'<M>d__0'::'<>t__builder'
+ 		IL_0002: call valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder::Create()
+ 		IL_0007: stfld valuetype [mscorlib]System.Runtime.CompilerServices.AsyncVoidMethodBuilder Program/'<M>d__0'::'<>t__builder'
+ 		IL_000c: ldloca.s 0
+ 		IL_000e: ldarg.0
+ 		IL_000f: stfld class C Program/'<M>d__0'::enumerable
 		IL_0014: ldloca.s 0
 		IL_0016: ldc.i4.m1
 		IL_0017: stfld int32 Program/'<M>d__0'::'<>1__state'

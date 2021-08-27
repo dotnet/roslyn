@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         }
 
         public PatternMatch WithMatchedSpans(ImmutableArray<TextSpan> matchedSpans)
-            => new PatternMatch(Kind, _punctuationStripped, IsCaseSensitive, matchedSpans);
+            => new(Kind, _punctuationStripped, IsCaseSensitive, matchedSpans);
 
         public int CompareTo(PatternMatch other)
             => CompareTo(other, ignoreCase: false);
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         public int CompareTo(PatternMatch other, bool ignoreCase)
             => ComparerWithState.CompareTo(this, other, ignoreCase, s_comparers);
 
-        private readonly static ImmutableArray<Func<PatternMatch, bool, IComparable>> s_comparers =
+        private static readonly ImmutableArray<Func<PatternMatch, bool, IComparable>> s_comparers =
             ImmutableArray.Create<Func<PatternMatch, bool, IComparable>>(
                 // Compare types
                 (p, b) => p.Kind,

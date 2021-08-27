@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 // Taken from csharp\LanguageAnalysis\Compiler\IDE\LIB\CMEvents.cpp
 
 using System;
@@ -468,8 +470,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             private bool CompareNamespaceDeclarations(
-                NamespaceDeclarationSyntax oldNamespace,
-                NamespaceDeclarationSyntax newNamespace,
+                BaseNamespaceDeclarationSyntax oldNamespace,
+                BaseNamespaceDeclarationSyntax newNamespace,
                 SyntaxNode newNodeParent,
                 CodeModelEventQueue eventQueue)
             {
@@ -666,9 +668,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     return CompareTypeDeclarations(oldNamespaceOrType, newNamespaceOrType, newNodeParent, eventQueue);
                 }
-                else if (oldNamespaceOrType is NamespaceDeclarationSyntax namespaceDecl)
+                else if (oldNamespaceOrType is BaseNamespaceDeclarationSyntax namespaceDecl)
                 {
-                    return CompareNamespaceDeclarations(namespaceDecl, (NamespaceDeclarationSyntax)newNamespaceOrType, newNodeParent, eventQueue);
+                    return CompareNamespaceDeclarations(namespaceDecl, (BaseNamespaceDeclarationSyntax)newNamespaceOrType, newNodeParent, eventQueue);
                 }
 
                 return false;

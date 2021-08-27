@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -228,6 +226,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(semanticModelOpt == null);
                 Debug.Assert(positionOpt < 0);
+            }
+
+            // Do not leak unspeakable name of a Simple Program entry point through diagnostics,
+            // and, for consistency, with other display options.
+            if ((symbol as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol is SynthesizedSimpleProgramEntryPointSymbol)
+            {
+                return ImmutableArray.Create<SymbolDisplayPart>(new SymbolDisplayPart(SymbolDisplayPartKind.MethodName, symbol, "<top-level-statements-entry-point>"));
             }
 
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();

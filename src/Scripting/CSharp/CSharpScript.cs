@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
 using System;
@@ -29,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         /// <exception cref="ArgumentNullException">Code is null.</exception>
         public static Script<T> Create<T>(string code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
-            if (code == null) throw new ArgumentNullException(nameof(code));
+            if (code == null)
+                throw new ArgumentNullException(nameof(code));
             return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, SourceText.From(code, options?.FileEncoding), options, globalsType, assemblyLoader);
         }
 
@@ -45,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
         public static Script<T> Create<T>(Stream code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
-            if (code == null) throw new ArgumentNullException(nameof(code));
+            if (code == null)
+                throw new ArgumentNullException(nameof(code));
             return Script.CreateInitialScript<T>(CSharpScriptCompiler.Instance, SourceText.From(code, options?.FileEncoding), options, globalsType, assemblyLoader);
         }
 
@@ -59,7 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         /// <exception cref="ArgumentNullException">Code is null.</exception>
         public static Script<object> Create(string code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
-            if (code == null) throw new ArgumentNullException(nameof(code));
+            if (code == null)
+                throw new ArgumentNullException(nameof(code));
             return Create<object>(code, options, globalsType, assemblyLoader);
         }
 
@@ -74,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
         /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
         public static Script<object> Create(Stream code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
-            if (code == null) throw new ArgumentNullException(nameof(code));
+            if (code == null)
+                throw new ArgumentNullException(nameof(code));
             return Create<object>(code, options, globalsType, assemblyLoader);
         }
 

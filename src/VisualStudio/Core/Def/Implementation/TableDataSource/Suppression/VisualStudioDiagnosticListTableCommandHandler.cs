@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Configuration;
@@ -14,12 +17,14 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -31,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly VisualStudioWorkspace _workspace;
         private readonly VisualStudioSuppressionFixService _suppressionFixService;
         private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeActionEditHandlerService _editHandlerService;
         private readonly IWpfTableControl _tableControl;
@@ -43,14 +48,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             VisualStudioWorkspace workspace,
             IVisualStudioSuppressionFixService suppressionFixService,
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             IDiagnosticAnalyzerService diagnosticService,
             ICodeActionEditHandlerService editHandlerService)
         {
             _workspace = workspace;
             _suppressionFixService = (VisualStudioSuppressionFixService)suppressionFixService;
             _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _diagnosticService = diagnosticService;
             _editHandlerService = editHandlerService;
 
@@ -86,14 +91,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             AddCommand(menuCommandService, ID.RoslynCommands.ErrorListSetSeverityInfo, SetSeverityHandler, delegate { });
             AddCommand(menuCommandService, ID.RoslynCommands.ErrorListSetSeverityHidden, SetSeverityHandler, delegate { });
             AddCommand(menuCommandService, ID.RoslynCommands.ErrorListSetSeverityNone, SetSeverityHandler, delegate { });
-        }
-
-        private void AddSuppressionsCommandHandlers(IMenuCommandService menuCommandService)
-        {
-            AddCommand(menuCommandService, ID.RoslynCommands.AddSuppressions, delegate { }, OnAddSuppressionsStatus);
-            AddCommand(menuCommandService, ID.RoslynCommands.AddSuppressionsInSource, OnAddSuppressionsInSource, OnAddSuppressionsInSourceStatus);
-            AddCommand(menuCommandService, ID.RoslynCommands.AddSuppressionsInSuppressionFile, OnAddSuppressionsInSuppressionFile, OnAddSuppressionsInSuppressionFileStatus);
-            AddCommand(menuCommandService, ID.RoslynCommands.RemoveSuppressions, OnRemoveSuppressions, OnRemoveSuppressionsStatus);
         }
 
         /// <summary>
@@ -179,24 +176,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var pathToAnalyzerConfigDoc = TryGetPathToAnalyzerConfigDoc(selectedDiagnostic, out var project);
             if (pathToAnalyzerConfigDoc != null)
             {
-                var result = _waitIndicator.Wait(
+                var result = _uiThreadOperationExecutor.Execute(
                     title: ServicesVSResources.Updating_severity,
-                    message: ServicesVSResources.Updating_severity,
-                    allowCancel: true,
-                    action: waitContext =>
+                    defaultDescription: ServicesVSResources.Updating_severity,
+                    allowCancellation: true,
+                    showProgress: true,
+                    action: context =>
                     {
-                        var newSolution = ConfigureSeverityAsync(waitContext).WaitAndGetResult(waitContext.CancellationToken);
+                        var newSolution = ConfigureSeverityAsync(context.UserCancellationToken).WaitAndGetResult(context.UserCancellationToken);
                         var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
+                        var scope = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
                         _editHandlerService.Apply(
                             _workspace,
                             fromDocument: null,
                             operations: operations,
                             title: ServicesVSResources.Updating_severity,
-                            progressTracker: waitContext.ProgressTracker,
-                            cancellationToken: waitContext.CancellationToken);
+                            progressTracker: new UIThreadOperationContextProgressTracker(scope),
+                            cancellationToken: context.UserCancellationToken);
                     });
 
-                if (result == WaitIndicatorResult.Completed && selectedDiagnostic.DocumentId != null)
+                if (result == UIThreadOperationStatus.Completed && selectedDiagnostic.DocumentId != null)
                 {
                     // Kick off diagnostic re-analysis for affected document so that the configured diagnostic gets refreshed.
                     Task.Run(() =>
@@ -209,10 +208,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return;
 
             // Local functions.
-            async System.Threading.Tasks.Task<Solution> ConfigureSeverityAsync(IWaitContext waitContext)
+            async System.Threading.Tasks.Task<Solution> ConfigureSeverityAsync(CancellationToken cancellationToken)
             {
-                var diagnostic = await selectedDiagnostic.ToDiagnosticAsync(project, waitContext.CancellationToken).ConfigureAwait(false);
-                return await ConfigurationUpdater.ConfigureSeverityAsync(reportDiagnostic.Value, diagnostic, project, waitContext.CancellationToken).ConfigureAwait(false);
+                var diagnostic = await selectedDiagnostic.ToDiagnosticAsync(project, cancellationToken).ConfigureAwait(false);
+                return await ConfigurationUpdater.ConfigureSeverityAsync(reportDiagnostic.Value, diagnostic, project, cancellationToken).ConfigureAwait(false);
             }
         }
 

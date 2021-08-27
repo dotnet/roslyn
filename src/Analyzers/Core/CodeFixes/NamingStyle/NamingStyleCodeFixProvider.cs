@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -84,12 +86,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             var fixedNames = style.MakeCompliant(symbol.Name);
             foreach (var fixedName in fixedNames)
             {
-                var solution = context.Document.Project.Solution;
                 context.RegisterCodeFix(
                     new FixNameCodeAction(
-                        solution,
+#if !CODE_STYLE
+                        document.Project.Solution,
                         symbol,
                         fixedName,
+#endif
                         string.Format(CodeFixesResources.Fix_Name_Violation_colon_0, fixedName),
                         c => FixAsync(document, symbol, fixedName, c),
                         equivalenceKey: nameof(NamingStyleCodeFixProvider)),
@@ -108,24 +111,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 
         private class FixNameCodeAction : CodeAction
         {
+#if !CODE_STYLE
             private readonly Solution _startingSolution;
             private readonly ISymbol _symbol;
             private readonly string _newName;
+#endif
+
             private readonly string _title;
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolutionAsync;
             private readonly string _equivalenceKey;
 
             public FixNameCodeAction(
+#if !CODE_STYLE
                 Solution startingSolution,
                 ISymbol symbol,
                 string newName,
+#endif
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolutionAsync,
                 string equivalenceKey)
             {
+#if !CODE_STYLE
                 _startingSolution = startingSolution;
                 _symbol = symbol;
                 _newName = newName;
+#endif
                 _title = title;
                 _createChangedSolutionAsync = createChangedSolutionAsync;
                 _equivalenceKey = equivalenceKey;
@@ -144,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 #if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
                 return SpecializedCollections.SingletonEnumerable(codeAction);
 #else
-                var factory = _startingSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+                var factory = _startingSolution.Workspace.Services.GetRequiredService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
                 return new CodeActionOperation[]
                 {
                     codeAction,

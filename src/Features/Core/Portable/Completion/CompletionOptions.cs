@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
 
@@ -12,59 +10,71 @@ namespace Microsoft.CodeAnalysis.Completion
     internal static class CompletionOptions
     {
         // This is serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new PerLanguageOption2<bool>(nameof(CompletionOptions), nameof(HideAdvancedMembers), defaultValue: false);
+        public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(nameof(CompletionOptions), nameof(HideAdvancedMembers), defaultValue: false);
 
         // This is serialized by the Visual Studio-specific LanguageSettingsPersister
-        public static readonly PerLanguageOption2<bool> TriggerOnTyping = new PerLanguageOption2<bool>(nameof(CompletionOptions), nameof(TriggerOnTyping), defaultValue: true);
+        public static readonly PerLanguageOption2<bool> TriggerOnTyping = new(nameof(CompletionOptions), nameof(TriggerOnTyping), defaultValue: true);
 
-        public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters2 = new PerLanguageOption2<bool>(nameof(CompletionOptions), nameof(TriggerOnTypingLetters), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters"));
+        public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters2 = new(nameof(CompletionOptions), nameof(TriggerOnTypingLetters), defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnTypingLetters"));
 
 #pragma warning disable RS0030 // Do not used banned APIs - Used by TypeScript through IVT, so we cannot change the field type.
         public static readonly PerLanguageOption<bool> TriggerOnTypingLetters = (PerLanguageOption<bool>)TriggerOnTypingLetters2!;
 #pragma warning restore RS0030 // Do not used banned APIs
 
-        public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new PerLanguageOption2<bool?>(nameof(CompletionOptions), nameof(TriggerOnDeletion), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnDeletion"));
+        public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new(nameof(CompletionOptions), nameof(TriggerOnDeletion), defaultValue: null,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerOnDeletion"));
 
         public static readonly PerLanguageOption2<EnterKeyRule> EnterKeyBehavior =
-            new PerLanguageOption2<EnterKeyRule>(nameof(CompletionOptions), nameof(EnterKeyBehavior), defaultValue: EnterKeyRule.Default,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior"));
+            new(nameof(CompletionOptions), nameof(EnterKeyBehavior), defaultValue: EnterKeyRule.Default,
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior"));
 
         public static readonly PerLanguageOption2<SnippetsRule> SnippetsBehavior =
-            new PerLanguageOption2<SnippetsRule>(nameof(CompletionOptions), nameof(SnippetsBehavior), defaultValue: SnippetsRule.Default,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SnippetsBehavior"));
+            new(nameof(CompletionOptions), nameof(SnippetsBehavior), defaultValue: SnippetsRule.Default,
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SnippetsBehavior"));
 
         // Dev15 options
-        public static readonly PerLanguageOption2<bool> ShowCompletionItemFilters = new PerLanguageOption2<bool>(nameof(CompletionOptions), nameof(ShowCompletionItemFilters), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters"));
+        public static readonly PerLanguageOption2<bool> ShowCompletionItemFilters = new(nameof(CompletionOptions), nameof(ShowCompletionItemFilters), defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters"));
 
-        public static readonly PerLanguageOption2<bool> HighlightMatchingPortionsOfCompletionListItems = new PerLanguageOption2<bool>(nameof(CompletionOptions), nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems"));
+        public static readonly PerLanguageOption2<bool> HighlightMatchingPortionsOfCompletionListItems = new(nameof(CompletionOptions), nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems"));
 
-        public static readonly PerLanguageOption2<bool> BlockForCompletionItems2 = new PerLanguageOption2<bool>(
+        public static readonly PerLanguageOption2<bool> BlockForCompletionItems2 = new(
             nameof(CompletionOptions), nameof(BlockForCompletionItems), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BlockForCompletionItems"));
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BlockForCompletionItems"));
 
 #pragma warning disable RS0030 // Do not used banned APIs - Used by TypeScript through IVT, so we cannot change the field type.
         public static readonly PerLanguageOption<bool> BlockForCompletionItems = (PerLanguageOption<bool>)BlockForCompletionItems2!;
 #pragma warning restore RS0030 // Do not used banned APIs
 
         public static readonly PerLanguageOption2<bool> ShowNameSuggestions =
-            new PerLanguageOption2<bool>(nameof(CompletionOptions), nameof(ShowNameSuggestions), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions"));
+            new(nameof(CompletionOptions), nameof(ShowNameSuggestions), defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions"));
 
         //Dev16 options
 
         // Use tri-value so the default state can be used to turn on the feature with experimentation service.
         public static readonly PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces =
-            new PerLanguageOption2<bool?>(nameof(CompletionOptions), nameof(ShowItemsFromUnimportedNamespaces), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces"));
+            new(nameof(CompletionOptions), nameof(ShowItemsFromUnimportedNamespaces), defaultValue: null,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces"));
+
+        public static readonly PerLanguageOption2<bool> TriggerInArgumentLists =
+            new(nameof(CompletionOptions), nameof(TriggerInArgumentLists), defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
 
         // Use tri-value so the default state can be used to turn on the feature with experimentation service.
-        public static readonly PerLanguageOption2<bool?> TriggerInArgumentLists =
-            new PerLanguageOption2<bool?>(nameof(CompletionOptions), nameof(TriggerInArgumentLists), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
+        public static readonly PerLanguageOption2<bool?> EnableArgumentCompletionSnippets =
+            new(nameof(CompletionOptions), nameof(EnableArgumentCompletionSnippets), defaultValue: null,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.EnableArgumentCompletionSnippets"));
+
+        // Test-only options
+
+        // This option is associated with the Roslyn.LSP.Completion flag and should be removed once the flag is removed.
+        // It is intended for testing purposes only.
+        public static readonly PerLanguageOption2<bool> ForceRoslynLSPCompletionExperiment =
+            new(nameof(CompletionOptions), nameof(ForceRoslynLSPCompletionExperiment), defaultValue: false,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ForceRoslynLSPCompletionExperiment"));
 
         public static IEnumerable<PerLanguageOption2<bool>> GetDev15CompletionOptions()
         {
@@ -75,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
     internal static class CompletionControllerOptions
     {
-        public static readonly Option2<bool> FilterOutOfScopeLocals = new Option2<bool>(nameof(CompletionControllerOptions), nameof(FilterOutOfScopeLocals), defaultValue: true);
-        public static readonly Option2<bool> ShowXmlDocCommentCompletion = new Option2<bool>(nameof(CompletionControllerOptions), nameof(ShowXmlDocCommentCompletion), defaultValue: true);
+        public static readonly Option2<bool> FilterOutOfScopeLocals = new(nameof(CompletionControllerOptions), nameof(FilterOutOfScopeLocals), defaultValue: true);
+        public static readonly Option2<bool> ShowXmlDocCommentCompletion = new(nameof(CompletionControllerOptions), nameof(ShowXmlDocCommentCompletion), defaultValue: true);
     }
 }

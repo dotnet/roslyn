@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.IOperation)]
     public class OperationAnalyzerTests : CompilingTestBase
     {
-        private readonly static CSharpParseOptions patternParseOptions = TestOptions.Regular;
+        private static readonly CSharpParseOptions patternParseOptions = TestOptions.Regular;
 
         [Fact]
         public void EmptyArrayCSharp()
@@ -264,7 +266,7 @@ class C
 
         switch (x)
         {
-            case :
+            case : // A missing pattern is treated as a discard by syntax error recovery
                 break;
             case 1000:
                 break;
@@ -274,7 +276,8 @@ class C
 }
 ";
             CreateCompilationWithMscorlib45(source)
-            .VerifyDiagnostics(Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(40, 20),
+            .VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(40, 20),
                 Diagnostic(ErrorCode.ERR_ConstantExpected, ":").WithLocation(44, 18))
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SwitchTestAnalyzer() }, null, null,
                 Diagnostic(SwitchTestAnalyzer.SparseSwitchDescriptor.Id, "y").WithLocation(16, 17),
@@ -1824,7 +1827,6 @@ struct S
                 Diagnostic("Literal", "1").WithArguments("1").WithLocation(13, 17),
                 Diagnostic("Literal", @"""hello""").WithArguments(@"""hello""").WithLocation(14, 22),
                 Diagnostic("Literal", "null").WithArguments("null").WithLocation(15, 20),
-                Diagnostic("Literal", "M()").WithArguments("M()").WithLocation(18, 9),
                 Diagnostic("Literal", "M()").WithArguments("M()").WithLocation(18, 9),
                 Diagnostic("Literal", "M()").WithArguments("M()").WithLocation(18, 9));
         }

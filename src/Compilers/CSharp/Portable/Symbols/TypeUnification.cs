@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool CanUnify(TypeSymbol t1, TypeSymbol t2)
         {
-            if (TypeSymbol.Equals(t1, t2, TypeCompareKind.ConsiderEverything2))
+            if (TypeSymbol.Equals(t1, t2, TypeCompareKind.CLRSignatureCompareOptions))
             {
                 return true;
             }
 
-            MutableTypeMap substitution = null;
+            MutableTypeMap? substitution = null;
             bool result = CanUnifyHelper(t1, t2, ref substitution);
 #if DEBUG
             if (result && ((object)t1 != null && (object)t2 != null))
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var substituted1 = SubstituteAllTypeParameters(substitution, TypeWithAnnotations.Create(t1));
                 var substituted2 = SubstituteAllTypeParameters(substitution, TypeWithAnnotations.Create(t2));
 
-                Debug.Assert(substituted1.Type.Equals(substituted2.Type, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+                Debug.Assert(substituted1.Type.Equals(substituted2.Type, TypeCompareKind.CLRSignatureCompareOptions));
                 Debug.Assert(substituted1.CustomModifiers.SequenceEqual(substituted2.CustomModifiers));
             }
 #endif
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #if DEBUG
-        private static TypeWithAnnotations SubstituteAllTypeParameters(AbstractTypeMap substitution, TypeWithAnnotations type)
+        private static TypeWithAnnotations SubstituteAllTypeParameters(AbstractTypeMap? substitution, TypeWithAnnotations type)
         {
             if (substitution != null)
             {
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        private static bool CanUnifyHelper(TypeSymbol t1, TypeSymbol t2, ref MutableTypeMap substitution)
+        private static bool CanUnifyHelper(TypeSymbol t1, TypeSymbol t2, ref MutableTypeMap? substitution)
         {
             return CanUnifyHelper(TypeWithAnnotations.Create(t1), TypeWithAnnotations.Create(t2), ref substitution);
         }
@@ -76,16 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Derived from Dev10's BSYMMGR::UnifyTypes.
         /// Two types will not unify if they have different custom modifiers.
         /// </remarks>
-        private static bool CanUnifyHelper(TypeWithAnnotations t1, TypeWithAnnotations t2, ref MutableTypeMap substitution)
+        private static bool CanUnifyHelper(TypeWithAnnotations t1, TypeWithAnnotations t2, ref MutableTypeMap? substitution)
         {
             if (!t1.HasType || !t2.HasType)
             {
                 return t1.IsSameAs(t2);
-            }
-
-            if (TypeSymbol.Equals(t1.Type, t2.Type, TypeCompareKind.ConsiderEverything2) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
-            {
-                return true;
             }
 
             if (substitution != null)
@@ -94,8 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 t2 = t2.SubstituteType(substitution);
             }
 
-            // If one of the types is a type parameter, then the substitution could make them equal.
-            if (TypeSymbol.Equals(t1.Type, t2.Type, TypeCompareKind.ConsiderEverything2) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
+            if (TypeSymbol.Equals(t1.Type, t2.Type, TypeCompareKind.CLRSignatureCompareOptions) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
             {
                 return true;
             }
@@ -153,18 +147,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         NamedTypeSymbol nt1 = (NamedTypeSymbol)t1.Type;
                         NamedTypeSymbol nt2 = (NamedTypeSymbol)t2.Type;
-                        if (!nt1.IsGenericType)
+                        if (!nt1.IsGenericType || !nt2.IsGenericType)
                         {
-                            return !nt2.IsGenericType && TypeSymbol.Equals(nt1, nt2, TypeCompareKind.ConsiderEverything2);
-                        }
-                        else if (!nt2.IsGenericType)
-                        {
+                            // Initial TypeSymbol.Equals(...) && CustomModifiers.SequenceEqual(...) failed above,
+                            // and custom modifiers compared equal in this case block, so the types must be distinct.
+                            Debug.Assert(!nt1.Equals(nt2, TypeCompareKind.CLRSignatureCompareOptions));
                             return false;
                         }
 
                         int arity = nt1.Arity;
 
-                        if (nt2.Arity != arity || !TypeSymbol.Equals(nt2.OriginalDefinition, nt1.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
+                        if (nt2.Arity != arity || !TypeSymbol.Equals(nt2.OriginalDefinition, nt1.OriginalDefinition, TypeCompareKind.ConsiderEverything))
                         {
                             return false;
                         }
@@ -189,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.TypeParameter:
                     {
                         // These substitutions are not allowed in C#
-                        if (t2.TypeKind == TypeKind.Pointer || t2.IsVoidType())
+                        if (t2.Type.IsPointerOrFunctionPointer() || t2.IsVoidType())
                         {
                             return false;
                         }
@@ -253,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void AddSubstitution(ref MutableTypeMap substitution, TypeParameterSymbol tp1, TypeWithAnnotations t2)
+        private static void AddSubstitution(ref MutableTypeMap? substitution, TypeParameterSymbol tp1, TypeWithAnnotations t2)
         {
             if (substitution == null)
             {
@@ -297,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 case SymbolKind.TypeParameter:
-                    return TypeSymbol.Equals(type, typeParam, TypeCompareKind.ConsiderEverything2);
+                    return TypeSymbol.Equals(type, typeParam, TypeCompareKind.ConsiderEverything);
                 default:
                     return false;
             }

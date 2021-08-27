@@ -14,7 +14,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     <[UseExportProvider]>
     Public Class SnippetCompletionProviderTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46295"), Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function SnippetCompletion() As Task
             Dim markup = "a?$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
@@ -37,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46295"), Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function TracksChangeSpanCorrectly() As Task
             Dim markup = "a?$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
@@ -106,7 +106,7 @@ End Class</File>.Value
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46295"), Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function SnippetsAlwaysOfferedOutsideComment() As Task
             Dim markup = <File>
 Class C
@@ -124,9 +124,7 @@ End Class</File>.Value
         End Function
     End Class
 
-    <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic)>
-    <[Shared]>
-    <PartNotDiscoverable>
+    <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic, ServiceLayer.Test), [Shared], PartNotDiscoverable>
     Friend Class MockSnippetInfoService
         Implements ISnippetInfoService
 

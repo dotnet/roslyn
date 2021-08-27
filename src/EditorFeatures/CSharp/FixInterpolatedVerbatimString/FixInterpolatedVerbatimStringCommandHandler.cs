@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -25,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
     internal sealed class FixInterpolatedVerbatimStringCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FixInterpolatedVerbatimStringCommandHandler()
         {
         }
@@ -37,6 +40,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
             // We need to check for the token *after* the opening quote is typed, so defer to the editor first
             nextCommandHandler();
 
+            var cancellationToken = executionContext.OperationContext.UserCancellationToken;
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            try
+            {
+                ExecuteCommandWorker(args, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // According to Editor command handler API guidelines, it's best if we return early if cancellation
+                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+                // calling nextCommandHandler().
+            }
+        }
+
+        private static void ExecuteCommandWorker(TypeCharCommandArgs args, CancellationToken cancellationToken)
+        {
             if (args.TypedChar == '"')
             {
                 var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
@@ -53,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
                         var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                         if (document != null)
                         {
-                            var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
+                            var root = document.GetSyntaxRootSynchronously(cancellationToken);
                             var token = root.FindToken(position - 3);
                             if (token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken))
                             {

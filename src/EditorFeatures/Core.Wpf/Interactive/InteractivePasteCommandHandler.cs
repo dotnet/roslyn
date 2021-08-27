@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -55,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public string DisplayName => EditorFeaturesResources.Paste_in_Interactive;
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InteractivePasteCommandHandler(IEditorOperationsFactoryService editorOperationsFactoryService, ITextUndoHistoryRegistry textUndoHistoryRegistry)
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;
@@ -89,11 +92,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             var data = RoslynClipboard.GetDataObject();
             Debug.Assert(data != null);
 
-            var dataHasLineCutCopyTag = false;
-            var dataHasBoxCutCopyTag = false;
-
-            dataHasLineCutCopyTag = data.GetDataPresent(ClipboardLineBasedCutCopyTag);
-            dataHasBoxCutCopyTag = data.GetDataPresent(BoxSelectionCutCopyTag);
+            var dataHasLineCutCopyTag = data.GetDataPresent(ClipboardLineBasedCutCopyTag);
+            var dataHasBoxCutCopyTag = data.GetDataPresent(BoxSelectionCutCopyTag);
             Debug.Assert(!(dataHasLineCutCopyTag && dataHasBoxCutCopyTag));
 
             string text;
@@ -124,13 +124,14 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 }
                 else
                 {
-                    editorOperations.InsertTextAsBox(text, out var unusedStart, out var unusedEnd);
+                    editorOperations.InsertTextAsBox(text, out _, out _);
                 }
             }
             else
             {
                 editorOperations.InsertText(text);
             }
+
             editorOperations.AddAfterTextBufferChangePrimitive();
             transaction.Complete();
         }
@@ -147,6 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     return true;
                 }
             }
+
             return false;
         }
 

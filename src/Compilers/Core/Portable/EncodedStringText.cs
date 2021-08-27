@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using Roslyn.Utilities;
@@ -22,15 +19,15 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         private static readonly Encoding s_utf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
+        private static readonly Lazy<Encoding> s_fallbackEncoding = new(CreateFallbackEncoding);
+
         /// <summary>
         /// Encoding to use when UTF-8 fails. We try to find the following, in order, if available:
         ///     1. The default ANSI codepage
         ///     2. CodePage 1252.
         ///     3. Latin1.
         /// </summary>
-        private static readonly Lazy<Encoding> s_fallbackEncoding = new Lazy<Encoding>(GetFallbackEncoding);
-
-        private static Encoding GetFallbackEncoding()
+        internal static Encoding CreateFallbackEncoding()
         {
             try
             {
@@ -84,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Text
                 canBeEmbedded: canBeEmbedded);
         }
 
-        private static SourceText Create(Stream stream, Lazy<Encoding> getEncoding,
+        internal static SourceText Create(Stream stream,
+            Lazy<Encoding> getEncoding,
             Encoding? defaultEncoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool canBeEmbedded = false)

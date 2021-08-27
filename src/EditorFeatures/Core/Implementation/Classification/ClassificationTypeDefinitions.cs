@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.VisualStudio.Language.StandardClassification;
@@ -49,6 +51,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.ClassName)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition UserTypeClassesTypeDefinition;
+        #endregion
+        #region User Types - Records
+        [Export]
+        [Name(ClassificationTypeNames.RecordClassName)]
+        [BaseDefinition(ClassificationTypeNames.ClassName)]
+        internal readonly ClassificationTypeDefinition UserTypeRecordsTypeDefinition;
+        #endregion
+        #region User Types - Record Structs
+        [Export]
+        [Name(ClassificationTypeNames.RecordStructName)]
+        [BaseDefinition(ClassificationTypeNames.StructName)]
+        internal readonly ClassificationTypeDefinition UserTypeRecordStructsTypeDefinition;
         #endregion
         #region User Types - Delegates 
         [Export]
@@ -109,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
         internal readonly ClassificationTypeDefinition UserMembersConstantsTypeDefinition;
         #endregion
-        #region User Memebers - Locals
+        #region User Members - Locals
         [Export]
         [Name(ClassificationTypeNames.LocalName)]
         [BaseDefinition(PredefinedClassificationTypeNames.Identifier)]
@@ -331,6 +345,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.XmlLiteralText)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition XmlLiteralTextTypeDefinition;
+        #endregion
+
+        #region Reassigned Variable
+        [Export]
+        [Name(ClassificationTypeNames.ReassignedVariable)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition ReassignedVariableTypeDefinition;
         #endregion
 
         #region Static Symbol

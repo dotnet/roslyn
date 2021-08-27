@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,21 +26,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbolAndProjectId(node);
+                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                     var references = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
                     foreach (var reference in references)
                     {
                         var referencedSymbol = reference.Definition;
-                        var projectId = graphBuilder.GetContextProject(node).Id;
+                        var projectId = graphBuilder.GetContextProject(node, cancellationToken).Id;
 
                         var allLocations = referencedSymbol.Locations.Concat(reference.Locations.Select(r => r.Location))
                                                                      .Where(l => l != null && l.IsInSource);
 
                         foreach (var location in allLocations)
                         {
-                            var locationNode = GetLocationNode(referencedSymbol, location, context, projectId, cancellationToken);
-                            graphBuilder.AddLink(node, CodeLinkCategories.SourceReferences, locationNode);
+                            var locationNode = GetLocationNode(location, context, projectId, cancellationToken);
+                            graphBuilder.AddLink(node, CodeLinkCategories.SourceReferences, locationNode, cancellationToken);
                         }
                     }
                 }
@@ -47,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        internal GraphNode GetLocationNode(ISymbol symbol, Location location, IGraphContext context, ProjectId projectId, CancellationToken cancellationToken)
+        internal GraphNode GetLocationNode(Location location, IGraphContext context, ProjectId projectId, CancellationToken cancellationToken)
         {
             var span = location.GetLineSpan();
             var lineText = location.SourceTree.GetText(cancellationToken).Lines[span.StartLinePosition.Line].ToString();

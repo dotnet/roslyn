@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly IList<INamespaceOrTypeSymbol> _members;
 
         public CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrTypeSymbol> members)
-            : base(null, default, Accessibility.NotApplicable, default, name)
+            : base(null, null, default, Accessibility.NotApplicable, default, name)
         {
             _members = members ?? SpecializedCollections.EmptyList<INamespaceOrTypeSymbol>();
         }
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public Compilation ContainingCompilation => null;
 
-        public INamedTypeSymbol ImplicitType => null;
+        public static INamedTypeSymbol ImplicitType => null;
 
         public ImmutableArray<INamespaceSymbol> ConstituentNamespaces
         {

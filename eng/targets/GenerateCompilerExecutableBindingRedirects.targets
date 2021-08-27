@@ -5,7 +5,7 @@
     The inclusion of this file will cause the resulting .exe.config to contain redirects for all non-framework dependencies,
     which is needed for plugins loaded into the compiler (e.g. analyzers) that might target lower versions of these dependencies. 
   -->
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
 

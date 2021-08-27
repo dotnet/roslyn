@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Linq;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     internal sealed partial class RoslynEventSource : EventSource
     {
         // might not "enabled" but we always have this singleton alive
-        public static readonly RoslynEventSource Instance = new RoslynEventSource();
+        public static readonly RoslynEventSource Instance = new();
 
         private readonly bool _initialized;
         private RoslynEventSource()
@@ -72,16 +74,23 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 if (!_initialized)
                 {
                     // We're still in the constructor, need to defer sending until we've finished initializing
-                    Task.Yield().GetAwaiter().OnCompleted(() => Task.Run(SendFunctionDefinitions));
+                    Task.Yield().GetAwaiter().OnCompleted(FireAndForgetSendFunctionDefinitions);
                     return;
                 }
 
                 SendFunctionDefinitions();
             }
+
+            // Cannot inline this local function as a lambda because we need NonEventAttribute applied.
+            [NonEvent]
+            void FireAndForgetSendFunctionDefinitions()
+            {
+                _ = Task.Run(SendFunctionDefinitions);
+            }
         }
 
         [NonEvent]
-        private bool FunctionDefinitionRequested(EventCommandEventArgs command)
+        private static bool FunctionDefinitionRequested(EventCommandEventArgs command)
         {
             return command.Arguments != null &&
                    command.Arguments.Keys.FirstOrDefault() == "SendFunctionDefinitions";

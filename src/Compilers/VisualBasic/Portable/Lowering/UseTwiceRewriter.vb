@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If fieldSymbol.IsShared AndAlso node.ReceiverOpt IsNot Nothing Then
                 ' Get rid of the receiver on second use of the shared field.
                 ' It could be an expression that we don't want to visit twice.
-                Dim second = node.Update(Nothing, fieldSymbol, node.IsLValue, node.SuppressVirtualCalls, node.ConstantsInProgressOpt, node.Type)
+                Dim second = node.Update(Nothing, fieldSymbol, node.IsLValue, node.SuppressVirtualCalls, constantsInProgressOpt:=Nothing, node.Type)
 
                 Debug.Assert(second.IsLValue)
                 Return New Result(node, second)

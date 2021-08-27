@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private string RemoveAssemblyKeys(string data)
+            private static string RemoveAssemblyKeys(string data)
             {
                 var reader = new RemoveAssemblySymbolKeysReader();
                 reader.Initialize(data);

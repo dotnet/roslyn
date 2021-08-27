@@ -20,24 +20,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public new void WaitForApplicationIdle(TimeSpan timeout)
             => InProcComponent.WaitForApplicationIdle(timeout);
 
-        new public void WaitForSystemIdle()
+        public new void WaitForSystemIdle()
             => InProcComponent.WaitForSystemIdle();
 
-        new public bool IsCommandAvailable(string commandName)
+        public new bool IsCommandAvailable(string commandName)
             => InProcComponent.IsCommandAvailable(commandName);
 
-        new public void ExecuteCommand(string commandName, string args = "")
+        public new void ExecuteCommand(string commandName, string args = "")
             => InProcComponent.ExecuteCommand(commandName, args);
 
         public string[] GetAvailableCommands()
         {
-            List<string> result = new List<string>();
+            var result = new List<string>();
             var commands = GetDTE().Commands;
             foreach (Command command in commands)
             {
                 try
                 {
-                    string commandName = command.Name;
+                    var commandName = command.Name;
                     if (command.IsAvailable)
                     {
                         result.Add(commandName);

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
@@ -96,6 +97,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 "ServiceHub.Host.CLR.x64.exe",
                 "ServiceHub.Host.CLR.x86.exe",
                 "ServiceHub.IdentityHost.exe",
+                "ServiceHub.RoslynCodeAnalysisService.exe",
                 "ServiceHub.RoslynCodeAnalysisService32.exe",
                 "ServiceHub.SettingsHost.exe",
                 "ServiceHub.VSDetouredHost.exe",
@@ -208,8 +210,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     if (IsLastDayOrLastFiveRecentEntry(eventLogRecord, dotNetEntries.Count))
                     {
                         // Filter the entries by .NetRuntime specific ones
-                        FeedbackItemDotNetEntry entry = null;
-                        if (IsValidDotNetEntry(eventLogRecord, ref entry))
+                        if (IsValidDotNetEntry(eventLogRecord, out var entry))
                         {
                             dotNetEntries.Add(entry);
                         }
@@ -282,7 +283,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// the provider, if it's for certain event log IDs and for VS related EXEs
         /// </summary>
         /// <param name="eventLogRecord">Entry to be checked</param>
-        private static bool IsValidDotNetEntry(EventRecord eventLogRecord, ref FeedbackItemDotNetEntry dotNetEntry)
+        private static bool IsValidDotNetEntry(EventRecord eventLogRecord, [NotNullWhen(true)] out FeedbackItemDotNetEntry? dotNetEntry)
         {
             if (StringComparer.InvariantCultureIgnoreCase.Equals(eventLogRecord.ProviderName, DotNetProviderName)
                  && s_dotNetEventId.Contains(eventLogRecord.Id))
@@ -297,6 +298,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 }
             }
 
+            dotNetEntry = null;
             return false;
         }
 

@@ -5,16 +5,19 @@
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.UseConditionalExpression;
 
+#if CODE_STYLE
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseConditionalExpressionForReturn), Shared]
     internal partial class CSharpUseConditionalExpressionForReturnCodeFixProvider
         : AbstractUseConditionalExpressionForReturnCodeFixProvider<StatementSyntax, IfStatementSyntax, ExpressionSyntax, ConditionalExpressionSyntax>
     {
@@ -23,10 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
         public CSharpUseConditionalExpressionForReturnCodeFixProvider()
         {
         }
-
-        protected override bool IsRef(IReturnOperation returnOperation)
-            => returnOperation.Syntax is ReturnStatementSyntax statement &&
-               statement.Expression is RefExpressionSyntax;
 
         protected override AbstractFormattingRule GetMultiLineFormattingRule()
             => MultiLineConditionalExpressionFormattingRule.Instance;
@@ -43,6 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 
             return statement;
         }
+
+        protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
+            => CSharpUseConditionalExpressionHelpers.ConvertToExpression(throwOperation);
 
 #if CODE_STYLE
         protected override ISyntaxFormattingService GetSyntaxFormattingService()

@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundQuerySource
+    Partial Friend Class BoundQuerySource
 
         Public Sub New(source As BoundExpression)
             Me.New(source.Syntax, source, source.Type)

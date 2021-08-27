@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -705,6 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return IsUnsigned(Binder.GetEnumPromotedType(op.Right.Type.GetEnumUnderlyingType().SpecialType));
 
                 case BinaryOperatorKind.UInt:
+                case BinaryOperatorKind.NUInt:
                 case BinaryOperatorKind.ULong:
                 case BinaryOperatorKind.ULongAndPointer:
                 case BinaryOperatorKind.PointerAndInt:

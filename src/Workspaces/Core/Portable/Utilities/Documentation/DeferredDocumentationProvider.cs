@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
         public DeferredDocumentationProvider(Compilation compilation)
             => _compilation = compilation;
 
-        protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
+        protected override string? GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
         {
             var symbol = DocumentationCommentId.GetFirstSymbolForDeclarationId(documentationMemberID, _compilation);
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
             return string.Empty;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => object.ReferenceEquals(this, obj);
 
         public override int GetHashCode()

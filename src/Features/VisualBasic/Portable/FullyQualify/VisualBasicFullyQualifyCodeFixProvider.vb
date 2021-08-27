@@ -84,19 +84,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
             Return True
         End Function
 
-        Private Function GetLeftMostSimpleName(qn As QualifiedNameSyntax) As SimpleNameSyntax
+        Private Shared Function GetLeftMostSimpleName(qn As QualifiedNameSyntax) As SimpleNameSyntax
             While (qn IsNot Nothing)
                 Dim left = qn.Left
                 Dim simpleName = TryCast(left, SimpleNameSyntax)
                 If simpleName IsNot Nothing Then
                     Return simpleName
                 End If
+
                 qn = TryCast(left, QualifiedNameSyntax)
             End While
+
             Return Nothing
         End Function
 
-        Protected Overrides Async Function ReplaceNodeAsync(node As SyntaxNode, containerName As String, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Protected Overrides Async Function ReplaceNodeAsync(node As SyntaxNode, containerName As String, resultingSymbolIsType As Boolean, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim simpleName = DirectCast(node, SimpleNameSyntax)
 
             Dim leadingTrivia = simpleName.GetLeadingTrivia()

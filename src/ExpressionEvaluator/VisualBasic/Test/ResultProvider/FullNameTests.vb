@@ -319,7 +319,6 @@ End Class
             Verify(GetChildren(children.Single()),
                 EvalResult("x", "0", "Integer", Nothing))
 
-
             Dim derivedValue = CreateDkmClrValue(assembly.GetType("NotMangled").Instantiate())
 
             root = FormatResult("o", derivedValue)

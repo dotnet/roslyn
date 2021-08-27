@@ -11,11 +11,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders
     Friend Module RecommendationHelpers
-        <Extension()>
-        Friend Function IsInLambda(syntaxTree As SyntaxTree, token As SyntaxToken) As Boolean
-            Return token.GetAncestor(Of LambdaExpressionSyntax)() IsNot Nothing
-        End Function
-
         Friend Function IsOnErrorStatement(node As SyntaxNode) As Boolean
             Return TypeOf node Is OnErrorGoToStatementSyntax OrElse TypeOf node Is OnErrorResumeNextStatementSyntax
         End Function

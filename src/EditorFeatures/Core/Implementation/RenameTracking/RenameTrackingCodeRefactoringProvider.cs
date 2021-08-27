@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-        Name = nameof(RenameTrackingCodeRefactoringProvider)), Shared]
+        Name = PredefinedCodeRefactoringProviderNames.RenameTracking), Shared]
     internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
@@ -34,13 +33,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         {
             var (document, span, cancellationToken) = context;
 
-            var action = RenameTrackingTaggerProvider.TryGetCodeAction(
+            var (action, renameSpan) = RenameTrackingTaggerProvider.TryGetCodeAction(
                 document, span, _refactorNotifyServices, _undoHistoryRegistry, cancellationToken);
 
             if (action != null)
-                context.RegisterRefactoring(action);
+                context.RegisterRefactoring(action, renameSpan);
 
             return Task.CompletedTask;
         }
+
+        /// <summary>
+        /// This is a high priority refactoring that we want to run first so that the user can quickly
+        /// change the name of something and pop up the lightbulb without having to wait for the rest to
+        /// compute.
+        /// </summary>
+        private protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.High;
     }
 }

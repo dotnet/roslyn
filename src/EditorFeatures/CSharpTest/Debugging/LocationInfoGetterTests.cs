@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
     [UseExportProvider]
     public class LocationInfoGetterTests
     {
-        private async Task TestAsync(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
+        private static async Task TestAsync(string markup, string expectedName, int expectedLineOffset, CSharpParseOptions parseOptions = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions);
 
@@ -64,6 +66,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         }$$
     }
 }", "Namespace.Class.Method()", 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
+        [WorkItem(49000, "https://github.com/dotnet/roslyn/issues/49000")]
+        public async Task TestFileScopedNamespace()
+        {
+            // This test behavior is incorrect. This should be Namespace.Class.Method.
+            // See the associated WorkItem for details.
+            await TestAsync(
+@"namespace Namespace;
+
+class Class
+{
+    void Method()
+    {
+    }$$
+}
+", "Namespace.Class.Method()", 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]

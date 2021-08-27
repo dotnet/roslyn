@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Indentation;
@@ -50,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             var smartTokenformattingRules = _formattingRules;
             var common = startToken.GetCommonRoot(endToken);
+            RoslynDebug.AssertNotNull(common);
 
             // if there are errors, do not touch lines
             // Exception 1: In the case of try-catch-finally block, a try block without a catch/finally block is considered incomplete
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return Formatter.GetFormattedTextChanges(_root, new TextSpan[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, workspace, _optionSet, smartTokenformattingRules, cancellationToken);
         }
 
-        private bool CloseBraceOfTryOrDoBlock(SyntaxToken endToken)
+        private static bool CloseBraceOfTryOrDoBlock(SyntaxToken endToken)
         {
             return endToken.IsKind(SyntaxKind.CloseBraceToken) &&
                 endToken.Parent.IsKind(SyntaxKind.Block) &&
@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             if (token.IsKind(SyntaxKind.OpenBraceToken) &&
                 indentStyle != FormattingOptions.IndentStyle.Smart)
             {
+                RoslynDebug.AssertNotNull(token.SyntaxTree);
                 var text = await token.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (token.IsFirstTokenOnLine(text))
                 {
@@ -120,10 +121,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule
         {
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // no line operation. no line changes what so ever
-                var lineOperation = base.GetAdjustNewLinesOperation(previousToken, currentToken, options, in nextOperation);
+                var lineOperation = base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
                 if (lineOperation != null)
                 {
                     // ignore force if same line option
@@ -143,14 +144,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class SmartTokenFormattingRule : NoLineChangeFormattingRule
         {
-            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, AnalyzerConfigOptions options, in NextSuppressOperationAction nextOperation)
+            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
             {
                 // don't suppress anything
             }
 
-            public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, AnalyzerConfigOptions options, in NextGetAdjustSpacesOperation nextOperation)
+            public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
             {
-                var spaceOperation = base.GetAdjustSpacesOperation(previousToken, currentToken, options, in nextOperation);
+                var spaceOperation = base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
 
                 // if there is force space operation, convert it to ForceSpaceIfSingleLine operation.
                 // (force space basically means remove all line breaks)

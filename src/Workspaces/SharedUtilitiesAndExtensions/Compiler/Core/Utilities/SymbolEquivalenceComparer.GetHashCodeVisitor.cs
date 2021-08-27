@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 _symbolAggregator = (acc, sym) => GetHashCode(sym, acc);
             }
 
-            public int GetHashCode(ISymbol x, int currentHash)
+            public int GetHashCode(ISymbol? x, int currentHash)
             {
                 if (x == null)
                     return 0;
@@ -47,11 +47,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 if (x.Kind == SymbolKind.DynamicType ||
                     (_objectAndDynamicCompareEqually && IsObjectType(x)))
                 {
-                    return Hash.Combine(typeof(IDynamicTypeSymbol), currentHash);
+                    return Hash.Combine(GetNullableAnnotationsHashCode((ITypeSymbol)x), Hash.Combine(typeof(IDynamicTypeSymbol), currentHash));
                 }
 
                 return GetHashCodeWorker(x, currentHash);
             }
+
+            private int GetNullableAnnotationsHashCode(ITypeSymbol type)
+                => _symbolEquivalenceComparer._ignoreNullableAnnotations ? 0 : type.NullableAnnotation.GetHashCode();
 
             private int GetHashCodeWorker(ISymbol x, int currentHash)
                 => x.Kind switch
@@ -78,8 +81,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private int CombineHashCodes(IArrayTypeSymbol x, int currentHash)
             {
                 return
+                    Hash.Combine(GetNullableAnnotationsHashCode(x),
                     Hash.Combine(x.Rank,
-                    GetHashCode(x.ElementType, currentHash));
+                    GetHashCode(x.ElementType, currentHash)));
             }
 
             private int CombineHashCodes(IAssemblySymbol x, int currentHash)
@@ -92,14 +96,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     GetHashCode(x.ContainingSymbol, currentHash));
             }
 
-            private int CombineHashCodes(ILabelSymbol x, int currentHash)
+            private static int CombineHashCodes(ILabelSymbol x, int currentHash)
             {
                 return
                     Hash.Combine(x.Name,
                     Hash.Combine(x.Locations.FirstOrDefault(), currentHash));
             }
 
-            private int CombineHashCodes(ILocalSymbol x, int currentHash)
+            private static int CombineHashCodes(ILocalSymbol x, int currentHash)
                 => Hash.Combine(x.Locations.FirstOrDefault(), currentHash);
 
             private static int CombineHashCodes<T>(ImmutableArray<T> array, int currentHash, Func<int, T, int> func)
@@ -167,13 +171,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 // If we want object and dynamic to be the same, and this is 'object', then return
                 // the same hash we do for 'dynamic'.
                 currentHash =
-                    Hash.Combine(x.IsDefinition,
+                    Hash.Combine((int)GetTypeKind(x),
                     Hash.Combine(IsConstructedFromSelf(x),
                     Hash.Combine(x.Arity,
-                    Hash.Combine((int)GetTypeKind(x),
                     Hash.Combine(x.Name,
                     Hash.Combine(x.IsAnonymousType,
                     Hash.Combine(x.IsUnboundGenericType,
+                    Hash.Combine(GetNullableAnnotationsHashCode(x),
                     GetHashCode(x.ContainingSymbol, currentHash))))))));
 
                 if (x.IsAnonymousType)
@@ -256,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             public int CombineHashCodes(ITypeParameterSymbol x, int currentHash)
             {
                 Debug.Assert(
-                    (x.TypeParameterKind == TypeParameterKind.Method && IsConstructedFromSelf(x.DeclaringMethod)) ||
+                    (x.TypeParameterKind == TypeParameterKind.Method && IsConstructedFromSelf(x.DeclaringMethod!)) ||
                     (x.TypeParameterKind == TypeParameterKind.Type && IsConstructedFromSelf(x.ContainingType)) ||
                     x.TypeParameterKind == TypeParameterKind.Cref);
 
@@ -285,10 +289,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     GetHashCode(x.ContainingSymbol, currentHash);
             }
 
-            private int CombineHashCodes(IRangeVariableSymbol x, int currentHash)
+            private static int CombineHashCodes(IRangeVariableSymbol x, int currentHash)
                 => Hash.Combine(x.Locations.FirstOrDefault(), currentHash);
 
-            private int CombineHashCodes(IPreprocessingSymbol x, int currentHash)
+            private static int CombineHashCodes(IPreprocessingSymbol x, int currentHash)
                 => Hash.Combine(x.GetHashCode(), currentHash);
         }
     }

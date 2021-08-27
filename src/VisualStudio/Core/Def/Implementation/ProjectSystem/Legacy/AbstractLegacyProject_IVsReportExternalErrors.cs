@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -43,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         int IVsLanguageServiceBuildErrorReporter2.ReportError(
             string bstrErrorMessage,
             string bstrErrorId,
-            [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority,
+            [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority,
             int iLine,
             int iColumn,
             string bstrFileName)
@@ -60,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         void IVsLanguageServiceBuildErrorReporter2.ReportError2(
             string bstrErrorMessage,
             string bstrErrorId,
-            [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority,
+            [ComAliasName("VsShell.VSTASKPRIORITY")] VSTASKPRIORITY nPriority,
             int iStartLine,
             int iStartColumn,
             int iEndLine,

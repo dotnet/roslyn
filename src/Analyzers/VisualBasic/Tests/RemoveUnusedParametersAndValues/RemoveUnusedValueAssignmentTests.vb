@@ -10,21 +10,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedParame
     Partial Public Class RemoveUnusedValueAssignmentTests
         Inherits RemoveUnusedValuesTestsBase
 
-        Private Protected Overrides ReadOnly Property PreferNone As IOptionsCollection
+        Private Protected Overrides ReadOnly Property PreferNone As OptionsCollection
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueAssignment,
                                 New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.None))
             End Get
         End Property
 
-        Private Protected Overrides ReadOnly Property PreferDiscard As IOptionsCollection
+        Private Protected Overrides ReadOnly Property PreferDiscard As OptionsCollection
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueAssignment,
                                 New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion))
             End Get
         End Property
 
-        Private Protected Overrides ReadOnly Property PreferUnusedLocal As IOptionsCollection
+        Private Protected Overrides ReadOnly Property PreferUnusedLocal As OptionsCollection
             Get
                 Return [Option](VisualBasicCodeStyleOptions.UnusedValueAssignment,
                                 New CodeStyleOption2(Of UnusedValuePreference)(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Suggestion))
@@ -95,6 +95,39 @@ $"Class C
         Return x
     End Function
 End Class")
+        End Function
+
+        <WorkItem(48070, "https://github.com/dotnet/roslyn/issues/48070")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        Public Async Function Initialization_ConstantValue_DoNotCopyLeadingTriviaDirectives() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M()
+#region """"
+
+        dim value as integer = 3
+
+#end region
+        dim [|x|] as integer? = nothing
+        dim y = value + value
+
+        x = y
+        System.Console.WriteLine(x)
+    end sub
+end class",
+"class C
+    sub M()
+#region """"
+
+        dim value as integer = 3
+
+#end region
+        dim y = value + value
+
+        Dim x As Integer? = y
+        System.Console.WriteLine(x)
+    end sub
+end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return CompareWorker(x, y);
         }
 
-        private int CompareWorker(SyntaxToken x, SyntaxToken y)
+        private static int CompareWorker(SyntaxToken x, SyntaxToken y)
         {
             if (x == y)
             {

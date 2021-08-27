@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -60,6 +58,39 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                     if (!extensionManager.IsDisabled(provider))
                     {
                         var context = new QuickInfoContext(document, position, cancellationToken);
+
+                        var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
+                        if (info != null)
+                        {
+                            return info;
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception e) when (extensionManager.CanHandleException(provider, e))
+                {
+                    extensionManager.HandleException(provider, e);
+                }
+            }
+
+            return null;
+        }
+
+        internal async Task<QuickInfoItem?> GetQuickInfoAsync(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        {
+            var extensionManager = _workspace.Services.GetRequiredService<IExtensionManager>();
+
+            // returns the first non-empty quick info found (based on provider order)
+            foreach (var provider in GetProviders().OfType<CommonQuickInfoProvider>())
+            {
+                try
+                {
+                    if (!extensionManager.IsDisabled(provider))
+                    {
+                        var context = new CommonQuickInfoContext(workspace, semanticModel, position, cancellationToken);
 
                         var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
                         if (info != null)

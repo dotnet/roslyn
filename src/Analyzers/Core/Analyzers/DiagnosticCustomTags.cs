@@ -2,21 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class DiagnosticCustomTags
     {
-        /// <summary>
-        /// it is string[] because DiagnosticDescriptor expects string[]. 
-        /// </summary>
+        private static readonly string s_enforceOnBuildNeverTag = EnforceOnBuild.Never.ToCustomTag();
+
         private static readonly string[] s_microsoftCustomTags = new string[] { WellKnownDiagnosticTags.Telemetry };
-        private static readonly string[] s_editAndContinueCustomTags = new string[] { WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable };
+        private static readonly string[] s_editAndContinueCustomTags = new string[] { WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag };
         private static readonly string[] s_unnecessaryCustomTags = new string[] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry };
+        private static readonly string[] s_notConfigurableCustomTags = new string[] { WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
+        private static readonly string[] s_unnecessaryAndNotConfigurableCustomTags = new string[] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry };
 
         public static string[] Microsoft
         {
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                Assert(s_editAndContinueCustomTags, WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable);
+                Assert(s_editAndContinueCustomTags, WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag);
                 return s_editAndContinueCustomTags;
             }
         }
@@ -42,6 +44,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 Assert(s_unnecessaryCustomTags, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry);
                 return s_unnecessaryCustomTags;
+            }
+        }
+
+        public static string[] NotConfigurable
+        {
+            get
+            {
+                Assert(s_notConfigurableCustomTags, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry);
+                return s_notConfigurableCustomTags;
+            }
+        }
+
+        public static string[] UnnecessaryAndNotConfigurable
+        {
+            get
+            {
+                Assert(s_unnecessaryAndNotConfigurableCustomTags, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable, s_enforceOnBuildNeverTag, WellKnownDiagnosticTags.Telemetry);
+                return s_unnecessaryAndNotConfigurableCustomTags;
             }
         }
 
@@ -56,15 +76,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static string[] Create(bool isUnnecessary, bool isConfigurable, params string[] customTags)
+        internal static string[] Create(bool isUnnecessary, bool isConfigurable, EnforceOnBuild enforceOnBuild)
         {
-            if (customTags.Length == 0 && isConfigurable)
-            {
-                return isUnnecessary ? Unnecessary : Microsoft;
-            }
+            Debug.Assert(isConfigurable || enforceOnBuild == EnforceOnBuild.Never);
 
             var customTagsBuilder = ImmutableArray.CreateBuilder<string>();
-            customTagsBuilder.AddRange(customTags.Concat(Microsoft));
+            customTagsBuilder.AddRange(Microsoft);
+
+            customTagsBuilder.Add(enforceOnBuild.ToCustomTag());
 
             if (!isConfigurable)
             {

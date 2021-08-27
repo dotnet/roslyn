@@ -747,736 +747,736 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Public MustInherit Class VisualBasicSyntaxVisitor
         Public Overridable Sub VisitEmptyStatement(ByVal node As EmptyStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitEndBlockStatement(ByVal node As EndBlockStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCompilationUnit(ByVal node As CompilationUnitSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitOptionStatement(ByVal node As OptionStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitImportsStatement(ByVal node As ImportsStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSimpleImportsClause(ByVal node As SimpleImportsClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitImportAliasClause(ByVal node As ImportAliasClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlNamespaceImportsClause(ByVal node As XmlNamespaceImportsClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitNamespaceBlock(ByVal node As NamespaceBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitNamespaceStatement(ByVal node As NamespaceStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitModuleBlock(ByVal node As ModuleBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitStructureBlock(ByVal node As StructureBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitInterfaceBlock(ByVal node As InterfaceBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitClassBlock(ByVal node As ClassBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitEnumBlock(ByVal node As EnumBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitInheritsStatement(ByVal node As InheritsStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitImplementsStatement(ByVal node As ImplementsStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitModuleStatement(ByVal node As ModuleStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitStructureStatement(ByVal node As StructureStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitInterfaceStatement(ByVal node As InterfaceStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitClassStatement(ByVal node As ClassStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitEnumStatement(ByVal node As EnumStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTypeParameterList(ByVal node As TypeParameterListSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTypeParameter(ByVal node As TypeParameterSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTypeParameterSingleConstraintClause(ByVal node As TypeParameterSingleConstraintClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTypeParameterMultipleConstraintClause(ByVal node As TypeParameterMultipleConstraintClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSpecialConstraint(ByVal node As SpecialConstraintSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTypeConstraint(ByVal node As TypeConstraintSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitEnumMemberDeclaration(ByVal node As EnumMemberDeclarationSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitMethodBlock(ByVal node As MethodBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitConstructorBlock(ByVal node As ConstructorBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitOperatorBlock(ByVal node As OperatorBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAccessorBlock(ByVal node As AccessorBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitPropertyBlock(ByVal node As PropertyBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitEventBlock(ByVal node As EventBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitParameterList(ByVal node As ParameterListSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitMethodStatement(ByVal node As MethodStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSubNewStatement(ByVal node As SubNewStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitDeclareStatement(ByVal node As DeclareStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitDelegateStatement(ByVal node As DelegateStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitEventStatement(ByVal node As EventStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitOperatorStatement(ByVal node As OperatorStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitPropertyStatement(ByVal node As PropertyStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAccessorStatement(ByVal node As AccessorStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitImplementsClause(ByVal node As ImplementsClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitHandlesClause(ByVal node As HandlesClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitKeywordEventContainer(ByVal node As KeywordEventContainerSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitWithEventsEventContainer(ByVal node As WithEventsEventContainerSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitWithEventsPropertyEventContainer(ByVal node As WithEventsPropertyEventContainerSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitHandlesClauseItem(ByVal node As HandlesClauseItemSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitIncompleteMember(ByVal node As IncompleteMemberSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitFieldDeclaration(ByVal node As FieldDeclarationSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitVariableDeclarator(ByVal node As VariableDeclaratorSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSimpleAsClause(ByVal node As SimpleAsClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAsNewClause(ByVal node As AsNewClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitObjectMemberInitializer(ByVal node As ObjectMemberInitializerSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitObjectCollectionInitializer(ByVal node As ObjectCollectionInitializerSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitInferredFieldInitializer(ByVal node As InferredFieldInitializerSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitNamedFieldInitializer(ByVal node As NamedFieldInitializerSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitEqualsValue(ByVal node As EqualsValueSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitParameter(ByVal node As ParameterSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitModifiedIdentifier(ByVal node As ModifiedIdentifierSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitArrayRankSpecifier(ByVal node As ArrayRankSpecifierSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAttributeList(ByVal node As AttributeListSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAttribute(ByVal node As AttributeSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAttributeTarget(ByVal node As AttributeTargetSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAttributesStatement(ByVal node As AttributesStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitExpressionStatement(ByVal node As ExpressionStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitPrintStatement(ByVal node As PrintStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitWhileBlock(ByVal node As WhileBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitUsingBlock(ByVal node As UsingBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSyncLockBlock(ByVal node As SyncLockBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitWithBlock(ByVal node As WithBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitLocalDeclarationStatement(ByVal node As LocalDeclarationStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitLabelStatement(ByVal node As LabelStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitGoToStatement(ByVal node As GoToStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitLabel(ByVal node As LabelSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitStopOrEndStatement(ByVal node As StopOrEndStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitExitStatement(ByVal node As ExitStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitContinueStatement(ByVal node As ContinueStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitReturnStatement(ByVal node As ReturnStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSingleLineIfStatement(ByVal node As SingleLineIfStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSingleLineElseClause(ByVal node As SingleLineElseClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitMultiLineIfBlock(ByVal node As MultiLineIfBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitIfStatement(ByVal node As IfStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitElseIfBlock(ByVal node As ElseIfBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitElseIfStatement(ByVal node As ElseIfStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitElseBlock(ByVal node As ElseBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitElseStatement(ByVal node As ElseStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTryBlock(ByVal node As TryBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTryStatement(ByVal node As TryStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCatchBlock(ByVal node As CatchBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCatchStatement(ByVal node As CatchStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCatchFilterClause(ByVal node As CatchFilterClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitFinallyBlock(ByVal node As FinallyBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitFinallyStatement(ByVal node As FinallyStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitErrorStatement(ByVal node As ErrorStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitOnErrorGoToStatement(ByVal node As OnErrorGoToStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitOnErrorResumeNextStatement(ByVal node As OnErrorResumeNextStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitResumeStatement(ByVal node As ResumeStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSelectBlock(ByVal node As SelectBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSelectStatement(ByVal node As SelectStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCaseBlock(ByVal node As CaseBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCaseStatement(ByVal node As CaseStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitElseCaseClause(ByVal node As ElseCaseClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSimpleCaseClause(ByVal node As SimpleCaseClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitRangeCaseClause(ByVal node As RangeCaseClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitRelationalCaseClause(ByVal node As RelationalCaseClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSyncLockStatement(ByVal node As SyncLockStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitDoLoopBlock(ByVal node As DoLoopBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitDoStatement(ByVal node As DoStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitLoopStatement(ByVal node As LoopStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitWhileOrUntilClause(ByVal node As WhileOrUntilClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitWhileStatement(ByVal node As WhileStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitForBlock(ByVal node As ForBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitForEachBlock(ByVal node As ForEachBlockSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitForStatement(ByVal node As ForStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitForStepClause(ByVal node As ForStepClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitForEachStatement(ByVal node As ForEachStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitNextStatement(ByVal node As NextStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitUsingStatement(ByVal node As UsingStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitThrowStatement(ByVal node As ThrowStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAssignmentStatement(ByVal node As AssignmentStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitMidExpression(ByVal node As MidExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCallStatement(ByVal node As CallStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAddRemoveHandlerStatement(ByVal node As AddRemoveHandlerStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitRaiseEventStatement(ByVal node As RaiseEventStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitWithStatement(ByVal node As WithStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitReDimStatement(ByVal node As ReDimStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitRedimClause(ByVal node As RedimClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitEraseStatement(ByVal node As EraseStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitLiteralExpression(ByVal node As LiteralExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitParenthesizedExpression(ByVal node As ParenthesizedExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTupleExpression(ByVal node As TupleExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTupleType(ByVal node As TupleTypeSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTypedTupleElement(ByVal node As TypedTupleElementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitNamedTupleElement(ByVal node As NamedTupleElementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitMeExpression(ByVal node As MeExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitMyBaseExpression(ByVal node As MyBaseExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitMyClassExpression(ByVal node As MyClassExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitGetTypeExpression(ByVal node As GetTypeExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTypeOfExpression(ByVal node As TypeOfExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitGetXmlNamespaceExpression(ByVal node As GetXmlNamespaceExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitMemberAccessExpression(ByVal node As MemberAccessExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlMemberAccessExpression(ByVal node As XmlMemberAccessExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitInvocationExpression(ByVal node As InvocationExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitObjectCreationExpression(ByVal node As ObjectCreationExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAnonymousObjectCreationExpression(ByVal node As AnonymousObjectCreationExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitArrayCreationExpression(ByVal node As ArrayCreationExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCollectionInitializer(ByVal node As CollectionInitializerSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCTypeExpression(ByVal node As CTypeExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitDirectCastExpression(ByVal node As DirectCastExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTryCastExpression(ByVal node As TryCastExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitPredefinedCastExpression(ByVal node As PredefinedCastExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitBinaryExpression(ByVal node As BinaryExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitUnaryExpression(ByVal node As UnaryExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitBinaryConditionalExpression(ByVal node As BinaryConditionalExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTernaryConditionalExpression(ByVal node As TernaryConditionalExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSingleLineLambdaExpression(ByVal node As SingleLineLambdaExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitMultiLineLambdaExpression(ByVal node As MultiLineLambdaExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitLambdaHeader(ByVal node As LambdaHeaderSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitArgumentList(ByVal node As ArgumentListSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitOmittedArgument(ByVal node As OmittedArgumentSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSimpleArgument(ByVal node As SimpleArgumentSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitNameColonEquals(ByVal node As NameColonEqualsSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitRangeArgument(ByVal node As RangeArgumentSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitQueryExpression(ByVal node As QueryExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCollectionRangeVariable(ByVal node As CollectionRangeVariableSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitExpressionRangeVariable(ByVal node As ExpressionRangeVariableSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAggregationRangeVariable(ByVal node As AggregationRangeVariableSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitVariableNameEquals(ByVal node As VariableNameEqualsSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitFunctionAggregation(ByVal node As FunctionAggregationSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitGroupAggregation(ByVal node As GroupAggregationSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitFromClause(ByVal node As FromClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitLetClause(ByVal node As LetClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAggregateClause(ByVal node As AggregateClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitDistinctClause(ByVal node As DistinctClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitWhereClause(ByVal node As WhereClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitPartitionWhileClause(ByVal node As PartitionWhileClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitPartitionClause(ByVal node As PartitionClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitGroupByClause(ByVal node As GroupByClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitJoinCondition(ByVal node As JoinConditionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSimpleJoinClause(ByVal node As SimpleJoinClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitGroupJoinClause(ByVal node As GroupJoinClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitOrderByClause(ByVal node As OrderByClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitOrdering(ByVal node As OrderingSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSelectClause(ByVal node As SelectClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlDocument(ByVal node As XmlDocumentSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlDeclaration(ByVal node As XmlDeclarationSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlDeclarationOption(ByVal node As XmlDeclarationOptionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlElement(ByVal node As XmlElementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlText(ByVal node As XmlTextSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlElementStartTag(ByVal node As XmlElementStartTagSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlElementEndTag(ByVal node As XmlElementEndTagSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlEmptyElement(ByVal node As XmlEmptyElementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlAttribute(ByVal node As XmlAttributeSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlString(ByVal node As XmlStringSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlPrefixName(ByVal node As XmlPrefixNameSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlName(ByVal node As XmlNameSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlBracketedName(ByVal node As XmlBracketedNameSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlPrefix(ByVal node As XmlPrefixSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlComment(ByVal node As XmlCommentSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlProcessingInstruction(ByVal node As XmlProcessingInstructionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlCDataSection(ByVal node As XmlCDataSectionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlEmbeddedExpression(ByVal node As XmlEmbeddedExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitArrayType(ByVal node As ArrayTypeSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitNullableType(ByVal node As NullableTypeSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitPredefinedType(ByVal node As PredefinedTypeSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitIdentifierName(ByVal node As IdentifierNameSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitGenericName(ByVal node As GenericNameSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitQualifiedName(ByVal node As QualifiedNameSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitGlobalName(ByVal node As GlobalNameSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitTypeArgumentList(ByVal node As TypeArgumentListSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCrefReference(ByVal node As CrefReferenceSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCrefSignature(ByVal node As CrefSignatureSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCrefSignaturePart(ByVal node As CrefSignaturePartSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitCrefOperatorReference(ByVal node As CrefOperatorReferenceSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitQualifiedCrefOperatorReference(ByVal node As QualifiedCrefOperatorReferenceSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitYieldStatement(ByVal node As YieldStatementSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitAwaitExpression(ByVal node As AwaitExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitSkippedTokensTrivia(ByVal node As SkippedTokensTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitDocumentationCommentTrivia(ByVal node As DocumentationCommentTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlCrefAttribute(ByVal node As XmlCrefAttributeSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitXmlNameAttribute(ByVal node As XmlNameAttributeSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitConditionalAccessExpression(ByVal node As ConditionalAccessExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitNameOfExpression(ByVal node As NameOfExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitInterpolatedStringExpression(ByVal node As InterpolatedStringExpressionSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitInterpolatedStringText(ByVal node As InterpolatedStringTextSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitInterpolation(ByVal node As InterpolationSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitInterpolationAlignmentClause(ByVal node As InterpolationAlignmentClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitInterpolationFormatClause(ByVal node As InterpolationFormatClauseSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitConstDirectiveTrivia(ByVal node As ConstDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitIfDirectiveTrivia(ByVal node As IfDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitElseDirectiveTrivia(ByVal node As ElseDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitEndIfDirectiveTrivia(ByVal node As EndIfDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitRegionDirectiveTrivia(ByVal node As RegionDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitEndRegionDirectiveTrivia(ByVal node As EndRegionDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitExternalSourceDirectiveTrivia(ByVal node As ExternalSourceDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitEndExternalSourceDirectiveTrivia(ByVal node As EndExternalSourceDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitExternalChecksumDirectiveTrivia(ByVal node As ExternalChecksumDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitEnableWarningDirectiveTrivia(ByVal node As EnableWarningDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitDisableWarningDirectiveTrivia(ByVal node As DisableWarningDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitReferenceDirectiveTrivia(ByVal node As ReferenceDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
         Public Overridable Sub VisitBadDirectiveTrivia(ByVal node As BadDirectiveTriviaSyntax)
-            Me.DefaultVisit(node): Return
+            Me.DefaultVisit(node) : Return
         End Sub
     End Class
 
@@ -5694,7 +5694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EmptyToken
                 Case Else
                     Throw new ArgumentException("empty")
-             End Select
+            End Select
             Return New EmptyStatementSyntax(SyntaxKind.EmptyStatement, Nothing, Nothing, DirectCast(empty.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -5725,34 +5725,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
-                Case SyntaxKind.IfKeyword:
-                Case SyntaxKind.UsingKeyword:
-                Case SyntaxKind.WithKeyword:
-                Case SyntaxKind.SelectKeyword:
-                Case SyntaxKind.StructureKeyword:
-                Case SyntaxKind.EnumKeyword:
-                Case SyntaxKind.InterfaceKeyword:
-                Case SyntaxKind.ClassKeyword:
-                Case SyntaxKind.ModuleKeyword:
-                Case SyntaxKind.NamespaceKeyword:
-                Case SyntaxKind.SubKeyword:
-                Case SyntaxKind.FunctionKeyword:
-                Case SyntaxKind.GetKeyword:
-                Case SyntaxKind.SetKeyword:
-                Case SyntaxKind.PropertyKeyword:
-                Case SyntaxKind.OperatorKeyword:
-                Case SyntaxKind.EventKeyword:
-                Case SyntaxKind.AddHandlerKeyword:
-                Case SyntaxKind.RemoveHandlerKeyword:
-                Case SyntaxKind.RaiseEventKeyword:
-                Case SyntaxKind.WhileKeyword:
-                Case SyntaxKind.TryKeyword:
+                Case SyntaxKind.IfKeyword :
+                Case SyntaxKind.UsingKeyword :
+                Case SyntaxKind.WithKeyword :
+                Case SyntaxKind.SelectKeyword :
+                Case SyntaxKind.StructureKeyword :
+                Case SyntaxKind.EnumKeyword :
+                Case SyntaxKind.InterfaceKeyword :
+                Case SyntaxKind.ClassKeyword :
+                Case SyntaxKind.ModuleKeyword :
+                Case SyntaxKind.NamespaceKeyword :
+                Case SyntaxKind.SubKeyword :
+                Case SyntaxKind.FunctionKeyword :
+                Case SyntaxKind.GetKeyword :
+                Case SyntaxKind.SetKeyword :
+                Case SyntaxKind.PropertyKeyword :
+                Case SyntaxKind.OperatorKeyword :
+                Case SyntaxKind.EventKeyword :
+                Case SyntaxKind.AddHandlerKeyword :
+                Case SyntaxKind.RemoveHandlerKeyword :
+                Case SyntaxKind.RaiseEventKeyword :
+                Case SyntaxKind.WhileKeyword :
+                Case SyntaxKind.TryKeyword :
                 Case SyntaxKind.SyncLockKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndIfStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -5782,12 +5782,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.UsingKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndUsingStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -5817,12 +5817,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.WithKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndWithStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -5852,12 +5852,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.SelectKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndSelectStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -5887,12 +5887,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.StructureKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndStructureStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -5922,12 +5922,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.EnumKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndEnumStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -5957,12 +5957,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.InterfaceKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndInterfaceStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -5992,12 +5992,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.ClassKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndClassStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6027,12 +6027,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.ModuleKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndModuleStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6062,12 +6062,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.NamespaceKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndNamespaceStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6097,12 +6097,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.SubKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndSubStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6132,12 +6132,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.FunctionKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndFunctionStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6167,12 +6167,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.GetKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndGetStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6202,12 +6202,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.SetKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndSetStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6237,12 +6237,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.PropertyKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndPropertyStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6272,12 +6272,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.OperatorKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndOperatorStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6307,12 +6307,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.EventKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndEventStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6342,12 +6342,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.AddHandlerKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndAddHandlerStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6377,12 +6377,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.RemoveHandlerKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndRemoveHandlerStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6412,12 +6412,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.RaiseEventKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndRaiseEventStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6447,12 +6447,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.WhileKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndWhileStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6482,12 +6482,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.TryKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndTryStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6517,12 +6517,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.SyncLockKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New EndBlockStatementSyntax(SyntaxKind.EndSyncLockStatement, Nothing, Nothing, DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6565,7 +6565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             If (Not blockKeyword.IsKind(GetEndBlockStatementBlockKeywordKind(kind))) Then
                 Throw new ArgumentException("blockKeyword")
             End If
@@ -6676,7 +6676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndOfFileToken
                 Case Else
                     Throw new ArgumentException("endOfFileToken")
-             End Select
+            End Select
             Return New CompilationUnitSyntax(SyntaxKind.CompilationUnit, Nothing, Nothing, options.Node, [imports].Node, attributes.Node, members.Node, DirectCast(endOfFileToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -6731,15 +6731,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OptionKeyword
                 Case Else
                     Throw new ArgumentException("optionKeyword")
-             End Select
+            End Select
             Select Case nameKeyword.Kind()
-                Case SyntaxKind.ExplicitKeyword:
-                Case SyntaxKind.StrictKeyword:
-                Case SyntaxKind.CompareKeyword:
+                Case SyntaxKind.ExplicitKeyword :
+                Case SyntaxKind.StrictKeyword :
+                Case SyntaxKind.CompareKeyword :
                 Case SyntaxKind.InferKeyword
                 Case Else
                     Throw new ArgumentException("nameKeyword")
-             End Select
+            End Select
             Return New OptionStatementSyntax(SyntaxKind.OptionStatement, Nothing, Nothing, DirectCast(optionKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(nameKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(valueKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -6787,7 +6787,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ImportsKeyword
                 Case Else
                     Throw new ArgumentException("importsKeyword")
-             End Select
+            End Select
             Return New ImportsStatementSyntax(SyntaxKind.ImportsStatement, Nothing, Nothing, DirectCast(importsKeyword.Node, InternalSyntax.KeywordSyntax), importsClauses.Node)
         End Function
 
@@ -6835,7 +6835,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New SimpleImportsClauseSyntax(SyntaxKind.SimpleImportsClause, Nothing, Nothing, [alias], name)
         End Function
 
@@ -6866,12 +6866,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Select Case equalsToken.Kind()
                 Case SyntaxKind.EqualsToken
                 Case Else
                     Throw new ArgumentException("equalsToken")
-             End Select
+            End Select
             Return New ImportAliasClauseSyntax(SyntaxKind.ImportAliasClause, Nothing, Nothing, DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), DirectCast(equalsToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -6909,7 +6909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanToken
                 Case Else
                     Throw new ArgumentException("lessThanToken")
-             End Select
+            End Select
             if xmlNamespace Is Nothing Then
                 Throw New ArgumentNullException(NameOf(xmlNamespace))
             End If
@@ -6917,12 +6917,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlAttribute
                 Case Else
                     Throw new ArgumentException("xmlNamespace")
-             End Select
+            End Select
             Select Case greaterThanToken.Kind()
                 Case SyntaxKind.GreaterThanToken
                 Case Else
                     Throw new ArgumentException("greaterThanToken")
-             End Select
+            End Select
             Return New XmlNamespaceImportsClauseSyntax(SyntaxKind.XmlNamespaceImportsClause, Nothing, Nothing, DirectCast(lessThanToken.Node, InternalSyntax.PunctuationSyntax), xmlNamespace, DirectCast(greaterThanToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -6958,7 +6958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.NamespaceStatement
                 Case Else
                     Throw new ArgumentException("namespaceStatement")
-             End Select
+            End Select
             if endNamespaceStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endNamespaceStatement))
             End If
@@ -6966,7 +6966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndNamespaceStatement
                 Case Else
                     Throw new ArgumentException("endNamespaceStatement")
-             End Select
+            End Select
             Return New NamespaceBlockSyntax(SyntaxKind.NamespaceBlock, Nothing, Nothing, namespaceStatement, members.Node, endNamespaceStatement)
         End Function
 
@@ -7011,7 +7011,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.NamespaceKeyword
                 Case Else
                     Throw new ArgumentException("namespaceKeyword")
-             End Select
+            End Select
             if name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -7024,7 +7024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New NamespaceStatementSyntax(SyntaxKind.NamespaceStatement, Nothing, Nothing, DirectCast(namespaceKeyword.Node, InternalSyntax.KeywordSyntax), name)
         End Function
 
@@ -7068,7 +7068,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ModuleStatement
                 Case Else
                     Throw new ArgumentException("moduleStatement")
-             End Select
+            End Select
             if endModuleStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endModuleStatement))
             End If
@@ -7076,7 +7076,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndModuleStatement
                 Case Else
                     Throw new ArgumentException("endModuleStatement")
-             End Select
+            End Select
             Return New ModuleBlockSyntax(SyntaxKind.ModuleBlock, Nothing, Nothing, moduleStatement, [inherits].Node, [implements].Node, members.Node, endModuleStatement)
         End Function
 
@@ -7141,7 +7141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.StructureStatement
                 Case Else
                     Throw new ArgumentException("structureStatement")
-             End Select
+            End Select
             if endStructureStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endStructureStatement))
             End If
@@ -7149,7 +7149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndStructureStatement
                 Case Else
                     Throw new ArgumentException("endStructureStatement")
-             End Select
+            End Select
             Return New StructureBlockSyntax(SyntaxKind.StructureBlock, Nothing, Nothing, structureStatement, [inherits].Node, [implements].Node, members.Node, endStructureStatement)
         End Function
 
@@ -7214,7 +7214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.InterfaceStatement
                 Case Else
                     Throw new ArgumentException("interfaceStatement")
-             End Select
+            End Select
             if endInterfaceStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endInterfaceStatement))
             End If
@@ -7222,7 +7222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndInterfaceStatement
                 Case Else
                     Throw new ArgumentException("endInterfaceStatement")
-             End Select
+            End Select
             Return New InterfaceBlockSyntax(SyntaxKind.InterfaceBlock, Nothing, Nothing, interfaceStatement, [inherits].Node, [implements].Node, members.Node, endInterfaceStatement)
         End Function
 
@@ -7287,7 +7287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ClassStatement
                 Case Else
                     Throw new ArgumentException("classStatement")
-             End Select
+            End Select
             if endClassStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endClassStatement))
             End If
@@ -7295,7 +7295,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndClassStatement
                 Case Else
                     Throw new ArgumentException("endClassStatement")
-             End Select
+            End Select
             Return New ClassBlockSyntax(SyntaxKind.ClassBlock, Nothing, Nothing, classStatement, [inherits].Node, [implements].Node, members.Node, endClassStatement)
         End Function
 
@@ -7354,7 +7354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EnumStatement
                 Case Else
                     Throw new ArgumentException("enumStatement")
-             End Select
+            End Select
             if endEnumStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endEnumStatement))
             End If
@@ -7362,7 +7362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndEnumStatement
                 Case Else
                     Throw new ArgumentException("endEnumStatement")
-             End Select
+            End Select
             Return New EnumBlockSyntax(SyntaxKind.EnumBlock, Nothing, Nothing, enumStatement, members.Node, endEnumStatement)
         End Function
 
@@ -7408,7 +7408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.InheritsKeyword
                 Case Else
                     Throw new ArgumentException("inheritsKeyword")
-             End Select
+            End Select
             Return New InheritsStatementSyntax(SyntaxKind.InheritsStatement, Nothing, Nothing, DirectCast(inheritsKeyword.Node, InternalSyntax.KeywordSyntax), types.Node)
         End Function
 
@@ -7449,7 +7449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ImplementsKeyword
                 Case Else
                     Throw new ArgumentException("implementsKeyword")
-             End Select
+            End Select
             Return New ImplementsStatementSyntax(SyntaxKind.ImplementsStatement, Nothing, Nothing, DirectCast(implementsKeyword.Node, InternalSyntax.KeywordSyntax), types.Node)
         End Function
 
@@ -7503,12 +7503,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ModuleKeyword
                 Case Else
                     Throw new ArgumentException("moduleKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New ModuleStatementSyntax(SyntaxKind.ModuleStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(moduleKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), typeParameterList)
         End Function
 
@@ -7588,12 +7588,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.StructureKeyword
                 Case Else
                     Throw new ArgumentException("structureKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New StructureStatementSyntax(SyntaxKind.StructureStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(structureKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), typeParameterList)
         End Function
 
@@ -7673,12 +7673,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.InterfaceKeyword
                 Case Else
                     Throw new ArgumentException("interfaceKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New InterfaceStatementSyntax(SyntaxKind.InterfaceStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(interfaceKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), typeParameterList)
         End Function
 
@@ -7758,12 +7758,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ClassKeyword
                 Case Else
                     Throw new ArgumentException("classKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New ClassStatementSyntax(SyntaxKind.ClassStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(classKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), typeParameterList)
         End Function
 
@@ -7843,12 +7843,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EnumKeyword
                 Case Else
                     Throw new ArgumentException("enumKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New EnumStatementSyntax(SyntaxKind.EnumStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(enumKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), underlyingType)
         End Function
 
@@ -7922,17 +7922,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             Select Case ofKeyword.Kind()
                 Case SyntaxKind.OfKeyword
                 Case Else
                     Throw new ArgumentException("ofKeyword")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New TypeParameterListSyntax(SyntaxKind.TypeParameterList, Nothing, Nothing, DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(ofKeyword.Node, InternalSyntax.KeywordSyntax), parameters.Node, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -7980,7 +7980,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New TypeParameterSyntax(SyntaxKind.TypeParameter, Nothing, Nothing, DirectCast(varianceKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), typeParameterConstraintClause)
         End Function
 
@@ -8024,7 +8024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.AsKeyword
                 Case Else
                     Throw new ArgumentException("asKeyword")
-             End Select
+            End Select
             if constraint Is Nothing Then
                 Throw New ArgumentNullException(NameOf(constraint))
             End If
@@ -8035,7 +8035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.TypeConstraint
                 Case Else
                     Throw new ArgumentException("constraint")
-             End Select
+            End Select
             Return New TypeParameterSingleConstraintClauseSyntax(SyntaxKind.TypeParameterSingleConstraintClause, Nothing, Nothing, DirectCast(asKeyword.Node, InternalSyntax.KeywordSyntax), constraint)
         End Function
 
@@ -8075,17 +8075,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.AsKeyword
                 Case Else
                     Throw new ArgumentException("asKeyword")
-             End Select
+            End Select
             Select Case openBraceToken.Kind()
                 Case SyntaxKind.OpenBraceToken
                 Case Else
                     Throw new ArgumentException("openBraceToken")
-             End Select
+            End Select
             Select Case closeBraceToken.Kind()
                 Case SyntaxKind.CloseBraceToken
                 Case Else
                     Throw new ArgumentException("closeBraceToken")
-             End Select
+            End Select
             Return New TypeParameterMultipleConstraintClauseSyntax(SyntaxKind.TypeParameterMultipleConstraintClause, Nothing, Nothing, DirectCast(asKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openBraceToken.Node, InternalSyntax.PunctuationSyntax), constraints.Node, DirectCast(closeBraceToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -8127,12 +8127,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function NewConstraint(constraintKeyword As SyntaxToken) As SpecialConstraintSyntax
             Select Case constraintKeyword.Kind()
-                Case SyntaxKind.NewKeyword:
-                Case SyntaxKind.ClassKeyword:
+                Case SyntaxKind.NewKeyword :
+                Case SyntaxKind.ClassKeyword :
                 Case SyntaxKind.StructureKeyword
                 Case Else
                     Throw new ArgumentException("constraintKeyword")
-             End Select
+            End Select
             Return New SpecialConstraintSyntax(SyntaxKind.NewConstraint, Nothing, Nothing, DirectCast(constraintKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -8148,12 +8148,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function ClassConstraint(constraintKeyword As SyntaxToken) As SpecialConstraintSyntax
             Select Case constraintKeyword.Kind()
-                Case SyntaxKind.NewKeyword:
-                Case SyntaxKind.ClassKeyword:
+                Case SyntaxKind.NewKeyword :
+                Case SyntaxKind.ClassKeyword :
                 Case SyntaxKind.StructureKeyword
                 Case Else
                     Throw new ArgumentException("constraintKeyword")
-             End Select
+            End Select
             Return New SpecialConstraintSyntax(SyntaxKind.ClassConstraint, Nothing, Nothing, DirectCast(constraintKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -8169,12 +8169,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function StructureConstraint(constraintKeyword As SyntaxToken) As SpecialConstraintSyntax
             Select Case constraintKeyword.Kind()
-                Case SyntaxKind.NewKeyword:
-                Case SyntaxKind.ClassKeyword:
+                Case SyntaxKind.NewKeyword :
+                Case SyntaxKind.ClassKeyword :
                 Case SyntaxKind.StructureKeyword
                 Case Else
                     Throw new ArgumentException("constraintKeyword")
-             End Select
+            End Select
             Return New SpecialConstraintSyntax(SyntaxKind.StructureConstraint, Nothing, Nothing, DirectCast(constraintKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -8198,12 +8198,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException("kind")
             End If
             Select Case constraintKeyword.Kind()
-                Case SyntaxKind.NewKeyword:
-                Case SyntaxKind.ClassKeyword:
+                Case SyntaxKind.NewKeyword :
+                Case SyntaxKind.ClassKeyword :
                 Case SyntaxKind.StructureKeyword
                 Case Else
                     Throw new ArgumentException("constraintKeyword")
-             End Select
+            End Select
             Return New SpecialConstraintSyntax(kind, Nothing, Nothing, DirectCast(constraintKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -8231,7 +8231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("type")
-             End Select
+            End Select
             Return New TypeConstraintSyntax(SyntaxKind.TypeConstraint, Nothing, Nothing, type)
         End Function
 
@@ -8247,7 +8247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New EnumMemberDeclarationSyntax(SyntaxKind.EnumMemberDeclaration, Nothing, Nothing, attributeLists.Node, DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), initializer)
         End Function
 
@@ -8290,7 +8290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.FunctionStatement
                 Case Else
                     Throw new ArgumentException("subOrFunctionStatement")
-             End Select
+            End Select
             if endSubOrFunctionStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endSubOrFunctionStatement))
             End If
@@ -8299,7 +8299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.EndFunctionStatement
                 Case Else
                     Throw new ArgumentException("endSubOrFunctionStatement")
-             End Select
+            End Select
             Return New MethodBlockSyntax(SyntaxKind.SubBlock, Nothing, Nothing, subOrFunctionStatement, statements.Node, endSubOrFunctionStatement)
         End Function
 
@@ -8352,7 +8352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.FunctionStatement
                 Case Else
                     Throw new ArgumentException("subOrFunctionStatement")
-             End Select
+            End Select
             if endSubOrFunctionStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endSubOrFunctionStatement))
             End If
@@ -8360,7 +8360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndFunctionStatement
                 Case Else
                     Throw new ArgumentException("endSubOrFunctionStatement")
-             End Select
+            End Select
             Return New MethodBlockSyntax(SyntaxKind.FunctionBlock, Nothing, Nothing, subOrFunctionStatement, statements.Node, endSubOrFunctionStatement)
         End Function
 
@@ -8489,7 +8489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SubNewStatement
                 Case Else
                     Throw new ArgumentException("subNewStatement")
-             End Select
+            End Select
             if endSubStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endSubStatement))
             End If
@@ -8497,7 +8497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndSubStatement
                 Case Else
                     Throw new ArgumentException("endSubStatement")
-             End Select
+            End Select
             Return New ConstructorBlockSyntax(SyntaxKind.ConstructorBlock, Nothing, Nothing, subNewStatement, statements.Node, endSubStatement)
         End Function
 
@@ -8550,7 +8550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OperatorStatement
                 Case Else
                     Throw new ArgumentException("operatorStatement")
-             End Select
+            End Select
             if endOperatorStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endOperatorStatement))
             End If
@@ -8558,7 +8558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndOperatorStatement
                 Case Else
                     Throw new ArgumentException("endOperatorStatement")
-             End Select
+            End Select
             Return New OperatorBlockSyntax(SyntaxKind.OperatorBlock, Nothing, Nothing, operatorStatement, statements.Node, endOperatorStatement)
         End Function
 
@@ -8618,7 +8618,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.RaiseEventAccessorStatement
                 Case Else
                     Throw new ArgumentException("accessorStatement")
-             End Select
+            End Select
             if endAccessorStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endAccessorStatement))
             End If
@@ -8630,7 +8630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.EndRaiseEventStatement
                 Case Else
                     Throw new ArgumentException("endAccessorStatement")
-             End Select
+            End Select
             Return New AccessorBlockSyntax(SyntaxKind.GetAccessorBlock, Nothing, Nothing, accessorStatement, statements.Node, endAccessorStatement)
         End Function
 
@@ -8690,7 +8690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SetAccessorStatement
                 Case Else
                     Throw new ArgumentException("accessorStatement")
-             End Select
+            End Select
             if endAccessorStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endAccessorStatement))
             End If
@@ -8698,7 +8698,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndSetStatement
                 Case Else
                     Throw new ArgumentException("endAccessorStatement")
-             End Select
+            End Select
             Return New AccessorBlockSyntax(SyntaxKind.SetAccessorBlock, Nothing, Nothing, accessorStatement, statements.Node, endAccessorStatement)
         End Function
 
@@ -8758,7 +8758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.AddHandlerAccessorStatement
                 Case Else
                     Throw new ArgumentException("accessorStatement")
-             End Select
+            End Select
             if endAccessorStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endAccessorStatement))
             End If
@@ -8766,7 +8766,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndAddHandlerStatement
                 Case Else
                     Throw new ArgumentException("endAccessorStatement")
-             End Select
+            End Select
             Return New AccessorBlockSyntax(SyntaxKind.AddHandlerAccessorBlock, Nothing, Nothing, accessorStatement, statements.Node, endAccessorStatement)
         End Function
 
@@ -8826,7 +8826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.RemoveHandlerAccessorStatement
                 Case Else
                     Throw new ArgumentException("accessorStatement")
-             End Select
+            End Select
             if endAccessorStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endAccessorStatement))
             End If
@@ -8834,7 +8834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndRemoveHandlerStatement
                 Case Else
                     Throw new ArgumentException("endAccessorStatement")
-             End Select
+            End Select
             Return New AccessorBlockSyntax(SyntaxKind.RemoveHandlerAccessorBlock, Nothing, Nothing, accessorStatement, statements.Node, endAccessorStatement)
         End Function
 
@@ -8894,7 +8894,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.RaiseEventAccessorStatement
                 Case Else
                     Throw new ArgumentException("accessorStatement")
-             End Select
+            End Select
             if endAccessorStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endAccessorStatement))
             End If
@@ -8902,7 +8902,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndRaiseEventStatement
                 Case Else
                     Throw new ArgumentException("endAccessorStatement")
-             End Select
+            End Select
             Return New AccessorBlockSyntax(SyntaxKind.RaiseEventAccessorBlock, Nothing, Nothing, accessorStatement, statements.Node, endAccessorStatement)
         End Function
 
@@ -9056,7 +9056,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.PropertyStatement
                 Case Else
                     Throw new ArgumentException("propertyStatement")
-             End Select
+            End Select
             if endPropertyStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endPropertyStatement))
             End If
@@ -9064,7 +9064,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndPropertyStatement
                 Case Else
                     Throw new ArgumentException("endPropertyStatement")
-             End Select
+            End Select
             Return New PropertyBlockSyntax(SyntaxKind.PropertyBlock, Nothing, Nothing, propertyStatement, accessors.Node, endPropertyStatement)
         End Function
 
@@ -9107,7 +9107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EventStatement
                 Case Else
                     Throw new ArgumentException("eventStatement")
-             End Select
+            End Select
             if endEventStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endEventStatement))
             End If
@@ -9115,7 +9115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndEventStatement
                 Case Else
                     Throw new ArgumentException("endEventStatement")
-             End Select
+            End Select
             Return New EventBlockSyntax(SyntaxKind.EventBlock, Nothing, Nothing, eventStatement, accessors.Node, endEventStatement)
         End Function
 
@@ -9155,12 +9155,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New ParameterListSyntax(SyntaxKind.ParameterList, Nothing, Nothing, DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), parameters.Node, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -9227,16 +9227,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function SubStatement(attributeLists As SyntaxList(of AttributeListSyntax), modifiers As SyntaxTokenList, subOrFunctionKeyword As SyntaxToken, identifier As SyntaxToken, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, handlesClause As HandlesClauseSyntax, implementsClause As ImplementsClauseSyntax) As MethodStatementSyntax
             Select Case subOrFunctionKeyword.Kind()
-                Case SyntaxKind.SubKeyword:
+                Case SyntaxKind.SubKeyword :
                 Case SyntaxKind.FunctionKeyword
                 Case Else
                     Throw new ArgumentException("subOrFunctionKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New MethodStatementSyntax(SyntaxKind.SubStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(subOrFunctionKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), typeParameterList, parameterList, asClause, handlesClause, implementsClause)
         End Function
 
@@ -9358,12 +9358,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.FunctionKeyword
                 Case Else
                     Throw new ArgumentException("subOrFunctionKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New MethodStatementSyntax(SyntaxKind.FunctionStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(subOrFunctionKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), typeParameterList, parameterList, asClause, handlesClause, implementsClause)
         End Function
 
@@ -9495,7 +9495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New MethodStatementSyntax(kind, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(subOrFunctionKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), typeParameterList, parameterList, asClause, handlesClause, implementsClause)
         End Function
 
@@ -9582,12 +9582,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SubKeyword
                 Case Else
                     Throw new ArgumentException("subKeyword")
-             End Select
+            End Select
             Select Case newKeyword.Kind()
                 Case SyntaxKind.NewKeyword
                 Case Else
                     Throw new ArgumentException("newKeyword")
-             End Select
+            End Select
             Return New SubNewStatementSyntax(SyntaxKind.SubNewStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(subKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(newKeyword.Node, InternalSyntax.KeywordSyntax), parameterList)
         End Function
 
@@ -9677,23 +9677,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DeclareKeyword
                 Case Else
                     Throw new ArgumentException("declareKeyword")
-             End Select
+            End Select
             Select Case subOrFunctionKeyword.Kind()
-                Case SyntaxKind.SubKeyword:
+                Case SyntaxKind.SubKeyword :
                 Case SyntaxKind.FunctionKeyword
                 Case Else
                     Throw new ArgumentException("subOrFunctionKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Select Case libKeyword.Kind()
                 Case SyntaxKind.LibKeyword
                 Case Else
                     Throw new ArgumentException("libKeyword")
-             End Select
+            End Select
             if libraryName Is Nothing Then
                 Throw New ArgumentNullException(NameOf(libraryName))
             End If
@@ -9707,7 +9707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.NothingLiteralExpression
                 Case Else
                     Throw new ArgumentException("libraryName")
-             End Select
+            End Select
             Return New DeclareStatementSyntax(SyntaxKind.DeclareSubStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(declareKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(charsetKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(subOrFunctionKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), DirectCast(libKeyword.Node, InternalSyntax.KeywordSyntax), libraryName, DirectCast(aliasKeyword.Node, InternalSyntax.KeywordSyntax), aliasName, parameterList, asClause)
         End Function
 
@@ -9830,22 +9830,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DeclareKeyword
                 Case Else
                     Throw new ArgumentException("declareKeyword")
-             End Select
+            End Select
             Select Case subOrFunctionKeyword.Kind()
                 Case SyntaxKind.FunctionKeyword
                 Case Else
                     Throw new ArgumentException("subOrFunctionKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Select Case libKeyword.Kind()
                 Case SyntaxKind.LibKeyword
                 Case Else
                     Throw new ArgumentException("libKeyword")
-             End Select
+            End Select
             if libraryName Is Nothing Then
                 Throw New ArgumentNullException(NameOf(libraryName))
             End If
@@ -9859,7 +9859,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.NothingLiteralExpression
                 Case Else
                     Throw new ArgumentException("libraryName")
-             End Select
+            End Select
             Return New DeclareStatementSyntax(SyntaxKind.DeclareFunctionStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(declareKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(charsetKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(subOrFunctionKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), DirectCast(libKeyword.Node, InternalSyntax.KeywordSyntax), libraryName, DirectCast(aliasKeyword.Node, InternalSyntax.KeywordSyntax), aliasName, parameterList, asClause)
         End Function
 
@@ -9989,7 +9989,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DeclareKeyword
                 Case Else
                     Throw new ArgumentException("declareKeyword")
-             End Select
+            End Select
             If (Not subOrFunctionKeyword.IsKind(GetDeclareStatementSubOrFunctionKeywordKind(kind))) Then
                 Throw new ArgumentException("subOrFunctionKeyword")
             End If
@@ -9997,12 +9997,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Select Case libKeyword.Kind()
                 Case SyntaxKind.LibKeyword
                 Case Else
                     Throw new ArgumentException("libKeyword")
-             End Select
+            End Select
             if libraryName Is Nothing Then
                 Throw New ArgumentNullException(NameOf(libraryName))
             End If
@@ -10016,7 +10016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.NothingLiteralExpression
                 Case Else
                     Throw new ArgumentException("libraryName")
-             End Select
+            End Select
             Return New DeclareStatementSyntax(kind, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(declareKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(charsetKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(subOrFunctionKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), DirectCast(libKeyword.Node, InternalSyntax.KeywordSyntax), libraryName, DirectCast(aliasKeyword.Node, InternalSyntax.KeywordSyntax), aliasName, parameterList, asClause)
         End Function
 
@@ -10158,18 +10158,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DelegateKeyword
                 Case Else
                     Throw new ArgumentException("delegateKeyword")
-             End Select
+            End Select
             Select Case subOrFunctionKeyword.Kind()
-                Case SyntaxKind.SubKeyword:
+                Case SyntaxKind.SubKeyword :
                 Case SyntaxKind.FunctionKeyword
                 Case Else
                     Throw new ArgumentException("subOrFunctionKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New DelegateStatementSyntax(SyntaxKind.DelegateSubStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(delegateKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(subOrFunctionKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), typeParameterList, parameterList, asClause)
         End Function
 
@@ -10268,17 +10268,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DelegateKeyword
                 Case Else
                     Throw new ArgumentException("delegateKeyword")
-             End Select
+            End Select
             Select Case subOrFunctionKeyword.Kind()
                 Case SyntaxKind.FunctionKeyword
                 Case Else
                     Throw new ArgumentException("subOrFunctionKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New DelegateStatementSyntax(SyntaxKind.DelegateFunctionStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(delegateKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(subOrFunctionKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), typeParameterList, parameterList, asClause)
         End Function
 
@@ -10385,7 +10385,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DelegateKeyword
                 Case Else
                     Throw new ArgumentException("delegateKeyword")
-             End Select
+            End Select
             If (Not subOrFunctionKeyword.IsKind(GetDelegateStatementSubOrFunctionKeywordKind(kind))) Then
                 Throw new ArgumentException("subOrFunctionKeyword")
             End If
@@ -10393,7 +10393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New DelegateStatementSyntax(kind, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(delegateKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(subOrFunctionKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), typeParameterList, parameterList, asClause)
         End Function
 
@@ -10528,12 +10528,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EventKeyword
                 Case Else
                     Throw new ArgumentException("eventKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New EventStatementSyntax(SyntaxKind.EventStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(customKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(eventKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), parameterList, asClause, implementsClause)
         End Function
 
@@ -10634,35 +10634,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OperatorKeyword
                 Case Else
                     Throw new ArgumentException("operatorKeyword")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
-                Case SyntaxKind.CTypeKeyword:
-                Case SyntaxKind.IsTrueKeyword:
-                Case SyntaxKind.IsFalseKeyword:
-                Case SyntaxKind.NotKeyword:
-                Case SyntaxKind.PlusToken:
-                Case SyntaxKind.MinusToken:
-                Case SyntaxKind.AsteriskToken:
-                Case SyntaxKind.SlashToken:
-                Case SyntaxKind.CaretToken:
-                Case SyntaxKind.BackslashToken:
-                Case SyntaxKind.AmpersandToken:
-                Case SyntaxKind.LessThanLessThanToken:
-                Case SyntaxKind.GreaterThanGreaterThanToken:
-                Case SyntaxKind.ModKeyword:
-                Case SyntaxKind.OrKeyword:
-                Case SyntaxKind.XorKeyword:
-                Case SyntaxKind.AndKeyword:
-                Case SyntaxKind.LikeKeyword:
-                Case SyntaxKind.EqualsToken:
-                Case SyntaxKind.LessThanGreaterThanToken:
-                Case SyntaxKind.LessThanToken:
-                Case SyntaxKind.LessThanEqualsToken:
-                Case SyntaxKind.GreaterThanEqualsToken:
+                Case SyntaxKind.CTypeKeyword :
+                Case SyntaxKind.IsTrueKeyword :
+                Case SyntaxKind.IsFalseKeyword :
+                Case SyntaxKind.NotKeyword :
+                Case SyntaxKind.PlusToken :
+                Case SyntaxKind.MinusToken :
+                Case SyntaxKind.AsteriskToken :
+                Case SyntaxKind.SlashToken :
+                Case SyntaxKind.CaretToken :
+                Case SyntaxKind.BackslashToken :
+                Case SyntaxKind.AmpersandToken :
+                Case SyntaxKind.LessThanLessThanToken :
+                Case SyntaxKind.GreaterThanGreaterThanToken :
+                Case SyntaxKind.ModKeyword :
+                Case SyntaxKind.OrKeyword :
+                Case SyntaxKind.XorKeyword :
+                Case SyntaxKind.AndKeyword :
+                Case SyntaxKind.LikeKeyword :
+                Case SyntaxKind.EqualsToken :
+                Case SyntaxKind.LessThanGreaterThanToken :
+                Case SyntaxKind.LessThanToken :
+                Case SyntaxKind.LessThanEqualsToken :
+                Case SyntaxKind.GreaterThanEqualsToken :
                 Case SyntaxKind.GreaterThanToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             Return New OperatorStatementSyntax(SyntaxKind.OperatorStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(operatorKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), parameterList, asClause)
         End Function
 
@@ -10756,12 +10756,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.PropertyKeyword
                 Case Else
                     Throw new ArgumentException("propertyKeyword")
-             End Select
+            End Select
             Select Case identifier.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New PropertyStatementSyntax(SyntaxKind.PropertyStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(propertyKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), parameterList, asClause, initializer, implementsClause)
         End Function
 
@@ -10860,14 +10860,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function GetAccessorStatement(attributeLists As SyntaxList(of AttributeListSyntax), modifiers As SyntaxTokenList, accessorKeyword As SyntaxToken, parameterList As ParameterListSyntax) As AccessorStatementSyntax
             Select Case accessorKeyword.Kind()
-                Case SyntaxKind.GetKeyword:
-                Case SyntaxKind.SetKeyword:
-                Case SyntaxKind.AddHandlerKeyword:
-                Case SyntaxKind.RemoveHandlerKeyword:
+                Case SyntaxKind.GetKeyword :
+                Case SyntaxKind.SetKeyword :
+                Case SyntaxKind.AddHandlerKeyword :
+                Case SyntaxKind.RemoveHandlerKeyword :
                 Case SyntaxKind.RaiseEventKeyword
                 Case Else
                     Throw new ArgumentException("accessorKeyword")
-             End Select
+            End Select
             Return New AccessorStatementSyntax(SyntaxKind.GetAccessorStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(accessorKeyword.Node, InternalSyntax.KeywordSyntax), parameterList)
         End Function
 
@@ -10937,7 +10937,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SetKeyword
                 Case Else
                     Throw new ArgumentException("accessorKeyword")
-             End Select
+            End Select
             Return New AccessorStatementSyntax(SyntaxKind.SetAccessorStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(accessorKeyword.Node, InternalSyntax.KeywordSyntax), parameterList)
         End Function
 
@@ -11007,7 +11007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.AddHandlerKeyword
                 Case Else
                     Throw new ArgumentException("accessorKeyword")
-             End Select
+            End Select
             Return New AccessorStatementSyntax(SyntaxKind.AddHandlerAccessorStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(accessorKeyword.Node, InternalSyntax.KeywordSyntax), parameterList)
         End Function
 
@@ -11077,7 +11077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.RemoveHandlerKeyword
                 Case Else
                     Throw new ArgumentException("accessorKeyword")
-             End Select
+            End Select
             Return New AccessorStatementSyntax(SyntaxKind.RemoveHandlerAccessorStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(accessorKeyword.Node, InternalSyntax.KeywordSyntax), parameterList)
         End Function
 
@@ -11147,7 +11147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.RaiseEventKeyword
                 Case Else
                     Throw new ArgumentException("accessorKeyword")
-             End Select
+            End Select
             Return New AccessorStatementSyntax(SyntaxKind.RaiseEventAccessorStatement, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(accessorKeyword.Node, InternalSyntax.KeywordSyntax), parameterList)
         End Function
 
@@ -11281,7 +11281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ImplementsKeyword
                 Case Else
                     Throw new ArgumentException("implementsKeyword")
-             End Select
+            End Select
             Return New ImplementsClauseSyntax(SyntaxKind.ImplementsClause, Nothing, Nothing, DirectCast(implementsKeyword.Node, InternalSyntax.KeywordSyntax), interfaceMembers.Node)
         End Function
 
@@ -11325,7 +11325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HandlesKeyword
                 Case Else
                     Throw new ArgumentException("handlesKeyword")
-             End Select
+            End Select
             Return New HandlesClauseSyntax(SyntaxKind.HandlesClause, Nothing, Nothing, DirectCast(handlesKeyword.Node, InternalSyntax.KeywordSyntax), events.Node)
         End Function
 
@@ -11364,12 +11364,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function KeywordEventContainer(keyword As SyntaxToken) As KeywordEventContainerSyntax
             Select Case keyword.Kind()
-                Case SyntaxKind.MyBaseKeyword:
-                Case SyntaxKind.MeKeyword:
+                Case SyntaxKind.MyBaseKeyword :
+                Case SyntaxKind.MeKeyword :
                 Case SyntaxKind.MyClassKeyword
                 Case Else
                     Throw new ArgumentException("keyword")
-             End Select
+            End Select
             Return New KeywordEventContainerSyntax(SyntaxKind.KeywordEventContainer, Nothing, Nothing, DirectCast(keyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -11386,7 +11386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New WithEventsEventContainerSyntax(SyntaxKind.WithEventsEventContainer, Nothing, Nothing, DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax))
         End Function
 
@@ -11424,12 +11424,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.WithEventsEventContainer
                 Case Else
                     Throw new ArgumentException("withEventsContainer")
-             End Select
+            End Select
             Select Case dotToken.Kind()
                 Case SyntaxKind.DotToken
                 Case Else
                     Throw new ArgumentException("dotToken")
-             End Select
+            End Select
             if [property] Is Nothing Then
                 Throw New ArgumentNullException(NameOf([property]))
             End If
@@ -11437,7 +11437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierName
                 Case Else
                     Throw new ArgumentException("[property]")
-             End Select
+            End Select
             Return New WithEventsPropertyEventContainerSyntax(SyntaxKind.WithEventsPropertyEventContainer, Nothing, Nothing, withEventsContainer, DirectCast(dotToken.Node, InternalSyntax.PunctuationSyntax), [property])
         End Function
 
@@ -11480,12 +11480,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.WithEventsEventContainer
                 Case Else
                     Throw new ArgumentException("eventContainer")
-             End Select
+            End Select
             Select Case dotToken.Kind()
                 Case SyntaxKind.DotToken
                 Case Else
                     Throw new ArgumentException("dotToken")
-             End Select
+            End Select
             if eventMember Is Nothing Then
                 Throw New ArgumentNullException(NameOf(eventMember))
             End If
@@ -11493,7 +11493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierName
                 Case Else
                     Throw new ArgumentException("eventMember")
-             End Select
+            End Select
             Return New HandlesClauseItemSyntax(SyntaxKind.HandlesClauseItem, Nothing, Nothing, eventContainer, DirectCast(dotToken.Node, InternalSyntax.PunctuationSyntax), eventMember)
         End Function
 
@@ -11666,7 +11666,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.AsKeyword
                 Case Else
                     Throw new ArgumentException("asKeyword")
-             End Select
+            End Select
             if type Is Nothing Then
                 Throw New ArgumentNullException(NameOf(type))
             End If
@@ -11683,7 +11683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("type")
-             End Select
+            End Select
             Return New SimpleAsClauseSyntax(SyntaxKind.SimpleAsClause, Nothing, Nothing, DirectCast(asKeyword.Node, InternalSyntax.KeywordSyntax), attributeLists.Node, type)
         End Function
 
@@ -11735,7 +11735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.AsKeyword
                 Case Else
                     Throw new ArgumentException("asKeyword")
-             End Select
+            End Select
             if newExpression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(newExpression))
             End If
@@ -11745,7 +11745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.ArrayCreationExpression
                 Case Else
                     Throw new ArgumentException("newExpression")
-             End Select
+            End Select
             Return New AsNewClauseSyntax(SyntaxKind.AsNewClause, Nothing, Nothing, DirectCast(asKeyword.Node, InternalSyntax.KeywordSyntax), newExpression)
         End Function
 
@@ -11784,17 +11784,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.WithKeyword
                 Case Else
                     Throw new ArgumentException("withKeyword")
-             End Select
+            End Select
             Select Case openBraceToken.Kind()
                 Case SyntaxKind.OpenBraceToken
                 Case Else
                     Throw new ArgumentException("openBraceToken")
-             End Select
+            End Select
             Select Case closeBraceToken.Kind()
                 Case SyntaxKind.CloseBraceToken
                 Case Else
                     Throw new ArgumentException("closeBraceToken")
-             End Select
+            End Select
             Return New ObjectMemberInitializerSyntax(SyntaxKind.ObjectMemberInitializer, Nothing, Nothing, DirectCast(withKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openBraceToken.Node, InternalSyntax.PunctuationSyntax), initializers.Node, DirectCast(closeBraceToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -11836,7 +11836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.FromKeyword
                 Case Else
                     Throw new ArgumentException("fromKeyword")
-             End Select
+            End Select
             if initializer Is Nothing Then
                 Throw New ArgumentNullException(NameOf(initializer))
             End If
@@ -11844,7 +11844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CollectionInitializer
                 Case Else
                     Throw new ArgumentException("initializer")
-             End Select
+            End Select
             Return New ObjectCollectionInitializerSyntax(SyntaxKind.ObjectCollectionInitializer, Nothing, Nothing, DirectCast(fromKeyword.Node, InternalSyntax.KeywordSyntax), initializer)
         End Function
 
@@ -11881,7 +11881,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.DictionaryAccessExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New InferredFieldInitializerSyntax(SyntaxKind.InferredFieldInitializer, Nothing, Nothing, DirectCast(keyKeyword.Node, InternalSyntax.KeywordSyntax), expression)
         End Function
 
@@ -11922,7 +11922,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DotToken
                 Case Else
                     Throw new ArgumentException("dotToken")
-             End Select
+            End Select
             if name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -11930,12 +11930,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Select Case equalsToken.Kind()
                 Case SyntaxKind.EqualsToken
                 Case Else
                     Throw new ArgumentException("equalsToken")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -12047,7 +12047,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New NamedFieldInitializerSyntax(SyntaxKind.NamedFieldInitializer, Nothing, Nothing, DirectCast(keyKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(dotToken.Node, InternalSyntax.PunctuationSyntax), name, DirectCast(equalsToken.Node, InternalSyntax.PunctuationSyntax), expression)
         End Function
 
@@ -12082,7 +12082,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EqualsToken
                 Case Else
                     Throw new ArgumentException("equalsToken")
-             End Select
+            End Select
             if value Is Nothing Then
                 Throw New ArgumentNullException(NameOf(value))
             End If
@@ -12194,7 +12194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New EqualsValueSyntax(SyntaxKind.EqualsValue, Nothing, Nothing, DirectCast(equalsToken.Node, InternalSyntax.PunctuationSyntax), value)
         End Function
 
@@ -12241,7 +12241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ModifiedIdentifier
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New ParameterSyntax(SyntaxKind.Parameter, Nothing, Nothing, attributeLists.Node, modifiers.Node, identifier, asClause, [default])
         End Function
 
@@ -12279,7 +12279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New ModifiedIdentifierSyntax(SyntaxKind.ModifiedIdentifier, Nothing, Nothing, DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), DirectCast(nullable.Node, InternalSyntax.PunctuationSyntax), arrayBounds, arrayRankSpecifiers.Node)
         End Function
 
@@ -12341,12 +12341,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New ArrayRankSpecifierSyntax(SyntaxKind.ArrayRankSpecifier, Nothing, Nothing, DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), commaTokens.Node, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -12377,12 +12377,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanToken
                 Case Else
                     Throw new ArgumentException("lessThanToken")
-             End Select
+            End Select
             Select Case greaterThanToken.Kind()
                 Case SyntaxKind.GreaterThanToken
                 Case Else
                     Throw new ArgumentException("greaterThanToken")
-             End Select
+            End Select
             Return New AttributeListSyntax(SyntaxKind.AttributeList, Nothing, Nothing, DirectCast(lessThanToken.Node, InternalSyntax.PunctuationSyntax), attributes.Node, DirectCast(greaterThanToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -12434,7 +12434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New AttributeSyntax(SyntaxKind.Attribute, Nothing, Nothing, target, name, argumentList)
         End Function
 
@@ -12463,16 +12463,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function AttributeTarget(attributeModifier As SyntaxToken, colonToken As SyntaxToken) As AttributeTargetSyntax
             Select Case attributeModifier.Kind()
-                Case SyntaxKind.AssemblyKeyword:
+                Case SyntaxKind.AssemblyKeyword :
                 Case SyntaxKind.ModuleKeyword
                 Case Else
                     Throw new ArgumentException("attributeModifier")
-             End Select
+            End Select
             Select Case colonToken.Kind()
                 Case SyntaxKind.ColonToken
                 Case Else
                     Throw new ArgumentException("colonToken")
-             End Select
+            End Select
             Return New AttributeTargetSyntax(SyntaxKind.AttributeTarget, Nothing, Nothing, DirectCast(attributeModifier.Node, InternalSyntax.KeywordSyntax), DirectCast(colonToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -12630,7 +12630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New ExpressionStatementSyntax(SyntaxKind.ExpressionStatement, Nothing, Nothing, expression)
         End Function
 
@@ -12649,7 +12649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.QuestionToken
                 Case Else
                     Throw new ArgumentException("questionToken")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -12761,7 +12761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New PrintStatementSyntax(SyntaxKind.PrintStatement, Nothing, Nothing, DirectCast(questionToken.Node, InternalSyntax.PunctuationSyntax), expression)
         End Function
 
@@ -12798,7 +12798,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.WhileStatement
                 Case Else
                     Throw new ArgumentException("whileStatement")
-             End Select
+            End Select
             if endWhileStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endWhileStatement))
             End If
@@ -12806,7 +12806,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndWhileStatement
                 Case Else
                     Throw new ArgumentException("endWhileStatement")
-             End Select
+            End Select
             Return New WhileBlockSyntax(SyntaxKind.WhileBlock, Nothing, Nothing, whileStatement, statements.Node, endWhileStatement)
         End Function
 
@@ -12860,7 +12860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.UsingStatement
                 Case Else
                     Throw new ArgumentException("usingStatement")
-             End Select
+            End Select
             if endUsingStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endUsingStatement))
             End If
@@ -12868,7 +12868,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndUsingStatement
                 Case Else
                     Throw new ArgumentException("endUsingStatement")
-             End Select
+            End Select
             Return New UsingBlockSyntax(SyntaxKind.UsingBlock, Nothing, Nothing, usingStatement, statements.Node, endUsingStatement)
         End Function
 
@@ -12923,7 +12923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SyncLockStatement
                 Case Else
                     Throw new ArgumentException("syncLockStatement")
-             End Select
+            End Select
             if endSyncLockStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endSyncLockStatement))
             End If
@@ -12931,7 +12931,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndSyncLockStatement
                 Case Else
                     Throw new ArgumentException("endSyncLockStatement")
-             End Select
+            End Select
             Return New SyncLockBlockSyntax(SyntaxKind.SyncLockBlock, Nothing, Nothing, syncLockStatement, statements.Node, endSyncLockStatement)
         End Function
 
@@ -12986,7 +12986,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.WithStatement
                 Case Else
                     Throw new ArgumentException("withStatement")
-             End Select
+            End Select
             if endWithStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endWithStatement))
             End If
@@ -12994,7 +12994,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndWithStatement
                 Case Else
                     Throw new ArgumentException("endWithStatement")
-             End Select
+            End Select
             Return New WithBlockSyntax(SyntaxKind.WithBlock, Nothing, Nothing, withStatement, statements.Node, endWithStatement)
         End Function
 
@@ -13055,16 +13055,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function LabelStatement(labelToken As SyntaxToken, colonToken As SyntaxToken) As LabelStatementSyntax
             Select Case labelToken.Kind()
-                Case SyntaxKind.IdentifierToken:
+                Case SyntaxKind.IdentifierToken :
                 Case SyntaxKind.IntegerLiteralToken
                 Case Else
                     Throw new ArgumentException("labelToken")
-             End Select
+            End Select
             Select Case colonToken.Kind()
                 Case SyntaxKind.ColonToken
                 Case Else
                     Throw new ArgumentException("colonToken")
-             End Select
+            End Select
             Return New LabelStatementSyntax(SyntaxKind.LabelStatement, Nothing, Nothing, DirectCast(labelToken.Node, InternalSyntax.SyntaxToken), DirectCast(colonToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -13108,7 +13108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.GoToKeyword
                 Case Else
                     Throw new ArgumentException("goToKeyword")
-             End Select
+            End Select
             if label Is Nothing Then
                 Throw New ArgumentNullException(NameOf(label))
             End If
@@ -13118,7 +13118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.NextLabel
                 Case Else
                     Throw new ArgumentException("label")
-             End Select
+            End Select
             Return New GoToStatementSyntax(SyntaxKind.GoToStatement, Nothing, Nothing, DirectCast(goToKeyword.Node, InternalSyntax.KeywordSyntax), label)
         End Function
 
@@ -13145,12 +13145,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function IdentifierLabel(labelToken As SyntaxToken) As LabelSyntax
             Select Case labelToken.Kind()
-                Case SyntaxKind.IdentifierToken:
-                Case SyntaxKind.IntegerLiteralToken:
+                Case SyntaxKind.IdentifierToken :
+                Case SyntaxKind.IntegerLiteralToken :
                 Case SyntaxKind.NextKeyword
                 Case Else
                     Throw new ArgumentException("labelToken")
-             End Select
+            End Select
             Return New LabelSyntax(SyntaxKind.IdentifierLabel, Nothing, Nothing, DirectCast(labelToken.Node, InternalSyntax.SyntaxToken))
         End Function
 
@@ -13181,7 +13181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IntegerLiteralToken
                 Case Else
                     Throw new ArgumentException("labelToken")
-             End Select
+            End Select
             Return New LabelSyntax(SyntaxKind.NumericLabel, Nothing, Nothing, DirectCast(labelToken.Node, InternalSyntax.SyntaxToken))
         End Function
 
@@ -13208,7 +13208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.NextKeyword
                 Case Else
                     Throw new ArgumentException("labelToken")
-             End Select
+            End Select
             Return New LabelSyntax(SyntaxKind.NextLabel, Nothing, Nothing, DirectCast(labelToken.Node, InternalSyntax.SyntaxToken))
         End Function
 
@@ -13283,11 +13283,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function StopStatement(stopOrEndKeyword As SyntaxToken) As StopOrEndStatementSyntax
             Select Case stopOrEndKeyword.Kind()
-                Case SyntaxKind.StopKeyword:
+                Case SyntaxKind.StopKeyword :
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("stopOrEndKeyword")
-             End Select
+            End Select
             Return New StopOrEndStatementSyntax(SyntaxKind.StopStatement, Nothing, Nothing, DirectCast(stopOrEndKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13301,11 +13301,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function EndStatement(stopOrEndKeyword As SyntaxToken) As StopOrEndStatementSyntax
             Select Case stopOrEndKeyword.Kind()
-                Case SyntaxKind.StopKeyword:
+                Case SyntaxKind.StopKeyword :
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("stopOrEndKeyword")
-             End Select
+            End Select
             Return New StopOrEndStatementSyntax(SyntaxKind.EndStatement, Nothing, Nothing, DirectCast(stopOrEndKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13326,11 +13326,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException("kind")
             End If
             Select Case stopOrEndKeyword.Kind()
-                Case SyntaxKind.StopKeyword:
+                Case SyntaxKind.StopKeyword :
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("stopOrEndKeyword")
-             End Select
+            End Select
             Return New StopOrEndStatementSyntax(kind, Nothing, Nothing, DirectCast(stopOrEndKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13350,20 +13350,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ExitKeyword
                 Case Else
                     Throw new ArgumentException("exitKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
-                Case SyntaxKind.DoKeyword:
-                Case SyntaxKind.ForKeyword:
-                Case SyntaxKind.SubKeyword:
-                Case SyntaxKind.FunctionKeyword:
-                Case SyntaxKind.OperatorKeyword:
-                Case SyntaxKind.PropertyKeyword:
-                Case SyntaxKind.TryKeyword:
-                Case SyntaxKind.SelectKeyword:
+                Case SyntaxKind.DoKeyword :
+                Case SyntaxKind.ForKeyword :
+                Case SyntaxKind.SubKeyword :
+                Case SyntaxKind.FunctionKeyword :
+                Case SyntaxKind.OperatorKeyword :
+                Case SyntaxKind.PropertyKeyword :
+                Case SyntaxKind.TryKeyword :
+                Case SyntaxKind.SelectKeyword :
                 Case SyntaxKind.WhileKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New ExitStatementSyntax(SyntaxKind.ExitDoStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13392,12 +13392,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ExitKeyword
                 Case Else
                     Throw new ArgumentException("exitKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.ForKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New ExitStatementSyntax(SyntaxKind.ExitForStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13426,12 +13426,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ExitKeyword
                 Case Else
                     Throw new ArgumentException("exitKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.SubKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New ExitStatementSyntax(SyntaxKind.ExitSubStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13460,12 +13460,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ExitKeyword
                 Case Else
                     Throw new ArgumentException("exitKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.FunctionKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New ExitStatementSyntax(SyntaxKind.ExitFunctionStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13494,12 +13494,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ExitKeyword
                 Case Else
                     Throw new ArgumentException("exitKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.OperatorKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New ExitStatementSyntax(SyntaxKind.ExitOperatorStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13528,12 +13528,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ExitKeyword
                 Case Else
                     Throw new ArgumentException("exitKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.PropertyKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New ExitStatementSyntax(SyntaxKind.ExitPropertyStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13562,12 +13562,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ExitKeyword
                 Case Else
                     Throw new ArgumentException("exitKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.TryKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New ExitStatementSyntax(SyntaxKind.ExitTryStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13596,12 +13596,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ExitKeyword
                 Case Else
                     Throw new ArgumentException("exitKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.SelectKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New ExitStatementSyntax(SyntaxKind.ExitSelectStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13630,12 +13630,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ExitKeyword
                 Case Else
                     Throw new ArgumentException("exitKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.WhileKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New ExitStatementSyntax(SyntaxKind.ExitWhileStatement, Nothing, Nothing, DirectCast(exitKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13673,7 +13673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ExitKeyword
                 Case Else
                     Throw new ArgumentException("exitKeyword")
-             End Select
+            End Select
             If (Not blockKeyword.IsKind(GetExitStatementBlockKeywordKind(kind))) Then
                 Throw new ArgumentException("blockKeyword")
             End If
@@ -13739,14 +13739,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ContinueKeyword
                 Case Else
                     Throw new ArgumentException("continueKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
-                Case SyntaxKind.DoKeyword:
-                Case SyntaxKind.ForKeyword:
+                Case SyntaxKind.DoKeyword :
+                Case SyntaxKind.ForKeyword :
                 Case SyntaxKind.WhileKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New ContinueStatementSyntax(SyntaxKind.ContinueWhileStatement, Nothing, Nothing, DirectCast(continueKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13776,12 +13776,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ContinueKeyword
                 Case Else
                     Throw new ArgumentException("continueKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.DoKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New ContinueStatementSyntax(SyntaxKind.ContinueDoStatement, Nothing, Nothing, DirectCast(continueKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13811,12 +13811,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ContinueKeyword
                 Case Else
                     Throw new ArgumentException("continueKeyword")
-             End Select
+            End Select
             Select Case blockKeyword.Kind()
                 Case SyntaxKind.ForKeyword
                 Case Else
                     Throw new ArgumentException("blockKeyword")
-             End Select
+            End Select
             Return New ContinueStatementSyntax(SyntaxKind.ContinueForStatement, Nothing, Nothing, DirectCast(continueKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(blockKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -13854,7 +13854,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ContinueKeyword
                 Case Else
                     Throw new ArgumentException("continueKeyword")
-             End Select
+            End Select
             If (Not blockKeyword.IsKind(GetContinueStatementBlockKeywordKind(kind))) Then
                 Throw new ArgumentException("blockKeyword")
             End If
@@ -13906,7 +13906,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ReturnKeyword
                 Case Else
                     Throw new ArgumentException("returnKeyword")
-             End Select
+            End Select
             Return New ReturnStatementSyntax(SyntaxKind.ReturnStatement, Nothing, Nothing, DirectCast(returnKeyword.Node, InternalSyntax.KeywordSyntax), expression)
         End Function
 
@@ -13954,7 +13954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IfKeyword
                 Case Else
                     Throw new ArgumentException("ifKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -14066,12 +14066,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Select Case thenKeyword.Kind()
                 Case SyntaxKind.ThenKeyword
                 Case Else
                     Throw new ArgumentException("thenKeyword")
-             End Select
+            End Select
             Return New SingleLineIfStatementSyntax(SyntaxKind.SingleLineIfStatement, Nothing, Nothing, DirectCast(ifKeyword.Node, InternalSyntax.KeywordSyntax), condition, DirectCast(thenKeyword.Node, InternalSyntax.KeywordSyntax), statements.Node, elseClause)
         End Function
 
@@ -14120,7 +14120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ElseKeyword
                 Case Else
                     Throw new ArgumentException("elseKeyword")
-             End Select
+            End Select
             Return New SingleLineElseClauseSyntax(SyntaxKind.SingleLineElseClause, Nothing, Nothing, DirectCast(elseKeyword.Node, InternalSyntax.KeywordSyntax), statements.Node)
         End Function
 
@@ -14175,7 +14175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IfStatement
                 Case Else
                     Throw new ArgumentException("ifStatement")
-             End Select
+            End Select
             if endIfStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endIfStatement))
             End If
@@ -14183,7 +14183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndIfStatement
                 Case Else
                     Throw new ArgumentException("endIfStatement")
-             End Select
+            End Select
             Return New MultiLineIfBlockSyntax(SyntaxKind.MultiLineIfBlock, Nothing, Nothing, ifStatement, statements.Node, elseIfBlocks.Node, elseBlock, endIfStatement)
         End Function
 
@@ -14241,7 +14241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IfKeyword
                 Case Else
                     Throw new ArgumentException("ifKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -14353,7 +14353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New IfStatementSyntax(SyntaxKind.IfStatement, Nothing, Nothing, DirectCast(ifKeyword.Node, InternalSyntax.KeywordSyntax), condition, DirectCast(thenKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -14387,7 +14387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ElseIfStatement
                 Case Else
                     Throw new ArgumentException("elseIfStatement")
-             End Select
+            End Select
             Return New ElseIfBlockSyntax(SyntaxKind.ElseIfBlock, Nothing, Nothing, elseIfStatement, statements.Node)
         End Function
 
@@ -14420,7 +14420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ElseIfKeyword
                 Case Else
                     Throw new ArgumentException("elseIfKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -14532,7 +14532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New ElseIfStatementSyntax(SyntaxKind.ElseIfStatement, Nothing, Nothing, DirectCast(elseIfKeyword.Node, InternalSyntax.KeywordSyntax), condition, DirectCast(thenKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -14565,7 +14565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ElseStatement
                 Case Else
                     Throw new ArgumentException("elseStatement")
-             End Select
+            End Select
             Return New ElseBlockSyntax(SyntaxKind.ElseBlock, Nothing, Nothing, elseStatement, statements.Node)
         End Function
 
@@ -14600,7 +14600,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ElseKeyword
                 Case Else
                     Throw new ArgumentException("elseKeyword")
-             End Select
+            End Select
             Return New ElseStatementSyntax(SyntaxKind.ElseStatement, Nothing, Nothing, DirectCast(elseKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -14640,7 +14640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.TryStatement
                 Case Else
                     Throw new ArgumentException("tryStatement")
-             End Select
+            End Select
             if endTryStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endTryStatement))
             End If
@@ -14648,7 +14648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndTryStatement
                 Case Else
                     Throw new ArgumentException("endTryStatement")
-             End Select
+            End Select
             Return New TryBlockSyntax(SyntaxKind.TryBlock, Nothing, Nothing, tryStatement, statements.Node, catchBlocks.Node, finallyBlock, endTryStatement)
         End Function
 
@@ -14690,7 +14690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.TryKeyword
                 Case Else
                     Throw new ArgumentException("tryKeyword")
-             End Select
+            End Select
             Return New TryStatementSyntax(SyntaxKind.TryStatement, Nothing, Nothing, DirectCast(tryKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -14721,7 +14721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CatchStatement
                 Case Else
                     Throw new ArgumentException("catchStatement")
-             End Select
+            End Select
             Return New CatchBlockSyntax(SyntaxKind.CatchBlock, Nothing, Nothing, catchStatement, statements.Node)
         End Function
 
@@ -14758,7 +14758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CatchKeyword
                 Case Else
                     Throw new ArgumentException("catchKeyword")
-             End Select
+            End Select
             Return New CatchStatementSyntax(SyntaxKind.CatchStatement, Nothing, Nothing, DirectCast(catchKeyword.Node, InternalSyntax.KeywordSyntax), identifierName, asClause, whenClause)
         End Function
 
@@ -14803,7 +14803,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.WhenKeyword
                 Case Else
                     Throw new ArgumentException("whenKeyword")
-             End Select
+            End Select
             if filter Is Nothing Then
                 Throw New ArgumentNullException(NameOf(filter))
             End If
@@ -14915,7 +14915,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("filter")
-             End Select
+            End Select
             Return New CatchFilterClauseSyntax(SyntaxKind.CatchFilterClause, Nothing, Nothing, DirectCast(whenKeyword.Node, InternalSyntax.KeywordSyntax), filter)
         End Function
 
@@ -14948,7 +14948,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.FinallyStatement
                 Case Else
                     Throw new ArgumentException("finallyStatement")
-             End Select
+            End Select
             Return New FinallyBlockSyntax(SyntaxKind.FinallyBlock, Nothing, Nothing, finallyStatement, statements.Node)
         End Function
 
@@ -14983,7 +14983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.FinallyKeyword
                 Case Else
                     Throw new ArgumentException("finallyKeyword")
-             End Select
+            End Select
             Return New FinallyStatementSyntax(SyntaxKind.FinallyStatement, Nothing, Nothing, DirectCast(finallyKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -15010,7 +15010,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ErrorKeyword
                 Case Else
                     Throw new ArgumentException("errorKeyword")
-             End Select
+            End Select
             if errorNumber Is Nothing Then
                 Throw New ArgumentNullException(NameOf(errorNumber))
             End If
@@ -15122,7 +15122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("errorNumber")
-             End Select
+            End Select
             Return New ErrorStatementSyntax(SyntaxKind.ErrorStatement, Nothing, Nothing, DirectCast(errorKeyword.Node, InternalSyntax.KeywordSyntax), errorNumber)
         End Function
 
@@ -15162,17 +15162,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OnKeyword
                 Case Else
                     Throw new ArgumentException("onKeyword")
-             End Select
+            End Select
             Select Case errorKeyword.Kind()
                 Case SyntaxKind.ErrorKeyword
                 Case Else
                     Throw new ArgumentException("errorKeyword")
-             End Select
+            End Select
             Select Case goToKeyword.Kind()
                 Case SyntaxKind.GoToKeyword
                 Case Else
                     Throw new ArgumentException("goToKeyword")
-             End Select
+            End Select
             if label Is Nothing Then
                 Throw New ArgumentNullException(NameOf(label))
             End If
@@ -15182,7 +15182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.NextLabel
                 Case Else
                     Throw new ArgumentException("label")
-             End Select
+            End Select
             Return New OnErrorGoToStatementSyntax(SyntaxKind.OnErrorGoToZeroStatement, Nothing, Nothing, DirectCast(onKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(errorKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(goToKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(minus.Node, InternalSyntax.PunctuationSyntax), label)
         End Function
 
@@ -15223,17 +15223,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OnKeyword
                 Case Else
                     Throw new ArgumentException("onKeyword")
-             End Select
+            End Select
             Select Case errorKeyword.Kind()
                 Case SyntaxKind.ErrorKeyword
                 Case Else
                     Throw new ArgumentException("errorKeyword")
-             End Select
+            End Select
             Select Case goToKeyword.Kind()
                 Case SyntaxKind.GoToKeyword
                 Case Else
                     Throw new ArgumentException("goToKeyword")
-             End Select
+            End Select
             if label Is Nothing Then
                 Throw New ArgumentNullException(NameOf(label))
             End If
@@ -15243,7 +15243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.NextLabel
                 Case Else
                     Throw new ArgumentException("label")
-             End Select
+            End Select
             Return New OnErrorGoToStatementSyntax(SyntaxKind.OnErrorGoToMinusOneStatement, Nothing, Nothing, DirectCast(onKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(errorKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(goToKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(minus.Node, InternalSyntax.PunctuationSyntax), label)
         End Function
 
@@ -15284,17 +15284,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OnKeyword
                 Case Else
                     Throw new ArgumentException("onKeyword")
-             End Select
+            End Select
             Select Case errorKeyword.Kind()
                 Case SyntaxKind.ErrorKeyword
                 Case Else
                     Throw new ArgumentException("errorKeyword")
-             End Select
+            End Select
             Select Case goToKeyword.Kind()
                 Case SyntaxKind.GoToKeyword
                 Case Else
                     Throw new ArgumentException("goToKeyword")
-             End Select
+            End Select
             if label Is Nothing Then
                 Throw New ArgumentNullException(NameOf(label))
             End If
@@ -15304,7 +15304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.NextLabel
                 Case Else
                     Throw new ArgumentException("label")
-             End Select
+            End Select
             Return New OnErrorGoToStatementSyntax(SyntaxKind.OnErrorGoToLabelStatement, Nothing, Nothing, DirectCast(onKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(errorKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(goToKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(minus.Node, InternalSyntax.PunctuationSyntax), label)
         End Function
 
@@ -15353,17 +15353,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OnKeyword
                 Case Else
                     Throw new ArgumentException("onKeyword")
-             End Select
+            End Select
             Select Case errorKeyword.Kind()
                 Case SyntaxKind.ErrorKeyword
                 Case Else
                     Throw new ArgumentException("errorKeyword")
-             End Select
+            End Select
             Select Case goToKeyword.Kind()
                 Case SyntaxKind.GoToKeyword
                 Case Else
                     Throw new ArgumentException("goToKeyword")
-             End Select
+            End Select
             if label Is Nothing Then
                 Throw New ArgumentNullException(NameOf(label))
             End If
@@ -15373,7 +15373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.NextLabel
                 Case Else
                     Throw new ArgumentException("label")
-             End Select
+            End Select
             Return New OnErrorGoToStatementSyntax(kind, Nothing, Nothing, DirectCast(onKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(errorKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(goToKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(minus.Node, InternalSyntax.PunctuationSyntax), label)
         End Function
 
@@ -15415,22 +15415,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OnKeyword
                 Case Else
                     Throw new ArgumentException("onKeyword")
-             End Select
+            End Select
             Select Case errorKeyword.Kind()
                 Case SyntaxKind.ErrorKeyword
                 Case Else
                     Throw new ArgumentException("errorKeyword")
-             End Select
+            End Select
             Select Case resumeKeyword.Kind()
                 Case SyntaxKind.ResumeKeyword
                 Case Else
                     Throw new ArgumentException("resumeKeyword")
-             End Select
+            End Select
             Select Case nextKeyword.Kind()
                 Case SyntaxKind.NextKeyword
                 Case Else
                     Throw new ArgumentException("nextKeyword")
-             End Select
+            End Select
             Return New OnErrorResumeNextStatementSyntax(SyntaxKind.OnErrorResumeNextStatement, Nothing, Nothing, DirectCast(onKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(errorKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(resumeKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(nextKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -15460,7 +15460,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ResumeKeyword
                 Case Else
                     Throw new ArgumentException("resumeKeyword")
-             End Select
+            End Select
             Return New ResumeStatementSyntax(SyntaxKind.ResumeStatement, Nothing, Nothing, DirectCast(resumeKeyword.Node, InternalSyntax.KeywordSyntax), label)
         End Function
 
@@ -15505,7 +15505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ResumeKeyword
                 Case Else
                     Throw new ArgumentException("resumeKeyword")
-             End Select
+            End Select
             Return New ResumeStatementSyntax(SyntaxKind.ResumeLabelStatement, Nothing, Nothing, DirectCast(resumeKeyword.Node, InternalSyntax.KeywordSyntax), label)
         End Function
 
@@ -15550,7 +15550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ResumeKeyword
                 Case Else
                     Throw new ArgumentException("resumeKeyword")
-             End Select
+            End Select
             Return New ResumeStatementSyntax(SyntaxKind.ResumeNextStatement, Nothing, Nothing, DirectCast(resumeKeyword.Node, InternalSyntax.KeywordSyntax), label)
         End Function
 
@@ -15603,7 +15603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ResumeKeyword
                 Case Else
                     Throw new ArgumentException("resumeKeyword")
-             End Select
+            End Select
             Return New ResumeStatementSyntax(kind, Nothing, Nothing, DirectCast(resumeKeyword.Node, InternalSyntax.KeywordSyntax), label)
         End Function
 
@@ -15662,7 +15662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SelectStatement
                 Case Else
                     Throw new ArgumentException("selectStatement")
-             End Select
+            End Select
             if endSelectStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endSelectStatement))
             End If
@@ -15670,7 +15670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EndSelectStatement
                 Case Else
                     Throw new ArgumentException("endSelectStatement")
-             End Select
+            End Select
             Return New SelectBlockSyntax(SyntaxKind.SelectBlock, Nothing, Nothing, selectStatement, caseBlocks.Node, endSelectStatement)
         End Function
 
@@ -15720,7 +15720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SelectKeyword
                 Case Else
                     Throw new ArgumentException("selectKeyword")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -15832,7 +15832,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New SelectStatementSyntax(SyntaxKind.SelectStatement, Nothing, Nothing, DirectCast(selectKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(caseKeyword.Node, InternalSyntax.KeywordSyntax), expression)
         End Function
 
@@ -15867,7 +15867,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.CaseElseStatement
                 Case Else
                     Throw new ArgumentException("caseStatement")
-             End Select
+            End Select
             Return New CaseBlockSyntax(SyntaxKind.CaseBlock, Nothing, Nothing, caseStatement, statements.Node)
         End Function
 
@@ -15901,7 +15901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.CaseElseStatement
                 Case Else
                     Throw new ArgumentException("caseStatement")
-             End Select
+            End Select
             Return New CaseBlockSyntax(SyntaxKind.CaseElseBlock, Nothing, Nothing, caseStatement, statements.Node)
         End Function
 
@@ -15942,7 +15942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.CaseElseStatement
                 Case Else
                     Throw new ArgumentException("caseStatement")
-             End Select
+            End Select
             Return New CaseBlockSyntax(kind, Nothing, Nothing, caseStatement, statements.Node)
         End Function
 
@@ -15979,7 +15979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CaseKeyword
                 Case Else
                     Throw new ArgumentException("caseKeyword")
-             End Select
+            End Select
             Return New CaseStatementSyntax(SyntaxKind.CaseStatement, Nothing, Nothing, DirectCast(caseKeyword.Node, InternalSyntax.KeywordSyntax), cases.Node)
         End Function
 
@@ -16029,7 +16029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CaseKeyword
                 Case Else
                     Throw new ArgumentException("caseKeyword")
-             End Select
+            End Select
             Return New CaseStatementSyntax(SyntaxKind.CaseElseStatement, Nothing, Nothing, DirectCast(caseKeyword.Node, InternalSyntax.KeywordSyntax), cases.Node)
         End Function
 
@@ -16086,7 +16086,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CaseKeyword
                 Case Else
                     Throw new ArgumentException("caseKeyword")
-             End Select
+            End Select
             Return New CaseStatementSyntax(kind, Nothing, Nothing, DirectCast(caseKeyword.Node, InternalSyntax.KeywordSyntax), cases.Node)
         End Function
 
@@ -16138,7 +16138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ElseKeyword
                 Case Else
                     Throw new ArgumentException("elseKeyword")
-             End Select
+            End Select
             Return New ElseCaseClauseSyntax(SyntaxKind.ElseCaseClause, Nothing, Nothing, DirectCast(elseKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -16269,7 +16269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New SimpleCaseClauseSyntax(SyntaxKind.SimpleCaseClause, Nothing, Nothing, value)
         End Function
 
@@ -16398,12 +16398,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("lowerBound")
-             End Select
+            End Select
             Select Case toKeyword.Kind()
                 Case SyntaxKind.ToKeyword
                 Case Else
                     Throw new ArgumentException("toKeyword")
-             End Select
+            End Select
             if upperBound Is Nothing Then
                 Throw New ArgumentNullException(NameOf(upperBound))
             End If
@@ -16515,7 +16515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("upperBound")
-             End Select
+            End Select
             Return New RangeCaseClauseSyntax(SyntaxKind.RangeCaseClause, Nothing, Nothing, lowerBound, DirectCast(toKeyword.Node, InternalSyntax.KeywordSyntax), upperBound)
         End Function
 
@@ -16549,15 +16549,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function CaseEqualsClause(isKeyword As SyntaxToken, operatorToken As SyntaxToken, value As ExpressionSyntax) As RelationalCaseClauseSyntax
             Select Case operatorToken.Kind()
-                Case SyntaxKind.EqualsToken:
-                Case SyntaxKind.LessThanGreaterThanToken:
-                Case SyntaxKind.LessThanToken:
-                Case SyntaxKind.GreaterThanToken:
-                Case SyntaxKind.LessThanEqualsToken:
+                Case SyntaxKind.EqualsToken :
+                Case SyntaxKind.LessThanGreaterThanToken :
+                Case SyntaxKind.LessThanToken :
+                Case SyntaxKind.GreaterThanToken :
+                Case SyntaxKind.LessThanEqualsToken :
                 Case SyntaxKind.GreaterThanEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if value Is Nothing Then
                 Throw New ArgumentNullException(NameOf(value))
             End If
@@ -16669,7 +16669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New RelationalCaseClauseSyntax(SyntaxKind.CaseEqualsClause, Nothing, Nothing, DirectCast(isKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), value)
         End Function
 
@@ -16703,7 +16703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanGreaterThanToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if value Is Nothing Then
                 Throw New ArgumentNullException(NameOf(value))
             End If
@@ -16815,7 +16815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New RelationalCaseClauseSyntax(SyntaxKind.CaseNotEqualsClause, Nothing, Nothing, DirectCast(isKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), value)
         End Function
 
@@ -16849,7 +16849,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if value Is Nothing Then
                 Throw New ArgumentNullException(NameOf(value))
             End If
@@ -16961,7 +16961,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New RelationalCaseClauseSyntax(SyntaxKind.CaseLessThanClause, Nothing, Nothing, DirectCast(isKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), value)
         End Function
 
@@ -16995,7 +16995,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if value Is Nothing Then
                 Throw New ArgumentNullException(NameOf(value))
             End If
@@ -17107,7 +17107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New RelationalCaseClauseSyntax(SyntaxKind.CaseLessThanOrEqualClause, Nothing, Nothing, DirectCast(isKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), value)
         End Function
 
@@ -17141,7 +17141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.GreaterThanEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if value Is Nothing Then
                 Throw New ArgumentNullException(NameOf(value))
             End If
@@ -17253,7 +17253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New RelationalCaseClauseSyntax(SyntaxKind.CaseGreaterThanOrEqualClause, Nothing, Nothing, DirectCast(isKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), value)
         End Function
 
@@ -17287,7 +17287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.GreaterThanToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if value Is Nothing Then
                 Throw New ArgumentNullException(NameOf(value))
             End If
@@ -17399,7 +17399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New RelationalCaseClauseSyntax(SyntaxKind.CaseGreaterThanClause, Nothing, Nothing, DirectCast(isKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), value)
         End Function
 
@@ -17552,7 +17552,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New RelationalCaseClauseSyntax(kind, Nothing, Nothing, DirectCast(isKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), value)
         End Function
 
@@ -17611,7 +17611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SyncLockKeyword
                 Case Else
                     Throw new ArgumentException("syncLockKeyword")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -17723,7 +17723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New SyncLockStatementSyntax(SyntaxKind.SyncLockStatement, Nothing, Nothing, DirectCast(syncLockKeyword.Node, InternalSyntax.KeywordSyntax), expression)
         End Function
 
@@ -17763,7 +17763,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.DoUntilStatement
                 Case Else
                     Throw new ArgumentException("doStatement")
-             End Select
+            End Select
             if loopStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(loopStatement))
             End If
@@ -17773,7 +17773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.LoopUntilStatement
                 Case Else
                     Throw new ArgumentException("loopStatement")
-             End Select
+            End Select
             Return New DoLoopBlockSyntax(SyntaxKind.SimpleDoLoopBlock, Nothing, Nothing, doStatement, statements.Node, loopStatement)
         End Function
 
@@ -17814,7 +17814,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DoWhileStatement
                 Case Else
                     Throw new ArgumentException("doStatement")
-             End Select
+            End Select
             if loopStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(loopStatement))
             End If
@@ -17822,7 +17822,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SimpleLoopStatement
                 Case Else
                     Throw new ArgumentException("loopStatement")
-             End Select
+            End Select
             Return New DoLoopBlockSyntax(SyntaxKind.DoWhileLoopBlock, Nothing, Nothing, doStatement, statements.Node, loopStatement)
         End Function
 
@@ -17863,7 +17863,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DoUntilStatement
                 Case Else
                     Throw new ArgumentException("doStatement")
-             End Select
+            End Select
             if loopStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(loopStatement))
             End If
@@ -17871,7 +17871,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SimpleLoopStatement
                 Case Else
                     Throw new ArgumentException("loopStatement")
-             End Select
+            End Select
             Return New DoLoopBlockSyntax(SyntaxKind.DoUntilLoopBlock, Nothing, Nothing, doStatement, statements.Node, loopStatement)
         End Function
 
@@ -17912,7 +17912,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SimpleDoStatement
                 Case Else
                     Throw new ArgumentException("doStatement")
-             End Select
+            End Select
             if loopStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(loopStatement))
             End If
@@ -17920,7 +17920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LoopWhileStatement
                 Case Else
                     Throw new ArgumentException("loopStatement")
-             End Select
+            End Select
             Return New DoLoopBlockSyntax(SyntaxKind.DoLoopWhileBlock, Nothing, Nothing, doStatement, statements.Node, loopStatement)
         End Function
 
@@ -17961,7 +17961,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SimpleDoStatement
                 Case Else
                     Throw new ArgumentException("doStatement")
-             End Select
+            End Select
             if loopStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(loopStatement))
             End If
@@ -17969,7 +17969,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LoopUntilStatement
                 Case Else
                     Throw new ArgumentException("loopStatement")
-             End Select
+            End Select
             Return New DoLoopBlockSyntax(SyntaxKind.DoLoopUntilBlock, Nothing, Nothing, doStatement, statements.Node, loopStatement)
         End Function
 
@@ -18094,7 +18094,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DoKeyword
                 Case Else
                     Throw new ArgumentException("doKeyword")
-             End Select
+            End Select
             Return New DoStatementSyntax(SyntaxKind.SimpleDoStatement, Nothing, Nothing, DirectCast(doKeyword.Node, InternalSyntax.KeywordSyntax), whileOrUntilClause)
         End Function
 
@@ -18134,7 +18134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DoKeyword
                 Case Else
                     Throw new ArgumentException("doKeyword")
-             End Select
+            End Select
             Return New DoStatementSyntax(SyntaxKind.DoWhileStatement, Nothing, Nothing, DirectCast(doKeyword.Node, InternalSyntax.KeywordSyntax), whileOrUntilClause)
         End Function
 
@@ -18174,7 +18174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DoKeyword
                 Case Else
                     Throw new ArgumentException("doKeyword")
-             End Select
+            End Select
             Return New DoStatementSyntax(SyntaxKind.DoUntilStatement, Nothing, Nothing, DirectCast(doKeyword.Node, InternalSyntax.KeywordSyntax), whileOrUntilClause)
         End Function
 
@@ -18221,7 +18221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DoKeyword
                 Case Else
                     Throw new ArgumentException("doKeyword")
-             End Select
+            End Select
             Return New DoStatementSyntax(kind, Nothing, Nothing, DirectCast(doKeyword.Node, InternalSyntax.KeywordSyntax), whileOrUntilClause)
         End Function
 
@@ -18279,7 +18279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LoopKeyword
                 Case Else
                     Throw new ArgumentException("loopKeyword")
-             End Select
+            End Select
             Return New LoopStatementSyntax(SyntaxKind.SimpleLoopStatement, Nothing, Nothing, DirectCast(loopKeyword.Node, InternalSyntax.KeywordSyntax), whileOrUntilClause)
         End Function
 
@@ -18319,7 +18319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LoopKeyword
                 Case Else
                     Throw new ArgumentException("loopKeyword")
-             End Select
+            End Select
             Return New LoopStatementSyntax(SyntaxKind.LoopWhileStatement, Nothing, Nothing, DirectCast(loopKeyword.Node, InternalSyntax.KeywordSyntax), whileOrUntilClause)
         End Function
 
@@ -18359,7 +18359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LoopKeyword
                 Case Else
                     Throw new ArgumentException("loopKeyword")
-             End Select
+            End Select
             Return New LoopStatementSyntax(SyntaxKind.LoopUntilStatement, Nothing, Nothing, DirectCast(loopKeyword.Node, InternalSyntax.KeywordSyntax), whileOrUntilClause)
         End Function
 
@@ -18406,7 +18406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LoopKeyword
                 Case Else
                     Throw new ArgumentException("loopKeyword")
-             End Select
+            End Select
             Return New LoopStatementSyntax(kind, Nothing, Nothing, DirectCast(loopKeyword.Node, InternalSyntax.KeywordSyntax), whileOrUntilClause)
         End Function
 
@@ -18465,7 +18465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.WhileKeyword
                 Case Else
                     Throw new ArgumentException("whileOrUntilKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -18577,7 +18577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New WhileOrUntilClauseSyntax(SyntaxKind.WhileClause, Nothing, Nothing, DirectCast(whileOrUntilKeyword.Node, InternalSyntax.KeywordSyntax), condition)
         End Function
 
@@ -18611,7 +18611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.UntilKeyword
                 Case Else
                     Throw new ArgumentException("whileOrUntilKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -18723,7 +18723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New WhileOrUntilClauseSyntax(SyntaxKind.UntilClause, Nothing, Nothing, DirectCast(whileOrUntilKeyword.Node, InternalSyntax.KeywordSyntax), condition)
         End Function
 
@@ -18874,7 +18874,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New WhileOrUntilClauseSyntax(kind, Nothing, Nothing, DirectCast(whileOrUntilKeyword.Node, InternalSyntax.KeywordSyntax), condition)
         End Function
 
@@ -18904,7 +18904,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.WhileKeyword
                 Case Else
                     Throw new ArgumentException("whileKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -19016,7 +19016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New WhileStatementSyntax(SyntaxKind.WhileStatement, Nothing, Nothing, DirectCast(whileKeyword.Node, InternalSyntax.KeywordSyntax), condition)
         End Function
 
@@ -19057,7 +19057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ForStatement
                 Case Else
                     Throw new ArgumentException("forStatement")
-             End Select
+            End Select
             Return New ForBlockSyntax(SyntaxKind.ForBlock, Nothing, Nothing, forStatement, statements.Node, nextStatement)
         End Function
 
@@ -19099,7 +19099,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ForEachStatement
                 Case Else
                     Throw new ArgumentException("forEachStatement")
-             End Select
+            End Select
             Return New ForEachBlockSyntax(SyntaxKind.ForEachBlock, Nothing, Nothing, forEachStatement, statements.Node, nextStatement)
         End Function
 
@@ -19154,7 +19154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ForKeyword
                 Case Else
                     Throw new ArgumentException("forKeyword")
-             End Select
+            End Select
             if controlVariable Is Nothing Then
                 Throw New ArgumentNullException(NameOf(controlVariable))
             End If
@@ -19267,12 +19267,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.VariableDeclarator
                 Case Else
                     Throw new ArgumentException("controlVariable")
-             End Select
+            End Select
             Select Case equalsToken.Kind()
                 Case SyntaxKind.EqualsToken
                 Case Else
                     Throw new ArgumentException("equalsToken")
-             End Select
+            End Select
             if fromValue Is Nothing Then
                 Throw New ArgumentNullException(NameOf(fromValue))
             End If
@@ -19384,12 +19384,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("fromValue")
-             End Select
+            End Select
             Select Case toKeyword.Kind()
                 Case SyntaxKind.ToKeyword
                 Case Else
                     Throw new ArgumentException("toKeyword")
-             End Select
+            End Select
             if toValue Is Nothing Then
                 Throw New ArgumentNullException(NameOf(toValue))
             End If
@@ -19501,7 +19501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("toValue")
-             End Select
+            End Select
             Return New ForStatementSyntax(SyntaxKind.ForStatement, Nothing, Nothing, DirectCast(forKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable, DirectCast(equalsToken.Node, InternalSyntax.PunctuationSyntax), fromValue, DirectCast(toKeyword.Node, InternalSyntax.KeywordSyntax), toValue, stepClause)
         End Function
 
@@ -19573,7 +19573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.StepKeyword
                 Case Else
                     Throw new ArgumentException("stepKeyword")
-             End Select
+            End Select
             if stepValue Is Nothing Then
                 Throw New ArgumentNullException(NameOf(stepValue))
             End If
@@ -19685,7 +19685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("stepValue")
-             End Select
+            End Select
             Return New ForStepClauseSyntax(SyntaxKind.ForStepClause, Nothing, Nothing, DirectCast(stepKeyword.Node, InternalSyntax.KeywordSyntax), stepValue)
         End Function
 
@@ -19733,12 +19733,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ForKeyword
                 Case Else
                     Throw new ArgumentException("forKeyword")
-             End Select
+            End Select
             Select Case eachKeyword.Kind()
                 Case SyntaxKind.EachKeyword
                 Case Else
                     Throw new ArgumentException("eachKeyword")
-             End Select
+            End Select
             if controlVariable Is Nothing Then
                 Throw New ArgumentNullException(NameOf(controlVariable))
             End If
@@ -19851,12 +19851,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.VariableDeclarator
                 Case Else
                     Throw new ArgumentException("controlVariable")
-             End Select
+            End Select
             Select Case inKeyword.Kind()
                 Case SyntaxKind.InKeyword
                 Case Else
                     Throw new ArgumentException("inKeyword")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -19968,7 +19968,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New ForEachStatementSyntax(SyntaxKind.ForEachStatement, Nothing, Nothing, DirectCast(forKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(eachKeyword.Node, InternalSyntax.KeywordSyntax), controlVariable, DirectCast(inKeyword.Node, InternalSyntax.KeywordSyntax), expression)
         End Function
 
@@ -20013,7 +20013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.NextKeyword
                 Case Else
                     Throw new ArgumentException("nextKeyword")
-             End Select
+            End Select
             Return New NextStatementSyntax(SyntaxKind.NextStatement, Nothing, Nothing, DirectCast(nextKeyword.Node, InternalSyntax.KeywordSyntax), controlVariables.Node)
         End Function
 
@@ -20064,7 +20064,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.UsingKeyword
                 Case Else
                     Throw new ArgumentException("usingKeyword")
-             End Select
+            End Select
             Return New UsingStatementSyntax(SyntaxKind.UsingStatement, Nothing, Nothing, DirectCast(usingKeyword.Node, InternalSyntax.KeywordSyntax), expression, variables.Node)
         End Function
 
@@ -20111,7 +20111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ThrowKeyword
                 Case Else
                     Throw new ArgumentException("throwKeyword")
-             End Select
+            End Select
             Return New ThrowStatementSyntax(SyntaxKind.ThrowStatement, Nothing, Nothing, DirectCast(throwKeyword.Node, InternalSyntax.KeywordSyntax), expression)
         End Function
 
@@ -20261,21 +20261,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
-                Case SyntaxKind.EqualsToken:
-                Case SyntaxKind.PlusEqualsToken:
-                Case SyntaxKind.MinusEqualsToken:
-                Case SyntaxKind.AsteriskEqualsToken:
-                Case SyntaxKind.SlashEqualsToken:
-                Case SyntaxKind.BackslashEqualsToken:
-                Case SyntaxKind.CaretEqualsToken:
-                Case SyntaxKind.LessThanLessThanEqualsToken:
-                Case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                Case SyntaxKind.EqualsToken :
+                Case SyntaxKind.PlusEqualsToken :
+                Case SyntaxKind.MinusEqualsToken :
+                Case SyntaxKind.AsteriskEqualsToken :
+                Case SyntaxKind.SlashEqualsToken :
+                Case SyntaxKind.BackslashEqualsToken :
+                Case SyntaxKind.CaretEqualsToken :
+                Case SyntaxKind.LessThanLessThanEqualsToken :
+                Case SyntaxKind.GreaterThanGreaterThanEqualsToken :
                 Case SyntaxKind.AmpersandEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -20387,7 +20387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New AssignmentStatementSyntax(SyntaxKind.SimpleAssignmentStatement, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -20533,12 +20533,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.EqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -20650,7 +20650,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New AssignmentStatementSyntax(SyntaxKind.MidAssignmentStatement, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -20796,12 +20796,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.PlusEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -20913,7 +20913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New AssignmentStatementSyntax(SyntaxKind.AddAssignmentStatement, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -21059,12 +21059,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.MinusEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -21176,7 +21176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New AssignmentStatementSyntax(SyntaxKind.SubtractAssignmentStatement, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -21322,12 +21322,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.AsteriskEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -21439,7 +21439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New AssignmentStatementSyntax(SyntaxKind.MultiplyAssignmentStatement, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -21585,12 +21585,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.SlashEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -21702,7 +21702,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New AssignmentStatementSyntax(SyntaxKind.DivideAssignmentStatement, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -21848,12 +21848,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.BackslashEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -21965,7 +21965,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New AssignmentStatementSyntax(SyntaxKind.IntegerDivideAssignmentStatement, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -22111,12 +22111,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.CaretEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -22228,7 +22228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New AssignmentStatementSyntax(SyntaxKind.ExponentiateAssignmentStatement, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -22374,12 +22374,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.LessThanLessThanEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -22491,7 +22491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New AssignmentStatementSyntax(SyntaxKind.LeftShiftAssignmentStatement, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -22637,12 +22637,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.GreaterThanGreaterThanEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -22754,7 +22754,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New AssignmentStatementSyntax(SyntaxKind.RightShiftAssignmentStatement, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -22900,12 +22900,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.AmpersandEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -23017,7 +23017,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New AssignmentStatementSyntax(SyntaxKind.ConcatenateAssignmentStatement, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -23175,7 +23175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             If (Not operatorToken.IsKind(GetAssignmentStatementOperatorTokenKind(kind))) Then
                 Throw new ArgumentException("operatorToken")
             End If
@@ -23290,7 +23290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New AssignmentStatementSyntax(kind, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -23337,7 +23337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("mid")
-             End Select
+            End Select
             if argumentList Is Nothing Then
                 Throw New ArgumentNullException(NameOf(argumentList))
             End If
@@ -23345,7 +23345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ArgumentList
                 Case Else
                     Throw new ArgumentException("argumentList")
-             End Select
+            End Select
             Return New MidExpressionSyntax(SyntaxKind.MidExpression, Nothing, Nothing, DirectCast(mid.Node, InternalSyntax.IdentifierTokenSyntax), argumentList)
         End Function
 
@@ -23365,7 +23365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represent an call statement (also known as a invocation statement).
+        ''' Represent a call statement (also known as a invocation statement).
         ''' </summary>
         ''' <param name="callKeyword">
         ''' The "Call" keyword.
@@ -23379,7 +23379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CallKeyword
                 Case Else
                     Throw new ArgumentException("callKeyword")
-             End Select
+            End Select
             if invocation Is Nothing Then
                 Throw New ArgumentNullException(NameOf(invocation))
             End If
@@ -23388,13 +23388,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.SimpleMemberAccessExpression
                 Case Else
                     Throw new ArgumentException("invocation")
-             End Select
+            End Select
             Return New CallStatementSyntax(SyntaxKind.CallStatement, Nothing, Nothing, DirectCast(callKeyword.Node, InternalSyntax.KeywordSyntax), invocation)
         End Function
 
 
         ''' <summary>
-        ''' Represent an call statement (also known as a invocation statement).
+        ''' Represent a call statement (also known as a invocation statement).
         ''' </summary>
         ''' <param name="invocation">
         ''' The expression denoting the call. This could be an Invocation or a MemberAccess
@@ -23423,11 +23423,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function AddHandlerStatement(addHandlerOrRemoveHandlerKeyword As SyntaxToken, eventExpression As ExpressionSyntax, commaToken As SyntaxToken, delegateExpression As ExpressionSyntax) As AddRemoveHandlerStatementSyntax
             Select Case addHandlerOrRemoveHandlerKeyword.Kind()
-                Case SyntaxKind.AddHandlerKeyword:
+                Case SyntaxKind.AddHandlerKeyword :
                 Case SyntaxKind.RemoveHandlerKeyword
                 Case Else
                     Throw new ArgumentException("addHandlerOrRemoveHandlerKeyword")
-             End Select
+            End Select
             if eventExpression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(eventExpression))
             End If
@@ -23539,12 +23539,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("eventExpression")
-             End Select
+            End Select
             Select Case commaToken.Kind()
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("commaToken")
-             End Select
+            End Select
             if delegateExpression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(delegateExpression))
             End If
@@ -23656,7 +23656,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("delegateExpression")
-             End Select
+            End Select
             Return New AddRemoveHandlerStatementSyntax(SyntaxKind.AddHandlerStatement, Nothing, Nothing, DirectCast(addHandlerOrRemoveHandlerKeyword.Node, InternalSyntax.KeywordSyntax), eventExpression, DirectCast(commaToken.Node, InternalSyntax.PunctuationSyntax), delegateExpression)
         End Function
 
@@ -23697,7 +23697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.RemoveHandlerKeyword
                 Case Else
                     Throw new ArgumentException("addHandlerOrRemoveHandlerKeyword")
-             End Select
+            End Select
             if eventExpression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(eventExpression))
             End If
@@ -23809,12 +23809,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("eventExpression")
-             End Select
+            End Select
             Select Case commaToken.Kind()
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("commaToken")
-             End Select
+            End Select
             if delegateExpression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(delegateExpression))
             End If
@@ -23926,7 +23926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("delegateExpression")
-             End Select
+            End Select
             Return New AddRemoveHandlerStatementSyntax(SyntaxKind.RemoveHandlerStatement, Nothing, Nothing, DirectCast(addHandlerOrRemoveHandlerKeyword.Node, InternalSyntax.KeywordSyntax), eventExpression, DirectCast(commaToken.Node, InternalSyntax.PunctuationSyntax), delegateExpression)
         End Function
 
@@ -24085,12 +24085,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("eventExpression")
-             End Select
+            End Select
             Select Case commaToken.Kind()
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("commaToken")
-             End Select
+            End Select
             if delegateExpression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(delegateExpression))
             End If
@@ -24202,7 +24202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("delegateExpression")
-             End Select
+            End Select
             Return New AddRemoveHandlerStatementSyntax(kind, Nothing, Nothing, DirectCast(addHandlerOrRemoveHandlerKeyword.Node, InternalSyntax.KeywordSyntax), eventExpression, DirectCast(commaToken.Node, InternalSyntax.PunctuationSyntax), delegateExpression)
         End Function
 
@@ -24257,7 +24257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.RaiseEventKeyword
                 Case Else
                     Throw new ArgumentException("raiseEventKeyword")
-             End Select
+            End Select
             if name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -24265,7 +24265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New RaiseEventStatementSyntax(SyntaxKind.RaiseEventStatement, Nothing, Nothing, DirectCast(raiseEventKeyword.Node, InternalSyntax.KeywordSyntax), name, argumentList)
         End Function
 
@@ -24311,7 +24311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.WithKeyword
                 Case Else
                     Throw new ArgumentException("withKeyword")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -24423,7 +24423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New WithStatementSyntax(SyntaxKind.WithStatement, Nothing, Nothing, DirectCast(withKeyword.Node, InternalSyntax.KeywordSyntax), expression)
         End Function
 
@@ -24459,7 +24459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ReDimKeyword
                 Case Else
                     Throw new ArgumentException("reDimKeyword")
-             End Select
+            End Select
             Return New ReDimStatementSyntax(SyntaxKind.ReDimStatement, Nothing, Nothing, DirectCast(reDimKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(preserveKeyword.Node, InternalSyntax.KeywordSyntax), clauses.Node)
         End Function
 
@@ -24504,7 +24504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ReDimKeyword
                 Case Else
                     Throw new ArgumentException("reDimKeyword")
-             End Select
+            End Select
             Return New ReDimStatementSyntax(SyntaxKind.ReDimPreserveStatement, Nothing, Nothing, DirectCast(reDimKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(preserveKeyword.Node, InternalSyntax.KeywordSyntax), clauses.Node)
         End Function
 
@@ -24556,7 +24556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ReDimKeyword
                 Case Else
                     Throw new ArgumentException("reDimKeyword")
-             End Select
+            End Select
             Return New ReDimStatementSyntax(kind, Nothing, Nothing, DirectCast(reDimKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(preserveKeyword.Node, InternalSyntax.KeywordSyntax), clauses.Node)
         End Function
 
@@ -24712,7 +24712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             if arrayBounds Is Nothing Then
                 Throw New ArgumentNullException(NameOf(arrayBounds))
             End If
@@ -24720,7 +24720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ArgumentList
                 Case Else
                     Throw new ArgumentException("arrayBounds")
-             End Select
+            End Select
             Return New RedimClauseSyntax(SyntaxKind.RedimClause, Nothing, Nothing, expression, arrayBounds)
         End Function
 
@@ -24739,7 +24739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EraseKeyword
                 Case Else
                     Throw new ArgumentException("eraseKeyword")
-             End Select
+            End Select
             Return New EraseStatementSyntax(SyntaxKind.EraseStatement, Nothing, Nothing, DirectCast(eraseKeyword.Node, InternalSyntax.KeywordSyntax), expressions.Node)
         End Function
 
@@ -24786,18 +24786,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function CharacterLiteralExpression(token As SyntaxToken) As LiteralExpressionSyntax
             Select Case token.Kind()
-                Case SyntaxKind.IntegerLiteralToken:
-                Case SyntaxKind.CharacterLiteralToken:
-                Case SyntaxKind.DecimalLiteralToken:
-                Case SyntaxKind.FloatingLiteralToken:
-                Case SyntaxKind.DateLiteralToken:
-                Case SyntaxKind.StringLiteralToken:
-                Case SyntaxKind.TrueKeyword:
-                Case SyntaxKind.FalseKeyword:
+                Case SyntaxKind.IntegerLiteralToken :
+                Case SyntaxKind.CharacterLiteralToken :
+                Case SyntaxKind.DecimalLiteralToken :
+                Case SyntaxKind.FloatingLiteralToken :
+                Case SyntaxKind.DateLiteralToken :
+                Case SyntaxKind.StringLiteralToken :
+                Case SyntaxKind.TrueKeyword :
+                Case SyntaxKind.FalseKeyword :
                 Case SyntaxKind.NothingKeyword
                 Case Else
                     Throw new ArgumentException("token")
-             End Select
+            End Select
             Return New LiteralExpressionSyntax(SyntaxKind.CharacterLiteralExpression, Nothing, Nothing, DirectCast(token.Node, InternalSyntax.SyntaxToken))
         End Function
 
@@ -24822,18 +24822,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function TrueLiteralExpression(token As SyntaxToken) As LiteralExpressionSyntax
             Select Case token.Kind()
-                Case SyntaxKind.IntegerLiteralToken:
-                Case SyntaxKind.CharacterLiteralToken:
-                Case SyntaxKind.DecimalLiteralToken:
-                Case SyntaxKind.FloatingLiteralToken:
-                Case SyntaxKind.DateLiteralToken:
-                Case SyntaxKind.StringLiteralToken:
-                Case SyntaxKind.TrueKeyword:
-                Case SyntaxKind.FalseKeyword:
+                Case SyntaxKind.IntegerLiteralToken :
+                Case SyntaxKind.CharacterLiteralToken :
+                Case SyntaxKind.DecimalLiteralToken :
+                Case SyntaxKind.FloatingLiteralToken :
+                Case SyntaxKind.DateLiteralToken :
+                Case SyntaxKind.StringLiteralToken :
+                Case SyntaxKind.TrueKeyword :
+                Case SyntaxKind.FalseKeyword :
                 Case SyntaxKind.NothingKeyword
                 Case Else
                     Throw new ArgumentException("token")
-             End Select
+            End Select
             Return New LiteralExpressionSyntax(SyntaxKind.TrueLiteralExpression, Nothing, Nothing, DirectCast(token.Node, InternalSyntax.SyntaxToken))
         End Function
 
@@ -24858,18 +24858,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function FalseLiteralExpression(token As SyntaxToken) As LiteralExpressionSyntax
             Select Case token.Kind()
-                Case SyntaxKind.IntegerLiteralToken:
-                Case SyntaxKind.CharacterLiteralToken:
-                Case SyntaxKind.DecimalLiteralToken:
-                Case SyntaxKind.FloatingLiteralToken:
-                Case SyntaxKind.DateLiteralToken:
-                Case SyntaxKind.StringLiteralToken:
-                Case SyntaxKind.TrueKeyword:
-                Case SyntaxKind.FalseKeyword:
+                Case SyntaxKind.IntegerLiteralToken :
+                Case SyntaxKind.CharacterLiteralToken :
+                Case SyntaxKind.DecimalLiteralToken :
+                Case SyntaxKind.FloatingLiteralToken :
+                Case SyntaxKind.DateLiteralToken :
+                Case SyntaxKind.StringLiteralToken :
+                Case SyntaxKind.TrueKeyword :
+                Case SyntaxKind.FalseKeyword :
                 Case SyntaxKind.NothingKeyword
                 Case Else
                     Throw new ArgumentException("token")
-             End Select
+            End Select
             Return New LiteralExpressionSyntax(SyntaxKind.FalseLiteralExpression, Nothing, Nothing, DirectCast(token.Node, InternalSyntax.SyntaxToken))
         End Function
 
@@ -24894,18 +24894,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function NumericLiteralExpression(token As SyntaxToken) As LiteralExpressionSyntax
             Select Case token.Kind()
-                Case SyntaxKind.IntegerLiteralToken:
-                Case SyntaxKind.CharacterLiteralToken:
-                Case SyntaxKind.DecimalLiteralToken:
-                Case SyntaxKind.FloatingLiteralToken:
-                Case SyntaxKind.DateLiteralToken:
-                Case SyntaxKind.StringLiteralToken:
-                Case SyntaxKind.TrueKeyword:
-                Case SyntaxKind.FalseKeyword:
+                Case SyntaxKind.IntegerLiteralToken :
+                Case SyntaxKind.CharacterLiteralToken :
+                Case SyntaxKind.DecimalLiteralToken :
+                Case SyntaxKind.FloatingLiteralToken :
+                Case SyntaxKind.DateLiteralToken :
+                Case SyntaxKind.StringLiteralToken :
+                Case SyntaxKind.TrueKeyword :
+                Case SyntaxKind.FalseKeyword :
                 Case SyntaxKind.NothingKeyword
                 Case Else
                     Throw new ArgumentException("token")
-             End Select
+            End Select
             Return New LiteralExpressionSyntax(SyntaxKind.NumericLiteralExpression, Nothing, Nothing, DirectCast(token.Node, InternalSyntax.SyntaxToken))
         End Function
 
@@ -24930,18 +24930,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function DateLiteralExpression(token As SyntaxToken) As LiteralExpressionSyntax
             Select Case token.Kind()
-                Case SyntaxKind.IntegerLiteralToken:
-                Case SyntaxKind.CharacterLiteralToken:
-                Case SyntaxKind.DecimalLiteralToken:
-                Case SyntaxKind.FloatingLiteralToken:
-                Case SyntaxKind.DateLiteralToken:
-                Case SyntaxKind.StringLiteralToken:
-                Case SyntaxKind.TrueKeyword:
-                Case SyntaxKind.FalseKeyword:
+                Case SyntaxKind.IntegerLiteralToken :
+                Case SyntaxKind.CharacterLiteralToken :
+                Case SyntaxKind.DecimalLiteralToken :
+                Case SyntaxKind.FloatingLiteralToken :
+                Case SyntaxKind.DateLiteralToken :
+                Case SyntaxKind.StringLiteralToken :
+                Case SyntaxKind.TrueKeyword :
+                Case SyntaxKind.FalseKeyword :
                 Case SyntaxKind.NothingKeyword
                 Case Else
                     Throw new ArgumentException("token")
-             End Select
+            End Select
             Return New LiteralExpressionSyntax(SyntaxKind.DateLiteralExpression, Nothing, Nothing, DirectCast(token.Node, InternalSyntax.SyntaxToken))
         End Function
 
@@ -24966,18 +24966,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function StringLiteralExpression(token As SyntaxToken) As LiteralExpressionSyntax
             Select Case token.Kind()
-                Case SyntaxKind.IntegerLiteralToken:
-                Case SyntaxKind.CharacterLiteralToken:
-                Case SyntaxKind.DecimalLiteralToken:
-                Case SyntaxKind.FloatingLiteralToken:
-                Case SyntaxKind.DateLiteralToken:
-                Case SyntaxKind.StringLiteralToken:
-                Case SyntaxKind.TrueKeyword:
-                Case SyntaxKind.FalseKeyword:
+                Case SyntaxKind.IntegerLiteralToken :
+                Case SyntaxKind.CharacterLiteralToken :
+                Case SyntaxKind.DecimalLiteralToken :
+                Case SyntaxKind.FloatingLiteralToken :
+                Case SyntaxKind.DateLiteralToken :
+                Case SyntaxKind.StringLiteralToken :
+                Case SyntaxKind.TrueKeyword :
+                Case SyntaxKind.FalseKeyword :
                 Case SyntaxKind.NothingKeyword
                 Case Else
                     Throw new ArgumentException("token")
-             End Select
+            End Select
             Return New LiteralExpressionSyntax(SyntaxKind.StringLiteralExpression, Nothing, Nothing, DirectCast(token.Node, InternalSyntax.SyntaxToken))
         End Function
 
@@ -25002,18 +25002,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function NothingLiteralExpression(token As SyntaxToken) As LiteralExpressionSyntax
             Select Case token.Kind()
-                Case SyntaxKind.IntegerLiteralToken:
-                Case SyntaxKind.CharacterLiteralToken:
-                Case SyntaxKind.DecimalLiteralToken:
-                Case SyntaxKind.FloatingLiteralToken:
-                Case SyntaxKind.DateLiteralToken:
-                Case SyntaxKind.StringLiteralToken:
-                Case SyntaxKind.TrueKeyword:
-                Case SyntaxKind.FalseKeyword:
+                Case SyntaxKind.IntegerLiteralToken :
+                Case SyntaxKind.CharacterLiteralToken :
+                Case SyntaxKind.DecimalLiteralToken :
+                Case SyntaxKind.FloatingLiteralToken :
+                Case SyntaxKind.DateLiteralToken :
+                Case SyntaxKind.StringLiteralToken :
+                Case SyntaxKind.TrueKeyword :
+                Case SyntaxKind.FalseKeyword :
                 Case SyntaxKind.NothingKeyword
                 Case Else
                     Throw new ArgumentException("token")
-             End Select
+            End Select
             Return New LiteralExpressionSyntax(SyntaxKind.NothingLiteralExpression, Nothing, Nothing, DirectCast(token.Node, InternalSyntax.SyntaxToken))
         End Function
 
@@ -25047,18 +25047,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException("kind")
             End If
             Select Case token.Kind()
-                Case SyntaxKind.IntegerLiteralToken:
-                Case SyntaxKind.CharacterLiteralToken:
-                Case SyntaxKind.DecimalLiteralToken:
-                Case SyntaxKind.FloatingLiteralToken:
-                Case SyntaxKind.DateLiteralToken:
-                Case SyntaxKind.StringLiteralToken:
-                Case SyntaxKind.TrueKeyword:
-                Case SyntaxKind.FalseKeyword:
+                Case SyntaxKind.IntegerLiteralToken :
+                Case SyntaxKind.CharacterLiteralToken :
+                Case SyntaxKind.DecimalLiteralToken :
+                Case SyntaxKind.FloatingLiteralToken :
+                Case SyntaxKind.DateLiteralToken :
+                Case SyntaxKind.StringLiteralToken :
+                Case SyntaxKind.TrueKeyword :
+                Case SyntaxKind.FalseKeyword :
                 Case SyntaxKind.NothingKeyword
                 Case Else
                     Throw new ArgumentException("token")
-             End Select
+            End Select
             Return New LiteralExpressionSyntax(kind, Nothing, Nothing, DirectCast(token.Node, InternalSyntax.SyntaxToken))
         End Function
 
@@ -25080,7 +25080,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -25192,12 +25192,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New ParenthesizedExpressionSyntax(SyntaxKind.ParenthesizedExpression, Nothing, Nothing, DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), expression, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -25230,12 +25230,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New TupleExpressionSyntax(SyntaxKind.TupleExpression, Nothing, Nothing, DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), arguments.Node, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -25279,12 +25279,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New TupleTypeSyntax(SyntaxKind.TupleType, Nothing, Nothing, DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), elements.Node, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -25334,7 +25334,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("type")
-             End Select
+            End Select
             Return New TypedTupleElementSyntax(SyntaxKind.TypedTupleElement, Nothing, Nothing, type)
         End Function
 
@@ -25354,7 +25354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New NamedTupleElementSyntax(SyntaxKind.NamedTupleElement, Nothing, Nothing, DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), asClause)
         End Function
 
@@ -25391,12 +25391,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function MeExpression(keyword As SyntaxToken) As MeExpressionSyntax
             Select Case keyword.Kind()
-                Case SyntaxKind.MeKeyword:
-                Case SyntaxKind.MyClassKeyword:
+                Case SyntaxKind.MeKeyword :
+                Case SyntaxKind.MyClassKeyword :
                 Case SyntaxKind.MyBaseKeyword
                 Case Else
                     Throw new ArgumentException("keyword")
-             End Select
+            End Select
             Return New MeExpressionSyntax(SyntaxKind.MeExpression, Nothing, Nothing, DirectCast(keyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -25420,7 +25420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.MyBaseKeyword
                 Case Else
                     Throw new ArgumentException("keyword")
-             End Select
+            End Select
             Return New MyBaseExpressionSyntax(SyntaxKind.MyBaseExpression, Nothing, Nothing, DirectCast(keyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -25444,7 +25444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.MyClassKeyword
                 Case Else
                     Throw new ArgumentException("keyword")
-             End Select
+            End Select
             Return New MyClassExpressionSyntax(SyntaxKind.MyClassExpression, Nothing, Nothing, DirectCast(keyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -25477,12 +25477,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.GetTypeKeyword
                 Case Else
                     Throw new ArgumentException("getTypeKeyword")
-             End Select
+            End Select
             Select Case openParenToken.Kind()
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             if type Is Nothing Then
                 Throw New ArgumentNullException(NameOf(type))
             End If
@@ -25499,12 +25499,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("type")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New GetTypeExpressionSyntax(SyntaxKind.GetTypeExpression, Nothing, Nothing, DirectCast(getTypeKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), type, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -25540,7 +25540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.TypeOfKeyword
                 Case Else
                     Throw new ArgumentException("typeOfKeyword")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -25652,13 +25652,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
-                Case SyntaxKind.IsKeyword:
+                Case SyntaxKind.IsKeyword :
                 Case SyntaxKind.IsNotKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if type Is Nothing Then
                 Throw New ArgumentNullException(NameOf(type))
             End If
@@ -25675,7 +25675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("type")
-             End Select
+            End Select
             Return New TypeOfExpressionSyntax(SyntaxKind.TypeOfIsExpression, Nothing, Nothing, DirectCast(typeOfKeyword.Node, InternalSyntax.KeywordSyntax), expression, DirectCast(operatorToken.Node, InternalSyntax.KeywordSyntax), type)
         End Function
 
@@ -25714,7 +25714,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.TypeOfKeyword
                 Case Else
                     Throw new ArgumentException("typeOfKeyword")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -25826,12 +25826,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.IsNotKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if type Is Nothing Then
                 Throw New ArgumentNullException(NameOf(type))
             End If
@@ -25848,7 +25848,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("type")
-             End Select
+            End Select
             Return New TypeOfExpressionSyntax(SyntaxKind.TypeOfIsNotExpression, Nothing, Nothing, DirectCast(typeOfKeyword.Node, InternalSyntax.KeywordSyntax), expression, DirectCast(operatorToken.Node, InternalSyntax.KeywordSyntax), type)
         End Function
 
@@ -25894,7 +25894,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.TypeOfKeyword
                 Case Else
                     Throw new ArgumentException("typeOfKeyword")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -26006,7 +26006,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             If (Not operatorToken.IsKind(GetTypeOfExpressionOperatorTokenKind(kind))) Then
                 Throw new ArgumentException("operatorToken")
             End If
@@ -26026,7 +26026,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("type")
-             End Select
+            End Select
             Return New TypeOfExpressionSyntax(kind, Nothing, Nothing, DirectCast(typeOfKeyword.Node, InternalSyntax.KeywordSyntax), expression, DirectCast(operatorToken.Node, InternalSyntax.KeywordSyntax), type)
         End Function
 
@@ -26082,17 +26082,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.GetXmlNamespaceKeyword
                 Case Else
                     Throw new ArgumentException("getXmlNamespaceKeyword")
-             End Select
+            End Select
             Select Case openParenToken.Kind()
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New GetXmlNamespaceExpressionSyntax(SyntaxKind.GetXmlNamespaceExpression, Nothing, Nothing, DirectCast(getXmlNamespaceKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), name, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -26120,11 +26120,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function SimpleMemberAccessExpression(expression As ExpressionSyntax, operatorToken As SyntaxToken, name As SimpleNameSyntax) As MemberAccessExpressionSyntax
             Select Case operatorToken.Kind()
-                Case SyntaxKind.DotToken:
+                Case SyntaxKind.DotToken :
                 Case SyntaxKind.ExclamationToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -26133,7 +26133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.GenericName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression, Nothing, Nothing, expression, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), name)
         End Function
 
@@ -26183,7 +26183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ExclamationToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -26192,7 +26192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.GenericName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New MemberAccessExpressionSyntax(SyntaxKind.DictionaryAccessExpression, Nothing, Nothing, expression, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), name)
         End Function
 
@@ -26257,7 +26257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.GenericName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New MemberAccessExpressionSyntax(kind, Nothing, Nothing, expression, DirectCast(operatorToken.Node, InternalSyntax.PunctuationSyntax), name)
         End Function
 
@@ -26317,7 +26317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DotToken
                 Case Else
                     Throw new ArgumentException("token1")
-             End Select
+            End Select
             if name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -26326,7 +26326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.XmlBracketedName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New XmlMemberAccessExpressionSyntax(SyntaxKind.XmlElementAccessExpression, Nothing, Nothing, base, DirectCast(token1.Node, InternalSyntax.PunctuationSyntax), DirectCast(token2.Node, InternalSyntax.PunctuationSyntax), DirectCast(token3.Node, InternalSyntax.PunctuationSyntax), name)
         End Function
 
@@ -26388,7 +26388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DotToken
                 Case Else
                     Throw new ArgumentException("token1")
-             End Select
+            End Select
             if name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -26397,7 +26397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.XmlBracketedName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New XmlMemberAccessExpressionSyntax(SyntaxKind.XmlDescendantAccessExpression, Nothing, Nothing, base, DirectCast(token1.Node, InternalSyntax.PunctuationSyntax), DirectCast(token2.Node, InternalSyntax.PunctuationSyntax), DirectCast(token3.Node, InternalSyntax.PunctuationSyntax), name)
         End Function
 
@@ -26459,7 +26459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DotToken
                 Case Else
                     Throw new ArgumentException("token1")
-             End Select
+            End Select
             if name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -26468,7 +26468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.XmlBracketedName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New XmlMemberAccessExpressionSyntax(SyntaxKind.XmlAttributeAccessExpression, Nothing, Nothing, base, DirectCast(token1.Node, InternalSyntax.PunctuationSyntax), DirectCast(token2.Node, InternalSyntax.PunctuationSyntax), DirectCast(token3.Node, InternalSyntax.PunctuationSyntax), name)
         End Function
 
@@ -26538,7 +26538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DotToken
                 Case Else
                     Throw new ArgumentException("token1")
-             End Select
+            End Select
             if name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -26547,7 +26547,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.XmlBracketedName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New XmlMemberAccessExpressionSyntax(kind, Nothing, Nothing, base, DirectCast(token1.Node, InternalSyntax.PunctuationSyntax), DirectCast(token2.Node, InternalSyntax.PunctuationSyntax), DirectCast(token3.Node, InternalSyntax.PunctuationSyntax), name)
         End Function
 
@@ -26646,7 +26646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.NewKeyword
                 Case Else
                     Throw new ArgumentException("newKeyword")
-             End Select
+            End Select
             if type Is Nothing Then
                 Throw New ArgumentNullException(NameOf(type))
             End If
@@ -26662,7 +26662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.TupleType
                 Case Else
                     Throw new ArgumentException("type")
-             End Select
+            End Select
             Return New ObjectCreationExpressionSyntax(SyntaxKind.ObjectCreationExpression, Nothing, Nothing, DirectCast(newKeyword.Node, InternalSyntax.KeywordSyntax), attributeLists.Node, type, argumentList, initializer)
         End Function
 
@@ -26720,7 +26720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.NewKeyword
                 Case Else
                     Throw new ArgumentException("newKeyword")
-             End Select
+            End Select
             if initializer Is Nothing Then
                 Throw New ArgumentNullException(NameOf(initializer))
             End If
@@ -26728,7 +26728,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ObjectMemberInitializer
                 Case Else
                     Throw new ArgumentException("initializer")
-             End Select
+            End Select
             Return New AnonymousObjectCreationExpressionSyntax(SyntaxKind.AnonymousObjectCreationExpression, Nothing, Nothing, DirectCast(newKeyword.Node, InternalSyntax.KeywordSyntax), attributeLists.Node, initializer)
         End Function
 
@@ -26787,7 +26787,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.NewKeyword
                 Case Else
                     Throw new ArgumentException("newKeyword")
-             End Select
+            End Select
             if type Is Nothing Then
                 Throw New ArgumentNullException(NameOf(type))
             End If
@@ -26803,7 +26803,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.TupleType
                 Case Else
                     Throw new ArgumentException("type")
-             End Select
+            End Select
             if initializer Is Nothing Then
                 Throw New ArgumentNullException(NameOf(initializer))
             End If
@@ -26811,7 +26811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CollectionInitializer
                 Case Else
                     Throw new ArgumentException("initializer")
-             End Select
+            End Select
             Return New ArrayCreationExpressionSyntax(SyntaxKind.ArrayCreationExpression, Nothing, Nothing, DirectCast(newKeyword.Node, InternalSyntax.KeywordSyntax), attributeLists.Node, type, arrayBounds, rankSpecifiers.Node, initializer)
         End Function
 
@@ -26869,12 +26869,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OpenBraceToken
                 Case Else
                     Throw new ArgumentException("openBraceToken")
-             End Select
+            End Select
             Select Case closeBraceToken.Kind()
                 Case SyntaxKind.CloseBraceToken
                 Case Else
                     Throw new ArgumentException("closeBraceToken")
-             End Select
+            End Select
             Return New CollectionInitializerSyntax(SyntaxKind.CollectionInitializer, Nothing, Nothing, DirectCast(openBraceToken.Node, InternalSyntax.PunctuationSyntax), initializers.Node, DirectCast(closeBraceToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -26920,17 +26920,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function CTypeExpression(keyword As SyntaxToken, openParenToken As SyntaxToken, expression As ExpressionSyntax, commaToken As SyntaxToken, type As TypeSyntax, closeParenToken As SyntaxToken) As CTypeExpressionSyntax
             Select Case keyword.Kind()
-                Case SyntaxKind.CTypeKeyword:
-                Case SyntaxKind.DirectCastKeyword:
+                Case SyntaxKind.CTypeKeyword :
+                Case SyntaxKind.DirectCastKeyword :
                 Case SyntaxKind.TryCastKeyword
                 Case Else
                     Throw new ArgumentException("keyword")
-             End Select
+            End Select
             Select Case openParenToken.Kind()
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -27042,12 +27042,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Select Case commaToken.Kind()
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("commaToken")
-             End Select
+            End Select
             if type Is Nothing Then
                 Throw New ArgumentNullException(NameOf(type))
             End If
@@ -27064,12 +27064,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("type")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New CTypeExpressionSyntax(SyntaxKind.CTypeExpression, Nothing, Nothing, DirectCast(keyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), expression, DirectCast(commaToken.Node, InternalSyntax.PunctuationSyntax), type, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -27108,12 +27108,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DirectCastKeyword
                 Case Else
                     Throw new ArgumentException("keyword")
-             End Select
+            End Select
             Select Case openParenToken.Kind()
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -27225,12 +27225,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Select Case commaToken.Kind()
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("commaToken")
-             End Select
+            End Select
             if type Is Nothing Then
                 Throw New ArgumentNullException(NameOf(type))
             End If
@@ -27247,12 +27247,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("type")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New DirectCastExpressionSyntax(SyntaxKind.DirectCastExpression, Nothing, Nothing, DirectCast(keyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), expression, DirectCast(commaToken.Node, InternalSyntax.PunctuationSyntax), type, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -27291,12 +27291,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.TryCastKeyword
                 Case Else
                     Throw new ArgumentException("keyword")
-             End Select
+            End Select
             Select Case openParenToken.Kind()
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -27408,12 +27408,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Select Case commaToken.Kind()
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("commaToken")
-             End Select
+            End Select
             if type Is Nothing Then
                 Throw New ArgumentNullException(NameOf(type))
             End If
@@ -27430,12 +27430,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("type")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New TryCastExpressionSyntax(SyntaxKind.TryCastExpression, Nothing, Nothing, DirectCast(keyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), expression, DirectCast(commaToken.Node, InternalSyntax.PunctuationSyntax), type, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -27469,30 +27469,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function PredefinedCastExpression(keyword As SyntaxToken, openParenToken As SyntaxToken, expression As ExpressionSyntax, closeParenToken As SyntaxToken) As PredefinedCastExpressionSyntax
             Select Case keyword.Kind()
-                Case SyntaxKind.CObjKeyword:
-                Case SyntaxKind.CBoolKeyword:
-                Case SyntaxKind.CDateKeyword:
-                Case SyntaxKind.CCharKeyword:
-                Case SyntaxKind.CStrKeyword:
-                Case SyntaxKind.CDecKeyword:
-                Case SyntaxKind.CByteKeyword:
-                Case SyntaxKind.CSByteKeyword:
-                Case SyntaxKind.CUShortKeyword:
-                Case SyntaxKind.CShortKeyword:
-                Case SyntaxKind.CUIntKeyword:
-                Case SyntaxKind.CIntKeyword:
-                Case SyntaxKind.CULngKeyword:
-                Case SyntaxKind.CLngKeyword:
-                Case SyntaxKind.CSngKeyword:
+                Case SyntaxKind.CObjKeyword :
+                Case SyntaxKind.CBoolKeyword :
+                Case SyntaxKind.CDateKeyword :
+                Case SyntaxKind.CCharKeyword :
+                Case SyntaxKind.CStrKeyword :
+                Case SyntaxKind.CDecKeyword :
+                Case SyntaxKind.CByteKeyword :
+                Case SyntaxKind.CSByteKeyword :
+                Case SyntaxKind.CUShortKeyword :
+                Case SyntaxKind.CShortKeyword :
+                Case SyntaxKind.CUIntKeyword :
+                Case SyntaxKind.CIntKeyword :
+                Case SyntaxKind.CULngKeyword :
+                Case SyntaxKind.CLngKeyword :
+                Case SyntaxKind.CSngKeyword :
                 Case SyntaxKind.CDblKeyword
                 Case Else
                     Throw new ArgumentException("keyword")
-             End Select
+            End Select
             Select Case openParenToken.Kind()
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -27604,12 +27604,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New PredefinedCastExpressionSyntax(SyntaxKind.PredefinedCastExpression, Nothing, Nothing, DirectCast(keyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), expression, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -27752,35 +27752,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
-                Case SyntaxKind.PlusToken:
-                Case SyntaxKind.MinusToken:
-                Case SyntaxKind.AsteriskToken:
-                Case SyntaxKind.SlashToken:
-                Case SyntaxKind.BackslashToken:
-                Case SyntaxKind.CaretToken:
-                Case SyntaxKind.ModKeyword:
-                Case SyntaxKind.LessThanLessThanToken:
-                Case SyntaxKind.GreaterThanGreaterThanToken:
-                Case SyntaxKind.EqualsToken:
-                Case SyntaxKind.LessThanGreaterThanToken:
-                Case SyntaxKind.LessThanToken:
-                Case SyntaxKind.LessThanEqualsToken:
-                Case SyntaxKind.GreaterThanToken:
-                Case SyntaxKind.GreaterThanEqualsToken:
-                Case SyntaxKind.IsKeyword:
-                Case SyntaxKind.IsNotKeyword:
-                Case SyntaxKind.LikeKeyword:
-                Case SyntaxKind.AmpersandToken:
-                Case SyntaxKind.OrKeyword:
-                Case SyntaxKind.XorKeyword:
-                Case SyntaxKind.AndKeyword:
-                Case SyntaxKind.OrElseKeyword:
+                Case SyntaxKind.PlusToken :
+                Case SyntaxKind.MinusToken :
+                Case SyntaxKind.AsteriskToken :
+                Case SyntaxKind.SlashToken :
+                Case SyntaxKind.BackslashToken :
+                Case SyntaxKind.CaretToken :
+                Case SyntaxKind.ModKeyword :
+                Case SyntaxKind.LessThanLessThanToken :
+                Case SyntaxKind.GreaterThanGreaterThanToken :
+                Case SyntaxKind.EqualsToken :
+                Case SyntaxKind.LessThanGreaterThanToken :
+                Case SyntaxKind.LessThanToken :
+                Case SyntaxKind.LessThanEqualsToken :
+                Case SyntaxKind.GreaterThanToken :
+                Case SyntaxKind.GreaterThanEqualsToken :
+                Case SyntaxKind.IsKeyword :
+                Case SyntaxKind.IsNotKeyword :
+                Case SyntaxKind.LikeKeyword :
+                Case SyntaxKind.AmpersandToken :
+                Case SyntaxKind.OrKeyword :
+                Case SyntaxKind.XorKeyword :
+                Case SyntaxKind.AndKeyword :
+                Case SyntaxKind.OrElseKeyword :
                 Case SyntaxKind.AndAlsoKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -27892,7 +27892,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.AddExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -28036,12 +28036,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.MinusToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -28153,7 +28153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.SubtractExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -28297,12 +28297,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.AsteriskToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -28414,7 +28414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.MultiplyExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -28558,12 +28558,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.SlashToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -28675,7 +28675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.DivideExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -28819,12 +28819,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.BackslashToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -28936,7 +28936,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.IntegerDivideExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -29080,12 +29080,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.CaretToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -29197,7 +29197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.ExponentiateExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -29341,12 +29341,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.LessThanLessThanToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -29458,7 +29458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.LeftShiftExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -29602,12 +29602,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.GreaterThanGreaterThanToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -29719,7 +29719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.RightShiftExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -29863,12 +29863,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.AmpersandToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -29980,7 +29980,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.ConcatenateExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -30124,12 +30124,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.ModKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -30241,7 +30241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.ModuloExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -30385,12 +30385,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.EqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -30502,7 +30502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.EqualsExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -30646,12 +30646,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.LessThanGreaterThanToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -30763,7 +30763,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.NotEqualsExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -30907,12 +30907,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.LessThanToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -31024,7 +31024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.LessThanExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -31168,12 +31168,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.LessThanEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -31285,7 +31285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.LessThanOrEqualExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -31429,12 +31429,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.GreaterThanEqualsToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -31546,7 +31546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.GreaterThanOrEqualExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -31690,12 +31690,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.GreaterThanToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -31807,7 +31807,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.GreaterThanExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -31951,12 +31951,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.IsKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -32068,7 +32068,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.IsExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -32212,12 +32212,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.IsNotKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -32329,7 +32329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.IsNotExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -32473,12 +32473,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.LikeKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -32590,7 +32590,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.LikeExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -32734,12 +32734,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.OrKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -32851,7 +32851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.OrExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -32995,12 +32995,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.XorKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -33112,7 +33112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.ExclusiveOrExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -33256,12 +33256,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.AndKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -33373,7 +33373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.AndExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -33517,12 +33517,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.OrElseKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -33634,7 +33634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.OrElseExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -33778,12 +33778,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
                 Case SyntaxKind.AndAlsoKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -33895,7 +33895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(SyntaxKind.AndAlsoExpression, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -34053,7 +34053,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             If (Not operatorToken.IsKind(GetBinaryExpressionOperatorTokenKind(kind))) Then
                 Throw new ArgumentException("operatorToken")
             End If
@@ -34168,7 +34168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New BinaryExpressionSyntax(kind, Nothing, Nothing, left, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), right)
         End Function
 
@@ -34238,13 +34238,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function UnaryPlusExpression(operatorToken As SyntaxToken, operand As ExpressionSyntax) As UnaryExpressionSyntax
             Select Case operatorToken.Kind()
-                Case SyntaxKind.PlusToken:
-                Case SyntaxKind.MinusToken:
-                Case SyntaxKind.NotKeyword:
+                Case SyntaxKind.PlusToken :
+                Case SyntaxKind.MinusToken :
+                Case SyntaxKind.NotKeyword :
                 Case SyntaxKind.AddressOfKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if operand Is Nothing Then
                 Throw New ArgumentNullException(NameOf(operand))
             End If
@@ -34356,7 +34356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("operand")
-             End Select
+            End Select
             Return New UnaryExpressionSyntax(SyntaxKind.UnaryPlusExpression, Nothing, Nothing, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), operand)
         End Function
 
@@ -34386,7 +34386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.MinusToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if operand Is Nothing Then
                 Throw New ArgumentNullException(NameOf(operand))
             End If
@@ -34498,7 +34498,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("operand")
-             End Select
+            End Select
             Return New UnaryExpressionSyntax(SyntaxKind.UnaryMinusExpression, Nothing, Nothing, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), operand)
         End Function
 
@@ -34528,7 +34528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.NotKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if operand Is Nothing Then
                 Throw New ArgumentNullException(NameOf(operand))
             End If
@@ -34640,7 +34640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("operand")
-             End Select
+            End Select
             Return New UnaryExpressionSyntax(SyntaxKind.NotExpression, Nothing, Nothing, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), operand)
         End Function
 
@@ -34670,7 +34670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.AddressOfKeyword
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             if operand Is Nothing Then
                 Throw New ArgumentNullException(NameOf(operand))
             End If
@@ -34782,7 +34782,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("operand")
-             End Select
+            End Select
             Return New UnaryExpressionSyntax(SyntaxKind.AddressOfExpression, Nothing, Nothing, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), operand)
         End Function
 
@@ -34930,7 +34930,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("operand")
-             End Select
+            End Select
             Return New UnaryExpressionSyntax(kind, Nothing, Nothing, DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken), operand)
         End Function
 
@@ -34976,12 +34976,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IfKeyword
                 Case Else
                     Throw new ArgumentException("ifKeyword")
-             End Select
+            End Select
             Select Case openParenToken.Kind()
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             if firstExpression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(firstExpression))
             End If
@@ -35093,12 +35093,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("firstExpression")
-             End Select
+            End Select
             Select Case commaToken.Kind()
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("commaToken")
-             End Select
+            End Select
             if secondExpression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(secondExpression))
             End If
@@ -35210,12 +35210,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("secondExpression")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New BinaryConditionalExpressionSyntax(SyntaxKind.BinaryConditionalExpression, Nothing, Nothing, DirectCast(ifKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), firstExpression, DirectCast(commaToken.Node, InternalSyntax.PunctuationSyntax), secondExpression, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -35268,12 +35268,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IfKeyword
                 Case Else
                     Throw new ArgumentException("ifKeyword")
-             End Select
+            End Select
             Select Case openParenToken.Kind()
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -35385,12 +35385,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Select Case firstCommaToken.Kind()
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("firstCommaToken")
-             End Select
+            End Select
             if whenTrue Is Nothing Then
                 Throw New ArgumentNullException(NameOf(whenTrue))
             End If
@@ -35502,12 +35502,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("whenTrue")
-             End Select
+            End Select
             Select Case secondCommaToken.Kind()
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("secondCommaToken")
-             End Select
+            End Select
             if whenFalse Is Nothing Then
                 Throw New ArgumentNullException(NameOf(whenFalse))
             End If
@@ -35619,12 +35619,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("whenFalse")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New TernaryConditionalExpressionSyntax(SyntaxKind.TernaryConditionalExpression, Nothing, Nothing, DirectCast(ifKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), condition, DirectCast(firstCommaToken.Node, InternalSyntax.PunctuationSyntax), whenTrue, DirectCast(secondCommaToken.Node, InternalSyntax.PunctuationSyntax), whenFalse, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -35667,7 +35667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.FunctionLambdaHeader
                 Case Else
                     Throw new ArgumentException("subOrFunctionHeader")
-             End Select
+            End Select
             if body Is Nothing Then
                 Throw New ArgumentNullException(NameOf(body))
             End If
@@ -35936,7 +35936,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.YieldStatement
                 Case Else
                     Throw new ArgumentException("body")
-             End Select
+            End Select
             Return New SingleLineLambdaExpressionSyntax(SyntaxKind.SingleLineFunctionLambdaExpression, Nothing, Nothing, subOrFunctionHeader, body)
         End Function
 
@@ -35961,7 +35961,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.FunctionLambdaHeader
                 Case Else
                     Throw new ArgumentException("subOrFunctionHeader")
-             End Select
+            End Select
             if body Is Nothing Then
                 Throw New ArgumentNullException(NameOf(body))
             End If
@@ -36230,7 +36230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.YieldStatement
                 Case Else
                     Throw new ArgumentException("body")
-             End Select
+            End Select
             Return New SingleLineLambdaExpressionSyntax(SyntaxKind.SingleLineSubLambdaExpression, Nothing, Nothing, subOrFunctionHeader, body)
         End Function
 
@@ -36263,7 +36263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.FunctionLambdaHeader
                 Case Else
                     Throw new ArgumentException("subOrFunctionHeader")
-             End Select
+            End Select
             if body Is Nothing Then
                 Throw New ArgumentNullException(NameOf(body))
             End If
@@ -36532,7 +36532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.YieldStatement
                 Case Else
                     Throw new ArgumentException("body")
-             End Select
+            End Select
             Return New SingleLineLambdaExpressionSyntax(kind, Nothing, Nothing, subOrFunctionHeader, body)
         End Function
 
@@ -36562,7 +36562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.FunctionLambdaHeader
                 Case Else
                     Throw new ArgumentException("subOrFunctionHeader")
-             End Select
+            End Select
             if endSubOrFunctionStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endSubOrFunctionStatement))
             End If
@@ -36571,7 +36571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.EndFunctionStatement
                 Case Else
                     Throw new ArgumentException("endSubOrFunctionStatement")
-             End Select
+            End Select
             Return New MultiLineLambdaExpressionSyntax(SyntaxKind.MultiLineFunctionLambdaExpression, Nothing, Nothing, subOrFunctionHeader, statements.Node, endSubOrFunctionStatement)
         End Function
 
@@ -36617,7 +36617,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.FunctionLambdaHeader
                 Case Else
                     Throw new ArgumentException("subOrFunctionHeader")
-             End Select
+            End Select
             if endSubOrFunctionStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endSubOrFunctionStatement))
             End If
@@ -36626,7 +36626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.EndFunctionStatement
                 Case Else
                     Throw new ArgumentException("endSubOrFunctionStatement")
-             End Select
+            End Select
             Return New MultiLineLambdaExpressionSyntax(SyntaxKind.MultiLineSubLambdaExpression, Nothing, Nothing, subOrFunctionHeader, statements.Node, endSubOrFunctionStatement)
         End Function
 
@@ -36680,7 +36680,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.FunctionLambdaHeader
                 Case Else
                     Throw new ArgumentException("subOrFunctionHeader")
-             End Select
+            End Select
             if endSubOrFunctionStatement Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endSubOrFunctionStatement))
             End If
@@ -36689,7 +36689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.EndFunctionStatement
                 Case Else
                     Throw new ArgumentException("endSubOrFunctionStatement")
-             End Select
+            End Select
             Return New MultiLineLambdaExpressionSyntax(kind, Nothing, Nothing, subOrFunctionHeader, statements.Node, endSubOrFunctionStatement)
         End Function
 
@@ -36741,11 +36741,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function SubLambdaHeader(attributeLists As SyntaxList(of AttributeListSyntax), modifiers As SyntaxTokenList, subOrFunctionKeyword As SyntaxToken, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax) As LambdaHeaderSyntax
             Select Case subOrFunctionKeyword.Kind()
-                Case SyntaxKind.SubKeyword:
+                Case SyntaxKind.SubKeyword :
                 Case SyntaxKind.FunctionKeyword
                 Case Else
                     Throw new ArgumentException("subOrFunctionKeyword")
-             End Select
+            End Select
             Return New LambdaHeaderSyntax(SyntaxKind.SubLambdaHeader, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(subOrFunctionKeyword.Node, InternalSyntax.KeywordSyntax), parameterList, asClause)
         End Function
 
@@ -36813,7 +36813,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.FunctionKeyword
                 Case Else
                     Throw new ArgumentException("subOrFunctionKeyword")
-             End Select
+            End Select
             Return New LambdaHeaderSyntax(SyntaxKind.FunctionLambdaHeader, Nothing, Nothing, attributeLists.Node, modifiers.Node, DirectCast(subOrFunctionKeyword.Node, InternalSyntax.KeywordSyntax), parameterList, asClause)
         End Function
 
@@ -36934,12 +36934,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New ArgumentListSyntax(SyntaxKind.ArgumentList, Nothing, Nothing, DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), arguments.Node, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -36976,7 +36976,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.EmptyToken
                 Case Else
                     Throw new ArgumentException("empty")
-             End Select
+            End Select
             Return New OmittedArgumentSyntax(SyntaxKind.OmittedArgument, Nothing, Nothing, DirectCast(empty.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -37112,7 +37112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New SimpleArgumentSyntax(SyntaxKind.SimpleArgument, Nothing, Nothing, nameColonEquals, expression)
         End Function
 
@@ -37146,12 +37146,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Select Case colonEqualsToken.Kind()
                 Case SyntaxKind.ColonEqualsToken
                 Case Else
                     Throw new ArgumentException("colonEqualsToken")
-             End Select
+            End Select
             Return New NameColonEqualsSyntax(SyntaxKind.NameColonEquals, Nothing, Nothing, name, DirectCast(colonEqualsToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -37292,12 +37292,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("lowerBound")
-             End Select
+            End Select
             Select Case toKeyword.Kind()
                 Case SyntaxKind.ToKeyword
                 Case Else
                     Throw new ArgumentException("toKeyword")
-             End Select
+            End Select
             if upperBound Is Nothing Then
                 Throw New ArgumentNullException(NameOf(upperBound))
             End If
@@ -37409,7 +37409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("upperBound")
-             End Select
+            End Select
             Return New RangeArgumentSyntax(SyntaxKind.RangeArgument, Nothing, Nothing, lowerBound, DirectCast(toKeyword.Node, InternalSyntax.KeywordSyntax), upperBound)
         End Function
 
@@ -37481,12 +37481,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ModifiedIdentifier
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Select Case inKeyword.Kind()
                 Case SyntaxKind.InKeyword
                 Case Else
                     Throw new ArgumentException("inKeyword")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -37598,7 +37598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New CollectionRangeVariableSyntax(SyntaxKind.CollectionRangeVariable, Nothing, Nothing, identifier, asClause, DirectCast(inKeyword.Node, InternalSyntax.KeywordSyntax), expression)
         End Function
 
@@ -37759,7 +37759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New ExpressionRangeVariableSyntax(SyntaxKind.ExpressionRangeVariable, Nothing, Nothing, nameEquals, expression)
         End Function
 
@@ -37799,7 +37799,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.GroupAggregation
                 Case Else
                     Throw new ArgumentException("aggregation")
-             End Select
+            End Select
             Return New AggregationRangeVariableSyntax(SyntaxKind.AggregationRangeVariable, Nothing, Nothing, nameEquals, aggregation)
         End Function
 
@@ -37838,12 +37838,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ModifiedIdentifier
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Select Case equalsToken.Kind()
                 Case SyntaxKind.EqualsToken
                 Case Else
                     Throw new ArgumentException("equalsToken")
-             End Select
+            End Select
             Return New VariableNameEqualsSyntax(SyntaxKind.VariableNameEquals, Nothing, Nothing, identifier, asClause, DirectCast(equalsToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -37894,7 +37894,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("functionName")
-             End Select
+            End Select
             Return New FunctionAggregationSyntax(SyntaxKind.FunctionAggregation, Nothing, Nothing, DirectCast(functionName.Node, InternalSyntax.IdentifierTokenSyntax), DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), argument, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -37951,7 +37951,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.GroupKeyword
                 Case Else
                     Throw new ArgumentException("groupKeyword")
-             End Select
+            End Select
             Return New GroupAggregationSyntax(SyntaxKind.GroupAggregation, Nothing, Nothing, DirectCast(groupKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -37982,7 +37982,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.FromKeyword
                 Case Else
                     Throw new ArgumentException("fromKeyword")
-             End Select
+            End Select
             Return New FromClauseSyntax(SyntaxKind.FromClause, Nothing, Nothing, DirectCast(fromKeyword.Node, InternalSyntax.KeywordSyntax), variables.Node)
         End Function
 
@@ -38027,7 +38027,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LetKeyword
                 Case Else
                     Throw new ArgumentException("letKeyword")
-             End Select
+            End Select
             Return New LetClauseSyntax(SyntaxKind.LetClause, Nothing, Nothing, DirectCast(letKeyword.Node, InternalSyntax.KeywordSyntax), variables.Node)
         End Function
 
@@ -38077,12 +38077,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.AggregateKeyword
                 Case Else
                     Throw new ArgumentException("aggregateKeyword")
-             End Select
+            End Select
             Select Case intoKeyword.Kind()
                 Case SyntaxKind.IntoKeyword
                 Case Else
                     Throw new ArgumentException("intoKeyword")
-             End Select
+            End Select
             Return New AggregateClauseSyntax(SyntaxKind.AggregateClause, Nothing, Nothing, DirectCast(aggregateKeyword.Node, InternalSyntax.KeywordSyntax), variables.Node, additionalQueryOperators.Node, DirectCast(intoKeyword.Node, InternalSyntax.KeywordSyntax), aggregationVariables.Node)
         End Function
 
@@ -38129,7 +38129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DistinctKeyword
                 Case Else
                     Throw new ArgumentException("distinctKeyword")
-             End Select
+            End Select
             Return New DistinctClauseSyntax(SyntaxKind.DistinctClause, Nothing, Nothing, DirectCast(distinctKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -38156,7 +38156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.WhereKeyword
                 Case Else
                     Throw new ArgumentException("whereKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -38268,7 +38268,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New WhereClauseSyntax(SyntaxKind.WhereClause, Nothing, Nothing, DirectCast(whereKeyword.Node, InternalSyntax.KeywordSyntax), condition)
         End Function
 
@@ -38299,16 +38299,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function SkipWhileClause(skipOrTakeKeyword As SyntaxToken, whileKeyword As SyntaxToken, condition As ExpressionSyntax) As PartitionWhileClauseSyntax
             Select Case skipOrTakeKeyword.Kind()
-                Case SyntaxKind.SkipKeyword:
+                Case SyntaxKind.SkipKeyword :
                 Case SyntaxKind.TakeKeyword
                 Case Else
                     Throw new ArgumentException("skipOrTakeKeyword")
-             End Select
+            End Select
             Select Case whileKeyword.Kind()
                 Case SyntaxKind.WhileKeyword
                 Case Else
                     Throw new ArgumentException("whileKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -38420,7 +38420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New PartitionWhileClauseSyntax(SyntaxKind.SkipWhileClause, Nothing, Nothing, DirectCast(skipOrTakeKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(whileKeyword.Node, InternalSyntax.KeywordSyntax), condition)
         End Function
 
@@ -38455,12 +38455,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.TakeKeyword
                 Case Else
                     Throw new ArgumentException("skipOrTakeKeyword")
-             End Select
+            End Select
             Select Case whileKeyword.Kind()
                 Case SyntaxKind.WhileKeyword
                 Case Else
                     Throw new ArgumentException("whileKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -38572,7 +38572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New PartitionWhileClauseSyntax(SyntaxKind.TakeWhileClause, Nothing, Nothing, DirectCast(skipOrTakeKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(whileKeyword.Node, InternalSyntax.KeywordSyntax), condition)
         End Function
 
@@ -38617,7 +38617,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.WhileKeyword
                 Case Else
                     Throw new ArgumentException("whileKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -38729,7 +38729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New PartitionWhileClauseSyntax(kind, Nothing, Nothing, DirectCast(skipOrTakeKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(whileKeyword.Node, InternalSyntax.KeywordSyntax), condition)
         End Function
 
@@ -38774,11 +38774,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function SkipClause(skipOrTakeKeyword As SyntaxToken, count As ExpressionSyntax) As PartitionClauseSyntax
             Select Case skipOrTakeKeyword.Kind()
-                Case SyntaxKind.SkipKeyword:
+                Case SyntaxKind.SkipKeyword :
                 Case SyntaxKind.TakeKeyword
                 Case Else
                     Throw new ArgumentException("skipOrTakeKeyword")
-             End Select
+            End Select
             if count Is Nothing Then
                 Throw New ArgumentNullException(NameOf(count))
             End If
@@ -38890,7 +38890,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("count")
-             End Select
+            End Select
             Return New PartitionClauseSyntax(SyntaxKind.SkipClause, Nothing, Nothing, DirectCast(skipOrTakeKeyword.Node, InternalSyntax.KeywordSyntax), count)
         End Function
 
@@ -38920,7 +38920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.TakeKeyword
                 Case Else
                     Throw new ArgumentException("skipOrTakeKeyword")
-             End Select
+            End Select
             if count Is Nothing Then
                 Throw New ArgumentNullException(NameOf(count))
             End If
@@ -39032,7 +39032,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("count")
-             End Select
+            End Select
             Return New PartitionClauseSyntax(SyntaxKind.TakeClause, Nothing, Nothing, DirectCast(skipOrTakeKeyword.Node, InternalSyntax.KeywordSyntax), count)
         End Function
 
@@ -39179,7 +39179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("count")
-             End Select
+            End Select
             Return New PartitionClauseSyntax(kind, Nothing, Nothing, DirectCast(skipOrTakeKeyword.Node, InternalSyntax.KeywordSyntax), count)
         End Function
 
@@ -39218,17 +39218,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.GroupKeyword
                 Case Else
                     Throw new ArgumentException("groupKeyword")
-             End Select
+            End Select
             Select Case byKeyword.Kind()
                 Case SyntaxKind.ByKeyword
                 Case Else
                     Throw new ArgumentException("byKeyword")
-             End Select
+            End Select
             Select Case intoKeyword.Kind()
                 Case SyntaxKind.IntoKeyword
                 Case Else
                     Throw new ArgumentException("intoKeyword")
-             End Select
+            End Select
             Return New GroupByClauseSyntax(SyntaxKind.GroupByClause, Nothing, Nothing, DirectCast(groupKeyword.Node, InternalSyntax.KeywordSyntax), items.Node, DirectCast(byKeyword.Node, InternalSyntax.KeywordSyntax), keys.Node, DirectCast(intoKeyword.Node, InternalSyntax.KeywordSyntax), aggregationVariables.Node)
         End Function
 
@@ -39389,12 +39389,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case equalsKeyword.Kind()
                 Case SyntaxKind.EqualsKeyword
                 Case Else
                     Throw new ArgumentException("equalsKeyword")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -39506,7 +39506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New JoinConditionSyntax(SyntaxKind.JoinCondition, Nothing, Nothing, left, DirectCast(equalsKeyword.Node, InternalSyntax.KeywordSyntax), right)
         End Function
 
@@ -39549,12 +39549,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.JoinKeyword
                 Case Else
                     Throw new ArgumentException("joinKeyword")
-             End Select
+            End Select
             Select Case onKeyword.Kind()
                 Case SyntaxKind.OnKeyword
                 Case Else
                     Throw new ArgumentException("onKeyword")
-             End Select
+            End Select
             Return New SimpleJoinClauseSyntax(SyntaxKind.SimpleJoinClause, Nothing, Nothing, DirectCast(joinKeyword.Node, InternalSyntax.KeywordSyntax), joinedVariables.Node, additionalJoins.Node, DirectCast(onKeyword.Node, InternalSyntax.KeywordSyntax), joinConditions.Node)
         End Function
 
@@ -39625,22 +39625,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.GroupKeyword
                 Case Else
                     Throw new ArgumentException("groupKeyword")
-             End Select
+            End Select
             Select Case joinKeyword.Kind()
                 Case SyntaxKind.JoinKeyword
                 Case Else
                     Throw new ArgumentException("joinKeyword")
-             End Select
+            End Select
             Select Case onKeyword.Kind()
                 Case SyntaxKind.OnKeyword
                 Case Else
                     Throw new ArgumentException("onKeyword")
-             End Select
+            End Select
             Select Case intoKeyword.Kind()
                 Case SyntaxKind.IntoKeyword
                 Case Else
                     Throw new ArgumentException("intoKeyword")
-             End Select
+            End Select
             Return New GroupJoinClauseSyntax(SyntaxKind.GroupJoinClause, Nothing, Nothing, DirectCast(groupKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(joinKeyword.Node, InternalSyntax.KeywordSyntax), joinedVariables.Node, additionalJoins.Node, DirectCast(onKeyword.Node, InternalSyntax.KeywordSyntax), joinConditions.Node, DirectCast(intoKeyword.Node, InternalSyntax.KeywordSyntax), aggregationVariables.Node)
         End Function
 
@@ -39701,12 +39701,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OrderKeyword
                 Case Else
                     Throw new ArgumentException("orderKeyword")
-             End Select
+            End Select
             Select Case byKeyword.Kind()
                 Case SyntaxKind.ByKeyword
                 Case Else
                     Throw new ArgumentException("byKeyword")
-             End Select
+            End Select
             Return New OrderByClauseSyntax(SyntaxKind.OrderByClause, Nothing, Nothing, DirectCast(orderKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(byKeyword.Node, InternalSyntax.KeywordSyntax), orderings.Node)
         End Function
 
@@ -39856,7 +39856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New OrderingSyntax(SyntaxKind.AscendingOrdering, Nothing, Nothing, expression, DirectCast(ascendingOrDescendingKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -39996,7 +39996,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New OrderingSyntax(SyntaxKind.DescendingOrdering, Nothing, Nothing, expression, DirectCast(ascendingOrDescendingKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -40143,7 +40143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New OrderingSyntax(kind, Nothing, Nothing, expression, DirectCast(ascendingOrDescendingKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -40189,7 +40189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.SelectKeyword
                 Case Else
                     Throw new ArgumentException("selectKeyword")
-             End Select
+            End Select
             Return New SelectClauseSyntax(SyntaxKind.SelectClause, Nothing, Nothing, DirectCast(selectKeyword.Node, InternalSyntax.KeywordSyntax), variables.Node)
         End Function
 
@@ -40229,7 +40229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlDeclaration
                 Case Else
                     Throw new ArgumentException("declaration")
-             End Select
+            End Select
             if root Is Nothing Then
                 Throw New ArgumentNullException(NameOf(root))
             End If
@@ -40239,7 +40239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.XmlEmbeddedExpression
                 Case Else
                     Throw new ArgumentException("root")
-             End Select
+            End Select
             Return New XmlDocumentSyntax(SyntaxKind.XmlDocument, Nothing, Nothing, declaration, precedingMisc.Node, root, followingMisc.Node)
         End Function
 
@@ -40260,12 +40260,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanQuestionToken
                 Case Else
                     Throw new ArgumentException("lessThanQuestionToken")
-             End Select
+            End Select
             Select Case xmlKeyword.Kind()
                 Case SyntaxKind.XmlKeyword
                 Case Else
                     Throw new ArgumentException("xmlKeyword")
-             End Select
+            End Select
             if version Is Nothing Then
                 Throw New ArgumentNullException(NameOf(version))
             End If
@@ -40273,12 +40273,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlDeclarationOption
                 Case Else
                     Throw new ArgumentException("version")
-             End Select
+            End Select
             Select Case questionGreaterThanToken.Kind()
                 Case SyntaxKind.QuestionGreaterThanToken
                 Case Else
                     Throw new ArgumentException("questionGreaterThanToken")
-             End Select
+            End Select
             Return New XmlDeclarationSyntax(SyntaxKind.XmlDeclaration, Nothing, Nothing, DirectCast(lessThanQuestionToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(xmlKeyword.Node, InternalSyntax.KeywordSyntax), version, encoding, standalone, DirectCast(questionGreaterThanToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -40308,12 +40308,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlNameToken
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Select Case equals.Kind()
                 Case SyntaxKind.EqualsToken
                 Case Else
                     Throw new ArgumentException("equals")
-             End Select
+            End Select
             if value Is Nothing Then
                 Throw New ArgumentNullException(NameOf(value))
             End If
@@ -40321,7 +40321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlString
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New XmlDeclarationOptionSyntax(SyntaxKind.XmlDeclarationOption, Nothing, Nothing, DirectCast(name.Node, InternalSyntax.XmlNameTokenSyntax), DirectCast(equals.Node, InternalSyntax.PunctuationSyntax), value)
         End Function
 
@@ -40346,7 +40346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlElementStartTag
                 Case Else
                     Throw new ArgumentException("startTag")
-             End Select
+            End Select
             if endTag Is Nothing Then
                 Throw New ArgumentNullException(NameOf(endTag))
             End If
@@ -40354,7 +40354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlElementEndTag
                 Case Else
                     Throw new ArgumentException("endTag")
-             End Select
+            End Select
             Return New XmlElementSyntax(SyntaxKind.XmlElement, Nothing, Nothing, startTag, content.Node, endTag)
         End Function
 
@@ -40395,7 +40395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanToken
                 Case Else
                     Throw new ArgumentException("lessThanToken")
-             End Select
+            End Select
             if name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -40404,12 +40404,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.XmlEmbeddedExpression
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Select Case greaterThanToken.Kind()
                 Case SyntaxKind.GreaterThanToken
                 Case Else
                     Throw new ArgumentException("greaterThanToken")
-             End Select
+            End Select
             Return New XmlElementStartTagSyntax(SyntaxKind.XmlElementStartTag, Nothing, Nothing, DirectCast(lessThanToken.Node, InternalSyntax.PunctuationSyntax), name, attributes.Node, DirectCast(greaterThanToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -40438,12 +40438,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanSlashToken
                 Case Else
                     Throw new ArgumentException("lessThanSlashToken")
-             End Select
+            End Select
             Select Case greaterThanToken.Kind()
                 Case SyntaxKind.GreaterThanToken
                 Case Else
                     Throw new ArgumentException("greaterThanToken")
-             End Select
+            End Select
             Return New XmlElementEndTagSyntax(SyntaxKind.XmlElementEndTag, Nothing, Nothing, DirectCast(lessThanSlashToken.Node, InternalSyntax.PunctuationSyntax), name, DirectCast(greaterThanToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -40472,7 +40472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanToken
                 Case Else
                     Throw new ArgumentException("lessThanToken")
-             End Select
+            End Select
             if name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -40481,12 +40481,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.XmlEmbeddedExpression
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Select Case slashGreaterThanToken.Kind()
                 Case SyntaxKind.SlashGreaterThanToken
                 Case Else
                     Throw new ArgumentException("slashGreaterThanToken")
-             End Select
+            End Select
             Return New XmlEmptyElementSyntax(SyntaxKind.XmlEmptyElement, Nothing, Nothing, DirectCast(lessThanToken.Node, InternalSyntax.PunctuationSyntax), name, attributes.Node, DirectCast(slashGreaterThanToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -40519,12 +40519,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.XmlEmbeddedExpression
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Select Case equalsToken.Kind()
                 Case SyntaxKind.EqualsToken
                 Case Else
                     Throw new ArgumentException("equalsToken")
-             End Select
+            End Select
             if value Is Nothing Then
                 Throw New ArgumentNullException(NameOf(value))
             End If
@@ -40533,7 +40533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.XmlEmbeddedExpression
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New XmlAttributeSyntax(SyntaxKind.XmlAttribute, Nothing, Nothing, name, DirectCast(equalsToken.Node, InternalSyntax.PunctuationSyntax), value)
         End Function
 
@@ -40552,17 +40552,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function XmlString(startQuoteToken As SyntaxToken, textTokens As SyntaxTokenList, endQuoteToken As SyntaxToken) As XmlStringSyntax
             Select Case startQuoteToken.Kind()
-                Case SyntaxKind.DoubleQuoteToken:
+                Case SyntaxKind.DoubleQuoteToken :
                 Case SyntaxKind.SingleQuoteToken
                 Case Else
                     Throw new ArgumentException("startQuoteToken")
-             End Select
+            End Select
             Select Case endQuoteToken.Kind()
-                Case SyntaxKind.DoubleQuoteToken:
+                Case SyntaxKind.DoubleQuoteToken :
                 Case SyntaxKind.SingleQuoteToken
                 Case Else
                     Throw new ArgumentException("endQuoteToken")
-             End Select
+            End Select
             Return New XmlStringSyntax(SyntaxKind.XmlString, Nothing, Nothing, DirectCast(startQuoteToken.Node, InternalSyntax.PunctuationSyntax), textTokens.Node, DirectCast(endQuoteToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -40584,7 +40584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlNameToken
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New XmlPrefixNameSyntax(SyntaxKind.XmlPrefixName, Nothing, Nothing, DirectCast(name.Node, InternalSyntax.XmlNameTokenSyntax))
         End Function
 
@@ -40607,7 +40607,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlNameToken
                 Case Else
                     Throw new ArgumentException("localName")
-             End Select
+            End Select
             Return New XmlNameSyntax(SyntaxKind.XmlName, Nothing, Nothing, prefix, DirectCast(localName.Node, InternalSyntax.XmlNameTokenSyntax))
         End Function
 
@@ -40632,7 +40632,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanToken
                 Case Else
                     Throw new ArgumentException("lessThanToken")
-             End Select
+            End Select
             if name Is Nothing Then
                 Throw New ArgumentNullException(NameOf(name))
             End If
@@ -40640,12 +40640,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Select Case greaterThanToken.Kind()
                 Case SyntaxKind.GreaterThanToken
                 Case Else
                     Throw new ArgumentException("greaterThanToken")
-             End Select
+            End Select
             Return New XmlBracketedNameSyntax(SyntaxKind.XmlBracketedName, Nothing, Nothing, DirectCast(lessThanToken.Node, InternalSyntax.PunctuationSyntax), name, DirectCast(greaterThanToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -40668,12 +40668,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlNameToken
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Select Case colonToken.Kind()
                 Case SyntaxKind.ColonToken
                 Case Else
                     Throw new ArgumentException("colonToken")
-             End Select
+            End Select
             Return New XmlPrefixSyntax(SyntaxKind.XmlPrefix, Nothing, Nothing, DirectCast(name.Node, InternalSyntax.XmlNameTokenSyntax), DirectCast(colonToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -40695,12 +40695,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanExclamationMinusMinusToken
                 Case Else
                     Throw new ArgumentException("lessThanExclamationMinusMinusToken")
-             End Select
+            End Select
             Select Case minusMinusGreaterThanToken.Kind()
                 Case SyntaxKind.MinusMinusGreaterThanToken
                 Case Else
                     Throw new ArgumentException("minusMinusGreaterThanToken")
-             End Select
+            End Select
             Return New XmlCommentSyntax(SyntaxKind.XmlComment, Nothing, Nothing, DirectCast(lessThanExclamationMinusMinusToken.Node, InternalSyntax.PunctuationSyntax), textTokens.Node, DirectCast(minusMinusGreaterThanToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -40723,17 +40723,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanQuestionToken
                 Case Else
                     Throw new ArgumentException("lessThanQuestionToken")
-             End Select
+            End Select
             Select Case name.Kind()
                 Case SyntaxKind.XmlNameToken
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Select Case questionGreaterThanToken.Kind()
                 Case SyntaxKind.QuestionGreaterThanToken
                 Case Else
                     Throw new ArgumentException("questionGreaterThanToken")
-             End Select
+            End Select
             Return New XmlProcessingInstructionSyntax(SyntaxKind.XmlProcessingInstruction, Nothing, Nothing, DirectCast(lessThanQuestionToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(name.Node, InternalSyntax.XmlNameTokenSyntax), textTokens.Node, DirectCast(questionGreaterThanToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -40755,12 +40755,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.BeginCDataToken
                 Case Else
                     Throw new ArgumentException("beginCDataToken")
-             End Select
+            End Select
             Select Case endCDataToken.Kind()
                 Case SyntaxKind.EndCDataToken
                 Case Else
                     Throw new ArgumentException("endCDataToken")
-             End Select
+            End Select
             Return New XmlCDataSectionSyntax(SyntaxKind.XmlCDataSection, Nothing, Nothing, DirectCast(beginCDataToken.Node, InternalSyntax.PunctuationSyntax), textTokens.Node, DirectCast(endCDataToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -40782,7 +40782,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.LessThanPercentEqualsToken
                 Case Else
                     Throw new ArgumentException("lessThanPercentEqualsToken")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -40894,12 +40894,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Select Case percentGreaterThanToken.Kind()
                 Case SyntaxKind.PercentGreaterThanToken
                 Case Else
                     Throw new ArgumentException("percentGreaterThanToken")
-             End Select
+            End Select
             Return New XmlEmbeddedExpressionSyntax(SyntaxKind.XmlEmbeddedExpression, Nothing, Nothing, DirectCast(lessThanPercentEqualsToken.Node, InternalSyntax.PunctuationSyntax), expression, DirectCast(percentGreaterThanToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -40939,7 +40939,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.TupleType
                 Case Else
                     Throw new ArgumentException("elementType")
-             End Select
+            End Select
             Return New ArrayTypeSyntax(SyntaxKind.ArrayType, Nothing, Nothing, elementType, rankSpecifiers.Node)
         End Function
 
@@ -40981,12 +40981,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.TupleType
                 Case Else
                     Throw new ArgumentException("elementType")
-             End Select
+            End Select
             Select Case questionMarkToken.Kind()
                 Case SyntaxKind.QuestionToken
                 Case Else
                     Throw new ArgumentException("questionMarkToken")
-             End Select
+            End Select
             Return New NullableTypeSyntax(SyntaxKind.NullableType, Nothing, Nothing, elementType, DirectCast(questionMarkToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -41012,25 +41012,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Public Shared Function PredefinedType(keyword As SyntaxToken) As PredefinedTypeSyntax
             Select Case keyword.Kind()
-                Case SyntaxKind.ObjectKeyword:
-                Case SyntaxKind.BooleanKeyword:
-                Case SyntaxKind.DateKeyword:
-                Case SyntaxKind.CharKeyword:
-                Case SyntaxKind.StringKeyword:
-                Case SyntaxKind.DecimalKeyword:
-                Case SyntaxKind.ByteKeyword:
-                Case SyntaxKind.SByteKeyword:
-                Case SyntaxKind.UShortKeyword:
-                Case SyntaxKind.ShortKeyword:
-                Case SyntaxKind.UIntegerKeyword:
-                Case SyntaxKind.IntegerKeyword:
-                Case SyntaxKind.ULongKeyword:
-                Case SyntaxKind.LongKeyword:
-                Case SyntaxKind.SingleKeyword:
+                Case SyntaxKind.ObjectKeyword :
+                Case SyntaxKind.BooleanKeyword :
+                Case SyntaxKind.DateKeyword :
+                Case SyntaxKind.CharKeyword :
+                Case SyntaxKind.StringKeyword :
+                Case SyntaxKind.DecimalKeyword :
+                Case SyntaxKind.ByteKeyword :
+                Case SyntaxKind.SByteKeyword :
+                Case SyntaxKind.UShortKeyword :
+                Case SyntaxKind.ShortKeyword :
+                Case SyntaxKind.UIntegerKeyword :
+                Case SyntaxKind.IntegerKeyword :
+                Case SyntaxKind.ULongKeyword :
+                Case SyntaxKind.LongKeyword :
+                Case SyntaxKind.SingleKeyword :
                 Case SyntaxKind.DoubleKeyword
                 Case Else
                     Throw new ArgumentException("keyword")
-             End Select
+            End Select
             Return New PredefinedTypeSyntax(SyntaxKind.PredefinedType, Nothing, Nothing, DirectCast(keyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -41047,7 +41047,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             Return New IdentifierNameSyntax(SyntaxKind.IdentifierName, Nothing, Nothing, DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax))
         End Function
 
@@ -41079,7 +41079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("identifier")
-             End Select
+            End Select
             if typeArgumentList Is Nothing Then
                 Throw New ArgumentNullException(NameOf(typeArgumentList))
             End If
@@ -41087,7 +41087,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.TypeArgumentList
                 Case Else
                     Throw new ArgumentException("typeArgumentList")
-             End Select
+            End Select
             Return New GenericNameSyntax(SyntaxKind.GenericName, Nothing, Nothing, DirectCast(identifier.Node, InternalSyntax.IdentifierTokenSyntax), typeArgumentList)
         End Function
 
@@ -41134,12 +41134,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case dotToken.Kind()
                 Case SyntaxKind.DotToken
                 Case Else
                     Throw new ArgumentException("dotToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -41148,7 +41148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.GenericName
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New QualifiedNameSyntax(SyntaxKind.QualifiedName, Nothing, Nothing, left, DirectCast(dotToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -41180,7 +41180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.GlobalKeyword
                 Case Else
                     Throw new ArgumentException("globalKeyword")
-             End Select
+            End Select
             Return New GlobalNameSyntax(SyntaxKind.GlobalName, Nothing, Nothing, DirectCast(globalKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -41213,17 +41213,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             Select Case ofKeyword.Kind()
                 Case SyntaxKind.OfKeyword
                 Case Else
                     Throw new ArgumentException("ofKeyword")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New TypeArgumentListSyntax(SyntaxKind.TypeArgumentList, Nothing, Nothing, DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(ofKeyword.Node, InternalSyntax.KeywordSyntax), arguments.Node, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -41271,7 +41271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New CrefReferenceSyntax(SyntaxKind.CrefReference, Nothing, Nothing, name, signature, asClause)
         End Function
 
@@ -41294,12 +41294,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New CrefSignatureSyntax(SyntaxKind.CrefSignature, Nothing, Nothing, DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), argumentTypes.Node, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -41337,35 +41337,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OperatorKeyword
                 Case Else
                     Throw new ArgumentException("operatorKeyword")
-             End Select
+            End Select
             Select Case operatorToken.Kind()
-                Case SyntaxKind.CTypeKeyword:
-                Case SyntaxKind.IsTrueKeyword:
-                Case SyntaxKind.IsFalseKeyword:
-                Case SyntaxKind.NotKeyword:
-                Case SyntaxKind.PlusToken:
-                Case SyntaxKind.MinusToken:
-                Case SyntaxKind.AsteriskToken:
-                Case SyntaxKind.SlashToken:
-                Case SyntaxKind.CaretToken:
-                Case SyntaxKind.BackslashToken:
-                Case SyntaxKind.AmpersandToken:
-                Case SyntaxKind.LessThanLessThanToken:
-                Case SyntaxKind.GreaterThanGreaterThanToken:
-                Case SyntaxKind.ModKeyword:
-                Case SyntaxKind.OrKeyword:
-                Case SyntaxKind.XorKeyword:
-                Case SyntaxKind.AndKeyword:
-                Case SyntaxKind.LikeKeyword:
-                Case SyntaxKind.EqualsToken:
-                Case SyntaxKind.LessThanGreaterThanToken:
-                Case SyntaxKind.LessThanToken:
-                Case SyntaxKind.LessThanEqualsToken:
-                Case SyntaxKind.GreaterThanEqualsToken:
+                Case SyntaxKind.CTypeKeyword :
+                Case SyntaxKind.IsTrueKeyword :
+                Case SyntaxKind.IsFalseKeyword :
+                Case SyntaxKind.NotKeyword :
+                Case SyntaxKind.PlusToken :
+                Case SyntaxKind.MinusToken :
+                Case SyntaxKind.AsteriskToken :
+                Case SyntaxKind.SlashToken :
+                Case SyntaxKind.CaretToken :
+                Case SyntaxKind.BackslashToken :
+                Case SyntaxKind.AmpersandToken :
+                Case SyntaxKind.LessThanLessThanToken :
+                Case SyntaxKind.GreaterThanGreaterThanToken :
+                Case SyntaxKind.ModKeyword :
+                Case SyntaxKind.OrKeyword :
+                Case SyntaxKind.XorKeyword :
+                Case SyntaxKind.AndKeyword :
+                Case SyntaxKind.LikeKeyword :
+                Case SyntaxKind.EqualsToken :
+                Case SyntaxKind.LessThanGreaterThanToken :
+                Case SyntaxKind.LessThanToken :
+                Case SyntaxKind.LessThanEqualsToken :
+                Case SyntaxKind.GreaterThanEqualsToken :
                 Case SyntaxKind.GreaterThanToken
                 Case Else
                     Throw new ArgumentException("operatorToken")
-             End Select
+            End Select
             Return New CrefOperatorReferenceSyntax(SyntaxKind.CrefOperatorReference, Nothing, Nothing, DirectCast(operatorKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(operatorToken.Node, InternalSyntax.SyntaxToken))
         End Function
 
@@ -41388,12 +41388,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.QualifiedCrefOperatorReference
                 Case Else
                     Throw new ArgumentException("left")
-             End Select
+            End Select
             Select Case dotToken.Kind()
                 Case SyntaxKind.DotToken
                 Case Else
                     Throw new ArgumentException("dotToken")
-             End Select
+            End Select
             if right Is Nothing Then
                 Throw New ArgumentNullException(NameOf(right))
             End If
@@ -41401,7 +41401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CrefOperatorReference
                 Case Else
                     Throw new ArgumentException("right")
-             End Select
+            End Select
             Return New QualifiedCrefOperatorReferenceSyntax(SyntaxKind.QualifiedCrefOperatorReference, Nothing, Nothing, left, DirectCast(dotToken.Node, InternalSyntax.PunctuationSyntax), right)
         End Function
 
@@ -41425,7 +41425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.YieldKeyword
                 Case Else
                     Throw new ArgumentException("yieldKeyword")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -41537,7 +41537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New YieldStatementSyntax(SyntaxKind.YieldStatement, Nothing, Nothing, DirectCast(yieldKeyword.Node, InternalSyntax.KeywordSyntax), expression)
         End Function
 
@@ -41567,7 +41567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.AwaitKeyword
                 Case Else
                     Throw new ArgumentException("awaitKeyword")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -41679,7 +41679,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Return New AwaitExpressionSyntax(SyntaxKind.AwaitExpression, Nothing, Nothing, DirectCast(awaitKeyword.Node, InternalSyntax.KeywordSyntax), expression)
         End Function
 
@@ -41900,7 +41900,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an Date literal token.
+        ''' Represents a Date literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -41914,7 +41914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an Date literal token.
+        ''' Represents a Date literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -41925,7 +41925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -41939,7 +41939,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -41950,7 +41950,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -41964,7 +41964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
         ''' <summary>
-        ''' Represents an string literal token.
+        ''' Represents a string literal token.
         ''' </summary>
         ''' <param name="text">
         ''' The actual text of this token.
@@ -42026,18 +42026,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Select Case equalsToken.Kind()
                 Case SyntaxKind.EqualsToken
                 Case Else
                     Throw new ArgumentException("equalsToken")
-             End Select
+            End Select
             Select Case startQuoteToken.Kind()
-                Case SyntaxKind.DoubleQuoteToken:
+                Case SyntaxKind.DoubleQuoteToken :
                 Case SyntaxKind.SingleQuoteToken
                 Case Else
                     Throw new ArgumentException("startQuoteToken")
-             End Select
+            End Select
             if reference Is Nothing Then
                 Throw New ArgumentNullException(NameOf(reference))
             End If
@@ -42045,13 +42045,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CrefReference
                 Case Else
                     Throw new ArgumentException("reference")
-             End Select
+            End Select
             Select Case endQuoteToken.Kind()
-                Case SyntaxKind.DoubleQuoteToken:
+                Case SyntaxKind.DoubleQuoteToken :
                 Case SyntaxKind.SingleQuoteToken
                 Case Else
                     Throw new ArgumentException("endQuoteToken")
-             End Select
+            End Select
             Return New XmlCrefAttributeSyntax(SyntaxKind.XmlCrefAttribute, Nothing, Nothing, name, DirectCast(equalsToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(startQuoteToken.Node, InternalSyntax.PunctuationSyntax), reference, DirectCast(endQuoteToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -42079,18 +42079,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.XmlName
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Select Case equalsToken.Kind()
                 Case SyntaxKind.EqualsToken
                 Case Else
                     Throw new ArgumentException("equalsToken")
-             End Select
+            End Select
             Select Case startQuoteToken.Kind()
-                Case SyntaxKind.DoubleQuoteToken:
+                Case SyntaxKind.DoubleQuoteToken :
                 Case SyntaxKind.SingleQuoteToken
                 Case Else
                     Throw new ArgumentException("startQuoteToken")
-             End Select
+            End Select
             if reference Is Nothing Then
                 Throw New ArgumentNullException(NameOf(reference))
             End If
@@ -42098,13 +42098,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierName
                 Case Else
                     Throw new ArgumentException("reference")
-             End Select
+            End Select
             Select Case endQuoteToken.Kind()
-                Case SyntaxKind.DoubleQuoteToken:
+                Case SyntaxKind.DoubleQuoteToken :
                 Case SyntaxKind.SingleQuoteToken
                 Case Else
                     Throw new ArgumentException("endQuoteToken")
-             End Select
+            End Select
             Return New XmlNameAttributeSyntax(SyntaxKind.XmlNameAttribute, Nothing, Nothing, name, DirectCast(equalsToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(startQuoteToken.Node, InternalSyntax.PunctuationSyntax), reference, DirectCast(endQuoteToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -42137,7 +42137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.QuestionToken
                 Case Else
                     Throw new ArgumentException("questionMarkToken")
-             End Select
+            End Select
             if whenNotNull Is Nothing Then
                 Throw New ArgumentNullException(NameOf(whenNotNull))
             End If
@@ -42151,7 +42151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.ConditionalAccessExpression
                 Case Else
                     Throw new ArgumentException("whenNotNull")
-             End Select
+            End Select
             Return New ConditionalAccessExpressionSyntax(SyntaxKind.ConditionalAccessExpression, Nothing, Nothing, expression, DirectCast(questionMarkToken.Node, InternalSyntax.PunctuationSyntax), whenNotNull)
         End Function
 
@@ -42203,12 +42203,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.NameOfKeyword
                 Case Else
                     Throw new ArgumentException("nameOfKeyword")
-             End Select
+            End Select
             Select Case openParenToken.Kind()
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             if argument Is Nothing Then
                 Throw New ArgumentNullException(NameOf(argument))
             End If
@@ -42320,12 +42320,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("argument")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New NameOfExpressionSyntax(SyntaxKind.NameOfExpression, Nothing, Nothing, DirectCast(nameOfKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), argument, DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -42358,12 +42358,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.DollarSignDoubleQuoteToken
                 Case Else
                     Throw new ArgumentException("dollarSignDoubleQuoteToken")
-             End Select
+            End Select
             Select Case doubleQuoteToken.Kind()
                 Case SyntaxKind.DoubleQuoteToken
                 Case Else
                     Throw new ArgumentException("doubleQuoteToken")
-             End Select
+            End Select
             Return New InterpolatedStringExpressionSyntax(SyntaxKind.InterpolatedStringExpression, Nothing, Nothing, DirectCast(dollarSignDoubleQuoteToken.Node, InternalSyntax.PunctuationSyntax), contents.Node, DirectCast(doubleQuoteToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -42401,7 +42401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.InterpolatedStringTextToken
                 Case Else
                     Throw new ArgumentException("textToken")
-             End Select
+            End Select
             Return New InterpolatedStringTextSyntax(SyntaxKind.InterpolatedStringText, Nothing, Nothing, DirectCast(textToken.Node, InternalSyntax.InterpolatedStringTextTokenSyntax))
         End Function
 
@@ -42439,7 +42439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OpenBraceToken
                 Case Else
                     Throw new ArgumentException("openBraceToken")
-             End Select
+            End Select
             if expression Is Nothing Then
                 Throw New ArgumentNullException(NameOf(expression))
             End If
@@ -42551,12 +42551,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("expression")
-             End Select
+            End Select
             Select Case closeBraceToken.Kind()
                 Case SyntaxKind.CloseBraceToken
                 Case Else
                     Throw new ArgumentException("closeBraceToken")
-             End Select
+            End Select
             Return New InterpolationSyntax(SyntaxKind.Interpolation, Nothing, Nothing, DirectCast(openBraceToken.Node, InternalSyntax.PunctuationSyntax), expression, alignmentClause, formatClause, DirectCast(closeBraceToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -42605,7 +42605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("commaToken")
-             End Select
+            End Select
             if value Is Nothing Then
                 Throw New ArgumentNullException(NameOf(value))
             End If
@@ -42717,7 +42717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New InterpolationAlignmentClauseSyntax(SyntaxKind.InterpolationAlignmentClause, Nothing, Nothing, DirectCast(commaToken.Node, InternalSyntax.PunctuationSyntax), value)
         End Function
 
@@ -42749,12 +42749,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ColonToken
                 Case Else
                     Throw new ArgumentException("colonToken")
-             End Select
+            End Select
             Select Case formatStringToken.Kind()
                 Case SyntaxKind.InterpolatedStringTextToken
                 Case Else
                     Throw new ArgumentException("formatStringToken")
-             End Select
+            End Select
             Return New InterpolationFormatClauseSyntax(SyntaxKind.InterpolationFormatClause, Nothing, Nothing, DirectCast(colonToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(formatStringToken.Node, InternalSyntax.InterpolatedStringTextTokenSyntax))
         End Function
 
@@ -42945,22 +42945,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case constKeyword.Kind()
                 Case SyntaxKind.ConstKeyword
                 Case Else
                     Throw new ArgumentException("constKeyword")
-             End Select
+            End Select
             Select Case name.Kind()
                 Case SyntaxKind.IdentifierToken
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Select Case equalsToken.Kind()
                 Case SyntaxKind.EqualsToken
                 Case Else
                     Throw new ArgumentException("equalsToken")
-             End Select
+            End Select
             if value Is Nothing Then
                 Throw New ArgumentNullException(NameOf(value))
             End If
@@ -43072,7 +43072,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("value")
-             End Select
+            End Select
             Return New ConstDirectiveTriviaSyntax(SyntaxKind.ConstDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(constKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(name.Node, InternalSyntax.IdentifierTokenSyntax), DirectCast(equalsToken.Node, InternalSyntax.PunctuationSyntax), value)
         End Function
 
@@ -43119,13 +43119,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case ifOrElseIfKeyword.Kind()
-                Case SyntaxKind.IfKeyword:
+                Case SyntaxKind.IfKeyword :
                 Case SyntaxKind.ElseIfKeyword
                 Case Else
                     Throw new ArgumentException("ifOrElseIfKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -43237,7 +43237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New IfDirectiveTriviaSyntax(SyntaxKind.IfDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(elseKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(ifOrElseIfKeyword.Node, InternalSyntax.KeywordSyntax), condition, DirectCast(thenKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -43263,13 +43263,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case ifOrElseIfKeyword.Kind()
-                Case SyntaxKind.IfKeyword:
+                Case SyntaxKind.IfKeyword :
                 Case SyntaxKind.ElseIfKeyword
                 Case Else
                     Throw new ArgumentException("ifOrElseIfKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -43381,7 +43381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New IfDirectiveTriviaSyntax(SyntaxKind.ElseIfDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(elseKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(ifOrElseIfKeyword.Node, InternalSyntax.KeywordSyntax), condition, DirectCast(thenKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -43414,13 +43414,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case ifOrElseIfKeyword.Kind()
-                Case SyntaxKind.IfKeyword:
+                Case SyntaxKind.IfKeyword :
                 Case SyntaxKind.ElseIfKeyword
                 Case Else
                     Throw new ArgumentException("ifOrElseIfKeyword")
-             End Select
+            End Select
             if condition Is Nothing Then
                 Throw New ArgumentNullException(NameOf(condition))
             End If
@@ -43532,7 +43532,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.InterpolatedStringExpression
                 Case Else
                     Throw new ArgumentException("condition")
-             End Select
+            End Select
             Return New IfDirectiveTriviaSyntax(kind, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(elseKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(ifOrElseIfKeyword.Node, InternalSyntax.KeywordSyntax), condition, DirectCast(thenKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -43561,12 +43561,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case elseKeyword.Kind()
                 Case SyntaxKind.ElseKeyword
                 Case Else
                     Throw new ArgumentException("elseKeyword")
-             End Select
+            End Select
             Return New ElseDirectiveTriviaSyntax(SyntaxKind.ElseDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(elseKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -43590,17 +43590,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case endKeyword.Kind()
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case ifKeyword.Kind()
                 Case SyntaxKind.IfKeyword
                 Case Else
                     Throw new ArgumentException("ifKeyword")
-             End Select
+            End Select
             Return New EndIfDirectiveTriviaSyntax(SyntaxKind.EndIfDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(ifKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -43630,17 +43630,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case regionKeyword.Kind()
                 Case SyntaxKind.RegionKeyword
                 Case Else
                     Throw new ArgumentException("regionKeyword")
-             End Select
+            End Select
             Select Case name.Kind()
                 Case SyntaxKind.StringLiteralToken
                 Case Else
                     Throw new ArgumentException("name")
-             End Select
+            End Select
             Return New RegionDirectiveTriviaSyntax(SyntaxKind.RegionDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(regionKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(name.Node, InternalSyntax.StringLiteralTokenSyntax))
         End Function
 
@@ -43670,17 +43670,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case endKeyword.Kind()
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case regionKeyword.Kind()
                 Case SyntaxKind.RegionKeyword
                 Case Else
                     Throw new ArgumentException("regionKeyword")
-             End Select
+            End Select
             Return New EndRegionDirectiveTriviaSyntax(SyntaxKind.EndRegionDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(regionKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -43705,37 +43705,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case externalSourceKeyword.Kind()
                 Case SyntaxKind.ExternalSourceKeyword
                 Case Else
                     Throw new ArgumentException("externalSourceKeyword")
-             End Select
+            End Select
             Select Case openParenToken.Kind()
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             Select Case externalSource.Kind()
                 Case SyntaxKind.StringLiteralToken
                 Case Else
                     Throw new ArgumentException("externalSource")
-             End Select
+            End Select
             Select Case commaToken.Kind()
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("commaToken")
-             End Select
+            End Select
             Select Case lineStart.Kind()
                 Case SyntaxKind.IntegerLiteralToken
                 Case Else
                     Throw new ArgumentException("lineStart")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New ExternalSourceDirectiveTriviaSyntax(SyntaxKind.ExternalSourceDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(externalSourceKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(externalSource.Node, InternalSyntax.StringLiteralTokenSyntax), DirectCast(commaToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(lineStart.Node, InternalSyntax.IntegerLiteralTokenSyntax), DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -43760,17 +43760,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case endKeyword.Kind()
                 Case SyntaxKind.EndKeyword
                 Case Else
                     Throw new ArgumentException("endKeyword")
-             End Select
+            End Select
             Select Case externalSourceKeyword.Kind()
                 Case SyntaxKind.ExternalSourceKeyword
                 Case Else
                     Throw new ArgumentException("externalSourceKeyword")
-             End Select
+            End Select
             Return New EndExternalSourceDirectiveTriviaSyntax(SyntaxKind.EndExternalSourceDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(endKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(externalSourceKeyword.Node, InternalSyntax.KeywordSyntax))
         End Function
 
@@ -43794,47 +43794,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case externalChecksumKeyword.Kind()
                 Case SyntaxKind.ExternalChecksumKeyword
                 Case Else
                     Throw new ArgumentException("externalChecksumKeyword")
-             End Select
+            End Select
             Select Case openParenToken.Kind()
                 Case SyntaxKind.OpenParenToken
                 Case Else
                     Throw new ArgumentException("openParenToken")
-             End Select
+            End Select
             Select Case externalSource.Kind()
                 Case SyntaxKind.StringLiteralToken
                 Case Else
                     Throw new ArgumentException("externalSource")
-             End Select
+            End Select
             Select Case firstCommaToken.Kind()
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("firstCommaToken")
-             End Select
+            End Select
             Select Case guid.Kind()
                 Case SyntaxKind.StringLiteralToken
                 Case Else
                     Throw new ArgumentException("guid")
-             End Select
+            End Select
             Select Case secondCommaToken.Kind()
                 Case SyntaxKind.CommaToken
                 Case Else
                     Throw new ArgumentException("secondCommaToken")
-             End Select
+            End Select
             Select Case checksum.Kind()
                 Case SyntaxKind.StringLiteralToken
                 Case Else
                     Throw new ArgumentException("checksum")
-             End Select
+            End Select
             Select Case closeParenToken.Kind()
                 Case SyntaxKind.CloseParenToken
                 Case Else
                     Throw new ArgumentException("closeParenToken")
-             End Select
+            End Select
             Return New ExternalChecksumDirectiveTriviaSyntax(SyntaxKind.ExternalChecksumDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(externalChecksumKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(openParenToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(externalSource.Node, InternalSyntax.StringLiteralTokenSyntax), DirectCast(firstCommaToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(guid.Node, InternalSyntax.StringLiteralTokenSyntax), DirectCast(secondCommaToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(checksum.Node, InternalSyntax.StringLiteralTokenSyntax), DirectCast(closeParenToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -43858,17 +43858,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case enableKeyword.Kind()
                 Case SyntaxKind.EnableKeyword
                 Case Else
                     Throw new ArgumentException("enableKeyword")
-             End Select
+            End Select
             Select Case warningKeyword.Kind()
                 Case SyntaxKind.WarningKeyword
                 Case Else
                     Throw new ArgumentException("warningKeyword")
-             End Select
+            End Select
             Return New EnableWarningDirectiveTriviaSyntax(SyntaxKind.EnableWarningDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(enableKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(warningKeyword.Node, InternalSyntax.KeywordSyntax), errorCodes.Node)
         End Function
 
@@ -43900,17 +43900,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case disableKeyword.Kind()
                 Case SyntaxKind.DisableKeyword
                 Case Else
                     Throw new ArgumentException("disableKeyword")
-             End Select
+            End Select
             Select Case warningKeyword.Kind()
                 Case SyntaxKind.WarningKeyword
                 Case Else
                     Throw new ArgumentException("warningKeyword")
-             End Select
+            End Select
             Return New DisableWarningDirectiveTriviaSyntax(SyntaxKind.DisableWarningDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(disableKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(warningKeyword.Node, InternalSyntax.KeywordSyntax), errorCodes.Node)
         End Function
 
@@ -43942,17 +43942,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Select Case referenceKeyword.Kind()
                 Case SyntaxKind.ReferenceKeyword
                 Case Else
                     Throw new ArgumentException("referenceKeyword")
-             End Select
+            End Select
             Select Case file.Kind()
                 Case SyntaxKind.StringLiteralToken
                 Case Else
                     Throw new ArgumentException("file")
-             End Select
+            End Select
             Return New ReferenceDirectiveTriviaSyntax(SyntaxKind.ReferenceDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax), DirectCast(referenceKeyword.Node, InternalSyntax.KeywordSyntax), DirectCast(file.Node, InternalSyntax.StringLiteralTokenSyntax))
         End Function
 
@@ -43979,7 +43979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.HashToken
                 Case Else
                     Throw new ArgumentException("hashToken")
-             End Select
+            End Select
             Return New BadDirectiveTriviaSyntax(SyntaxKind.BadDirectiveTrivia, Nothing, Nothing, DirectCast(hashToken.Node, InternalSyntax.PunctuationSyntax))
         End Function
 
@@ -45346,517 +45346,517 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function GetText(kind As SyntaxKind) As String
             Select Case kind
-        Case SyntaxKind.AddHandlerKeyword
-            Return "AddHandler"
-        Case SyntaxKind.AddressOfKeyword
-            Return "AddressOf"
-        Case SyntaxKind.AliasKeyword
-            Return "Alias"
-        Case SyntaxKind.AndKeyword
-            Return "And"
-        Case SyntaxKind.AndAlsoKeyword
-            Return "AndAlso"
-        Case SyntaxKind.AsKeyword
-            Return "As"
-        Case SyntaxKind.BooleanKeyword
-            Return "Boolean"
-        Case SyntaxKind.ByRefKeyword
-            Return "ByRef"
-        Case SyntaxKind.ByteKeyword
-            Return "Byte"
-        Case SyntaxKind.ByValKeyword
-            Return "ByVal"
-        Case SyntaxKind.CallKeyword
-            Return "Call"
-        Case SyntaxKind.CaseKeyword
-            Return "Case"
-        Case SyntaxKind.CatchKeyword
-            Return "Catch"
-        Case SyntaxKind.CBoolKeyword
-            Return "CBool"
-        Case SyntaxKind.CByteKeyword
-            Return "CByte"
-        Case SyntaxKind.CCharKeyword
-            Return "CChar"
-        Case SyntaxKind.CDateKeyword
-            Return "CDate"
-        Case SyntaxKind.CDecKeyword
-            Return "CDec"
-        Case SyntaxKind.CDblKeyword
-            Return "CDbl"
-        Case SyntaxKind.CharKeyword
-            Return "Char"
-        Case SyntaxKind.CIntKeyword
-            Return "CInt"
-        Case SyntaxKind.ClassKeyword
-            Return "Class"
-        Case SyntaxKind.CLngKeyword
-            Return "CLng"
-        Case SyntaxKind.CObjKeyword
-            Return "CObj"
-        Case SyntaxKind.ConstKeyword
-            Return "Const"
-        Case SyntaxKind.ReferenceKeyword
-            Return "R"
-        Case SyntaxKind.ContinueKeyword
-            Return "Continue"
-        Case SyntaxKind.CSByteKeyword
-            Return "CSByte"
-        Case SyntaxKind.CShortKeyword
-            Return "CShort"
-        Case SyntaxKind.CSngKeyword
-            Return "CSng"
-        Case SyntaxKind.CStrKeyword
-            Return "CStr"
-        Case SyntaxKind.CTypeKeyword
-            Return "CType"
-        Case SyntaxKind.CUIntKeyword
-            Return "CUInt"
-        Case SyntaxKind.CULngKeyword
-            Return "CULng"
-        Case SyntaxKind.CUShortKeyword
-            Return "CUShort"
-        Case SyntaxKind.DateKeyword
-            Return "Date"
-        Case SyntaxKind.DecimalKeyword
-            Return "Decimal"
-        Case SyntaxKind.DeclareKeyword
-            Return "Declare"
-        Case SyntaxKind.DefaultKeyword
-            Return "Default"
-        Case SyntaxKind.DelegateKeyword
-            Return "Delegate"
-        Case SyntaxKind.DimKeyword
-            Return "Dim"
-        Case SyntaxKind.DirectCastKeyword
-            Return "DirectCast"
-        Case SyntaxKind.DoKeyword
-            Return "Do"
-        Case SyntaxKind.DoubleKeyword
-            Return "Double"
-        Case SyntaxKind.EachKeyword
-            Return "Each"
-        Case SyntaxKind.ElseKeyword
-            Return "Else"
-        Case SyntaxKind.ElseIfKeyword
-            Return "ElseIf"
-        Case SyntaxKind.EndKeyword
-            Return "End"
-        Case SyntaxKind.EnumKeyword
-            Return "Enum"
-        Case SyntaxKind.EraseKeyword
-            Return "Erase"
-        Case SyntaxKind.ErrorKeyword
-            Return "Error"
-        Case SyntaxKind.EventKeyword
-            Return "Event"
-        Case SyntaxKind.ExitKeyword
-            Return "Exit"
-        Case SyntaxKind.FalseKeyword
-            Return "False"
-        Case SyntaxKind.FinallyKeyword
-            Return "Finally"
-        Case SyntaxKind.ForKeyword
-            Return "For"
-        Case SyntaxKind.FriendKeyword
-            Return "Friend"
-        Case SyntaxKind.FunctionKeyword
-            Return "Function"
-        Case SyntaxKind.GetKeyword
-            Return "Get"
-        Case SyntaxKind.GetTypeKeyword
-            Return "GetType"
-        Case SyntaxKind.GetXmlNamespaceKeyword
-            Return "GetXmlNamespace"
-        Case SyntaxKind.GlobalKeyword
-            Return "Global"
-        Case SyntaxKind.GoToKeyword
-            Return "GoTo"
-        Case SyntaxKind.HandlesKeyword
-            Return "Handles"
-        Case SyntaxKind.IfKeyword
-            Return "If"
-        Case SyntaxKind.ImplementsKeyword
-            Return "Implements"
-        Case SyntaxKind.ImportsKeyword
-            Return "Imports"
-        Case SyntaxKind.InKeyword
-            Return "In"
-        Case SyntaxKind.InheritsKeyword
-            Return "Inherits"
-        Case SyntaxKind.IntegerKeyword
-            Return "Integer"
-        Case SyntaxKind.InterfaceKeyword
-            Return "Interface"
-        Case SyntaxKind.IsKeyword
-            Return "Is"
-        Case SyntaxKind.IsNotKeyword
-            Return "IsNot"
-        Case SyntaxKind.LetKeyword
-            Return "Let"
-        Case SyntaxKind.LibKeyword
-            Return "Lib"
-        Case SyntaxKind.LikeKeyword
-            Return "Like"
-        Case SyntaxKind.LongKeyword
-            Return "Long"
-        Case SyntaxKind.LoopKeyword
-            Return "Loop"
-        Case SyntaxKind.MeKeyword
-            Return "Me"
-        Case SyntaxKind.ModKeyword
-            Return "Mod"
-        Case SyntaxKind.ModuleKeyword
-            Return "Module"
-        Case SyntaxKind.MustInheritKeyword
-            Return "MustInherit"
-        Case SyntaxKind.MustOverrideKeyword
-            Return "MustOverride"
-        Case SyntaxKind.MyBaseKeyword
-            Return "MyBase"
-        Case SyntaxKind.MyClassKeyword
-            Return "MyClass"
-        Case SyntaxKind.NameOfKeyword
-            Return "NameOf"
-        Case SyntaxKind.NamespaceKeyword
-            Return "Namespace"
-        Case SyntaxKind.NarrowingKeyword
-            Return "Narrowing"
-        Case SyntaxKind.NextKeyword
-            Return "Next"
-        Case SyntaxKind.NewKeyword
-            Return "New"
-        Case SyntaxKind.NotKeyword
-            Return "Not"
-        Case SyntaxKind.NothingKeyword
-            Return "Nothing"
-        Case SyntaxKind.NotInheritableKeyword
-            Return "NotInheritable"
-        Case SyntaxKind.NotOverridableKeyword
-            Return "NotOverridable"
-        Case SyntaxKind.ObjectKeyword
-            Return "Object"
-        Case SyntaxKind.OfKeyword
-            Return "Of"
-        Case SyntaxKind.OnKeyword
-            Return "On"
-        Case SyntaxKind.OperatorKeyword
-            Return "Operator"
-        Case SyntaxKind.OptionKeyword
-            Return "Option"
-        Case SyntaxKind.OptionalKeyword
-            Return "Optional"
-        Case SyntaxKind.OrKeyword
-            Return "Or"
-        Case SyntaxKind.OrElseKeyword
-            Return "OrElse"
-        Case SyntaxKind.OverloadsKeyword
-            Return "Overloads"
-        Case SyntaxKind.OverridableKeyword
-            Return "Overridable"
-        Case SyntaxKind.OverridesKeyword
-            Return "Overrides"
-        Case SyntaxKind.ParamArrayKeyword
-            Return "ParamArray"
-        Case SyntaxKind.PartialKeyword
-            Return "Partial"
-        Case SyntaxKind.PrivateKeyword
-            Return "Private"
-        Case SyntaxKind.PropertyKeyword
-            Return "Property"
-        Case SyntaxKind.ProtectedKeyword
-            Return "Protected"
-        Case SyntaxKind.PublicKeyword
-            Return "Public"
-        Case SyntaxKind.RaiseEventKeyword
-            Return "RaiseEvent"
-        Case SyntaxKind.ReadOnlyKeyword
-            Return "ReadOnly"
-        Case SyntaxKind.ReDimKeyword
-            Return "ReDim"
-        Case SyntaxKind.REMKeyword
-            Return "REM"
-        Case SyntaxKind.RemoveHandlerKeyword
-            Return "RemoveHandler"
-        Case SyntaxKind.ResumeKeyword
-            Return "Resume"
-        Case SyntaxKind.ReturnKeyword
-            Return "Return"
-        Case SyntaxKind.SByteKeyword
-            Return "SByte"
-        Case SyntaxKind.SelectKeyword
-            Return "Select"
-        Case SyntaxKind.SetKeyword
-            Return "Set"
-        Case SyntaxKind.ShadowsKeyword
-            Return "Shadows"
-        Case SyntaxKind.SharedKeyword
-            Return "Shared"
-        Case SyntaxKind.ShortKeyword
-            Return "Short"
-        Case SyntaxKind.SingleKeyword
-            Return "Single"
-        Case SyntaxKind.StaticKeyword
-            Return "Static"
-        Case SyntaxKind.StepKeyword
-            Return "Step"
-        Case SyntaxKind.StopKeyword
-            Return "Stop"
-        Case SyntaxKind.StringKeyword
-            Return "String"
-        Case SyntaxKind.StructureKeyword
-            Return "Structure"
-        Case SyntaxKind.SubKeyword
-            Return "Sub"
-        Case SyntaxKind.SyncLockKeyword
-            Return "SyncLock"
-        Case SyntaxKind.ThenKeyword
-            Return "Then"
-        Case SyntaxKind.ThrowKeyword
-            Return "Throw"
-        Case SyntaxKind.ToKeyword
-            Return "To"
-        Case SyntaxKind.TrueKeyword
-            Return "True"
-        Case SyntaxKind.TryKeyword
-            Return "Try"
-        Case SyntaxKind.TryCastKeyword
-            Return "TryCast"
-        Case SyntaxKind.TypeOfKeyword
-            Return "TypeOf"
-        Case SyntaxKind.UIntegerKeyword
-            Return "UInteger"
-        Case SyntaxKind.ULongKeyword
-            Return "ULong"
-        Case SyntaxKind.UShortKeyword
-            Return "UShort"
-        Case SyntaxKind.UsingKeyword
-            Return "Using"
-        Case SyntaxKind.WhenKeyword
-            Return "When"
-        Case SyntaxKind.WhileKeyword
-            Return "While"
-        Case SyntaxKind.WideningKeyword
-            Return "Widening"
-        Case SyntaxKind.WithKeyword
-            Return "With"
-        Case SyntaxKind.WithEventsKeyword
-            Return "WithEvents"
-        Case SyntaxKind.WriteOnlyKeyword
-            Return "WriteOnly"
-        Case SyntaxKind.XorKeyword
-            Return "Xor"
-        Case SyntaxKind.EndIfKeyword
-            Return "EndIf"
-        Case SyntaxKind.GosubKeyword
-            Return "Gosub"
-        Case SyntaxKind.VariantKeyword
-            Return "Variant"
-        Case SyntaxKind.WendKeyword
-            Return "Wend"
-        Case SyntaxKind.AggregateKeyword
-            Return "Aggregate"
-        Case SyntaxKind.AllKeyword
-            Return "All"
-        Case SyntaxKind.AnsiKeyword
-            Return "Ansi"
-        Case SyntaxKind.AscendingKeyword
-            Return "Ascending"
-        Case SyntaxKind.AssemblyKeyword
-            Return "Assembly"
-        Case SyntaxKind.AutoKeyword
-            Return "Auto"
-        Case SyntaxKind.BinaryKeyword
-            Return "Binary"
-        Case SyntaxKind.ByKeyword
-            Return "By"
-        Case SyntaxKind.CompareKeyword
-            Return "Compare"
-        Case SyntaxKind.CustomKeyword
-            Return "Custom"
-        Case SyntaxKind.DescendingKeyword
-            Return "Descending"
-        Case SyntaxKind.DisableKeyword
-            Return "Disable"
-        Case SyntaxKind.DistinctKeyword
-            Return "Distinct"
-        Case SyntaxKind.EnableKeyword
-            Return "Enable"
-        Case SyntaxKind.EqualsKeyword
-            Return "Equals"
-        Case SyntaxKind.ExplicitKeyword
-            Return "Explicit"
-        Case SyntaxKind.ExternalSourceKeyword
-            Return "ExternalSource"
-        Case SyntaxKind.ExternalChecksumKeyword
-            Return "ExternalChecksum"
-        Case SyntaxKind.FromKeyword
-            Return "From"
-        Case SyntaxKind.GroupKeyword
-            Return "Group"
-        Case SyntaxKind.InferKeyword
-            Return "Infer"
-        Case SyntaxKind.IntoKeyword
-            Return "Into"
-        Case SyntaxKind.IsFalseKeyword
-            Return "IsFalse"
-        Case SyntaxKind.IsTrueKeyword
-            Return "IsTrue"
-        Case SyntaxKind.JoinKeyword
-            Return "Join"
-        Case SyntaxKind.KeyKeyword
-            Return "Key"
-        Case SyntaxKind.MidKeyword
-            Return "Mid"
-        Case SyntaxKind.OffKeyword
-            Return "Off"
-        Case SyntaxKind.OrderKeyword
-            Return "Order"
-        Case SyntaxKind.OutKeyword
-            Return "Out"
-        Case SyntaxKind.PreserveKeyword
-            Return "Preserve"
-        Case SyntaxKind.RegionKeyword
-            Return "Region"
-        Case SyntaxKind.SkipKeyword
-            Return "Skip"
-        Case SyntaxKind.StrictKeyword
-            Return "Strict"
-        Case SyntaxKind.TakeKeyword
-            Return "Take"
-        Case SyntaxKind.TextKeyword
-            Return "Text"
-        Case SyntaxKind.UnicodeKeyword
-            Return "Unicode"
-        Case SyntaxKind.UntilKeyword
-            Return "Until"
-        Case SyntaxKind.WarningKeyword
-            Return "Warning"
-        Case SyntaxKind.WhereKeyword
-            Return "Where"
-        Case SyntaxKind.TypeKeyword
-            Return "Type"
-        Case SyntaxKind.XmlKeyword
-            Return "xml"
-        Case SyntaxKind.AsyncKeyword
-            Return "Async"
-        Case SyntaxKind.AwaitKeyword
-            Return "Await"
-        Case SyntaxKind.IteratorKeyword
-            Return "Iterator"
-        Case SyntaxKind.YieldKeyword
-            Return "Yield"
-        Case SyntaxKind.ExclamationToken
-            Return "!"
-        Case SyntaxKind.AtToken
-            Return "@"
-        Case SyntaxKind.CommaToken
-            Return ","
-        Case SyntaxKind.HashToken
-            Return "#"
-        Case SyntaxKind.AmpersandToken
-            Return "&"
-        Case SyntaxKind.SingleQuoteToken
-            Return "'"
-        Case SyntaxKind.OpenParenToken
-            Return "("
-        Case SyntaxKind.CloseParenToken
-            Return ")"
-        Case SyntaxKind.OpenBraceToken
-            Return "{"
-        Case SyntaxKind.CloseBraceToken
-            Return "}"
-        Case SyntaxKind.SemicolonToken
-            Return ";"
-        Case SyntaxKind.AsteriskToken
-            Return "*"
-        Case SyntaxKind.PlusToken
-            Return "+"
-        Case SyntaxKind.MinusToken
-            Return "-"
-        Case SyntaxKind.DotToken
-            Return "."
-        Case SyntaxKind.SlashToken
-            Return "/"
-        Case SyntaxKind.ColonToken
-            Return ":"
-        Case SyntaxKind.LessThanToken
-            Return "<"
-        Case SyntaxKind.LessThanEqualsToken
-            Return "<="
-        Case SyntaxKind.LessThanGreaterThanToken
-            Return "<>"
-        Case SyntaxKind.EqualsToken
-            Return "="
-        Case SyntaxKind.GreaterThanToken
-            Return ">"
-        Case SyntaxKind.GreaterThanEqualsToken
-            Return ">="
-        Case SyntaxKind.BackslashToken
-            Return "\"
-        Case SyntaxKind.CaretToken
-            Return "^"
-        Case SyntaxKind.ColonEqualsToken
-            Return ":="
-        Case SyntaxKind.AmpersandEqualsToken
-            Return "&="
-        Case SyntaxKind.AsteriskEqualsToken
-            Return "*="
-        Case SyntaxKind.PlusEqualsToken
-            Return "+="
-        Case SyntaxKind.MinusEqualsToken
-            Return "-="
-        Case SyntaxKind.SlashEqualsToken
-            Return "/="
-        Case SyntaxKind.BackslashEqualsToken
-            Return "\="
-        Case SyntaxKind.CaretEqualsToken
-            Return "^="
-        Case SyntaxKind.LessThanLessThanToken
-            Return "<<"
-        Case SyntaxKind.GreaterThanGreaterThanToken
-            Return ">>"
-        Case SyntaxKind.LessThanLessThanEqualsToken
-            Return "<<="
-        Case SyntaxKind.GreaterThanGreaterThanEqualsToken
-            Return ">>="
-        Case SyntaxKind.QuestionToken
-            Return "?"
-        Case SyntaxKind.DoubleQuoteToken
-            Return """"
-        Case SyntaxKind.DollarSignDoubleQuoteToken
-            Return "$"""
-        Case SyntaxKind.StatementTerminatorToken
-            Return vbCrLf
-        Case SyntaxKind.SlashGreaterThanToken
-            Return "/>"
-        Case SyntaxKind.LessThanSlashToken
-            Return "</"
-        Case SyntaxKind.LessThanExclamationMinusMinusToken
-            Return "<!--"
-        Case SyntaxKind.MinusMinusGreaterThanToken
-            Return "-->"
-        Case SyntaxKind.LessThanQuestionToken
-            Return "<?"
-        Case SyntaxKind.QuestionGreaterThanToken
-            Return "?>"
-        Case SyntaxKind.LessThanPercentEqualsToken
-            Return "<%="
-        Case SyntaxKind.PercentGreaterThanToken
-            Return "%>"
-        Case SyntaxKind.BeginCDataToken
-            Return "<![CDATA["
-        Case SyntaxKind.EndCDataToken
-            Return "]]>"
-        Case SyntaxKind.ColonTrivia
-            Return ":"
-        Case SyntaxKind.LineContinuationTrivia
-            Return "_
+                Case SyntaxKind.AddHandlerKeyword
+                    Return "AddHandler"
+                Case SyntaxKind.AddressOfKeyword
+                    Return "AddressOf"
+                Case SyntaxKind.AliasKeyword
+                    Return "Alias"
+                Case SyntaxKind.AndKeyword
+                    Return "And"
+                Case SyntaxKind.AndAlsoKeyword
+                    Return "AndAlso"
+                Case SyntaxKind.AsKeyword
+                    Return "As"
+                Case SyntaxKind.BooleanKeyword
+                    Return "Boolean"
+                Case SyntaxKind.ByRefKeyword
+                    Return "ByRef"
+                Case SyntaxKind.ByteKeyword
+                    Return "Byte"
+                Case SyntaxKind.ByValKeyword
+                    Return "ByVal"
+                Case SyntaxKind.CallKeyword
+                    Return "Call"
+                Case SyntaxKind.CaseKeyword
+                    Return "Case"
+                Case SyntaxKind.CatchKeyword
+                    Return "Catch"
+                Case SyntaxKind.CBoolKeyword
+                    Return "CBool"
+                Case SyntaxKind.CByteKeyword
+                    Return "CByte"
+                Case SyntaxKind.CCharKeyword
+                    Return "CChar"
+                Case SyntaxKind.CDateKeyword
+                    Return "CDate"
+                Case SyntaxKind.CDecKeyword
+                    Return "CDec"
+                Case SyntaxKind.CDblKeyword
+                    Return "CDbl"
+                Case SyntaxKind.CharKeyword
+                    Return "Char"
+                Case SyntaxKind.CIntKeyword
+                    Return "CInt"
+                Case SyntaxKind.ClassKeyword
+                    Return "Class"
+                Case SyntaxKind.CLngKeyword
+                    Return "CLng"
+                Case SyntaxKind.CObjKeyword
+                    Return "CObj"
+                Case SyntaxKind.ConstKeyword
+                    Return "Const"
+                Case SyntaxKind.ReferenceKeyword
+                    Return "R"
+                Case SyntaxKind.ContinueKeyword
+                    Return "Continue"
+                Case SyntaxKind.CSByteKeyword
+                    Return "CSByte"
+                Case SyntaxKind.CShortKeyword
+                    Return "CShort"
+                Case SyntaxKind.CSngKeyword
+                    Return "CSng"
+                Case SyntaxKind.CStrKeyword
+                    Return "CStr"
+                Case SyntaxKind.CTypeKeyword
+                    Return "CType"
+                Case SyntaxKind.CUIntKeyword
+                    Return "CUInt"
+                Case SyntaxKind.CULngKeyword
+                    Return "CULng"
+                Case SyntaxKind.CUShortKeyword
+                    Return "CUShort"
+                Case SyntaxKind.DateKeyword
+                    Return "Date"
+                Case SyntaxKind.DecimalKeyword
+                    Return "Decimal"
+                Case SyntaxKind.DeclareKeyword
+                    Return "Declare"
+                Case SyntaxKind.DefaultKeyword
+                    Return "Default"
+                Case SyntaxKind.DelegateKeyword
+                    Return "Delegate"
+                Case SyntaxKind.DimKeyword
+                    Return "Dim"
+                Case SyntaxKind.DirectCastKeyword
+                    Return "DirectCast"
+                Case SyntaxKind.DoKeyword
+                    Return "Do"
+                Case SyntaxKind.DoubleKeyword
+                    Return "Double"
+                Case SyntaxKind.EachKeyword
+                    Return "Each"
+                Case SyntaxKind.ElseKeyword
+                    Return "Else"
+                Case SyntaxKind.ElseIfKeyword
+                    Return "ElseIf"
+                Case SyntaxKind.EndKeyword
+                    Return "End"
+                Case SyntaxKind.EnumKeyword
+                    Return "Enum"
+                Case SyntaxKind.EraseKeyword
+                    Return "Erase"
+                Case SyntaxKind.ErrorKeyword
+                    Return "Error"
+                Case SyntaxKind.EventKeyword
+                    Return "Event"
+                Case SyntaxKind.ExitKeyword
+                    Return "Exit"
+                Case SyntaxKind.FalseKeyword
+                    Return "False"
+                Case SyntaxKind.FinallyKeyword
+                    Return "Finally"
+                Case SyntaxKind.ForKeyword
+                    Return "For"
+                Case SyntaxKind.FriendKeyword
+                    Return "Friend"
+                Case SyntaxKind.FunctionKeyword
+                    Return "Function"
+                Case SyntaxKind.GetKeyword
+                    Return "Get"
+                Case SyntaxKind.GetTypeKeyword
+                    Return "GetType"
+                Case SyntaxKind.GetXmlNamespaceKeyword
+                    Return "GetXmlNamespace"
+                Case SyntaxKind.GlobalKeyword
+                    Return "Global"
+                Case SyntaxKind.GoToKeyword
+                    Return "GoTo"
+                Case SyntaxKind.HandlesKeyword
+                    Return "Handles"
+                Case SyntaxKind.IfKeyword
+                    Return "If"
+                Case SyntaxKind.ImplementsKeyword
+                    Return "Implements"
+                Case SyntaxKind.ImportsKeyword
+                    Return "Imports"
+                Case SyntaxKind.InKeyword
+                    Return "In"
+                Case SyntaxKind.InheritsKeyword
+                    Return "Inherits"
+                Case SyntaxKind.IntegerKeyword
+                    Return "Integer"
+                Case SyntaxKind.InterfaceKeyword
+                    Return "Interface"
+                Case SyntaxKind.IsKeyword
+                    Return "Is"
+                Case SyntaxKind.IsNotKeyword
+                    Return "IsNot"
+                Case SyntaxKind.LetKeyword
+                    Return "Let"
+                Case SyntaxKind.LibKeyword
+                    Return "Lib"
+                Case SyntaxKind.LikeKeyword
+                    Return "Like"
+                Case SyntaxKind.LongKeyword
+                    Return "Long"
+                Case SyntaxKind.LoopKeyword
+                    Return "Loop"
+                Case SyntaxKind.MeKeyword
+                    Return "Me"
+                Case SyntaxKind.ModKeyword
+                    Return "Mod"
+                Case SyntaxKind.ModuleKeyword
+                    Return "Module"
+                Case SyntaxKind.MustInheritKeyword
+                    Return "MustInherit"
+                Case SyntaxKind.MustOverrideKeyword
+                    Return "MustOverride"
+                Case SyntaxKind.MyBaseKeyword
+                    Return "MyBase"
+                Case SyntaxKind.MyClassKeyword
+                    Return "MyClass"
+                Case SyntaxKind.NameOfKeyword
+                    Return "NameOf"
+                Case SyntaxKind.NamespaceKeyword
+                    Return "Namespace"
+                Case SyntaxKind.NarrowingKeyword
+                    Return "Narrowing"
+                Case SyntaxKind.NextKeyword
+                    Return "Next"
+                Case SyntaxKind.NewKeyword
+                    Return "New"
+                Case SyntaxKind.NotKeyword
+                    Return "Not"
+                Case SyntaxKind.NothingKeyword
+                    Return "Nothing"
+                Case SyntaxKind.NotInheritableKeyword
+                    Return "NotInheritable"
+                Case SyntaxKind.NotOverridableKeyword
+                    Return "NotOverridable"
+                Case SyntaxKind.ObjectKeyword
+                    Return "Object"
+                Case SyntaxKind.OfKeyword
+                    Return "Of"
+                Case SyntaxKind.OnKeyword
+                    Return "On"
+                Case SyntaxKind.OperatorKeyword
+                    Return "Operator"
+                Case SyntaxKind.OptionKeyword
+                    Return "Option"
+                Case SyntaxKind.OptionalKeyword
+                    Return "Optional"
+                Case SyntaxKind.OrKeyword
+                    Return "Or"
+                Case SyntaxKind.OrElseKeyword
+                    Return "OrElse"
+                Case SyntaxKind.OverloadsKeyword
+                    Return "Overloads"
+                Case SyntaxKind.OverridableKeyword
+                    Return "Overridable"
+                Case SyntaxKind.OverridesKeyword
+                    Return "Overrides"
+                Case SyntaxKind.ParamArrayKeyword
+                    Return "ParamArray"
+                Case SyntaxKind.PartialKeyword
+                    Return "Partial"
+                Case SyntaxKind.PrivateKeyword
+                    Return "Private"
+                Case SyntaxKind.PropertyKeyword
+                    Return "Property"
+                Case SyntaxKind.ProtectedKeyword
+                    Return "Protected"
+                Case SyntaxKind.PublicKeyword
+                    Return "Public"
+                Case SyntaxKind.RaiseEventKeyword
+                    Return "RaiseEvent"
+                Case SyntaxKind.ReadOnlyKeyword
+                    Return "ReadOnly"
+                Case SyntaxKind.ReDimKeyword
+                    Return "ReDim"
+                Case SyntaxKind.REMKeyword
+                    Return "REM"
+                Case SyntaxKind.RemoveHandlerKeyword
+                    Return "RemoveHandler"
+                Case SyntaxKind.ResumeKeyword
+                    Return "Resume"
+                Case SyntaxKind.ReturnKeyword
+                    Return "Return"
+                Case SyntaxKind.SByteKeyword
+                    Return "SByte"
+                Case SyntaxKind.SelectKeyword
+                    Return "Select"
+                Case SyntaxKind.SetKeyword
+                    Return "Set"
+                Case SyntaxKind.ShadowsKeyword
+                    Return "Shadows"
+                Case SyntaxKind.SharedKeyword
+                    Return "Shared"
+                Case SyntaxKind.ShortKeyword
+                    Return "Short"
+                Case SyntaxKind.SingleKeyword
+                    Return "Single"
+                Case SyntaxKind.StaticKeyword
+                    Return "Static"
+                Case SyntaxKind.StepKeyword
+                    Return "Step"
+                Case SyntaxKind.StopKeyword
+                    Return "Stop"
+                Case SyntaxKind.StringKeyword
+                    Return "String"
+                Case SyntaxKind.StructureKeyword
+                    Return "Structure"
+                Case SyntaxKind.SubKeyword
+                    Return "Sub"
+                Case SyntaxKind.SyncLockKeyword
+                    Return "SyncLock"
+                Case SyntaxKind.ThenKeyword
+                    Return "Then"
+                Case SyntaxKind.ThrowKeyword
+                    Return "Throw"
+                Case SyntaxKind.ToKeyword
+                    Return "To"
+                Case SyntaxKind.TrueKeyword
+                    Return "True"
+                Case SyntaxKind.TryKeyword
+                    Return "Try"
+                Case SyntaxKind.TryCastKeyword
+                    Return "TryCast"
+                Case SyntaxKind.TypeOfKeyword
+                    Return "TypeOf"
+                Case SyntaxKind.UIntegerKeyword
+                    Return "UInteger"
+                Case SyntaxKind.ULongKeyword
+                    Return "ULong"
+                Case SyntaxKind.UShortKeyword
+                    Return "UShort"
+                Case SyntaxKind.UsingKeyword
+                    Return "Using"
+                Case SyntaxKind.WhenKeyword
+                    Return "When"
+                Case SyntaxKind.WhileKeyword
+                    Return "While"
+                Case SyntaxKind.WideningKeyword
+                    Return "Widening"
+                Case SyntaxKind.WithKeyword
+                    Return "With"
+                Case SyntaxKind.WithEventsKeyword
+                    Return "WithEvents"
+                Case SyntaxKind.WriteOnlyKeyword
+                    Return "WriteOnly"
+                Case SyntaxKind.XorKeyword
+                    Return "Xor"
+                Case SyntaxKind.EndIfKeyword
+                    Return "EndIf"
+                Case SyntaxKind.GosubKeyword
+                    Return "Gosub"
+                Case SyntaxKind.VariantKeyword
+                    Return "Variant"
+                Case SyntaxKind.WendKeyword
+                    Return "Wend"
+                Case SyntaxKind.AggregateKeyword
+                    Return "Aggregate"
+                Case SyntaxKind.AllKeyword
+                    Return "All"
+                Case SyntaxKind.AnsiKeyword
+                    Return "Ansi"
+                Case SyntaxKind.AscendingKeyword
+                    Return "Ascending"
+                Case SyntaxKind.AssemblyKeyword
+                    Return "Assembly"
+                Case SyntaxKind.AutoKeyword
+                    Return "Auto"
+                Case SyntaxKind.BinaryKeyword
+                    Return "Binary"
+                Case SyntaxKind.ByKeyword
+                    Return "By"
+                Case SyntaxKind.CompareKeyword
+                    Return "Compare"
+                Case SyntaxKind.CustomKeyword
+                    Return "Custom"
+                Case SyntaxKind.DescendingKeyword
+                    Return "Descending"
+                Case SyntaxKind.DisableKeyword
+                    Return "Disable"
+                Case SyntaxKind.DistinctKeyword
+                    Return "Distinct"
+                Case SyntaxKind.EnableKeyword
+                    Return "Enable"
+                Case SyntaxKind.EqualsKeyword
+                    Return "Equals"
+                Case SyntaxKind.ExplicitKeyword
+                    Return "Explicit"
+                Case SyntaxKind.ExternalSourceKeyword
+                    Return "ExternalSource"
+                Case SyntaxKind.ExternalChecksumKeyword
+                    Return "ExternalChecksum"
+                Case SyntaxKind.FromKeyword
+                    Return "From"
+                Case SyntaxKind.GroupKeyword
+                    Return "Group"
+                Case SyntaxKind.InferKeyword
+                    Return "Infer"
+                Case SyntaxKind.IntoKeyword
+                    Return "Into"
+                Case SyntaxKind.IsFalseKeyword
+                    Return "IsFalse"
+                Case SyntaxKind.IsTrueKeyword
+                    Return "IsTrue"
+                Case SyntaxKind.JoinKeyword
+                    Return "Join"
+                Case SyntaxKind.KeyKeyword
+                    Return "Key"
+                Case SyntaxKind.MidKeyword
+                    Return "Mid"
+                Case SyntaxKind.OffKeyword
+                    Return "Off"
+                Case SyntaxKind.OrderKeyword
+                    Return "Order"
+                Case SyntaxKind.OutKeyword
+                    Return "Out"
+                Case SyntaxKind.PreserveKeyword
+                    Return "Preserve"
+                Case SyntaxKind.RegionKeyword
+                    Return "Region"
+                Case SyntaxKind.SkipKeyword
+                    Return "Skip"
+                Case SyntaxKind.StrictKeyword
+                    Return "Strict"
+                Case SyntaxKind.TakeKeyword
+                    Return "Take"
+                Case SyntaxKind.TextKeyword
+                    Return "Text"
+                Case SyntaxKind.UnicodeKeyword
+                    Return "Unicode"
+                Case SyntaxKind.UntilKeyword
+                    Return "Until"
+                Case SyntaxKind.WarningKeyword
+                    Return "Warning"
+                Case SyntaxKind.WhereKeyword
+                    Return "Where"
+                Case SyntaxKind.TypeKeyword
+                    Return "Type"
+                Case SyntaxKind.XmlKeyword
+                    Return "xml"
+                Case SyntaxKind.AsyncKeyword
+                    Return "Async"
+                Case SyntaxKind.AwaitKeyword
+                    Return "Await"
+                Case SyntaxKind.IteratorKeyword
+                    Return "Iterator"
+                Case SyntaxKind.YieldKeyword
+                    Return "Yield"
+                Case SyntaxKind.ExclamationToken
+                    Return "!"
+                Case SyntaxKind.AtToken
+                    Return "@"
+                Case SyntaxKind.CommaToken
+                    Return ","
+                Case SyntaxKind.HashToken
+                    Return "#"
+                Case SyntaxKind.AmpersandToken
+                    Return "&"
+                Case SyntaxKind.SingleQuoteToken
+                    Return "'"
+                Case SyntaxKind.OpenParenToken
+                    Return "("
+                Case SyntaxKind.CloseParenToken
+                    Return ")"
+                Case SyntaxKind.OpenBraceToken
+                    Return "{"
+                Case SyntaxKind.CloseBraceToken
+                    Return "}"
+                Case SyntaxKind.SemicolonToken
+                    Return ";"
+                Case SyntaxKind.AsteriskToken
+                    Return "*"
+                Case SyntaxKind.PlusToken
+                    Return "+"
+                Case SyntaxKind.MinusToken
+                    Return "-"
+                Case SyntaxKind.DotToken
+                    Return "."
+                Case SyntaxKind.SlashToken
+                    Return "/"
+                Case SyntaxKind.ColonToken
+                    Return ":"
+                Case SyntaxKind.LessThanToken
+                    Return "<"
+                Case SyntaxKind.LessThanEqualsToken
+                    Return "<="
+                Case SyntaxKind.LessThanGreaterThanToken
+                    Return "<>"
+                Case SyntaxKind.EqualsToken
+                    Return "="
+                Case SyntaxKind.GreaterThanToken
+                    Return ">"
+                Case SyntaxKind.GreaterThanEqualsToken
+                    Return ">="
+                Case SyntaxKind.BackslashToken
+                    Return "\"
+                Case SyntaxKind.CaretToken
+                    Return "^"
+                Case SyntaxKind.ColonEqualsToken
+                    Return ":="
+                Case SyntaxKind.AmpersandEqualsToken
+                    Return "&="
+                Case SyntaxKind.AsteriskEqualsToken
+                    Return "*="
+                Case SyntaxKind.PlusEqualsToken
+                    Return "+="
+                Case SyntaxKind.MinusEqualsToken
+                    Return "-="
+                Case SyntaxKind.SlashEqualsToken
+                    Return "/="
+                Case SyntaxKind.BackslashEqualsToken
+                    Return "\="
+                Case SyntaxKind.CaretEqualsToken
+                    Return "^="
+                Case SyntaxKind.LessThanLessThanToken
+                    Return "<<"
+                Case SyntaxKind.GreaterThanGreaterThanToken
+                    Return ">>"
+                Case SyntaxKind.LessThanLessThanEqualsToken
+                    Return "<<="
+                Case SyntaxKind.GreaterThanGreaterThanEqualsToken
+                    Return ">>="
+                Case SyntaxKind.QuestionToken
+                    Return "?"
+                Case SyntaxKind.DoubleQuoteToken
+                    Return """"
+                Case SyntaxKind.DollarSignDoubleQuoteToken
+                    Return "$"""
+                Case SyntaxKind.StatementTerminatorToken
+                    Return vbCrLf
+                Case SyntaxKind.SlashGreaterThanToken
+                    Return "/>"
+                Case SyntaxKind.LessThanSlashToken
+                    Return "</"
+                Case SyntaxKind.LessThanExclamationMinusMinusToken
+                    Return "<!--"
+                Case SyntaxKind.MinusMinusGreaterThanToken
+                    Return "-->"
+                Case SyntaxKind.LessThanQuestionToken
+                    Return "<?"
+                Case SyntaxKind.QuestionGreaterThanToken
+                    Return "?>"
+                Case SyntaxKind.LessThanPercentEqualsToken
+                    Return "<%="
+                Case SyntaxKind.PercentGreaterThanToken
+                    Return "%>"
+                Case SyntaxKind.BeginCDataToken
+                    Return "<![CDATA["
+                Case SyntaxKind.EndCDataToken
+                    Return "]]>"
+                Case SyntaxKind.ColonTrivia
+                    Return ":"
+                Case SyntaxKind.LineContinuationTrivia
+                    Return "_
 "
-        Case SyntaxKind.DocumentationCommentExteriorTrivia
-            Return "'''"
-            Case Else
-                 Return String.Empty
+                Case SyntaxKind.DocumentationCommentExteriorTrivia
+                    Return "'''"
+                Case Else
+                    Return String.Empty
             End Select
         End Function
     End Class

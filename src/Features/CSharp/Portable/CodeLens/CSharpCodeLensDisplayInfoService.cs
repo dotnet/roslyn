@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeLens;
@@ -66,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                             node = structuredTriviaSyntax.ParentTrivia.Token.Parent;
                             continue;
                         }
+
                         return null;
 
                     default:
@@ -84,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeLens
                 return FeaturesResources.paren_Unknown_paren;
             }
 
-            if (CSharpSyntaxFacts.Instance.IsGlobalAttribute(node))
+            if (CSharpSyntaxFacts.Instance.IsGlobalAssemblyAttribute(node))
             {
                 return "assembly: " + node.ConvertToSingleLine();
             }

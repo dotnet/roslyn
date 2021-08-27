@@ -142,12 +142,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
 
             Protected Overrides Function DetermineParameterOptionality(cancellationToken As CancellationToken) As ImmutableArray(Of Boolean)
                 Return If(Me.InvocationExpression.ArgumentList IsNot Nothing AndAlso Me.InvocationExpression.ArgumentList.GetArgumentCount() > 0,
-                          Me.InvocationExpression.ArgumentList.Arguments.Select(Function(a) DetermineParameterOptionality(a, cancellationToken)).ToImmutableArray(),
+                          Me.InvocationExpression.ArgumentList.Arguments.Select(AddressOf DetermineParameterOptionality).ToImmutableArray(),
                           ImmutableArray(Of Boolean).Empty)
             End Function
 
-            Private Overloads Function DetermineParameterOptionality(argument As ArgumentSyntax,
-                                                    cancellationToken As CancellationToken) As Boolean
+            Private Overloads Function DetermineParameterOptionality(argument As ArgumentSyntax) As Boolean
                 Return TypeOf argument Is OmittedArgumentSyntax
             End Function
 

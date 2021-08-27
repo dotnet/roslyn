@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <param name="symbol">The symbol to build an RQName for.</param>
         /// <returns>A string suitable to pass as the pszRQName argument to methods in <see cref="IVsRefactorNotify"/>
         /// and <see cref="IVsSymbolicNavigationNotify"/>.</returns>
-        public static string From(ISymbol symbol)
+        public static string? From(ISymbol symbol)
             => RQNameInternal.From(symbol);
     }
 }

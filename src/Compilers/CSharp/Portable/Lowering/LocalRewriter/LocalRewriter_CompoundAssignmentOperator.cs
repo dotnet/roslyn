@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -135,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenType: node.Operator.LeftType,
                     @checked: isChecked);
 
-                BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, isCompoundAssignment: true);
+                BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, node.Operator.ConstrainedToTypeOpt, isCompoundAssignment: true);
 
                 Debug.Assert(node.Left.Type is { });
                 BoundExpression opFinal = MakeConversionNode(
@@ -295,13 +294,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             // tempy = Y()
             // tempc[tempx, tempy, 123] = tempc[tempx, tempy, 123] + 1;
 
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitList(indexerAccess.Arguments);
-
             SyntaxNode syntax = indexerAccess.Syntax;
             PropertySymbol indexer = indexerAccess.Indexer;
-            ImmutableArray<RefKind> argumentRefKinds = indexerAccess.ArgumentRefKindsOpt;
-            bool expanded = indexerAccess.Expanded;
             ImmutableArray<int> argsToParamsOpt = indexerAccess.ArgsToParamsOpt;
+            ImmutableArray<RefKind> argumentRefKinds = indexerAccess.ArgumentRefKindsOpt;
+
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                indexerAccess.Arguments,
+                indexer,
+                argsToParamsOpt,
+                argumentRefKinds,
+                ref transformedReceiver!,
+                out ArrayBuilder<LocalSymbol>? argumentTemps);
+
+            if (argumentTemps != null)
+            {
+                temps.AddRange(argumentTemps);
+                argumentTemps.Free();
+            }
+
+            if (transformedReceiver is BoundSequence receiverSequence)
+            {
+                // The receiver is a store/evaluate sequence because it was used as an argument to an interpolated
+                // string handler conversion.
+                // Pick apart the sequence, add the side effects to the containing list of stores, and set the
+                // receiver to just be the final temp to ensure we don't double-evaluate the sequence.
+
+                temps.AddRange(receiverSequence.Locals);
+                stores.AddRange(receiverSequence.SideEffects);
+                transformedReceiver = receiverSequence.Value;
+            }
+
+            bool expanded = indexerAccess.Expanded;
 
             ImmutableArray<ParameterSymbol> parameters = indexer.Parameters;
             BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
@@ -336,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step three: Now fill in the optional arguments. (Dev11 uses the getter for optional arguments in
             // compound assignments, but for deconstructions we use the setter if the getter is missing.)
             var accessor = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
-            InsertMissingOptionalArguments(syntax, accessor.Parameters, actualArguments, refKinds);
+            Debug.Assert(accessor is not null);
 
             // For a call, step four would be to optimize away some of the temps.  However, we need them all to prevent
             // duplicate side-effects, so we'll skip that step.
@@ -346,6 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temps);
             }
 
+            Debug.Assert(actualArguments.All(static arg => arg is not null));
             rewrittenArguments = actualArguments.AsImmutableOrNull();
 
             foreach (BoundAssignmentOperator tempAssignment in storesToTemps)
@@ -364,12 +389,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 transformedReceiver,
                 indexer,
                 rewrittenArguments,
-                default(ImmutableArray<string>),
+                argumentNamesOpt: default(ImmutableArray<string>),
                 argumentRefKinds,
-                false,
-                default(ImmutableArray<int>),
-                null,
-                indexerAccess.UseSetterForDefaultArgumentGeneration,
+                expanded: false,
+                argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 indexerAccess.Type);
         }
 
@@ -630,6 +654,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Call:
                     Debug.Assert(((BoundCall)originalLHS).Method.RefKind != RefKind.None);
+                    break;
+
+                case BoundKind.FunctionPointerInvocation:
+                    Debug.Assert(((BoundFunctionPointerInvocation)originalLHS).FunctionPointer.Signature.RefKind != RefKind.None);
                     break;
 
                 case BoundKind.ConditionalOperator:

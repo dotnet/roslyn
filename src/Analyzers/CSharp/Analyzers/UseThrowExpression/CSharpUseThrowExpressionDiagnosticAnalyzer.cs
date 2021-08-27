@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -18,10 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseThrowExpression
         {
         }
 
-        protected override bool IsSupported(ParseOptions options)
+        protected override bool IsSupported(Compilation compilation)
         {
-            var csOptions = (CSharpParseOptions)options;
-            return csOptions.LanguageVersion >= LanguageVersion.CSharp7;
+            return ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp7;
         }
 
         protected override bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)

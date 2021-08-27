@@ -88,20 +88,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return candidate.HasValue
         End Function
 
-        Private Function CreateSpan(startToken As SyntaxToken, endToken As SyntaxToken) As TextSpan
-            Return TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End)
-        End Function
-
         Private Function CreateSpan(node As SyntaxNode) As TextSpan
             Return TextSpan.FromBounds(node.SpanStart, node.Span.End)
-        End Function
-
-        Private Function CreateSpan(node1 As SyntaxNode, node2 As SyntaxNode) As TextSpan
-            Return TextSpan.FromBounds(node1.SpanStart, node2.Span.End)
-        End Function
-
-        Private Function CreateSpan(token As SyntaxToken) As TextSpan
-            Return TextSpan.FromBounds(token.SpanStart, token.Span.End)
         End Function
 
         Private Function TryCreateSpan(Of TNode As SyntaxNode)(list As SeparatedSyntaxList(Of TNode)) As TextSpan?
@@ -201,7 +189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return CreateSpan(node)
 
                 Case SyntaxKind.SelectClause
-                    Return TryCreateSpanForSelectClause(DirectCast(node, SelectClauseSyntax), position)
+                    Return TryCreateSpanForSelectClause(DirectCast(node, SelectClauseSyntax))
 
                 Case SyntaxKind.WhereClause
                     Return TryCreateSpanForWhereClause(DirectCast(node, WhereClauseSyntax))
@@ -429,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return TextSpan.FromBounds(clause.Keys.First.SpanStart, clause.Span.End)
         End Function
 
-        Private Function TryCreateSpanForSelectClause(clause As SelectClauseSyntax, position As Integer) As TextSpan?
+        Private Function TryCreateSpanForSelectClause(clause As SelectClauseSyntax) As TextSpan?
             If clause.Variables.Count = 1 Then
                 Return CreateSpan(clause.Variables.Single.Expression)
             End If

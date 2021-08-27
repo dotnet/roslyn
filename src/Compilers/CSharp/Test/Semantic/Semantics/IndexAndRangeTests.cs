@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -692,7 +695,7 @@ public class C {
             comp.VerifyDiagnostics(
                 // (11,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
                 //         var x = arr[0..2];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr[0..2]").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(11, 17));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "0..2").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(11, 21));
         }
 
         [Fact]
@@ -717,7 +720,7 @@ namespace System
             comp.VerifyDiagnostics(
                 // (6,17): error CS0656: Missing compiler required member 'System.Index.GetOffset'
                 //         var x = arr[^2];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr[^2]").WithArguments("System.Index", "GetOffset").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^2").WithArguments("System.Index", "GetOffset").WithLocation(6, 21));
 
             comp = CreateCompilation(source + @"
 namespace System

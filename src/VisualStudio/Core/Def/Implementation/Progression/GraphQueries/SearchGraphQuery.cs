@@ -5,26 +5,68 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 using Roslyn.Utilities;
-using System.Runtime.ExceptionServices;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 {
-    internal sealed class SearchGraphQuery : IGraphQuery
+    internal sealed partial class SearchGraphQuery : IGraphQuery
     {
+        private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly string _searchPattern;
 
-        public SearchGraphQuery(string searchPattern)
-            => _searchPattern = searchPattern;
+        public SearchGraphQuery(
+            string searchPattern,
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListener asyncListener)
+        {
+            _threadingContext = threadingContext;
+            _asyncListener = asyncListener;
+            _searchPattern = searchPattern;
+        }
 
-        public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        public Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        {
+            var experimentationService = solution.Workspace.Services.GetService<IExperimentationService>();
+            var forceLegacySearch = experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.ProgressionForceLegacySearch) == true;
+
+            var option = solution.Options.GetOption(ProgressionOptions.SearchUsingNavigateToEngine);
+            return !forceLegacySearch && option
+                ? SearchUsingNavigateToEngineAsync(solution, context, cancellationToken)
+                : SearchUsingSymbolsAsync(solution, context, cancellationToken);
+        }
+
+        private async Task<GraphBuilder> SearchUsingNavigateToEngineAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        {
+            var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
+            var callback = new ProgressionNavigateToSearchCallback(context, graphBuilder);
+            var searcher = NavigateToSearcher.Create(
+                solution,
+                _asyncListener,
+                callback,
+                _searchPattern,
+                searchCurrentDocument: false,
+                NavigateToUtilities.GetKindsProvided(solution),
+                _threadingContext.DisposalToken);
+
+            await searcher.SearchAsync(cancellationToken).ConfigureAwait(false);
+
+            return graphBuilder;
+        }
+
+        private async Task<GraphBuilder> SearchUsingSymbolsAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
         {
             var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
 
@@ -50,15 +92,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        if (symbol.Symbol is INamedTypeSymbol namedType)
+                        if (symbol is INamedTypeSymbol namedType)
                         {
                             await AddLinkedNodeForTypeAsync(
-                                project, symbol.WithSymbol(namedType), graphBuilder,
-                                symbol.Symbol.DeclaringSyntaxReferences.Select(d => d.SyntaxTree)).ConfigureAwait(false);
+                                project, namedType, graphBuilder,
+                                symbol.DeclaringSyntaxReferences.Select(d => d.SyntaxTree),
+                                cancellationToken).ConfigureAwait(false);
                         }
                         else
                         {
-                            await AddLinkedNodeForMemberAsync(project, symbol, graphBuilder).ConfigureAwait(false);
+                            await AddLinkedNodeForMemberAsync(
+                                project, symbol, graphBuilder, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
@@ -66,30 +110,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         }
 
         private async Task<GraphNode> AddLinkedNodeForTypeAsync(
-            Project project, SymbolAndProjectId<INamedTypeSymbol> namedTypeAndProjectId, GraphBuilder graphBuilder, IEnumerable<SyntaxTree> syntaxTrees)
+            Project project, INamedTypeSymbol namedType, GraphBuilder graphBuilder,
+            IEnumerable<SyntaxTree> syntaxTrees, CancellationToken cancellationToken)
         {
             // If this named type is contained in a parent type, then just link farther up
-            if (namedTypeAndProjectId.Symbol.ContainingType != null)
+            if (namedType.ContainingType != null)
             {
                 var parentTypeNode = await AddLinkedNodeForTypeAsync(
-                    project, namedTypeAndProjectId.WithSymbol(namedTypeAndProjectId.Symbol.ContainingType), graphBuilder, syntaxTrees).ConfigureAwait(false);
-                var typeNode = await graphBuilder.AddNodeAsync(namedTypeAndProjectId, relatedNode: parentTypeNode).ConfigureAwait(false);
-                graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, typeNode);
+                    project, namedType.ContainingType, graphBuilder, syntaxTrees, cancellationToken).ConfigureAwait(false);
+                var typeNode = await graphBuilder.AddNodeAsync(namedType, relatedNode: parentTypeNode, cancellationToken).ConfigureAwait(false);
+                graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, typeNode, cancellationToken);
 
                 return typeNode;
             }
             else
             {
                 // From here, we can link back up to the containing project item
-                var typeNode = await graphBuilder.AddNodeAsync(namedTypeAndProjectId, contextProject: project, contextDocument: null).ConfigureAwait(false);
+                var typeNode = await graphBuilder.AddNodeAsync(
+                    namedType, contextProject: project, contextDocument: null, cancellationToken).ConfigureAwait(false);
 
                 foreach (var tree in syntaxTrees)
                 {
                     var document = project.Solution.GetDocument(tree);
                     Contract.ThrowIfNull(document);
 
-                    var documentNode = graphBuilder.AddNodeForDocument(document);
-                    graphBuilder.AddLink(documentNode, GraphCommonSchema.Contains, typeNode);
+                    var documentNode = graphBuilder.AddNodeForDocument(document, cancellationToken);
+                    graphBuilder.AddLink(documentNode, GraphCommonSchema.Contains, typeNode, cancellationToken);
                 }
 
                 return typeNode;
@@ -97,26 +143,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         }
 
         private async Task<GraphNode> AddLinkedNodeForMemberAsync(
-            Project project, SymbolAndProjectId symbolAndProjectId, GraphBuilder graphBuilder)
+            Project project, ISymbol symbol, GraphBuilder graphBuilder, CancellationToken cancellationToken)
         {
-            var member = symbolAndProjectId.Symbol;
+            var member = symbol;
             Contract.ThrowIfNull(member.ContainingType);
 
             var trees = member.DeclaringSyntaxReferences.Select(d => d.SyntaxTree);
 
             var parentTypeNode = await AddLinkedNodeForTypeAsync(
-                project, symbolAndProjectId.WithSymbol(member.ContainingType), graphBuilder, trees).ConfigureAwait(false);
+                project, member.ContainingType, graphBuilder, trees, cancellationToken).ConfigureAwait(false);
             var memberNode = await graphBuilder.AddNodeAsync(
-                symbolAndProjectId, relatedNode: parentTypeNode).ConfigureAwait(false);
-            graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, memberNode);
+                symbol, relatedNode: parentTypeNode, cancellationToken).ConfigureAwait(false);
+            graphBuilder.AddLink(parentTypeNode, GraphCommonSchema.Contains, memberNode, cancellationToken);
 
             return memberNode;
         }
 
-        internal async Task<ImmutableArray<SymbolAndProjectId>> FindNavigableSourceSymbolsAsync(
+        internal async Task<ImmutableArray<ISymbol>> FindNavigableSourceSymbolsAsync(
             Project project, CancellationToken cancellationToken)
         {
-            ImmutableArray<SymbolAndProjectId> declarations;
+            ImmutableArray<ISymbol> declarations;
 
             // FindSourceDeclarationsWithPatternAsync calls into OOP to do the search; if something goes badly it
             // throws a SoftCrashException which inherits from OperationCanceledException. This is unfortunate, because
@@ -139,13 +185,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 throw ExceptionUtilities.Unreachable;
             }
 
-            using var _ = ArrayBuilder<SymbolAndProjectId>.GetInstance(out var results);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
 
             foreach (var declaration in declarations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var symbol = declaration.Symbol;
+                var symbol = declaration;
 
                 // Ignore constructors and namespaces.  We don't want to expose them through this API.
                 if (symbol.IsConstructor() ||
@@ -171,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         // only constructors that were explicitly declared
                         if (!constructor.IsImplicitlyDeclared)
                         {
-                            results.Add(declaration.WithSymbol(constructor));
+                            results.Add(constructor);
                         }
                     }
                 }
@@ -179,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 // report both parts of partial methods
                 if (symbol is IMethodSymbol method && method.PartialImplementationPart != null)
                 {
-                    results.Add(declaration.WithSymbol(method));
+                    results.Add(method);
                 }
             }
 

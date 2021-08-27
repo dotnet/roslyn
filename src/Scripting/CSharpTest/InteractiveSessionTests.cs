@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -474,7 +476,7 @@ Environment.ProcessorCount
             var state1 = CSharpScript.RunAsync("internal class C1 { }   protected int X;   1");
             var compilation1 = state1.Result.Script.GetCompilation();
             compilation1.VerifyDiagnostics(
-                // (1,39): warning CS0628: 'X': new protected member declared in sealed class
+                // (1,39): warning CS0628: 'X': new protected member declared in sealed type
                 // internal class C1 { }   protected int X;   1
                 Diagnostic(ErrorCode.WRN_ProtectedInSealed, "X").WithArguments("X").WithLocation(1, 39)
                 );
@@ -1157,11 +1159,27 @@ static T G<T>(T t, Func<T, Task<T>> f)
             Assert.Equal(true, state.ReturnValue);
         }
 
+        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        public async Task CSharp9PatternForms()
+        {
+            var options = ScriptOptions.Default.WithLanguageVersion(MessageID.IDS_FeatureAndPattern.RequiredVersion());
+            var state = await CSharpScript.RunAsync("object x = 1;", options: options);
+            state = await state.ContinueWithAsync("x is long or int", options: options);
+            Assert.Equal(true, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is int and < 10", options: options);
+            Assert.Equal(true, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is (long or < 10L)", options: options);
+            Assert.Equal(false, state.ReturnValue);
+            state = await state.ContinueWithAsync("x is not > 100", options: options);
+            Assert.Equal(true, state.ReturnValue);
+        }
+
         #endregion
 
         #region References
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/53391")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/53391")]
         public void ReferenceDirective_FileWithDependencies()
         {
             var file1 = Temp.CreateFile();

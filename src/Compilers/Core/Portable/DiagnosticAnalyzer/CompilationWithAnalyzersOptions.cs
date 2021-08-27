@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="logAnalyzerExecutionTime">Flag indicating whether analyzer execution time should be logged.</param>
         public CompilationWithAnalyzersOptions(
             AnalyzerOptions options,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException,
             bool concurrentAnalysis,
             bool logAnalyzerExecutionTime)
             : this(options, onAnalyzerException, concurrentAnalysis, logAnalyzerExecutionTime, reportSuppressedDiagnostics: false)
@@ -76,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="reportSuppressedDiagnostics">Flag indicating whether analyzer diagnostics with <see cref="Diagnostic.IsSuppressed"/> should be reported.</param>
         public CompilationWithAnalyzersOptions(
             AnalyzerOptions options,
-            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic>? onAnalyzerException,
             bool concurrentAnalysis,
             bool logAnalyzerExecutionTime,
             bool reportSuppressedDiagnostics)

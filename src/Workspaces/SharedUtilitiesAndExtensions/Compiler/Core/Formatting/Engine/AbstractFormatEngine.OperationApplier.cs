@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             private bool CanAlignBeApplied(
                 SyntaxToken token,
                 IEnumerable<SyntaxToken> operationTokens,
-                out IList<TokenData> tokenData)
+                [NotNullWhen(true)] out IList<TokenData>? tokenData)
             {
                 // if there are no tokens to align, or no visible
                 // base token to be aligned to, then don't do anything
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 SyntaxToken token,
                 IEnumerable<SyntaxToken> tokens,
                 Dictionary<SyntaxToken, int> previousChangesMap,
-                out IList<TokenData> tokenData,
+                [NotNullWhen(true)] out IList<TokenData>? tokenData,
                 CancellationToken cancellationToken)
             {
                 if (!CanAlignBeApplied(token, tokens, out tokenData))
@@ -269,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 Contract.ThrowIfNull(previousChangesMap);
 
-                IList<TokenData> tokenData;
+                IList<TokenData>? tokenData;
 
                 switch (operation.Option)
                 {

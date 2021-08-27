@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -16,7 +14,7 @@ namespace Microsoft.Cci
         private const int PoolSize = 128;
         private const int ChunkSize = 1024;
 
-        private static ObjectPool<PooledBlobBuilder> s_chunkPool = new ObjectPool<PooledBlobBuilder>(() => new PooledBlobBuilder(ChunkSize), PoolSize);
+        private static readonly ObjectPool<PooledBlobBuilder> s_chunkPool = new ObjectPool<PooledBlobBuilder>(() => new PooledBlobBuilder(ChunkSize), PoolSize);
 
         private PooledBlobBuilder(int size)
             : base(size)

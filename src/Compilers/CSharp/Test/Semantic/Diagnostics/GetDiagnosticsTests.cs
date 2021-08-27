@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -13,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -489,7 +494,8 @@ class C
             // Verify CS0168 reported by CSharpCompilerDiagnosticAnalyzer is not affected by "dotnet_analyzer_diagnostic = none"
             var analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("dotnet_analyzer_diagnostic.severity", "none"));
             var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(
-                ImmutableDictionary<object, AnalyzerConfigOptions>.Empty.Add(compilation.SyntaxTrees.Single(), analyzerConfigOptions));
+                ImmutableDictionary<object, AnalyzerConfigOptions>.Empty.Add(compilation.SyntaxTrees.Single(), analyzerConfigOptions),
+                CompilerAnalyzerConfigOptions.Empty);
             var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
             compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, analyzerOptions);
             analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
@@ -504,6 +510,189 @@ class C
                 Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
                 Assert.False(diagnostic.IsSuppressed);
             }
+        }
+
+        [Fact]
+        [WorkItem(43305, "https://github.com/dotnet/roslyn/issues/43305")]
+        public async Task TestAnalyzerConfigurationDoesNotAffectNonConfigurableDiagnostics()
+        {
+            var source = @"class C { }";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            // Verify 'NonConfigurable' analyzer diagnostic without any analyzer config options.
+            var analyzer = new NamedTypeAnalyzer(NamedTypeAnalyzer.AnalysisKind.Symbol, configurable: false);
+            await verifyDiagnosticsAsync(compilation, analyzer, options: null);
+
+            // Verify 'NonConfigurable' analyzer diagnostic is not affected by category based configuration.
+            await verifyDiagnosticsAsync(compilation, analyzer, options: ($"dotnet_analyzer_diagnostic.category-{NamedTypeAnalyzer.RuleCategory}.severity", "none"));
+
+            // Verify 'NonConfigurable' analyzer diagnostic is not affected by all analyzers bulk configuration.
+            await verifyDiagnosticsAsync(compilation, analyzer, options: ("dotnet_analyzer_diagnostic.severity", "none"));
+
+            return;
+
+            static async Task verifyDiagnosticsAsync(Compilation compilation, DiagnosticAnalyzer analyzer, (string key, string value)? options)
+            {
+                AnalyzerOptions analyzerOptions;
+                if (options.HasValue)
+                {
+                    var analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add(options.Value.key, options.Value.value));
+                    var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(
+                        ImmutableDictionary<object, AnalyzerConfigOptions>.Empty.Add(compilation.SyntaxTrees.Single(), analyzerConfigOptions),
+                        CompilerAnalyzerConfigOptions.Empty);
+                    analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
+                }
+                else
+                {
+                    analyzerOptions = null;
+                }
+
+                var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzer), analyzerOptions);
+                var analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
+                var expected = Diagnostic(NamedTypeAnalyzer.RuleId, "C").WithArguments("C").WithLocation(1, 7);
+                analyzerDiagnostics.Verify(expected);
+
+                var diagnostic = analyzerDiagnostics.Single();
+                Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+                Assert.False(diagnostic.IsSuppressed);
+            }
+        }
+
+        [Fact]
+        public async Task TestConcurrentGetAnalyzerDiagnostics()
+        {
+            var source1 = @"
+partial class C
+{
+    void M1()
+    {
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }
+}
+";
+            var source2 = @"
+partial class C
+{
+    void M2()
+    {
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }
+}
+";
+            var source3 = @"
+class C3
+{
+    void M2()
+    {
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }
+}
+";
+            var compilation = CreateCompilation(new[] { source1, source2, source3 });
+            compilation = compilation.WithOptions(compilation.Options.WithConcurrentBuild(true));
+
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers,
+                new CompilationWithAnalyzersOptions(
+                    new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                    onAnalyzerException: null,
+                    concurrentAnalysis: true,
+                    logAnalyzerExecutionTime: false));
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree, true);
+            var tasks = new Task[10];
+            for (var i = 0; i < 10; i++)
+            {
+                tasks[i] = Task.Run(() => compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, null, CancellationToken.None));
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
+        [Theory, WorkItem(46874, "https://github.com/dotnet/roslyn/pull/46874")]
+        [InlineData(2)]
+        [InlineData(50)]
+        public async Task TestConcurrentGetAnalyzerDiagnostics_SymbolStartAnalyzer(int partialDeclarationCount)
+        {
+            var sources = new string[partialDeclarationCount + 1];
+
+            for (var i = 0; i < partialDeclarationCount; i++)
+            {
+                sources[i] = $@"
+partial class C
+{{
+    void M{i}()
+    {{
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }}
+}}
+";
+            }
+
+            sources[partialDeclarationCount] = @"
+class C3
+{
+    void M2()
+    {
+        // warning CS0168:  The variable 'x' is declared but never used.
+        int x;
+    }
+}
+";
+            var compilation = CreateCompilation(sources);
+            compilation = compilation.WithOptions(compilation.Options.WithConcurrentBuild(true));
+
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, OperationKind.VariableDeclaration));
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers,
+                new CompilationWithAnalyzersOptions(
+                    new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                    onAnalyzerException: null,
+                    concurrentAnalysis: true,
+                    logAnalyzerExecutionTime: false));
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree, true);
+            var tasks = new Task[10];
+            for (var i = 0; i < 10; i++)
+            {
+                tasks[i] = Task.Run(() => compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, null, CancellationToken.None));
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(46950, "https://github.com/dotnet/roslyn/issues/46950")]
+        public async Task TestGetAnalyzerSyntaxDiagnosticsWithCancellation(bool concurrent)
+        {
+            var source = @"class C { }";
+            var compilation = CreateCompilation(source);
+            compilation = compilation.WithOptions(compilation.Options.WithConcurrentBuild(concurrent));
+            var tree = compilation.SyntaxTrees.First();
+
+            var analyzer = new RegisterSyntaxTreeCancellationAnalyzer();
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers,
+                new CompilationWithAnalyzersOptions(
+                    new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                    onAnalyzerException: null,
+                    concurrentAnalysis: concurrent,
+                    logAnalyzerExecutionTime: false));
+
+            // First call into analyzer mimics cancellation.
+            await Assert.ThrowsAsync<OperationCanceledException>(() => compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, analyzer.CancellationToken));
+
+            // Second call into analyzer reports diagnostic.
+            var diagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(tree, CancellationToken.None);
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Equal(RegisterSyntaxTreeCancellationAnalyzer.DiagnosticId, diagnostic.Id);
         }
     }
 }

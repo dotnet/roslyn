@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -48,12 +46,10 @@ namespace Microsoft.CodeAnalysis
                     return 14;
                 case SymbolKind.TypeParameter:
                     return 15;
-                case SymbolKind.PointerType:
-                    return 16;
                 case SymbolKind.DynamicType:
-                    return 17;
+                    return 16;
                 case SymbolKind.Preprocessing:
-                    return 18;
+                    return 17;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

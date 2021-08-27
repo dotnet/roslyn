@@ -4,8 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -76,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return path.ToImmutableArray()
                 End Function
 
-                Private Function GetChildIndex(child As SyntaxNodeOrToken) As Integer
+                Private Shared Function GetChildIndex(child As SyntaxNodeOrToken) As Integer
                     Dim parent As SyntaxNode = child.Parent
                     Dim index As Integer = 0
                     For Each nodeOrToken In parent.ChildNodesAndTokens()
@@ -90,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw New InvalidOperationException(VBWorkspaceResources.Node_not_in_parent_s_child_list)
                 End Function
 
-                Private Function GetTriviaIndex(trivia As SyntaxTrivia) As Integer
+                Private Shared Function GetTriviaIndex(trivia As SyntaxTrivia) As Integer
                     Dim token = trivia.Token
                     Dim index As Integer = 0
                     For Each tr In token.LeadingTrivia
@@ -112,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw New InvalidOperationException(VBWorkspaceResources.Trivia_is_not_associated_with_token)
                 End Function
 
-                Private Function GetTrivia(token As SyntaxToken, triviaIndex As Integer) As SyntaxTrivia
+                Private Shared Function GetTrivia(token As SyntaxToken, triviaIndex As Integer) As SyntaxTrivia
                     Dim leadingCount = token.LeadingTrivia.Count
                     If triviaIndex <= leadingCount Then
                         Return token.LeadingTrivia.ElementAt(triviaIndex)

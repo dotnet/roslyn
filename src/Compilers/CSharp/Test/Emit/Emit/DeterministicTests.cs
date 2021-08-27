@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +16,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Reflection.PortableExecutable;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -259,7 +263,7 @@ namespace N
             var compilation = CSharpCompilation.Create("Program",
                                                        new[] { tree },
                                                        new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
-                                                       new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDeterministic(true));
+                                                       TestOptions.DebugExe.WithDeterministic(true));
             var output = new WriteOnlyStream();
             compilation.Emit(output);
         }
@@ -290,8 +294,8 @@ namespace Namespace3 {
     public class GenericType<T, U> {}
 }
 ";
-            var forwardedToCompilation = CreateEmptyCompilation(forwardedToCode);
-            var forwardedToReference = new CSharpCompilationReference(forwardedToCompilation);
+            var forwardedToCompilation1 = CreateCompilation(forwardedToCode, assemblyName: "ForwardedTo");
+            var forwardedToReference1 = new CSharpCompilationReference(forwardedToCompilation1);
 
             var forwardingCode = @"
 using System.Runtime.CompilerServices;
@@ -308,7 +312,8 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int, int>))]
 ";
 
-            var forwardingCompilation = CreateCompilation(forwardingCode, new MetadataReference[] { forwardedToReference });
+            var forwardingCompilation = CreateCompilation(forwardingCode, new MetadataReference[] { forwardedToReference1 });
+            var forwardingReference = new CSharpCompilationReference(forwardingCompilation);
 
             var sortedFullNames = new string[]
             {
@@ -325,6 +330,14 @@ using System.Runtime.CompilerServices;
                 "Namespace4.Embedded.Type2"
             };
 
+            Action<ModuleSymbol> metadataValidator = module =>
+            {
+                var assembly = module.ContainingAssembly;
+                Assert.Equal(sortedFullNames, getNamesOfForwardedTypes(assembly));
+            };
+
+            CompileAndVerify(forwardingCompilation, symbolValidator: metadataValidator, sourceSymbolValidator: metadataValidator, verify: Verification.Skipped);
+
             using (var stream = forwardingCompilation.EmitToStream())
             {
                 using (var block = ModuleMetadata.CreateFromStream(stream))
@@ -332,6 +345,29 @@ using System.Runtime.CompilerServices;
                     var metadataFullNames = MetadataValidation.GetExportedTypesFullNames(block.MetadataReader);
                     Assert.Equal(sortedFullNames, metadataFullNames);
                 }
+            }
+
+            var forwardedToCompilation2 = CreateCompilation(forwardedToCode, assemblyName: "ForwardedTo");
+            var forwardedToReference2 = new CSharpCompilationReference(forwardedToCompilation2);
+
+            var withRetargeting = CreateCompilation("", new MetadataReference[] { forwardedToReference2, forwardingReference });
+
+            var retargeting = (RetargetingAssemblySymbol)withRetargeting.GetReferencedAssemblySymbol(forwardingReference);
+            Assert.Equal(sortedFullNames, getNamesOfForwardedTypes(retargeting));
+
+            foreach (var type in getForwardedTypes(retargeting))
+            {
+                Assert.Same(forwardedToCompilation2.Assembly.GetPublicSymbol(), type.ContainingAssembly);
+            }
+
+            static IEnumerable<string> getNamesOfForwardedTypes(AssemblySymbol assembly)
+            {
+                return getForwardedTypes(assembly).Select(t => t.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
+            }
+
+            static ImmutableArray<INamedTypeSymbol> getForwardedTypes(AssemblySymbol assembly)
+            {
+                return assembly.GetPublicSymbol().GetForwardedTypes();
             }
         }
 

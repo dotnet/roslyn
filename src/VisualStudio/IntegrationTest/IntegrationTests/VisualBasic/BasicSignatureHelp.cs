@@ -10,7 +10,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Roslyn.VisualStudio.IntegrationTests.CSharp
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicSignatureHelp : AbstractEditorTest
@@ -66,8 +66,8 @@ Class C
 End Class
 ";
 
-        public BasicSignatureHelp(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicSignatureHelp))
+        public BasicSignatureHelp(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicSignatureHelp))
         {
         }
 

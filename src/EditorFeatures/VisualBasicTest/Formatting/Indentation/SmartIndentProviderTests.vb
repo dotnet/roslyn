@@ -4,7 +4,9 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
     <[UseExportProvider]>
@@ -12,7 +14,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub GetSmartIndent1()
-            Dim provider = New SmartIndentProvider()
+            Dim exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider()
+            Dim provider = exportProvider.GetExportedValue(Of ISmartIndentProvider)()
 
             Assert.ThrowsAny(Of ArgumentException)(
                 Function() provider.CreateSmartIndent(Nothing))
@@ -25,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
                 Assert.Equal(True, workspace.Options.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
 
                 Dim document = workspace.Projects.Single().Documents.Single()
-                Dim provider = New SmartIndentProvider()
+                Dim provider = workspace.ExportProvider.GetExportedValues(Of ISmartIndentProvider)().OfType(Of SmartIndentProvider)().Single()
                 Dim smartIndenter = provider.CreateSmartIndent(document.GetTextView())
 
                 Assert.NotNull(smartIndenter)
@@ -40,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
                     .WithChangedOption(InternalFeatureOnOffOptions.SmartIndenter, False)))
 
                 Dim document = workspace.Projects.Single().Documents.Single()
-                Dim provider = New SmartIndentProvider()
+                Dim provider = workspace.ExportProvider.GetExportedValues(Of ISmartIndentProvider)().OfType(Of SmartIndentProvider)().Single()
                 Dim smartIndenter = provider.CreateSmartIndent(document.GetTextView())
 
                 Assert.Null(smartIndenter)

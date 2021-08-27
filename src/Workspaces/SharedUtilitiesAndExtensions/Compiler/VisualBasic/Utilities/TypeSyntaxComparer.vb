@@ -2,15 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Text
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     Friend Class TypeSyntaxComparer
@@ -53,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return _tokenComparer.Compare(x.GetFirstToken(), y.GetFirstToken())
         End Function
 
-        Private Function UnwrapType(type As TypeSyntax) As TypeSyntax
+        Private Shared Function UnwrapType(type As TypeSyntax) As TypeSyntax
             While True
                 Select Case type.Kind
                     Case SyntaxKind.ArrayType

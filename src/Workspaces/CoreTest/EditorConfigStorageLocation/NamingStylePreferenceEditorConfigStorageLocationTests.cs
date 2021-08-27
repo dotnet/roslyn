@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         public static void TestEmptyDictionaryReturnNoNamingStylePreferencesObjectReturnsFalse()
         {
             var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
-            var result = editorConfigStorageLocation.TryGetOption(new Dictionary<string, string>(), typeof(NamingStylePreferences), out var @object);
+            var result = editorConfigStorageLocation.TryGetOption(new Dictionary<string, string>(), typeof(NamingStylePreferences), out _);
             Assert.False(result, "Expected TryParseReadonlyDictionary to return 'false' for empty dictionary");
         }
 
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
             var result = editorConfigStorageLocation.TryGetOption(
                 new Dictionary<string, string>(),
                 typeof(NamingStylePreferences),
-                out var @object);
+                out _);
 
             Assert.False(result, "Expected TryParseReadonlyDictionary to return 'false' for empty dictionary");
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #pragma warning disable 436 // SuppressUnmanagedCodeSecurityAttribute defined in source and mscorlib 
 
 using System;
@@ -125,12 +127,12 @@ namespace Microsoft.DiaSymReader
         void InitializeDeterministic([MarshalAs(UnmanagedType.IUnknown)] object emitter, [MarshalAs(UnmanagedType.IUnknown)] object stream);
 
         // ISymUnmanagedWriter7
-        unsafe void UpdateSignatureByHashingContent([In]byte* buffer, int size);
+        unsafe void UpdateSignatureByHashingContent([In] byte* buffer, int size);
 
         // ISymUnmanagedWriter8
         void UpdateSignature(Guid pdbId, uint stamp, int age);
-        unsafe void SetSourceServerData([In]byte* data, int size);
-        unsafe void SetSourceLinkData([In]byte* data, int size);
+        unsafe void SetSourceServerData([In] byte* data, int size);
+        unsafe void SetSourceLinkData([In] byte* data, int size);
     }
 
     /// <summary>

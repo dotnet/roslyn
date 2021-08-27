@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 // We're going to be passed through the simplifier.  Tell it to not just convert this back to var (as
                 // that would defeat the purpose of this refactoring entirely).
                 var newTypeSyntax =
-                    semanticModel.GetTypeInfo(typeSyntax).ConvertedType
+                    semanticModel.GetTypeInfo(typeSyntax, cancellationToken).ConvertedType
                                  .GenerateTypeSyntax(allowVar: false)
                                  .WithTriviaFrom(typeSyntax);
 
@@ -109,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
             else
             {
-                var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent).ConvertedType;
+                var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent, cancellationToken).ConvertedType;
 
                 var leadingTrivia = node.GetLeadingTrivia()
                     .Concat(parensDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));

@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<SingleTypeDeclaration> _children;
 
         [Flags]
-        internal enum TypeDeclarationFlags : byte
+        internal enum TypeDeclarationFlags : ushort
         {
             None = 0,
             AnyMemberHasExtensionMethodSyntax = 1 << 1,
@@ -26,6 +29,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasBaseDeclarations = 1 << 3,
             AnyMemberHasAttributes = 1 << 4,
             HasAnyNontypeMembers = 1 << 5,
+
+            /// <summary>
+            /// Simple program uses await expressions. Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
+            /// </summary>
+            HasAwaitExpressions = 1 << 6,
+
+            /// <summary>
+            /// Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
+            /// </summary>
+            IsIterator = 1 << 7,
+
+            /// <summary>
+            /// Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
+            /// </summary>
+            HasReturnWithExpression = 1 << 8,
+
+            IsSimpleProgram = 1 << 9,
         }
 
         internal SingleTypeDeclaration(
@@ -36,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeDeclarationFlags declFlags,
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
-            ImmutableHashSet<string> memberNames,
+            ImmutableSegmentedDictionary<string, VoidResult> memberNames,
             ImmutableArray<SingleTypeDeclaration> children,
             ImmutableArray<Diagnostic> diagnostics)
             : base(name, syntaxReference, nameLocation, diagnostics)
@@ -83,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ImmutableHashSet<string> MemberNames { get; }
+        public ImmutableSegmentedDictionary<string, VoidResult> MemberNames { get; }
 
         public bool AnyMemberHasExtensionMethodSyntax
         {
@@ -122,6 +142,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return (_flags & TypeDeclarationFlags.HasAnyNontypeMembers) != 0;
+            }
+        }
+
+        public bool HasAwaitExpressions
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.HasAwaitExpressions) != 0;
+            }
+        }
+
+        public bool HasReturnWithExpression
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.HasReturnWithExpression) != 0;
+            }
+        }
+
+        public bool IsIterator
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.IsIterator) != 0;
+            }
+        }
+
+        public bool IsSimpleProgram
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.IsSimpleProgram) != 0;
             }
         }
 

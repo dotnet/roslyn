@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 // turns on tables that are stored as literals in this file
 // to generate new literals undef this constant and examine 
 // result of Dump() function.
@@ -1118,7 +1120,7 @@ namespace Microsoft.CodeAnalysis
             return -1;
         }
 
-        static internal bool IsOnlyDigits(string str, int startPos, int len)
+        internal static bool IsOnlyDigits(string str, int startPos, int len)
         {
             Debug.Assert(str != null);
             Debug.Assert(startPos + len <= str.Length);
@@ -1134,7 +1136,7 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        static internal bool IsOnlyDigits(char[] chars, int startPos, int len)
+        internal static bool IsOnlyDigits(char[] chars, int startPos, int len)
         {
             Debug.Assert(chars != null);
             Debug.Assert(startPos + len <= chars.Length);

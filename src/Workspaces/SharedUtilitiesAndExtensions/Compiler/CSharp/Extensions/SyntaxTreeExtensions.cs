@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -20,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
+#pragma warning disable IDE0060 // Remove unused parameter - Unused this parameter for consistency with other extension methods.
             this SyntaxTree syntaxTree,
+#pragma warning restore IDE0060 // Remove unused parameter
             int position,
             SyntaxToken tokenOnLeftOfPosition,
             out int positionBeforeModifiers)
@@ -49,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.UnsafeKeyword:
                     case SyntaxKind.AsyncKeyword:
                     case SyntaxKind.RefKeyword:
+                    case SyntaxKind.OutKeyword:
+                    case SyntaxKind.InKeyword:
                         result.Add(token.Kind());
                         token = token.GetPreviousToken(includeSkipped: true);
                         continue;
@@ -70,13 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return result;
         }
 
-        public static TypeDeclarationSyntax GetContainingTypeDeclaration(
+        public static TypeDeclarationSyntax? GetContainingTypeDeclaration(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.GetContainingTypeDeclarations(position, cancellationToken).FirstOrDefault();
         }
 
-        public static BaseTypeDeclarationSyntax GetContainingTypeOrEnumDeclaration(
+        public static BaseTypeDeclarationSyntax? GetContainingTypeOrEnumDeclaration(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.GetContainingTypeOrEnumDeclarations(position, cancellationToken).FirstOrDefault();
@@ -207,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsEntirelyWithinSingleLineDocComment(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var root = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
+            var root = (CompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken);
             var trivia = root.FindTrivia(position);
 
             // If we ask right at the end of the file, we'll get back nothing.
@@ -224,9 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (trivia.IsSingleLineDocComment())
             {
-                var span = trivia.Span;
+                RoslynDebug.Assert(trivia.HasStructure);
+
                 var fullSpan = trivia.FullSpan;
-                var endsWithNewLine = trivia.GetStructure().GetLastToken(includeSkipped: true).Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
+                var endsWithNewLine = trivia.GetStructure()!.GetLastToken(includeSkipped: true).Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
 
                 if (endsWithNewLine)
                 {
@@ -405,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsEntirelyWithinCharLiteral(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var root = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
+            var root = (CompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken);
             var token = root.FindToken(position, findInsideTrivia: true);
 
             // If we ask right at the end of the file, we'll get back nothing.
