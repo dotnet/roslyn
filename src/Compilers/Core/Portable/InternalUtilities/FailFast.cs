@@ -91,7 +91,6 @@ namespace Microsoft.CodeAnalysis
         /// <param name="message">An optional message to be recorded in the dump in case of failure. Can be <c>null</c>.</param>
         [Conditional("DEBUG")]
         [DebuggerHidden]
-        [MethodImpl(MethodImplOptions.Synchronized)]
         internal static void Assert([DoesNotReturnIf(false)] bool condition, string? message = null)
         {
             if (condition)
@@ -104,8 +103,7 @@ namespace Microsoft.CodeAnalysis
                 Debugger.Break();
             }
 
-            DumpStackTrace(message: message);
-            Environment.FailFast("ASSERT FAILED" + Environment.NewLine + message);
+            Fail("ASSERT FAILED" + Environment.NewLine + message);
         }
     }
 }
