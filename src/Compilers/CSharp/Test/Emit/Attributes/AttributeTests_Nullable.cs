@@ -2448,7 +2448,7 @@ class B
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB });
             // https://github.com/dotnet/roslyn/issues/36736: Not reporting missing NullableContextAttribute constructor.
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
         }
 
         [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
@@ -2477,7 +2477,7 @@ class B
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB });
             // https://github.com/dotnet/roslyn/issues/36736: Not reporting missing NullableContextAttribute constructor.
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
