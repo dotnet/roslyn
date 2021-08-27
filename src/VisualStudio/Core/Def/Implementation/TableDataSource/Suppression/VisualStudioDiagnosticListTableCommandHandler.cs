@@ -10,6 +10,7 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Configuration;
@@ -25,6 +26,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
@@ -181,8 +183,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             if (pathToAnalyzerConfigDoc != null)
             {
                 // Fire and forget.
-                var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandlerAsync));
-                _ = SetSeverityHandlerAsync(reportDiagnostic, selectedDiagnostic, project).CompletesAsyncOperation(token);
+                _listener.RunWithTracking(
+                    nameof(SetSeverityHandlerAsync),
+                    static state => state.self.SetSeverityHandlerAsync(state.reportDiagnostic, state.selectedDiagnostic, state.project),
+                    (self: this, reportDiagnostic, selectedDiagnostic, project));
             }
         }
 
@@ -210,11 +214,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 if (selectedDiagnostic.DocumentId != null)
                 {
                     // Kick off diagnostic re-analysis for affected document so that the configured diagnostic gets refreshed.
-                    var token = _listener.BeginAsyncOperation(nameof(_diagnosticService.Reanalyze));
-                    _ = Task.Run(() =>
-                    {
-                        _diagnosticService.Reanalyze(_workspace, documentIds: SpecializedCollections.SingletonEnumerable(selectedDiagnostic.DocumentId), highPriority: true);
-                    }).CompletesAsyncOperation(token);
+                    _listener.RunWithTracking(
+                        nameof(_diagnosticService.Reanalyze),
+                        static async state =>
+                        {
+                            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+                            state.self._diagnosticService.Reanalyze(state.self._workspace, documentIds: SpecializedCollections.SingletonEnumerable(state.selectedDiagnostic.DocumentId), highPriority: true);
+                        },
+                        (self: this, selectedDiagnostic));
                 }
             }
             catch (OperationCanceledException)

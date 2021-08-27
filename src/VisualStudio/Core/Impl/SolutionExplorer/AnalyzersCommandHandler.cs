@@ -18,10 +18,11 @@ using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -33,10 +34,8 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using VSLangProj140;
-using Workspace = Microsoft.CodeAnalysis.Workspace;
 using VSUtilities = Microsoft.VisualStudio.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -407,41 +406,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void SetSeverityHandler(object sender, EventArgs args)
         {
-            var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandler));
-            _ = SetSeverityHandlerAsync(sender, args).CompletesAsyncOperation(token);
-            return;
-
-            async Task SetSeverityHandlerAsync(object sender, EventArgs args)
-            {
-                try
+            _listener.RunWithTracking(
+                nameof(SetSeverityHandler),
+                static async state =>
                 {
-                    if (TryGetWorkspace() is not VisualStudioWorkspaceImpl workspace)
-                        return;
-
-                    // Actually try to set the severity for this command.  This will pop up a threaded-wait-dialog
-                    // while we do the work.  If we receive any failure notifications, we'll return them here so we
-                    // can report them once the dialog has been dismissed.
-                    using var _ = ArrayBuilder<string>.GetInstance(out var notificationMessages);
-                    await this.SetSeverityHandlerAsync(workspace, (MenuCommand)sender, notificationMessages).ConfigureAwait(false);
-
-                    if (notificationMessages.Count > 0)
+                    try
                     {
-                        var totalMessage = string.Join(Environment.NewLine, notificationMessages);
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                        if (state.self.TryGetWorkspace() is not VisualStudioWorkspaceImpl workspace)
+                            return;
 
-                        SendErrorNotification(
-                            workspace,
-                            SolutionExplorerShim.The_rule_set_file_could_not_be_updated,
-                            totalMessage);
+                        // Actually try to set the severity for this command.  This will pop up a threaded-wait-dialog
+                        // while we do the work.  If we receive any failure notifications, we'll return them here so we
+                        // can report them once the dialog has been dismissed.
+                        using var _ = ArrayBuilder<string>.GetInstance(out var notificationMessages);
+                        await state.self.SetSeverityHandlerAsync(workspace, (MenuCommand)state.sender, notificationMessages).ConfigureAwait(false);
+
+                        if (notificationMessages.Count > 0)
+                        {
+                            var totalMessage = string.Join(Environment.NewLine, notificationMessages);
+                            await state.self._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                            state.self.SendErrorNotification(
+                                workspace,
+                                SolutionExplorerShim.The_rule_set_file_could_not_be_updated,
+                                totalMessage);
+                        }
                     }
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-                {
-                }
-            }
+                    catch (OperationCanceledException)
+                    {
+                    }
+                    catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                    {
+                    }
+                },
+                (self: this, sender));
         }
 
         private async Task SetSeverityHandlerAsync(VisualStudioWorkspaceImpl workspace, MenuCommand selectedItem, ArrayBuilder<string> notificationMessages)
