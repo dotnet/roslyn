@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 context.Document, SemanticTokensCache.TokenTypeToIndex,
                 range: null, cancellationToken).ConfigureAwait(false);
 
-            var tokens = new RoslynSemanticTokens { IsPartial = isPartial, ResultId = resultId, Data = tokensData };
+            var tokens = new RoslynSemanticTokens { ResultId = resultId, Data = tokensData, IsPartial = isPartial, };
             if (tokensData.Length > 0)
             {
                 await _tokensCache.UpdateCacheAsync(request.TextDocument.Uri, tokens, cancellationToken).ConfigureAwait(false);

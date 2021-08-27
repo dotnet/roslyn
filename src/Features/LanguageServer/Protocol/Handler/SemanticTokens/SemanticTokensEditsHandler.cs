@@ -17,7 +17,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     /// <summary>
-    /// Computes the semantic tokens edits for a file. An edit request is received every 500ms,
+    /// Computes the semantic tokens edits for a file. An edit request is received every 2s,
     /// or every time an edit is made by the user.
     /// </summary>
     internal class SemanticTokensEditsHandler : IRequestHandler<LSP.SemanticTokensDeltaParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensDelta>>
@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 var newResultId = _tokensCache.GetNextResultId();
                 var updatedTokens = new RoslynSemanticTokens
                 {
-                    IsPartial = isPartial,
                     ResultId = newResultId,
-                    Data = newSemanticTokensData
+                    Data = newSemanticTokensData,
+                    IsPartial = isPartial,
                 };
 
                 if (newSemanticTokensData.Length > 0)
@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             var edits = new RoslynSemanticTokensDelta
             {
-                Edits = editArray,
                 ResultId = resultId,
+                Edits = editArray,
                 IsPartial = isPartial
             };
 

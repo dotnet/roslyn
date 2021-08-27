@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 context.Document, SemanticTokensCache.TokenTypeToIndex,
                 request.Range, cancellationToken).ConfigureAwait(false);
 
-            return new RoslynSemanticTokens { IsPartial = isPartial, ResultId = resultId, Data = tokensData };
+            return new RoslynSemanticTokens { ResultId = resultId, Data = tokensData, IsPartial = isPartial };
         }
     }
 }
