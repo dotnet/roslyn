@@ -1857,8 +1857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     functionType.GetValue() is null)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    if (targetType.IsExpressionTree() ||
-                        Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo))
+                    if (Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo))
                     {
                         Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, syntax);
                         var lambda = anonymousFunction.BindForErrorRecovery();

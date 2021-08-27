@@ -2693,7 +2693,7 @@ OuterBreak:
                 // Realize the type as TDelegate, or Expression<TDelegate> if the type parameter
                 // is constrained to System.Linq.Expressions.Expression.
                 var resultType = functionType.GetInternalDelegateType();
-                if (isExpressionType(compilation, conversions, typeParameter))
+                if (hasExpressionTypeConstraint(typeParameter))
                 {
                     var expressionOfTType = compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T);
                     resultType = expressionOfTType.Construct(resultType);
@@ -2719,21 +2719,21 @@ OuterBreak:
                 return functionType is not null;
             }
 
-            static bool isExpressionType(CSharpCompilation compilation, ConversionsBase conversions, TypeParameterSymbol typeParameter)
+            static bool hasExpressionTypeConstraint(TypeParameterSymbol typeParameter)
             {
                 var constraintTypes = typeParameter.ConstraintTypesNoUseSiteDiagnostics;
-                if (constraintTypes.IsEmpty)
+                return constraintTypes.Any(t => isExpressionType(t.Type));
+            }
+
+            static bool isExpressionType(TypeSymbol? type)
+            {
+                while (type is { })
                 {
-                    return false;
-                }
-                var expressionType = compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression);
-                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                foreach (var constraintType in constraintTypes)
-                {
-                    if (conversions.HasIdentityOrImplicitReferenceConversion(constraintType.Type, expressionType, ref discardedUseSiteInfo))
+                    if (type.IsGenericOrNonGenericExpressionType(out _))
                     {
                         return true;
                     }
+                    type = type.BaseTypeNoUseSiteDiagnostics;
                 }
                 return false;
             }
