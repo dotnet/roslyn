@@ -105,6 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         // Roslyn guids
         public const string RoslynPackageIdString = "6cf2e545-6109-4730-8883-cf43d7aec3e1";
+        public const string RoslynUserOptionsPackageIdString = "2384abd0-aa7f-4fa7-9814-6aa5a4b958c5";
         public const string RoslynCommandSetIdString = "9ed8fbd1-02d6-4223-a99c-a938f97e6dbe";
         public const string RoslynGroupIdString = "b61e1a20-8c13-49a9-a727-a0ec091647dd";
 
@@ -117,6 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string RoslynOptionPageExperimentationIdString = "D5AA7ED7-85E2-42A0-9BF6-22AEF1C1ED8C";
 
         public static readonly Guid RoslynPackageId = new(RoslynPackageIdString);
+        public static readonly Guid RoslynUserOptionsPackageId = new(RoslynUserOptionsPackageIdString);
         public static readonly Guid RoslynCommandSetId = new(RoslynCommandSetIdString);
         public static readonly Guid RoslynGroupId = new(RoslynGroupIdString);
 

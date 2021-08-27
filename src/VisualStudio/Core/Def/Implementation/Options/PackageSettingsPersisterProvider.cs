@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Setup;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider;
 
@@ -34,10 +35,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _optionService = optionService;
         }
 
-        public ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
+        public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
-            _lazyPersister ??= new PackageSettingsPersister(_threadingContext, _serviceProvider, _optionService);
-            return new ValueTask<IOptionPersister>(_lazyPersister);
+            if (_lazyPersister is null)
+            {
+                var package = await RoslynUserOptionsPackage.GetOrLoadAsync(_threadingContext, _serviceProvider, cancellationToken).ConfigureAwait(false);
+                Assumes.Present(package);
+
+                _lazyPersister ??= new PackageSettingsPersister(package, _optionService);
+            }
+
+            return _lazyPersister;
         }
     }
 }

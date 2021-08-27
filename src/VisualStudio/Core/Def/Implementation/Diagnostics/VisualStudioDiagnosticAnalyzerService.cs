@@ -162,16 +162,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             command.Enabled = true;
 
-            // The command is checked if RoslynPackage is loaded and the analysis scope for this command matches the
-            // value saved for the solution.
-            var roslynPackage = _threadingContext.JoinableTaskFactory.Run(() =>
+            // The command is checked if RoslynUserOptionsPackage is loaded and the analysis scope for this command
+            // matches the value saved for the solution.
+            var roslynUserOptionsPackage = _threadingContext.JoinableTaskFactory.Run(() =>
             {
-                return RoslynPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).AsTask();
+                return RoslynUserOptionsPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).AsTask();
             });
 
-            if (roslynPackage is not null)
+            if (roslynUserOptionsPackage is not null)
             {
-                command.Checked = roslynPackage.AnalysisScope == scope;
+                command.Checked = roslynUserOptionsPackage.AnalysisScope == scope;
             }
 
             // For the specific case of the default analysis scope command, update the command text to show the
@@ -235,14 +235,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return;
             }
 
-            var roslynPackage = _threadingContext.JoinableTaskFactory.Run(() =>
+            var roslynUserOptionsPackage = _threadingContext.JoinableTaskFactory.Run(() =>
             {
-                return RoslynPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).AsTask();
+                return RoslynUserOptionsPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).AsTask();
             });
 
-            Assumes.Present(roslynPackage);
+            Assumes.Present(roslynUserOptionsPackage);
 
-            roslynPackage.AnalysisScope = scope;
+            roslynUserOptionsPackage.AnalysisScope = scope;
         }
 
         private void OnRunCodeAnalysisForSelectedProjectStatus(object sender, EventArgs e)

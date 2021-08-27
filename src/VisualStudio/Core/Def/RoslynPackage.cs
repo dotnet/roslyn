@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Design;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +20,6 @@ using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
@@ -54,13 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
     internal sealed class RoslynPackage : AbstractPackage
     {
-        // The randomly-generated key name is used for serializing the Background Analysis Scope preference to the .SUO
-        // file. It doesn't have any semantic meaning, but is intended to not conflict with any other extension that
-        // might be saving an "AnalysisScope" named stream to the same file.
-        // note: must be <= 31 characters long
-        private const string BackgroundAnalysisScopeOptionKey = "AnalysisScope-DCE33A29A768";
-        private const byte BackgroundAnalysisScopeOptionVersion = 1;
-
         private static RoslynPackage? _lazyInstance;
 
         private VisualStudioWorkspace? _workspace;
@@ -69,32 +60,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private ColorSchemeApplier? _colorSchemeApplier;
         private IDisposable? _solutionEventMonitor;
 
-        private BackgroundAnalysisScope? _analysisScope;
-
         public RoslynPackage()
         {
-            // We need to register an option in order for OnLoadOptions/OnSaveOptions to be called
-            AddOptionKey(BackgroundAnalysisScopeOptionKey);
         }
-
-        public BackgroundAnalysisScope? AnalysisScope
-        {
-            get
-            {
-                return _analysisScope;
-            }
-
-            set
-            {
-                if (_analysisScope == value)
-                    return;
-
-                _analysisScope = value;
-                AnalysisScopeChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }
-
-        public event EventHandler? AnalysisScopeChanged;
 
         internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
@@ -113,36 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
 
             return _lazyInstance;
-        }
-
-        protected override void OnLoadOptions(string key, Stream stream)
-        {
-            if (key == BackgroundAnalysisScopeOptionKey)
-            {
-                if (stream.ReadByte() == BackgroundAnalysisScopeOptionVersion)
-                {
-                    var hasValue = stream.ReadByte() == 1;
-                    AnalysisScope = hasValue ? (BackgroundAnalysisScope)stream.ReadByte() : null;
-                }
-                else
-                {
-                    AnalysisScope = null;
-                }
-            }
-
-            base.OnLoadOptions(key, stream);
-        }
-
-        protected override void OnSaveOptions(string key, Stream stream)
-        {
-            if (key == BackgroundAnalysisScopeOptionKey)
-            {
-                stream.WriteByte(BackgroundAnalysisScopeOptionVersion);
-                stream.WriteByte(AnalysisScope.HasValue ? (byte)1 : (byte)0);
-                stream.WriteByte((byte)AnalysisScope.GetValueOrDefault());
-            }
-
-            base.OnSaveOptions(key, stream);
         }
 
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)

@@ -31,9 +31,11 @@
   </ItemGroup>
   <PropertyGroup>
     <RoslynPackageGuid>6cf2e545-6109-4730-8883-cf43d7aec3e1</RoslynPackageGuid>
+    <RoslynUserOptionsPackageGuid>2384abd0-aa7f-4fa7-9814-6aa5a4b958c5</RoslynUserOptionsPackageGuid>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <PkgDefPackageRegistration Include="{$(RoslynPackageGuid)}" Name="RoslynPackage" Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage" AllowsBackgroundLoad="true" />
+    <PkgDefPackageRegistration Include="{$(RoslynUserOptionsPackageGuid)}" Name="RoslynUserOptionsPackage" Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynUserOptionsPackage" AllowsBackgroundLoad="true" />
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
     <None Include=".\ColorSchemes\VisualStudio2019.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
