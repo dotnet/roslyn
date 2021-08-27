@@ -16,7 +16,7 @@ using System.Linq;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     /// <summary>
-    /// Tests related to binding (but not lowering) await expressions.
+    /// Tests related to await expressions.
     /// </summary>
     public class AwaitExpressionTests : CompilingTestBase
     {
