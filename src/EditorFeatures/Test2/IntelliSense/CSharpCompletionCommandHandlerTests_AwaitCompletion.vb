@@ -320,7 +320,8 @@ public class C
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionDoesNotAddAsync_NotTask() As Task
+        <WorkItem(55975, "https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function AwaitCompletionDoesNotAddAsync_Void() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Threading.Tasks;
@@ -335,7 +336,7 @@ public class C
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
 
                 state.SendTab()
                 Assert.Equal("
@@ -343,7 +344,7 @@ using System.Threading.Tasks;
 
 public class C
 {
-    public static async void Main()
+    public static void Main()
     {
         await
     }

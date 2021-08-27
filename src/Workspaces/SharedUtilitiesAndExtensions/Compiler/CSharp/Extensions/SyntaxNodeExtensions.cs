@@ -408,6 +408,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 || node.IsKind(SyntaxKind.LocalFunctionStatement);
         }
 
+        public static TypeSyntax? GetFunctionReturnTypeSyntax(this SyntaxNode node)
+        {
+            return node switch
+            {
+                MethodDeclarationSyntax methodDeclaration => methodDeclaration.ReturnType,
+                LocalFunctionStatementSyntax localFunctionStatement => localFunctionStatement.ReturnType,
+                _ => null
+            };
+        }
+
         public static bool IsAnyLambda([NotNullWhen(returnValue: true)] this SyntaxNode? node)
         {
             return

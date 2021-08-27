@@ -7,10 +7,8 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -50,6 +48,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
-            => token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
+        {
+            var functionSyntax = token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
+            var returnType = functionSyntax?.GetFunctionReturnTypeSyntax();
+
+            // We don't automatically add async modifier to a void returning method,
+            // so user need to fix the error and make an explcit decision of whether
+            // to change return type to Task.
+            return returnType is null || !returnType.IsVoid()
+                ? functionSyntax
+                : null;
+        }
     }
 }
