@@ -27,6 +27,7 @@
     <NuGetPackageToIncludeInVsix Include="Microsoft.Bcl.AsyncInterfaces" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.PortablePdb" PkgDefEntry="BindingRedirect" />
+    <NuGetPackageToIncludeInVsix Include="Microsoft.VisualStudio.WinForms.Interfaces" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Buffers" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" PkgDefEntry="BindingRedirect" />
     <NuGetPackageToIncludeInVsix Include="System.Memory" PkgDefEntry="BindingRedirect" />

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -98,6 +97,11 @@ namespace RunTests
             var workItems = assemblyInfoList.Select(ai => makeHelixWorkItemProject(ai));
 
             var globalJson = JsonConvert.DeserializeAnonymousType(File.ReadAllText(getGlobalJsonPath()), new { sdk = new { version = "" } });
+            if (globalJson is null)
+            {
+                throw new IOException("Failed to deserialize Global Json.");
+            }
+
             var project = @"
 <Project Sdk=""Microsoft.DotNet.Helix.Sdk"" DefaultTargets=""Test"">
     <PropertyGroup>
@@ -108,7 +112,7 @@ namespace RunTests
         <HelixTargetQueues>" + _options.HelixQueueName + @"</HelixTargetQueues>
         <Creator>" + queuedBy + @"</Creator>
         <IncludeDotNetCli>true</IncludeDotNetCli>
-        <DotNetCliVersion>" + globalJson?.sdk.version + @"</DotNetCliVersion>
+        <DotNetCliVersion>" + globalJson.sdk.version + @"</DotNetCliVersion>
         <DotNetCliPackageType>sdk</DotNetCliPackageType>
         <EnableAzurePipelinesReporter>" + (isAzureDevOpsRun ? "true" : "false") + @"</EnableAzurePipelinesReporter>
     </PropertyGroup>

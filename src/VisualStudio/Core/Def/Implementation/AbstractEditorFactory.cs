@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,9 +15,11 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.WinForms.Interfaces;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -103,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 case "Form":
 
-                    if (WinFormsEditorFactory.Instance.CreateEditorInstance(
+                    if (CreateWinFormsEditorInstance(
                         vsHierarchy,
                         itemid,
                         _oleServiceProvider,
@@ -233,6 +236,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         int IVsEditorFactoryNotify.NotifyItemRenamed(IVsHierarchy pHier, uint itemid, string pszMkDocumentOld, string pszMkDocumentNew)
             => VSConstants.S_OK;
+
+        // NOTE: This function has been created to hide IWinFormsEditorFactory type in non-WinForms scenarios (e.g. editing .cs or .vb file)
+        // so that its corresponding dll doesn't get loaded. Due to this reason, function inlining has been disabled.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private int CreateWinFormsEditorInstance(
+            IVsHierarchy vsHierarchy,
+            uint itemid,
+            OLE.Interop.IServiceProvider oleServiceProvider,
+            IVsTextBuffer textBuffer,
+            READONLYSTATUS readOnlyStatus,
+            out IntPtr ppunkDocView,
+            out string pbstrEditorCaption,
+            out Guid pguidCmdUI)
+        {
+            ppunkDocView = IntPtr.Zero;
+            pbstrEditorCaption = string.Empty;
+            pguidCmdUI = Guid.Empty;
+
+            var winFormsEditorFactory = (IWinFormsEditorFactory)PackageUtilities.QueryService<IWinFormsEditorFactory>(oleServiceProvider);
+
+            return winFormsEditorFactory is null
+                ? VSConstants.E_FAIL
+                : winFormsEditorFactory.CreateEditorInstance(
+                    vsHierarchy,
+                    itemid,
+                    oleServiceProvider,
+                    textBuffer,
+                    readOnlyStatus,
+                    out ppunkDocView,
+                    out pbstrEditorCaption,
+                    out pguidCmdUI);
+        }
 
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
