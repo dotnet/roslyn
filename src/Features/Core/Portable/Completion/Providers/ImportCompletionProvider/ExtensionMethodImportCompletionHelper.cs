@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static Task WarmUpCacheInCurrentProcessAsync(Document document, CancellationToken cancellationToken)
         {
             var cacheService = GetCacheService(document.Project.Solution.Workspace);
-            return ExtensionMethodSymbolComputer.PopulateIndicesAsync(document, cacheService, cancellationToken);
+            return ExtensionMethodSymbolComputer.PopulateIndicesAsync(document.Project, cacheService, cancellationToken);
         }
 
         public static async Task<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         // When building cache in the background, make sure we always use latest snapshot with full semantic
                         var id = document.Id;
                         var workspace = document.Project.Solution.Workspace;
-                        s_indexingTask = Task.Run(() => symbolComputer.PopulateIndicesAsync(workspace.CurrentSolution.GetDocument(id), CancellationToken.None), CancellationToken.None);
+                        s_indexingTask = Task.Run(() => symbolComputer.PopulateIndicesAsync(workspace.CurrentSolution.GetDocument(id)?.Project, CancellationToken.None), CancellationToken.None);
                     }
                 }
             }

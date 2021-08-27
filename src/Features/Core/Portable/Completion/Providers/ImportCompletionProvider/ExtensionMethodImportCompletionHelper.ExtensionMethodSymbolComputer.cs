@@ -68,39 +68,39 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             /// <summary>
             /// Force create all relevant indices
             /// </summary>
-            public static Task PopulateIndicesAsync(Document? document, IImportCompletionCacheService<CacheEntry, object> cacheService, CancellationToken cancellationToken)
+            public static Task PopulateIndicesAsync(Project? project, IImportCompletionCacheService<CacheEntry, object> cacheService, CancellationToken cancellationToken)
             {
-                if (document is null)
+                if (project is null)
                 {
                     return Task.CompletedTask;
                 }
 
                 using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
-                foreach (var project in GetAllRelevantProjects(document))
+                foreach (var relevantProject in GetAllRelevantProjects(project))
                 {
                     tasks.Add(Task.Run(()
-                        => GetCacheEntryAsync(project, loadOnly: false, cacheService, cancellationToken), cancellationToken));
+                        => GetCacheEntryAsync(relevantProject, loadOnly: false, cacheService, cancellationToken), cancellationToken));
                 }
 
-                foreach (var peReference in GetAllRelevantPeReferences(document))
+                foreach (var peReference in GetAllRelevantPeReferences(project))
                 {
                     tasks.Add(Task.Run(()
-                        => SymbolTreeInfo.GetInfoForMetadataReferenceAsync(document.Project.Solution, peReference, loadOnly: false, cancellationToken).AsTask(), cancellationToken));
+                        => SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, loadOnly: false, cancellationToken).AsTask(), cancellationToken));
                 }
 
                 return Task.WhenAll(tasks.ToImmutable());
             }
 
-            public Task PopulateIndicesAsync(Document? document, CancellationToken cancellationToken)
-                => PopulateIndicesAsync(document, _cacheService, cancellationToken);
+            public Task PopulateIndicesAsync(Project? project, CancellationToken cancellationToken)
+                => PopulateIndicesAsync(project, _cacheService, cancellationToken);
 
             public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceIndexCreation, CancellationToken cancellationToken)
             {
                 // Find applicable symbols in parallel
                 using var _1 = ArrayBuilder<Task<ImmutableArray<IMethodSymbol>?>>.GetInstance(out var tasks);
 
-                foreach (var peReference in GetAllRelevantPeReferences(_originatingDocument))
+                foreach (var peReference in GetAllRelevantPeReferences(_originatingDocument.Project))
                 {
                     tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromPeReferenceAsync(
                         peReference,
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         cancellationToken).AsTask(), cancellationToken));
                 }
 
-                foreach (var project in GetAllRelevantProjects(_originatingDocument))
+                foreach (var project in GetAllRelevantProjects(_originatingDocument.Project))
                 {
                     tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromProjectAsync(
                         project,
@@ -141,16 +141,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // Returns all referenced projects and originating project itself.
-            private static ImmutableArray<Project> GetAllRelevantProjects(Document document)
+            private static ImmutableArray<Project> GetAllRelevantProjects(Project project)
             {
-                var graph = document.Project.Solution.GetProjectDependencyGraph();
-                var relevantProjectIds = graph.GetProjectsThatThisProjectTransitivelyDependsOn(document.Project.Id).Concat(document.Project.Id);
-                return relevantProjectIds.Select(id => document.Project.Solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation).ToImmutableArray();
+                var graph = project.Solution.GetProjectDependencyGraph();
+                var relevantProjectIds = graph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id).Concat(project.Id);
+                return relevantProjectIds.Select(id => project.Solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation).ToImmutableArray();
             }
 
             // Returns all PEs referenced by originating project.
-            private static ImmutableArray<PortableExecutableReference> GetAllRelevantPeReferences(Document document)
-                => document.Project.MetadataReferences.OfType<PortableExecutableReference>().ToImmutableArray();
+            private static ImmutableArray<PortableExecutableReference> GetAllRelevantPeReferences(Project project)
+                => project.MetadataReferences.OfType<PortableExecutableReference>().ToImmutableArray();
 
             private async Task<ImmutableArray<IMethodSymbol>?> GetExtensionMethodSymbolsFromProjectAsync(
                 Project project,
