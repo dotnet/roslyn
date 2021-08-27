@@ -464,8 +464,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     topLevelMethodId,
                     originalMethod,
                     nestedFunction.BlockSyntax,
-                    lambdaId);
-                synthesizedMethod.AfterCreate(CompilationState, Diagnostics);
+                    lambdaId,
+                    CompilationState);
                 nestedFunction.SynthesizedLoweredMethod = synthesizedMethod;
             });
 

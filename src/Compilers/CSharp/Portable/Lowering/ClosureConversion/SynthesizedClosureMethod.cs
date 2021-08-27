@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugId topLevelMethodId,
             MethodSymbol originalMethod,
             SyntaxReference blockSyntax,
-            DebugId lambdaId)
+            DebugId lambdaId,
+            TypeCompilationState compilationState)
             : base(containingType,
                    originalMethod,
                    blockSyntax,
@@ -100,17 +101,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AssignTypeMapAndTypeParameters(typeMap, typeParameters);
+            EnsureAttributesExist(compilationState);
 
             // static local functions should be emitted as static.
             Debug.Assert(!(originalMethod is LocalFunctionSymbol) || !originalMethod.IsStatic || IsStatic);
         }
 
-        internal void AfterCreate(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
+        private void EnsureAttributesExist(TypeCompilationState compilationState)
         {
             var moduleBuilder = compilationState.ModuleBuilderOpt;
-            var compilation = compilationState.Compilation;
-
-            Debug.Assert(moduleBuilder is { });
+            if (moduleBuilder is null)
+            {
+                return;
+            }
 
             if (RefKind == RefKind.RefReadOnly)
             {
@@ -126,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ParameterHelpers.EnsureNativeIntegerAttributeExists(moduleBuilder, Parameters);
 
-            if (compilation.ShouldEmitNullableAttributes(this))
+            if (compilationState.Compilation.ShouldEmitNullableAttributes(this))
             {
                 if (ShouldEmitNullableContextValue(out _))
                 {
