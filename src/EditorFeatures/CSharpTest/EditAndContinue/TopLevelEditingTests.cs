@@ -879,7 +879,7 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
+                Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "class C", FeaturesResources.class_));
         }
 
         [Fact]
@@ -7300,7 +7300,7 @@ using System;
 
 class Test
 {
-    [Obsolete, Serializable]
+    [Obsolete, STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7332,7 +7332,7 @@ using System;
 class Test
 {
     [Obsolete]
-    [Serializable]
+    [STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7362,7 +7362,7 @@ using System;
 
 class Test
 {
-    [Obsolete, Serializable]
+    [Obsolete, STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7444,7 +7444,7 @@ using System;
 
 class Test
 {
-    [Obsolete, Serializable]
+    [Obsolete, STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7476,7 +7476,7 @@ using System;
 class Test
 {
     [Obsolete]
-    [Serializable]
+    [STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -15247,7 +15247,7 @@ class C { static void M(string a) { } }
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "int a", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -15266,7 +15266,7 @@ class C { static void M(string a) { } }
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "int a", FeaturesResources.parameter));
         }
 
         [Fact]

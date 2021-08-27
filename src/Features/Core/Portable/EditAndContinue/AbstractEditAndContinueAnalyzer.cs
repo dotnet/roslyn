@@ -3814,10 +3814,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // We need diagnostics reported if the runtime doesn't support changing attributes,
             // but even if it does, only attributes stored in the CustomAttributes table are editable
-            if (!capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes) ||
-                changedAttributes.Any(IsNonCustomAttribute))
+            var rudeEdit = changedAttributes.Any(IsNonCustomAttribute)
+                ? RudeEditKind.ChangingNonCustomAttribute
+                : (!capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes)
+                    ? RudeEditKind.ChangingAttributesNotSupportedByRuntime
+                    : RudeEditKind.None);
+
+            if (rudeEdit != RudeEditKind.None)
             {
-                ReportUpdateRudeEdit(diagnostics, RudeEditKind.ChangingAttributesNotSupportedByRuntime, oldSymbol, newSymbol, newNode, newCompilation, cancellationToken);
+                ReportUpdateRudeEdit(diagnostics, rudeEdit, oldSymbol, newSymbol, newNode, newCompilation, cancellationToken);
 
                 // If the runtime doesn't support edits then pretend there weren't changes, so no edits are produced
                 return false;

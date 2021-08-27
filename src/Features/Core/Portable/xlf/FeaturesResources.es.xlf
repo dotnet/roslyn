@@ -2415,6 +2415,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="new">Updating the attributes of {0} requires restarting the application because it is not supported by the runtime.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_the_attributes_of_0_requires_restarting_the_application_because_one_or_more_attributes_affect_compiler_behaviour">
+        <source>Updating the attributes of {0} requires restarting the application because one or more attributes affect compiler behaviour</source>
+        <target state="new">Updating the attributes of {0} requires restarting the application because one or more attributes affect compiler behaviour</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_requires_restarting_the_application">
         <source>Updating the base class and/or base interface(s) of {0} requires restarting the application.</source>
         <target state="new">Updating the base class and/or base interface(s) of {0} requires restarting the application.</target>
