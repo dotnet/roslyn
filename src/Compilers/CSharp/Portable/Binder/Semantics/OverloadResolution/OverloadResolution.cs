@@ -2333,7 +2333,7 @@ outerDefault:
         // Determine whether t1 or t2 is a better conversion target from node.
         private BetterResult BetterConversionFromExpression(BoundExpression node, TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            //Debug.Assert(node.Kind != BoundKind.UnboundLambda);
+            Debug.Assert(node.Kind != BoundKind.UnboundLambda);
             bool ignore;
             return BetterConversionFromExpression(
                 node,

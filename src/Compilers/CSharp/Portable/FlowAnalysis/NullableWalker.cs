@@ -8774,14 +8774,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var (expr, conversion) = RemoveConversion(node.Expression, includeExplicitConversions: false);
-            if (expr.Type is null)
-            {
-                // If we're in this scenario, there was a binding error, and we should suppress any further warnings.
-                Debug.Assert(node.HasErrors);
-                VisitRvalue(node.Expression);
-                return;
-            }
-
             SnapshotWalkerThroughConversionGroup(node.Expression, expr);
 
             // There are 7 ways that a foreach can be created:

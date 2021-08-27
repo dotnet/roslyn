@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             ConversionsBase conversions,
             TypeSymbol? delegateType,
-            ArrayBuilder<(BoundExpression, TypeWithAnnotations resultType)> returns,
+            ArrayBuilder<(BoundExpression expr, TypeWithAnnotations resultType)> returns,
             bool isAsync,
             BoundNode node,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -230,8 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var bestType = BestTypeInferrer.InferBestType(returns.SelectAsArray(pair => pair.Item1), conversions, ref useSiteInfo);
-                bestResultType = bestType is null ? default : TypeWithAnnotations.Create(bestType);
+                var bestType = BestTypeInferrer.InferBestType(returns.SelectAsArray(pair => pair.expr), conversions, ref useSiteInfo);
+                bestResultType = TypeWithAnnotations.Create(bestType);
             }
 
             if (!isAsync)
