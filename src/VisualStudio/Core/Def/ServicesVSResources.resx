@@ -1803,4 +1803,16 @@ Additional information: {1}</value>
   <data name="Package_uninstall_canceled" xml:space="preserve">
     <value>Package uninstall canceled</value>
   </data>
+  <data name="Default_Current_Document" xml:space="preserve">
+    <value>Default (Current Document)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Default_Entire_Solution" xml:space="preserve">
+    <value>Default (Entire Solution)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Default_Open_Documents" xml:space="preserve">
+    <value>Default (Open Documents)</value>
+    <comment>This text is a menu command</comment>
+  </data>
 </root>
