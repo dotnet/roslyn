@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CallstackExplorer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -88,6 +84,20 @@ namespace ConsoleApp4
         private static TestWorkspace CreateWorkspace()
         {
             return TestWorkspace.CreateCSharp(BaseCode);
+        }
+
+        [Theory]
+        [InlineData("ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#", "ConsoleApp4.MyClass.ThrowAtOne")]
+        [InlineData(@"   at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26", "ConsoleApp4.MyClass.ThrowAtOne")]
+        public async Task TestSymbolFound(string inputLine, string symbolText)
+        {
+            var workspace = CreateWorkspace();
+            var result = await CallstackAnalyzer.AnalyzeAsync(workspace.CurrentSolution, inputLine, CancellationToken.None);
+            Assert.Single(result.ParsedLines);
+
+            var symbol = await result.ParsedLines[0].ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            var method = await GetSymbolAsync(symbolText, workspace);
+            Assert.Equal(method, symbol);
         }
 
         [Fact]
