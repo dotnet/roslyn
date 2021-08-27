@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     [UseExportProvider]
     public class AddImportsTests
     {
-        private static async Task<Document> GetDocument(string code, bool withAnnotations)
+        private static async Task<Document> GetDocumentAsync(string code, bool withAnnotations)
         {
             var ws = new AdhocWorkspace();
             var emptyProject = ws.AddProject(
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             Func<OptionSet, OptionSet> optionsTransform = null,
             bool performCheck = true)
         {
-            var doc = await GetDocument(initialText, useSymbolAnnotations);
+            var doc = await GetDocumentAsync(initialText, useSymbolAnnotations);
             OptionSet options = await doc.GetOptionsAsync();
             if (optionsTransform != null)
             {

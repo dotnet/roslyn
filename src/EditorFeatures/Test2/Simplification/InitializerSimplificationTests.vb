@@ -44,7 +44,7 @@ End Class
 
 </code>
 
-            Await AssertCompilesAndEqual(input, expected).ConfigureAwait(False)
+            Await AssertCompilesAndEqualAsync(input, expected).ConfigureAwait(False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -78,11 +78,11 @@ Friend Class InitializerTestClass
     End Function
 End Class
 </code>
-            Await AssertCompilesAndEqual(input, expected).ConfigureAwait(False)
+            Await AssertCompilesAndEqualAsync(input, expected).ConfigureAwait(False)
         End Function
 #End Region
 
-        Private Shared Async Function AssertCompilesAndEqual(input As XElement, expected As XElement) As Task
+        Private Shared Async Function AssertCompilesAndEqualAsync(input As XElement, expected As XElement) As Task
             Using workspace = CreateTestWorkspace(input)
                 Dim simplifiedDocument = Await SimplifyAsync(workspace).ConfigureAwait(False)
 
@@ -90,7 +90,7 @@ End Class
                 Dim diagnosticsFromSimplifiedDocument = semanticModel.Compilation.GetDiagnostics()
                 Assert.Empty(diagnosticsFromSimplifiedDocument)
 
-                Await AssertCodeEqual(expected, simplifiedDocument)
+                Await AssertCodeEqualAsync(expected, simplifiedDocument)
             End Using
         End Function
     End Class

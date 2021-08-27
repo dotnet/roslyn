@@ -65,7 +65,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var solution = workspace.CurrentSolution;
 
-            await UpdatePrimaryWorkspace(client, solution);
+            await UpdatePrimaryWorkspaceAsync(client, solution);
             await VerifyAssetStorageAsync(client, solution, includeProjectCones: true);
 
             var remoteWorkpace = client.GetRemoteWorkspace();
@@ -90,7 +90,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solution = workspace.CurrentSolution;
 
             // sync base solution
-            await UpdatePrimaryWorkspace(client, solution);
+            await UpdatePrimaryWorkspaceAsync(client, solution);
             await VerifyAssetStorageAsync(client, solution, includeProjectCones: true);
 
             // get basic info
@@ -258,7 +258,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
             var remoteWorkspace = client.GetRemoteWorkspace();
 
-            await UpdatePrimaryWorkspace(client, solution);
+            await UpdatePrimaryWorkspaceAsync(client, solution);
             await VerifyAssetStorageAsync(client, solution, includeProjectCones: true);
 
             // Only C# and VB projects are supported in Remote workspace.
@@ -293,7 +293,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solution = Populate(workspace.CurrentSolution);
 
             // verify initial setup
-            await UpdatePrimaryWorkspace(client, solution);
+            await UpdatePrimaryWorkspaceAsync(client, solution);
             await VerifyAssetStorageAsync(client, solution, includeProjectCones: false);
 
             solution = WithChangedOptionsFromRemoteWorkspace(solution, remoteWorkspace);
@@ -388,7 +388,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     var documentNames = changedDocuments.ToImmutableArray();
                     changedDocuments.Clear();
 
-                    await UpdatePrimaryWorkspace(client, solution);
+                    await UpdatePrimaryWorkspaceAsync(client, solution);
 
                     var currentRemoteSolution = remoteWorkspace.CurrentSolution;
                     VerifyStates(remoteSolution, currentRemoteSolution, projectName, documentNames);
@@ -486,7 +486,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         // make sure we always move remote workspace forward
         private int _solutionVersion = 0;
 
-        private async Task UpdatePrimaryWorkspace(RemoteHostClient client, Solution solution)
+        private async Task UpdatePrimaryWorkspaceAsync(RemoteHostClient client, Solution solution)
         {
             var checksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(

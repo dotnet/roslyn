@@ -29,7 +29,7 @@ public override void Execute() {
 }]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars(".Curr")
-                Await state.AssertSelectedCompletionItem(displayText:="CurrentDomain")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="CurrentDomain")
                 state.SendTab()
                 Assert.Contains("__o = AppDomain.CurrentDomain", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -65,10 +65,10 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(".", view, buffer)
-                Await state.AssertCompletionSession(view)
+                Await state.AssertCompletionSessionAsync(view)
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Cons", view, buffer)
-                Await state.AssertSelectedCompletionItem(displayText:="Console", projectionsView:=view)
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Console", projectionsView:=view)
             End Using
         End Function
 
@@ -102,7 +102,7 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(" ", view, buffer)
-                Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True, projectionsView:=view)
+                Await state.AssertSelectedCompletionItemAsync(displayText:="string", isHardSelected:=True, projectionsView:=view)
             End Using
         End Function
 
@@ -137,7 +137,7 @@ class C
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer("#reg", view, buffer)
-                Await state.AssertSelectedCompletionItem(displayText:="region", shouldFormatOnCommit:=True, projectionsView:=view)
+                Await state.AssertSelectedCompletionItemAsync(displayText:="region", shouldFormatOnCommit:=True, projectionsView:=view)
             End Using
         End Function
     End Class

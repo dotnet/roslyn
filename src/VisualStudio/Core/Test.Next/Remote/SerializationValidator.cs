@@ -290,16 +290,16 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             await VerifyChecksumInServiceAsync(projectObject.CompilationOptions, WellKnownSynchronizationKind.CompilationOptions).ConfigureAwait(false);
             await VerifyChecksumInServiceAsync(projectObject.ParseOptions, WellKnownSynchronizationKind.ParseOptions).ConfigureAwait(false);
 
-            await VerifyCollectionInService(ToDocumentObjects(projectObject.Documents), expectedDocumentCount).ConfigureAwait(false);
+            await VerifyCollectionInServiceAsync(ToDocumentObjects(projectObject.Documents), expectedDocumentCount).ConfigureAwait(false);
 
-            await VerifyCollectionInService(projectObject.ProjectReferences, expectedProjectReferenceCount, WellKnownSynchronizationKind.ProjectReference).ConfigureAwait(false);
-            await VerifyCollectionInService(projectObject.MetadataReferences, expectedMetadataReferenceCount, WellKnownSynchronizationKind.MetadataReference).ConfigureAwait(false);
-            await VerifyCollectionInService(projectObject.AnalyzerReferences, expectedAnalyzerReferenceCount, WellKnownSynchronizationKind.AnalyzerReference).ConfigureAwait(false);
+            await VerifyCollectionInServiceAsync(projectObject.ProjectReferences, expectedProjectReferenceCount, WellKnownSynchronizationKind.ProjectReference).ConfigureAwait(false);
+            await VerifyCollectionInServiceAsync(projectObject.MetadataReferences, expectedMetadataReferenceCount, WellKnownSynchronizationKind.MetadataReference).ConfigureAwait(false);
+            await VerifyCollectionInServiceAsync(projectObject.AnalyzerReferences, expectedAnalyzerReferenceCount, WellKnownSynchronizationKind.AnalyzerReference).ConfigureAwait(false);
 
-            await VerifyCollectionInService(ToDocumentObjects(projectObject.AdditionalDocuments), expectedAdditionalDocumentCount).ConfigureAwait(false);
+            await VerifyCollectionInServiceAsync(ToDocumentObjects(projectObject.AdditionalDocuments), expectedAdditionalDocumentCount).ConfigureAwait(false);
         }
 
-        internal async Task VerifyCollectionInService(ChecksumCollection checksums, int expectedCount, WellKnownSynchronizationKind expectedItemKind)
+        internal async Task VerifyCollectionInServiceAsync(ChecksumCollection checksums, int expectedCount, WellKnownSynchronizationKind expectedItemKind)
         {
             await VerifyChecksumInServiceAsync(checksums.Checksum, checksums.GetWellKnownSynchronizationKind()).ConfigureAwait(false);
             Assert.Equal(checksums.Count, expectedCount);
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             }
         }
 
-        internal async Task VerifyCollectionInService(ChecksumObjectCollection<DocumentStateChecksums> documents, int expectedCount)
+        internal async Task VerifyCollectionInServiceAsync(ChecksumObjectCollection<DocumentStateChecksums> documents, int expectedCount)
         {
             await VerifySynchronizationObjectInServiceAsync(documents).ConfigureAwait(false);
             Assert.Equal(documents.Count, expectedCount);

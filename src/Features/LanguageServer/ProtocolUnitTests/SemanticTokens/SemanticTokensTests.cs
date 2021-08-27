@@ -41,7 +41,7 @@ static class C { }";
                 ResultId = "1"
             };
 
-            await VerifyNoMultiLineTokens(testLspServer, results.Data!).ConfigureAwait(false);
+            await VerifyNoMultiLineTokensAsync(testLspServer, results.Data!).ConfigureAwait(false);
             Assert.Equal(expectedResults.Data, results.Data);
             Assert.Equal(expectedResults.ResultId, results.ResultId);
         }
@@ -77,7 +77,7 @@ static class C { }
                 ResultId = "1"
             };
 
-            await VerifyNoMultiLineTokens(testLspServer, rangeResults.Data!).ConfigureAwait(false);
+            await VerifyNoMultiLineTokensAsync(testLspServer, rangeResults.Data!).ConfigureAwait(false);
             Assert.Equal(expectedRangeResults.Data, rangeResults.Data);
             Assert.Equal(expectedRangeResults.ResultId, rangeResults.ResultId);
 
@@ -98,7 +98,7 @@ static class C { }
                 ResultId = "2"
             };
 
-            await VerifyNoMultiLineTokens(testLspServer, wholeDocResults.Data!).ConfigureAwait(false);
+            await VerifyNoMultiLineTokensAsync(testLspServer, wholeDocResults.Data!).ConfigureAwait(false);
             Assert.Equal(expectedWholeDocResults.Data, wholeDocResults.Data);
             Assert.Equal(expectedWholeDocResults.ResultId, wholeDocResults.ResultId);
 
@@ -137,7 +137,7 @@ static class C { }
                 ResultId = "4"
             };
 
-            await VerifyNoMultiLineTokens(testLspServer, wholeDocResults2.Data!).ConfigureAwait(false);
+            await VerifyNoMultiLineTokensAsync(testLspServer, wholeDocResults2.Data!).ConfigureAwait(false);
             Assert.Equal(expectedWholeDocResults2.Data, wholeDocResults2.Data);
             Assert.Equal(expectedWholeDocResults2.ResultId, wholeDocResults2.ResultId);
         }
@@ -170,7 +170,7 @@ three */ }
                 ResultId = "1"
             };
 
-            await VerifyNoMultiLineTokens(testLspServer, results.Data!).ConfigureAwait(false);
+            await VerifyNoMultiLineTokensAsync(testLspServer, results.Data!).ConfigureAwait(false);
             Assert.Equal(expectedResults.Data, results.Data);
             Assert.Equal(expectedResults.ResultId, results.ResultId);
         }
@@ -220,7 +220,7 @@ three"";
                 ResultId = "1"
             };
 
-            await VerifyNoMultiLineTokens(testLspServer, results.Data!).ConfigureAwait(false);
+            await VerifyNoMultiLineTokensAsync(testLspServer, results.Data!).ConfigureAwait(false);
             Assert.Equal(expectedResults.Data, results.Data);
             Assert.Equal(expectedResults.ResultId, results.ResultId);
         }

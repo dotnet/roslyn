@@ -40,7 +40,7 @@ namespace SampleComponent
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -80,7 +80,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -122,7 +122,7 @@ namespace SampleComponent
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -152,7 +152,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -212,7 +212,7 @@ namespace SampleComponent
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -265,7 +265,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -469,7 +469,7 @@ namespace SampleComponent
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -591,7 +591,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPI(input, host)
+            Await TestAPIAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -713,7 +713,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
     End Class
 End Namespace

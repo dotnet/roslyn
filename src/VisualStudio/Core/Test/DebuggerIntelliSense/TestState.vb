@@ -94,19 +94,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Return Me.TextView.TextViewLines.Last().Extent.GetText()
         End Function
 
-        Public Async Function VerifyCompletionAndDotAfter(item As String) As Task
+        Public Async Function VerifyCompletionAndDotAfterAsync(item As String) As Task
             SendTypeChars(item)
             Await WaitForAsynchronousOperationsAsync()
-            Await AssertSelectedCompletionItem(item)
+            Await AssertSelectedCompletionItemAsync(item)
             SendTab()
             SendTypeChars(".")
             Await WaitForAsynchronousOperationsAsync()
-            Await AssertCompletionSession()
+            Await AssertCompletionSessionAsync()
             For i As Integer = 0 To item.Length
                 SendBackspace()
             Next
 
-            Await AssertNoCompletionSession()
+            Await AssertNoCompletionSessionAsync()
         End Function
 
     End Class

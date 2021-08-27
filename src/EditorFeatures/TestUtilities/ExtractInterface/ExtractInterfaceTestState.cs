@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 CancellationToken.None);
         }
 
-        public async Task<Solution> ExtractViaCodeAction()
+        public async Task<Solution> ExtractViaCodeActionAsync()
         {
             var actions = await ExtractInterfaceService.GetExtractInterfaceCodeActionAsync(
                 ExtractFromDocument,

@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarTest1")
                 VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "renamedtest")
+                Await VerifyTagsAreCorrectAsync(workspace, "renamedtest")
             End Using
         End Function
 
@@ -105,7 +105,7 @@ class C
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, originalTextToRename:="_", renameTextPrefix:="change", renameOverloads:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, originalTextToRename:="_", renameTextPrefix:="change", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
@@ -137,7 +137,7 @@ class [|Test1$$|]
                 textBuffer.Insert(selectedSpan, "<>")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Test1<>")
+                Await VerifyTagsAreCorrectAsync(workspace, "Test1<>")
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
@@ -165,7 +165,7 @@ class Deconstructable
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "x", "change", renameOverloads:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "x", "change", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
@@ -194,7 +194,7 @@ class Deconstructable
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "Deconstruct", "Changed", renameOverloads:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "Deconstruct", "Changed", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
@@ -226,18 +226,18 @@ class Deconstructable
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarTest1")
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarTest1")
                 VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
 
-        Private Shared Async Function VerifyRenameOptionChangedSessionCommit(workspace As TestWorkspace,
+        Private Shared Async Function VerifyRenameOptionChangedSessionCommitAsync(workspace As TestWorkspace,
                                                            originalTextToRename As String,
                                                            renameTextPrefix As String,
                                                            Optional renameOverloads As Boolean = False,
@@ -259,13 +259,13 @@ class Deconstructable
             renameDocument.GetTextBuffer().Insert(renameDocument.CursorPosition.Value, renameTextPrefix)
 
             Dim replacementText = renameTextPrefix + originalTextToRename
-            Await WaitForRename(workspace)
+            Await WaitForRenameAsync(workspace)
 
-            Await VerifyTagsAreCorrect(workspace, replacementText)
+            Await VerifyTagsAreCorrectAsync(workspace, replacementText)
 
             session.Commit()
 
-            Await VerifyTagsAreCorrect(workspace, replacementText)
+            Await VerifyTagsAreCorrectAsync(workspace, replacementText)
 
             If renameFile Then
                 If fileToRename Is Nothing Then
@@ -305,7 +305,7 @@ class Program
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "goo", "bar", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
@@ -347,7 +347,7 @@ End Class
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "goo", "bar", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
@@ -372,7 +372,7 @@ End Class
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "args", "bar", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "args", "bar", renameInComments:=True)
 
                 Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "Test1.vb"))
             End Using
@@ -392,7 +392,7 @@ End Class
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "C", "AB", renameInComments:=True)
 
                 Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
 
@@ -422,7 +422,7 @@ public partial class C { }
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "C", "AB", renameInComments:=True)
 
                 Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
             End Using
@@ -454,7 +454,7 @@ public partial class C { }
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "F", "AB", renameInComments:=True)
 
                 Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
             End Using
@@ -486,7 +486,7 @@ public partial class C { }
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "F", "AB", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "F", "AB", renameInComments:=True)
 
                 Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
             End Using
@@ -508,7 +508,7 @@ public class [|$$C|] { }
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB")
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "C", "AB")
 
                 Assert.NotNull(workspace.Documents.FirstOrDefault(Function(document) document.Name = "C.cs"))
             End Using
@@ -549,7 +549,7 @@ class Program
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "goo", "bar", renameInComments:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
 
@@ -583,7 +583,7 @@ class Program
                     </Project>
                 </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
 
@@ -617,7 +617,7 @@ class Program
                     </Project>
                 </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
@@ -655,7 +655,7 @@ End Class
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "goo", "bar", renameInComments:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
 
@@ -687,7 +687,7 @@ End Class
                     </Project>
                 </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "goo", "bar", renameOverloads:=True, renameInComments:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
 
@@ -719,7 +719,7 @@ End Class
                     </Project>
                 </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "goo", "bar", renameInComments:=True, renameInStrings:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
@@ -789,7 +789,7 @@ End Class
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "goodynamic")
+                Await VerifyTagsAreCorrectAsync(workspace, "goodynamic")
             End Using
         End Function
 
@@ -916,12 +916,12 @@ End Class
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
 
                 textBuffer.Insert(caretPosition, "Bar")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
-                Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "BarTest1")
+                Await VerifyNoRenameTrackingTagsAsync(renameTrackingTagger, workspace, document)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarTest1")
                 VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
@@ -949,13 +949,13 @@ End Class
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
 
                 textBuffer.Insert(caretPosition, "Bar")
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
-                Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+                Await VerifyTagsAreCorrectAsync(workspace, "BarTest1")
+                Await VerifyNoRenameTrackingTagsAsync(renameTrackingTagger, workspace, document)
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarTest1")
                 VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
@@ -988,12 +988,12 @@ End Class
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
 
                 textBuffer.Insert(caretPosition, "Bar")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "BarTest1")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
-                Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+                Await VerifyTagsAreCorrectAsync(workspace, "BarTest1")
+                Await VerifyNoRenameTrackingTagsAsync(renameTrackingTagger, workspace, document)
                 VerifyFileName(workspace, "BarTest1")
             End Using
         End Function
@@ -1026,11 +1026,11 @@ End Class
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
 
                 textBuffer.Insert(caretPosition, "Bar")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "BarGoo")
 
                 session.Cancel()
-                Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+                Await VerifyNoRenameTrackingTagsAsync(renameTrackingTagger, workspace, document)
 
                 VerifyFileName(workspace, "Test1.cs")
             End Using
@@ -1063,16 +1063,16 @@ End Class
                 Dim renameTrackingTagger = CreateRenameTrackingTagger(workspace, document)
 
                 textBuffer.Insert(caretPosition, "Bar")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "BarTest1")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "BarTest1")
-                Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
+                Await VerifyTagsAreCorrectAsync(workspace, "BarTest1")
+                Await VerifyNoRenameTrackingTagsAsync(renameTrackingTagger, workspace, document)
                 VerifyFileName(workspace, "BarTest1")
 
                 textBuffer.Insert(caretPosition, "Baz")
-                Await VerifyRenameTrackingTags(renameTrackingTagger, workspace, document, expectedTagCount:=1)
+                Await VerifyRenameTrackingTagsAsync(renameTrackingTagger, workspace, document, expectedTagCount:=1)
             End Using
         End Function
 
@@ -1107,7 +1107,7 @@ End Class
 
                 session.Commit(previewChanges:=True)
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarGoo")
                 Assert.True(previewService.Called)
                 Assert.Equal(String.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename), previewService.Title)
                 Assert.Equal(String.Format(EditorFeaturesResources.Rename_0_to_1_colon, "Goo", "BarGoo"), previewService.Description)
@@ -1146,7 +1146,7 @@ End Class
 
                 session.Commit(previewChanges:=True)
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarGoo")
                 Assert.True(previewService.Called)
 
                 ' Session should still be up; type some more
@@ -1156,7 +1156,7 @@ End Class
                 previewService.ReturnsNull = False
                 previewService.Called = False
                 session.Commit(previewChanges:=True)
-                Await VerifyTagsAreCorrect(workspace, "CatBarGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "CatBarGoo")
                 Assert.True(previewService.Called)
 
                 VerifyFileName(workspace, "Test1.cs")
@@ -1197,15 +1197,15 @@ End Class
                 Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "o")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "Mo")
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "Mo")
 
                 textBuffer.Insert(caretPosition + 1, "w")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "Mow")
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "Mow")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Mow")
+                Await VerifyTagsAreCorrectAsync(workspace, "Mow")
             End Using
         End Function
 
@@ -1242,15 +1242,15 @@ End Class
                 Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "ma")
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "ma")
 
                 textBuffer.Insert(caretPosition + 1, "w")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "maw")
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "maw")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "maw")
+                Await VerifyTagsAreCorrectAsync(workspace, "maw")
             End Using
         End Function
 
@@ -1282,7 +1282,7 @@ class C
                 Dim caretPosition = workspace.Documents.First(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
                 Dim textBuffer = workspace.Documents.First().GetTextBuffer()
                 textBuffer.Insert(caretPosition, "yz")
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
                 ' Invoke a CodeAction
                 Dim introduceVariableRefactoringProvider = New IntroduceVariableCodeRefactoringProvider()
@@ -1326,11 +1326,11 @@ class C
                     textBuffer.CurrentSnapshot.GetText())
 
                 ' Rename should still be active
-                Await VerifyTagsAreCorrect(workspace, "xyz")
+                Await VerifyTagsAreCorrectAsync(workspace, "xyz")
 
                 textBuffer.Insert(caretPosition + 2, "q")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "xyzq")
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "xyzq")
             End Using
         End Function
 
@@ -1358,11 +1358,11 @@ class C
                 Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "Ma")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await VerifyTagsAreCorrectAsync(workspace, "Ma")
             End Using
         End Function
 
@@ -1390,11 +1390,11 @@ class C
                 Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "Ma")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await VerifyTagsAreCorrectAsync(workspace, "Ma")
             End Using
         End Function
 
@@ -1424,11 +1424,11 @@ class C
                 Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "Ma")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await VerifyTagsAreCorrectAsync(workspace, "Ma")
             End Using
         End Function
 
@@ -1458,11 +1458,11 @@ class C
                 Dim textBuffer = workspace.Documents.First().GetTextBuffer()
 
                 textBuffer.Insert(caretPosition, "a")
-                Await WaitForRename(workspace)
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await WaitForRenameAsync(workspace)
+                Await VerifyTagsAreCorrectAsync(workspace, "Ma")
 
                 session.Commit()
-                Await VerifyTagsAreCorrect(workspace, "Ma")
+                Await VerifyTagsAreCorrectAsync(workspace, "Ma")
             End Using
         End Function
 
@@ -1486,7 +1486,7 @@ class C
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "M", "Sa", renameOverloads:=True)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "M", "Sa", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
@@ -1522,7 +1522,7 @@ class C
                 Dim renameService = workspace.GetService(Of IInlineRenameService)()
                 Assert.NotNull(renameService.ActiveSession)
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarGoo")
 
                 ' Simulate starting a debugging session
                 Dim debuggingService = workspace.Services.GetService(Of IDebuggingWorkspaceService)
@@ -1530,7 +1530,7 @@ class C
 
                 ' Ensure the rename was committed
                 Assert.Null(renameService.ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarGoo")
             End Using
         End Function
 
@@ -1565,7 +1565,7 @@ class C
                 Dim renameService = workspace.GetService(Of IInlineRenameService)()
                 Assert.NotNull(renameService.ActiveSession)
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarGoo")
 
                 ' Simulate ending break mode in the debugger (by stepping or continuing)
                 Dim debuggingService = workspace.Services.GetService(Of IDebuggingWorkspaceService)
@@ -1573,7 +1573,7 @@ class C
 
                 ' Ensure the rename was committed
                 Assert.Null(renameService.ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarGoo")
             End Using
         End Function
 
@@ -1608,7 +1608,7 @@ End Module
                 textBuffer.Insert(caretPosition, "q")
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "qp")
+                Await VerifyTagsAreCorrectAsync(workspace, "qp")
             End Using
         End Function
 
@@ -1638,7 +1638,7 @@ End Module
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "x")
+                Await VerifyTagsAreCorrectAsync(workspace, "x")
             End Using
         End Function
 
@@ -1682,7 +1682,7 @@ End Class
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "xield1")
+                Await VerifyTagsAreCorrectAsync(workspace, "xield1")
             End Using
         End Function
 
@@ -1983,7 +1983,7 @@ class [|$$Test1|]
                 Dim committed = session.GetTestAccessor().CommitWorker(previewChanges:=False)
                 Assert.False(committed)
 
-                Await VerifyTagsAreCorrect(workspace, "Test1")
+                Await VerifyTagsAreCorrectAsync(workspace, "Test1")
             End Using
         End Function
 
@@ -2011,7 +2011,7 @@ class [|$$Test1|]
                 </Workspace>, host)
 
                 Dim docToRename = workspace.Documents.First(Function(doc) doc.Name = "Test2.cs")
-                Await VerifyRenameOptionChangedSessionCommit(workspace, originalTextToRename:="Test2", renameTextPrefix:="Test2Changed", renameFile:=True, fileToRename:=docToRename.Id)
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, originalTextToRename:="Test2", renameTextPrefix:="Test2Changed", renameFile:=True, fileToRename:=docToRename.Id)
             End Using
         End Function
 
@@ -2036,7 +2036,7 @@ class [|C|]
                         </Project>
                     </Workspace>, host)
 
-                Await VerifyRenameOptionChangedSessionCommit(workspace, "C", "D")
+                Await VerifyRenameOptionChangedSessionCommitAsync(workspace, "C", "D")
                 VerifyFileName(workspace, "Test1")
             End Using
         End Function
@@ -2067,7 +2067,7 @@ class [|C|]
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarGoo")
             End Using
         End Function
 
@@ -2097,7 +2097,7 @@ class [|C|]
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarGoo")
             End Using
         End Function
 
@@ -2127,7 +2127,7 @@ class [|C|]
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarGoo")
             End Using
         End Function
 
@@ -2162,7 +2162,7 @@ class [|C|]
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BarGoo")
             End Using
         End Function
 
@@ -2193,7 +2193,7 @@ class [|C|]
 
                 session.Commit()
 
-                Await VerifyTagsAreCorrect(workspace, "Example")
+                Await VerifyTagsAreCorrectAsync(workspace, "Example")
             End Using
         End Function
 

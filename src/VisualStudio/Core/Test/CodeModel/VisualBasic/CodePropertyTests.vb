@@ -981,7 +981,7 @@ Class C
     End Property
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1004,7 +1004,7 @@ Class C
     Property P As Integer
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1040,7 +1040,7 @@ Class C
     End Property
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1066,7 +1066,7 @@ Class C
     Property P As Integer
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
 #End Region
@@ -1099,7 +1099,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "index", .Type = "Integer"})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "index", .Type = "Integer"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1128,7 +1128,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "index", .Type = "Integer"})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "index", .Type = "Integer"})
         End Function
 
 #End Region
@@ -1161,7 +1161,7 @@ Class C
 End Class
 </Code>
 
-            Await TestRemoveChild(code, expected, "index")
+            Await TestRemoveChildAsync(code, expected, "index")
         End Function
 
 #End Region
@@ -1194,7 +1194,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetIsDefault(code, expected, True)
+            Await TestSetIsDefaultAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1223,7 +1223,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetIsDefault(code, expected, False)
+            Await TestSetIsDefaultAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1242,7 +1242,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetIsDefault(code, expected, True)
+            Await TestSetIsDefaultAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1261,7 +1261,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetIsDefault(code, expected, False)
+            Await TestSetIsDefaultAsync(code, expected, False)
         End Function
 
 #End Region
@@ -1289,7 +1289,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
+            Await TestSetOverrideKindAsync(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1313,7 +1313,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+            Await TestSetOverrideKindAsync(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1337,7 +1337,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+            Await TestSetOverrideKindAsync(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
         End Function
 
 #End Region
@@ -1360,7 +1360,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, "String")
+            Await TestSetTypePropAsync(code, expected, "String")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1379,7 +1379,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.Int32")
+            Await TestSetTypePropAsync(code, expected, "System.Int32")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1412,7 +1412,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.Int32")
+            Await TestSetTypePropAsync(code, expected, "System.Int32")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1445,7 +1445,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.Int32")
+            Await TestSetTypePropAsync(code, expected, "System.Int32")
         End Function
 
 #End Region

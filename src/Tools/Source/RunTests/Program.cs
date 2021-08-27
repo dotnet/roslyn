@@ -104,7 +104,7 @@ namespace RunTests
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)
             {
-                await HandleTimeout(options, cancellationToken);
+                await HandleTimeoutAsync(options, cancellationToken);
                 cts.Cancel();
 
                 try
@@ -211,7 +211,7 @@ namespace RunTests
         /// Invoked when a timeout occurs and we need to dump all of the test processes and shut down 
         /// the runnner.
         /// </summary>
-        private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
+        private static async Task HandleTimeoutAsync(Options options, CancellationToken cancellationToken)
         {
             async Task DumpProcess(Process targetProcess, string procDumpExeFilePath, string dumpFilePath)
             {

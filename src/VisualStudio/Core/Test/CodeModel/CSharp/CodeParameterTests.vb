@@ -35,7 +35,7 @@ class C
     }
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Out"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Out"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -59,7 +59,7 @@ class C
     }
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Goo"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Goo"})
         End Function
 #End Region
 
@@ -403,7 +403,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindIn)
+            Await TestSetParameterKindAsync(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindIn)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -424,7 +424,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindNone)
+            Await TestSetParameterKindAsync(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindNone)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -445,7 +445,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindOut)
+            Await TestSetParameterKindAsync(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindOut)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -465,7 +465,7 @@ class C
     void M(ref string s) { }
 }
 </Code>
-            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
+            Await TestSetParameterKindAsync(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindRef)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -485,7 +485,7 @@ class C
     void M(params string[] s) { }
 }
 </Code>
-            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray)
+            Await TestSetParameterKindAsync(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -505,7 +505,7 @@ class C
     void M(string s) { }
 }
 </Code>
-            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray, ThrowsArgumentException(Of EnvDTE80.vsCMParameterKind)())
+            Await TestSetParameterKindAsync(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindParamArray, ThrowsArgumentException(Of EnvDTE80.vsCMParameterKind)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -526,7 +526,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterKind(code,
+            Await TestSetParameterKindAsync(code,
                                  expected,
                                  EnvDTE80.vsCMParameterKind.vsCMParameterKindRef Or EnvDTE80.vsCMParameterKind.vsCMParameterKindOptional)
         End Function
@@ -548,7 +548,7 @@ class C
     void M(out string s) { }
 }
 </Code>
-            Await TestSetParameterKind(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindOut)
+            Await TestSetParameterKindAsync(code, expected, EnvDTE80.vsCMParameterKind.vsCMParameterKindOut)
         End Function
 
 #End Region
@@ -572,7 +572,7 @@ class C
     void M(string s = "Goo") { }
 }
 </Code>
-            Await TestSetDefaultValue(code, expected, """Goo""")
+            Await TestSetDefaultValueAsync(code, expected, """Goo""")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -592,7 +592,7 @@ class C
     void M(string s = "Goo") { }
 }
 </Code>
-            Await TestSetDefaultValue(code, expected, """Goo""")
+            Await TestSetDefaultValueAsync(code, expected, """Goo""")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -612,7 +612,7 @@ class C
     void M(string s) { }
 }
 </Code>
-            Await TestSetDefaultValue(code, expected, "")
+            Await TestSetDefaultValueAsync(code, expected, "")
         End Function
 
 #End Region
@@ -637,7 +637,7 @@ class C
 }
 </Code>
 
-            Await TestSetTypeProp(code, expected, "byte?[,]")
+            Await TestSetTypePropAsync(code, expected, "byte?[,]")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -652,7 +652,7 @@ delegate void Goo(int $$i) { }
 delegate void Goo(byte?[,] i) { }
 </Code>
 
-            Await TestSetTypeProp(code, expected, "byte?[,]")
+            Await TestSetTypePropAsync(code, expected, "byte?[,]")
         End Function
 
 #End Region
@@ -771,7 +771,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+            Await TestSetParameterPassingModeAsync(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -792,7 +792,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+            Await TestSetParameterPassingModeAsync(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -813,7 +813,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeOut)
+            Await TestSetParameterPassingModeAsync(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeOut)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -834,7 +834,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+            Await TestSetParameterPassingModeAsync(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -855,7 +855,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+            Await TestSetParameterPassingModeAsync(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -876,7 +876,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeOut)
+            Await TestSetParameterPassingModeAsync(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeOut)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -897,7 +897,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+            Await TestSetParameterPassingModeAsync(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -918,7 +918,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+            Await TestSetParameterPassingModeAsync(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -939,7 +939,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeOut)
+            Await TestSetParameterPassingModeAsync(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeOut)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -960,7 +960,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+            Await TestSetParameterPassingModeAsync(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -981,7 +981,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+            Await TestSetParameterPassingModeAsync(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
         End Function
 
 #End Region
@@ -1147,7 +1147,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterArrayDimensions(code, expected, dimensions:=0)
+            Await TestSetParameterArrayDimensionsAsync(code, expected, dimensions:=0)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1168,7 +1168,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterArrayDimensions(code, expected, dimensions:=1)
+            Await TestSetParameterArrayDimensionsAsync(code, expected, dimensions:=1)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1189,7 +1189,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterArrayDimensions(code, expected, dimensions:=2)
+            Await TestSetParameterArrayDimensionsAsync(code, expected, dimensions:=2)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1210,7 +1210,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterArrayDimensions(code, expected, dimensions:=2)
+            Await TestSetParameterArrayDimensionsAsync(code, expected, dimensions:=2)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1231,7 +1231,7 @@ class C
 }
 </Code>
 
-            Await TestSetParameterArrayDimensions(code, expected, dimensions:=2)
+            Await TestSetParameterArrayDimensionsAsync(code, expected, dimensions:=2)
         End Function
 
 #End Region

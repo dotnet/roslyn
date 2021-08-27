@@ -41,7 +41,7 @@ public class A
         </Document>
     </Project>
 </Workspace>";
-            await RunCountTest(input);
+            await RunCountTestAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
@@ -72,7 +72,7 @@ public class A
     </Project>
 </Workspace>";
 
-            await RunCountTest(input, 1);
+            await RunCountTestAsync(input, 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
@@ -118,7 +118,7 @@ class E
     </Project>
 </Workspace>";
 
-            await RunReferenceTest(input);
+            await RunReferenceTestAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
@@ -149,7 +149,7 @@ public class A
     </Project>
 </Workspace>";
 
-            await RunReferenceTest(input);
+            await RunReferenceTestAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
@@ -179,7 +179,7 @@ public class A
         </Document>
     </Project>
 </Workspace>";
-            await RunMethodReferenceTest(input);
+            await RunMethodReferenceTestAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
@@ -212,7 +212,7 @@ public class A
         </Document>
     </Project>
 </Workspace>";
-            await RunMethodReferenceTest(input);
+            await RunMethodReferenceTestAsync(input);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeLens)]
@@ -251,7 +251,7 @@ public {typeKind} A
         </Document>
     </Project>
 </Workspace>";
-            await RunFullyQualifiedNameTest(input);
+            await RunFullyQualifiedNameTestAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
@@ -276,7 +276,7 @@ public class B
         </Document>
     </Project>
 </Workspace>";
-            await RunReferenceTest(input);
+            await RunReferenceTestAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
@@ -302,7 +302,7 @@ public class B
         </Document>
     </Project>
 </Workspace>";
-            await RunReferenceTest(input);
+            await RunReferenceTestAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
@@ -326,7 +326,7 @@ public class B
         </Document>
     </Project>
 </Workspace>";
-            await RunReferenceTest(input);
+            await RunReferenceTestAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
@@ -351,7 +351,7 @@ public class B
         </Document>
     </Project>
 </Workspace>";
-            await RunReferenceTest(input);
+            await RunReferenceTestAsync(input);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
@@ -382,7 +382,7 @@ namespace ConsoleSample
         </DocumentFromSourceGenerator>
     </Project>
 </Workspace>";
-            await RunMethodReferenceTest(input);
+            await RunMethodReferenceTestAsync(input);
         }
     }
 }

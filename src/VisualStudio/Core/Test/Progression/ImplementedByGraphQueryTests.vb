@@ -48,7 +48,7 @@ class Goo2 : Base, IBlah
                     </Workspace>)
 
                 Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ImplementedByGraphQuery(), GraphContextDirection.Target)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ImplementedByGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,

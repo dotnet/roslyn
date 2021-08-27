@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync("Generation complete.");
         }
 
-        private static async Task LocateAndRegisterMSBuild(TextWriter logFile)
+        private static async Task LocateAndRegisterMSBuildAsync(TextWriter logFile)
         {
             // Make sure we pick the highest version
             var msbuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(i => i.Version).FirstOrDefault();
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
         private static async Task GenerateFromProjectAsync(FileInfo projectFile, ILsifJsonWriter lsifWriter, TextWriter logFile)
         {
-            await LocateAndRegisterMSBuild(logFile);
+            await LocateAndRegisterMSBuildAsync(logFile);
             await GenerateWithMSBuildLocatedAsync(
                 projectFile, lsifWriter, logFile,
                 async w =>
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
         private static async Task GenerateFromSolutionAsync(FileInfo solutionFile, ILsifJsonWriter lsifWriter, TextWriter logFile)
         {
-            await LocateAndRegisterMSBuild(logFile);
+            await LocateAndRegisterMSBuildAsync(logFile);
             await GenerateWithMSBuildLocatedAsync(
                 solutionFile, lsifWriter, logFile,
                 w => w.OpenSolutionAsync(solutionFile.FullName));

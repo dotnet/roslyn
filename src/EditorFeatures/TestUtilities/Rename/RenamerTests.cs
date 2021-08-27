@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             public string[] DocumentFolders => GetDocumentFolders(DocumentFilePath);
         }
 
-        protected async Task TestRenameDocument(
+        protected async Task TestRenameDocumentAsync(
             DocumentWithInfo[] startDocuments,
             DocumentWithInfo[] endDocuments,
             string[] expectedErrors = null)
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             return splitPath.Take(splitPath.Length - 1).ToArray();
         }
 
-        protected Task TestRenameDocument(string startText, string expectedText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null, string[] expectedErrors = null)
+        protected Task TestRenameDocumentAsync(string startText, string expectedText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null, string[] expectedErrors = null)
         {
             var defaultDocumentName = documentName ?? DefaultDocumentName;
             var defaultDocumentPath = documentPath ?? s_defaultDocumentPath;
@@ -141,10 +141,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 }
             };
 
-            return TestRenameDocument(startDocuments, endDocuments, expectedErrors);
+            return TestRenameDocumentAsync(startDocuments, endDocuments, expectedErrors);
         }
 
-        protected async Task TestEmptyActionSet(string startText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null)
+        protected async Task TestEmptyActionSetAsync(string startText, string newDocumentName = null, string newDocumentPath = null, string documentName = null, string documentPath = null)
         {
             var defaultDocumentName = documentName ?? DefaultDocumentName;
             var defaultDocumentPath = documentPath ?? s_defaultDocumentPath;
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             }
         }
 
-        protected async Task TestRenameMappedFile(string startText, string documentName, string newDocumentName)
+        protected async Task TestRenameMappedFileAsync(string startText, string documentName, string newDocumentName)
         {
             using var workspace = new AdhocWorkspace();
             var solution = workspace.CurrentSolution;

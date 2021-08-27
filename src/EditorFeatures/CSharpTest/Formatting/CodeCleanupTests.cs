@@ -54,7 +54,7 @@ internal class Program
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code);
+            return AssertCodeCleanupResultAsync(expected, code);
         }
 
         [Fact]
@@ -85,7 +85,7 @@ internal class Program
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code);
+            return AssertCodeCleanupResultAsync(expected, code);
         }
 
         [Fact]
@@ -122,7 +122,7 @@ internal class Program
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code);
+            return AssertCodeCleanupResultAsync(expected, code);
         }
 
         [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
@@ -167,7 +167,7 @@ namespace M
     public class Goo { }
 }
 ";
-            return AssertCodeCleanupResult(expected, code, systemUsingsFirst: false, separateUsingGroups: true);
+            return AssertCodeCleanupResultAsync(expected, code, systemUsingsFirst: false, separateUsingGroups: true);
         }
 
         [Fact, WorkItem(36984, "https://github.com/dotnet/roslyn/issues/36984")]
@@ -212,7 +212,7 @@ namespace M
     public class Goo { }
 }
 ";
-            return AssertCodeCleanupResult(expected, code, systemUsingsFirst: true, separateUsingGroups: true);
+            return AssertCodeCleanupResultAsync(expected, code, systemUsingsFirst: true, separateUsingGroups: true);
         }
 
         [Fact]
@@ -241,7 +241,7 @@ namespace M
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code);
+            return AssertCodeCleanupResultAsync(expected, code);
         }
 
         [Fact]
@@ -263,7 +263,7 @@ namespace M
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code);
+            return AssertCodeCleanupResultAsync(expected, code);
         }
 
         [Fact]
@@ -285,7 +285,7 @@ namespace M
     }
 }
 ";
-            return AssertCodeCleanupResult(expected, code);
+            return AssertCodeCleanupResultAsync(expected, code);
         }
 
         [Fact]
@@ -320,7 +320,7 @@ namespace A
 }
 ";
 
-            return AssertCodeCleanupResult(expected, code);
+            return AssertCodeCleanupResultAsync(expected, code);
         }
 
         [Fact]
@@ -355,7 +355,7 @@ namespace A
 }
 ";
 
-            return AssertCodeCleanupResult(expected, code, InsideNamespaceOption);
+            return AssertCodeCleanupResultAsync(expected, code, InsideNamespaceOption);
         }
 
         [Fact]
@@ -378,7 +378,7 @@ namespace A
 
             var expected = code;
 
-            return AssertCodeCleanupResult(expected, code, InsidePreferPreservationOption);
+            return AssertCodeCleanupResultAsync(expected, code, InsidePreferPreservationOption);
         }
 
         [Fact]
@@ -401,7 +401,7 @@ namespace A
 
             var expected = code;
 
-            return AssertCodeCleanupResult(expected, code, OutsidePreferPreservationOption);
+            return AssertCodeCleanupResultAsync(expected, code, OutsidePreferPreservationOption);
         }
 
         [Fact]
@@ -441,7 +441,7 @@ namespace A
 }
 ";
 
-            return AssertCodeCleanupResult(expected, code, OutsideNamespaceOption);
+            return AssertCodeCleanupResultAsync(expected, code, OutsideNamespaceOption);
         }
 
         [Fact]
@@ -482,7 +482,7 @@ namespace A
 }
 ";
 
-            return AssertCodeCleanupResult(expected, code, InsideNamespaceOption);
+            return AssertCodeCleanupResultAsync(expected, code, InsideNamespaceOption);
         }
 
         [Fact]
@@ -508,7 +508,7 @@ namespace A
 
             var expected = code;
 
-            return AssertCodeCleanupResult(expected, code, InsidePreferPreservationOption);
+            return AssertCodeCleanupResultAsync(expected, code, InsidePreferPreservationOption);
         }
 
         [Fact]
@@ -534,7 +534,7 @@ namespace A
 
             var expected = code;
 
-            return AssertCodeCleanupResult(expected, code, OutsidePreferPreservationOption);
+            return AssertCodeCleanupResultAsync(expected, code, OutsidePreferPreservationOption);
         }
 
         /// <summary>
@@ -545,8 +545,8 @@ namespace A
         /// <param name="systemUsingsFirst">Indicates whether <c><see cref="System"/>.*</c> '<c>using</c>' directives should preceed others. Default is <c>true</c>.</param>
         /// <param name="separateUsingGroups">Indicates whether '<c>using</c>' directives should be organized into separated groups. Default is <c>true</c>.</param>
         /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
-        private protected static Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false)
-            => AssertCodeCleanupResult(expected, code, CSharpCodeStyleOptions.PreferOutsidePlacementWithSilentEnforcement, systemUsingsFirst, separateUsingGroups);
+        private protected static Task AssertCodeCleanupResultAsync(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false)
+            => AssertCodeCleanupResultAsync(expected, code, CSharpCodeStyleOptions.PreferOutsidePlacementWithSilentEnforcement, systemUsingsFirst, separateUsingGroups);
 
         /// <summary>
         /// Assert the expected code value equals the actual processed input <paramref name="code"/>.
@@ -557,7 +557,7 @@ namespace A
         /// <param name="systemUsingsFirst">Indicates whether <c><see cref="System"/>.*</c> '<c>using</c>' directives should preceed others. Default is <c>true</c>.</param>
         /// <param name="separateUsingGroups">Indicates whether '<c>using</c>' directives should be organized into separated groups. Default is <c>true</c>.</param>
         /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
-        private protected static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false)
+        private protected static async Task AssertCodeCleanupResultAsync(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false)
         {
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 

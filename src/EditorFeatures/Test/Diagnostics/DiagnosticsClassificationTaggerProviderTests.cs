@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var tagger = wrapper.TaggerProvider.CreateTagger<ClassificationTag>(workspace.Documents.First().GetTextBuffer());
             using var disposable = tagger as IDisposable;
             // test first update
-            await wrapper.WaitForTags();
+            await wrapper.WaitForTagsAsync();
 
             // We should get two spans, the 1-index and 2-index locations in the original diagnostic.
             var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;

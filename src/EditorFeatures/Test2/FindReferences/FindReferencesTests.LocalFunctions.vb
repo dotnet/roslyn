@@ -34,7 +34,7 @@ class Test
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(18761, "https://github.com/dotnet/roslyn/issues/18761")>
@@ -64,7 +64,7 @@ class Test
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(18761, "https://github.com/dotnet/roslyn/issues/18761")>
@@ -94,7 +94,7 @@ class Test
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(18761, "https://github.com/dotnet/roslyn/issues/18761")>
@@ -124,7 +124,7 @@ class Test
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(18761, "https://github.com/dotnet/roslyn/issues/18761")>
@@ -147,7 +147,7 @@ class Test
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(18761, "https://github.com/dotnet/roslyn/issues/18761")>
@@ -170,7 +170,7 @@ class Test
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(18761, "https://github.com/dotnet/roslyn/issues/18761")>
@@ -193,7 +193,7 @@ class Test
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -214,7 +214,7 @@ class Test
         </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
     End Class
 End Namespace

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
 
             using var testLspServer = CreateXmlTestLspServer(workspaceXml, out var locations);
             var documentUri = locations["caret"].Single().Uri;
-            var result = await RunGetProjectContext(testLspServer, documentUri);
+            var result = await RunGetProjectContextAsync(testLspServer, documentUri);
 
             Assert.NotNull(result);
             Assert.Equal(0, result!.DefaultIndex);
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
 
             using var testLspServer = CreateXmlTestLspServer(workspaceXml, out var locations);
             var documentUri = locations["caret"].Single().Uri;
-            var result = await RunGetProjectContext(testLspServer, documentUri);
+            var result = await RunGetProjectContextAsync(testLspServer, documentUri);
 
             Assert.NotNull(result);
 
@@ -87,14 +87,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
             foreach (var project in testLspServer.GetCurrentSolution().Projects)
             {
                 testLspServer.TestWorkspace.SetDocumentContext(project.DocumentIds.Single());
-                var result = await RunGetProjectContext(testLspServer, documentUri);
+                var result = await RunGetProjectContextAsync(testLspServer, documentUri);
 
                 Assert.Equal(ProtocolConversions.ProjectIdToProjectContextId(project.Id), result!.ProjectContexts[result.DefaultIndex].Id);
                 Assert.Equal(project.Name, result!.ProjectContexts[result.DefaultIndex].Label);
             }
         }
 
-        private static async Task<LSP.VSProjectContextList?> RunGetProjectContext(TestLspServer testLspServer, Uri uri)
+        private static async Task<LSP.VSProjectContextList?> RunGetProjectContextAsync(TestLspServer testLspServer, Uri uri)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.VSGetProjectContextsParams, LSP.VSProjectContextList?>(LSP.VSMethods.GetProjectContextsName,
                            CreateGetProjectContextParams(uri), new LSP.ClientCapabilities(), clientName: null, cancellationToken: CancellationToken.None);

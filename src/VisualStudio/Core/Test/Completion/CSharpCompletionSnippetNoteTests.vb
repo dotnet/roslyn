@@ -27,8 +27,8 @@ class C
         Public Async Function SnippetExpansionNoteAddedToDescription_ExactMatch() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
                 state.SendTypeChars("interfac")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(description:="title" & vbCrLf &
                     "description" & vbCrLf &
                     String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "interface"))
             End Using
@@ -38,8 +38,8 @@ class C
         Public Async Function ColonDoesntTriggerSnippetInTupleLiteral() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
                 state.SendTypeChars("var t = (interfac")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(displayText:="interface", isHardSelected:=True)
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(displayText:="interface", isHardSelected:=True)
                 state.SendTypeChars(":")
                 Assert.Contains("(interfac:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -49,8 +49,8 @@ class C
         Public Async Function ColonDoesntTriggerSnippetInTupleLiteralAfterComma() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
                 state.SendTypeChars("var t = (1, interfac")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(displayText:="interface", isHardSelected:=True)
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(displayText:="interface", isHardSelected:=True)
                 state.SendTypeChars(":")
                 Assert.Contains("(1, interfac:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -61,8 +61,8 @@ class C
         Public Async Function SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "intErfaCE")
                 state.SendTypeChars("interfac")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=$"{String.Format(FeaturesResources._0_Keyword, "interface")}
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(description:=$"{String.Format(FeaturesResources._0_Keyword, "interface")}
 {String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "interface")}")
             End Using
         End Function
@@ -72,8 +72,8 @@ class C
         Public Async Function SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSubstringOfInsertedText() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interfac")
                 state.SendTypeChars("interfac")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(description:="title" & vbCrLf &
                     "description" & vbCrLf &
                     String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "interfac"))
             End Using
@@ -84,8 +84,8 @@ class C
         Public Async Function SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSuperstringOfInsertedText() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interfaces")
                 state.SendTypeChars("interfac")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources._0_Keyword, "interface"))
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(description:=String.Format(FeaturesResources._0_Keyword, "interface"))
             End Using
         End Function
 
@@ -95,8 +95,8 @@ class C
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "InsertionText")
 
                 state.SendTypeChars("DisplayTex")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "InsertionText"))
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(description:=String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "InsertionText"))
             End Using
         End Function
 
@@ -122,8 +122,8 @@ class C
                     .WithChangedOption(InternalFeatureOnOffOptions.Snippets, False)))
 
                 state.SendTypeChars("for")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(
                     description:=String.Format(FeaturesResources._0_Keyword, "for") & vbCrLf &
                                  String.Format(FeaturesResources.Note_colon_Tab_twice_to_insert_the_0_snippet, "for"))
             End Using

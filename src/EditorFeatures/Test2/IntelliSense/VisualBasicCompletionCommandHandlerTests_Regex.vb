@@ -19,9 +19,9 @@ end class
 ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("\A")
+                Await state.AssertSelectedCompletionItemAsync("\A")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
                 Assert.Contains("new Regex(""\A"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -40,16 +40,16 @@ end class
 
                 state.SendTypeChars("[")
 
-                Await state.AssertSelectedCompletionItem($"[  {FeaturesResources.Regex_character_group}  ]")
+                Await state.AssertSelectedCompletionItemAsync($"[  {FeaturesResources.Regex_character_group}  ]")
                 state.SendDownKey()
                 state.SendDownKey()
                 state.SendDownKey()
                 state.SendDownKey()
-                Await state.AssertSelectedCompletionItem("[^  firstCharacter-lastCharacter  ]")
+                Await state.AssertSelectedCompletionItemAsync("[^  firstCharacter-lastCharacter  ]")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
                 Assert.Contains("New Regex(""[^-]"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-                Await state.AssertLineTextAroundCaret("        dim r = New Regex(""[^", "-]"")")
+                Await state.AssertLineTextAroundCaretAsync("        dim r = New Regex(""[^", "-]"")")
             End Using
         End Function
 
@@ -66,14 +66,14 @@ end class
 ]]></Document>)
 
                 state.SendTypeChars("\")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
 
                 For Each item In state.GetCompletionItems()
                     Assert.StartsWith("\", item.DisplayText)
                 Next
 
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
             End Using
         End Function
 
@@ -90,14 +90,14 @@ end class
 ]]></Document>)
 
                 state.SendTypeChars("[")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
 
                 For Each item In state.GetCompletionItems()
                     Assert.StartsWith("[", item.DisplayText)
                 Next
 
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
             End Using
         End Function
 
@@ -114,14 +114,14 @@ end class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
 
                 For Each item In state.GetCompletionItems()
                     Assert.StartsWith("(", item.DisplayText)
                 Next
 
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
             End Using
         End Function
     End Class

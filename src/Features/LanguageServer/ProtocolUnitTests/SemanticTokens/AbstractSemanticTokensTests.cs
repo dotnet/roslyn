@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
 
         // VS doesn't currently support multi-line tokens, so we want to verify that we aren't
         // returning any in the tokens array.
-        protected static async Task VerifyNoMultiLineTokens(TestLspServer testLspServer, int[] tokens)
+        protected static async Task VerifyNoMultiLineTokensAsync(TestLspServer testLspServer, int[] tokens)
         {
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var text = await document.GetTextAsync().ConfigureAwait(false);

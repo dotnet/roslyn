@@ -9,11 +9,11 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     <UseExportProvider>
     Public Class SyntacticChangeRangeComputerTests
-        Private Shared Function TestCSharp(markup As String, newText As String) As Task
-            Return Test(markup, newText, LanguageNames.CSharp)
+        Private Shared Function TestCSharpAsync(markup As String, newText As String) As Task
+            Return TestAsync(markup, newText, LanguageNames.CSharp)
         End Function
 
-        Private Shared Async Function Test(markup As String, newText As String, language As String) As Task
+        Private Shared Async Function TestAsync(markup As String, newText As String, language As String) As Task
             Using workspace = TestWorkspace.Create(language, compilationOptions:=Nothing, parseOptions:=Nothing, markup)
                 Dim testDocument = workspace.Documents(0)
                 Dim startingDocument = workspace.CurrentSolution.GetDocument(testDocument.Id)
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
         <Fact>
         Public Async Function TestIdentifierChangeInMethod1() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "
 using X;
 
@@ -67,7 +67,7 @@ public class C
 
         <Fact>
         Public Async Function TestIdentifierChangeInMethod2() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "
 using X;
 
@@ -91,7 +91,7 @@ public class C
 
         <Fact>
         Public Async Function TestSplitClass1() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "
 using X;
 
@@ -117,7 +117,7 @@ public class C
 
         <Fact>
         Public Async Function TestMergeClass() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "
 using X;
 
@@ -144,7 +144,7 @@ public class C
 
         <Fact>
         Public Async Function TestExtendComment() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "
 using X;
 
@@ -173,7 +173,7 @@ public class C
 
         <Fact>
         Public Async Function TestRemoveComment() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "
 using X;
 
@@ -202,7 +202,7 @@ public class C
 
         <Fact>
         Public Async Function TestExtendCommentToEndOfFile() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "
 using X;
 
@@ -230,7 +230,7 @@ public class C
 
         <Fact>
         Public Async Function TestDeleteFullFile() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "{|changed:[|
 using X;
 
@@ -257,7 +257,7 @@ public class C
 
         <Fact>
         Public Async Function InsertFullFile() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "{|changed:[||]|}", "
 using X;
 
@@ -284,7 +284,7 @@ public class C
 
         <Fact>
         Public Async Function TestInsertDuplicateLineBelow() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "
 using X;
 
@@ -309,7 +309,7 @@ public class C
 
         <Fact>
         Public Async Function TestInsertDuplicateLineAbove() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "
 using X;
 
@@ -334,7 +334,7 @@ public class C
 
         <Fact>
         Public Async Function TestDeleteDuplicateLineBelow() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "
 using X;
 
@@ -359,7 +359,7 @@ public class C
 
         <Fact>
         Public Async Function TestDeleteDuplicateLineAbove() As Task
-            Await TestCSharp(
+            Await TestCSharpAsync(
 "
 using X;
 

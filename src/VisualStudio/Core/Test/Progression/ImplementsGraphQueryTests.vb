@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ImplementsGraphQuery(), GraphContextDirection.Target)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ImplementsGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -64,7 +64,7 @@ class Goo : IComparable
                     </Workspace>)
 
                 Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ImplementsGraphQuery(), GraphContextDirection.Target)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ImplementsGraphQuery(), GraphContextDirection.Target)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,

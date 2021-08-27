@@ -334,7 +334,7 @@ class C
 }
 </Code>
 
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -361,7 +361,7 @@ class C
     int F;
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -389,7 +389,7 @@ class C
     int F;
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Function
 
 #End Region
@@ -853,7 +853,7 @@ enum E
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -874,7 +874,7 @@ enum E
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -895,7 +895,7 @@ enum E
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPrivate, ThrowsArgumentException(Of EnvDTE.vsCMAccess)())
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPrivate, ThrowsArgumentException(Of EnvDTE.vsCMAccess)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -916,7 +916,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -937,7 +937,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -958,7 +958,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -979,7 +979,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1000,7 +1000,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1033,7 +1033,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1066,7 +1066,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1099,7 +1099,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1128,7 +1128,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1157,7 +1157,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1186,7 +1186,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1217,7 +1217,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1248,7 +1248,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1283,7 +1283,7 @@ class C
 }
 ]]></Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
 #End Region
@@ -1308,7 +1308,7 @@ enum E
 }
 </Code>
 
-            Await TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
+            Await TestSetConstKindAsync(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1329,7 +1329,7 @@ enum E
 }
 </Code>
 
-            Await TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
+            Await TestSetConstKindAsync(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1350,7 +1350,7 @@ enum E
 }
 </Code>
 
-            Await TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone, ThrowsArgumentException(Of EnvDTE80.vsCMConstKind))
+            Await TestSetConstKindAsync(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone, ThrowsArgumentException(Of EnvDTE80.vsCMConstKind))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1371,7 +1371,7 @@ class C
 }
 </Code>
 
-            Await TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
+            Await TestSetConstKindAsync(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1392,7 +1392,7 @@ class C
 }
 </Code>
 
-            Await TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
+            Await TestSetConstKindAsync(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1413,7 +1413,7 @@ class C
 }
 </Code>
 
-            Await TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
+            Await TestSetConstKindAsync(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1434,7 +1434,7 @@ class C
 }
 </Code>
 
-            Await TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
+            Await TestSetConstKindAsync(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1455,7 +1455,7 @@ class C
 }
 </Code>
 
-            Await TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
+            Await TestSetConstKindAsync(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1476,7 +1476,7 @@ class C
 }
 </Code>
 
-            Await TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
+            Await TestSetConstKindAsync(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1497,7 +1497,7 @@ class C
 }
 </Code>
 
-            Await TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
+            Await TestSetConstKindAsync(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1518,7 +1518,7 @@ class C
 }
 </Code>
 
-            Await TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
+            Await TestSetConstKindAsync(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1539,7 +1539,7 @@ class C
 }
 </Code>
 
-            Await TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
+            Await TestSetConstKindAsync(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
         End Function
 
 #End Region
@@ -1564,7 +1564,7 @@ class C
 }
 </Code>
 
-            Await TestSetInitExpression(code, expected, "42")
+            Await TestSetInitExpressionAsync(code, expected, "42")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1585,7 +1585,7 @@ class C
 }
 </Code>
 
-            Await TestSetInitExpression(code, expected, Nothing)
+            Await TestSetInitExpressionAsync(code, expected, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1606,7 +1606,7 @@ class C
 }
 </Code>
 
-            Await TestSetInitExpression(code, expected, "42")
+            Await TestSetInitExpressionAsync(code, expected, "42")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1627,7 +1627,7 @@ class C
 }
 </Code>
 
-            Await TestSetInitExpression(code, expected, "42")
+            Await TestSetInitExpressionAsync(code, expected, "42")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1648,7 +1648,7 @@ class C
 }
 </Code>
 
-            Await TestSetInitExpression(code, expected, "42")
+            Await TestSetInitExpressionAsync(code, expected, "42")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1669,7 +1669,7 @@ enum E
 }
 </Code>
 
-            Await TestSetInitExpression(code, expected, "42")
+            Await TestSetInitExpressionAsync(code, expected, "42")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1690,7 +1690,7 @@ enum E
 }
 </Code>
 
-            Await TestSetInitExpression(code, expected, Nothing)
+            Await TestSetInitExpressionAsync(code, expected, Nothing)
         End Function
 
 #End Region
@@ -1715,7 +1715,7 @@ enum E
 }
 </Code>
 
-            Await TestSetIsConstant(code, expected, True)
+            Await TestSetIsConstantAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1736,7 +1736,7 @@ enum E
 }
 </Code>
 
-            Await TestSetIsConstant(code, expected, False, ThrowsCOMException(Of Boolean)(E_FAIL))
+            Await TestSetIsConstantAsync(code, expected, False, ThrowsCOMException(Of Boolean)(E_FAIL))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1757,7 +1757,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsConstant(code, expected, True)
+            Await TestSetIsConstantAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1778,7 +1778,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsConstant(code, expected, False)
+            Await TestSetIsConstantAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1799,7 +1799,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsConstant(code, expected, False)
+            Await TestSetIsConstantAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1820,7 +1820,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsConstant(code, expected, True)
+            Await TestSetIsConstantAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1841,7 +1841,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsConstant(code, expected, False)
+            Await TestSetIsConstantAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1862,7 +1862,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsConstant(code, expected, True)
+            Await TestSetIsConstantAsync(code, expected, True)
         End Function
 
 #End Region
@@ -1887,7 +1887,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsShared(code, expected, True)
+            Await TestSetIsSharedAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1908,7 +1908,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsShared(code, expected, False)
+            Await TestSetIsSharedAsync(code, expected, False)
         End Function
 
 #End Region
@@ -1933,7 +1933,7 @@ class C
 }
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1958,7 +1958,7 @@ class C
 }
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 
 #End Region
@@ -1983,7 +1983,7 @@ class C
 }
 </Code>
 
-            Await TestSetTypeProp(code, expected, "double")
+            Await TestSetTypePropAsync(code, expected, "double")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2004,7 +2004,7 @@ class C
 }
 </Code>
 
-            Await TestSetTypeProp(code, expected, "double")
+            Await TestSetTypePropAsync(code, expected, "double")
         End Function
 
 #End Region

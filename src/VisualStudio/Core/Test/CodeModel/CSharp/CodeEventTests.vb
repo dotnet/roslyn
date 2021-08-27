@@ -705,7 +705,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsShared(code, expected, False)
+            Await TestSetIsSharedAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -726,7 +726,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsShared(code, expected, True)
+            Await TestSetIsSharedAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -747,7 +747,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsShared(code, expected, True)
+            Await TestSetIsSharedAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -768,7 +768,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsShared(code, expected, False)
+            Await TestSetIsSharedAsync(code, expected, False)
         End Function
 
 #End Region
@@ -793,7 +793,7 @@ class C
 }
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 
 #End Region
@@ -818,7 +818,7 @@ class C
 }
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.ConsoleCancelEventHandler")
+            Await TestSetTypePropAsync(code, expected, "System.ConsoleCancelEventHandler")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -839,7 +839,7 @@ class C
 }
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.ConsoleCancelEventHandler")
+            Await TestSetTypePropAsync(code, expected, "System.ConsoleCancelEventHandler")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -868,7 +868,7 @@ class C
 }
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.ConsoleCancelEventHandler")
+            Await TestSetTypePropAsync(code, expected, "System.ConsoleCancelEventHandler")
         End Function
 
 #End Region
@@ -896,7 +896,7 @@ class C
     public event EventHandler E;
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -923,7 +923,7 @@ class C
     public event EventHandler E;
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -951,7 +951,7 @@ class C
     public event EventHandler E;
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Function
 
 #End Region

@@ -302,7 +302,7 @@ namespace CSAssembly2
                     </Project>
                 </Workspace>
 
-            Await TestMissing(input)
+            Await TestMissingAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -446,7 +446,7 @@ class C
             ' from different languages (the compilation layer doesn't allow for this).
             '
             ' This test just verifies that we don't crash trying.
-            Await TestMissing(input)
+            Await TestMissingAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
@@ -509,7 +509,7 @@ namespace CSAssembly2
                     </Project>
                 </Workspace>
 
-            Await TestMissing(input)
+            Await TestMissingAsync(input)
         End Function
 
         Friend Overloads Async Function TestAsync(definition As XElement,

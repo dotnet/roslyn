@@ -33,7 +33,7 @@ class B : A
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(541155, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541155")>
@@ -60,7 +60,7 @@ class B : A
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(541151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541151")>
@@ -85,7 +85,7 @@ class {|Definition:$$var|}<T> { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(541151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541151")>
@@ -110,7 +110,7 @@ class var<T> { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -135,7 +135,7 @@ class var<T> { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -155,7 +155,7 @@ class var<T> { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -197,7 +197,7 @@ class var<T> { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -232,7 +232,7 @@ class var<T> { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -251,7 +251,7 @@ class var<T> { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539799")>
@@ -278,7 +278,7 @@ class A
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -299,7 +299,7 @@ class A
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -313,7 +313,7 @@ class A
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -331,7 +331,7 @@ class A
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -351,7 +351,7 @@ class A
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -371,7 +371,7 @@ class A
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -394,7 +394,7 @@ class A
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -417,7 +417,7 @@ class A
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
@@ -450,7 +450,7 @@ public class Basic : I1<int>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
@@ -483,7 +483,7 @@ public class Basic : I1<int>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
@@ -516,7 +516,7 @@ public class Basic : I1<int>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
@@ -540,7 +540,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
@@ -564,7 +564,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPI(input, host)
+            Await TestAPIAsync(input, host)
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
@@ -588,7 +588,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
@@ -612,7 +612,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPI(input, host)
+            Await TestAPIAsync(input, host)
         End Function
 
         <WorkItem(539883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539883")>
@@ -636,7 +636,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -657,7 +657,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -679,7 +679,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host, searchSingleFileOnly:=True)
+            Await TestAPIAndFeatureAsync(input, kind, host, searchSingleFileOnly:=True)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -698,7 +698,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -719,7 +719,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -736,7 +736,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -760,7 +760,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -784,7 +784,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -805,7 +805,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -828,7 +828,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -851,7 +851,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -871,7 +871,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -893,7 +893,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539065")>
@@ -917,7 +917,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539065")>
@@ -939,7 +939,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539065, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539065")>
@@ -961,7 +961,7 @@ class C : I<int>, I<string>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539614")>
@@ -988,7 +988,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539614")>
@@ -1015,7 +1015,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539614")>
@@ -1042,7 +1042,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539646")>
@@ -1071,7 +1071,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(537966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537966")>
@@ -1090,7 +1090,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(537966, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537966")>
@@ -1111,7 +1111,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(538842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538842")>
@@ -1132,7 +1132,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(538842, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538842")>
@@ -1153,7 +1153,7 @@ class Program
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(538926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538926")>
@@ -1174,7 +1174,7 @@ namespace System
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539299")>
@@ -1196,7 +1196,7 @@ public class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539299")>
@@ -1218,7 +1218,7 @@ public class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539299")>
@@ -1238,7 +1238,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(539299, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539299")>
@@ -1258,7 +1258,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1278,7 +1278,7 @@ class {|Definition:Program|}
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1298,7 +1298,7 @@ class {|Definition:Progr$$am|}
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(775925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775925")>
@@ -1319,7 +1319,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 #End Region
 
@@ -1349,7 +1349,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1377,7 +1377,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 #End Region
 
@@ -1396,7 +1396,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1418,7 +1418,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1440,7 +1440,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 #End Region
 
@@ -1465,7 +1465,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1487,7 +1487,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1511,7 +1511,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1534,7 +1534,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 #End Region
 
@@ -1558,7 +1558,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 #End Region
 
@@ -1601,7 +1601,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 #End Region
 
@@ -1628,7 +1628,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1656,7 +1656,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1681,7 +1681,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 #End Region
 
@@ -1703,7 +1703,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1729,7 +1729,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 #End Region
 
@@ -1751,7 +1751,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1771,7 +1771,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 #End Region
 
@@ -1797,7 +1797,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1818,7 +1818,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1842,7 +1842,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1863,7 +1863,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1884,7 +1884,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1903,7 +1903,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1924,7 +1924,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1943,7 +1943,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 #End Region
 
@@ -1965,7 +1965,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1983,7 +1983,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -2004,7 +2004,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -2023,7 +2023,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 #End Region
 
@@ -2046,7 +2046,7 @@ public class _Default
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host, uiVisibleOnly:=True)
+            Await TestAPIAndFeatureAsync(input, kind, host, uiVisibleOnly:=True)
         End Function
 
         <WorkItem(545325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545325")>
@@ -2066,7 +2066,7 @@ public class {|Definition:_Default|}
         </Document>
     </Project>
 </Workspace>
-            Await TestAPI(input, host, uiVisibleOnly:=False)
+            Await TestAPIAsync(input, host, uiVisibleOnly:=False)
         End Function
 
 #End Region
@@ -2082,7 +2082,7 @@ class {|Definition:$$A|} {    ~{|Definition:A|}()    {        Console.WriteLine(
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(546229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546229")>
@@ -2111,7 +2111,7 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -2142,7 +2142,7 @@ class Class2
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -2176,7 +2176,7 @@ class Class2
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -2207,7 +2207,7 @@ public class D { }
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -2233,7 +2233,7 @@ public class D { }
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
 
         End Function
 
@@ -2276,7 +2276,7 @@ public class D { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -2318,7 +2318,7 @@ public class D { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -2360,7 +2360,7 @@ public class D { }
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
@@ -2385,7 +2385,7 @@ namespace N
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
@@ -2413,7 +2413,7 @@ namespace N
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
@@ -2438,7 +2438,7 @@ namespace N
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
@@ -2468,7 +2468,7 @@ namespace N
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
@@ -2498,7 +2498,7 @@ namespace N
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
@@ -2528,7 +2528,7 @@ namespace N
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory>
@@ -2541,7 +2541,7 @@ namespace N
         <DocumentFromSourceGenerator>class D : [|C|] { }</DocumentFromSourceGenerator>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
     End Class
 End Namespace

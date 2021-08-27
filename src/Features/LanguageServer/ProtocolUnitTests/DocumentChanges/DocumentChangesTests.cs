@@ -43,19 +43,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             {
                 Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
 
-                await DidOpen(testLspServer, locationTyped.Uri);
+                await DidOpenAsync(testLspServer, locationTyped.Uri);
 
                 Assert.Single(testLspServer.GetQueueAccessor().GetTrackedTexts());
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().Single();
                 Assert.Equal(documentText, document.ToString());
 
-                await DidChange(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
+                await DidChangeAsync(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
 
                 document = testLspServer.GetQueueAccessor().GetTrackedTexts().Single();
                 Assert.Equal(expected, document.ToString());
 
-                await DidClose(testLspServer, locationTyped.Uri);
+                await DidCloseAsync(testLspServer, locationTyped.Uri);
 
                 Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
             }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, locationTyped.Uri);
+                await DidOpenAsync(testLspServer, locationTyped.Uri);
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, locationTyped.Uri);
+                await DidOpenAsync(testLspServer, locationTyped.Uri);
 
-                await Assert.ThrowsAsync<InvalidOperationException>(() => DidOpen(testLspServer, locationTyped.Uri));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => DidOpenAsync(testLspServer, locationTyped.Uri));
             }
         }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await Assert.ThrowsAsync<InvalidOperationException>(() => DidClose(testLspServer, locationTyped.Uri));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => DidCloseAsync(testLspServer, locationTyped.Uri));
             }
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await Assert.ThrowsAsync<InvalidOperationException>(() => DidChange(testLspServer, locationTyped.Uri, (0, 0, "goo")));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => DidChangeAsync(testLspServer, locationTyped.Uri, (0, 0, "goo")));
             }
         }
 
@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, locationTyped.Uri);
+                await DidOpenAsync(testLspServer, locationTyped.Uri);
 
-                await DidClose(testLspServer, locationTyped.Uri);
+                await DidCloseAsync(testLspServer, locationTyped.Uri);
 
                 Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
             }
@@ -192,9 +192,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, locationTyped.Uri);
+                await DidOpenAsync(testLspServer, locationTyped.Uri);
 
-                await DidChange(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
+                await DidChangeAsync(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
@@ -227,9 +227,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, locationTyped.Uri);
+                await DidOpenAsync(testLspServer, locationTyped.Uri);
 
-                await DidChange(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
+                await DidChangeAsync(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
 
                 var documentTextFromWorkspace = (await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync()).ToString();
 
@@ -266,9 +266,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, locationTyped.Uri);
+                await DidOpenAsync(testLspServer, locationTyped.Uri);
 
-                await DidChange(testLspServer, locationTyped.Uri, (4, 8, "// hi there"), (5, 0, "        // this builds on that\r\n"));
+                await DidChangeAsync(testLspServer, locationTyped.Uri, (4, 8, "// hi there"), (5, 0, "        // this builds on that\r\n"));
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
@@ -302,11 +302,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, locationTyped.Uri);
+                await DidOpenAsync(testLspServer, locationTyped.Uri);
 
-                await DidChange(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
+                await DidChangeAsync(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
 
-                await DidChange(testLspServer, locationTyped.Uri, (5, 0, "        // this builds on that\r\n"));
+                await DidChangeAsync(testLspServer, locationTyped.Uri, (5, 0, "        // this builds on that\r\n"));
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
@@ -324,11 +324,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             return (testLspServer, locationTyped, documentText.ToString());
         }
 
-        private static Task DidOpen(TestLspServer testLspServer, Uri uri) => testLspServer.OpenDocumentAsync(uri);
+        private static Task DidOpenAsync(TestLspServer testLspServer, Uri uri) => testLspServer.OpenDocumentAsync(uri);
 
-        private static async Task DidChange(TestLspServer testLspServer, Uri uri, params (int line, int column, string text)[] changes)
+        private static async Task DidChangeAsync(TestLspServer testLspServer, Uri uri, params (int line, int column, string text)[] changes)
             => await testLspServer.InsertTextAsync(uri, changes);
 
-        private static async Task DidClose(TestLspServer testLspServer, Uri uri) => await testLspServer.CloseDocumentAsync(uri);
+        private static async Task DidCloseAsync(TestLspServer testLspServer, Uri uri) => await testLspServer.CloseDocumentAsync(uri);
     }
 }

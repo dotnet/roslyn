@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
     End Class
 End NameSpace"
 
-        Private Shared Async Function GetDocument(code As String, withAnnotations As Boolean, Optional globalImports As String() = Nothing) As Task(Of Document)
+        Private Shared Async Function GetDocumentAsync(code As String, withAnnotations As Boolean, Optional globalImports As String() = Nothing) As Task(Of Document)
             Dim ws As AdhocWorkspace = New AdhocWorkspace()
             Dim project As Project = ws.AddProject(
                 ProjectInfo.Create(
@@ -78,7 +78,7 @@ End NameSpace"
                 Optional globalImports As String() = Nothing,
                 Optional performCheck As Boolean = True) As Task
 
-            Dim doc = Await GetDocument(initialText, useSymbolAnnotations, globalImports)
+            Dim doc = Await GetDocumentAsync(initialText, useSymbolAnnotations, globalImports)
             Dim options = doc.Project.Solution.Workspace.Options
             If optionsTransform IsNot Nothing Then
                 options = optionsTransform(options)

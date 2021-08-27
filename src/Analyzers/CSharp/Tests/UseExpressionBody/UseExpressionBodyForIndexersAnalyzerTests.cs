@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 
     public class UseExpressionBodyForIndexersAnalyzerTests
     {
-        private static async Task TestWithUseExpressionBody(string code, string fixedCode)
+        private static async Task TestWithUseExpressionBodyAsync(string code, string fixedCode)
         {
             await new VerifyCS.Test
             {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             }.RunAsync();
         }
 
-        private static async Task TestWithUseBlockBody(string code, string fixedCode)
+        private static async Task TestWithUseBlockBodyAsync(string code, string fixedCode)
         {
             await new VerifyCS.Test
             {
@@ -70,7 +70,7 @@ class C
 
     int this[int i] => Bar();
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -93,7 +93,7 @@ class C
         }
     }
 }";
-            await TestWithUseExpressionBody(code, code);
+            await TestWithUseExpressionBodyAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -112,7 +112,7 @@ class C
         }
     }
 }";
-            await TestWithUseExpressionBody(code, code);
+            await TestWithUseExpressionBodyAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -138,7 +138,7 @@ class C
 {
     int this[int i] => throw new NotImplementedException();
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -164,7 +164,7 @@ class C
 {
     int this[int i] => throw new NotImplementedException(); // comment
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -190,7 +190,7 @@ class C
         }
     }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
 
         [WorkItem(20363, "https://github.com/dotnet/roslyn/issues/20363")]
@@ -251,7 +251,7 @@ class C
         }
     }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -277,7 +277,7 @@ class C
         }
     }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
     }
 }

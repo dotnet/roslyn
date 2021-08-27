@@ -24,15 +24,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         [Fact]
         public async Task DefaultReferencesAndImports()
         {
-            await Execute(@"
+            await ExecuteAsync(@"
 dynamic d = (""home"", Directory.GetCurrentDirectory(), await Task.FromResult(1));
 WriteLine(d.ToString());
 ");
 
             var dir = Path.GetDirectoryName(typeof(InteractiveHostCoreInitTests).Assembly.Location);
 
-            var output = await ReadOutputToEnd();
-            var error = await ReadErrorOutputToEnd();
+            var output = await ReadOutputToEndAsync();
+            var error = await ReadErrorOutputToEndAsync();
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
             AssertEx.AssertEqualToleratingWhitespaceDifferences($"(home, {dir}, 1)", output);
         }
@@ -42,9 +42,9 @@ WriteLine(d.ToString());
         {
             var scriptingAssemblyName = typeof(CSharpScript).Assembly.GetName().Name;
 
-            await Execute($@"#r ""{scriptingAssemblyName}""");
+            await ExecuteAsync($@"#r ""{scriptingAssemblyName}""");
 
-            var error = await ReadErrorOutputToEnd();
+            var error = await ReadErrorOutputToEndAsync();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(@$"
 (1,1): error CS0006: {string.Format(CSharpResources.ERR_NoMetadataFile, scriptingAssemblyName)}", error);
         }
@@ -59,11 +59,11 @@ WriteLine(d.ToString());
 
             // print default:
             await Host.ExecuteAsync(@"ReferencePaths");
-            var output = await ReadOutputToEnd();
+            var output = await ReadOutputToEndAsync();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(), output);
 
             await Host.ExecuteAsync(@"SourcePaths");
-            output = await ReadOutputToEnd();
+            output = await ReadOutputToEndAsync();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(), output);
 
             // add and test if added:
@@ -71,7 +71,7 @@ WriteLine(d.ToString());
 
             await Host.ExecuteAsync(@"SourcePaths");
 
-            output = await ReadOutputToEnd();
+            output = await ReadOutputToEndAsync();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(srcDir.Path), output);
 
             // execute file (uses modified search paths), the file adds a reference path
@@ -79,15 +79,15 @@ WriteLine(d.ToString());
 
             await Host.ExecuteAsync(@"ReferencePaths");
 
-            output = await ReadOutputToEnd();
+            output = await ReadOutputToEndAsync();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(dllDir), output);
 
             await Host.AddReferenceAsync(Path.GetFileName(dll.Path));
 
             await Host.ExecuteAsync(@"typeof(Metadata.ICSProp)");
 
-            var error = await ReadErrorOutputToEnd();
-            output = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEndAsync();
+            output = await ReadOutputToEndAsync();
             Assert.Equal("", error);
             Assert.Equal("[Metadata.ICSProp]\r\n", output);
         }

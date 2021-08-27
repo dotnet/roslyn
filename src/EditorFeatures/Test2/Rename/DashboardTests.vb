@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Public Async Function RenameWithNoOverload(host As RenameTestHost) As Task
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Public Async Function RenameWithOverload(host As RenameTestHost) As Task
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Public Async Function RenameWithInvalidOverload(host As RenameTestHost) As Task
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
@@ -109,7 +109,7 @@ class Program
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(853839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853839")>
         Public Async Function RenameAttributeAlias(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -133,7 +133,7 @@ class AttributeAttribute : System.Attribute { }
             changingOptions.Add(RenameOptions.RenameOverloads, True)
             changingOptions.Add(RenameOptions.RenameInStrings, True)
             changingOptions.Add(RenameOptions.RenameInComments, True)
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -170,7 +170,7 @@ class AttributeAttribute : System.Attribute { }
         Public Async Function RenameInComments(host As RenameTestHost) As Task
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameInComments, True)
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -210,7 +210,7 @@ class $$Program
         Public Async Function RenameInStrings(host As RenameTestHost) As Task
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameInStrings, True)
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -251,7 +251,7 @@ class $$Program
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameInComments, True)
             changingOptions.Add(RenameOptions.RenameInStrings, True)
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -288,7 +288,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function NonConflictingEditWithMultipleLocations(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -309,7 +309,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function NonConflictingEditWithSingleLocation(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                     (<Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
@@ -330,7 +330,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ParameterConflictingWithInstanceField(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                 (<Workspace>
                      <Project Language="C#">
                          <Document>
@@ -355,7 +355,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ParameterConflictingWithInstanceFieldMoreThanOnce(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                 (<Workspace>
                      <Project Language="C#">
                          <Document>
@@ -379,7 +379,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ParameterConflictingWithLocal_Unresolvable(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                 (<Workspace>
                      <Project Language="C#">
                          <Document>
@@ -402,7 +402,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function MoreThanOneUnresolvableConflicts(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                 (<Workspace>
                      <Project Language="C#">
                          <Document>
@@ -427,7 +427,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ConflictsAcrossLanguages_Resolvable(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                 (<Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                          <Document>
@@ -464,7 +464,7 @@ class $$Program
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithNameof_FromDefinition_DoesNotForceRenameOverloadsOption(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                 (<Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                          <Document>
@@ -488,7 +488,7 @@ class C
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithNameof_FromReference_DoesForceRenameOverloadsOption(host As RenameTestHost) As Task
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                 (<Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                          <Document>
@@ -514,7 +514,7 @@ class C
         Public Async Function RenameWithNameof_FromDefinition_WithRenameOverloads_Cascading(host As RenameTestHost) As Task
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                 (<Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                          <Document>
@@ -546,7 +546,7 @@ class D : B
                    hasRenameOverload:=True)
         End Function
 
-        Friend Shared Async Function VerifyDashboard(
+        Friend Shared Async Function VerifyDashboardAsync(
             test As XElement,
             newName As String,
             searchResultText As String,
@@ -599,7 +599,7 @@ class D : B
                     editorFormatMapService:=Nothing,
                     textView:=cursorDocument.GetTextView())
 
-                    Await WaitForRename(workspace)
+                    Await WaitForRenameAsync(workspace)
 
                     Dim model = DirectCast(dashboard.DataContext, DashboardViewModel)
 
@@ -639,7 +639,7 @@ class D : B
         Public Async Function RenameWithReferenceInUnchangeableDocument(host As RenameTestHost) As Task
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
-            Await VerifyDashboard(
+            Await VerifyDashboardAsync(
                     (<Workspace>
                          <Project Language="C#">
                              <Document>

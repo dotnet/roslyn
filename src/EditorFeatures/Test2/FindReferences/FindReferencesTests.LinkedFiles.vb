@@ -150,7 +150,7 @@ class {|Definition:$$C|}
     </Project>
 </Workspace>
 
-            Return TestAPIAndFeature(input, kind, host)
+            Return TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -186,7 +186,7 @@ public class D : [|$$C|]
     </Project>
 </Workspace>
 
-            Return TestAPIAndFeature(input, kind, host)
+            Return TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(53067, "https://github.com/dotnet/roslyn/issues/53067")>

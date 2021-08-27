@@ -421,6 +421,7 @@ End Class
             Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
         Public Async Function StructPropertyReadFromAndAssignedToLocal() As Task
             Dim initial = "
 Class Test

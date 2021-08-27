@@ -22,7 +22,7 @@ End Class
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
 
                 state.SendTab()
                 Assert.Equal("
@@ -49,7 +49,7 @@ End Class
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
 
                 state.SendTab()
                 Assert.Equal("
@@ -78,7 +78,7 @@ End Class
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
 
                 state.SendTab()
                 Assert.Equal("
@@ -111,7 +111,7 @@ End Class
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
 
                 state.SendTab()
                 Assert.Equal("
@@ -142,7 +142,7 @@ End Class
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
 
                 state.SendTab()
                 Assert.Equal("
@@ -171,7 +171,7 @@ End Class
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
 
                 state.SendTab()
                 Assert.Equal("
@@ -200,7 +200,7 @@ End Class
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:="")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Await", isHardSelected:=True, inlineDescription:="")
 
                 state.SendTab()
                 Assert.Equal("
@@ -227,7 +227,7 @@ End Class
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:="")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Await", isHardSelected:=True, inlineDescription:="")
 
                 state.SendTab()
                 Assert.Equal("
@@ -256,7 +256,7 @@ End Class
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:="")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Await", isHardSelected:=True, inlineDescription:="")
 
                 state.SendTab()
                 Assert.Equal("
@@ -289,7 +289,7 @@ End Class
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:="")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Await", isHardSelected:=True, inlineDescription:="")
 
                 state.SendTab()
                 Assert.Equal("
@@ -320,7 +320,7 @@ End Class
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:="")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Await", isHardSelected:=True, inlineDescription:="")
 
                 state.SendTab()
                 Assert.Equal("
@@ -349,7 +349,7 @@ End Class
 ]]>
                 </Document>)
                 state.SendTypeChars("aw")
-                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:="")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Await", isHardSelected:=True, inlineDescription:="")
 
                 state.SendTab()
                 Assert.Equal("

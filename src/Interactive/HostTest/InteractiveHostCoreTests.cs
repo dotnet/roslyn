@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         {
             var process = Host.TryGetProcess();
 
-            await Execute(@"
+            await ExecuteAsync(@"
 int goo(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9) 
 { 
     return goo(0,1,2,3,4,5,6,7,8,9) + goo(0,1,2,3,4,5,6,7,8,9); 
@@ -40,16 +40,16 @@ int goo(int a0, int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, 
 goo(0,1,2,3,4,5,6,7,8,9)
             ");
 
-            var output = await ReadOutputToEnd();
+            var output = await ReadOutputToEndAsync();
             Assert.Equal("", output);
 
             // Hosting process exited with exit code ###.
-            var errorOutput = (await ReadErrorOutputToEnd()).Trim();
+            var errorOutput = (await ReadErrorOutputToEndAsync()).Trim();
             Assert.True(errorOutput.StartsWith("Stack overflow.\n"));
             Assert.True(errorOutput.EndsWith(string.Format(InteractiveHostResources.Hosting_process_exited_with_exit_code_0, process!.ExitCode)));
 
-            await Execute(@"1+1");
-            output = await ReadOutputToEnd();
+            await ExecuteAsync(@"1+1");
+            output = await ReadOutputToEndAsync();
             Assert.Equal("2\r\n", output.ToString());
         }
     }

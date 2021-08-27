@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             var errorReported = false;
             errorReportingService.OnError = message => errorReported = true;
 
-            await GetPreview(workspace, new ErrorCases.ExceptionInCodeAction());
+            await GetPreviewAsync(workspace, new ErrorCases.ExceptionInCodeAction());
             Assert.True(errorReported);
         }
 
@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             var errorReported = false;
             errorReportingService.OnError = message => errorReported = true;
 
-            await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
+            await ActionSetsAsync(workspace, new ErrorCases.ExceptionInCodeAction());
 
             Assert.True(errorReported);
         }
 
-        private static async Task GetPreview(TestWorkspace workspace, CodeRefactoringProvider provider)
+        private static async Task GetPreviewAsync(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
             var codeActions = new List<CodeAction>();
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             Assert.False(extensionManager.IsIgnored(provider));
         }
 
-        private static async Task ActionSets(TestWorkspace workspace, CodeRefactoringProvider provider)
+        private static async Task ActionSetsAsync(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
             var codeActions = new List<CodeAction>();
             RefactoringSetup(workspace, provider, codeActions, out var extensionManager, out var textBuffer);

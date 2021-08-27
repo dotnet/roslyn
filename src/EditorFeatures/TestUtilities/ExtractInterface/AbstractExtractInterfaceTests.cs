@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
         {
             using var testState = ExtractInterfaceTestState.Create(markup, languageName, compilationOptions);
 
-            var updatedSolution = await testState.ExtractViaCodeAction();
+            var updatedSolution = await testState.ExtractViaCodeActionAsync();
             var updatedDocument = updatedSolution.GetDocument(testState.ExtractFromDocument.Id);
             var updatedCode = (await updatedDocument.GetTextAsync()).ToString();
             Assert.Equal(expectedMarkup, updatedCode);

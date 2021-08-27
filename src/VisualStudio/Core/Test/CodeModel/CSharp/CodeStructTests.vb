@@ -314,7 +314,7 @@ using System;
 [Serializable()]
 struct S { }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -335,7 +335,7 @@ using System;
 [CLSCompliant(true)]
 struct S { }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -357,7 +357,7 @@ using System;
 [CLSCompliant(true)]
 struct S { }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Function
 
 #End Region
@@ -382,7 +382,7 @@ struct S
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
         End Function
 
 #End Region
@@ -413,7 +413,7 @@ struct S : I { }
 interface I { }
 </Code>
 
-            Await TestAddImplementedInterface(code, "I", -1, expected)
+            Await TestAddImplementedInterfaceAsync(code, "I", -1, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -432,7 +432,7 @@ interface I { }
 interface J { }
 </Code>
 
-            Await TestAddImplementedInterface(code, "J", -1, expected)
+            Await TestAddImplementedInterfaceAsync(code, "J", -1, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -451,7 +451,7 @@ interface I { }
 interface J { }
 </Code>
 
-            Await TestAddImplementedInterface(code, "J", 0, expected)
+            Await TestAddImplementedInterfaceAsync(code, "J", 0, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -472,7 +472,7 @@ interface J { }
 interface K { }
 </Code>
 
-            Await TestAddImplementedInterface(code, "J", 1, expected)
+            Await TestAddImplementedInterfaceAsync(code, "J", 1, expected)
         End Function
 
 #End Region
@@ -492,7 +492,7 @@ interface I { }
 struct S { }
 interface I { }
 </Code>
-            Await TestRemoveImplementedInterface(code, "I", expected)
+            Await TestRemoveImplementedInterfaceAsync(code, "I", expected)
         End Function
 
 #End Region
@@ -514,7 +514,7 @@ struct Bar
 }
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 #End Region
 

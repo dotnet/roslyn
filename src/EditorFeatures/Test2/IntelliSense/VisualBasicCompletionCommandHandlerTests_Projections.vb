@@ -35,9 +35,9 @@ End Namespace
 ]]></Document>)
 
                 state.SendTypeChars(".")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("Curr")
-                Await state.AssertSelectedCompletionItem(displayText:="CurrentDomain")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="CurrentDomain")
                 state.SendTab()
                 Assert.Contains("__o = AppDomain.CurrentDomain", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -71,10 +71,10 @@ End Class
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(".", view, buffer)
-                Await state.AssertCompletionSession(view)
+                Await state.AssertCompletionSessionAsync(view)
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Cons", view, buffer)
-                Await state.AssertSelectedCompletionItem(displayText:="Console", projectionsView:=view)
+                Await state.AssertSelectedCompletionItemAsync(displayText:="Console", projectionsView:=view)
             End Using
         End Function
 
@@ -106,10 +106,10 @@ End Class
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(" ", view, buffer)
-                Await state.AssertCompletionSession(view)
+                Await state.AssertCompletionSessionAsync(view)
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Str", view, buffer)
-                Await state.AssertSelectedCompletionItem(displayText:="String", isHardSelected:=True, projectionsView:=view)
+                Await state.AssertSelectedCompletionItemAsync(displayText:="String", isHardSelected:=True, projectionsView:=view)
             End Using
         End Function
     End Class

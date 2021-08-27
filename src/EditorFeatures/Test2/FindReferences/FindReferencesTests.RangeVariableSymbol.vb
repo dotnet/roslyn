@@ -28,7 +28,7 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(541928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541928")>
@@ -52,7 +52,7 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(542161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
@@ -66,7 +66,7 @@ var q = from $${|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|x|];
 </Submission>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(542161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
@@ -80,7 +80,7 @@ var q = from {|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|$$x|];
 </Submission>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(542161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
@@ -98,7 +98,7 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(542161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542161")>
@@ -116,7 +116,7 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(542509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542509")>
@@ -138,7 +138,7 @@ End Module
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(542509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542509")>
@@ -160,7 +160,7 @@ End Module
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(545163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545163")>
@@ -179,7 +179,7 @@ End Module
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(545163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545163")>
@@ -198,7 +198,7 @@ End Module
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(628189, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/628189")>
@@ -235,7 +235,7 @@ End Namespace
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -255,7 +255,7 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
     End Class

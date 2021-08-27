@@ -38,20 +38,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             StreamingFeature
         End Enum
 
-        Private Async Function TestAPIAndFeature(definition As XElement, kind As TestKind, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+        Private Async Function TestAPIAndFeatureAsync(definition As XElement, kind As TestKind, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
             If kind = TestKind.API Then
-                Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly, options:=Nothing)
+                Await TestAPIAsync(definition, host, searchSingleFileOnly, uiVisibleOnly, options:=Nothing)
             Else
                 Assert.Equal(TestKind.StreamingFeature, kind)
-                Await TestStreamingFeature(definition, host, searchSingleFileOnly, uiVisibleOnly)
+                Await TestStreamingFeatureAsync(definition, host, searchSingleFileOnly, uiVisibleOnly)
             End If
         End Function
 
-        Private Shared Async Function TestStreamingFeature(element As XElement, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
-            Await TestStreamingFeature(element, searchSingleFileOnly, uiVisibleOnly, host)
+        Private Shared Async Function TestStreamingFeatureAsync(element As XElement, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
+            Await TestStreamingFeatureAsync(element, searchSingleFileOnly, uiVisibleOnly, host)
         End Function
 
-        Private Shared Async Function TestStreamingFeature(
+        Private Shared Async Function TestStreamingFeatureAsync(
                 element As XElement,
                 searchSingleFileOnly As Boolean,
                 uiVisibleOnly As Boolean,
@@ -249,18 +249,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Function
         End Class
 
-        Private Async Function TestAPI(
+        Private Async Function TestAPIAsync(
                 definition As XElement,
                 host As TestHost,
                 Optional searchSingleFileOnly As Boolean = False,
                 Optional uiVisibleOnly As Boolean = False,
                 Optional options As FindReferencesSearchOptions = Nothing) As Task
 
-            Await TestAPI(definition, host, explicit:=False, searchSingleFileOnly, uiVisibleOnly, options)
-            Await TestAPI(definition, host, explicit:=True, searchSingleFileOnly, uiVisibleOnly, options)
+            Await TestAPIAsync(definition, host, explicit:=False, searchSingleFileOnly, uiVisibleOnly, options)
+            Await TestAPIAsync(definition, host, explicit:=True, searchSingleFileOnly, uiVisibleOnly, options)
         End Function
 
-        Private Async Function TestAPI(
+        Private Async Function TestAPIAsync(
                 definition As XElement,
                 host As TestHost,
                 explicit As Boolean,

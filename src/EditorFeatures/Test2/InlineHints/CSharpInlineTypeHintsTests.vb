@@ -23,7 +23,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -43,7 +43,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -63,7 +63,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input, ephemeral:=True)
+            Await VerifyTypeHintsAsync(input, ephemeral:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -83,7 +83,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -103,7 +103,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -123,7 +123,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input, ephemeral:=True)
+            Await VerifyTypeHintsAsync(input, ephemeral:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -143,7 +143,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -163,7 +163,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -183,7 +183,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input, ephemeral:=True)
+            Await VerifyTypeHintsAsync(input, ephemeral:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -203,7 +203,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -224,7 +224,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -245,7 +245,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -266,7 +266,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -288,7 +288,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -310,7 +310,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input, ephemeral:=True)
+            Await VerifyTypeHintsAsync(input, ephemeral:=True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -333,7 +333,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -358,7 +358,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -376,7 +376,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -397,7 +397,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -415,7 +415,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -436,7 +436,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -459,7 +459,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyTypeHints(input)
+            Await VerifyTypeHintsAsync(input)
         End Function
     End Class
 End Namespace

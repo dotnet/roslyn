@@ -31,13 +31,13 @@ class C
     int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field),
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
-            await VerifyNoModifiers(markup);
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, null);
+            await VerifyNoModifiersAsync(markup);
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -49,13 +49,13 @@ class C
     public int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field),
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
-            await VerifyNoModifiers(markup);
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.Public);
+            await VerifyNoModifiersAsync(markup);
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, Accessibility.Public);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -67,12 +67,12 @@ class C
     public virtual int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
-            await VerifyModifiers(markup, new DeclarationModifiers(isVirtual: true));
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.Public);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers(isVirtual: true));
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, Accessibility.Public);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -84,13 +84,13 @@ class C
     private static int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field),
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
-            await VerifyModifiers(markup, new DeclarationModifiers(isStatic: true));
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.Private);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers(isStatic: true));
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, Accessibility.Private);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -102,11 +102,11 @@ class C
     private const int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field));
-            await VerifyModifiers(markup, new DeclarationModifiers(isConst: true));
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.Private);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers(isConst: true));
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, Accessibility.Private);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -121,12 +121,12 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-            await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers());
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -141,11 +141,11 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
-            await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers());
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -160,12 +160,12 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-            await VerifyModifiers(markup, new DeclarationModifiers(isReadOnly: true));
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers(isReadOnly: true));
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -180,11 +180,11 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
-            await VerifyModifiers(markup, new DeclarationModifiers(isReadOnly: true));
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers(isReadOnly: true));
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -199,11 +199,11 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
-            await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers());
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -218,11 +218,11 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
-            await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers());
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -237,11 +237,11 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
-            await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers());
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -256,11 +256,11 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
-            await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers());
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -275,11 +275,11 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
-            await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers());
+            await VerifyTypeNameAsync(markup, "int");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -292,11 +292,11 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
-            await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "global::C");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers());
+            await VerifyTypeNameAsync(markup, "global::C");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -309,11 +309,11 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
-            await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "global::C");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers());
+            await VerifyTypeNameAsync(markup, "global::C");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -326,11 +326,11 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
-            await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "string");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers());
+            await VerifyTypeNameAsync(markup, "string");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -343,11 +343,11 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
-            await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "string");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers());
+            await VerifyTypeNameAsync(markup, "string");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -361,11 +361,11 @@ class C
     }
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
-            await VerifyModifiers(markup, new DeclarationModifiers());
-            await VerifyTypeName(markup, "global::System.Collections.Generic.List<string>");
-            await VerifyAccessibility(markup, null);
+            await VerifyModifiersAsync(markup, new DeclarationModifiers());
+            await VerifyTypeNameAsync(markup, "global::System.Collections.Generic.List<string>");
+            await VerifyAccessibilityAsync(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -376,7 +376,7 @@ class C<$$
 {
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.TypeParameter));
         }
 
@@ -388,7 +388,7 @@ class C<T1, $$
 {
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.TypeParameter));
         }
 
@@ -401,7 +401,7 @@ class C
     readonly int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field));
         }
 
@@ -414,7 +414,7 @@ class C
     const int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field));
         }
 
@@ -427,7 +427,7 @@ class C
     abstract int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
@@ -441,7 +441,7 @@ class C
     virtual int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
@@ -455,7 +455,7 @@ class C
     sealed int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
@@ -469,7 +469,7 @@ class C
     override int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
@@ -483,7 +483,7 @@ class C
     async int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
         }
 
@@ -497,7 +497,7 @@ class C
     partial int $$
 }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Field),
                 new SymbolKindOrTypeKind(SymbolKind.Property),
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
@@ -519,7 +519,7 @@ class C
     }}
 }}
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
         }
 
@@ -539,7 +539,7 @@ class C
     }}
 }}
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
         }
 
@@ -561,7 +561,7 @@ class C
     }}
 }}
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local));
         }
 
@@ -584,7 +584,7 @@ class C
     }}
 }}
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
@@ -604,7 +604,7 @@ class C
     }}
 }}
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
@@ -626,7 +626,7 @@ class C
     }}
 }}
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
@@ -646,7 +646,7 @@ class C
     }}
 }}
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
@@ -666,7 +666,7 @@ class C
     }}
 }}
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
@@ -688,7 +688,7 @@ class C
     }}
 }}
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
@@ -707,7 +707,7 @@ namespace ConsoleApp1
         }
     }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
@@ -727,7 +727,7 @@ namespace ConsoleApp1
         }
     }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
@@ -747,7 +747,7 @@ namespace ConsoleApp1
         }
     }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
@@ -766,36 +766,36 @@ namespace ConsoleApp1
         }
     }
 ";
-            await VerifySymbolKinds(markup,
+            await VerifySymbolKindsAsync(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        private async Task VerifyTypeName(string markup, string typeName)
+        private async Task VerifyTypeNameAsync(string markup, string typeName)
         {
             var result = await GetResultsAsync(markup);
             Assert.Equal(typeName, result.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
         }
 
-        private async Task VerifyNoModifiers(string markup)
+        private async Task VerifyNoModifiersAsync(string markup)
         {
             var result = await GetResultsAsync(markup);
             Assert.Equal(default, result.Modifiers);
         }
 
-        private async Task VerifySymbolKinds(string markup, params SymbolKindOrTypeKind[] expectedSymbolKinds)
+        private async Task VerifySymbolKindsAsync(string markup, params SymbolKindOrTypeKind[] expectedSymbolKinds)
         {
             var result = await GetResultsAsync(markup);
             Assert.True(expectedSymbolKinds.SequenceEqual(result.PossibleSymbolKinds));
         }
 
-        private async Task VerifyModifiers(string markup, DeclarationModifiers modifiers)
+        private async Task VerifyModifiersAsync(string markup, DeclarationModifiers modifiers)
         {
             var result = await GetResultsAsync(markup);
             Assert.Equal(modifiers, result.Modifiers);
         }
 
-        private async Task VerifyAccessibility(string markup, Accessibility? accessibility)
+        private async Task VerifyAccessibilityAsync(string markup, Accessibility? accessibility)
         {
             var result = await GetResultsAsync(markup);
             Assert.Equal(accessibility, result.DeclaredAccessibility);

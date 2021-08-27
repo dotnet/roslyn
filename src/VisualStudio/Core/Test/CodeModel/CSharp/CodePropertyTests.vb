@@ -1344,7 +1344,7 @@ abstract class C
 }
 </Code>
 
-            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
+            Await TestSetOverrideKindAsync(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1376,7 +1376,7 @@ abstract class C
 }
 </Code>
 
-            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+            Await TestSetOverrideKindAsync(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1396,7 +1396,7 @@ class C
 }
 </Code>
 
-            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
+            Await TestSetOverrideKindAsync(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride)
         End Function
 
 #End Region
@@ -1439,7 +1439,7 @@ abstract class C
 }
 </Code>
 
-            Await TestSetIsDefault(code, expected, True, ThrowsInvalidOperationException(Of Boolean))
+            Await TestSetIsDefaultAsync(code, expected, True, ThrowsInvalidOperationException(Of Boolean))
         End Function
 
 #End Region
@@ -1464,7 +1464,7 @@ class C
 }
 </Code>
 
-            Await TestSetTypeProp(code, expected, "string")
+            Await TestSetTypePropAsync(code, expected, "string")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1485,7 +1485,7 @@ class C
 }
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.String")
+            Await TestSetTypePropAsync(code, expected, "System.String")
         End Function
 
 #End Region
@@ -1591,7 +1591,7 @@ class C
     }
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1626,7 +1626,7 @@ class C
     }
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1662,7 +1662,7 @@ class C
     }
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Function
 
 #End Region

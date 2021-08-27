@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             AssertServerAlive(languageServerTarget);
 
             await languageServerTarget.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
-            await AssertServerQueueClosed(languageServerTarget, listenerProvider).ConfigureAwait(false);
+            await AssertServerQueueClosedAsync(languageServerTarget, listenerProvider).ConfigureAwait(false);
             Assert.False(jsonRpc.IsDisposed);
         }
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 
             await languageServerTarget.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
             await languageServerTarget.ExitAsync(CancellationToken.None).ConfigureAwait(false);
-            await AssertServerQueueClosed(languageServerTarget, listenerProvider).ConfigureAwait(false);
+            await AssertServerQueueClosedAsync(languageServerTarget, listenerProvider).ConfigureAwait(false);
             Assert.True(jsonRpc.IsDisposed);
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             AssertServerAlive(languageServerTarget);
 
             jsonRpc.Dispose();
-            await AssertServerQueueClosed(languageServerTarget, listenerProvider).ConfigureAwait(false);
+            await AssertServerQueueClosedAsync(languageServerTarget, listenerProvider).ConfigureAwait(false);
             Assert.True(jsonRpc.IsDisposed);
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.False(server.GetTestAccessor().GetQueueAccessor().IsComplete());
         }
 
-        private static async Task AssertServerQueueClosed(LanguageServerTarget server, IAsynchronousOperationListenerProvider listenerProvider)
+        private static async Task AssertServerQueueClosedAsync(LanguageServerTarget server, IAsynchronousOperationListenerProvider listenerProvider)
         {
             await listenerProvider.GetWaiter(FeatureAttribute.LanguageServer).ExpeditedWaitAsync();
             Assert.True(server.HasShutdownStarted);

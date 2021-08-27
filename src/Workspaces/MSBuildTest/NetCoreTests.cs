@@ -273,10 +273,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
 
-            await AssertNetCoreMultiTFMProject(projectFilePath);
+            await AssertNetCoreMultiTFMProjectAsync(projectFilePath);
         }
 
-        private static async Task AssertNetCoreMultiTFMProject(string projectFilePath)
+        private static async Task AssertNetCoreMultiTFMProjectAsync(string projectFilePath)
         {
             using (var workspace = CreateMSBuildWorkspace())
             {

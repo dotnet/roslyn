@@ -6,9 +6,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     internal static class Extensions
     {
-        public static Task ToTask(this WaitHandle handle, int? timeoutMilliseconds)
+        public static Task WaitOneAsync(this WaitHandle handle, int? timeoutMilliseconds = null)
         {
             RegisteredWaitHandle registeredHandle = null;
             var tcs = new TaskCompletionSource<object>();
@@ -35,8 +32,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 executeOnlyOnce: true);
             return tcs.Task;
         }
-
-        public static async Task WaitOneAsync(this WaitHandle handle, int? timeoutMilliseconds = null) => await handle.ToTask(timeoutMilliseconds);
 
         public static async ValueTask<T> TakeAsync<T>(this BlockingCollection<T> collection, TimeSpan? pollTimeSpan = null, CancellationToken cancellationToken = default)
         {

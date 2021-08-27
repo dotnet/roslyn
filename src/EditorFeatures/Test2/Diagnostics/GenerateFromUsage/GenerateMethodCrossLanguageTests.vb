@@ -742,6 +742,7 @@ End Module]]>
         End Function
 
         <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerived() As Task
             Dim input =
         <Workspace>

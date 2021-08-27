@@ -106,7 +106,7 @@ Imports System
 Interface I
 End Interface
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -129,7 +129,7 @@ Imports System
 Interface I
 End Interface
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -153,7 +153,7 @@ Imports System
 Interface I
 End Interface
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True"})
         End Function
 
 #End Region
@@ -180,7 +180,7 @@ End Interface
 Interface J
 End Interface
 </Code>
-            Await TestAddBase(code, "J", Nothing, expected)
+            Await TestAddBaseAsync(code, "J", Nothing, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -205,7 +205,7 @@ End Interface
 Interface K
 End Interface
 </Code>
-            Await TestAddBase(code, "K", Nothing, expected)
+            Await TestAddBaseAsync(code, "K", Nothing, expected)
         End Function
 
 #End Region
@@ -226,7 +226,7 @@ End Interface
 Interface I
 End Interface
 </Code>
-            Await TestRemoveBase(code, "J", expected)
+            Await TestRemoveBaseAsync(code, "J", expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -255,7 +255,7 @@ Interface I
     Inherits J
 End Interface
 </Code>
-            Await TestRemoveBase(code, "K", expected)
+            Await TestRemoveBaseAsync(code, "K", expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -273,7 +273,7 @@ Interface I
     Inherits K
 End Interface
 </Code>
-            Await TestRemoveBase(code, "J", expected)
+            Await TestRemoveBaseAsync(code, "J", expected)
         End Function
 
 #End Region
@@ -294,7 +294,7 @@ Interface Bar
 End Interface
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 #End Region
 

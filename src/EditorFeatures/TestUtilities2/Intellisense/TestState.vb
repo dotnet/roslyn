@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             sessionComplete.TrySetResult(Nothing)
         End Function
 
-        Public Async Function AssertNoCompletionSession() As Task
+        Public Async Function AssertNoCompletionSessionAsync() As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             If session Is Nothing Then
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Task.WaitAny(task1, task2)
         End Sub
 
-        Public Async Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
+        Public Async Function AssertCompletionSessionAsync(Optional projectionsView As ITextView = Nothing) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim view = If(projectionsView, TextView)
 
@@ -335,23 +335,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.NotNull(session)
         End Function
 
-        Public Async Function AssertCompletionItemsDoNotContainAny(ParamArray displayText As String()) As Task
+        Public Async Function AssertCompletionItemsDoNotContainAnyAsync(ParamArray displayText As String()) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
             Assert.False(displayText.Any(Function(v) items.Any(Function(i) i.DisplayText = v)))
         End Function
 
-        Public Async Function AssertCompletionItemsContainAll(ParamArray displayText As String()) As Task
+        Public Async Function AssertCompletionItemsContainAllAsync(ParamArray displayText As String()) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
             Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
         End Function
 
-        Public Async Function AssertCompletionItemsContain(displayText As String, displayTextSuffix As String) As Task
-            Await AssertCompletionItemsContain(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix)
+        Public Async Function AssertCompletionItemsContainAsync(displayText As String, displayTextSuffix As String) As Task
+            Await AssertCompletionItemsContainAsync(Function(i) i.DisplayText = displayText AndAlso i.DisplayTextSuffix = displayTextSuffix)
         End Function
 
-        Public Async Function AssertCompletionItemsContain(predicate As Func(Of CompletionItem, Boolean)) As Task
+        Public Async Function AssertCompletionItemsContainAsync(predicate As Func(Of CompletionItem, Boolean)) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim items = GetCompletionItems()
             Assert.True(items.Any(predicate))
@@ -378,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Next
         End Sub
 
-        Public Async Function AssertSelectedCompletionItem(
+        Public Async Function AssertSelectedCompletionItemAsync(
                 Optional displayText As String = Nothing,
                 Optional displayTextSuffix As String = Nothing,
                 Optional description As String = Nothing,
@@ -466,11 +466,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             presenter.SetExpander(isSelected)
         End Sub
 
-        Public Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
+        Public Async Function AssertSessionIsNothingOrNoCompletionItemLikeAsync(text As String) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             If Not session Is Nothing Then
-                Await AssertCompletionItemsDoNotContainAny(text)
+                Await AssertCompletionItemsDoNotContainAnyAsync(text)
             End If
         End Function
 
@@ -554,7 +554,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Next
         End Sub
 
-        Public Async Function AssertLineTextAroundCaret(expectedTextBeforeCaret As String, expectedTextAfterCaret As String) As Task
+        Public Async Function AssertLineTextAroundCaretAsync(expectedTextBeforeCaret As String, expectedTextAfterCaret As String) As Task
             Await WaitForAsynchronousOperationsAsync()
 
             Dim actual = GetLineTextAroundCaretPosition()
@@ -597,7 +597,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendInvokeSignatureHelp(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
-        Public Overloads Async Function AssertNoSignatureHelpSession(Optional block As Boolean = True) As Task
+        Public Overloads Async Function AssertNoSignatureHelpSessionAsync(Optional block As Boolean = True) As Task
             If block Then
                 Await WaitForAsynchronousOperationsAsync()
             End If
@@ -605,7 +605,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Null(Me.CurrentSignatureHelpPresenterSession)
         End Function
 
-        Public Overloads Async Function AssertSignatureHelpSession() As Task
+        Public Overloads Async Function AssertSignatureHelpSessionAsync() As Task
             Await WaitForAsynchronousOperationsAsync()
             Assert.NotNull(Me.CurrentSignatureHelpPresenterSession)
         End Function
@@ -614,13 +614,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return CurrentSignatureHelpPresenterSession.SignatureHelpItems
         End Function
 
-        Public Async Function AssertSignatureHelpItemsContainAll(displayText As String()) As Task
+        Public Async Function AssertSignatureHelpItemsContainAllAsync(displayText As String()) As Task
             Await WaitForAsynchronousOperationsAsync()
             Assert.True(displayText.All(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
                                             Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v)))
         End Function
 
-        Public Async Function AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
+        Public Async Function AssertSelectedSignatureHelpItemAsync(Optional displayText As String = Nothing,
                                Optional documentation As String = Nothing,
                                Optional selectedParameter As String = Nothing) As Task
             Await WaitForAsynchronousOperationsAsync()

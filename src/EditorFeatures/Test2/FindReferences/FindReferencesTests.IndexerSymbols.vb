@@ -30,7 +30,7 @@ class D
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(529629, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529629")>
@@ -57,7 +57,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(545577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545577")>
@@ -80,7 +80,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(650779, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/650779")>
@@ -110,7 +110,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(661362, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/661362")>
@@ -142,7 +142,7 @@ End Module
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
@@ -173,7 +173,7 @@ class B
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
@@ -203,7 +203,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
@@ -227,7 +227,7 @@ class A
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(39847, "https://github.com/dotnet/roslyn/issues/39847")>
@@ -248,7 +248,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
@@ -267,7 +267,7 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WorkItem(44288, "https://github.com/dotnet/roslyn/issues/44288")>
@@ -290,7 +290,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -317,7 +317,7 @@ class D
         </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPIAndFeatureAsync(input, kind, host)
         End Function
     End Class
 End Namespace

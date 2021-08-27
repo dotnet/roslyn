@@ -101,7 +101,7 @@ class TestClass {{
                     {
                         fixes.Add(CodeAction.Create(
                             "ThisToBase",
-                            cancellationToken => CreateChangedDocument(context.Document, diagnostic.Location.SourceSpan, replacement, cancellationToken),
+                            cancellationToken => CreateChangedDocumentAsync(context.Document, diagnostic.Location.SourceSpan, replacement, cancellationToken),
                             $"{nameof(ReplaceZeroFix)}_{replacement}"));
                     }
 
@@ -119,7 +119,7 @@ class TestClass {{
                 return Task.CompletedTask;
             }
 
-            private static async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, int replacement, CancellationToken cancellationToken)
+            private static async Task<Document> CreateChangedDocumentAsync(Document document, TextSpan sourceSpan, int replacement, CancellationToken cancellationToken)
             {
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken);
                 var root = await tree.GetRootAsync(cancellationToken);

@@ -22,9 +22,9 @@ class C
 
                 state.SendInvokeCompletionList()
                 state.SendTypeChars("by")
-                Await state.AssertSelectedCompletionItem("(byte)")
+                Await state.AssertSelectedCompletionItemAsync("(byte)")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
                 Assert.Equal("        var y = ((byte)x)", state.GetLineTextFromCaretPosition())
                 Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
             End Using
@@ -47,9 +47,9 @@ class C
 
                 state.SendInvokeCompletionList()
                 state.SendTypeChars("by")
-                Await state.AssertSelectedCompletionItem("(byte)")
+                Await state.AssertSelectedCompletionItemAsync("(byte)")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
                 Assert.Equal("        var y = ((byte)x).ToString();", state.GetLineTextFromCaretPosition())
                 Assert.Equal(".", state.GetCaretPoint().BufferPosition.GetChar())
             End Using
@@ -71,7 +71,7 @@ class C
 ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("CompareTo")
+                Await state.AssertSelectedCompletionItemAsync("CompareTo")
             End Using
         End Function
 
@@ -91,9 +91,9 @@ class C
 ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("(byte)")
+                Await state.AssertSelectedCompletionItemAsync("(byte)")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
                 Assert.Equal("        var y = ((byte)x).ToString();", state.GetLineTextFromCaretPosition())
                 Assert.Equal(".", state.GetCaretPoint().BufferPosition.GetChar())
             End Using
@@ -116,9 +116,9 @@ class C
 
                 state.SendInvokeCompletionList()
                 state.SendTypeChars("by")
-                Await state.AssertSelectedCompletionItem("(byte?)")
+                Await state.AssertSelectedCompletionItemAsync("(byte?)")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
                 Assert.Equal("        var y = ((byte?)x)", state.GetLineTextFromCaretPosition())
                 Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
             End Using
@@ -141,9 +141,9 @@ class C
 
                 state.SendInvokeCompletionList()
                 state.SendTypeChars("by")
-                Await state.AssertSelectedCompletionItem("(byte?)")
+                Await state.AssertSelectedCompletionItemAsync("(byte?)")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
                 Assert.Equal("        var y = ((byte?)x)?.ToString();", state.GetLineTextFromCaretPosition())
                 Assert.Equal(".", state.GetCaretPoint().BufferPosition.GetChar())
             End Using

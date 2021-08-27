@@ -139,12 +139,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestSetCanOverride(code As XElement, expectedCode As XElement, value As Boolean) As Task
-            Await TestSetCanOverride(code, expectedCode, value, NoThrow(Of Boolean)())
+        Protected Async Function TestSetCanOverrideAsync(code As XElement, expectedCode As XElement, value As Boolean) As Task
+            Await TestSetCanOverrideAsync(code, expectedCode, value, NoThrow(Of Boolean)())
         End Function
 
-        Protected Async Function TestSetCanOverride(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetCanOverrideAsync(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     action(value, Sub(v) codeElement.CanOverride = v)
                 End Sub)

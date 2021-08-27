@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
             var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
 
             using var disposable = tagger as IDisposable;
-            await wrapper.WaitForTags();
+            await wrapper.WaitForTagsAsync();
 
             var analyzerDiagnostics = await wrapper.AnalyzerService.GetDiagnosticsAsync(workspace.CurrentSolution);
 

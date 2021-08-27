@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
             Return testWorkspace.ExportProvider.GetExportedValue(Of VisualBasicInlineMethodRefactoringProvider)
         End Function
 
-        Private Async Function TestNoActionIsProvided(initialMarkup As String) As Task
+        Private Async Function TestNoActionIsProvidedAsync(initialMarkup As String) As Task
             Dim workspace = CreateWorkspaceFromOptions(initialMarkup, Nothing)
             Dim actions = Await GetCodeActionsAsync(workspace, Nothing).ConfigureAwait(False)
             Assert.True(actions.Item1.IsEmpty())
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InlineMethod
         </Document>
         </Project>
     </Workspace>"
-            Await TestNoActionIsProvided(input).ConfigureAwait(False)
+            Await TestNoActionIsProvidedAsync(input).ConfigureAwait(False)
         End Function
     End Class
 End Namespace

@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             // print default:
             await Host.ExecuteAsync(@"ReferencePaths");
-            var output = await ReadOutputToEnd();
+            var output = await ReadOutputToEndAsync();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(fxDir), output);
 
             await Host.ExecuteAsync(@"SourcePaths");
-            output = await ReadOutputToEnd();
+            output = await ReadOutputToEndAsync();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(), output);
 
             // add and test if added:
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             await Host.ExecuteAsync(@"SourcePaths");
 
-            output = await ReadOutputToEnd();
+            output = await ReadOutputToEndAsync();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(srcDir.Path), output);
 
             // execute file (uses modified search paths), the file adds a reference path
@@ -54,15 +54,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             await Host.ExecuteAsync(@"ReferencePaths");
 
-            output = await ReadOutputToEnd();
+            output = await ReadOutputToEndAsync();
             AssertEx.AssertEqualToleratingWhitespaceDifferences(PrintSearchPaths(fxDir, dllDir), output);
 
             await Host.AddReferenceAsync(Path.GetFileName(dll.Path));
 
             await Host.ExecuteAsync(@"typeof(Metadata.ICSProp)");
 
-            var error = await ReadErrorOutputToEnd();
-            output = await ReadOutputToEnd();
+            var error = await ReadErrorOutputToEndAsync();
+            output = await ReadOutputToEndAsync();
             Assert.Equal("", error);
             Assert.Equal("[Metadata.ICSProp]\r\n", output);
         }
@@ -70,16 +70,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         [Fact]
         public async Task AddReference_AssemblyAlreadyLoaded()
         {
-            var result = await LoadReference("System.Core");
-            var output = await ReadOutputToEnd();
-            var error = await ReadErrorOutputToEnd();
+            var result = await LoadReferenceAsync("System.Core");
+            var output = await ReadOutputToEndAsync();
+            var error = await ReadErrorOutputToEndAsync();
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", output);
             Assert.True(result);
 
-            result = await LoadReference("System.Core.dll");
-            output = await ReadOutputToEnd();
-            error = await ReadErrorOutputToEnd();
+            result = await LoadReferenceAsync("System.Core.dll");
+            output = await ReadOutputToEndAsync();
+            error = await ReadErrorOutputToEndAsync();
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", error);
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", output);
             Assert.True(result);

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public async Task UseExistingServer()
         {
-            using var serverData = await ServerUtil.CreateServer(Logger);
+            using var serverData = await ServerUtil.CreateServerAsync(Logger);
             var ran = false;
             var workingDirectory = TempRoot.CreateDirectory().Path;
             for (var i = 0; i < 5; i++)

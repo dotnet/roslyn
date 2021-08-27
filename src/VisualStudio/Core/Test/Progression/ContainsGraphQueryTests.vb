@@ -30,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -83,7 +83,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -135,7 +135,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.vb")
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -181,7 +181,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.csx")
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(False)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(False)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -218,7 +218,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -252,7 +252,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -283,7 +283,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -314,7 +314,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -343,7 +343,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -374,7 +374,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = await testState.GetGraphWithMarkedSymbolNodeAsync()
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 typeof(TestGenerateTypeOptionsService),
                 typeof(TestProjectManagementService));
 
-        internal async Task TestWithMockedGenerateTypeDialog(
+        internal async Task TestWithMockedGenerateTypeDialogAsync(
             string initial,
             string languageName,
             string typeName,
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
             else
             {
-                oldSolutionAndNewSolution = await TestAddDocument(
+                oldSolutionAndNewSolution = await TestAddDocumentAsync(
                     testState.Workspace,
                     expected,
                     operations,

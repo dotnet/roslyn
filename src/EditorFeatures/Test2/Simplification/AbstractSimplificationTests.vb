@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         Private Protected Shared Async Function TestAsync(definition As XElement, expected As XElement, Optional options As Dictionary(Of OptionKey2, Object) = Nothing, Optional csharpParseOptions As CSharpParseOptions = Nothing) As System.Threading.Tasks.Task
             Using workspace = CreateTestWorkspace(definition, csharpParseOptions)
                 Dim simplifiedDocument = Await SimplifyAsync(workspace, options).ConfigureAwait(False)
-                Await AssertCodeEqual(expected, simplifiedDocument)
+                Await AssertCodeEqualAsync(expected, simplifiedDocument)
             End Using
         End Function
 
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Return simplifiedDocument
         End Function
 
-        Protected Shared Async Function AssertCodeEqual(expected As XElement, simplifiedDocument As Document) As Task
+        Protected Shared Async Function AssertCodeEqualAsync(expected As XElement, simplifiedDocument As Document) As Task
             Dim actualText = (Await simplifiedDocument.GetTextAsync()).ToString()
             Assert.Equal(expected.NormalizedValue.Trim(), actualText.Trim())
         End Function

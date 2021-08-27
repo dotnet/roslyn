@@ -7,19 +7,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.IO;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
 using Xunit.Abstractions;
+using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -42,19 +40,19 @@ class Hello
     }
 }";
 
-        private static Task TaskFromException(Exception e)
+        private static Task TaskFromExceptionAsync(Exception e)
         {
-            return TaskFromException<bool>(e);
+            return TaskFromExceptionAsync<bool>(e);
         }
 
-        private static Task<T> TaskFromException<T>(Exception e)
+        private static Task<T> TaskFromExceptionAsync<T>(Exception e)
         {
             var source = new TaskCompletionSource<T>();
             source.SetException(e);
             return source.Task;
         }
 
-        private async Task<BuildRequest> CreateBuildRequest(string sourceText, TimeSpan? keepAlive = null)
+        private async Task<BuildRequest> CreateBuildRequestAsync(string sourceText, TimeSpan? keepAlive = null)
         {
             var directory = Temp.CreateDirectory();
             var file = directory.CreateFile("temp.cs");
@@ -78,18 +76,18 @@ class Hello
         /// <summary>
         /// Run a C# compilation against the given source text using the provided named pipe name.
         /// </summary>
-        private async Task<BuildResponse> RunCSharpCompile(string pipeName, string sourceText, TimeSpan? keepAlive = null)
+        private async Task<BuildResponse> RunCSharpCompileAsync(string pipeName, string sourceText, TimeSpan? keepAlive = null)
         {
             using (var namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut))
             {
-                var buildRequest = await CreateBuildRequest(sourceText, keepAlive);
+                var buildRequest = await CreateBuildRequestAsync(sourceText, keepAlive);
                 namedPipe.Connect(Timeout.Infinite);
                 await buildRequest.WriteAsync(namedPipe, default(CancellationToken));
                 return await BuildResponse.ReadAsync(namedPipe, default(CancellationToken));
             }
         }
 
-        private static Task<T> FromException<T>(Exception ex)
+        private static Task<T> FromExceptionAsync<T>(Exception ex)
         {
             var source = new TaskCompletionSource<T>();
             source.SetException(ex);
@@ -175,7 +173,7 @@ class Hello
         public async Task RejectEmptyTempPath()
         {
             using var temp = new TempRoot();
-            using var serverData = await ServerUtil.CreateServer(Logger);
+            using var serverData = await ServerUtil.CreateServerAsync(Logger);
             var request = BuildRequest.Create(RequestLanguage.CSharpCompile, workingDirectory: temp.CreateDirectory().Path, tempDirectory: null, compilerHash: BuildProtocolConstants.GetCommitHash(), libDirectory: null, args: Array.Empty<string>());
             var response = await serverData.SendAsync(request);
             Assert.Equal(ResponseType.Rejected, response.Type);
@@ -184,7 +182,7 @@ class Hello
         [Fact]
         public async Task IncorrectServerHashReturnsIncorrectHashResponse()
         {
-            using var serverData = await ServerUtil.CreateServer(Logger);
+            using var serverData = await ServerUtil.CreateServerAsync(Logger);
             var buildResponse = await serverData.SendAsync(new BuildRequest(RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
             Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
         }

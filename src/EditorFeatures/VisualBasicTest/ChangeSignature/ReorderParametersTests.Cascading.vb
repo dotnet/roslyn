@@ -350,6 +350,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Shared Async Function TestReorderParameters_Cascade_ToOverridingMethod_IncludeParamTags() As Task
 
             Dim markup = <Text><![CDATA[

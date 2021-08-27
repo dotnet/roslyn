@@ -27,7 +27,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -51,7 +51,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -75,7 +75,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -99,7 +99,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -123,7 +123,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -147,7 +147,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -171,7 +171,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -195,7 +195,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -219,7 +219,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -247,7 +247,7 @@ class Test
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -265,7 +265,7 @@ unsafe class Example {
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -289,7 +289,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -310,7 +310,7 @@ class Foo
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -334,7 +334,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -358,7 +358,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -374,7 +374,7 @@ record Derived(int Other) : Base({|Alice:|}2, {|Bob:|}2);
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -396,7 +396,7 @@ class Derived : Base
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -421,7 +421,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -446,7 +446,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -471,7 +471,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -496,7 +496,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -521,7 +521,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -546,7 +546,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -571,7 +571,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -596,7 +596,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -621,7 +621,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -646,7 +646,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -673,7 +673,7 @@ class A
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -719,7 +719,7 @@ class Program
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
     End Class
 End Namespace

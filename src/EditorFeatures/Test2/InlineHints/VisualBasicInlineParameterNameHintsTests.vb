@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
@@ -350,7 +350,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -372,7 +372,7 @@ end class
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -394,7 +394,7 @@ end class
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -416,7 +416,7 @@ end class
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -438,7 +438,7 @@ end class
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -460,7 +460,7 @@ end class
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -482,7 +482,7 @@ end class
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -504,7 +504,7 @@ end class
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -526,7 +526,7 @@ end class
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -548,7 +548,7 @@ end class
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
 
         <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/47597")>
@@ -570,7 +570,7 @@ end class
                 </Project>
             </Workspace>
 
-            Await VerifyParamHints(input)
+            Await VerifyParamHintsAsync(input)
         End Function
     End Class
 End Namespace

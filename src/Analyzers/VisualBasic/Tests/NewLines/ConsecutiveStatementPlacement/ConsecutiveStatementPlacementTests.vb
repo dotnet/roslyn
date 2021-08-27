@@ -10,7 +10,7 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.ConsecutiveStatementPlacement
     Public Class ConsecutiveStatementPlacementTests
-        Private Shared Async Function TestWithOptionOn(testCode As String, fixedCode As String) As Task
+        Private Shared Async Function TestWithOptionOnAsync(testCode As String, fixedCode As String) As Task
             Dim test = New VerifyVB.Test() With {
                 .TestCode = testCode,
                 .FixedCode = fixedCode
@@ -36,7 +36,7 @@ class C
         end get
     end property
 end class"
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -50,7 +50,7 @@ class C
     end sub
 end class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -63,7 +63,7 @@ class C
     end sub
 end class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -79,7 +79,7 @@ class C
     end sub
 end class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -95,7 +95,7 @@ class C
     end sub
 end class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -111,7 +111,7 @@ class C
     end sub
 end class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -127,7 +127,7 @@ class C
     end sub
 end class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -144,7 +144,7 @@ class C
 #End Region
 end class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -160,12 +160,12 @@ class C
     end sub
 end class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
         Public Async Function TestBetweenBlockAndStatement1() As Task
-            Await TestWithOptionOn("
+            Await TestWithOptionOnAsync("
 class C
     sub M()
         if (true)
@@ -205,7 +205,7 @@ end class"
             For Each x In {0}
             Next
 
-            Await TestWithOptionOn("
+            Await TestWithOptionOnAsync("
 class C
     sub M()
         For Each x In {0}
@@ -225,7 +225,7 @@ end class")
 
         <Fact>
         Public Async Function TestBetweenBlockAndStatement2() As Task
-            Await TestWithOptionOn("
+            Await TestWithOptionOnAsync("
 class C
     sub M()
         if (true)
@@ -245,7 +245,7 @@ end class")
 
         <Fact>
         Public Async Function TestBetweenBlockAndStatement3() As Task
-            Await TestWithOptionOn("
+            Await TestWithOptionOnAsync("
 class C
     sub M()
         if (true) : [|end if|]
@@ -263,7 +263,7 @@ end class")
 
         <Fact>
         Public Async Function TestFixAll1() As Task
-            Await TestWithOptionOn("
+            Await TestWithOptionOnAsync("
 class C
     sub M()
         if (true)
@@ -290,7 +290,7 @@ end class")
 
         <Fact>
         Public Async Function TestAfterEndSelect() As Task
-            Await TestWithOptionOn("
+            Await TestWithOptionOnAsync("
 class C
     sub M()
         select (0)
@@ -310,7 +310,7 @@ end class")
 
         <Fact>
         Public Async Function TestAfterEndTry() As Task
-            Await TestWithOptionOn("
+            Await TestWithOptionOnAsync("
 class C
     sub M()
         Try
@@ -332,7 +332,7 @@ end class")
 
         <Fact>
         Public Async Function TestAfterUsing() As Task
-            Await TestWithOptionOn("
+            Await TestWithOptionOnAsync("
 class C
     sub M(d as System.IDisposable)
         using (d)
@@ -352,7 +352,7 @@ end class")
 
         <Fact>
         Public Async Function TestAfterDo1() As Task
-            Await TestWithOptionOn("
+            Await TestWithOptionOnAsync("
 class C
     sub M()
         do
@@ -372,7 +372,7 @@ end class")
 
         <Fact>
         Public Async Function TestAfterDo2() As Task
-            Await TestWithOptionOn("
+            Await TestWithOptionOnAsync("
 class C
     sub M()
         do
@@ -392,7 +392,7 @@ end class")
 
         <Fact>
         Public Async Function TestAfterDo3() As Task
-            Await TestWithOptionOn("
+            Await TestWithOptionOnAsync("
 class C
     sub M()
         do
@@ -412,7 +412,7 @@ end class")
 
         <Fact>
         Public Async Function TestIfFollowedByIf() As Task
-            Await TestWithOptionOn("
+            Await TestWithOptionOnAsync("
 class C
     sub M()
         if (true)
@@ -441,7 +441,7 @@ class C
 end class
 "
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
     End Class
 End Namespace

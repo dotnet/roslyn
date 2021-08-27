@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
     internal sealed class TestDiagnosticTagProducer<TProvider>
         where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
-        internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<IErrorTag>>)> GetDiagnosticsAndErrorSpans(
+        internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<IErrorTag>>)> GetDiagnosticsAndErrorSpansAsync(
             TestWorkspace workspace,
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
         {
             return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider>(workspace, analyzerMap);
         }
 
-        internal static async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
+        internal static async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSourceAsync(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
         {
             var source = new TestDiagnosticUpdateSource(workspace);
             using (var wrapper = new DiagnosticTaggerWrapper<TProvider, IErrorTag>(workspace, updateSource: source))
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 {
                     source.RaiseDiagnosticsUpdated(updateArgs);
 
-                    await wrapper.WaitForTags();
+                    await wrapper.WaitForTagsAsync();
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();

@@ -19,9 +19,9 @@ end class
 ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("G", inlineDescription:=FeaturesResources.general_long_date_time)
+                Await state.AssertSelectedCompletionItemAsync("G", inlineDescription:=FeaturesResources.general_long_date_time)
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
                 Assert.Contains("d.ToString(""G"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -38,11 +38,11 @@ end class
 ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("ff")
+                Await state.AssertSelectedCompletionItemAsync("ff")
                 state.SendDownKey()
-                Await state.AssertSelectedCompletionItem("FF")
+                Await state.AssertSelectedCompletionItemAsync("FF")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
                 Assert.Contains("d.ToString("":FF"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -59,8 +59,8 @@ end class
 ]]></Document>)
 
                 state.SendTypeChars("f")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem("f")
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync("f")
             End Using
         End Function
 
@@ -76,7 +76,7 @@ end class
 ]]></Document>)
 
                 state.SendTypeChars("f")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
             End Using
         End Function
 
@@ -93,7 +93,7 @@ end class
 
                 state.SendInvokeCompletionList()
                 state.SendTypeChars("ss")
-                Await state.AssertSelectedCompletionItem("ss", inlineDescription:=FeaturesResources.second_2_digits)
+                Await state.AssertSelectedCompletionItemAsync("ss", inlineDescription:=FeaturesResources.second_2_digits)
 
                 Dim description = Await state.GetSelectedItemDescriptionAsync()
                 Dim text = description.Text
@@ -119,9 +119,9 @@ end class
 ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("G", inlineDescription:=FeaturesResources.general_long_date_time)
+                Await state.AssertSelectedCompletionItemAsync("G", inlineDescription:=FeaturesResources.general_long_date_time)
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
                 Assert.Contains("Dim str = $""Text {d:G}""", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -138,11 +138,11 @@ end class
 ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("ff")
+                Await state.AssertSelectedCompletionItemAsync("ff")
                 state.SendDownKey()
-                Await state.AssertSelectedCompletionItem("FF")
+                Await state.AssertSelectedCompletionItemAsync("FF")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
                 Assert.Contains("Dim str = $""Text {d:FF}""", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -159,8 +159,8 @@ end class
 ]]></Document>)
 
                 state.SendTypeChars("f")
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem("f")
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync("f")
             End Using
         End Function
 
@@ -177,7 +177,7 @@ end class
 
                 state.SendInvokeCompletionList()
                 state.SendTypeChars("ss")
-                Await state.AssertSelectedCompletionItem("ss", inlineDescription:=FeaturesResources.second_2_digits)
+                Await state.AssertSelectedCompletionItemAsync("ss", inlineDescription:=FeaturesResources.second_2_digits)
 
                 Dim description = Await state.GetSelectedItemDescriptionAsync()
                 Dim text = description.Text
@@ -203,7 +203,7 @@ end class
 ]]></Document>)
 
                 state.SendTypeChars("f")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
             End Using
         End Function
     End Class

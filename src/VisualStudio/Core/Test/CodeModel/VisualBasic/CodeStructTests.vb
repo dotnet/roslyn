@@ -72,7 +72,7 @@ Imports System
 Structure S
 End Structure
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -95,7 +95,7 @@ Imports System
 Structure S
 End Structure
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -119,7 +119,7 @@ Imports System
 Structure S
 End Structure
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True"})
         End Function
 
 #End Region
@@ -141,7 +141,7 @@ Structure S
 End Structure
 </Code>
 
-            Await TestAddImplementedInterface(code, "I", Nothing, expected)
+            Await TestAddImplementedInterfaceAsync(code, "I", Nothing, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -161,7 +161,7 @@ Structure S
 End Structure
 </Code>
 
-            Await TestAddImplementedInterface(code, "J", Nothing, expected)
+            Await TestAddImplementedInterfaceAsync(code, "J", Nothing, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -181,7 +181,7 @@ Structure S
 End Structure
 </Code>
 
-            Await TestAddImplementedInterface(code, "J", -1, expected)
+            Await TestAddImplementedInterfaceAsync(code, "J", -1, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -213,7 +213,7 @@ End Structure
 Structure S
 End Structure
 </Code>
-            Await TestRemoveImplementedInterface(code, "I", expected)
+            Await TestRemoveImplementedInterfaceAsync(code, "I", expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -242,7 +242,7 @@ Structure S
     Implements I
 End Structure
 </Code>
-            Await TestRemoveImplementedInterface(code, "J", expected)
+            Await TestRemoveImplementedInterfaceAsync(code, "J", expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -260,7 +260,7 @@ Structure S
     Implements J
 End Structure
 </Code>
-            Await TestRemoveImplementedInterface(code, "I", expected)
+            Await TestRemoveImplementedInterfaceAsync(code, "I", expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -278,7 +278,7 @@ Structure S
     Implements I, K
 End Structure
 </Code>
-            Await TestRemoveImplementedInterface(code, "J", expected)
+            Await TestRemoveImplementedInterfaceAsync(code, "J", expected)
         End Function
 
 #End Region
@@ -298,7 +298,7 @@ Structure Bar
 End Structure
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 #End Region
 

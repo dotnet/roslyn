@@ -77,8 +77,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestSetTarget(code As XElement, expectedCode As XElement, target As String) As Tasks.Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetTargetAsync(code As XElement, expectedCode As XElement, target As String) As Tasks.Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     codeElement.Target = target
                 End Sub)
@@ -92,15 +92,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestSetValue(code As XElement, expectedCode As XElement, value As String) As Tasks.Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetValueAsync(code As XElement, expectedCode As XElement, value As String) As Tasks.Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     codeElement.Value = value
                 End Sub)
         End Function
 
-        Protected Async Function TestAddAttributeArgument(code As XElement, expectedCode As XElement, data As AttributeArgumentData) As Tasks.Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestAddAttributeArgumentAsync(code As XElement, expectedCode As XElement, data As AttributeArgumentData) As Tasks.Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim attributeArgument = AddAttributeArgument(codeElement, data)
                     Assert.NotNull(attributeArgument)
@@ -108,15 +108,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Async Function TestDelete(code As XElement, expectedCode As XElement) As Tasks.Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestDeleteAsync(code As XElement, expectedCode As XElement) As Tasks.Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     codeElement.Delete()
                 End Sub)
         End Function
 
-        Protected Async Function TestDeleteAttributeArgument(code As XElement, expectedCode As XElement, indexToDelete As Integer) As Tasks.Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestDeleteAttributeArgumentAsync(code As XElement, expectedCode As XElement, indexToDelete As Integer) As Tasks.Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim argument = CType(codeElement.Arguments.Item(indexToDelete), EnvDTE80.CodeAttributeArgument)
                     argument.Delete()

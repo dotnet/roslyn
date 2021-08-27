@@ -272,6 +272,7 @@ class MyClass
                 type:="string?")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         <WorkItem(8437, "https://github.com/dotnet/roslyn/issues/8437")>
         Public Async Function ChangeSignature_VerifyParamsArrayFunctionality() As Tasks.Task
             Dim markup = <Text><![CDATA[

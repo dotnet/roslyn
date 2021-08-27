@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             private ServerData CreateServer(string pipeName)
             {
-                var serverData = ServerUtil.CreateServer(_logger, pipeName).GetAwaiter().GetResult();
+                var serverData = ServerUtil.CreateServerAsync(_logger, pipeName).GetAwaiter().GetResult();
                 _serverDataList.Add(serverData);
                 return serverData;
             }

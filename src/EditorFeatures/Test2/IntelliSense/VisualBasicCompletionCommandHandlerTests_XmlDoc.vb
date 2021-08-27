@@ -19,12 +19,12 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("summ")
-                Await state.AssertSelectedCompletionItem(displayText:="summary")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="summary")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
-                Await state.AssertLineTextAroundCaret("    ''' summary", "")
+                Await state.AssertNoCompletionSessionAsync()
+                Await state.AssertLineTextAroundCaretAsync("    ''' summary", "")
             End Using
         End Function
 
@@ -41,14 +41,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("summ")
-                Await state.AssertSelectedCompletionItem(displayText:="summary")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="summary")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' summary$$
-                Await state.AssertLineTextAroundCaret("    ''' summary", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' summary", "")
             End Using
         End Function
 
@@ -65,14 +65,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("summ")
-                Await state.AssertSelectedCompletionItem(displayText:="summary")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="summary")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' summary>$$
-                Await state.AssertLineTextAroundCaret("    ''' summary>", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' summary>", "")
             End Using
         End Function
 
@@ -89,14 +89,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("summ")
-                Await state.AssertSelectedCompletionItem(displayText:="summary")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="summary")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <summary$$
-                Await state.AssertLineTextAroundCaret("    ''' <summary", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <summary", "")
             End Using
         End Function
 
@@ -113,14 +113,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("summ")
-                Await state.AssertSelectedCompletionItem(displayText:="summary")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="summary")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <summary$$
-                Await state.AssertLineTextAroundCaret("    ''' <summary", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <summary", "")
             End Using
         End Function
 
@@ -137,14 +137,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("summ")
-                Await state.AssertSelectedCompletionItem(displayText:="summary")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="summary")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <summary>$$
-                Await state.AssertLineTextAroundCaret("    ''' <summary>", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <summary>", "")
             End Using
         End Function
 
@@ -161,14 +161,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("rema")
-                Await state.AssertSelectedCompletionItem(displayText:="remarks")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="remarks")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' remarks>$$
-                Await state.AssertLineTextAroundCaret("    ''' remarks>", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' remarks>", "")
             End Using
         End Function
 
@@ -185,14 +185,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("rema")
-                Await state.AssertSelectedCompletionItem(displayText:="remarks")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="remarks")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <remarks>$$
-                Await state.AssertLineTextAroundCaret("    ''' <remarks>", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <remarks>", "")
             End Using
         End Function
 
@@ -209,14 +209,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("retur")
-                Await state.AssertSelectedCompletionItem(displayText:="returns")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="returns")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' returns>$$
-                Await state.AssertLineTextAroundCaret("    ''' returns>", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' returns>", "")
             End Using
         End Function
 
@@ -233,14 +233,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("retur")
-                Await state.AssertSelectedCompletionItem(displayText:="returns")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="returns")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <returns>$$
-                Await state.AssertLineTextAroundCaret("    ''' <returns>", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <returns>", "")
             End Using
         End Function
 
@@ -257,14 +257,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("examp")
-                Await state.AssertSelectedCompletionItem(displayText:="example")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="example")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' example>$$
-                Await state.AssertLineTextAroundCaret("    ''' example>", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' example>", "")
             End Using
         End Function
 
@@ -281,14 +281,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("examp")
-                Await state.AssertSelectedCompletionItem(displayText:="example")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="example")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <example>$$
-                Await state.AssertLineTextAroundCaret("    ''' <example>", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <example>", "")
             End Using
         End Function
 
@@ -305,14 +305,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("except")
-                Await state.AssertSelectedCompletionItem(displayText:="exception")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="exception")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <exception cref="$$"
-                Await state.AssertLineTextAroundCaret("    ''' <exception cref=""", """")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <exception cref=""", """")
             End Using
         End Function
 
@@ -329,14 +329,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("except")
-                Await state.AssertSelectedCompletionItem(displayText:="exception")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="exception")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <exception cref=">$$"
-                Await state.AssertLineTextAroundCaret("    ''' <exception cref="">", """")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <exception cref="">", """")
             End Using
         End Function
 
@@ -352,13 +352,13 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendSelectCompletionItem("!--")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <!--$$-->
-                Await state.AssertLineTextAroundCaret("    ''' <!--", "-->")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <!--", "-->")
             End Using
         End Function
 
@@ -374,13 +374,13 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendSelectCompletionItem("!--")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <!-->$$-->
-                Await state.AssertLineTextAroundCaret("    ''' <!-->", "-->")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <!-->", "-->")
             End Using
         End Function
 
@@ -396,13 +396,13 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendSelectCompletionItem("![CDATA[")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <![CDATA[$$]]>
-                Await state.AssertLineTextAroundCaret("    ''' <![CDATA[", "]]>")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <![CDATA[", "]]>")
             End Using
         End Function
 
@@ -418,13 +418,13 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendSelectCompletionItem("![CDATA[")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <![CDATA[>$$]]>
-                Await state.AssertLineTextAroundCaret("    ''' <![CDATA[>", "]]>")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <![CDATA[>", "]]>")
             End Using
         End Function
 
@@ -441,14 +441,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("inclu")
-                Await state.AssertSelectedCompletionItem(displayText:="include")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="include")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <include file='$$' path='[@name=""]'/>
-                Await state.AssertLineTextAroundCaret("    ''' <include file='", "' path='[@name=""""]'/>")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <include file='", "' path='[@name=""""]'/>")
             End Using
         End Function
 
@@ -465,14 +465,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("inclu")
-                Await state.AssertSelectedCompletionItem(displayText:="include")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="include")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <include file='>$$' path='[@name=""]'/>
-                Await state.AssertLineTextAroundCaret("    ''' <include file='>", "' path='[@name=""""]'/>")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <include file='>", "' path='[@name=""""]'/>")
             End Using
         End Function
 
@@ -489,14 +489,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("permiss")
-                Await state.AssertSelectedCompletionItem(displayText:="permission")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="permission")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <permission cref="$$"
-                Await state.AssertLineTextAroundCaret("    ''' <permission cref=""", """")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <permission cref=""", """")
             End Using
         End Function
 
@@ -513,14 +513,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("permiss")
-                Await state.AssertSelectedCompletionItem(displayText:="permission")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="permission")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <permission cref=">$$"
-                Await state.AssertLineTextAroundCaret("    ''' <permission cref="">", """")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <permission cref="">", """")
             End Using
         End Function
 
@@ -537,14 +537,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("see")
-                Await state.AssertSelectedCompletionItem(displayText:="see")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="see")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <see cref="$$"/>
-                Await state.AssertLineTextAroundCaret("    ''' <see cref=""", """/>")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <see cref=""", """/>")
             End Using
         End Function
 
@@ -561,14 +561,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("see")
-                Await state.AssertSelectedCompletionItem(displayText:="see")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="see")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <see cref=">$$"/>
-                Await state.AssertLineTextAroundCaret("    ''' <see cref="">", """/>")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <see cref="">", """/>")
             End Using
         End Function
 
@@ -586,62 +586,62 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("see")
-                Await state.AssertSelectedCompletionItem(displayText:="see")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="see")
                 state.SendTypeChars(" ")
 
                 ' ''' <see cref="$$"/>
-                Await state.AssertLineTextAroundCaret("    ''' <see cref=""", """/>")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <see cref=""", """/>")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithNothingKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("Nothing")
+            Return InvokeWithKeywordCommitSeeLangwordAsync("Nothing")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithSharedKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("Shared")
+            Return InvokeWithKeywordCommitSeeLangwordAsync("Shared")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithOverridableKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("Overridable", unique:=False)
+            Return InvokeWithKeywordCommitSeeLangwordAsync("Overridable", unique:=False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithTrueKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("True")
+            Return InvokeWithKeywordCommitSeeLangwordAsync("True")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithFalseKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("False")
+            Return InvokeWithKeywordCommitSeeLangwordAsync("False")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithMustInheritKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("MustInherit")
+            Return InvokeWithKeywordCommitSeeLangwordAsync("MustInherit")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithNotOverridableKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("NotOverridable")
+            Return InvokeWithKeywordCommitSeeLangwordAsync("NotOverridable")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithAsyncKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("Async")
+            Return InvokeWithKeywordCommitSeeLangwordAsync("Async")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithAwaitKeywordCommitSeeLangword() As Task
-            Return InvokeWithKeywordCommitSeeLangword("Await")
+            Return InvokeWithKeywordCommitSeeLangwordAsync("Await")
         End Function
 
-        Private Shared Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, Optional unique As Boolean = True) As Task
+        Private Shared Async Function InvokeWithKeywordCommitSeeLangwordAsync(keyword As String, Optional unique As Boolean = True) As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Class C
@@ -660,14 +660,14 @@ End Class
                 If unique Then
                     Await state.SendCommitUniqueCompletionListItemAsync()
                 Else
-                    Await state.AssertSelectedCompletionItem(displayText:=keyword)
+                    Await state.AssertSelectedCompletionItemAsync(displayText:=keyword)
                     state.SendTab()
                 End If
 
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <see langword="keyword"/>$$
-                Await state.AssertLineTextAroundCaret("    ''' <see langword=""" + keyword + """/>", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <see langword=""" + keyword + """/>", "")
             End Using
         End Function
 
@@ -684,14 +684,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("seeal")
-                Await state.AssertSelectedCompletionItem(displayText:="seealso")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="seealso")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <seealso cref="$$"/>
-                Await state.AssertLineTextAroundCaret("    ''' <seealso cref=""", """/>")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <seealso cref=""", """/>")
             End Using
         End Function
 
@@ -708,14 +708,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("seeal")
-                Await state.AssertSelectedCompletionItem(displayText:="seealso")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="seealso")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <seealso cref=">$$"/>
-                Await state.AssertLineTextAroundCaret("    ''' <seealso cref="">", """/>")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <seealso cref="">", """/>")
             End Using
         End Function
 
@@ -733,13 +733,13 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(displayText:="param name=""bar""")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <param name="bar"$$
-                Await state.AssertLineTextAroundCaret("    ''' <param name=""bar""", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <param name=""bar""", "")
             End Using
         End Function
 
@@ -756,14 +756,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("param")
-                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="param name=""bar""")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' param name="bar"$$
-                Await state.AssertLineTextAroundCaret("    ''' param name=""bar""", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' param name=""bar""", "")
             End Using
         End Function
 
@@ -780,14 +780,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("param")
-                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="param name=""bar""")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' param name="bar"$$
-                Await state.AssertLineTextAroundCaret("    ''' param name=""bar""", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' param name=""bar""", "")
             End Using
         End Function
 
@@ -804,14 +804,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("param")
-                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="param name=""bar""")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' param name="bar">$$
-                Await state.AssertLineTextAroundCaret("    ''' param name=""bar"">", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' param name=""bar"">", "")
             End Using
         End Function
 
@@ -828,14 +828,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("param")
-                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="param name=""bar""")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <param name="bar"$$
-                Await state.AssertLineTextAroundCaret("    ''' <param name=""bar""", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <param name=""bar""", "")
             End Using
         End Function
 
@@ -852,14 +852,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("param")
-                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="param name=""bar""")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <param name="bar"$$
-                Await state.AssertLineTextAroundCaret("    ''' <param name=""bar""", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <param name=""bar""", "")
             End Using
         End Function
 
@@ -876,14 +876,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("param")
-                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="param name=""bar""")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <param name="bar">$$
-                Await state.AssertLineTextAroundCaret("    ''' <param name=""bar"">", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <param name=""bar"">", "")
             End Using
         End Function
 
@@ -900,14 +900,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("typepara")
-                Await state.AssertSelectedCompletionItem(displayText:="typeparam name=""T""")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="typeparam name=""T""")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' typeparam name="T"$$
-                Await state.AssertLineTextAroundCaret("    ''' typeparam name=""T""", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' typeparam name=""T""", "")
             End Using
         End Function
 
@@ -924,14 +924,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("typepara")
-                Await state.AssertSelectedCompletionItem(displayText:="typeparam name=""T""")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="typeparam name=""T""")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' typeparam name="T"$$
-                Await state.AssertLineTextAroundCaret("    ''' typeparam name=""T""", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' typeparam name=""T""", "")
             End Using
         End Function
 
@@ -948,14 +948,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("typepara")
-                Await state.AssertSelectedCompletionItem(displayText:="typeparam name=""T""")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="typeparam name=""T""")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' typeparam name="T">$$
-                Await state.AssertLineTextAroundCaret("    ''' typeparam name=""T"">", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' typeparam name=""T"">", "")
             End Using
         End Function
 
@@ -972,14 +972,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("typepara")
-                Await state.AssertSelectedCompletionItem(displayText:="typeparam name=""T""")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="typeparam name=""T""")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <typeparam name="T"$$
-                Await state.AssertLineTextAroundCaret("    ''' <typeparam name=""T""", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <typeparam name=""T""", "")
             End Using
         End Function
 
@@ -996,14 +996,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("typepara")
-                Await state.AssertSelectedCompletionItem(displayText:="typeparam name=""T""")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="typeparam name=""T""")
                 state.SendTab()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <typeparam name="T"$$
-                Await state.AssertLineTextAroundCaret("    ''' <typeparam name=""T""", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <typeparam name=""T""", "")
             End Using
         End Function
 
@@ -1020,14 +1020,14 @@ End Class
             ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("typepara")
-                Await state.AssertSelectedCompletionItem(displayText:="typeparam name=""T""")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="typeparam name=""T""")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <typeparam name="T">$$
-                Await state.AssertLineTextAroundCaret("    ''' <typeparam name=""T"">", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <typeparam name=""T"">", "")
             End Using
         End Function
 
@@ -1046,14 +1046,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("lis")
-                Await state.AssertSelectedCompletionItem(displayText:="list")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="list")
                 state.SendReturn()
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <list type="$$"
-                Await state.AssertLineTextAroundCaret("    ''' <list type=""", """")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <list type=""", """")
             End Using
         End Function
 
@@ -1072,14 +1072,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("lis")
-                Await state.AssertSelectedCompletionItem(displayText:="list")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="list")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <list type=">$$"
-                Await state.AssertLineTextAroundCaret("    ''' <list type="">", """")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <list type="">", """")
             End Using
         End Function
 
@@ -1097,14 +1097,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("summa")
-                Await state.AssertSelectedCompletionItem(displayText:="summary")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="summary")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <summary>$$
-                Await state.AssertLineTextAroundCaret("    ''' <summary>", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <summary>", "")
             End Using
         End Function
 
@@ -1123,14 +1123,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("summa")
-                Await state.AssertSelectedCompletionItem(displayText:="summary")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="summary")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <summary>$$
-                Await state.AssertLineTextAroundCaret("    ''' <summary>", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <summary>", "")
             End Using
         End Function
 
@@ -1149,14 +1149,14 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
+                Await state.AssertCompletionSessionAsync()
                 state.SendTypeChars("summa")
-                Await state.AssertSelectedCompletionItem(displayText:="summary")
+                Await state.AssertSelectedCompletionItemAsync(displayText:="summary")
                 state.SendTypeChars(">")
-                Await state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSessionAsync()
 
                 ' ''' <summary>$$
-                Await state.AssertLineTextAroundCaret("    ''' <summary>", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <summary>", "")
             End Using
         End Function
 
@@ -1173,16 +1173,16 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(displayText:="param name=""bar""")
                 state.SendTypeChars(" name=""")
 
                 ' ''' <param name="$$
-                Await state.AssertLineTextAroundCaret("    ''' <param name=""", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <param name=""", "")
 
                 ' Because the item contains a double quote, the completionImplementation list should still be present with the same selection
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(displayText:="param name=""bar""")
             End Using
         End Function
 
@@ -1199,16 +1199,16 @@ End Class
             ]]></Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(displayText:="param name=""bar""")
                 state.SendTypeChars(" ")
 
                 ' ''' <param $$
-                Await state.AssertLineTextAroundCaret("    ''' <param ", "")
+                Await state.AssertLineTextAroundCaretAsync("    ''' <param ", "")
 
                 ' Because the item contains a space, the completionImplementation list should still be present with the same selection
-                Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem(displayText:="param name=""bar""")
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSelectedCompletionItemAsync(displayText:="param name=""bar""")
             End Using
         End Function
     End Class

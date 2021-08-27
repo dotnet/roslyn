@@ -25,7 +25,7 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -46,7 +46,7 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -67,7 +67,7 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -117,7 +117,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -167,7 +167,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -217,7 +217,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -267,7 +267,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -317,7 +317,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -367,7 +367,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -404,7 +404,7 @@ class D : C
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -454,7 +454,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -504,7 +504,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -554,7 +554,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -604,7 +604,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestAPI(input, host)
+            Await TestAPIAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -654,7 +654,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -681,7 +681,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -708,7 +708,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -735,7 +735,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -779,7 +779,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -823,7 +823,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -867,7 +867,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -911,7 +911,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -955,7 +955,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -999,7 +999,7 @@ class Usages
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1022,7 +1022,7 @@ class D
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1045,7 +1045,7 @@ class D
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1062,7 +1062,7 @@ interface IC
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1079,7 +1079,7 @@ interface IC
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1107,7 +1107,7 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1135,7 +1135,7 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1196,7 +1196,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1257,7 +1257,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1318,7 +1318,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1379,7 +1379,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1440,7 +1440,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1501,7 +1501,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1562,7 +1562,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1590,7 +1590,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1618,7 +1618,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1646,7 +1646,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1701,7 +1701,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1756,7 +1756,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1811,7 +1811,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1866,7 +1866,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1894,7 +1894,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1922,7 +1922,7 @@ end class
         </Document>
     </Project>
 </Workspace>
-            Await TestStreamingFeature(input, host)
+            Await TestStreamingFeatureAsync(input, host)
         End Function
     End Class
 End Namespace

@@ -22,21 +22,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return workspace.ExportProvider.GetCommandHandler(Of RenameCommandHandler)(PredefinedCommandHandlerNames.Rename)
         End Function
 
-        Private Shared Async Function VerifyEmptyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
-            Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, SpecializedCollections.EmptyEnumerable(Of Span))
+        Private Shared Async Function VerifyEmptyTaggedSpansAsync(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
+            Await VerifyTaggedSpansCoreAsync(tagType, actualWorkspace, renameService, SpecializedCollections.EmptyEnumerable(Of Span))
         End Function
 
-        Private Shared Async Function VerifyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
+        Private Shared Async Function VerifyTaggedSpansAsync(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
             Dim expectedSpans = actualWorkspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Select(Function(ts) ts.ToSpan())
-            Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, expectedSpans)
+            Await VerifyTaggedSpansCoreAsync(tagType, actualWorkspace, renameService, expectedSpans)
         End Function
 
-        Private Shared Async Function VerifyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService, expectedTaggedWorkspace As TestWorkspace) As Task
+        Private Shared Async Function VerifyTaggedSpansAsync(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService, expectedTaggedWorkspace As TestWorkspace) As Task
             Dim expectedSpans = expectedTaggedWorkspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Select(Function(ts) ts.ToSpan())
-            Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, expectedSpans)
+            Await VerifyTaggedSpansCoreAsync(tagType, actualWorkspace, renameService, expectedSpans)
         End Function
 
-        Private Shared Async Function VerifyAnnotatedTaggedSpans(tagType As TextMarkerTag, annotationString As String, actualWorkspace As TestWorkspace, renameService As InlineRenameService, expectedTaggedWorkspace As TestWorkspace) As Task
+        Private Shared Async Function VerifyAnnotatedTaggedSpansAsync(tagType As TextMarkerTag, annotationString As String, actualWorkspace As TestWorkspace, renameService As InlineRenameService, expectedTaggedWorkspace As TestWorkspace) As Task
             Dim annotatedDocument = expectedTaggedWorkspace.Documents.SingleOrDefault(Function(d) d.AnnotatedSpans.Any())
 
             Dim expectedSpans As IEnumerable(Of Span)
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 expectedSpans = GetAnnotatedSpans(annotationString, annotatedDocument)
             End If
 
-            Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, expectedSpans)
+            Await VerifyTaggedSpansCoreAsync(tagType, actualWorkspace, renameService, expectedSpans)
         End Function
 
         Private Shared Function GetAnnotatedSpans(annotationString As String, annotatedDocument As TestHostDocument) As IEnumerable(Of Span)
@@ -59,23 +59,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                                                End Function)
         End Function
 
-        Private Shared Async Function VerifySpansBeforeConflictResolution(actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
+        Private Shared Async Function VerifySpansBeforeConflictResolutionAsync(actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
             ' Verify no fixup/resolved non-reference conflict span.
-            Await VerifyEmptyTaggedSpans(HighlightTags.RenameFixupTag.Instance, actualWorkspace, renameService)
+            Await VerifyEmptyTaggedSpansAsync(HighlightTags.RenameFixupTag.Instance, actualWorkspace, renameService)
 
             ' Verify valid reference tags.
-            Await VerifyTaggedSpans(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, actualWorkspace, renameService)
+            Await VerifyTaggedSpansAsync(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, actualWorkspace, renameService)
         End Function
 
-        Private Shared Async Function VerifySpansAndBufferForConflictResolution(actualWorkspace As TestWorkspace, renameService As InlineRenameService, resolvedConflictWorkspace As TestWorkspace,
+        Private Shared Async Function VerifySpansAndBufferForConflictResolutionAsync(actualWorkspace As TestWorkspace, renameService As InlineRenameService, resolvedConflictWorkspace As TestWorkspace,
                                                                 session As IInlineRenameSession, Optional sessionCommit As Boolean = False, Optional sessionCancel As Boolean = False) As System.Threading.Tasks.Task
-            Await WaitForRename(actualWorkspace)
+            Await WaitForRenameAsync(actualWorkspace)
 
             ' Verify fixup/resolved conflict spans.
-            Await VerifyAnnotatedTaggedSpans(HighlightTags.RenameFixupTag.Instance, "Complexified", actualWorkspace, renameService, resolvedConflictWorkspace)
+            Await VerifyAnnotatedTaggedSpansAsync(HighlightTags.RenameFixupTag.Instance, "Complexified", actualWorkspace, renameService, resolvedConflictWorkspace)
 
             ' Verify valid reference tags.
-            Await VerifyTaggedSpans(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, actualWorkspace, renameService, resolvedConflictWorkspace)
+            Await VerifyTaggedSpansAsync(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, actualWorkspace, renameService, resolvedConflictWorkspace)
 
             VerifyBufferContentsInWorkspace(actualWorkspace, resolvedConflictWorkspace)
 
@@ -92,8 +92,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             End If
         End Function
 
-        Private Shared Async Function VerifyTaggedSpansCore(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService, expectedSpans As IEnumerable(Of Span)) As Task
-            Dim taggedSpans = Await GetTagsOfType(tagType, actualWorkspace, renameService)
+        Private Shared Async Function VerifyTaggedSpansCoreAsync(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService, expectedSpans As IEnumerable(Of Span)) As Task
+            Dim taggedSpans = Await GetTagsOfTypeAsync(tagType, actualWorkspace, renameService)
             Assert.Equal(expectedSpans, taggedSpans)
         End Function
 
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
 
-                Await VerifyTaggedSpans(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, workspace, renameService)
+                Await VerifyTaggedSpansAsync(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, workspace, renameService)
                 session.Cancel()
             End Using
         End Function
@@ -166,7 +166,7 @@ class Program
                 Dim session = StartSession(workspace)
 
                 document.GetTextBuffer().Replace(New Span(location, 3), "args")
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
                 Using renamedWorkspace = CreateWorkspaceWithWaiter(
                     <Workspace>
@@ -245,7 +245,7 @@ public class Class1
                 Dim session = StartSession(workspace)
 
                 document.GetTextBuffer().Insert(location, "clash")
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
                 Using renamedWorkspace = CreateWorkspaceWithWaiter(
                         <Workspace>
@@ -337,7 +337,7 @@ public class Class1
                 Dim session = StartSession(workspace)
 
                 document.GetTextBuffer().Insert(location, "t")
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
                 Dim expectedDocument = $"
 public class Class1
@@ -404,7 +404,7 @@ public class Class1
                 Dim session = StartSession(workspace)
 
                 textBuffer.Replace(New Span(location, 1), "B")
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
                 Dim conflictDocument = workspace.Documents.Single(Function(d) d.FilePath = "B.cs")
                 Dim expectedSpans = GetAnnotatedSpans("conflict", conflictDocument)
@@ -447,11 +447,11 @@ public class Class1
                             </Project>
                         </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
 
                 textBuffer.Delete(New Span(location + 1, 4))
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
                 ' Verify no escaping 
                 Using resolvedConflictWorkspace = CreateWorkspaceWithWaiter(
@@ -519,7 +519,7 @@ class C
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
 
                 textBuffer.Replace(New Span(location, 2), "bar")
@@ -537,7 +537,7 @@ class C
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
             End Using
         End Function
@@ -591,7 +591,7 @@ class C
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
 
                 ' Delete Goo and type "as"
@@ -618,7 +618,7 @@ class C
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
             End Using
         End Function
@@ -648,7 +648,7 @@ class C
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Apply edit so that we have a resolved non-reference conflict.
                 textBuffer.Replace(New Span(location, 3), "bar")
@@ -671,7 +671,7 @@ class C
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
 
                 ' Make another edit so that we have no more conflicts.
@@ -695,7 +695,7 @@ class C
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, newWorkspace, session, sessionCommit:=True)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, newWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
@@ -723,7 +723,7 @@ class C
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Apply edit so that we have a resolved non-reference conflict.
                 textBuffer.Replace(New Span(location, 3), "bar")
@@ -744,7 +744,7 @@ class C
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
 
                 ' Make another edit so that we have no more conflicts.
@@ -766,7 +766,7 @@ class C
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, newWorkspace, session, sessionCommit:=True)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, newWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
@@ -795,7 +795,7 @@ class Goo
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Apply edit so that we have a resolved reference conflict.
                 textBuffer.Replace(New Span(location, 3), "bar")
@@ -817,7 +817,7 @@ class Goo
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
 
                 textBuffer.Replace(New Span(location, 3), "ba")
@@ -838,7 +838,7 @@ class Goo
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, newWorkspace, session, sessionCancel:=True)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, newWorkspace, session, sessionCancel:=True)
                 End Using
             End Using
         End Function
@@ -865,7 +865,7 @@ End Class
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Apply edit so that we have a resolved reference conflict.
                 textBuffer.Replace(New Span(location, 3), "bar")
@@ -885,7 +885,7 @@ End Class
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
 
                 ' Make another edit so that we have no more conflicts.
@@ -905,7 +905,7 @@ End Class
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, newWorkspace, session, sessionCancel:=True)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, newWorkspace, session, sessionCancel:=True)
                 End Using
             End Using
         End Function
@@ -935,7 +935,7 @@ class Goo
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Apply edit so that we have a resolved escaping conflict.
                 textBuffer.Replace(New Span(location, 3), "int")
@@ -958,7 +958,7 @@ class Goo
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
 
                 ' Make another edit to change "int" to "@in" so that we have no more conflicts, just escaping.
@@ -982,7 +982,7 @@ class Goo
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
@@ -1010,7 +1010,7 @@ End Class
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Apply edit so that we have a resolved escaping conflict.
                 textBuffer.Replace(New Span(location, 3), "New")
@@ -1031,7 +1031,7 @@ End Class
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
 
                 ' Make another edit to change "New" to "[Do]" so that we have no more conflicts, just escaping.
@@ -1053,7 +1053,7 @@ End Class
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
@@ -1085,7 +1085,7 @@ End Class
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
 
                 Dim session = StartSession(workspace)
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Type first in the main identifier
                 view.Selection.Clear()
@@ -1107,7 +1107,7 @@ End Class
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                     Dim location = view.Caret.Position.BufferPosition.Position
                     Dim expectedLocation = resolvedConflictWorkspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
                     Assert.Equal(expectedLocation, location)
@@ -1131,7 +1131,7 @@ End Class
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                     Dim location = view.Caret.Position.BufferPosition.Position
                     Dim expectedLocation = resolvedConflictWorkspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
                     Assert.Equal(expectedLocation, location)
@@ -1169,7 +1169,7 @@ End Class
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
 
                 Dim session = StartSession(workspace)
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Type few characters.
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
@@ -1216,7 +1216,7 @@ class Program
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Apply edit so that we have a resolved reference conflict.
                 textBuffer.Replace(New Span(location, 3), "Goo")
@@ -1247,7 +1247,7 @@ class Program
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session)
                 End Using
 
                 ' Make another edit so that we have no more conflicts.
@@ -1278,7 +1278,7 @@ class Program
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, newWorkspace, session, sessionCommit:=True)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, newWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
@@ -1316,7 +1316,7 @@ namespace N
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Apply edit so that we have a resolved reference conflict.
                 textBuffer.Replace(New Span(location, 1), "A")
@@ -1347,7 +1347,7 @@ namespace N
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
@@ -1381,7 +1381,7 @@ class C
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Apply edit so that we have a resolved reference conflict.
                 textBuffer.Replace(New Span(location, 3), "Bar")
@@ -1407,7 +1407,7 @@ class C
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
@@ -1454,7 +1454,7 @@ class C
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Apply edit so that we have a resolved reference conflict.
                 textBuffer.Replace(New Span(location, 1), "F")
@@ -1494,7 +1494,7 @@ class C
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
@@ -1540,7 +1540,7 @@ static class E
                 Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
 
-                Await VerifySpansBeforeConflictResolution(workspace, renameService)
+                Await VerifySpansBeforeConflictResolutionAsync(workspace, renameService)
 
                 ' Apply edit so that we have a resolved reference conflict.
                 textBuffer.Replace(New Span(location, 2), "Goo")
@@ -1579,7 +1579,7 @@ static class E
                         </Project>
                     </Workspace>, host)
 
-                    Await VerifySpansAndBufferForConflictResolution(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
+                    Await VerifySpansAndBufferForConflictResolutionAsync(workspace, renameService, resolvedConflictWorkspace, session, sessionCommit:=True)
                 End Using
             End Using
         End Function
@@ -1607,10 +1607,10 @@ static class E
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
 
-                Dim validTaggedSpans = Await GetTagsOfType(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, workspace, renameService)
+                Dim validTaggedSpans = Await GetTagsOfTypeAsync(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, workspace, renameService)
                 Dim validExpectedSpans = workspace.Documents.Single(Function(d) d.AnnotatedSpans.Count > 0).AnnotatedSpans("valid").Select(Function(ts) ts.ToSpan())
 
-                Dim conflictTaggedSpans = Await GetTagsOfType(RenameConflictTag.Instance, workspace, renameService)
+                Dim conflictTaggedSpans = Await GetTagsOfTypeAsync(RenameConflictTag.Instance, workspace, renameService)
                 Dim conflictExpectedSpans = workspace.Documents.Single(Function(d) d.AnnotatedSpans.Count > 0).AnnotatedSpans("conflict").Select(Function(ts) ts.ToSpan())
 
                 session.Cancel()
@@ -1641,10 +1641,10 @@ static class E
                 Dim renameService = workspace.GetService(Of InlineRenameService)()
                 Dim session = StartSession(workspace)
 
-                Dim validTaggedSpans = Await GetTagsOfType(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, workspace, renameService)
+                Dim validTaggedSpans = Await GetTagsOfTypeAsync(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, workspace, renameService)
                 Dim validExpectedSpans = workspace.Documents.Single(Function(d) d.AnnotatedSpans.Count > 0).AnnotatedSpans("valid").Select(Function(ts) ts.ToSpan())
 
-                Dim conflictTaggedSpans = Await GetTagsOfType(RenameConflictTag.Instance, workspace, renameService)
+                Dim conflictTaggedSpans = Await GetTagsOfTypeAsync(RenameConflictTag.Instance, workspace, renameService)
                 Dim conflictExpectedSpans = workspace.Documents.Single(Function(d) d.AnnotatedSpans.Count > 0).AnnotatedSpans("conflict").Select(Function(ts) ts.ToSpan())
 
                 session.Cancel()
@@ -1675,19 +1675,19 @@ static class E
                 Dim textBuffer = workspace.Documents(0).GetTextBuffer()
                 Dim session = StartSession(workspace)
                 session.RefreshRenameSessionWithOptionsChanged(CodeAnalysis.Rename.RenameOptions.RenameInComments, newValue:=True)
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
                 session.RefreshRenameSessionWithOptionsChanged(CodeAnalysis.Rename.RenameOptions.RenameInComments, newValue:=False)
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
                 textBuffer.Replace(New Span(location, 3), "Bar")
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
             End Using
         End Function
 
-        Private Shared Async Function GetTagsOfType(expectedTagType As ITextMarkerTag, workspace As TestWorkspace, renameService As InlineRenameService) As Task(Of IEnumerable(Of Span))
+        Private Shared Async Function GetTagsOfTypeAsync(expectedTagType As ITextMarkerTag, workspace As TestWorkspace, renameService As InlineRenameService) As Task(Of IEnumerable(Of Span))
             Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
-            Await WaitForRename(workspace)
+            Await WaitForRenameAsync(workspace)
 
             Return GetTagsOfType(expectedTagType, renameService, textBuffer)
         End Function

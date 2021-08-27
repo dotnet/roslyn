@@ -191,6 +191,8 @@ interface I
     sub [|M|]()
 end interface")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Shared Async Function TestWithOneMethodImplementation_02() As Task
             Await TestAsync(
 "class C
@@ -204,6 +206,8 @@ interface I
     sub [|M|]()
 end interface")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToBase)>
         Public Shared Async Function TestWithOneMethodImplementation_03() As Task
             Await TestAsync(
 "class C

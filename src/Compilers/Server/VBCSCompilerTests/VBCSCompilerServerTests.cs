@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             [Fact]
             public async Task Standard()
             {
-                using var serverData = await ServerUtil.CreateServer(Logger);
+                using var serverData = await ServerUtil.CreateServerAsync(Logger);
                 var exitCode = await RunShutdownAsync(serverData.PipeName, waitForProcess: false);
                 Assert.Equal(CommonCompiler.Succeeded, exitCode);
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return ProtocolUtil.EmptyBuildResponse;
                 });
 
-                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost);
+                using var serverData = await ServerUtil.CreateServerAsync(Logger, compilerServerHost: compilerServerHost);
 
                 // Get the server to the point that it is running the compilation.
                 var compileTask = serverData.SendAsync(ProtocolUtil.EmptyCSharpBuildRequest);
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return ProtocolUtil.EmptyBuildResponse;
                 });
 
-                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost);
+                using var serverData = await ServerUtil.CreateServerAsync(Logger, compilerServerHost: compilerServerHost);
 
                 // Get the server to the point that it is running the compilation.
                 var compileTask = serverData.SendAsync(ProtocolUtil.EmptyCSharpBuildRequest);
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public async Task NoConnections()
             {
                 var compilerServerHost = new TestableCompilerServerHost((request, cancellationToken) => ProtocolUtil.EmptyBuildResponse);
-                using var serverData = await ServerUtil.CreateServer(
+                using var serverData = await ServerUtil.CreateServerAsync(
                     Logger,
                     keepAlive: TimeSpan.FromSeconds(3),
                     compilerServerHost: compilerServerHost);
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public async Task SimpleCases(int connectionCount)
             {
                 var compilerServerHost = new TestableCompilerServerHost((request, cancellationToken) => ProtocolUtil.EmptyBuildResponse);
-                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost);
+                using var serverData = await ServerUtil.CreateServerAsync(Logger, compilerServerHost: compilerServerHost);
                 var workingDirectory = TempRoot.CreateDirectory().Path;
 
                 for (var i = 0; i < connectionCount; i++)
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return ProtocolUtil.EmptyBuildResponse;
                 });
 
-                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost);
+                using var serverData = await ServerUtil.CreateServerAsync(Logger, compilerServerHost: compilerServerHost);
                 var list = new List<Task>();
                 for (var i = 0; i < connectionCount; i++)
                 {
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     hitCompilation = true;
                     throw new Exception("");
                 });
-                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost);
+                using var serverData = await ServerUtil.CreateServerAsync(Logger, compilerServerHost: compilerServerHost);
 
                 var response = await serverData.SendAsync(ProtocolUtil.EmptyBasicBuildRequest);
                 Assert.True(response is RejectedBuildResponse);
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(Array.Empty<string>()));
                 });
 
-                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost);
+                using var serverData = await ServerUtil.CreateServerAsync(Logger, compilerServerHost: compilerServerHost);
 
                 var response = await serverData.SendAsync(ProtocolUtil.EmptyBasicBuildRequest);
                 Assert.True(response is AnalyzerInconsistencyBuildResponse);

@@ -228,7 +228,7 @@ enum E
     Bar
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Flags"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Flags"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -257,7 +257,7 @@ enum E
     Bar
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -287,7 +287,7 @@ enum E
     Bar
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Flags"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Flags"})
         End Function
 
 #End Region
@@ -311,7 +311,7 @@ enum E
 }
 </Code>
 
-            Await TestAddEnumMember(code, expected, New EnumMemberData With {.Name = "V"})
+            Await TestAddEnumMemberAsync(code, expected, New EnumMemberData With {.Name = "V"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -331,7 +331,7 @@ enum E
 }
 </Code>
 
-            Await TestAddEnumMember(code, expected, New EnumMemberData With {.Name = "V", .Value = "1"})
+            Await TestAddEnumMemberAsync(code, expected, New EnumMemberData With {.Name = "V", .Value = "1"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -353,7 +353,7 @@ enum E
 }
 </Code>
 
-            Await TestAddEnumMember(code, expected, New EnumMemberData With {.Name = "U", .Value = "V"})
+            Await TestAddEnumMemberAsync(code, expected, New EnumMemberData With {.Name = "U", .Value = "V"})
         End Function
 
         <WorkItem(638225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
@@ -376,7 +376,7 @@ enum E
 }
 </Code>
 
-            Await TestAddEnumMember(code, expected, New EnumMemberData With {.Position = -1, .Name = "B"})
+            Await TestAddEnumMemberAsync(code, expected, New EnumMemberData With {.Position = -1, .Name = "B"})
         End Function
 
         <WorkItem(638225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
@@ -401,7 +401,7 @@ enum E
 }
 </Code>
 
-            Await TestAddEnumMember(code, expected, New EnumMemberData With {.Position = 1, .Name = "B"})
+            Await TestAddEnumMemberAsync(code, expected, New EnumMemberData With {.Position = 1, .Name = "B"})
         End Function
 
         <WorkItem(638225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
@@ -426,7 +426,7 @@ enum E
 }
 </Code>
 
-            Await TestAddEnumMember(code, expected, New EnumMemberData With {.Position = -1, .Name = "C"})
+            Await TestAddEnumMemberAsync(code, expected, New EnumMemberData With {.Position = -1, .Name = "C"})
         End Function
 
         <WorkItem(638225, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638225")>
@@ -453,7 +453,7 @@ enum E
 }
 </Code>
 
-            Await TestAddEnumMember(code, expected, New EnumMemberData With {.Position = -1, .Name = "D"})
+            Await TestAddEnumMemberAsync(code, expected, New EnumMemberData With {.Position = -1, .Name = "D"})
         End Function
 
 #End Region
@@ -477,7 +477,7 @@ enum E
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "A")
+            Await TestRemoveChildAsync(code, expected, "A")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -499,7 +499,7 @@ enum E
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "A")
+            Await TestRemoveChildAsync(code, expected, "A")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -521,7 +521,7 @@ enum E
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "B")
+            Await TestRemoveChildAsync(code, expected, "B")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -545,7 +545,7 @@ enum E
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "B")
+            Await TestRemoveChildAsync(code, expected, "B")
         End Function
 
 #End Region
@@ -567,7 +567,7 @@ enum Bar
 }
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 #End Region
 
