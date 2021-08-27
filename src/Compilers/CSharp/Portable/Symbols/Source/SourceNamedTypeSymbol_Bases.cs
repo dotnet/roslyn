@@ -320,24 +320,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // the parts do not agree
                         if (partBase.Equals(baseType, TypeCompareKind.ObliviousNullableModifierMatchesAny))
                         {
-                            if (TypeWithAnnotations.Create(baseType).VisitType(
-                                    type: null,
-                                    (type, arg, flag) => !type.NullableAnnotation.IsOblivious(),
-                                    typePredicate: null,
-                                    arg: (object)null) is null)
+                            if (containsOnlyOblivious(baseType))
                             {
-                                // 'baseType' is completely oblivious. Prefer 'partBase' in this case.
                                 baseType = partBase;
                                 baseTypeLocation = decl.NameLocation;
                                 continue;
                             }
-                            else if (TypeWithAnnotations.Create(partBase).VisitType(
-                                type: null,
-                                (type, arg, flag) => !type.NullableAnnotation.IsOblivious(),
-                                typePredicate: null,
-                                arg: (object)null) is null)
+                            else if (containsOnlyOblivious(partBase))
                             {
-                                // 'partBase' is completely oblivious. Prefer 'baseType' in this case.
                                 continue;
                             }
                         }
@@ -346,6 +336,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         baseType = new ExtendedErrorTypeSymbol(baseType, LookupResultKind.Ambiguous, info);
                         baseTypeLocation = decl.NameLocation;
                         reportedPartialConflict = true;
+
+                        static bool containsOnlyOblivious(TypeSymbol type)
+                        {
+                            return TypeWithAnnotations.Create(type).VisitType(
+                                type: null,
+                                static (type, arg, flag) => !type.Type.IsValueType && !type.NullableAnnotation.IsOblivious(),
+                                typePredicate: null,
+                                arg: (object)null) is null;
+                        }
                     }
                 }
 
