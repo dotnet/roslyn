@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (returns.Count == 0)
+            if (n == 0)
             {
                 // No return statements have expressions; use delegate InvokeMethod
                 // or infer type Task if delegate type not available.
