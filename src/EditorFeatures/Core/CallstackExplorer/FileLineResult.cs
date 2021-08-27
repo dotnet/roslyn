@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
 
         internal override async Task<ISymbol?> ResolveSymbolAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var (methodSignature, methodArguments) = GetMethodSignatureParts();
+            var (methodSignature, methodArguments) = GetMethodSignatureParts(_methodSignature);
             foreach (var project in solution.Projects)
             {
                 var foundSymbols = await FindSymbols.DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
@@ -41,21 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
             }
 
             return null;
-        }
-
-        private (string methodName, string arguments) GetMethodSignatureParts()
-        {
-            var openingBrace = _methodSignature.IndexOf('(');
-            var closingBrace = _methodSignature.LastIndexOf(')');
-
-            var methodName = _methodSignature.Substring(0, openingBrace);
-
-            var length = closingBrace - (openingBrace + 1);
-            var arguments = length == 0
-                ? string.Empty 
-                : _methodSignature.Substring(openingBrace + 1, length);
-
-            return (methodName, arguments);
         }
     }
 }

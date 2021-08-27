@@ -11,5 +11,20 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
     internal abstract class ParsedLine
     {
         internal abstract Task<ISymbol?> ResolveSymbolAsync(Solution solution, CancellationToken cancellationToken);
+
+        protected (string methodName, string arguments) GetMethodSignatureParts(string signature)
+        {
+            var openingBrace = signature.IndexOf('(');
+            var closingBrace = signature.LastIndexOf(')');
+
+            var methodName = signature.Substring(0, openingBrace);
+
+            var length = closingBrace - (openingBrace + 1);
+            var arguments = length == 0
+                ? string.Empty 
+                : signature.Substring(openingBrace + 1, length);
+
+            return (methodName, arguments);
+        }
     }
 }

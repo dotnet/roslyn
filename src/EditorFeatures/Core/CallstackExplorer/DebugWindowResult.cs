@@ -18,11 +18,13 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
 
         internal override async Task<ISymbol?> ResolveSymbolAsync(Solution solution, CancellationToken cancellationToken)
         {
+            var (methodName, methodArgs) = GetMethodSignatureParts(_symbolData);
+
             foreach (var project in solution.Projects)
             {
                 var foundSymbols = await FindSymbols.DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
                     project,
-                    _symbolData,
+                    methodName,
                     SymbolFilter.Member,
                     cancellationToken).ConfigureAwait(false);
 

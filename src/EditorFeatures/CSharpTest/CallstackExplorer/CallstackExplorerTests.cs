@@ -91,11 +91,9 @@ namespace ConsoleApp4
         }
 
         [Fact]
-        public async Task TestOne()
+        public async Task TestDebugWindowStack()
         {
-            var fqn = "ConsoleApp4.MyClass.ThrowAtOne";
             var workspace = CreateWorkspace();
-            var method = await GetSymbolAsync(fqn, workspace);
 
             // Callstack from VS debugger callstack window
             var callstack = @">	ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#
@@ -108,10 +106,27 @@ namespace ConsoleApp4
             var result = await CallstackAnalyzer.AnalyzeAsync(workspace.CurrentSolution, callstack, CancellationToken.None);
             Assert.Equal(5, result.ParsedLines.Length);
 
-            var debugLineResults = result.ParsedLines.OfType<DebugWindowResult>();
+            var debugLineResults = result.ParsedLines.OfType<DebugWindowResult>().ToImmutableArray();
             AssertEx.SetEqual(result.ParsedLines, debugLineResults);
 
-            var symbol = await debugLineResults.First().ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            var symbol = await debugLineResults[0].ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            var method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowAtOne", workspace);
+            Assert.Equal(method, symbol);
+
+            symbol = await debugLineResults[1].ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowReferenceOne", workspace);
+            Assert.Equal(method, symbol);
+
+            symbol = await debugLineResults[2].ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            method = await GetSymbolAsync("ConsoleApp4.MyClass.ToString", workspace);
+            Assert.Equal(method, symbol);
+
+            symbol = await debugLineResults[3].ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            method = await GetSymbolAsync("ConsoleApp4.MyOtherClass.ThrowForNewMyClass", workspace);
+            Assert.Equal(method, symbol);
+
+            symbol = await debugLineResults[4].ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            method = await GetSymbolAsync("ConsoleApp4.Program.Main", workspace);
             Assert.Equal(method, symbol);
         }
 
