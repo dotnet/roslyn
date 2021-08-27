@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         private const string LocalRegistryPath = @"Roslyn\Internal\SolutionCrawler\";
 
         public static readonly Option2<bool> SolutionCrawler = new(nameof(InternalSolutionCrawlerOptions), "Solution Crawler", defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Solution Crawler"));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Solution Crawler"));
 
         public static readonly Option2<bool> DirectDependencyPropagationOnly = new(nameof(InternalSolutionCrawlerOptions), "Project propagation only on direct dependency", defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Project propagation only on direct dependency"));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Project propagation only on direct dependency"));
 
         public static readonly TimeSpan ActiveFileWorkerBackOffTimeSpan = TimeSpan.FromMilliseconds(100);
         public static readonly TimeSpan AllFilesWorkerBackOffTimeSpan = TimeSpan.FromMilliseconds(1500);

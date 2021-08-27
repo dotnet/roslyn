@@ -2923,4 +2923,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Updating_the_attributes_of_0_requires_restarting_the_application_because_one_or_more_attributes_affect_compiler_behaviour" xml:space="preserve">
     <value>Updating the attributes of {0} requires restarting the application because one or more attributes affect compiler behaviour</value>
   </data>
+  <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
+    <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
+  </data>
 </root>

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal class SuggestionsOptions
     {
         public static Option2<bool?> Asynchronous =
-           new Option2<bool?>(nameof(SuggestionsOptions), nameof(Asynchronous), defaultValue: null,
-               storageLocations: new RoamingProfileStorageLocation("TextEditor.Specific.Suggestions.Asynchronous2"));
+           new(nameof(SuggestionsOptions), nameof(Asynchronous), defaultValue: null,
+               storageLocation: new RoamingProfileStorageLocation("TextEditor.Specific.Suggestions.Asynchronous2"));
     }
 }

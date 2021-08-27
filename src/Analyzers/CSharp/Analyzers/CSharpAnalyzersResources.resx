@@ -328,4 +328,7 @@
     <value>Convert to block scoped namespace</value>
     <comment>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Use_pattern_matching_may_change_code_meaning" xml:space="preserve">
+    <value>Use pattern matching (may change code meaning)</value>
+  </data>
 </root>

@@ -320,6 +320,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Im Projekt "{0}" vorgenommene Änderungen werden nicht angewendet, während die Anwendung ausgeführt wird.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesRequiredSynthesizedType">
+        <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
+        <target state="new">One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application">
         <source>Changing {0} from asynchronous to synchronous requires restarting the application.</source>
         <target state="new">Changing {0} from asynchronous to synchronous requires restarting the application.</target>

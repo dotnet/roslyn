@@ -320,6 +320,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Изменения, внесенные в проект "{0}", не будут применены во время выполнения приложения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesRequiredSynthesizedType">
+        <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
+        <target state="new">One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application">
         <source>Changing {0} from asynchronous to synchronous requires restarting the application.</source>
         <target state="new">Changing {0} from asynchronous to synchronous requires restarting the application.</target>

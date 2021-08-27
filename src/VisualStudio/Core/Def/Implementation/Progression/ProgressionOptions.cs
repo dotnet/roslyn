@@ -14,6 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public static readonly Option2<bool> SearchUsingNavigateToEngine = new(
             nameof(ProgressionOptions), nameof(SearchUsingNavigateToEngine), defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "SearchUsingNavigateToEngine"));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "SearchUsingNavigateToEngine"));
     }
 }

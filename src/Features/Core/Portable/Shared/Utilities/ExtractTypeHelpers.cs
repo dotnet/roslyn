@@ -57,7 +57,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             CancellationToken cancellationToken)
         {
             var newDocumentId = DocumentId.CreateNewId(projectId, debugName: fileName);
-            var solutionWithInterfaceDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders);
+            var newDocumentPath = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(hintDocument.FilePath), fileName);
+
+            var solutionWithInterfaceDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders, filePath: newDocumentPath);
             var newDocument = solutionWithInterfaceDocument.GetRequiredDocument(newDocumentId);
             var newSemanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var options = new CodeGenerationOptions(

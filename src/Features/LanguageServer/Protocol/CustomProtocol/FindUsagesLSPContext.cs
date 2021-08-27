@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 // Creating a new VSReferenceItem for the definition
                 var definitionItem = await GenerateVSReferenceItemAsync(
-                    _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrDefault(),
+                    _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrNull(),
                     definition.DisplayableProperties, _metadataAsSourceFileService, definition.GetClassifiedText(),
                     definition.Tags.GetFirstGlyph(), symbolUsageInfo: null, isWrittenTo: false, cancellationToken).ConfigureAwait(false);
 
@@ -132,9 +133,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
                     return;
 
+                var documentSpan = reference.SourceSpan;
+                var document = documentSpan.Document;
+
                 // If this is reference to the same physical location we've already reported, just
                 // filter this out.  it will clutter the UI to show the same places.
-                if (!_referenceLocations.Add((reference.SourceSpan.Document.FilePath, reference.SourceSpan.SourceSpan)))
+                if (!_referenceLocations.Add((document.FilePath, reference.SourceSpan.SourceSpan)))
                     return;
 
                 // If the definition hasn't been reported yet, add it to our list of references to report.
@@ -164,7 +168,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             int? definitionId,
             Document document,
             int position,
-            DocumentSpan documentSpan,
+            DocumentSpan? documentSpan,
             ImmutableDictionary<string, string> properties,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             ClassifiedTextElement? definitionText,
@@ -203,10 +207,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 result.Location = location;
             }
 
-            if (documentSpan.Document != null)
+            if (documentSpan != null)
             {
-                result.DocumentName = documentSpan.Document.Name;
-                result.ProjectName = documentSpan.Document.Project.Name;
+                result.DocumentName = documentSpan.Value.Document.Name;
+                result.ProjectName = documentSpan.Value.Document.Project.Name;
             }
 
             if (properties.TryGetValue(AbstractReferenceFinder.ContainingMemberInfoPropertyName, out var referenceContainingMember))
@@ -221,15 +225,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             static async Task<LSP.Location?> ComputeLocationAsync(
                 Document document,
                 int position,
-                DocumentSpan documentSpan,
+                DocumentSpan? documentSpan,
                 IMetadataAsSourceFileService metadataAsSourceFileService,
                 CancellationToken cancellationToken)
             {
                 // If we have no document span, our location may be in metadata.
-                if (documentSpan != default)
+                if (documentSpan != null)
                 {
                     // We do have a document span, so compute location normally.
-                    return await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+                    return await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan.Value, cancellationToken).ConfigureAwait(false);
                 }
 
                 // If we have no document span, our location may be in metadata or may be a namespace.
@@ -269,19 +273,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
             static async Task<ClassifiedTextElement?> ComputeTextAsync(
                 int id, int? definitionId,
-                DocumentSpan documentSpan,
+                DocumentSpan? documentSpan,
                 ClassifiedTextElement? definitionText,
                 bool isWrittenTo,
                 CancellationToken cancellationToken)
             {
                 // General case
-                if (documentSpan != default)
+                if (documentSpan != null)
                 {
                     var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                        documentSpan, cancellationToken).ConfigureAwait(false);
+                        documentSpan.Value, cancellationToken).ConfigureAwait(false);
                     var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
-                    var docText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var classifiedTextRuns = GetClassifiedTextRuns(id, definitionId, documentSpan, isWrittenTo, classifiedSpans, docText);
+                    var docText = await documentSpan.Value.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var classifiedTextRuns = GetClassifiedTextRuns(id, definitionId, documentSpan.Value, isWrittenTo, classifiedSpans, docText);
 
                     return new ClassifiedTextElement(classifiedTextRuns.ToArray());
                 }
