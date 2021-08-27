@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// contents of that line, and hovering will reveal a tooltip showing that line along
         /// with a few lines above/below it.
         /// </summary>
-        private class DocumentSpanEntry : AbstractDocumentSpanEntry, ISupportsNavigation
+        private sealed class DocumentSpanEntry : AbstractDocumentSpanEntry, ISupportsNavigation
         {
             private readonly HighlightSpanKind _spanKind;
             private readonly ExcerptResult _excerptResult;
@@ -280,29 +280,37 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     sourceText.Lines[lastLineNumber].End);
             }
 
-            async Task<bool> ISupportsNavigation.TryNavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+            public bool CanNavigateTo()
             {
-                // If the document is a source generated document, we need to do the navigation ourselves;
-                // this is because the file path given to the table control isn't a real file path to a file
-                // on disk.
                 if (_excerptResult.Document is SourceGeneratedDocument)
                 {
                     var workspace = _excerptResult.Document.Project.Solution.Workspace;
                     var documentNavigationService = workspace.Services.GetService<IDocumentNavigationService>();
 
-                    if (documentNavigationService != null)
-                    {
-                        await this.Presenter.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                        return documentNavigationService.TryNavigateToSpan(
-                            workspace,
-                            _excerptResult.Document.Id,
-                            _excerptResult.Span,
-                            workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview),
-                            cancellationToken);
-                    }
+                    return documentNavigationService != null;
                 }
 
                 return false;
+            }
+
+            public async Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+            {
+                Contract.ThrowIfFalse(CanNavigateTo());
+
+                // If the document is a source generated document, we need to do the navigation ourselves;
+                // this is because the file path given to the table control isn't a real file path to a file
+                // on disk.
+
+                var workspace = _excerptResult.Document.Project.Solution.Workspace;
+                var documentNavigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+
+                await this.Presenter.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                documentNavigationService.TryNavigateToSpan(
+                    workspace,
+                    _excerptResult.Document.Id,
+                    _excerptResult.Span,
+                    workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview),
+                    cancellationToken);
             }
         }
     }
