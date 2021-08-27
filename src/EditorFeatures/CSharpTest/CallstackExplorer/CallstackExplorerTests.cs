@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -117,9 +118,7 @@ namespace ConsoleApp4
         [Fact]
         public async Task TestExceptionStack()
         {
-            var fqn = "ConsoleApp4.MyClass.ThrowAtOne";
             var workspace = CreateWorkspace();
-            var method = await GetSymbolAsync(fqn, workspace);
 
             // Callstack from VS debugger callstack window
             var callstack = @"   at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26
@@ -132,10 +131,27 @@ namespace ConsoleApp4
             var result = await CallstackAnalyzer.AnalyzeAsync(workspace.CurrentSolution, callstack, CancellationToken.None);
             Assert.Equal(5, result.ParsedLines.Length);
 
-            var fileLineResults = result.ParsedLines.OfType<FileLineResult>();
+            var fileLineResults = result.ParsedLines.OfType<FileLineResult>().ToImmutableArray();
             AssertEx.SetEqual(result.ParsedLines, fileLineResults);
 
-            var symbol = await fileLineResults.First().ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            var symbol = await fileLineResults[0].ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            var method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowAtOne", workspace);
+            Assert.Equal(method, symbol);
+
+            symbol = await fileLineResults[1].ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowReferenceOne", workspace);
+            Assert.Equal(method, symbol);
+
+            symbol = await fileLineResults[2].ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            method = await GetSymbolAsync("ConsoleApp4.MyClass.ToString", workspace);
+            Assert.Equal(method, symbol);
+
+            symbol = await fileLineResults[3].ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            method = await GetSymbolAsync("ConsoleApp4.MyOtherClass.ThrowForNewMyClass", workspace);
+            Assert.Equal(method, symbol);
+
+            symbol = await fileLineResults[4].ResolveSymbolAsync(result.Solution, CancellationToken.None);
+            method = await GetSymbolAsync("ConsoleApp4.Program.Main", workspace);
             Assert.Equal(method, symbol);
         }
     }
