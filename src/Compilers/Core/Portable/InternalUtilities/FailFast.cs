@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis
     {
         [DebuggerHidden]
         [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.Synchronized)]
         internal static void OnFatalException(Exception exception)
         {
             // EDMAURER Now using the managed API to fail fast so as to default
@@ -39,6 +41,7 @@ namespace Microsoft.CodeAnalysis
 
         [DebuggerHidden]
         [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.Synchronized)]
         internal static void Fail(string message)
         {
             DumpStackTrace(message: message);
@@ -88,6 +91,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="message">An optional message to be recorded in the dump in case of failure. Can be <c>null</c>.</param>
         [Conditional("DEBUG")]
         [DebuggerHidden]
+        [MethodImpl(MethodImplOptions.Synchronized)]
         internal static void Assert([DoesNotReturnIf(false)] bool condition, string? message = null)
         {
             if (condition)
