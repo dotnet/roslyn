@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var updatedClassifiedSpans = ConvertMultiLineToSingleLineSpans(text, classifiedSpans.ToArray());
 
             // TO-DO: We should implement support for streaming if LSP adds support for it:
-            // https://devdiv.visualstaaudio.com/DevDiv/_workitems/edit/1276300
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
             return (ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex), isPartial);
         }
 

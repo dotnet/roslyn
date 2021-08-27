@@ -80,6 +80,7 @@ static class C { }
             await VerifyNoMultiLineTokens(testLspServer, rangeResults.Data!).ConfigureAwait(false);
             Assert.Equal(expectedRangeResults.Data, rangeResults.Data);
             Assert.Equal(expectedRangeResults.ResultId, rangeResults.ResultId);
+            Assert.True(rangeResults is RoslynSemanticTokens);
 
             // 2. Whole document handler
             var wholeDocResults = await RunGetSemanticTokensAsync(testLspServer, caretLocation);
@@ -101,6 +102,7 @@ static class C { }
             await VerifyNoMultiLineTokens(testLspServer, wholeDocResults.Data!).ConfigureAwait(false);
             Assert.Equal(expectedWholeDocResults.Data, wholeDocResults.Data);
             Assert.Equal(expectedWholeDocResults.ResultId, wholeDocResults.ResultId);
+            Assert.True(wholeDocResults is RoslynSemanticTokens);
 
             // 3. Edits handler - insert newline at beginning of file
             var newMarkup = @"
@@ -115,10 +117,12 @@ static class C { }
 
             Assert.Equal(expectedEdit, ((LSP.SemanticTokensDelta)editResults).Edits.First());
             Assert.Equal("3", ((LSP.SemanticTokensDelta)editResults).ResultId);
+            Assert.True((LSP.SemanticTokensDelta)editResults is RoslynSemanticTokensDelta);
 
             // 4. Edits handler - no changes (ResultId should remain same)
             var editResultsNoChange = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "3");
             Assert.Equal("3", ((LSP.SemanticTokensDelta)editResultsNoChange).ResultId);
+            Assert.True((LSP.SemanticTokensDelta)editResultsNoChange is RoslynSemanticTokensDelta);
 
             // 5. Re-request whole document handler (may happen if LSP runs into an error)
             var wholeDocResults2 = await RunGetSemanticTokensAsync(testLspServer, caretLocation);
@@ -140,6 +144,7 @@ static class C { }
             await VerifyNoMultiLineTokens(testLspServer, wholeDocResults2.Data!).ConfigureAwait(false);
             Assert.Equal(expectedWholeDocResults2.Data, wholeDocResults2.Data);
             Assert.Equal(expectedWholeDocResults2.ResultId, wholeDocResults2.ResultId);
+            Assert.True(wholeDocResults2 is RoslynSemanticTokens);
         }
 
         [Fact]
