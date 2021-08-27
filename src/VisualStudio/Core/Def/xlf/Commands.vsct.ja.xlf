@@ -7,6 +7,11 @@
         <target state="translated">選択範囲でコード分析を実行(&amp;A)</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdIdShowCallstackExplorer|ButtonText">
+        <source>Callstack Explorer</source>
+        <target state="new">Callstack Explorer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
         <source>&amp;Current Document</source>
         <target state="translated">現在のドキュメント(&amp;C)</target>

@@ -7,6 +7,11 @@
         <target state="translated">&amp;Spustit analýzu kódu na výběr</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdIdShowCallstackExplorer|ButtonText">
+        <source>Callstack Explorer</source>
+        <target state="new">Callstack Explorer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
         <source>&amp;Current Document</source>
         <target state="translated">&amp;Aktuální dokument</target>

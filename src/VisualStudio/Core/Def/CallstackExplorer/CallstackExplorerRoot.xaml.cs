@@ -17,16 +17,17 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
+namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
 {
-    /// <summary>
-    /// Interaction logic for ValueTrackingRoot.xaml
-    /// </summary>
-    internal partial class ValueTrackingRoot : UserControl
-    {
-        public string EmptyText => ServicesVSResources.Select_an_appropriate_symbol_to_start_value_tracking;
 
-        public ValueTrackingRoot()
+    /// <summary>
+    /// Interaction logic for CallstackExplorerRoot.xaml
+    /// </summary>
+    internal partial class CallstackExplorerRoot : UserControl
+    {
+        public string EmptyText => "Paste into the window to get started";
+
+        public CallstackExplorerRoot()
         {
             InitializeComponent();
         }

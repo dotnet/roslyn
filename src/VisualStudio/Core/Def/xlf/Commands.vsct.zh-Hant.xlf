@@ -7,6 +7,11 @@
         <target state="translated">針對選取範圍執行程式碼分析(&amp;A)</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdIdShowCallstackExplorer|ButtonText">
+        <source>Callstack Explorer</source>
+        <target state="new">Callstack Explorer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
         <source>&amp;Current Document</source>
         <target state="translated">目前文件(&amp;C)</target>

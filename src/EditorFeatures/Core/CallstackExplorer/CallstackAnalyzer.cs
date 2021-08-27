@@ -19,12 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
         private const string StackTraceStart = "at ";
         private const string StackTraceSymbolAndFileSplit = " in ";
 
-        internal static Task<CallstackAnalysisResults> AnalyzeAsync(Solution currentSolution, string callstack, CancellationToken cancellationToken)
+        internal static Task<CallstackAnalysisResults> AnalyzeAsync(string callstack, CancellationToken cancellationToken)
         {
             var parsedLines = ParseLines(callstack);
 
             return Task.FromResult(new CallstackAnalysisResults(
-                currentSolution,
                 parsedLines.ToImmutableArray()));
         }
 

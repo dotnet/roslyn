@@ -10,13 +10,9 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
 {
     internal class CallstackAnalysisResults
     {
-        public Solution Solution { get; }
-
         public CallstackAnalysisResults(
-            Solution currentSolution, 
             ImmutableArray<ParsedLine> parsedLines)
         {
-            Solution = currentSolution;
             ParsedLines = parsedLines;
         }
 

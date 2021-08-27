@@ -1,0 +1,27 @@
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.CallstackExplorer.CallstackExplorer"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.CallstackExplorer"
+             xmlns:utils="clr-namespace:Microsoft.VisualStudio.LanguageServices.Utilities"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" Grid.Row="0">
+            <Button Content="Add from clipboard" Click="Button_Click" />
+        </StackPanel>
+        <ListView ItemsSource="{Binding CallstackLines}" Grid.Row="1">
+            <ListView.ItemTemplate>
+                <DataTemplate DataType="{x:Type local:CallstackLineViewModel}">
+                    <utils:BindableTextBlock InlineCollection="{Binding Inlines}" />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</UserControl>

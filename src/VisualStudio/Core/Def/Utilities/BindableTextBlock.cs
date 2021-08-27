@@ -9,7 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
+namespace Microsoft.VisualStudio.LanguageServices.Utilities
 {
     internal class BindableTextBlock : TextBlock
     {

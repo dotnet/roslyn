@@ -483,6 +483,13 @@
           <LocCanonicalName>ViewEditorConfigSettings</LocCanonicalName>
         </Strings>
       </Button>
+
+      <Button guid="guidCallstackExplorerCmdSet" id="cmdIdShowCallstackExplorer" priority="0x0100" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
+        <Strings>
+          <ButtonText>Callstack Explorer</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Menus>
@@ -731,6 +738,10 @@
     <!--guidReferenceContext is aka: ShellMainMenu_guid -->
     <GuidSymbol name="guidReferenceContext" value="{D309F791-903F-11D0-9EFC-00A0C911004F}">
       <IDSymbol name="cmdAddReferenceGroup" value="0x450" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidCallstackExplorerCmdSet" value="{FB190424-4DFF-43DB-8CCA-E32D1CE8A5CA}">
+      <IDSymbol name="cmdIdShowCallstackExplorer" value="0x0100" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>
