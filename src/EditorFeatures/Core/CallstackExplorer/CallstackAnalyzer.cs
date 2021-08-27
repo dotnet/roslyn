@@ -10,11 +10,15 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
 {
     internal static class CallstackAnalyzer
     {
+        private const string StackTraceStart = "at ";
+        private const string StackTraceSymbolAndFileSplit = " in ";
+
         internal static Task<CallstackAnalysisResults> AnalyzeAsync(Solution currentSolution, string callstack, CancellationToken cancellationToken)
         {
             var parsedLines = ParseLines(callstack);
@@ -26,20 +30,17 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
 
         private static IEnumerable<ParsedLine> ParseLines(string callstack)
         {
-            foreach (var line in callstack.Split('\n'))
+            foreach (var line in callstack.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
             {
-                if (string.IsNullOrEmpty(line))
-                {
-                    continue;
-                }
+                var trimmedLine = line.Trim();
 
-                if (line.TrimStart().StartsWith("at "))
+                if (trimmedLine.StartsWith(StackTraceStart))
                 {
-                    yield return ParseStackTraceLine(line);
+                    yield return ParseStackTraceLine(trimmedLine);
                 }
                 else
                 {
-                    if (TryParseDebugWindowStack(line, out var result))
+                    if (TryParseDebugWindowStack(trimmedLine, out var result))
                     {
                         yield return result;
                     }
@@ -49,64 +50,57 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
 
         private static bool TryParseDebugWindowStack(string line, [NotNullWhen(returnValue: true)] out ParsedLine? result)
         {
-            // >	    ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#
-            //          ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowReferenceOne() Line 24 C#
-            //          ConsoleApp4.dll!ConsoleApp4.MyClass.ToString() Line 29  C#
-            //          ConsoleApp4.dll!ConsoleApp4.MyOtherClass.ThrowForNewMyClass() Line 39   C#
-            //          ConsoleApp4.dll!ConsoleApp4.Program.Main(string[] args) Line 10 C#
+            // Example line:
+            // ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#
+            //                |--------------------------------|
+            //                     Symbol data we care about
             result = null;
 
-            var splitIndex = line.IndexOf('!');
-            if (splitIndex == -1)
+            var startPoint = line.IndexOf('!');
+            if (startPoint == -1)
             {
                 return false;
             }
 
-            var symbolData = line.Substring(splitIndex + 1);
-
-            // Extra information may be appended, for example: 
-            // ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#
-            // For now we're going to throw away the line number 
-            // and anything following the last ) 
-            var trimPoint = symbolData.LastIndexOf(')');
-            if (trimPoint == -1)
+            var endPoint = line.LastIndexOf(')');
+            if (endPoint == -1)
             {
                 return false;
             }
 
-            symbolData = symbolData.Substring(0, trimPoint + 1);
+            // + 1 so we include the ')' character at the end
+            var length = (endPoint - startPoint) + 1;
 
-            result = new DebugWindowResult(symbolData);
+            result = new ParsedLine(line, new TextSpan(startPoint, length));
             return true;
         }
 
         private static ParsedLine ParseStackTraceLine(string line)
         {
+            // Example line
             // at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26
-            // at ConsoleApp4.MyClass.ThrowReferenceOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 31
-            // at ConsoleApp4.MyClass.ToString() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 36
-            // at ConsoleApp4.MyOtherClass.ThrowForNewMyClass() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 46
-            // at ConsoleApp4.Program.Main(String[] args) in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 12
+            //   |--------------------------------|  |--------------------------------------------|   |--|
+            //          Symbol Data                          File Information                           Line number
 
+            Debug.Assert(line.StartsWith(StackTraceStart));
 
-            // at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26
-            line = line.Trim();
-            Debug.Assert(line.StartsWith("at"));
+            line = line.Substring(StackTraceStart.Length);
 
-            line = line.Substring("at".Length);
+            var symbolInformationStart = StackTraceStart.Length;
 
-            // ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26
-            if (line.Contains(" in "))
+            // +1 to include the ')' at the end
+            var symbolInformationEnd = (line.LastIndexOf(")") + 1);
+            var symbolInformationSpan = new TextSpan(symbolInformationStart, symbolInformationEnd - symbolInformationStart);
+
+            if (line.Contains(StackTraceSymbolAndFileSplit))
             {
-                var inIndex = line.IndexOf(" in ");
-                var methodSignature = line.Substring(0, inIndex);
-                var fileInformation = line.Substring(inIndex + " in ".Length);
+                var fileInformationStart = line.IndexOf(StackTraceSymbolAndFileSplit) + StackTraceSymbolAndFileSplit.Length;
+                var fileInformationSpan = new TextSpan(fileInformationStart, line.Length - fileInformationStart);
 
-                // ConsoleApp4.MyClass.ThrowAtOne(), C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26
-                return new FileLineResult(methodSignature, fileInformation);
+                return new FileLineResult(line, symbolInformationSpan, fileInformationSpan);
             }
 
-            return new StackTraceResult(line.Substring(0, line.LastIndexOf(")")));
+            return new ParsedLine(line, symbolInformationSpan);
         }
     }
 }
