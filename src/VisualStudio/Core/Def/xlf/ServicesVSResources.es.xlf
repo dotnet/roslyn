@@ -457,9 +457,9 @@
         <target state="new">Inherited interfaces</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Hints_experimental">
-        <source>Inline Hints (experimental)</source>
-        <target state="translated">Sugerencias en línea (experimental)</target>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="new">Inline Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
