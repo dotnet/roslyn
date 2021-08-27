@@ -620,15 +620,16 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var root = await documentWithAddedImports.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            root = ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, oldNamespaceParts, newNamespaceParts)
-                .WithAdditionalAnnotations(Formatter.Annotation);
+            root = ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, oldNamespaceParts, newNamespaceParts);
 
-            // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
-            root = Formatter.Format(root, Formatter.Annotation, documentWithAddedImports.Project.Solution.Workspace, optionSet, cancellationToken);
+            var documentWithNewNamespace = documentWithAddedImports.WithSyntaxRoot(root);
+            var service = documentWithNewNamespace.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
+            var documentWithoutUnnecessaryImports = await service.RemoveUnnecessaryImportsAsync(documentWithNewNamespace, cancellationToken).ConfigureAwait(false);
 
-            root = root.WithAdditionalAnnotations(Simplifier.Annotation);
-            var formattedDocument = documentWithAddedImports.WithSyntaxRoot(root);
-            return await Simplifier.ReduceAsync(formattedDocument, optionSet, cancellationToken).ConfigureAwait(false);
+            root = (await documentWithoutUnnecessaryImports.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false))
+                .WithAdditionalAnnotations(Simplifier.Annotation);
+            var documentToSimplify = documentWithoutUnnecessaryImports.WithSyntaxRoot(root);
+            return await Simplifier.ReduceAsync(documentToSimplify, optionSet, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<Document> FixReferencingDocumentAsync(
