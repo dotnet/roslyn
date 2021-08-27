@@ -699,6 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static UnboundLambda MakeQueryUnboundLambda(CSharpSyntaxNode node, QueryUnboundLambdaState state, bool withDependencies)
         {
             Debug.Assert(node is ExpressionSyntax || LambdaUtilities.IsQueryPairLambda(node));
+            // Function type is null because query expression syntax does not allow an explicit signature.
             var lambda = new UnboundLambda(node, state, functionType: null, withDependencies, hasErrors: false) { WasCompilerGenerated = true };
             state.SetUnboundLambda(lambda);
             return lambda;

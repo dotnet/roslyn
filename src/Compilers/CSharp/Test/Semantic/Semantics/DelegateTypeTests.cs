@@ -3400,6 +3400,45 @@ class Program
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
+        [Fact]
+        public void BestCommonType_13()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T>(ref T t) { }
+    static void Main()
+    {
+        var a1 = new[] { F<object>, null };
+        var a2 = new[] { default, F<string> };
+        var a3 = new[] { null, default, (object x, ref string y) => { } };
+        Report(a1[0]);
+        Report(a2[1]);
+        Report(a3[2]);
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,18): error CS0826: No best type found for implicitly-typed array
+                //         var a1 = new[] { F<object>, null };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F<object>, null }").WithLocation(7, 18),
+                // (8,18): error CS0826: No best type found for implicitly-typed array
+                //         var a2 = new[] { default, F<string> };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { default, F<string> }").WithLocation(8, 18),
+                // (9,18): error CS0826: No best type found for implicitly-typed array
+                //         var a3 = new[] { null, default, (object x, ref string y) => { } };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { null, default, (object x, ref string y) => { } }").WithLocation(9, 18));
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"<>A{00000001}`1[System.Object]
+<>A{00000001}`1[System.String]
+<>A{00000004}`2[System.Object,System.String]
+");
+        }
+
         /// <summary>
         /// Best common type inference with delegate signatures that cannot be inferred.
         /// </summary>
@@ -3410,7 +3449,7 @@ class Program
 @"class Program
 {
     static void F1() { }
-    static void F1(int i) { }
+    static int F1(int i) => i;
     static void F2() { }
     static void Main()
     {
@@ -3419,7 +3458,9 @@ class Program
         var a3 = new[] { F2, F1 };
         var a4 = new[] { x => x };
         var a5 = new[] { x => x, (int y) => y };
-        var a6 = new[] { (int y) => y, x => x };
+        var a6 = new[] { (int y) => y, static x => x };
+        var a7 = new[] { x => x, F1 };
+        var a8 = new[] { F1, (int y) => y };
     }
 }";
 
@@ -3441,8 +3482,14 @@ class Program
                 //         var a5 = new[] { x => x, (int y) => y };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x => x, (int y) => y }").WithLocation(12, 18),
                 // (13,18): error CS0826: No best type found for implicitly-typed array
-                //         var a6 = new[] { (int y) => y, x => x };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (int y) => y, x => x }").WithLocation(13, 18));
+                //         var a6 = new[] { (int y) => y, static x => x };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { (int y) => y, static x => x }").WithLocation(13, 18),
+                // (14,18): error CS0826: No best type found for implicitly-typed array
+                //         var a7 = new[] { x => x, F1 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x => x, F1 }").WithLocation(14, 18),
+                // (15,18): error CS0826: No best type found for implicitly-typed array
+                //         var a8 = new[] { F1, (int y) => y };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F1, (int y) => y }").WithLocation(15, 18));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -3451,7 +3498,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { F1 }").WithLocation(8, 18),
                 // (11,18): error CS0826: No best type found for implicitly-typed array
                 //         var a4 = new[] { x => x };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x => x }").WithLocation(11, 18));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x => x }").WithLocation(11, 18),
+                // (14,18): error CS0826: No best type found for implicitly-typed array
+                //         var a7 = new[] { x => x, F1 };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { x => x, F1 }").WithLocation(14, 18));
         }
 
         [Fact]
@@ -3534,6 +3584,41 @@ class Program
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"System.Func`1[System.Int32]");
+        }
+
+        [Fact]
+        public void ConditionalOperator_01()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>(T t) { }
+    static void Main()
+    {
+        var c1 = F<object> ?? F<string>;
+        var c2 = ((object o) => { }) ?? ((string s) => { });
+        var c3 = F<string> ?? ((object o) => { });
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,18): error CS0019: Operator '??' cannot be applied to operands of type 'method group' and 'method group'
+                //         var c1 = F<object> ?? F<string>;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F<object> ?? F<string>").WithArguments("??", "method group", "method group").WithLocation(6, 18),
+                // (7,18): error CS0019: Operator '??' cannot be applied to operands of type 'lambda expression' and 'lambda expression'
+                //         var c2 = ((object o) => { }) ?? ((string s) => { });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "((object o) => { }) ?? ((string s) => { })").WithArguments("??", "lambda expression", "lambda expression").WithLocation(7, 18),
+                // (8,18): error CS0019: Operator '??' cannot be applied to operands of type 'method group' and 'lambda expression'
+                //         var c3 = F<string> ?? ((object o) => { });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "F<string> ?? ((object o) => { })").WithArguments("??", "method group", "lambda expression").WithLocation(8, 18)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -3778,6 +3863,94 @@ class Program
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 @"System.Func`2[System.String,System.Int32]
 System.Action`1[System.String]
+");
+        }
+
+        [Fact]
+        public void TypeInference_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T M<T>(T x, T y) => x;
+    static int F1(int i) => i;
+    static void F1() { }
+    static T F2<T>(T t) => t;
+    static void Main()
+    {
+        var f1 = M(x => x, (int y) => y);
+        var f2 = M(F1, F2<int>);
+        var f3 = M(F2<object>, z => z);
+        Report(f1);
+        Report(f2);
+        Report(f3);
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (10,18): error CS0411: The type arguments for method 'Program.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var f1 = M(x => x, (int y) => y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, T)").WithLocation(10, 18),
+                // (11,18): error CS0411: The type arguments for method 'Program.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var f2 = M(F1, F2<int>);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, T)").WithLocation(11, 18),
+                // (12,18): error CS0411: The type arguments for method 'Program.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var f3 = M(F2<object>, z => z);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, T)").WithLocation(12, 18));
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Func`2[System.Int32,System.Int32]
+System.Func`2[System.Int32,System.Int32]
+System.Func`2[System.Object,System.Object]
+");
+        }
+
+        [Fact]
+        public void TypeInference_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T M<T>(T x, T y) where T : class => x ?? y;
+    static T F<T>() => default;
+    static void Main()
+    {
+        var f1 = M(F<object>, null);
+        var f2 = M(default, F<string>);
+        var f3 = M((object x, ref string y) => { }, default);
+        var f4 = M(null, (ref object x, string y) => { });
+        Report(f1);
+        Report(f2);
+        Report(f3);
+        Report(f4);
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0411: The type arguments for method 'Program.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var f1 = M(F<object>, null);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, T)").WithLocation(8, 18),
+                // (9,18): error CS0411: The type arguments for method 'Program.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var f2 = M(default, F<string>);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, T)").WithLocation(9, 18),
+                // (10,18): error CS0411: The type arguments for method 'Program.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var f3 = M((object x, ref string y) => { }, default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, T)").WithLocation(10, 18),
+                // (11,18): error CS0411: The type arguments for method 'Program.M<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         var f4 = M(null, (ref object x, string y) => { });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, T)").WithLocation(11, 18));
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Func`1[System.Object]
+System.Func`1[System.String]
+<>A{00000004}`2[System.Object,System.String]
+<>A{00000001}`2[System.Object,System.String]
 ");
         }
 
