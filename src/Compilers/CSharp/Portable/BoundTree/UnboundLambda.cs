@@ -230,6 +230,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bestResultType = default;
                     break;
                 case 1:
+                    if (conversions.IncludeNullability)
+                    {
+                        bestResultType = returns[0].resultType;
+                    }
+                    else
                     {
                         var exprType = returns[0].expr.GetTypeOrSignature();
                         var bestType = exprType is FunctionTypeSymbol functionType ?
