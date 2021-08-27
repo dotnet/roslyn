@@ -35,7 +35,6 @@
     <Grid Margin="11,6,11,11">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="25"/>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -51,32 +50,67 @@
                 Name="DestinationBox"
                 AutomationProperties.Name="DestinationName"
                 Text="{Binding DestinationName, UpdateSourceTrigger=PropertyChanged}"
-                Margin="0 0 20 0"/>
+                Margin="2 0 2 0"/>
 
+
+            <GroupBox>
+                <GroupBox.Style>
+                    <Style TargetType="GroupBox">
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                    </Style>
+                </GroupBox.Style>
+                <GroupBox.Header>
+                    <StackPanel 
+                    Orientation="Horizontal"  
+                    Visibility="{Binding ShowMessage, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Margin="{StaticResource messageMargin}">
+                        <imaging:CrispImage 
+                            Name="MessageIcon"
+                            Moniker="{Binding Icon}" 
+                            Height="16"
+                            Width="16"
+                            VerticalAlignment="Top" />
+
+                        <vs:LiveTextBlock 
+                            x:Name="MessageText"
+                            Text="{Binding Message}"
+                            Margin="7, 0, 0, 0"
+                            Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                    </StackPanel>
+                </GroupBox.Header>
+
+                <Grid 
+                    Margin="{StaticResource messageMargin}"
+                    HorizontalAlignment="Left"
+                    Visibility="{Binding ShowMessage, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <vs:LiveTextBlock 
+                        Grid.Column="0"
+                        HorizontalAlignment="Right"
+                        x:Name="Namespace"
+                        Text="{Binding PrependedNamespace}"
+                        TextTrimming="CharacterEllipsis"
+                        Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+
+                    <vs:LiveTextBlock 
+                        Grid.Column="1"
+                        x:Name="TypeName"
+                        Text="{Binding DestinationName}"
+                        Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                </Grid>
+            </GroupBox>
         </StackPanel>
 
-        <StackPanel 
-            Grid.Row="1"
-            Orientation="Horizontal"  
-            Visibility="{Binding ShowMessage, Converter={StaticResource BooleanToVisibilityConverter}}"
-            Margin="{StaticResource messageMargin}">
-            <imaging:CrispImage Name="MessageIcon"
-                                    Moniker="{Binding Icon}" 
-                                    Height="16"
-                                    Width="16"
-                                    VerticalAlignment="Top" />
-
-            <vs:LiveTextBlock x:Name="MessageText"
-                           Text="{Binding Message}"
-                           Margin="7, 0, 0, 0"
-                           Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
-        </StackPanel>
+        
 
         <GroupBox 
             x:Uid="MemberSelectionGroupBox"
             x:Name="MemberSelectionGroupBox"
             Margin="0, 20, 0, 0"
-            Grid.Row="2"
+            Grid.Row="1"
             Header="{Binding ElementName=dialog, Path=SelectMembers}"
             BorderThickness="1">
             <GroupBox.Style>
@@ -87,7 +121,7 @@
 
             <ContentPresenter Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" />
         </GroupBox>
-        <StackPanel Grid.Row="3"
+        <StackPanel Grid.Row="2"
                     HorizontalAlignment="Right" 
                     Margin="0, 11, 0, 0"
                     Orientation="Horizontal">

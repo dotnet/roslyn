@@ -4,6 +4,8 @@
 
 using System;
 using System.Composition;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -38,12 +40,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
         public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ISymbol? selectedNodeSymbol)
         {
+            var viewModel = GetViewModel(document, selectedType, selectedNodeSymbol, _glyphService, _uiThreadOperationExecutor);
+
+            var dialog = new MoveStaticMembersDialog(viewModel);
+
+            var result = dialog.ShowModal();
+
+            return GenerateOptions(document.Project.Language, viewModel, result.GetValueOrDefault());
+        }
+
+        // internal for testing purposes
+        internal static MoveStaticMembersOptions GenerateOptions(string language, MoveStaticMembersDialogViewModel viewModel, bool dialogResult)
+        {
+            if (dialogResult)
+            {
+                // if the destination name contains extra namespaces, we want the last one as that is the real type name
+                var typeName = viewModel.DestinationName.Split('.').Last();
+                var newFileName = Path.ChangeExtension(typeName, language == LanguageNames.CSharp ? ".cs" : ".vb");
+                return new MoveStaticMembersOptions(
+                    newFileName,
+                    viewModel.PrependedNamespace + viewModel.DestinationName,
+                    viewModel.MemberSelectionViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol));
+            }
+
+            return MoveStaticMembersOptions.Cancelled;
+        }
+
+        // internal for testing purposes, get the view model
+        internal static MoveStaticMembersDialogViewModel GetViewModel(
+            Document document,
+            INamedTypeSymbol selectedType,
+            ISymbol? selectedNodeSymbol,
+            IGlyphService? glyphService,
+            IUIThreadOperationExecutor uiThreadOperationExecutor)
+        {
             var membersInType = selectedType.GetMembers().
                WhereAsArray(member => MemberAndDestinationValidator.IsMemberValid(member) && member.IsStatic);
 
             var memberViewModels = membersInType
                 .SelectAsArray(member =>
-                    new SymbolViewModel<ISymbol>(member, _glyphService)
+                    new SymbolViewModel<ISymbol>(member, glyphService)
                     {
                         // The member user selected will be checked at the beginning.
                         IsChecked = SymbolEquivalenceComparer.Instance.Equals(selectedNodeSymbol, member),
@@ -52,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             using var cancellationTokenSource = new CancellationTokenSource();
             var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
 
-            var existingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationTokenSource.Token).SelectAsArray(t => t.Name);
+            var existingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationTokenSource.Token).SelectAsArray(t => t.ToDisplayString());
             var candidateName = selectedType.Name + "Helpers";
             var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !existingTypeNames.Contains(name));
 
@@ -60,32 +96,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 ? string.Empty
                 : selectedType.ContainingNamespace.ToDisplayString();
 
-            var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, selectedType, membersInType);
-
             var selectMembersViewModel = new StaticMemberSelectionViewModel(
-                _uiThreadOperationExecutor,
+                uiThreadOperationExecutor,
                 memberViewModels,
                 memberToDependentsMap);
 
-            var viewModel = new MoveStaticMembersDialogViewModel(selectMembersViewModel,
+            return new MoveStaticMembersDialogViewModel(selectMembersViewModel,
                 defaultTypeName,
                 existingTypeNames,
+                containingNamespaceDisplay,
                 document.GetRequiredLanguageService<ISyntaxFactsService>());
-
-            var dialog = new MoveStaticMembersDialog(viewModel);
-
-            var result = dialog.ShowModal();
-
-            if (result.GetValueOrDefault())
-            {
-                return new MoveStaticMembersOptions(
-                    // TODO: generate unique file name based off of existing folder documents
-                    viewModel.DestinationName + (document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb"),
-                    string.Join(".", containingNamespaceDisplay, viewModel.DestinationName),
-                    selectMembersViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol));
-            }
-
-            return MoveStaticMembersOptions.Cancelled;
         }
     }
 }

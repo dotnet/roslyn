@@ -7,11 +7,6 @@
         <target state="translated">新しい名前空間が作成されます</target>
         <note />
       </trans-unit>
-      <trans-unit id="A_new_type_will_be_created">
-        <source>A new type will be created</source>
-        <target state="new">A new type will be created</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_type_and_name_must_be_provided">
         <source>A type and name must be provided.</source>
         <target state="translated">種類と名前を指定する必要があります。</target>

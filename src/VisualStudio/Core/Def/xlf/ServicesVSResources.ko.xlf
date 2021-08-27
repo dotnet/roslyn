@@ -7,11 +7,6 @@
         <target state="translated">새 네임스페이스가 만들어집니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="A_new_type_will_be_created">
-        <source>A new type will be created</source>
-        <target state="new">A new type will be created</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_type_and_name_must_be_provided">
         <source>A type and name must be provided.</source>
         <target state="translated">형식과 이름을 지정해야 합니다.</target>

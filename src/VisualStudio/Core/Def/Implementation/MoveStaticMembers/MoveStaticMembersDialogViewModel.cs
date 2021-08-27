@@ -24,12 +24,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             StaticMemberSelectionViewModel memberSelectionViewModel,
             string defaultType,
             ImmutableArray<string> existingNames,
+            string prependedNamespace,
             ISyntaxFacts syntaxFacts)
         {
             MemberSelectionViewModel = memberSelectionViewModel;
             _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
             _destinationName = defaultType;
             _existingNames = existingNames;
+            PrependedNamespace = string.IsNullOrEmpty(prependedNamespace) ? prependedNamespace : prependedNamespace + ".";
 
             PropertyChanged += MoveMembersToTypeDialogViewModel_PropertyChanged;
             OnDestinationUpdated();
@@ -48,13 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         public void OnDestinationUpdated()
         {
             // TODO change once we allow movement to existing types
-            var isNewType = !_existingNames.Contains(DestinationName);
-            _isValidName = isNewType && IsValidType(DestinationName);
+            var fullyQualifiedTypeName = PrependedNamespace + DestinationName;
+            var isNewType = !_existingNames.Contains(fullyQualifiedTypeName);
+            _isValidName = isNewType && IsValidType(fullyQualifiedTypeName);
 
             if (_isValidName)
             {
                 Icon = KnownMonikers.StatusInformation;
-                Message = ServicesVSResources.A_new_type_will_be_created;
+                Message = ServicesVSResources.New_Type_Name_colon;
                 ShowMessage = true;
             }
             else
@@ -84,6 +87,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
             return true;
         }
+
+        public string PrependedNamespace { get; }
 
         private string _destinationName;
         public string DestinationName

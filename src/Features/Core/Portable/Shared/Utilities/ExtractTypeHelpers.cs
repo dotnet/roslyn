@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -65,7 +66,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 generateMethodBodies: true,
                 options: await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
 
-            var namespaceParts = containingNamespaceDisplay.Split('.').Where(s => !string.IsNullOrEmpty(s));
+            // need to remove the root namespace from the containing namespace display because it is implied
+            // For C# this does nothing as there is no root namespace (root namespace is empty string)
+            var generateTypeService = newDocument.GetRequiredLanguageService<IGenerateTypeService>();
+            var rootNamespace = generateTypeService.GetRootNamespace(newDocument.Project.CompilationOptions);
+            var index = rootNamespace.IsEmpty() ? -1 : containingNamespaceDisplay.IndexOf(rootNamespace);
+            // if we did find the root namespace as the first element, then we remove it plus the "." character
+            var namespaceWithoutRoot = index == 0
+                ? containingNamespaceDisplay.Remove(index, rootNamespace.Length + 1)
+                : containingNamespaceDisplay;
+
+            var namespaceParts = namespaceWithoutRoot.Split('.').Where(s => !string.IsNullOrEmpty(s));
             var newTypeDocument = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                 newDocument.Project.Solution,
                 newSemanticModel.GetEnclosingNamespace(0, cancellationToken),

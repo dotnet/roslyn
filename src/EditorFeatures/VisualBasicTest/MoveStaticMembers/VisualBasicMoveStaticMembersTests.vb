@@ -1738,6 +1738,105 @@ End Namespace
             Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionWithRootNamespace() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+    End Class
+End Namespace"
+            ' if we cut out the root namespace, the returned namespace should still be the same
+            Dim expectedText2 = "Namespace TestNs
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace
+"
+
+            Dim test = New Test(newTypeName, selection, newFileName) With {.TestCode = initialMarkup}
+            test.FixedState.Sources.Add(expectedText1)
+            test.FixedState.Sources.Add((newFileName, expectedText2))
+            test.SolutionTransforms.Add(
+                Function(solution, projectId)
+                    Dim project = solution.GetProject(projectId)
+                    Dim compilationOptions = DirectCast(project.CompilationOptions, VisualBasicCompilationOptions)
+                    Return project.WithCompilationOptions(compilationOptions.WithRootNamespace("RootNs")).Solution
+                End Function)
+            Await test.RunAsync()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionWithRootNamespaceRefactorReferences() As Task
+            Dim initialMarkup1 = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace"
+            Dim initialMarkup2 = "
+Imports RootNs.TestNs
+
+Public Class Class2
+    Public Shared Function TestFunc2() As Integer
+        Return Class1.TestFunc()
+    End Function
+End Class"
+            Dim newTypeName = "ExtraNs.Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+    End Class
+End Namespace"
+            Dim expectedText3 = "
+Imports RootNs.TestNs
+Imports RootNs.TestNs.ExtraNs
+
+Public Class Class2
+    Public Shared Function TestFunc2() As Integer
+        Return Class1Helpers.TestFunc()
+    End Function
+End Class"
+            Dim expectedText2 = "Namespace TestNs.ExtraNs
+    Class Class1Helpers
+        Public Shared Function TestFunc() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace
+"
+
+            Dim test = New Test(newTypeName, selection, newFileName)
+            test.TestState.Sources.Add(initialMarkup1)
+            test.TestState.Sources.Add(initialMarkup2)
+            test.FixedState.Sources.Add(expectedText1)
+            test.FixedState.Sources.Add(expectedText3)
+            test.FixedState.Sources.Add((newFileName, expectedText2))
+            test.SolutionTransforms.Add(
+                Function(solution, projectId)
+                    Dim project = solution.GetProject(projectId)
+                    Dim compilationOptions = DirectCast(project.CompilationOptions, VisualBasicCompilationOptions)
+                    Return project.WithCompilationOptions(compilationOptions.WithRootNamespace("RootNs")).Solution
+                End Function)
+            Await test.RunAsync()
+        End Function
+
 #End Region
 #Region "SelectionTests"
 
