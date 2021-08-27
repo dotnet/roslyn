@@ -87,11 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = GetBestType(builder, conversions, ref useSiteInfo);
             builder.Free();
 
-            if (result is FunctionTypeSymbol functionType)
-            {
-                return functionType.GetInternalDelegateType();
-            }
-            return result;
+            return (result as FunctionTypeSymbol)?.GetInternalDelegateType() ?? result;
         }
 
         /// <remarks>

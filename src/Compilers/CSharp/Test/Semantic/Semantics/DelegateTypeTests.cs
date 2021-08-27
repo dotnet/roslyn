@@ -4685,6 +4685,37 @@ class Program
                 Diagnostic(ErrorCode.ERR_BogusType, "() => 1").WithArguments("System.Func<T>").WithLocation(7, 18));
         }
 
+        [Fact]
+        public void BinaryOperator()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var b1 = (() => { }) == null;
+        var b2 = null == Main;
+        var b3 = Main == (() => { });
+        Console.WriteLine((b1, b2, b3));
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0019: Operator '==' cannot be applied to operands of type 'lambda expression' and '<null>'
+                //         var b1 = (() => { }) == null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(() => { }) == null").WithArguments("==", "lambda expression", "<null>").WithLocation(6, 18),
+                // (7,18): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'method group'
+                //         var b2 = null == Main;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "null == Main").WithArguments("==", "<null>", "method group").WithLocation(7, 18),
+                // (8,18): error CS0019: Operator '==' cannot be applied to operands of type 'method group' and 'lambda expression'
+                //         var b3 = Main == (() => { });
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "Main == (() => { })").WithArguments("==", "method group", "lambda expression").WithLocation(8, 18));
+
+            CompileAndVerify(source, expectedOutput: "(False, False, False)");
+        }
+
         /// <summary>
         /// Ensure the conversion group containing the implicit
         /// conversion is handled correctly in NullableWalker.

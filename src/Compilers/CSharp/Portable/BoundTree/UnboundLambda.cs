@@ -223,15 +223,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             TypeWithAnnotations bestResultType;
-            // Need to handle ref returns. See https://github.com/dotnet/roslyn/issues/30432
-            if (conversions.IncludeNullability)
+            int n = returns.Count;
+            switch (n)
             {
-                bestResultType = NullableWalker.BestTypeForLambdaReturns(returns, binder, node, (Conversions)conversions);
-            }
-            else
-            {
-                var bestType = BestTypeInferrer.InferBestType(returns.SelectAsArray(pair => pair.expr), conversions, ref useSiteInfo);
-                bestResultType = TypeWithAnnotations.Create(bestType);
+                case 0:
+                    bestResultType = default;
+                    break;
+                case 1:
+                    {
+                        var exprType = returns[0].expr.GetTypeOrSignature();
+                        var bestType = exprType is FunctionTypeSymbol functionType ?
+                            functionType.GetInternalDelegateType() :
+                            exprType;
+                        bestResultType = TypeWithAnnotations.Create(bestType);
+                    }
+                    break;
+                default:
+                    // Need to handle ref returns. See https://github.com/dotnet/roslyn/issues/30432
+                    if (conversions.IncludeNullability)
+                    {
+                        bestResultType = NullableWalker.BestTypeForLambdaReturns(returns, binder, node, (Conversions)conversions);
+                    }
+                    else
+                    {
+                        var bestType = BestTypeInferrer.InferBestType(returns.SelectAsArray(pair => pair.expr), conversions, ref useSiteInfo);
+                        bestResultType = TypeWithAnnotations.Create(bestType);
+                    }
+                    break;
             }
 
             if (!isAsync)

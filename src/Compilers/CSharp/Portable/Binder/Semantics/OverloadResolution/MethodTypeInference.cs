@@ -2598,16 +2598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (containsFunctionTypes(lower) &&
                 (containsNonFunctionTypes(lower) || containsNonFunctionTypes(exact) || containsNonFunctionTypes(upper)))
             {
-                HashSet<TypeWithAnnotations>? updated = null;
-                foreach (var candidate in lower!)
-                {
-                    if (!isFunctionType(candidate, out _))
-                    {
-                        updated ??= new HashSet<TypeWithAnnotations>(TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer);
-                        updated.Add(candidate);
-                    }
-                }
-                lower = updated;
+                lower = removeFunctionTypes(lower);
             }
 
             // Optimization: if we have one exact bound then we need not add any
@@ -2712,12 +2703,12 @@ OuterBreak:
 
             return best;
 
-            static bool containsFunctionTypes(HashSet<TypeWithAnnotations>? types)
+            static bool containsFunctionTypes([NotNullWhen(true)] HashSet<TypeWithAnnotations>? types)
             {
                 return types?.Any(t => isFunctionType(t, out _)) == true;
             }
 
-            static bool containsNonFunctionTypes(HashSet<TypeWithAnnotations>? types)
+            static bool containsNonFunctionTypes([NotNullWhen(true)] HashSet<TypeWithAnnotations>? types)
             {
                 return types?.Any(t => !isFunctionType(t, out _)) == true;
             }
@@ -2745,6 +2736,20 @@ OuterBreak:
                     }
                 }
                 return false;
+            }
+
+            static HashSet<TypeWithAnnotations>? removeFunctionTypes(HashSet<TypeWithAnnotations> types)
+            {
+                HashSet<TypeWithAnnotations>? updated = null;
+                foreach (var type in types)
+                {
+                    if (!isFunctionType(type, out _))
+                    {
+                        updated ??= new HashSet<TypeWithAnnotations>(TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer);
+                        updated.Add(type);
+                    }
+                }
+                return updated;
             }
         }
 
