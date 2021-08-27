@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundMethodGroupFlags flags,
             Binder binder,
             bool hasErrors = false)
-            : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, signature: CreateSignature(binder, syntax), receiverOpt, lookupResult.Kind, hasErrors)
+            : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, functionType: GetLazyFunctionType(binder, syntax), receiverOpt, lookupResult.Kind, hasErrors)
         {
-            Signature?.SetExpression(this);
+            FunctionType?.SetExpression(this);
         }
 
-        private static FunctionSignature? CreateSignature(Binder binder, SyntaxNode syntax)
+        private static FunctionTypeSymbol.Lazy? GetLazyFunctionType(Binder binder, SyntaxNode syntax)
         {
-            return FunctionSignature.CreateSignatureIfFeatureEnabled(syntax, binder, static (binder, expr) => binder.GetMethodGroupDelegateType((BoundMethodGroup)expr));
+            return FunctionTypeSymbol.Lazy.CreateIfFeatureEnabled(syntax, binder, static (binder, expr) => binder.GetMethodGroupDelegateType((BoundMethodGroup)expr));
         }
 
         public MemberAccessExpressionSyntax? MemberAccessExpressionSyntax

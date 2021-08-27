@@ -8,60 +8,61 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    /// <summary>
-    /// An inferred signature for a lambda expression of method group.
-    /// The actual signature is calculated on demand in <see cref="GetSignatureAsTypeSymbol"/>,
-    /// so a non-null <see cref="FunctionSignature"/> does not necessarily mean a signature could be inferred.
-    /// </summary>
-    internal sealed class FunctionSignature
+    internal sealed partial class FunctionTypeSymbol
     {
-        private readonly Binder _binder;
-        private readonly Func<Binder, BoundExpression, NamedTypeSymbol?> _calculateDelegate;
-
-        private FunctionTypeSymbol? _lazyFunctionType;
-        private BoundExpression? _expression;
-
-        internal static FunctionSignature? CreateSignatureIfFeatureEnabled(SyntaxNode syntax, Binder binder, Func<Binder, BoundExpression, NamedTypeSymbol?> calculateDelegate)
-        {
-            return syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType) ?
-                new FunctionSignature(binder, calculateDelegate) :
-                null;
-        }
-
-        private FunctionSignature(Binder binder, Func<Binder, BoundExpression, NamedTypeSymbol?> calculateDelegate)
-        {
-            _binder = binder;
-            _calculateDelegate = calculateDelegate;
-            _lazyFunctionType = FunctionTypeSymbol.Uninitialized;
-        }
-
-        internal void SetExpression(BoundExpression expression)
-        {
-            Debug.Assert((object?)_lazyFunctionType == FunctionTypeSymbol.Uninitialized);
-            Debug.Assert(_expression is null);
-            Debug.Assert(expression.Kind is BoundKind.MethodGroup or BoundKind.UnboundLambda);
-
-            _expression = expression;
-        }
-
         /// <summary>
-        /// Returns the inferred signature as a <see cref="FunctionTypeSymbol"/> or
-        /// null if the signature could not be inferred.
-        /// The signature is exposed as a <see cref="FunctionTypeSymbol"/> to allow
-        /// conversions and type inference to treat types and signatures similarly.
+        /// A lazily calculated instance of <see cref="FunctionTypeSymbol"/> that represents
+        /// the inferred signature of a lambda expression or method group.
+        /// The actual signature is calculated on demand in <see cref="GetValue()"/>.
         /// </summary>
-        internal FunctionTypeSymbol? GetSignatureAsTypeSymbol()
+        internal sealed class Lazy
         {
-            Debug.Assert(_expression is { });
+            private readonly Binder _binder;
+            private readonly Func<Binder, BoundExpression, NamedTypeSymbol?> _calculateDelegate;
 
-            if ((object?)_lazyFunctionType == FunctionTypeSymbol.Uninitialized)
+            private FunctionTypeSymbol? _lazyFunctionType;
+            private BoundExpression? _expression;
+
+            internal static Lazy? CreateIfFeatureEnabled(SyntaxNode syntax, Binder binder, Func<Binder, BoundExpression, NamedTypeSymbol?> calculateDelegate)
             {
-                var delegateType = _calculateDelegate(_binder, _expression);
-                var functionType = delegateType is null ? null : new FunctionTypeSymbol(delegateType);
-                Interlocked.CompareExchange(ref _lazyFunctionType, functionType, FunctionTypeSymbol.Uninitialized);
+                return syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType) ?
+                    new Lazy(binder, calculateDelegate) :
+                    null;
             }
 
-            return _lazyFunctionType;
+            private Lazy(Binder binder, Func<Binder, BoundExpression, NamedTypeSymbol?> calculateDelegate)
+            {
+                _binder = binder;
+                _calculateDelegate = calculateDelegate;
+                _lazyFunctionType = FunctionTypeSymbol.Uninitialized;
+            }
+
+            internal void SetExpression(BoundExpression expression)
+            {
+                Debug.Assert((object?)_lazyFunctionType == FunctionTypeSymbol.Uninitialized);
+                Debug.Assert(_expression is null);
+                Debug.Assert(expression.Kind is BoundKind.MethodGroup or BoundKind.UnboundLambda);
+
+                _expression = expression;
+            }
+
+            /// <summary>
+            /// Returns the inferred signature as a <see cref="FunctionTypeSymbol"/>
+            /// or null if the signature could not be inferred.
+            /// </summary>
+            internal FunctionTypeSymbol? GetValue()
+            {
+                Debug.Assert(_expression is { });
+
+                if ((object?)_lazyFunctionType == FunctionTypeSymbol.Uninitialized)
+                {
+                    var delegateType = _calculateDelegate(_binder, _expression);
+                    var functionType = delegateType is null ? null : new FunctionTypeSymbol(delegateType);
+                    Interlocked.CompareExchange(ref _lazyFunctionType, functionType, FunctionTypeSymbol.Uninitialized);
+                }
+
+                return _lazyFunctionType;
+            }
         }
     }
 }

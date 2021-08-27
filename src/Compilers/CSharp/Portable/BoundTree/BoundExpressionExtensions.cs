@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(expr.Kind is BoundKind.MethodGroup or BoundKind.UnboundLambda);
 
-            var delegateType = expr.GetSignature()?.GetSignatureAsTypeSymbol()?.GetInternalDelegateType();
+            var delegateType = expr.GetFunctionType()?.GetInternalDelegateType();
             if (delegateType is { })
             {
                 delegateType.AddUseSiteInfo(ref useSiteInfo);
@@ -109,17 +109,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return type;
             }
-            return expr.GetSignature()?.GetSignatureAsTypeSymbol();
+            return expr.GetFunctionType();
         }
 
-        public static FunctionSignature? GetSignature(this BoundExpression expr)
+        public static FunctionTypeSymbol? GetFunctionType(this BoundExpression expr)
         {
-            return expr switch
+            var lazyType = expr switch
             {
-                BoundMethodGroup methodGroup => methodGroup.Signature,
-                UnboundLambda unboundLambda => unboundLambda.Signature,
+                BoundMethodGroup methodGroup => methodGroup.FunctionType,
+                UnboundLambda unboundLambda => unboundLambda.FunctionType,
                 _ => null
             };
+            return lazyType?.GetValue();
         }
 
         public static bool MethodGroupReceiverIsDynamic(this BoundMethodGroup node)

@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 group.LookupSymbolOpt,
                 group.LookupError,
                 group.Flags,
-                group.Signature,
+                group.FunctionType,
                 receiverOpt, //only change
                 group.ResultKind);
         }

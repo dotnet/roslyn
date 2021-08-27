@@ -12,13 +12,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// A <see cref="TypeSymbol"/> implementation that exists only to allow types and function signatures
-    /// to be treated similarly in <see cref="ConversionsBase"/>, <see cref="BestTypeInferrer"/>, and
-    /// <see cref="MethodTypeInferrer"/>. Instances of this type should not be used or observable
-    /// outside of those code paths.
+    /// A <see cref="TypeSymbol"/> implementation that represents the inferred signature of a
+    /// lambda expression or method group. This is implemented as a <see cref="TypeSymbol"/>
+    /// to allow types and function signatures to be treated similarly in <see cref="ConversionsBase"/>,
+    /// <see cref="BestTypeInferrer"/>, and <see cref="MethodTypeInferrer"/>. Instances of this type
+    /// should only be used in those code paths and should not be exposed from the symbol model.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal sealed class FunctionTypeSymbol : TypeSymbol
+    internal sealed partial class FunctionTypeSymbol : TypeSymbol
     {
         internal static readonly FunctionTypeSymbol Uninitialized = new FunctionTypeSymbol(ErrorTypeSymbol.UnknownResultType);
 

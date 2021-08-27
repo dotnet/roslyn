@@ -1853,8 +1853,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (anonymousFunction.Signature is { } signature &&
-                    signature.GetSignatureAsTypeSymbol() is null)
+                if (anonymousFunction.FunctionType is { } functionType &&
+                    functionType.GetValue() is null)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     if (targetType.IsExpressionTree() ||
