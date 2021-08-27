@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                 tables[_owner] = _transformTable.ToImmutableAndFree();
             }
 
-            public void VisitTree(SyntaxNode root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
+            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
             {
                 if (state == EntryState.Removed)
                 {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
                     ImmutableArray<SyntaxNode> nodes;
                     if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(out nodes))
                     {
-                        nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root, _owner._filterFunc, cancellationToken);
+                        nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
                         _filterTable.AddEntries(nodes, EntryState.Added);
                     }
 

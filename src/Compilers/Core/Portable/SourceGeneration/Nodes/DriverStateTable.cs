@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
                         // update each tree for the builders, sharing the semantic model
                         foreach ((var tree, var state) in GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
                         {
-                            var root = tree.GetRoot(_cancellationToken);
+                            var root = new Lazy<SyntaxNode>(() => tree.GetRoot(_cancellationToken));
                             var model = state != EntryState.Removed ? Compilation.GetSemanticModel(tree) : null;
                             for (int i = 0; i < builders.Count; i++)
                             {
