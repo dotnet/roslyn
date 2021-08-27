@@ -24,13 +24,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly object s_gate = new();
         private static Task s_indexingTask = Task.CompletedTask;
 
-        public static async Task WarmUpCacheAsync(Document? document, CancellationToken cancellationToken)
+        public static async Task WarmUpCacheAsync(Document document, CancellationToken cancellationToken)
         {
-            if (document is null)
-            {
-                return;
-            }
-
             var project = document.Project;
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)

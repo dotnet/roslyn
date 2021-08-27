@@ -63,27 +63,42 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     // Make sure we don't capture the entire snapshot
                     var documentId = document.Id;
 
-                    _typeTask = _typeTask.ContinueWith(_ => PopulateTypeImportCompletionCacheAsync(this.Workspace.CurrentSolution.GetDocument(documentId)), TaskScheduler.Default);
-                    _extensionMethodTask = _extensionMethodTask.ContinueWith(_ => PopulateExtensionMethodImportCompletionCacheAsync(this.Workspace.CurrentSolution.GetDocument(documentId)), TaskScheduler.Default);
+                    _typeTask = _typeTask.ContinueWith(_ => PopulateTypeImportCompletionCacheAsync(this.Workspace, documentId), TaskScheduler.Default);
+                    _extensionMethodTask = _extensionMethodTask.ContinueWith(_ => PopulateExtensionMethodImportCompletionCacheAsync(this.Workspace, documentId), TaskScheduler.Default);
                 }
 
                 return Task.WhenAll(_typeTask, _extensionMethodTask);
             }
 
-            // Since we are running in the background, intentionally not use a frozen document
-            // with partial semantic in the local functions below so we will get cache up-to-date sooner.
-
-            static Task PopulateTypeImportCompletionCacheAsync(Document? document)
+            static async Task PopulateTypeImportCompletionCacheAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken = default)
             {
+                var document = workspace.CurrentSolution.GetDocument(documentId);
                 if (document is null)
-                    return Task.CompletedTask;
+                    return;
 
                 var service = document.GetRequiredLanguageService<ITypeImportCompletionService>();
-                return service.WarmUpCacheAsync(document.Project, CancellationToken.None);
+
+                // First use partial semantic to build mostly correct cache fast
+                var partialDocument = document.WithFrozenPartialSemantics(cancellationToken);
+                await service.WarmUpCacheAsync(partialDocument.Project, CancellationToken.None).ConfigureAwait(false);
+
+                // Then try to update the cache with full semantic
+                await service.WarmUpCacheAsync(document.Project, CancellationToken.None).ConfigureAwait(false);
             }
 
-            static Task PopulateExtensionMethodImportCompletionCacheAsync(Document? document)
-                => ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None);
+            static async Task PopulateExtensionMethodImportCompletionCacheAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken = default)
+            {
+                var document = workspace.CurrentSolution.GetDocument(documentId);
+                if (document is null)
+                    return;
+
+                // First use partial semantic to build mostly correct cache fast
+                var partialDocument = document.WithFrozenPartialSemantics(cancellationToken);
+                await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(partialDocument, cancellationToken).ConfigureAwait(false);
+
+                // Then try to update the cache with full semantic
+                await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
