@@ -2202,6 +2202,113 @@ static class E2
                 Diagnostic(ErrorCode.ERR_BogusType, "() => 1").WithArguments("System.Linq.Expressions.Expression<T>").WithLocation(5, 48));
         }
 
+        // Expression<T> not derived from Expression.
+        private static MetadataReference GetCorlibWithExpressionOfTNotDerivedType()
+        {
+            var sourceA =
+@".assembly mscorlib
+{
+  .ver 0:0:0:0
+}
+.class public System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.ValueType extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public System.String extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public System.Type extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Void extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Boolean extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Int32 extends System.ValueType
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.Delegate extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.MulticastDelegate extends System.Delegate
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Func`1<T> extends System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+  .method public hidebysig instance !T Invoke() { ldnull throw }
+}
+.class public abstract System.Linq.Expressions.Expression extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public abstract System.Linq.Expressions.LambdaExpression extends System.Linq.Expressions.Expression
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.class public sealed System.Linq.Expressions.Expression`1<T> extends System.Object
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}";
+            return CompileIL(sourceA, prependDefaultHeader: false, autoInherit: false);
+        }
+
+        [Fact]
+        public void SystemLinqExpressionsExpression_NotDerivedType_01()
+        {
+            var refA = GetCorlibWithExpressionOfTNotDerivedType();
+
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+        System.Linq.Expressions.Expression e = () => 1;
+    }
+}";
+
+            var comp = CreateEmptyCompilation(sourceB, new[] { refA });
+            comp.VerifyDiagnostics(
+                // (5,48): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                //         System.Linq.Expressions.Expression e = () => 1;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(5, 48));
+        }
+
+        [Fact]
+        public void SystemLinqExpressionsExpression_NotDerivedType_02()
+        {
+            var refA = GetCorlibWithExpressionOfTNotDerivedType();
+
+            var sourceB =
+@"class Program
+{
+    static T F<T>(T t) where T : System.Linq.Expressions.Expression => t;
+    static void Main()
+    {
+        var e = F(() => 1);
+    }
+}";
+
+            var comp = CreateEmptyCompilation(sourceB, new[] { refA });
+            comp.VerifyDiagnostics(
+                // (6,17): error CS0311: The type 'System.Linq.Expressions.Expression<System.Func<int>>' cannot be used as type parameter 'T' in the generic type or method 'Program.F<T>(T)'. There is no implicit reference conversion from 'System.Linq.Expressions.Expression<System.Func<int>>' to 'System.Linq.Expressions.Expression'.
+                //         var e = F(() => 1);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "F").WithArguments("Program.F<T>(T)", "System.Linq.Expressions.Expression", "T", "System.Linq.Expressions.Expression<System.Func<int>>").WithLocation(6, 17));
+        }
+
         [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
         public void OverloadResolution_01()
