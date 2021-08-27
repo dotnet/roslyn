@@ -5,13 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
 {
@@ -60,21 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                     }
                 }
             }
-        }
-
-        protected override SyntaxNode? ExtractSingleVariableFromFieldDeclaration(SyntaxNode root, int location)
-        {
-            var token = root.FindToken(location);
-            if (token.Parent != null)
-            {
-                var baseFieldNode = token.Parent.FirstAncestorOrSelf<BaseFieldDeclarationSyntax>();
-                if (baseFieldNode is { Declaration: { Variables: { Count: 1 } } } && !baseFieldNode.AttributeLists.Span.Contains(location))
-                {
-                    return baseFieldNode.Declaration.Variables[0];
-                }
-            }
-
-            return null;
         }
     }
 }

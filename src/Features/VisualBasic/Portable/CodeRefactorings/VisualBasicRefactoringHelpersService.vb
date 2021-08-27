@@ -7,8 +7,6 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports System.Diagnostics.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     <ExportLanguageService(GetType(IRefactoringHelpersService), LanguageNames.VisualBasic), [Shared]>
@@ -58,22 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
 
         Public Shared Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean
             Return (TypeOf node Is ModifiedIdentifierSyntax) AndAlso (TypeOf node.Parent Is ParameterSyntax) AndAlso (CType(node.Parent, ParameterSyntax).Identifier Is node)
-        End Function
-
-        Protected Overrides Function ExtractSingleVariableFromFieldDeclaration(root As SyntaxNode, location As Integer) As SyntaxNode
-            Dim node = root.FindToken(location).Parent
-
-            If node IsNot Nothing Then
-                Dim fieldDeclarationNode = node.FirstAncestorOrSelf(Of FieldDeclarationSyntax)
-                If fieldDeclarationNode IsNot Nothing AndAlso fieldDeclarationNode.Declarators.Count = 1 AndAlso Not fieldDeclarationNode.AttributeLists.Span.Contains(location) Then
-                    Dim declarator = fieldDeclarationNode.Declarators(0)
-                    If declarator.Names.Count = 1 Then
-                        Return declarator.Names(0)
-                    End If
-                End If
-            End If
-
-            Return Nothing
         End Function
     End Class
 End Namespace
