@@ -6,11 +6,14 @@ Imports System.Collections.Immutable
 Imports System.ComponentModel
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Public Class VisualBasicGeneratorDriver
         Inherits GeneratorDriver
+
+        'Private Shared ReadOnly Gene
 
         Private Sub New(state As GeneratorDriverState)
             MyBase.New(state)
@@ -23,6 +26,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides ReadOnly Property MessageProvider As CommonMessageProvider
             Get
                 Return VisualBasic.MessageProvider.Instance
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property SyntaxHelper As GeneratorSyntaxHelper
+            Get
+                Return Nothing 'VisualBasic.MessageProvider.Instance
             End Get
         End Property
 
@@ -47,7 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function CreateSourcesCollection() As AdditionalSourcesCollection
             Return New AdditionalSourcesCollection(".vb")
         End Function
-
     End Class
 
 End Namespace

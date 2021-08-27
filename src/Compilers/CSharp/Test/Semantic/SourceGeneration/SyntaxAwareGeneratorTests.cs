@@ -1814,6 +1814,41 @@ class C { }
             Assert.True(generatorCancelled);
         }
 
+        [Fact]
+        public void Scratch()
+        {
+
+            var source = @"
+class MyAttribute : System.Attribute {}
+
+[MyAttribute]
+class C 
+{
+
+    [return: MyAttribute]
+    public bool M<[MyAttribute] T>(){ return true;}
+}
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.First();
+            var node = tree.GetRoot().DescendantNodes().First(n => n.IsKind(SyntaxKind.Attribute));
+
+            //CSharpGeneratorSyntaxHelper helper = new();
+            //helper.TryGetAttributeData("MyAttribute", node, compilation.GetSemanticModel(tree), CancellationToken.None, out var attributedSyntax, out var data);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.SyntaxProviderFactory.FromAttribute("MyAttribute", (attributeContext, ct) => attributeContext.Node), (spc, s) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics);
+            var results = driver.GetRunResult();
+        }
+
         private class TestReceiverBase<T>
         {
             private readonly Action<T>? _callback;

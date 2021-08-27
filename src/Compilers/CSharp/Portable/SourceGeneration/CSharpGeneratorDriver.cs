@@ -8,6 +8,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Linq;
 using System.ComponentModel;
+using Microsoft.CodeAnalysis.PooledObjects;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     public sealed class CSharpGeneratorDriver : GeneratorDriver
     {
+        private static readonly CSharpGeneratorSyntaxHelper s_syntaxHelper = new CSharpGeneratorSyntaxHelper();
+
         /// <summary>
         /// Creates a new instance of <see cref="CSharpGeneratorDriver"/>
         /// </summary>
@@ -73,6 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override CommonMessageProvider MessageProvider => CSharp.MessageProvider.Instance;
 
+        internal override GeneratorSyntaxHelper SyntaxHelper => s_syntaxHelper;
+
         internal override AdditionalSourcesCollection CreateSourcesCollection() => new AdditionalSourcesCollection(".cs");
+
     }
 }

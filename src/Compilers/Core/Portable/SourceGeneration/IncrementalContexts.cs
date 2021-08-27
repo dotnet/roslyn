@@ -19,14 +19,16 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ArrayBuilder<ISyntaxInputNode> _syntaxInputBuilder;
         private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
+        private readonly GeneratorSyntaxHelper _syntaxHelper;
 
-        internal IncrementalGeneratorInitializationContext(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes)
+        internal IncrementalGeneratorInitializationContext(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, GeneratorSyntaxHelper syntaxHelper)
         {
             _syntaxInputBuilder = syntaxInputBuilder;
             _outputNodes = outputNodes;
+            _syntaxHelper = syntaxHelper;
         }
 
-        public SyntaxProviderFactory SyntaxProviderFactory => new SyntaxProviderFactory(_syntaxInputBuilder, RegisterOutput);
+        public SyntaxProviderFactory SyntaxProviderFactory => new SyntaxProviderFactory(_syntaxInputBuilder, RegisterOutput, _syntaxHelper);
 
         public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput));
 
@@ -132,6 +134,34 @@ namespace Microsoft.CodeAnalysis
         /// The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="Compilation"/> settings.
         /// </remarks>
         public void ReportDiagnostic(Diagnostic diagnostic) => Diagnostics.Add(diagnostic);
+    }
+
+    /// <summary>
+    /// Context passed to <see cref="SyntaxProviderFactory.FromAttribute{TResult}(string, Func{GeneratorSyntaxAttributeContext, CancellationToken, TResult})"/>
+    /// </summary>
+    public struct GeneratorSyntaxAttributeContext
+    {
+        internal GeneratorSyntaxAttributeContext(string attributeFQN, SyntaxNode node, SemanticModel semanticModel, AttributeData attributeData)
+        {
+            Node = node;
+            SemanticModel = semanticModel;
+            AttributeData = attributeData;
+        }
+
+        /// <summary>
+        /// The <see cref="SyntaxNode"/> the attribute is attached to
+        /// </summary>
+        public SyntaxNode Node { get; }
+
+        /// <summary>
+        /// The <see cref="CodeAnalysis.SemanticModel" /> that can be queried to obtain information about <see cref="Node"/>.
+        /// </summary>
+        public SemanticModel SemanticModel { get; }
+
+        /// <summary>
+        /// The <see cref="AttributeData"/> for the discovered attribute.
+        /// </summary>
+        public AttributeData AttributeData { get; }
     }
 
     // https://github.com/dotnet/roslyn/issues/53608 right now we only support generating source + diagnostics, but actively want to support generation of other things

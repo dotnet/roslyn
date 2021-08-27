@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
                     var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
                     var inputBuilder = ArrayBuilder<ISyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
-                    var pipelineContext = new IncrementalGeneratorInitializationContext(inputBuilder, outputBuilder);
+                    var pipelineContext = new IncrementalGeneratorInitializationContext(inputBuilder, outputBuilder, SyntaxHelper);
 
                     Exception? ex = null;
                     try
@@ -349,6 +349,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal abstract CommonMessageProvider MessageProvider { get; }
+
+        internal abstract GeneratorSyntaxHelper SyntaxHelper { get; }
 
         internal abstract GeneratorDriver FromState(GeneratorDriverState state);
 

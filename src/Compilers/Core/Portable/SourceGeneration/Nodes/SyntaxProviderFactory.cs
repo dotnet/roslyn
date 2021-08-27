@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,11 +17,13 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly ArrayBuilder<ISyntaxInputNode> _inputNodes;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
+        private readonly GeneratorSyntaxHelper _syntaxHelper;
 
-        internal SyntaxProviderFactory(ArrayBuilder<ISyntaxInputNode> inputNodes, Action<IIncrementalGeneratorOutputNode> registerOutput)
+        internal SyntaxProviderFactory(ArrayBuilder<ISyntaxInputNode> inputNodes, Action<IIncrementalGeneratorOutputNode> registerOutput, GeneratorSyntaxHelper syntaxHelper)
         {
             _inputNodes = inputNodes;
             _registerOutput = registerOutput;
+            _syntaxHelper = syntaxHelper;
         }
 
         /// <summary>
@@ -35,6 +38,28 @@ namespace Microsoft.CodeAnalysis
             // registration of the input is deferred until we know the node is used
             return new IncrementalValuesProvider<TResult>(new SyntaxInputNode<TResult>(predicate.WrapUserFunction(), transform.WrapUserFunction(), RegisterOutputAndDeferredInput));
         }
+
+        public IncrementalValuesProvider<TResult> FromAttribute<TResult>(string attributeFQN, Func<GeneratorSyntaxAttributeContext, CancellationToken, TResult> transform)
+        {
+            // CONSIDER: For now we just create a regular syntax input node with custom predicates.
+            //           In the future we may consider implementing a custom node type.
+
+            var helper = _syntaxHelper;
+            return new IncrementalValuesProvider<TResult>(new SyntaxInputNode<TResult>((n, _) => helper.IsAttribute(n), attributeTransformFunc, RegisterOutputAndDeferredInput)).Where(r => r is not null);
+
+            TResult attributeTransformFunc(GeneratorSyntaxContext context, CancellationToken cancellationToken)
+            {
+                if (!helper.TryGetAttributeData(attributeFQN, context.Node, context.SemanticModel, cancellationToken, out var attributedSyntaxNode, out var attributeData))
+                {
+                    // we will filter this later on before the user sees it
+                    return default!;
+                }
+
+                var attributeContext = new GeneratorSyntaxAttributeContext(attributeFQN, attributedSyntaxNode, context.SemanticModel, attributeData);
+                return transform.WrapUserFunction()(attributeContext, cancellationToken);
+            }
+        }
+
 
         /// <summary>
         /// Creates a syntax receiver input node. Only used for back compat in <see cref="SourceGeneratorAdaptor"/>
