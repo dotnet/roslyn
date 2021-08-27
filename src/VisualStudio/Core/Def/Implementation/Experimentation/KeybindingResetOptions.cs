@@ -28,22 +28,15 @@ namespace Microsoft.CodeAnalysis.Experimentation
             nameof(NeverShowAgain), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(NeverShowAgain)));
 
-        // experiment control switches:
-
-        public static readonly Option<bool> ExternalFlightEnabled = new(nameof(KeybindingResetOptions),
-            nameof(ExternalFlightEnabled), defaultValue: false,
-            storageLocations: new ExperimentSwitchStorageLocation("keybindgoldbarext"));
-
-        public static readonly Option<bool> InternalFlightEnabled = new(nameof(KeybindingResetOptions),
-            nameof(ExternalFlightEnabled), defaultValue: false,
-            storageLocations: new ExperimentSwitchStorageLocation("keybindgoldbarint"));
+        public static readonly Option<bool> EnabledFeatureFlag = new(nameof(KeybindingResetOptions),
+            nameof(EnabledFeatureFlag), defaultValue: false,
+            storageLocations: new FeatureFlagStorageLocation("KeybindingResetEnabled"));
 
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             ReSharperStatus,
             NeedsReset,
             NeverShowAgain,
-            ExternalFlightEnabled,
-            InternalFlightEnabled);
+            EnabledFeatureFlag);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

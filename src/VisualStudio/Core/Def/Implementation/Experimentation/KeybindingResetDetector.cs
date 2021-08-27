@@ -105,8 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             AssertIsForeground();
 
             // Ensure one of the flights is enabled, otherwise bail
-            if (!_workspace.Options.GetOption(KeybindingResetOptions.ExternalFlightEnabled) &&
-                !_workspace.Options.GetOption(KeybindingResetOptions.InternalFlightEnabled))
+            if (!_workspace.Options.GetOption(KeybindingResetOptions.EnabledFeatureFlag))
             {
                 return;
             }
@@ -229,9 +228,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             }
 
             _infoBarOpen = true;
-
-            Debug.Assert(_workspace.Options.GetOption(KeybindingResetOptions.ExternalFlightEnabled) ||
-                         _workspace.Options.GetOption(KeybindingResetOptions.InternalFlightEnabled));
 
             var message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
             KeybindingsResetLogger.Log("InfoBarShown");
