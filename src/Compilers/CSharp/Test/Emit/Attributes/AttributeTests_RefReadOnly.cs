@@ -2421,6 +2421,58 @@ public class Test
         }
 
         [Fact]
+        public void EmitAttribute_Lambda_NetModule()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var f1 = (in int x, ref int y) => { };
+        int x = 1;
+        int y = 2;
+        f1(x, ref y);
+        var f2 = (ref readonly int () => throw null);
+        f2();
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+            comp.VerifyDiagnostics(
+                // (5,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsReadOnlyAttribute' is not defined or imported
+                //         var f1 = (in int x, ref int y) => { };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in int x").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(5, 19),
+                // (9,39): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsReadOnlyAttribute' is not defined or imported
+                //         var f2 = (ref readonly int () => throw null);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "=>").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(9, 39));
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunction_NetModule()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        void L1(ref int x, in int y) { };
+        int x = 1;
+        int y = 2;
+        L1(ref x, y);
+        ref readonly int L2() => throw null;
+        L2();
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+            comp.VerifyDiagnostics(
+                // (5,28): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsReadOnlyAttribute' is not defined or imported
+                //         void L1(ref int x, in int y) { };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "in int y").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(5, 28),
+                // (9,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsReadOnlyAttribute' is not defined or imported
+                //         ref readonly int L2() => throw null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(9, 9));
+        }
+
+        [Fact]
         public void EmitAttribute_Lambda_MissingAttributeConstructor()
         {
             var sourceA =

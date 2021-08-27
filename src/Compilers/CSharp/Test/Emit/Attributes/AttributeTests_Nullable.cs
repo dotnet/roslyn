@@ -2302,6 +2302,60 @@ class B
                 });
         }
 
+        [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
+        [Fact]
+        public void EmitAttribute_Lambda_NetModule()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+#nullable enable
+        var a1 = (object x) => { };
+        a1(1);
+        var a2 = string?[] () => null!;
+        a2();
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+            // https://github.com/dotnet/roslyn/issues/36736: Not reporting missing NullableContextAttribute.
+            comp.VerifyDiagnostics(
+                // (6,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         var a1 = (object x) => { };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object x").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(6, 19),
+                // (8,31): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         var a2 = string?[] () => null!;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "=>").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(8, 31));
+        }
+
+        [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
+        [Fact]
+        public void EmitAttribute_LocalFunction_NetModule()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+#nullable enable
+        void L1(object? x) { }
+        L1(null);
+        string[]? L2() => null;
+        L2();
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+            // https://github.com/dotnet/roslyn/issues/36736: Not reporting missing NullableContextAttribute.
+            comp.VerifyDiagnostics(
+                // (6,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         void L1(object? x) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object? x").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(6, 17),
+                // (8,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                //         string[]? L2() => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string[]?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(8, 9));
+        }
+
         [Fact]
         public void EmitAttribute_Lambda_MissingNullableAttributeConstructor()
         {
@@ -2335,35 +2389,6 @@ class B
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "=>").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(8, 31));
         }
 
-        [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
-        [Fact]
-        public void EmitAttribute_Lambda_MissingNullableContextAttributeConstructor()
-        {
-            var sourceA =
-@"namespace System.Runtime.CompilerServices
-{
-    public class NullableContextAttribute : Attribute
-    {
-        private NullableContextAttribute() { }
-    }
-}";
-            var sourceB =
-@"class Program
-{
-    static void Main()
-    {
-#nullable enable
-        var a1 = (object x) => { };
-        a1(1);
-        var a2 = string?[] () => null!;
-        a2();
-    }
-}";
-            var comp = CreateCompilation(new[] { sourceA, sourceB });
-            // https://github.com/dotnet/roslyn/issues/36736: Not reporting missing NullableContextAttribute constructor.
-            comp.VerifyDiagnostics();
-        }
-
         [Fact]
         public void EmitAttribute_LocalFunction_MissingNullableAttributeConstructor()
         {
@@ -2395,6 +2420,35 @@ class B
                 // (8,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableAttribute..ctor'
                 //         string[]? L2() => null;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "string[]?").WithArguments("System.Runtime.CompilerServices.NullableAttribute", ".ctor").WithLocation(8, 9));
+        }
+
+        [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]
+        [Fact]
+        public void EmitAttribute_Lambda_MissingNullableContextAttributeConstructor()
+        {
+            var sourceA =
+@"namespace System.Runtime.CompilerServices
+{
+    public class NullableContextAttribute : Attribute
+    {
+        private NullableContextAttribute() { }
+    }
+}";
+            var sourceB =
+@"class Program
+{
+    static void Main()
+    {
+#nullable enable
+        var a1 = (object x) => { };
+        a1(1);
+        var a2 = string?[] () => null!;
+        a2();
+    }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB });
+            // https://github.com/dotnet/roslyn/issues/36736: Not reporting missing NullableContextAttribute constructor.
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(36736, "https://github.com/dotnet/roslyn/issues/36736")]

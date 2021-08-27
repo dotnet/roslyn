@@ -1158,6 +1158,54 @@ class Program
         }
 
         [Fact]
+        public void EmitAttribute_Lambda_NetModule()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var a1 = (nint n) => { };
+        a1(1);
+        var a2 = nuint[] () => null;
+        a2();
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+            comp.VerifyDiagnostics(
+                // (5,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NativeIntegerAttribute' is not defined or imported
+                //         var a1 = (nint n) => { };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint n").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(5, 19),
+                // (7,29): error CS0518: Predefined type 'System.Runtime.CompilerServices.NativeIntegerAttribute' is not defined or imported
+                //         var a2 = nuint[] () => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "=>").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(7, 29));
+        }
+
+        [Fact]
+        public void EmitAttribute_LocalFunction_NetModule()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        void L1(nint n) { };
+        L1(1);
+        nuint[] L2() => null;
+        L2();
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseModule);
+            comp.VerifyDiagnostics(
+                // (5,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.NativeIntegerAttribute' is not defined or imported
+                //         void L1(nint n) { };
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint n").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(5, 17),
+                // (7,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.NativeIntegerAttribute' is not defined or imported
+                //         nuint[] L2() => null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nuint[]").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(7, 9));
+        }
+
+        [Fact]
         public void EmitAttribute_Lambda_MissingAttributeConstructor()
         {
             var sourceA =
