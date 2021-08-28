@@ -9,6 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal interface ISupportsNavigation
     {
-        Task<bool> TryNavigateToAsync(bool isPreview, CancellationToken cancellationToken);
+        bool CanNavigateTo();
+        Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken);
     }
 }

@@ -59,16 +59,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 var supportsNavigation = entry.Identity as ISupportsNavigation ??
                     (entry.TryGetValue(StreamingFindUsagesPresenter.SelfKeyName, out var item) ? item as ISupportsNavigation : null);
-                if (supportsNavigation == null)
+                if (supportsNavigation != null &&
+                    supportsNavigation.CanNavigateTo())
                 {
-                    base.PreprocessNavigate(entry, e);
-                    return;
+                    // Fire and forget
+                    e.Handled = true;
+                    _ = ProcessNavigateAsync(supportsNavigation, e, _listener, _operationExecutor);
                 }
 
-                // Fire and forget
-                e.Handled = true;
-                _ = ProcessNavigateAsync(supportsNavigation, e, _listener, _operationExecutor);
-
+                base.PreprocessNavigate(entry, e);
                 return;
 
                 async static Task ProcessNavigateAsync(
@@ -83,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         allowCancellation: true,
                         showProgress: false);
 
-                    await supportsNavigation.TryNavigateToAsync(e.IsPreview, context.UserCancellationToken).ConfigureAwait(false);
+                    await supportsNavigation.NavigateToAsync(e.IsPreview, context.UserCancellationToken).ConfigureAwait(false);
                 }
             }
         }

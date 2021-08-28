@@ -34,13 +34,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return null;
             }
 
-            Task<bool> ISupportsNavigation.TryNavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+            public bool CanNavigateTo()
+                => true;
+
+            public Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
                 => DefinitionBucket.DefinitionItem.TryNavigateToAsync(
                     Presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview, cancellationToken); // Only activate the tab if not opening in preview
 
             protected override IList<Inline> CreateLineTextInlines()
                 => DefinitionBucket.DefinitionItem.DisplayParts
-                .ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);
+                    .ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);
         }
     }
 }
