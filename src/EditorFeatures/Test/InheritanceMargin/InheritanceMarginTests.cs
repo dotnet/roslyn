@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         private static async Task VerifyInheritanceMemberAsync(TestWorkspace testWorkspace, TestInheritanceMemberItem expectedItem, InheritanceMarginItem actualItem)
         {
             Assert.Equal(expectedItem.LineNumber, actualItem.LineNumber);
-            Assert.Equal(expectedItem.MemberName, actualItem.DisplayTexts.JoinText());
+            Assert.Equal(expectedItem.MemberName, actualItem.TaggedTexts.JoinText());
             Assert.Equal(expectedItem.Targets.Length, actualItem.TargetItems.Length);
             var expectedTargets = expectedItem.Targets
                 .Select(info => TestInheritanceTargetItem.Create(info, testWorkspace))

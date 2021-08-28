@@ -60,6 +60,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// <summary>
         /// Implmenting member for member in interface. Shown as I↓
         /// </summary>
-        ImplementingMember = 256
+        ImplementingMember = 256,
     }
 }
