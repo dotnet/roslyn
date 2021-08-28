@@ -160,6 +160,11 @@ static class C { }";
 
             // Make sure we're returned SemanticTokens instead of SemanticTokensEdits.
             Assert.True(results.Value is LSP.SemanticTokens);
+
+            // The returned result should now be in the cache and should be of the LSP.SemanticTokensDelta type.
+            var cachedResults = await RunGetSemanticTokensEditsAsync(
+                testLspServer, caretLocation, previousResultId: ((LSP.SemanticTokens)results).ResultId!);
+            Assert.True(cachedResults.Value is LSP.SemanticTokensDelta);
         }
 
         [Fact]

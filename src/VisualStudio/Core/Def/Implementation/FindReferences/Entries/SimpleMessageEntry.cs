@@ -44,8 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 };
             }
 
-            public bool TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
-                => _navigationBucket != null && _navigationBucket.TryNavigateTo(isPreview, cancellationToken);
+            public async Task<bool> TryNavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+                => _navigationBucket != null && await _navigationBucket.TryNavigateToAsync(isPreview, cancellationToken).ConfigureAwait(false);
         }
     }
 }

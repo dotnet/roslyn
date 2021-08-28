@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -387,11 +388,16 @@ using G=   H.I;
                     editorAdaptersFactoryService:=Nothing,
                     workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
 
+                Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
+                Dim options = Await document.GetOptionsAsync(CancellationToken.None).ConfigureAwait(false)
+
+                options = options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst)
+
                 Dim updatedDocument = expansionClient.AddImports(
-                    workspace.CurrentSolution.Projects.Single().Documents.Single(),
+                    document,
+                    options,
                     If(position, 0),
                     snippetNode,
-                    placeSystemNamespaceFirst,
                     allowInHiddenRegions:=False,
                     CancellationToken.None)
 

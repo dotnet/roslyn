@@ -97,7 +97,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
             // response. (Since the full load might take a long time)
             // We also subscribe to CompilationAvailableTaggerEventSource, so this will finally reach the correct state.
-            var inheritanceMarginInfoService = document.WithFrozenPartialSemantics(cancellationToken).GetLanguageService<IInheritanceMarginService>();
+            document = document.WithFrozenPartialSemantics(cancellationToken);
+            var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
             if (inheritanceMarginInfoService == null)
             {
                 return;

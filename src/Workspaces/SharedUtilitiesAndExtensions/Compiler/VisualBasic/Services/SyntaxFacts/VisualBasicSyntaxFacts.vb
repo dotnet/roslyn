@@ -1486,6 +1486,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, ParameterSyntax).Identifier.Identifier
         End Function
 
+        Public Function GetIdentifierOfTypeDeclaration(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfTypeDeclaration
+            Select Case node.Kind()
+                Case SyntaxKind.EnumStatement,
+                     SyntaxKind.StructureStatement,
+                     SyntaxKind.InterfaceStatement,
+                     SyntaxKind.ClassStatement,
+                     SyntaxKind.ModuleStatement
+                    Return DirectCast(node, TypeStatementSyntax).Identifier
+
+                Case SyntaxKind.DelegateSubStatement,
+                     SyntaxKind.DelegateFunctionStatement
+                    Return DirectCast(node, DelegateStatementSyntax).Identifier
+            End Select
+
+            Throw ExceptionUtilities.UnexpectedValue(node)
+        End Function
+
         Public Function GetIdentifierOfIdentifierName(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfIdentifierName
             Return DirectCast(node, IdentifierNameSyntax).Identifier
         End Function
