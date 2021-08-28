@@ -105,8 +105,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 Return Nothing
             End Function
 
-            Private Async Function GetDeclarationsAsync(Of T As SyntaxNode)(symbol As ISymbol) As Task(Of List(Of T))
-                Dim list = New List(Of T)()
+            Private Async Function GetDeclarationsAsync(Of T As SyntaxNode)(symbol As ISymbol) As Task(Of ImmutableArray(Of T))
+                Dim list = PooledObjects.ArrayBuilder(Of T).GetInstance
                 For Each syntaxRef In symbol.DeclaringSyntaxReferences
                     Dim syntax = Await syntaxRef.GetSyntaxAsync(Me.CancellationToken).ConfigureAwait(False)
                     Dim casted = TryCast(syntax, T)
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                     End If
                 Next
 
-                Return list
+                Return list.ToImmutableAndFree
             End Function
 
             Private Overloads Async Function GetInitializerSourcePartsAsync(symbol As IParameterSymbol) As Task(Of ImmutableArray(Of SymbolDisplayPart))
