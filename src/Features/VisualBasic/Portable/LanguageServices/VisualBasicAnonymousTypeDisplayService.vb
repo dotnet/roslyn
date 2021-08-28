@@ -62,9 +62,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
         End Function
 
         Private Shared Function MassageDelegateParts(delegateInvoke As IMethodSymbol,
-                                              parts As IEnumerable(Of SymbolDisplayPart)) As IEnumerable(Of SymbolDisplayPart)
+                                              parts As IEnumerable(Of SymbolDisplayPart)) As ImmutableArray(Of SymbolDisplayPart)
             ' So ugly.  We remove the 'Invoke' name that was added by the symbol display service.
-            Dim result = New List(Of SymbolDisplayPart)
+            Dim result = ArrayBuilder(Of SymbolDisplayPart).GetInstance()
             For Each part In parts
                 If Equals(part.Symbol, delegateInvoke) Then
                     Continue For
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 result.RemoveAt(1)
             End If
 
-            Return result
+            Return result.ToImmutableAndFree()
         End Function
 
         Private Shared Function GetNormalAnonymousType(
