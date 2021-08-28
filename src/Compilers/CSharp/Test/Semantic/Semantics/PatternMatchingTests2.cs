@@ -3023,23 +3023,39 @@ class C
         public void SharedWhenExpression_SwitchExpression()
         {
             var source = @"
-M(Position.Last, new Wrap { Sub = new Zero() });
-M(Position.Last, new Wrap { Sub = new One() });
-M(Position.Last, new Wrap { Sub = new Two() });
-M(Position.First, new Wrap { Sub = new Zero() });
-M(Position.Last, new Wrap { Sub = new object() });
-
-static void M(Position position, Wrap wrap)
+int count = 0;
+foreach (var position in new[] { Position.First, Position.Last })
 {
-    var text = position switch
+    foreach (var wrap in new[] { new Wrap { Sub = new Zero() }, new Wrap { Sub = new One() }, new Wrap { Sub = new Two() }, new Wrap { Sub = new object() } })
+    {
+        count++;
+        if (M(position, wrap) != M2(position, wrap))
+            throw null;
+    }
+}
+
+System.Console.Write(count);
+
+static string M(Position position, Wrap wrap)
+{
+    return position switch
     {
         not Position.First when wrap.Sub is Zero => ""Not First and Zero"",
         _ when wrap is { Sub: One or Two } => ""One or Two"",
         Position.First => ""First"",
         _ => ""Other""
     };
+}
 
-    System.Console.WriteLine((position, wrap.Sub, text));
+static string M2(Position position, Wrap wrap)
+{
+    if (position is not Position.First && wrap.Sub is Zero)
+        return ""Not First and Zero"";
+    if (wrap is { Sub: One or Two })
+        return ""One or Two"";
+    if (position is Position.First)
+        return ""First"";
+    return ""Other"";
 }
 
 enum Position
@@ -3058,12 +3074,7 @@ class Wrap
 }
 ";
 
-            CompileAndVerify(source, expectedOutput: @"
-(Last, Zero, Not First and Zero)
-(Last, One, One or Two)
-(Last, Two, One or Two)
-(First, Zero, First)
-(Last, System.Object, Other)");
+            CompileAndVerify(source, expectedOutput: "8");
         }
 
         [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
