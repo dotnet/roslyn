@@ -3227,9 +3227,6 @@ class Test : Base
                 // (11,21): error CS0122: 'Base.P' is inaccessible due to its protection level
                 //         object o = (P p) => 0;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P").WithArguments("Base.P"),
-                // (11,20): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
-                //         object o = (P p) => 0;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(P p) => 0").WithArguments("lambda expression", "object"),
                 // (12,17): error CS0122: 'Base.P' is inaccessible due to its protection level
                 //         int x = P.X;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P").WithArguments("Base.P"),
@@ -18150,25 +18147,7 @@ x = typeof((int a, int b)); // 5
 x = typeof((int a, string? b)); // 6
 x = typeof(ValueTuple<int, int>); // ok
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,9): warning CS8959: Type 'List<dynamic>' cannot be used in this context because it cannot be represented in metadata.
-                // var x = typeof(List<dynamic>); // 1
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(List<dynamic>)").WithArguments("List<dynamic>").WithLocation(7, 9),
-                // (8,5): warning CS8959: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
-                // x = typeof(nint); // 2
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(nint)").WithArguments("nint").WithLocation(8, 5),
-                // (9,5): warning CS8959: Type 'List<nint>' cannot be used in this context because it cannot be represented in metadata.
-                // x = typeof(List<nint>); // 3
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(List<nint>)").WithArguments("List<nint>").WithLocation(9, 5),
-                // (10,5): warning CS8959: Type 'List<string?>' cannot be used in this context because it cannot be represented in metadata.
-                // x = typeof(List<string?>); // 4
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(List<string?>)").WithArguments("List<string?>").WithLocation(10, 5),
-                // (11,5): warning CS8959: Type '(int a, int b)' cannot be used in this context because it cannot be represented in metadata.
-                // x = typeof((int a, int b)); // 5
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof((int a, int b))").WithArguments("(int a, int b)").WithLocation(11, 5),
-                // (12,5): warning CS8959: Type '(int a, string? b)' cannot be used in this context because it cannot be represented in metadata.
-                // x = typeof((int a, string? b)); // 6
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof((int a, string? b))").WithArguments("(int a, string? b)").WithLocation(12, 5));
+            CreateCompilation(source).VerifyDiagnostics();
 
             CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(5)).VerifyDiagnostics();
         }

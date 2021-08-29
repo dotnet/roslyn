@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
     {
         public static readonly PerLanguageOption2<bool> AutoFormattingOnCloseBrace = new(
             nameof(BraceCompletionOptions), nameof(AutoFormattingOnCloseBrace), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
 
         [ExportOptionProvider, Shared]
         internal class BraceCompletionOptionsProvider : IOptionProvider

@@ -1521,8 +1521,8 @@ Additional information: {1}</value>
   <data name="Comments" xml:space="preserve">
     <value>Comments</value>
   </data>
-  <data name="Inline_Hints_experimental" xml:space="preserve">
-    <value>Inline Hints (experimental)</value>
+  <data name="Inline_Hints" xml:space="preserve">
+    <value>Inline Hints</value>
   </data>
   <data name="Show_hints_for_everything_else" xml:space="preserve">
     <value>Show hints for everything else</value>
@@ -1796,6 +1796,12 @@ Additional information: {1}</value>
   <data name="Language_client_initialization_failed" xml:space="preserve">
     <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
     <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
+  </data>
+  <data name="Package_install_canceled" xml:space="preserve">
+    <value>Package install canceled</value>
+  </data>
+  <data name="Package_uninstall_canceled" xml:space="preserve">
+    <value>Package uninstall canceled</value>
   </data>
   <data name="Default_Current_Document" xml:space="preserve">
     <value>Default (Current Document)</value>

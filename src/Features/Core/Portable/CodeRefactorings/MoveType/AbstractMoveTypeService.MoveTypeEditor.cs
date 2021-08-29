@@ -132,6 +132,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 foreach (var member in membersToRemove)
                     documentEditor.RemoveNode(member, SyntaxRemoveOptions.KeepNoTrivia);
 
+                // Remove attributes from the root node as well, since those will apply as AttributeTarget.Assembly and
+                // don't need to be specified multiple times
+                documentEditor.RemoveAllAttributes(root);
+
                 var modifiedRoot = documentEditor.GetChangedRoot();
                 modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
 

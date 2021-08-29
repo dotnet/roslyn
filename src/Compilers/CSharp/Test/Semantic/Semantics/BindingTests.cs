@@ -3558,6 +3558,9 @@ public class Class1
                 // (18,31): error CS8389: Omitting the type argument is not allowed in the current context
                 //         var omittedArgFunc1 = "string literal".ExtensionMethod1<>;
                 Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod1<>").WithLocation(18, 31),
+                // (18,31): error CS7003: Unexpected use of an unbound generic name
+                //         var omittedArgFunc1 = "string literal".ExtensionMethod1<>;
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, @"""string literal"".ExtensionMethod1<>").WithLocation(18, 31),
                 // (19,31): error CS8389: Omitting the type argument is not allowed in the current context
                 //         var omittedArgFunc2 = "string literal".ExtensionMethod2<>;
                 Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod2<>").WithLocation(19, 31),

@@ -1242,16 +1242,13 @@ class C { }
             }
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.Preview)]
-        public void GeneratorDriver_Prefers_Incremental_Generators(LanguageVersion langVer)
+        [Fact]
+        public void GeneratorDriver_Prefers_Incremental_Generators()
         {
             var source = @"
 class C { }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(langVer);
+            var parseOptions = TestOptions.Regular;
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1270,29 +1267,24 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator, generator2, generator3 }, parseOptions: parseOptions);
             driver.RunGenerators(compilation);
 
-            // ran generator 1 always
+            // ran individual incremental and source generators
             Assert.Equal(1, initCount);
             Assert.Equal(1, executeCount);
+            Assert.Equal(1, incrementalInitCount);
 
-            // ran the incremental generator if in preview
-            Assert.Equal(langVer == LanguageVersion.Preview ? 1 : 0, incrementalInitCount);
-
-            // ran the combined generator only as an IIncrementalGenerator if in preview, or as an ISourceGenerator when not
-            Assert.Equal(langVer == LanguageVersion.Preview ? 0 : 1, dualInitCount);
-            Assert.Equal(langVer == LanguageVersion.Preview ? 0 : 1, dualExecuteCount);
-            Assert.Equal(langVer == LanguageVersion.Preview ? 1 : 0, dualIncrementalInitCount);
+            // ran the combined generator only as an IIncrementalGenerator
+            Assert.Equal(0, dualInitCount);
+            Assert.Equal(0, dualExecuteCount);
+            Assert.Equal(1, dualIncrementalInitCount);
         }
 
-        [Theory]
-        [InlineData(LanguageVersion.CSharp9)]
-        [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.Preview)]
-        public void GeneratorDriver_Initializes_Incremental_Generators(LanguageVersion langVer)
+        [Fact]
+        public void GeneratorDriver_Initializes_Incremental_Generators()
         {
             var source = @"
 class C { }
 ";
-            var parseOptions = TestOptions.Regular.WithLanguageVersion(langVer);
+            var parseOptions = TestOptions.Regular;
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
@@ -1305,7 +1297,7 @@ class C { }
             driver.RunGenerators(compilation);
 
             // ran the incremental generator
-            Assert.Equal((langVer == LanguageVersion.Preview) ? 1 : 0, incrementalInitCount);
+            Assert.Equal(1, incrementalInitCount);
         }
 
         [Fact]

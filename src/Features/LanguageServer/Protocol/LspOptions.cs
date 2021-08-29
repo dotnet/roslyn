@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// If there are more than this many items, we will set the isIncomplete flag on the returned completion list.
         /// </summary>
         public static readonly Option2<int> MaxCompletionListSize = new(nameof(LspOptions), nameof(MaxCompletionListSize), defaultValue: 1000,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(MaxCompletionListSize)));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(MaxCompletionListSize)));
     }
 
     [ExportOptionProvider, Shared]

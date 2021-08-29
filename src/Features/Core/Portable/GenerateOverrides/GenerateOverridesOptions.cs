@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
     {
         public static readonly Option2<bool> SelectAll = new(
             nameof(GenerateOverridesOptions), nameof(SelectAll), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.Specific.{nameof(GenerateOverridesOptions)}.{nameof(SelectAll)}"));
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.Specific.{nameof(GenerateOverridesOptions)}.{nameof(SelectAll)}"));
 
         [ExportOptionProvider, Shared]
         internal class GenerateOverridesOptionsProvider : IOptionProvider

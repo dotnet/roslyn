@@ -457,9 +457,9 @@
         <target state="new">Inherited interfaces</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Hints_experimental">
-        <source>Inline Hints (experimental)</source>
-        <target state="translated">Wskazówki w tekście (eksperymentalne)</target>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="new">Inline Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -825,6 +825,16 @@
       <trans-unit id="Overriding_members">
         <source>Overriding members</source>
         <target state="translated">Zastępowanie składowych</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_install_canceled">
+        <source>Package install canceled</source>
+        <target state="new">Package install canceled</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_uninstall_canceled">
+        <source>Package uninstall canceled</source>
+        <target state="new">Package uninstall canceled</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
