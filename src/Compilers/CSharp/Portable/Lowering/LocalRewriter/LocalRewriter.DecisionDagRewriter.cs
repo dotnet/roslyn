@@ -954,9 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool tryLowerAsJumpToSharedWhenExpression(BoundWhenDecisionDagNode whenNode)
                 {
                     var whenExpression = whenNode.WhenExpression;
-                    if (whenExpression is null
-                        || !whenExpressionMap.TryGetValue(whenExpression, out var whenExpressionInfo)
-                        || whenExpressionInfo.WhenNodes.Count <= 1)
+                    if (!isSharedWhenExpression(whenExpression))
                     {
                         return false;
                     }
@@ -980,9 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 void lowerWhenExpressionIfShared(BoundExpression whenExpression, LabelSymbol labelToWhenExpression, List<BoundWhenDecisionDagNode> whenNodes)
                 {
-                    if (whenExpression is null
-                        || !whenExpressionMap.TryGetValue(whenExpression, out var whenExpressionInfo)
-                        || whenExpressionInfo.WhenNodes.Count <= 1)
+                    if (!isSharedWhenExpression(whenExpression))
                     {
                         return;
                     }
@@ -1031,6 +1027,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We hide the jump back into the decision dag, as it is not logically part of the when clause
                     sectionBuilder.Add(GenerateInstrumentation ? _factory.HiddenSequencePoint(jumps) : jumps);
+                }
+
+                bool isSharedWhenExpression(BoundExpression? whenExpression)
+                {
+                    return whenExpression is not null
+                        && whenExpressionMap.TryGetValue(whenExpression, out var whenExpressionInfo)
+                        && whenExpressionInfo.WhenNodes.Count > 1;
                 }
 
                 void lowerWhenClause(BoundWhenDecisionDagNode whenClause)
