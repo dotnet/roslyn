@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   labelToWhenExpression;
                 //   if (... logic from WhenExpression ...)
                 //   {
-                //     switch on whenNodeIdentifierLocal with dispatches to whenTrue labels
+                //     jump to whenTrue label
                 //   }
                 //   switch on whenNodeIdentifierLocal with dispatches to whenFalse labels
 
@@ -988,53 +988,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var whenClauseSyntax = whenNodes[0].Syntax;
+                    var whenTrueLabel = GetDagNodeLabel(whenNodes[0].WhenTrue);
                     Debug.Assert(whenNodes.All(n => n.Syntax == whenClauseSyntax));
                     Debug.Assert(whenNodes.All(n => n.WhenExpression == whenExpression));
                     Debug.Assert(whenNodes.All(n => n.Bindings == whenNodes[0].Bindings));
+                    Debug.Assert(whenNodes.All(n => whenTrueLabel == GetDagNodeLabel(whenNodes[0].WhenTrue)));
 
                     ArrayBuilder<BoundStatement> sectionBuilder = BuilderForSection(whenClauseSyntax);
                     sectionBuilder.Add(_factory.Label(labelToWhenExpression));
                     lowerBindings(whenNodes[0].Bindings, sectionBuilder);
 
-                    var whenTrueSwitchSections = ArrayBuilder<SyntheticSwitchSection>.GetInstance();
-                    var whenFalseSwitchSections = ArrayBuilder<SyntheticSwitchSection>.GetInstance();
-                    foreach (var whenNode in whenNodes)
-                    {
-                        var (_, whenNodeIdentifier) = whenNodeMap[whenNode];
-                        whenTrueSwitchSections.Add(_factory.SwitchSection(whenNodeIdentifier, _factory.Goto(GetDagNodeLabel(whenNode.WhenTrue))));
-
-                        Debug.Assert(whenNode.WhenFalse != null);
-                        whenFalseSwitchSections.Add(_factory.SwitchSection(whenNodeIdentifier, _factory.Goto(GetDagNodeLabel(whenNode.WhenFalse))));
-                    }
-
                     // if (loweredWhenExpression)
                     // {
-                    //   switch (whenNodeIdentifierLocal)
-                    //   {
-                    //     case whenNodeIdentifier: goto trueLabelForWhenNode;
-                    //     ...
-                    //   }
+                    //   jump to whenTrue label
                     // }
-                    Debug.Assert(_whenNodeIdentifierLocal is not null);
-                    BoundStatement conditionalGotos =
-                        _factory.If(_localRewriter.VisitExpression(whenExpression),
-                            _factory.Switch(_factory.Local(_whenNodeIdentifierLocal), whenTrueSwitchSections.ToImmutableAndFree()));
-
                     _factory.Syntax = whenClauseSyntax;
+                    BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenExpression), whenTrueLabel, jumpIfTrue: true);
 
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
                     if (GenerateInstrumentation && !whenExpression.WasCompilerGenerated)
                     {
-                        conditionalGotos = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGotos);
+                        conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGoto);
                     }
 
-                    sectionBuilder.Add(conditionalGotos);
+                    sectionBuilder.Add(conditionalGoto);
+
+                    var whenFalseSwitchSections = ArrayBuilder<SyntheticSwitchSection>.GetInstance();
+                    foreach (var whenNode in whenNodes)
+                    {
+                        var (_, whenNodeIdentifier) = whenNodeMap[whenNode];
+                        Debug.Assert(whenNode.WhenFalse != null);
+                        whenFalseSwitchSections.Add(_factory.SwitchSection(whenNodeIdentifier, _factory.Goto(GetDagNodeLabel(whenNode.WhenFalse))));
+                    }
 
                     // switch (whenNodeIdentifierLocal)
                     // {
                     //   case whenNodeIdentifier: goto falseLabelForWhenNode;
                     //   ...
                     // }
+                    Debug.Assert(_whenNodeIdentifierLocal is not null);
                     BoundStatement jumps = _factory.Switch(_factory.Local(_whenNodeIdentifierLocal), whenFalseSwitchSections.ToImmutableAndFree());
 
                     // We hide the jump back into the decision dag, as it is not logically part of the when clause

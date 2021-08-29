@@ -8464,7 +8464,7 @@ class Program
 
             verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL: @"
 {
-  // Code size      467 (0x1d3)
+  // Code size      448 (0x1c0)
   .maxstack  3
   .locals init (int V_0,
                 int V_1, //x
@@ -8504,10 +8504,10 @@ class Program
   IL_0017:  unbox.any  ""int""
   IL_001c:  stloc.1
   // sequence point: <hidden>
-  IL_001d:  br         IL_0153
+  IL_001d:  br         IL_0150
   IL_0022:  ldloc.s    V_8
   IL_0024:  isinst     ""bool""
-  IL_0029:  brtrue     IL_0164
+  IL_0029:  brtrue     IL_0161
   IL_002e:  ldloc.s    V_8
   IL_0030:  isinst     ""System.Runtime.CompilerServices.ITuple""
   IL_0035:  stloc.s    V_9
@@ -8530,16 +8530,16 @@ class Program
   IL_0055:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
   IL_005a:  stloc.3
   // sequence point: <hidden>
-  IL_005b:  br         IL_0169
+  IL_005b:  br         IL_0166
   IL_0060:  ldloc.s    V_8
   IL_0062:  isinst     ""C""
-  IL_0067:  brtrue     IL_0175
+  IL_0067:  brtrue     IL_0172
   IL_006c:  br.s       IL_0077
   IL_006e:  ldloc.s    V_10
-  IL_0070:  brfalse    IL_01af
+  IL_0070:  brfalse    IL_019c
   IL_0075:  br.s       IL_00b5
   IL_0077:  ldloc.s    V_10
-  IL_0079:  brfalse    IL_01af
+  IL_0079:  brfalse    IL_019c
   IL_007e:  br.s       IL_00f5
   IL_0080:  ldloc.s    V_8
   IL_0082:  isinst     ""double""
@@ -8550,11 +8550,11 @@ class Program
   // sequence point: <hidden>
   IL_0092:  ldloc.s    V_11
   IL_0094:  ldc.r8     4
-  IL_009d:  beq        IL_0170
-  IL_00a2:  br         IL_01ca
+  IL_009d:  beq        IL_016d
+  IL_00a2:  br         IL_01b7
   IL_00a7:  ldloc.s    V_8
   IL_00a9:  isinst     ""C""
-  IL_00ae:  brtrue     IL_0179
+  IL_00ae:  brtrue     IL_0176
   IL_00b3:  br.s       IL_00f5
   IL_00b5:  ldloc.s    V_8
   IL_00b7:  castclass  ""C""
@@ -8576,139 +8576,129 @@ class Program
   IL_00db:  callvirt   ""void C.Deconstruct(out int)""
   IL_00e0:  nop
   // sequence point: <hidden>
-  IL_00e1:  br         IL_01b4
+  IL_00e1:  br         IL_01a1
   IL_00e6:  ldloc.s    V_12
   IL_00e8:  ldloca.s   V_6
   IL_00ea:  callvirt   ""void C.Deconstruct(out int)""
   IL_00ef:  nop
   // sequence point: <hidden>
-  IL_00f0:  br         IL_01bb
+  IL_00f0:  br         IL_01a8
   IL_00f5:  ldloc.s    V_8
   IL_00f7:  isinst     ""D""
   IL_00fc:  stloc.s    V_15
   IL_00fe:  ldloc.s    V_15
-  IL_0100:  brfalse    IL_01ca
+  IL_0100:  brfalse    IL_01b7
   IL_0105:  ldloc.s    V_15
   IL_0107:  callvirt   ""int D.P.get""
   IL_010c:  stloc.s    V_16
   // sequence point: <hidden>
   IL_010e:  ldloc.s    V_16
   IL_0110:  ldc.i4.1
-  IL_0111:  bne.un     IL_01ca
+  IL_0111:  bne.un     IL_01b7
   IL_0116:  ldloc.s    V_15
   IL_0118:  callvirt   ""D D.Q.get""
   IL_011d:  stloc.s    V_17
   // sequence point: <hidden>
   IL_011f:  ldloc.s    V_17
-  IL_0121:  brfalse    IL_01ca
+  IL_0121:  brfalse    IL_01b7
   IL_0126:  ldloc.s    V_17
   IL_0128:  callvirt   ""int D.P.get""
   IL_012d:  stloc.s    V_18
   // sequence point: <hidden>
   IL_012f:  ldloc.s    V_18
   IL_0131:  ldc.i4.2
-  IL_0132:  bne.un     IL_01ca
+  IL_0132:  bne.un     IL_01b7
   IL_0137:  ldloc.s    V_15
   IL_0139:  callvirt   ""C D.R.get""
   IL_013e:  stloc.s    V_19
   // sequence point: <hidden>
   IL_0140:  ldloc.s    V_19
-  IL_0142:  brfalse    IL_01ca
-  IL_0147:  ldloc.s    V_19
-  IL_0149:  ldloca.s   V_7
-  IL_014b:  callvirt   ""void C.Deconstruct(out int)""
-  IL_0150:  nop
+  IL_0142:  brfalse.s  IL_01b7
+  IL_0144:  ldloc.s    V_19
+  IL_0146:  ldloca.s   V_7
+  IL_0148:  callvirt   ""void C.Deconstruct(out int)""
+  IL_014d:  nop
   // sequence point: <hidden>
-  IL_0151:  br.s       IL_01c2
+  IL_014e:  br.s       IL_01af
   // sequence point: when G(x) > 10
-  IL_0153:  ldloc.1
-  IL_0154:  call       ""int Program.G(int)""
-  IL_0159:  ldc.i4.s   10
-  IL_015b:  bgt.s      IL_015f
+  IL_0150:  ldloc.1
+  IL_0151:  call       ""int Program.G(int)""
+  IL_0156:  ldc.i4.s   10
+  IL_0158:  bgt.s      IL_015c
   // sequence point: <hidden>
-  IL_015d:  br.s       IL_01ca
+  IL_015a:  br.s       IL_01b7
   // sequence point: return 1;
-  IL_015f:  ldc.i4.1
-  IL_0160:  stloc.s    V_21
-  IL_0162:  br.s       IL_01d0
+  IL_015c:  ldc.i4.1
+  IL_015d:  stloc.s    V_21
+  IL_015f:  br.s       IL_01bd
   // sequence point: return 2;
-  IL_0164:  ldc.i4.2
-  IL_0165:  stloc.s    V_21
-  IL_0167:  br.s       IL_01d0
+  IL_0161:  ldc.i4.2
+  IL_0162:  stloc.s    V_21
+  IL_0164:  br.s       IL_01bd
   // sequence point: <hidden>
-  IL_0169:  br.s       IL_016b
+  IL_0166:  br.s       IL_0168
   // sequence point: return 3;
-  IL_016b:  ldc.i4.3
-  IL_016c:  stloc.s    V_21
-  IL_016e:  br.s       IL_01d0
+  IL_0168:  ldc.i4.3
+  IL_0169:  stloc.s    V_21
+  IL_016b:  br.s       IL_01bd
   // sequence point: return 4;
-  IL_0170:  ldc.i4.4
-  IL_0171:  stloc.s    V_21
-  IL_0173:  br.s       IL_01d0
+  IL_016d:  ldc.i4.4
+  IL_016e:  stloc.s    V_21
+  IL_0170:  br.s       IL_01bd
   // sequence point: <hidden>
-  IL_0175:  ldc.i4.1
-  IL_0176:  stloc.0
-  IL_0177:  br.s       IL_017d
-  IL_0179:  ldc.i4.2
-  IL_017a:  stloc.0
-  IL_017b:  br.s       IL_017d
+  IL_0172:  ldc.i4.1
+  IL_0173:  stloc.0
+  IL_0174:  br.s       IL_017a
+  IL_0176:  ldc.i4.2
+  IL_0177:  stloc.0
+  IL_0178:  br.s       IL_017a
   // sequence point: when B()
-  IL_017d:  call       ""bool Program.B()""
-  IL_0182:  brfalse.s  IL_0194
-  IL_0184:  ldloc.0
-  IL_0185:  ldc.i4.1
-  IL_0186:  beq.s      IL_0190
-  IL_0188:  br.s       IL_018a
-  IL_018a:  ldloc.0
-  IL_018b:  ldc.i4.2
-  IL_018c:  beq.s      IL_0192
-  IL_018e:  br.s       IL_0194
-  IL_0190:  br.s       IL_01aa
-  IL_0192:  br.s       IL_01aa
+  IL_017a:  call       ""bool Program.B()""
+  IL_017f:  brtrue.s   IL_0197
   // sequence point: <hidden>
-  IL_0194:  ldloc.0
-  IL_0195:  ldc.i4.1
-  IL_0196:  beq.s      IL_01a0
-  IL_0198:  br.s       IL_019a
-  IL_019a:  ldloc.0
-  IL_019b:  ldc.i4.2
-  IL_019c:  beq.s      IL_01a5
-  IL_019e:  br.s       IL_01aa
-  IL_01a0:  br         IL_006e
-  IL_01a5:  br         IL_00b5
+  IL_0181:  ldloc.0
+  IL_0182:  ldc.i4.1
+  IL_0183:  beq.s      IL_018d
+  IL_0185:  br.s       IL_0187
+  IL_0187:  ldloc.0
+  IL_0188:  ldc.i4.2
+  IL_0189:  beq.s      IL_0192
+  IL_018b:  br.s       IL_0197
+  IL_018d:  br         IL_006e
+  IL_0192:  br         IL_00b5
   // sequence point: return 5;
-  IL_01aa:  ldc.i4.5
-  IL_01ab:  stloc.s    V_21
-  IL_01ad:  br.s       IL_01d0
+  IL_0197:  ldc.i4.5
+  IL_0198:  stloc.s    V_21
+  IL_019a:  br.s       IL_01bd
   // sequence point: return 6;
-  IL_01af:  ldc.i4.6
-  IL_01b0:  stloc.s    V_21
-  IL_01b2:  br.s       IL_01d0
+  IL_019c:  ldc.i4.6
+  IL_019d:  stloc.s    V_21
+  IL_019f:  br.s       IL_01bd
   // sequence point: <hidden>
-  IL_01b4:  br.s       IL_01b6
+  IL_01a1:  br.s       IL_01a3
   // sequence point: return 7;
-  IL_01b6:  ldc.i4.7
-  IL_01b7:  stloc.s    V_21
-  IL_01b9:  br.s       IL_01d0
+  IL_01a3:  ldc.i4.7
+  IL_01a4:  stloc.s    V_21
+  IL_01a6:  br.s       IL_01bd
   // sequence point: <hidden>
-  IL_01bb:  br.s       IL_01bd
+  IL_01a8:  br.s       IL_01aa
   // sequence point: return 8;
-  IL_01bd:  ldc.i4.8
-  IL_01be:  stloc.s    V_21
-  IL_01c0:  br.s       IL_01d0
+  IL_01aa:  ldc.i4.8
+  IL_01ab:  stloc.s    V_21
+  IL_01ad:  br.s       IL_01bd
   // sequence point: <hidden>
-  IL_01c2:  br.s       IL_01c4
+  IL_01af:  br.s       IL_01b1
   // sequence point: return 9;
-  IL_01c4:  ldc.i4.s   9
-  IL_01c6:  stloc.s    V_21
-  IL_01c8:  br.s       IL_01d0
+  IL_01b1:  ldc.i4.s   9
+  IL_01b3:  stloc.s    V_21
+  IL_01b5:  br.s       IL_01bd
   // sequence point: return 10;
-  IL_01ca:  ldc.i4.s   10
-  IL_01cc:  stloc.s    V_21
-  IL_01ce:  br.s       IL_01d0
+  IL_01b7:  ldc.i4.s   10
+  IL_01b9:  stloc.s    V_21
+  IL_01bb:  br.s       IL_01bd
   // sequence point: }
-  IL_01d0:  ldloc.s    V_21
-  IL_01d2:  ret
+  IL_01bd:  ldloc.s    V_21
+  IL_01bf:  ret
 }
 ", source: source);
 
@@ -8764,45 +8754,45 @@ class Program
         <entry offset=""0x11f"" hidden=""true"" document=""1"" />
         <entry offset=""0x12f"" hidden=""true"" document=""1"" />
         <entry offset=""0x140"" hidden=""true"" document=""1"" />
-        <entry offset=""0x151"" hidden=""true"" document=""1"" />
-        <entry offset=""0x153"" startLine=""27"" startColumn=""24"" endLine=""27"" endColumn=""38"" document=""1"" />
-        <entry offset=""0x15d"" hidden=""true"" document=""1"" />
-        <entry offset=""0x15f"" startLine=""27"" startColumn=""40"" endLine=""27"" endColumn=""49"" document=""1"" />
-        <entry offset=""0x164"" startLine=""30"" startColumn=""26"" endLine=""30"" endColumn=""35"" document=""1"" />
-        <entry offset=""0x169"" hidden=""true"" document=""1"" />
-        <entry offset=""0x16b"" startLine=""33"" startColumn=""30"" endLine=""33"" endColumn=""39"" document=""1"" />
-        <entry offset=""0x170"" startLine=""36"" startColumn=""23"" endLine=""36"" endColumn=""32"" document=""1"" />
-        <entry offset=""0x175"" hidden=""true"" document=""1"" />
-        <entry offset=""0x17d"" startLine=""39"" startColumn=""22"" endLine=""39"" endColumn=""30"" document=""1"" />
-        <entry offset=""0x194"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1aa"" startLine=""39"" startColumn=""32"" endLine=""39"" endColumn=""41"" document=""1"" />
-        <entry offset=""0x1af"" startLine=""40"" startColumn=""22"" endLine=""40"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x1b4"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1b6"" startLine=""41"" startColumn=""38"" endLine=""41"" endColumn=""47"" document=""1"" />
-        <entry offset=""0x1bb"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1bd"" startLine=""42"" startColumn=""31"" endLine=""42"" endColumn=""40"" document=""1"" />
-        <entry offset=""0x1c2"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1c4"" startLine=""45"" startColumn=""58"" endLine=""45"" endColumn=""67"" document=""1"" />
-        <entry offset=""0x1ca"" startLine=""47"" startColumn=""22"" endLine=""47"" endColumn=""32"" document=""1"" />
-        <entry offset=""0x1d0"" startLine=""49"" startColumn=""5"" endLine=""49"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x14e"" hidden=""true"" document=""1"" />
+        <entry offset=""0x150"" startLine=""27"" startColumn=""24"" endLine=""27"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x15a"" hidden=""true"" document=""1"" />
+        <entry offset=""0x15c"" startLine=""27"" startColumn=""40"" endLine=""27"" endColumn=""49"" document=""1"" />
+        <entry offset=""0x161"" startLine=""30"" startColumn=""26"" endLine=""30"" endColumn=""35"" document=""1"" />
+        <entry offset=""0x166"" hidden=""true"" document=""1"" />
+        <entry offset=""0x168"" startLine=""33"" startColumn=""30"" endLine=""33"" endColumn=""39"" document=""1"" />
+        <entry offset=""0x16d"" startLine=""36"" startColumn=""23"" endLine=""36"" endColumn=""32"" document=""1"" />
+        <entry offset=""0x172"" hidden=""true"" document=""1"" />
+        <entry offset=""0x17a"" startLine=""39"" startColumn=""22"" endLine=""39"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x181"" hidden=""true"" document=""1"" />
+        <entry offset=""0x197"" startLine=""39"" startColumn=""32"" endLine=""39"" endColumn=""41"" document=""1"" />
+        <entry offset=""0x19c"" startLine=""40"" startColumn=""22"" endLine=""40"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x1a1"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1a3"" startLine=""41"" startColumn=""38"" endLine=""41"" endColumn=""47"" document=""1"" />
+        <entry offset=""0x1a8"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1aa"" startLine=""42"" startColumn=""31"" endLine=""42"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x1af"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1b1"" startLine=""45"" startColumn=""58"" endLine=""45"" endColumn=""67"" document=""1"" />
+        <entry offset=""0x1b7"" startLine=""47"" startColumn=""22"" endLine=""47"" endColumn=""32"" document=""1"" />
+        <entry offset=""0x1bd"" startLine=""49"" startColumn=""5"" endLine=""49"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1d3"">
-        <scope startOffset=""0x153"" endOffset=""0x164"">
-          <local name=""x"" il_index=""1"" il_start=""0x153"" il_end=""0x164"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x1c0"">
+        <scope startOffset=""0x150"" endOffset=""0x161"">
+          <local name=""x"" il_index=""1"" il_start=""0x150"" il_end=""0x161"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x169"" endOffset=""0x170"">
-          <local name=""y"" il_index=""2"" il_start=""0x169"" il_end=""0x170"" attributes=""0"" />
-          <local name=""z"" il_index=""3"" il_start=""0x169"" il_end=""0x170"" attributes=""0"" />
+        <scope startOffset=""0x166"" endOffset=""0x16d"">
+          <local name=""y"" il_index=""2"" il_start=""0x166"" il_end=""0x16d"" attributes=""0"" />
+          <local name=""z"" il_index=""3"" il_start=""0x166"" il_end=""0x16d"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x1b4"" endOffset=""0x1bb"">
-          <local name=""p"" il_index=""4"" il_start=""0x1b4"" il_end=""0x1bb"" attributes=""0"" />
-          <local name=""q"" il_index=""5"" il_start=""0x1b4"" il_end=""0x1bb"" attributes=""0"" />
+        <scope startOffset=""0x1a1"" endOffset=""0x1a8"">
+          <local name=""p"" il_index=""4"" il_start=""0x1a1"" il_end=""0x1a8"" attributes=""0"" />
+          <local name=""q"" il_index=""5"" il_start=""0x1a1"" il_end=""0x1a8"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x1bb"" endOffset=""0x1c2"">
-          <local name=""p"" il_index=""6"" il_start=""0x1bb"" il_end=""0x1c2"" attributes=""0"" />
+        <scope startOffset=""0x1a8"" endOffset=""0x1af"">
+          <local name=""p"" il_index=""6"" il_start=""0x1a8"" il_end=""0x1af"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x1c2"" endOffset=""0x1ca"">
-          <local name=""z"" il_index=""7"" il_start=""0x1c2"" il_end=""0x1ca"" attributes=""0"" />
+        <scope startOffset=""0x1af"" endOffset=""0x1b7"">
+          <local name=""z"" il_index=""7"" il_start=""0x1af"" il_end=""0x1b7"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -8873,7 +8863,7 @@ class Program
 
             verifier.VerifyIL("Program.Main", sequencePoints: "Program.Main", expectedIL: @"
 {
-  // Code size      473 (0x1d9)
+  // Code size      454 (0x1c6)
   .maxstack  3
   .locals init (int V_0, //a
                 int V_1,
@@ -8909,10 +8899,10 @@ class Program
   IL_0015:  ldloc.s    V_10
   IL_0017:  unbox.any  ""int""
   IL_001c:  stloc.2
- ~IL_001d:  br         IL_0154
+ ~IL_001d:  br         IL_0151
   IL_0022:  ldloc.s    V_10
   IL_0024:  isinst     ""bool""
-  IL_0029:  brtrue     IL_0165
+  IL_0029:  brtrue     IL_0162
   IL_002e:  ldloc.s    V_10
   IL_0030:  isinst     ""System.Runtime.CompilerServices.ITuple""
   IL_0035:  stloc.s    V_11
@@ -8932,16 +8922,16 @@ class Program
   IL_0054:  ldc.i4.1
   IL_0055:  callvirt   ""object System.Runtime.CompilerServices.ITuple.this[int].get""
   IL_005a:  stloc.s    V_4
- ~IL_005c:  br         IL_016a
+ ~IL_005c:  br         IL_0167
   IL_0061:  ldloc.s    V_10
   IL_0063:  isinst     ""C""
-  IL_0068:  brtrue     IL_0176
+  IL_0068:  brtrue     IL_0173
   IL_006d:  br.s       IL_0078
   IL_006f:  ldloc.s    V_12
-  IL_0071:  brfalse    IL_01b0
+  IL_0071:  brfalse    IL_019d
   IL_0076:  br.s       IL_00b6
   IL_0078:  ldloc.s    V_12
-  IL_007a:  brfalse    IL_01b0
+  IL_007a:  brfalse    IL_019d
   IL_007f:  br.s       IL_00f6
   IL_0081:  ldloc.s    V_10
   IL_0083:  isinst     ""double""
@@ -8951,11 +8941,11 @@ class Program
   IL_0091:  stloc.s    V_13
  ~IL_0093:  ldloc.s    V_13
   IL_0095:  ldc.r8     4
-  IL_009e:  beq        IL_0171
-  IL_00a3:  br         IL_01cb
+  IL_009e:  beq        IL_016e
+  IL_00a3:  br         IL_01b8
   IL_00a8:  ldloc.s    V_10
   IL_00aa:  isinst     ""C""
-  IL_00af:  brtrue     IL_017a
+  IL_00af:  brtrue     IL_0177
   IL_00b4:  br.s       IL_00f6
   IL_00b6:  ldloc.s    V_10
   IL_00b8:  castclass  ""C""
@@ -8974,117 +8964,107 @@ class Program
   IL_00da:  ldloca.s   V_6
   IL_00dc:  callvirt   ""void C.Deconstruct(out int)""
   IL_00e1:  nop
- ~IL_00e2:  br         IL_01b5
+ ~IL_00e2:  br         IL_01a2
   IL_00e7:  ldloc.s    V_14
   IL_00e9:  ldloca.s   V_7
   IL_00eb:  callvirt   ""void C.Deconstruct(out int)""
   IL_00f0:  nop
- ~IL_00f1:  br         IL_01bc
+ ~IL_00f1:  br         IL_01a9
   IL_00f6:  ldloc.s    V_10
   IL_00f8:  isinst     ""D""
   IL_00fd:  stloc.s    V_17
   IL_00ff:  ldloc.s    V_17
-  IL_0101:  brfalse    IL_01cb
+  IL_0101:  brfalse    IL_01b8
   IL_0106:  ldloc.s    V_17
   IL_0108:  callvirt   ""int D.P.get""
   IL_010d:  stloc.s    V_18
  ~IL_010f:  ldloc.s    V_18
   IL_0111:  ldc.i4.1
-  IL_0112:  bne.un     IL_01cb
+  IL_0112:  bne.un     IL_01b8
   IL_0117:  ldloc.s    V_17
   IL_0119:  callvirt   ""D D.Q.get""
   IL_011e:  stloc.s    V_19
  ~IL_0120:  ldloc.s    V_19
-  IL_0122:  brfalse    IL_01cb
+  IL_0122:  brfalse    IL_01b8
   IL_0127:  ldloc.s    V_19
   IL_0129:  callvirt   ""int D.P.get""
   IL_012e:  stloc.s    V_20
  ~IL_0130:  ldloc.s    V_20
   IL_0132:  ldc.i4.2
-  IL_0133:  bne.un     IL_01cb
+  IL_0133:  bne.un     IL_01b8
   IL_0138:  ldloc.s    V_17
   IL_013a:  callvirt   ""C D.R.get""
   IL_013f:  stloc.s    V_21
  ~IL_0141:  ldloc.s    V_21
-  IL_0143:  brfalse    IL_01cb
-  IL_0148:  ldloc.s    V_21
-  IL_014a:  ldloca.s   V_8
-  IL_014c:  callvirt   ""void C.Deconstruct(out int)""
-  IL_0151:  nop
- ~IL_0152:  br.s       IL_01c3
- -IL_0154:  ldloc.2
-  IL_0155:  call       ""int Program.G(int)""
-  IL_015a:  ldc.i4.s   10
-  IL_015c:  bgt.s      IL_0160
- ~IL_015e:  br.s       IL_01cb
- -IL_0160:  ldc.i4.1
-  IL_0161:  stloc.s    V_9
-  IL_0163:  br.s       IL_01d1
- -IL_0165:  ldc.i4.2
-  IL_0166:  stloc.s    V_9
-  IL_0168:  br.s       IL_01d1
- ~IL_016a:  br.s       IL_016c
- -IL_016c:  ldc.i4.3
-  IL_016d:  stloc.s    V_9
-  IL_016f:  br.s       IL_01d1
- -IL_0171:  ldc.i4.4
-  IL_0172:  stloc.s    V_9
-  IL_0174:  br.s       IL_01d1
- ~IL_0176:  ldc.i4.1
-  IL_0177:  stloc.1
-  IL_0178:  br.s       IL_017e
-  IL_017a:  ldc.i4.2
-  IL_017b:  stloc.1
-  IL_017c:  br.s       IL_017e
- -IL_017e:  call       ""bool Program.B()""
-  IL_0183:  brfalse.s  IL_0195
-  IL_0185:  ldloc.1
-  IL_0186:  ldc.i4.1
-  IL_0187:  beq.s      IL_0191
-  IL_0189:  br.s       IL_018b
-  IL_018b:  ldloc.1
-  IL_018c:  ldc.i4.2
-  IL_018d:  beq.s      IL_0193
-  IL_018f:  br.s       IL_0195
-  IL_0191:  br.s       IL_01ab
-  IL_0193:  br.s       IL_01ab
- ~IL_0195:  ldloc.1
-  IL_0196:  ldc.i4.1
-  IL_0197:  beq.s      IL_01a1
-  IL_0199:  br.s       IL_019b
-  IL_019b:  ldloc.1
-  IL_019c:  ldc.i4.2
-  IL_019d:  beq.s      IL_01a6
-  IL_019f:  br.s       IL_01ab
-  IL_01a1:  br         IL_006f
-  IL_01a6:  br         IL_00b6
- -IL_01ab:  ldc.i4.5
+  IL_0143:  brfalse.s  IL_01b8
+  IL_0145:  ldloc.s    V_21
+  IL_0147:  ldloca.s   V_8
+  IL_0149:  callvirt   ""void C.Deconstruct(out int)""
+  IL_014e:  nop
+ ~IL_014f:  br.s       IL_01b0
+ -IL_0151:  ldloc.2
+  IL_0152:  call       ""int Program.G(int)""
+  IL_0157:  ldc.i4.s   10
+  IL_0159:  bgt.s      IL_015d
+ ~IL_015b:  br.s       IL_01b8
+ -IL_015d:  ldc.i4.1
+  IL_015e:  stloc.s    V_9
+  IL_0160:  br.s       IL_01be
+ -IL_0162:  ldc.i4.2
+  IL_0163:  stloc.s    V_9
+  IL_0165:  br.s       IL_01be
+ ~IL_0167:  br.s       IL_0169
+ -IL_0169:  ldc.i4.3
+  IL_016a:  stloc.s    V_9
+  IL_016c:  br.s       IL_01be
+ -IL_016e:  ldc.i4.4
+  IL_016f:  stloc.s    V_9
+  IL_0171:  br.s       IL_01be
+ ~IL_0173:  ldc.i4.1
+  IL_0174:  stloc.1
+  IL_0175:  br.s       IL_017b
+  IL_0177:  ldc.i4.2
+  IL_0178:  stloc.1
+  IL_0179:  br.s       IL_017b
+ -IL_017b:  call       ""bool Program.B()""
+  IL_0180:  brtrue.s   IL_0198
+ ~IL_0182:  ldloc.1
+  IL_0183:  ldc.i4.1
+  IL_0184:  beq.s      IL_018e
+  IL_0186:  br.s       IL_0188
+  IL_0188:  ldloc.1
+  IL_0189:  ldc.i4.2
+  IL_018a:  beq.s      IL_0193
+  IL_018c:  br.s       IL_0198
+  IL_018e:  br         IL_006f
+  IL_0193:  br         IL_00b6
+ -IL_0198:  ldc.i4.5
+  IL_0199:  stloc.s    V_9
+  IL_019b:  br.s       IL_01be
+ -IL_019d:  ldc.i4.6
+  IL_019e:  stloc.s    V_9
+  IL_01a0:  br.s       IL_01be
+ ~IL_01a2:  br.s       IL_01a4
+ -IL_01a4:  ldc.i4.7
+  IL_01a5:  stloc.s    V_9
+  IL_01a7:  br.s       IL_01be
+ ~IL_01a9:  br.s       IL_01ab
+ -IL_01ab:  ldc.i4.8
   IL_01ac:  stloc.s    V_9
-  IL_01ae:  br.s       IL_01d1
- -IL_01b0:  ldc.i4.6
-  IL_01b1:  stloc.s    V_9
-  IL_01b3:  br.s       IL_01d1
- ~IL_01b5:  br.s       IL_01b7
- -IL_01b7:  ldc.i4.7
-  IL_01b8:  stloc.s    V_9
-  IL_01ba:  br.s       IL_01d1
- ~IL_01bc:  br.s       IL_01be
- -IL_01be:  ldc.i4.8
-  IL_01bf:  stloc.s    V_9
-  IL_01c1:  br.s       IL_01d1
- ~IL_01c3:  br.s       IL_01c5
- -IL_01c5:  ldc.i4.s   9
-  IL_01c7:  stloc.s    V_9
-  IL_01c9:  br.s       IL_01d1
- -IL_01cb:  ldc.i4.s   10
-  IL_01cd:  stloc.s    V_9
-  IL_01cf:  br.s       IL_01d1
- ~IL_01d1:  ldc.i4.1
-  IL_01d2:  brtrue.s   IL_01d5
- -IL_01d4:  nop
- ~IL_01d5:  ldloc.s    V_9
-  IL_01d7:  stloc.0
- -IL_01d8:  ret
+  IL_01ae:  br.s       IL_01be
+ ~IL_01b0:  br.s       IL_01b2
+ -IL_01b2:  ldc.i4.s   9
+  IL_01b4:  stloc.s    V_9
+  IL_01b6:  br.s       IL_01be
+ -IL_01b8:  ldc.i4.s   10
+  IL_01ba:  stloc.s    V_9
+  IL_01bc:  br.s       IL_01be
+ ~IL_01be:  ldc.i4.1
+  IL_01bf:  brtrue.s   IL_01c2
+ -IL_01c1:  nop
+ ~IL_01c2:  ldloc.s    V_9
+  IL_01c4:  stloc.0
+ -IL_01c5:  ret
 }
 ");
 
@@ -9140,49 +9120,49 @@ class Program
         <entry offset=""0x120"" hidden=""true"" document=""1"" />
         <entry offset=""0x130"" hidden=""true"" document=""1"" />
         <entry offset=""0x141"" hidden=""true"" document=""1"" />
-        <entry offset=""0x152"" hidden=""true"" document=""1"" />
-        <entry offset=""0x154"" startLine=""27"" startColumn=""19"" endLine=""27"" endColumn=""33"" document=""1"" />
-        <entry offset=""0x15e"" hidden=""true"" document=""1"" />
-        <entry offset=""0x160"" startLine=""27"" startColumn=""37"" endLine=""27"" endColumn=""38"" document=""1"" />
-        <entry offset=""0x165"" startLine=""30"" startColumn=""23"" endLine=""30"" endColumn=""24"" document=""1"" />
-        <entry offset=""0x16a"" hidden=""true"" document=""1"" />
-        <entry offset=""0x16c"" startLine=""33"" startColumn=""27"" endLine=""33"" endColumn=""28"" document=""1"" />
-        <entry offset=""0x171"" startLine=""36"" startColumn=""20"" endLine=""36"" endColumn=""21"" document=""1"" />
-        <entry offset=""0x176"" hidden=""true"" document=""1"" />
-        <entry offset=""0x17e"" startLine=""39"" startColumn=""17"" endLine=""39"" endColumn=""25"" document=""1"" />
-        <entry offset=""0x195"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1ab"" startLine=""39"" startColumn=""29"" endLine=""39"" endColumn=""30"" document=""1"" />
-        <entry offset=""0x1b0"" startLine=""40"" startColumn=""19"" endLine=""40"" endColumn=""20"" document=""1"" />
-        <entry offset=""0x1b5"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1b7"" startLine=""41"" startColumn=""35"" endLine=""41"" endColumn=""36"" document=""1"" />
-        <entry offset=""0x1bc"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1be"" startLine=""42"" startColumn=""28"" endLine=""42"" endColumn=""29"" document=""1"" />
-        <entry offset=""0x1c3"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1c5"" startLine=""45"" startColumn=""56"" endLine=""45"" endColumn=""57"" document=""1"" />
-        <entry offset=""0x1cb"" startLine=""47"" startColumn=""18"" endLine=""47"" endColumn=""20"" document=""1"" />
-        <entry offset=""0x1d1"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1d4"" startLine=""24"" startColumn=""9"" endLine=""48"" endColumn=""11"" document=""1"" />
-        <entry offset=""0x1d5"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1d8"" startLine=""49"" startColumn=""5"" endLine=""49"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x14f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x151"" startLine=""27"" startColumn=""19"" endLine=""27"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x15b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x15d"" startLine=""27"" startColumn=""37"" endLine=""27"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x162"" startLine=""30"" startColumn=""23"" endLine=""30"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x167"" hidden=""true"" document=""1"" />
+        <entry offset=""0x169"" startLine=""33"" startColumn=""27"" endLine=""33"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x16e"" startLine=""36"" startColumn=""20"" endLine=""36"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x173"" hidden=""true"" document=""1"" />
+        <entry offset=""0x17b"" startLine=""39"" startColumn=""17"" endLine=""39"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x182"" hidden=""true"" document=""1"" />
+        <entry offset=""0x198"" startLine=""39"" startColumn=""29"" endLine=""39"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x19d"" startLine=""40"" startColumn=""19"" endLine=""40"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x1a2"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1a4"" startLine=""41"" startColumn=""35"" endLine=""41"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x1a9"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1ab"" startLine=""42"" startColumn=""28"" endLine=""42"" endColumn=""29"" document=""1"" />
+        <entry offset=""0x1b0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1b2"" startLine=""45"" startColumn=""56"" endLine=""45"" endColumn=""57"" document=""1"" />
+        <entry offset=""0x1b8"" startLine=""47"" startColumn=""18"" endLine=""47"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x1be"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c1"" startLine=""24"" startColumn=""9"" endLine=""48"" endColumn=""11"" document=""1"" />
+        <entry offset=""0x1c2"" hidden=""true"" document=""1"" />
+        <entry offset=""0x1c5"" startLine=""49"" startColumn=""5"" endLine=""49"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x1d9"">
-        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1d9"" attributes=""0"" />
-        <scope startOffset=""0x154"" endOffset=""0x165"">
-          <local name=""x"" il_index=""2"" il_start=""0x154"" il_end=""0x165"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x1c6"">
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1c6"" attributes=""0"" />
+        <scope startOffset=""0x151"" endOffset=""0x162"">
+          <local name=""x"" il_index=""2"" il_start=""0x151"" il_end=""0x162"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x16a"" endOffset=""0x171"">
-          <local name=""y"" il_index=""3"" il_start=""0x16a"" il_end=""0x171"" attributes=""0"" />
-          <local name=""z"" il_index=""4"" il_start=""0x16a"" il_end=""0x171"" attributes=""0"" />
+        <scope startOffset=""0x167"" endOffset=""0x16e"">
+          <local name=""y"" il_index=""3"" il_start=""0x167"" il_end=""0x16e"" attributes=""0"" />
+          <local name=""z"" il_index=""4"" il_start=""0x167"" il_end=""0x16e"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x1b5"" endOffset=""0x1bc"">
-          <local name=""p"" il_index=""5"" il_start=""0x1b5"" il_end=""0x1bc"" attributes=""0"" />
-          <local name=""q"" il_index=""6"" il_start=""0x1b5"" il_end=""0x1bc"" attributes=""0"" />
+        <scope startOffset=""0x1a2"" endOffset=""0x1a9"">
+          <local name=""p"" il_index=""5"" il_start=""0x1a2"" il_end=""0x1a9"" attributes=""0"" />
+          <local name=""q"" il_index=""6"" il_start=""0x1a2"" il_end=""0x1a9"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x1bc"" endOffset=""0x1c3"">
-          <local name=""p"" il_index=""7"" il_start=""0x1bc"" il_end=""0x1c3"" attributes=""0"" />
+        <scope startOffset=""0x1a9"" endOffset=""0x1b0"">
+          <local name=""p"" il_index=""7"" il_start=""0x1a9"" il_end=""0x1b0"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x1c3"" endOffset=""0x1cb"">
-          <local name=""z"" il_index=""8"" il_start=""0x1c3"" il_end=""0x1cb"" attributes=""0"" />
+        <scope startOffset=""0x1b0"" endOffset=""0x1b8"">
+          <local name=""z"" il_index=""8"" il_start=""0x1b0"" il_end=""0x1b8"" attributes=""0"" />
         </scope>
       </scope>
     </method>

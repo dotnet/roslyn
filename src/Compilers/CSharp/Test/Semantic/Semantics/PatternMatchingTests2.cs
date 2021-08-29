@@ -3173,7 +3173,7 @@ public class C
 
             verifier.VerifyIL("C.M", @"
 {
-  // Code size       80 (0x50)
+  // Code size       73 (0x49)
   .maxstack  4
   .locals init (string V_0, //text
                 int V_1)
@@ -3189,7 +3189,7 @@ public class C
   IL_0007:  ldstr      ""b1""
   IL_000c:  stloc.0
   // sequence point: break;
-  IL_000d:  br.s       IL_003c
+  IL_000d:  br.s       IL_0035
   // sequence point: <hidden>
   IL_000f:  ldc.i4.0
   IL_0010:  stloc.1
@@ -3198,41 +3198,36 @@ public class C
   IL_0014:  stloc.1
   // sequence point: when b2
   IL_0015:  ldarg.2
-  IL_0016:  brfalse.s  IL_001f
+  IL_0016:  brtrue.s   IL_001f
+  // sequence point: <hidden>
   IL_0018:  ldloc.1
-  IL_0019:  brfalse.s  IL_0026
+  IL_0019:  brfalse.s  IL_0027
   IL_001b:  ldloc.1
   IL_001c:  ldc.i4.2
-  IL_001d:  beq.s      IL_0026
-  // sequence point: <hidden>
-  IL_001f:  ldloc.1
-  IL_0020:  brfalse.s  IL_002e
-  IL_0022:  ldloc.1
-  IL_0023:  ldc.i4.2
-  IL_0024:  beq.s      IL_0036
+  IL_001d:  beq.s      IL_002f
   // sequence point: text = ""b2"";
-  IL_0026:  ldstr      ""b2""
-  IL_002b:  stloc.0
+  IL_001f:  ldstr      ""b2""
+  IL_0024:  stloc.0
   // sequence point: break;
-  IL_002c:  br.s       IL_003c
+  IL_0025:  br.s       IL_0035
   // sequence point: text = ""1"";
-  IL_002e:  ldstr      ""1""
-  IL_0033:  stloc.0
+  IL_0027:  ldstr      ""1""
+  IL_002c:  stloc.0
   // sequence point: break;
-  IL_0034:  br.s       IL_003c
+  IL_002d:  br.s       IL_0035
   // sequence point: text = ""default"";
-  IL_0036:  ldstr      ""default""
-  IL_003b:  stloc.0
+  IL_002f:  ldstr      ""default""
+  IL_0034:  stloc.0
   // sequence point: System.Console.WriteLine((i, b1, b2, text));
-  IL_003c:  ldarg.0
-  IL_003d:  ldarg.1
-  IL_003e:  ldarg.2
-  IL_003f:  ldloc.0
-  IL_0040:  newobj     ""System.ValueTuple<int, bool, bool, string>..ctor(int, bool, bool, string)""
-  IL_0045:  box        ""System.ValueTuple<int, bool, bool, string>""
-  IL_004a:  call       ""void System.Console.WriteLine(object)""
+  IL_0035:  ldarg.0
+  IL_0036:  ldarg.1
+  IL_0037:  ldarg.2
+  IL_0038:  ldloc.0
+  IL_0039:  newobj     ""System.ValueTuple<int, bool, bool, string>..ctor(int, bool, bool, string)""
+  IL_003e:  box        ""System.ValueTuple<int, bool, bool, string>""
+  IL_0043:  call       ""void System.Console.WriteLine(object)""
   // sequence point: }
-  IL_004f:  ret
+  IL_0048:  ret
 }
 ", source: source, sequencePoints: "C.M");
         }
@@ -3328,7 +3323,7 @@ public class C
 
             verifier.VerifyIL("C.M", @"
 {
-  // Code size      102 (0x66)
+  // Code size       95 (0x5f)
   .maxstack  4
   .locals init (int V_0,
                 int V_1, //j
@@ -3348,9 +3343,9 @@ public class C
   IL_0016:  ldloc.1
   IL_0017:  ldc.i4.2
   IL_0018:  bgt.s      IL_0031
-  IL_001a:  br.s       IL_0062
+  IL_001a:  br.s       IL_005b
   IL_001c:  ldloc.2
-  IL_001d:  brfalse.s  IL_0064
+  IL_001d:  brfalse.s  IL_005d
   IL_001f:  ldloc.2
   IL_0020:  callvirt   ""int string.Length.get""
   IL_0025:  stloc.1
@@ -3358,7 +3353,7 @@ public class C
   IL_0026:  ldloc.1
   IL_0027:  ldc.i4.2
   IL_0028:  bgt.s      IL_0035
-  IL_002a:  br.s       IL_0064
+  IL_002a:  br.s       IL_005d
   // sequence point: when b1
   IL_002c:  ldarg.1
   IL_002d:  brfalse.s  IL_001c
@@ -3373,35 +3368,30 @@ public class C
   IL_0036:  stloc.0
   // sequence point: when b2
   IL_0037:  ldarg.2
-  IL_0038:  brfalse.s  IL_0041
+  IL_0038:  brtrue.s   IL_0041
+  // sequence point: <hidden>
   IL_003a:  ldloc.0
-  IL_003b:  brfalse.s  IL_0048
+  IL_003b:  brfalse.s  IL_005b
   IL_003d:  ldloc.0
   IL_003e:  ldc.i4.2
-  IL_003f:  beq.s      IL_0048
-  // sequence point: <hidden>
-  IL_0041:  ldloc.0
-  IL_0042:  brfalse.s  IL_0062
-  IL_0044:  ldloc.0
-  IL_0045:  ldc.i4.2
-  IL_0046:  beq.s      IL_0064
+  IL_003f:  beq.s      IL_005d
   // sequence point: System.Console.WriteLine((s, b1, b2, j.ToString()));
-  IL_0048:  ldarg.0
-  IL_0049:  ldarg.1
-  IL_004a:  ldarg.2
-  IL_004b:  ldloca.s   V_1
-  IL_004d:  call       ""string int.ToString()""
-  IL_0052:  newobj     ""System.ValueTuple<string, bool, bool, string>..ctor(string, bool, bool, string)""
-  IL_0057:  box        ""System.ValueTuple<string, bool, bool, string>""
-  IL_005c:  call       ""void System.Console.WriteLine(object)""
+  IL_0041:  ldarg.0
+  IL_0042:  ldarg.1
+  IL_0043:  ldarg.2
+  IL_0044:  ldloca.s   V_1
+  IL_0046:  call       ""string int.ToString()""
+  IL_004b:  newobj     ""System.ValueTuple<string, bool, bool, string>..ctor(string, bool, bool, string)""
+  IL_0050:  box        ""System.ValueTuple<string, bool, bool, string>""
+  IL_0055:  call       ""void System.Console.WriteLine(object)""
   // sequence point: break;
-  IL_0061:  ret
+  IL_005a:  ret
   // sequence point: throw null;
-  IL_0062:  ldnull
-  IL_0063:  throw
+  IL_005b:  ldnull
+  IL_005c:  throw
   // sequence point: throw null;
-  IL_0064:  ldnull
-  IL_0065:  throw
+  IL_005d:  ldnull
+  IL_005e:  throw
 }
 ", source: source, sequencePoints: "C.M");
         }
