@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagPropertyEvaluation e => e.Property,
                     BoundDagTypeEvaluation e => e.Type,
                     BoundDagDeconstructEvaluation e => e.DeconstructMethod,
-                    BoundDagIndexEvaluation e => e.Property,
                     BoundDagSliceEvaluation e => (Symbol?)e.SliceMethod ?? e.IndexerAccess?.Indexer,
                     BoundDagIndexerEvaluation e => e.IndexerSymbol ?? e.IndexerAccess?.Indexer,
                     BoundDagAssignmentEvaluation => null,
@@ -84,17 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 #endif
-    }
-
-    partial class BoundDagIndexEvaluation
-    {
-        public override int GetHashCode() => base.GetHashCode() ^ this.Index;
-        public override bool IsEquivalentTo(BoundDagEvaluation obj)
-        {
-            return base.IsEquivalentTo(obj) &&
-                // base.IsEquivalentTo checks the kind field, so the following cast is safe
-                this.Index == ((BoundDagIndexEvaluation)obj).Index;
-        }
     }
 
     partial class BoundDagIndexerEvaluation

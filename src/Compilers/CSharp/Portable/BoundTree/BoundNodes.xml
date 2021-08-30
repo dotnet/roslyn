@@ -1431,10 +1431,6 @@
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
     <Field Name="IsLengthOrCount" Type="bool"/>
   </Node>
-  <Node Name="BoundDagIndexEvaluation" Base="BoundDagEvaluation">
-    <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
-    <Field Name="Index" Type="int"/>
-  </Node>
   <Node Name="BoundDagIndexerEvaluation" Base="BoundDagEvaluation">
     <Field Name="IndexerType" Type="TypeSymbol"/>
     <Field Name="LengthTemp" Type="BoundDagTemp"/>

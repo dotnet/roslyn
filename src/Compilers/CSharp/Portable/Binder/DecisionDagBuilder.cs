@@ -318,24 +318,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(iTupleType.Name == "ITuple");
             var tests = ArrayBuilder<Tests>.GetInstance(4 + patternLength * 2);
 
+            output = input = MakeConvertToType(input, syntax, iTupleType, false, tests);
             tests.Add(new Tests.One(new BoundDagTypeTest(syntax, iTupleType, input)));
             var valueAsITupleEvaluation = new BoundDagTypeEvaluation(syntax, iTupleType, input);
             tests.Add(new Tests.One(valueAsITupleEvaluation));
-            var valueAsITuple = new BoundDagTemp(syntax, iTupleType, valueAsITupleEvaluation);
-            output = valueAsITuple;
 
-            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, isLengthOrCount: true, OriginalInput(valueAsITuple, getLengthProperty));
+            var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, isLengthOrCount: true, OriginalInput(input, getLengthProperty));
             tests.Add(new Tests.One(lengthEvaluation));
             var lengthTemp = new BoundDagTemp(syntax, this._compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
             tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(patternLength), lengthTemp)));
 
-            var getItemPropertyInput = OriginalInput(valueAsITuple, getItemProperty);
-            for (int i = 0; i < patternLength; i++)
+            var getItemPropertyInput = OriginalInput(input, getItemProperty);
+            for (int index = 0; index < patternLength; index++)
             {
-                var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, i, getItemPropertyInput);
+                var indexEvaluation = new BoundDagIndexerEvaluation(syntax, 
+                    indexerType: objectType, 
+                    lengthTemp: lengthTemp,
+                    index: index, 
+                    indexerAccess: null,
+                    indexerSymbol: getItemProperty,
+                    input: getItemPropertyInput);
                 tests.Add(new Tests.One(indexEvaluation));
                 var indexTemp = new BoundDagTemp(syntax, objectType, indexEvaluation);
-                tests.Add(MakeTestsAndBindings(indexTemp, pattern.Subpatterns[i].Pattern, bindings));
+                tests.Add(MakeTestsAndBindings(indexTemp, pattern.Subpatterns[index].Pattern, bindings));
             }
 
             return Tests.AndSequence.Create(tests);

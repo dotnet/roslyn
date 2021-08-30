@@ -494,9 +494,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                         break;
                                     }
-                                case BoundDagIndexEvaluation e:
-                                    addTemp(e, e.Property.Type);
-                                    break;
                                 case BoundDagIndexerEvaluation e:
                                     addTemp(e, e.IndexerType);
                                     break;

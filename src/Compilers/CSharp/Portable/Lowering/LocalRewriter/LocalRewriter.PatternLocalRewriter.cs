@@ -233,18 +233,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, evaluated);
                         }
 
-                    case BoundDagIndexEvaluation e:
-                        {
-                            // This is an evaluation of an indexed property with a constant int value.
-                            // The input type must be ITuple, and the property must be a property of ITuple.
-                            Debug.Assert(e.Property.GetMethod.ParameterCount == 1);
-                            Debug.Assert(e.Property.GetMethod.Parameters[0].Type.SpecialType == SpecialType.System_Int32);
-                            TypeSymbol type = e.Property.GetMethod.ReturnType;
-                            var outputTemp = new BoundDagTemp(e.Syntax, type, e);
-                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            return _factory.AssignmentExpression(output, _factory.Call(input, e.Property.GetMethod, _factory.Literal(e.Index)));
-                        }
-
                     case BoundDagIndexerEvaluation { IndexerAccess: null, IndexerSymbol: null } e:
                         {
                             // array[int]
