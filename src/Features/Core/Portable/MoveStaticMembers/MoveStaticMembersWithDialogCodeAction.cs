@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -60,7 +61,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             // Find the original doc root
             var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var fileBanner = syntaxFacts.GetFileBanner(root);
 
             // add annotations to the symbols that we selected so we can find them later to pull up
             // These symbols should all have (singular) definitions, but in the case that we can't find
@@ -73,12 +73,17 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var sourceDoc = _document.WithSyntaxRoot(root);
 
             var typeParameters = ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, moveOptions.SelectedMembers);
+            // which indices of the old type params should we keep for a new class reference, used for refactoring usages
+            var typeArgIndices = Enumerable.Range(0, _selectedType.TypeParameters.Length)
+                .Where(i => typeParameters.Contains(_selectedType.TypeParameters[i]))
+                .ToImmutableArrayOrEmpty();
+
             // even though we can move members here, we will move them by calling PullMembersUp
             var newType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 ImmutableArray.Create<AttributeData>(),
                 Accessibility.NotApplicable,
                 DeclarationModifiers.Static,
-                GetNewTypeKind(typeParameters),
+                GetNewTypeKind(_selectedType),
                 moveOptions.TypeName,
                 typeParameters: typeParameters);
 
@@ -89,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 _document.Project.Id,
                 _document.Folders,
                 newType,
-                fileBanner,
+                _document,
                 cancellationToken).ConfigureAwait(false);
 
             // get back type declaration in the newly created file
@@ -97,13 +102,12 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var destSemanticModel = await newDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             newType = destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken) as INamedTypeSymbol;
 
-            // refactor member access references from the source file and other files
+            // refactor references across the entire solution
             var memberReferenceLocations = await FindMemberReferencesAsync(moveOptions.SelectedMembers, newDoc.Project.Solution, cancellationToken).ConfigureAwait(false);
-            var locationsToDoc = memberReferenceLocations.ToLookup(loc => loc.location.Document.Id);
-            var reReferencedSolution = await RefactorReferencesAsync(locationsToDoc, newDoc.Project.Solution, newType!, cancellationToken).ConfigureAwait(false);
+            var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
+            var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, newDoc.Project.Solution, newType!, typeArgIndices, cancellationToken).ConfigureAwait(false);
 
-            // Possibly convert members to non-static or static if we move to/from a module
-            sourceDoc = await CorrectStaticMembersAsync(reReferencedSolution.GetRequiredDocument(sourceDoc.Id), memberNodes, newType!, cancellationToken).ConfigureAwait(false);
+            sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDoc.Id);
 
             // get back nodes from our changes
             root = await sourceDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -120,117 +124,124 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         }
 
         /// <summary>
-        /// What type kind we should make our new type be. Passing Module when our language is C# will still create a class.
-        /// Modules cannot be generic however, so for VB we choose class if there are generic type params.
-        /// This could be later extended to a language-service feature if there is more complex behavior.
+        /// Finds what type kind new type should be. Currently, we just select whatever type the source is.
+        /// This means always a class for C#, and a module for VB iff we moved from a module
+        /// This functionality can later be expanded or moved to language-specific implementations
         /// </summary>
-        private static TypeKind GetNewTypeKind(ImmutableArray<ITypeParameterSymbol> typeParameters)
+        private static TypeKind GetNewTypeKind(INamedTypeSymbol oldType)
         {
-            return typeParameters.IsEmpty ? TypeKind.Module : TypeKind.Class;
-        }
-
-        private async Task<Document> CorrectStaticMembersAsync(
-            Document sourceDoc,
-            ImmutableArray<SyntaxNode> memberNodes,
-            INamedTypeSymbol newType,
-            CancellationToken cancellationToken)
-        {
-            // We have two cases:
-            // 1. Moving from a class to a module. We need to remove the shared modifier as it is implied
-            // 2. Moving from a module to a class. We need to add the shared modifier as it is no longer implied
-            // If neither of these apply (the movement types are both classes or both modules), we return early
-            if (newType.TypeKind == _selectedType.TypeKind)
-            {
-                return sourceDoc;
-            }
-
-            var docEditor = await DocumentEditor.CreateAsync(sourceDoc, cancellationToken).ConfigureAwait(false);
-            memberNodes = docEditor.OriginalRoot.GetCurrentNodes(memberNodes).ToImmutableArray();
-            // need to make members non-static if we're moving to a module, static if we're moving away from one
-            foreach (var node in memberNodes)
-            {
-                docEditor.ReplaceNode(node, (n, generator) => generator.WithModifiers(n, generator.GetModifiers(n).WithIsStatic(newType.TypeKind != TypeKind.Module)));
-            }
-
-            return docEditor.GetChangedDocument();
+            return oldType.TypeKind;
         }
 
         private static async Task<Solution> RefactorReferencesAsync(
-            ILookup<DocumentId, (ReferenceLocation location, bool isExtension)> locationsToDoc,
+            ILookup<ProjectId, (ReferenceLocation location, bool isExtensionMethod)> projectToLocations,
             Solution solution,
             INamedTypeSymbol newType,
+            ImmutableArray<int> typeArgIndices,
             CancellationToken cancellationToken)
         {
-            var solutionEditor = new SolutionEditor(solution);
-            foreach (var docGroup in locationsToDoc)
+            // keep our new solution separate, since each change can be performed separately
+            var updatedSolution = solution;
+            foreach (var (projectId, referencesForProject) in projectToLocations)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var docEditor = await solutionEditor.GetDocumentEditorAsync(docGroup.Key, cancellationToken).ConfigureAwait(false);
-                FixReferencesSingleDocument(docGroup.AsImmutable(), docEditor, newType, cancellationToken);
+                // organize by project first, so we can solve one project at a time
+                var project = solution.GetRequiredProject(projectId);
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var documentToLocations = referencesForProject.ToLookup(reference => reference.location.Document.Id);
+                foreach (var (docId, referencesForDoc) in documentToLocations)
+                {
+                    var doc = project.GetRequiredDocument(docId);
+                    var updatedRoot = await FixReferencesSingleDocumentAsync(
+                        referencesForDoc.ToImmutableArray(),
+                        doc,
+                        newType,
+                        typeArgIndices,
+                        cancellationToken).ConfigureAwait(false);
+
+                    updatedSolution = updatedSolution.WithDocumentSyntaxRoot(docId, updatedRoot);
+                }
+
+                // We keep the compilation until we are done with the project
+                GC.KeepAlive(compilation);
             }
 
-            return solutionEditor.GetChangedSolution();
+            return updatedSolution;
         }
 
-        private static void FixReferencesSingleDocument(
-            ImmutableArray<(ReferenceLocation location, bool isExtension)> referenceLocations,
-            DocumentEditor docEditor,
+        private static async Task<SyntaxNode> FixReferencesSingleDocumentAsync(
+            ImmutableArray<(ReferenceLocation location, bool isExtensionMethod)> referenceLocations,
+            Document doc,
             INamedTypeSymbol newType,
+            ImmutableArray<int> typeArgIndices,
             CancellationToken cancellationToken)
         {
-            foreach (var (refLoc, isExtension) in referenceLocations)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+            var syntaxFacts = doc.GetRequiredLanguageService<ISyntaxFactsService>();
 
-                // Candidate locations represent a non-perfect match (like incorrect number of params),
-                // which means it likely isn't the member access we're looking for. It's either a reference to
-                // something else, like an overload, in which case we shouldn't change it, or it's an error
-                // by the user, meaning it's ok if we don't change it, as the user will have to fix it anyways
-                if (refLoc.IsCandidateLocation)
-                {
-                    continue;
-                }
-
-                var doc = docEditor.OriginalDocument;
-
-                var syntaxFacts = doc.GetRequiredLanguageService<ISyntaxFactsService>();
-                var refNode = docEditor.OriginalRoot.FindNode(refLoc.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
-                // track this node in case the doc has changed
-                docEditor.ReplaceNode(refNode, refNode.TrackNodes(refNode));
-
-                // add imports for each reference as there may be multiple locations that we need to add to
-                // if the import is already there, we shouldn't add it again
-                var addImports = doc.GetRequiredLanguageService<IAddImportsService>();
-                docEditor.ReplaceNode(docEditor.OriginalRoot, (node, generator) => addImports.AddImport(
-                    docEditor.SemanticModel.Compilation,
-                    node,
-                    node.GetCurrentNode(refNode)!,
-                    generator.NamespaceImportDeclaration(
-                        newType.ContainingNamespace.ToDisplayString(SymbolDisplayFormats.NameFormat))
-                        .WithAdditionalAnnotations(Simplification.Simplifier.Annotation, Formatting.Formatter.Annotation),
-                    generator,
-                    true,
-                    doc.CanAddImportsInHiddenRegions(),
+            // keep extension method flag attached to node through dict
+            var trackNodesDict = referenceLocations
+                .ToImmutableDictionary(refLoc => refLoc.location.Location.FindNode(
+                    getInnermostNodeForTie: true,
                     cancellationToken));
 
-                // now change the actual references to use the new type name
-                // extension methods do not need to be changed as we do not reference the class name
-                if (isExtension)
-                {
-                    continue;
-                }
+            var docEditor = await DocumentEditor.CreateAsync(doc, cancellationToken).ConfigureAwait(false);
+            var generator = docEditor.Generator;
 
-                // We add a simplifier annotation in both cases (second case is done within the method)
-                // Because sometimes the qualification is wholly or partly unneccessary
-                // static member access should never be pointer or conditional member access
-                if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(refNode))
+            foreach (var refNode in trackNodesDict.Keys)
+            {
+                var (_, isExtensionMethod) = trackNodesDict[refNode];
+
+                // now change the actual references to use the new type name, add a symbol annotation
+                // for every reference we move so that if an import is necessary/possible,
+                // we add it, and simplifiers so we don't over-qualify after import
+                if (isExtensionMethod)
                 {
+                    // extension methods should be changed into their static class versions with
+                    // full qualifications, then the qualification changed to the new type
+                    if (syntaxFacts.IsNameOfAnyMemberAccessExpression(refNode) &&
+                        syntaxFacts.IsAnyMemberAccessExpression(refNode?.Parent) &&
+                        syntaxFacts.IsInvocationExpression(refNode.Parent?.Parent))
+                    {
+                        // get the entire expression, guaranteed not null based on earlier checks
+                        var extensionMethodInvocation = refNode.GetRequiredParent().GetRequiredParent();
+                        // expand using our (possibly outdated) document/syntaxes
+                        var expandedExtensionInvocation = await Simplifier.ExpandAsync(
+                            extensionMethodInvocation,
+                            doc,
+                            cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                        // should be an invocation of a simple member access expression with the expression as a type name
+                        var memberAccessExpression = syntaxFacts.GetExpressionOfInvocationExpression(expandedExtensionInvocation);
+                        var typeExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccessExpression)!;
+                        expandedExtensionInvocation = expandedExtensionInvocation.ReplaceNode(typeExpression, generator.TypeExpression(newType)
+                            .WithTriviaFrom(refNode)
+                            .WithAdditionalAnnotations(Simplifier.Annotation, Simplifier.AddImportsAnnotation, SymbolAnnotation.Create(newType)));
+
+                        docEditor.ReplaceNode(extensionMethodInvocation, expandedExtensionInvocation);
+                    }
+                }
+                else if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(refNode))
+                {
+                    // static member access should never be pointer or conditional member access,
+                    // so syntax in this block should be of the form 'Class.Member' or 'Class<TArg>.Member'
                     var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(refNode.Parent);
                     if (expression != null)
                     {
-                        docEditor.ReplaceNode(expression, (node, generator) => generator.TypeExpression(newType)
-                            .WithTriviaFrom(node)
-                            .WithAdditionalAnnotations(Simplification.Simplifier.Annotation));
+                        SyntaxNode replacement;
+                        if (syntaxFacts.IsGenericName(expression))
+                        {
+                            // if the access uses a generic name, then we copy only the type args we need
+                            var typeArgs = syntaxFacts.GetTypeArgumentsOfGenericName(expression);
+                            var newTypeArgs = typeArgIndices.SelectAsArray(i => typeArgs[i]);
+                            replacement = generator.GenericName(newType.Name, newTypeArgs);
+                        }
+                        else
+                        {
+                            replacement = generator.TypeExpression(newType);
+                        }
+
+                        docEditor.ReplaceNode(expression, replacement
+                            .WithTriviaFrom(refNode)
+                            .WithAdditionalAnnotations(Simplifier.Annotation, Simplifier.AddImportsAnnotation, SymbolAnnotation.Create(newType)));
                     }
                 }
                 else if (syntaxFacts.IsIdentifierName(refNode))
@@ -238,9 +249,16 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                     // We now are in an identifier name that isn't a member access expression
                     // This could either be because of a static using, module usage in VB, or because we are in the original source type
                     // either way, we want to change it to a member access expression for the type that is imported
-                    docEditor.ReplaceNode(refNode, (node, generator) => generator.MemberAccessExpression(generator.TypeExpression(newType), node).WithTriviaFrom(node));
+                    docEditor.ReplaceNode(
+                        refNode,
+                        generator.MemberAccessExpression(
+                            generator.TypeExpression(newType)
+                                .WithAdditionalAnnotations(Simplifier.AddImportsAnnotation, SymbolAnnotation.Create(newType)),
+                            refNode));
                 }
             }
+
+            return docEditor.GetChangedRoot();
         }
 
         private static async Task<ImmutableArray<(ReferenceLocation location, bool isExtension)>> FindMemberReferencesAsync(
@@ -252,8 +270,10 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var symbolRefs = await Task.WhenAll(tasks).ConfigureAwait(false);
             return symbolRefs
                 .Flatten()
-                .SelectMany(refSymbol => refSymbol.Locations.Select(loc => (loc, refSymbol.Definition.IsExtensionMethod())))
-                .ToImmutableArray();
+                .SelectMany(refSymbol => refSymbol.Locations
+                    .Where(loc => !loc.IsCandidateLocation && !loc.IsImplicit)
+                    .Select(loc => (loc, refSymbol.Definition.IsExtensionMethod())))
+                .ToImmutableArrayOrEmpty();
         }
     }
 }

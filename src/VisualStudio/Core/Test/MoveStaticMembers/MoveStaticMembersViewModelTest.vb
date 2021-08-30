@@ -31,20 +31,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
                 Dim syntaxFacts = workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
                 Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, syntaxFacts, CancellationToken.None).ConfigureAwait(False)
                 Dim memberSymbol = (Await workspaceDoc.GetRequiredSemanticModelAsync(CancellationToken.None)).GetDeclaredSymbol(token.Parent)
-                Dim existingNames = memberSymbol.ContainingNamespace.GetAllTypes(CancellationToken.None).Select(Function(type) type.Name).ToImmutableArray()
-                Dim membersInType = memberSymbol.ContainingType.GetMembers().WhereAsArray(Function(member) MemberAndDestinationValidator.IsMemberValid(member))
-                Dim membersViewModel = membersInType.SelectAsArray(
-                    Function(member) New SymbolViewModel(Of ISymbol)(member, glyphService:=Nothing) With {.IsChecked = member.Equals(memberSymbol)})
-                Dim memberToDependents = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, workspaceDoc.Project, CancellationToken.None)
-                Dim memberSelectionViewModel = New StaticMemberSelectionViewModel(
-                    workspace.GetService(Of IUIThreadOperationExecutor),
-                    membersViewModel,
-                    memberToDependents)
-                Return New MoveStaticMembersDialogViewModel(
-                    memberSelectionViewModel,
-                    "TestDefaultType",
-                    existingNames,
-                    syntaxFacts)
+                Return VisualStudioMoveStaticMembersOptionsService.GetViewModel(
+                    workspaceDoc,
+                    memberSymbol.ContainingType,
+                    memberSymbol,
+                    Nothing,
+                    workspace.GetService(Of IUIThreadOperationExecutor))
             End Using
         End Function
 
@@ -69,6 +61,45 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
         End Sub
 
 #Region "C#"
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function CSTestBasicSubmit() As Task
+            Dim markUp = <Text><![CDATA[
+<Workspace>
+    <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+        <Document>
+            namespace TestNs
+            {
+                public class TestClass
+                {
+                    public static int Bar$$bar()
+                    {
+                        return 12345;
+                    }
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>]]></Text>
+
+            ' We can call the method, but we need the document still to test submission
+            Dim viewModel = Await GetViewModelAsync(markUp).ConfigureAwait(False)
+
+            Assert.Equal("TestClassHelpers", viewModel.DestinationName)
+            viewModel.DestinationName = "ExtraNs.TestClassHelpers"
+            Assert.Equal("ExtraNs.TestClassHelpers", viewModel.DestinationName)
+            Assert.Equal("TestNs.", viewModel.PrependedNamespace)
+            Assert.True(viewModel.CanSubmit)
+
+            Dim cancelledOptions = VisualStudioMoveStaticMembersOptionsService.GenerateOptions(LanguageNames.CSharp, viewModel, False)
+            Assert.True(cancelledOptions.IsCancelled)
+
+            Dim options = VisualStudioMoveStaticMembersOptionsService.GenerateOptions(LanguageNames.CSharp, viewModel, True)
+            Assert.False(options.IsCancelled)
+            Assert.Equal("TestClassHelpers.cs", options.FileName)
+            Assert.Equal("TestClassHelpers", options.TypeName)
+            Assert.Equal("TestNs.ExtraNs", options.NamespaceDisplay)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function CSTestNameConflicts() As Task
             Dim markUp = <Text><![CDATA[
@@ -115,6 +146,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
                 }
             }
         </Document>
+        <Document>
+            namespace TestNs.ExtraNs
+            {
+                public class ConflictingNsClassName
+                {
+                }
+            }
+        </Document>
     </Project>
     <Project Language="C#" AssemblyName="CSAssembly2" CommonReferences="true">
         <Document>
@@ -129,10 +168,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 </Workspace>]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp)
 
-            Assert.Equal(viewModel.DestinationName, "TestDefaultType")
+            Assert.Equal(viewModel.DestinationName, "TestClassHelpers")
+            Assert.Equal("TestNs.", viewModel.PrependedNamespace)
 
             Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.A_new_type_will_be_created, viewModel.Message)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
 
             Assert.False(viewModel.MemberSelectionViewModel.CheckedMembers.IsEmpty)
             Assert.True(viewModel.CanSubmit)
@@ -144,7 +184,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 
             viewModel.DestinationName = "ValidName"
             Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.A_new_type_will_be_created, viewModel.Message)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
 
             ' spaces are not allowed as types
             viewModel.DestinationName = "asd "
@@ -156,7 +196,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             viewModel.DestinationName = "ConflictingClassName3"
             Assert.True(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.A_new_type_will_be_created, viewModel.Message)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
 
             viewModel.DestinationName = "ITestInterface"
             Assert.False(viewModel.CanSubmit)
@@ -166,15 +206,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             viewModel.DestinationName = "NoNsClass"
             Assert.True(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.A_new_type_will_be_created, viewModel.Message)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
 
             ' different namespace
             viewModel.DestinationName = "ConflictingClassName2"
             Assert.True(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.A_new_type_will_be_created, viewModel.Message)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
 
             viewModel.DestinationName = "TestClass"
+            Assert.False(viewModel.CanSubmit)
+            Assert.True(viewModel.ShowMessage)
+            Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
+
+            viewModel.DestinationName = "ExtraNamespace.ValidName"
+            Assert.True(viewModel.CanSubmit)
+            Assert.True(viewModel.ShowMessage)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
+
+            viewModel.DestinationName = "ExtraNs.ConflictingNsClassName"
             Assert.False(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
@@ -276,6 +326,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 
 #Region "VB"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function VBTestBasicSubmit() As Task
+            Dim markUp = <Text><![CDATA[
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+        <Document>
+            Namespace TestNs
+                Public Class TestClass
+                    Public Shared Function Bar$$bar() As Integer
+                        Return 12345;
+                    End Function
+                End Class
+            End Namespace
+        </Document>
+    </Project>
+</Workspace>]]></Text>
+
+            ' We can call the method, but we need the document still to test submission
+            Dim viewModel = Await GetViewModelAsync(markUp).ConfigureAwait(False)
+
+            Assert.Equal("TestClassHelpers", viewModel.DestinationName)
+            viewModel.DestinationName = "ExtraNs.TestClassHelpers"
+            Assert.Equal("ExtraNs.TestClassHelpers", viewModel.DestinationName)
+            Assert.Equal("TestNs.", viewModel.PrependedNamespace)
+            Assert.True(viewModel.CanSubmit)
+
+            Dim cancelledOptions = VisualStudioMoveStaticMembersOptionsService.GenerateOptions(LanguageNames.VisualBasic, viewModel, False)
+            Assert.True(cancelledOptions.IsCancelled)
+
+            Dim options = VisualStudioMoveStaticMembersOptionsService.GenerateOptions(LanguageNames.VisualBasic, viewModel, True)
+            Assert.False(options.IsCancelled)
+            Assert.Equal("TestClassHelpers.vb", options.FileName)
+            Assert.Equal("TestClassHelpers", options.TypeName)
+            Assert.Equal("TestNs.ExtraNs", options.NamespaceDisplay)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function VBTestNameConflicts() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
@@ -311,6 +397,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
                 End Class
             End Namespace
         </Document>
+        <Document>
+            Namespace TestNs.ExtraNs
+                Public Class ConflictingNsClassName
+                End Class
+            End Namespace
+        </Document>
     </Project>
     <Project Language="C#" AssemblyName="CSAssembly2" CommonReferences="true">
         <Document>
@@ -323,10 +415,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 </Workspace>]]></Text>
             Dim viewModel = Await GetViewModelAsync(markUp)
 
-            Assert.Equal(viewModel.DestinationName, "TestDefaultType")
+            Assert.Equal(viewModel.DestinationName, "TestClassHelpers")
+            Assert.Equal("TestNs.", viewModel.PrependedNamespace)
 
             Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.A_new_type_will_be_created, viewModel.Message)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
 
             Assert.False(viewModel.MemberSelectionViewModel.CheckedMembers.IsEmpty)
             Assert.True(viewModel.CanSubmit)
@@ -336,20 +429,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
 
+            viewModel.DestinationName = "ValidName"
+            Assert.True(viewModel.ShowMessage)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
+
+            ' spaces are not allowed as types
             viewModel.DestinationName = "asd "
             Assert.False(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
 
-            viewModel.DestinationName = "ValidName"
-            Assert.True(viewModel.CanSubmit)
-            Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.A_new_type_will_be_created, viewModel.Message)
-
+            ' different project
             viewModel.DestinationName = "ConflictingClassName3"
             Assert.True(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.A_new_type_will_be_created, viewModel.Message)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
 
             viewModel.DestinationName = "ITestInterface"
             Assert.False(viewModel.CanSubmit)
@@ -359,14 +453,66 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             viewModel.DestinationName = "NoNsClass"
             Assert.True(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.A_new_type_will_be_created, viewModel.Message)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
 
+            ' different namespace
             viewModel.DestinationName = "ConflictingClassName2"
             Assert.True(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.A_new_type_will_be_created, viewModel.Message)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
 
             viewModel.DestinationName = "TestClass"
+            Assert.False(viewModel.CanSubmit)
+            Assert.True(viewModel.ShowMessage)
+            Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
+
+            viewModel.DestinationName = "ExtraNamespace.ValidName"
+            Assert.True(viewModel.CanSubmit)
+            Assert.True(viewModel.ShowMessage)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
+
+            viewModel.DestinationName = "ExtraNs.ConflictingNsClassName"
+            Assert.False(viewModel.CanSubmit)
+            Assert.True(viewModel.ShowMessage)
+            Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function VBTestRootNamespace() As Task
+            Dim markUp = <Text><![CDATA[
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+        <CompilationOptions RootNamespace="RootNs"/>
+        <Document>
+            Namespace TestNs
+                Public Class TestClass
+                    Public Shared Function Bar$$bar() As Integer
+                        Return 12345;
+                    End Function
+                End Class
+            End Namespace
+        </Document>
+        <Document>
+            Namespace TestNs
+                Public Class ConflictingClassName
+                End Class
+            End Namespace
+        </Document>
+    </Project>
+</Workspace>]]></Text>
+
+            Dim viewModel = Await GetViewModelAsync(markUp)
+
+            Assert.Equal(viewModel.DestinationName, "TestClassHelpers")
+            Assert.Equal("RootNs.TestNs.", viewModel.PrependedNamespace)
+
+            Assert.True(viewModel.ShowMessage)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
+
+            Assert.False(viewModel.MemberSelectionViewModel.CheckedMembers.IsEmpty)
+            Assert.True(viewModel.CanSubmit)
+
+            viewModel.DestinationName = "ConflictingClassName"
             Assert.False(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)

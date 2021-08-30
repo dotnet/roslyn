@@ -42,7 +42,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -74,7 +74,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestProperty { get; set; }
     }
@@ -111,7 +111,7 @@ namespace TestNs1
 
 namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static event EventHandler TestEvent;
     }
@@ -145,7 +145,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -200,7 +200,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod(this Other other)
         {
@@ -235,9 +235,50 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public const int TestField = 1;
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodWithTrivia()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    // some comment we don't want to move
+    public class Class1
+    {
+        // some comment we want to move
+        public static int Test[||]Method()
+        {
+            return 0;
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    // some comment we don't want to move
+    public class Class1
+    {
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
+    {
+        // some comment we want to move
+        public static int TestMethod()
+        {
+            return 0;
+        }
     }
 }";
             await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
@@ -274,7 +315,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static bool TestMethodBool()
         {
@@ -326,7 +367,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
 
         public static bool TestMethodBool()
@@ -380,7 +421,7 @@ namespace TestNs1
 
 namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField;
 
@@ -426,7 +467,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -464,7 +505,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1.InnerNs
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -487,7 +528,7 @@ public class Class1
 public class Class1
 {
 }";
-            var expectedResult2 = @"static class Class1Helpers
+            var expectedResult2 = @"internal static class Class1Helpers
 {
     public static int TestField = 1;
 }";
@@ -511,7 +552,7 @@ public class Class1
 }";
             var expectedResult2 = @"namespace NewNs
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -547,7 +588,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1.ExtraNs
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -583,7 +624,7 @@ public class Class1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -632,7 +673,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static T TestMethod<T>(T item)
         {
@@ -669,7 +710,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers<T>
+    internal static class Class1Helpers<T>
     {
         public static T Test[||]Method(T item)
         {
@@ -722,7 +763,62 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
+    {
+        public static int TestMethod()
+        {
+            return 0;
+        }
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodAndRefactorUsageWithTrivia()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int Test[||]Method()
+        {
+            return 0;
+        }
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            // keep this comment, and the random spaces here
+            return Class1. TestMethod( );
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            // keep this comment, and the random spaces here
+            return Class1Helpers. TestMethod( );
+        }
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -768,7 +864,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -811,7 +907,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 0;
     }
@@ -860,7 +956,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         private static int _testProperty;
 
@@ -871,6 +967,237 @@ namespace TestNs1
             {
                 _testProperty = value;
             }
+        }
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveGenericMethodAndRefactorImpliedUsage()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static T Test[||]Method<T>(T item)
+        {
+            return item;
+        }
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1.TestMethod(5);
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1Helpers.TestMethod(5);
+        }
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
+    {
+        public static T TestMethod<T>(T item)
+        {
+            return item;
+        }
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveGenericMethodAndRefactorUsage()
+        {
+            var initialMarkup = @"
+using System;
+
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static Type Test[||]Method<T>()
+        {
+            return typeof(T);
+        }
+    }
+
+    public class Class2
+    {
+        public static Type TestMethod2()
+        {
+            return Class1.TestMethod<int>();
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult1 = @"
+using System;
+
+namespace TestNs1
+{
+    public class Class1
+    {
+    }
+
+    public class Class2
+    {
+        public static Type TestMethod2()
+        {
+            return Class1Helpers.TestMethod<int>();
+        }
+    }
+}";
+            var expectedResult2 = @"using System;
+
+namespace TestNs1
+{
+    internal static class Class1Helpers
+    {
+        public static Type TestMethod<T>()
+        {
+            return typeof(T);
+        }
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodFromGenericClassAndRefactorUsage()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1<T>
+    {
+        public static T TestGeneric { get; set; }    
+
+        public static T Test[||]Method()
+        {
+            return TestGeneric;
+        }
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1<int>.TestMethod();
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod", "TestGeneric");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1<T>
+    {
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1Helpers<int>.TestMethod();
+        }
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers<T>
+    {
+        public static T TestGeneric { get; set; }
+
+        public static T TestMethod()
+        {
+            return TestGeneric;
+        }
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodFromGenericClassAndRefactorPartialTypeArgUsage()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1<T1, T2, T3>
+        where T1 : new()
+    {
+        public static T1 Test[||]Method()
+        {
+            return new T1();
+        }
+
+        public static T2 TestGeneric2 { get; set; } 
+
+        public T3 TestGeneric3 { get; set; }
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1<int, string, double>.TestMethod();
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1<T1, T2, T3>
+        where T1 : new()
+    {
+        public static T2 TestGeneric2 { get; set; } 
+
+        public T3 TestGeneric3 { get; set; }
+    }
+
+    public class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1Helpers<int>.TestMethod();
+        }
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers<T1> where T1 : new()
+    {
+        public static T1 TestMethod()
+        {
+            return new T1();
         }
     }
 }";
@@ -929,7 +1256,7 @@ namespace TestNs2
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -984,7 +1311,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1.ExtraNs
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1041,7 +1368,7 @@ public class Class2
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1124,7 +1451,7 @@ namespace TestNs2
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1188,7 +1515,161 @@ namespace TestNs2
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
+    {
+        public static int TestMethod()
+        {
+            return 0;
+        }
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodAndRefactorConflictingName()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int F[||]oo()
+        {
+            return 0;
+        }
+    }
+}
+
+namespace TestNs2
+{
+    using TestNs1;
+
+    class Class2
+    {
+        class Class1Helpers
+        {
+            public static int Foo()
+            {
+                return 1;
+            }
+        }
+        
+        public static int TestMethod2()
+        {
+            return Class1.Foo() + Class1Helpers.Foo();
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("Foo");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+    }
+}
+
+namespace TestNs2
+{
+    using TestNs1;
+
+    class Class2
+    {
+        class Class1Helpers
+        {
+            public static int Foo()
+            {
+                return 1;
+            }
+        }
+        
+        public static int TestMethod2()
+        {
+            return TestNs1.Class1Helpers.Foo() + Class1Helpers.Foo();
+        }
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
+    {
+        public static int Foo()
+        {
+            return 0;
+        }
+    }
+}";
+            await new Test(selectedDestinationName, selectedMembers, newFileName)
+            {
+                TestCode = initialMarkup,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expectedResult1,
+                        (newFileName, expectedResult2)
+                    }
+                },
+                // the test parser thinks "TestNs1.Class1Helpers" is a member access expression
+                // but we made a qualified name. The text should still be the same
+                CodeActionValidationMode = Testing.CodeActionValidationMode.None
+            }.RunAsync().ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodAndRefactorQualifiedName()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int Test[||]Method()
+        {
+            return 0;
+        }
+    }
+}
+
+namespace TestNs2
+{
+    class Class2
+    {
+        public static int TestMethod2()
+        {
+            return TestNs1.Class1.TestMethod();
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult1 = @"
+using TestNs1;
+
+namespace TestNs1
+{
+    public class Class1
+    {
+    }
+}
+
+namespace TestNs2
+{
+    class Class2
+    {
+        public static int TestMethod2()
+        {
+            return Class1Helpers.TestMethod();
+        }
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1252,7 +1733,7 @@ namespace TestNs2
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1316,7 +1797,7 @@ namespace TestNs2
 }";
             var expectedResult2 = @"namespace TestNs1.ExtraNs
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1389,7 +1870,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod(this Other other)
         {
@@ -1479,7 +1960,109 @@ namespace TestNs2
 
 namespace TestNs1.ExtraNs
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
+    {
+        public static int TestMethod(this Other other)
+        {
+            return other.OtherInt + 2;
+        }
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveExtensionMethodRefactorMultipleImports()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    using TestNs2;
+
+    public static class Class1
+    {
+        public static int Test[||]Method(this Other other)
+        {
+            return other.OtherInt + 2;
+        }
+    }
+}
+
+namespace TestNs2
+{
+    using TestNs1;
+
+    public class Class2
+    {
+        public int GetOtherInt()
+        {
+            var other = new Other();
+            return other.TestMethod();
+        }
+
+        public int GetOtherInt2()
+        {
+            var other = new Other();
+            return other.TestMethod();
+        }
+    }
+
+    public class Other
+    {
+        public int OtherInt;
+        public Other()
+        {
+            OtherInt = 5;
+        }
+    }
+}";
+            var selectedDestinationName = "ExtraNs.Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    using TestNs2;
+
+    public static class Class1
+    {
+    }
+}
+
+namespace TestNs2
+{
+    using TestNs1;
+    using TestNs1.ExtraNs;
+
+    public class Class2
+    {
+        public int GetOtherInt()
+        {
+            var other = new Other();
+            return other.TestMethod();
+        }
+
+        public int GetOtherInt2()
+        {
+            var other = new Other();
+            return other.TestMethod();
+        }
+    }
+
+    public class Other
+    {
+        public int OtherInt;
+        public Other()
+        {
+            OtherInt = 5;
+        }
+    }
+}";
+            var expectedResult2 = @"using TestNs2;
+
+namespace TestNs1.ExtraNs
+{
+    internal static class Class1Helpers
     {
         public static int TestMethod(this Other other)
         {
@@ -1516,7 +2099,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1560,7 +2143,7 @@ namespace TestNs1
 
 namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1600,7 +2183,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1634,7 +2217,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -1665,7 +2248,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -1696,7 +2279,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -1727,7 +2310,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }
@@ -1761,7 +2344,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestMethod()
         {
@@ -1796,7 +2379,7 @@ namespace TestNs1
 }";
             var expectedResult2 = @"namespace TestNs1
 {
-    static class Class1Helpers
+    internal static class Class1Helpers
     {
         public static int TestField = 1;
     }

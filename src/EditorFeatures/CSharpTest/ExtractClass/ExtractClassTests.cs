@@ -534,7 +534,7 @@ class Test : MyBase
         }
 
         [Fact]
-        public async Task TestFileHeader()
+        public async Task TestFileHeader_FromExistingFile()
         {
             var input = @"
 <Workspace>
@@ -577,6 +577,51 @@ internal class MyBase
 </Workspace>";
 
             await TestExtractClassAsync(input, expected);
+        }
+
+        [Fact]
+        public async Task TestFileHeader_FromOption()
+        {
+            var input = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">// this is my document header
+// that should be ignored
+
+class Test
+{
+    int [||]Method()
+    {
+        return 1 + 1;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expected = @"
+<Workspace>
+    <Project Language=""C#"">
+        <Document FilePath=""Test.cs"">// this is my document header
+// that should be ignored
+
+class Test : MyBase
+{
+}
+        </Document>
+        <Document FilePath=""MyBase.cs"">// this is my real document header
+
+internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}</Document>
+    </Project>
+</Workspace>";
+
+            await TestExtractClassAsync(input, expected, testParameters: new TestParameters(options: Option(CodeStyleOptions2.FileHeaderTemplate, "this is my real document header")));
         }
 
         [Fact]

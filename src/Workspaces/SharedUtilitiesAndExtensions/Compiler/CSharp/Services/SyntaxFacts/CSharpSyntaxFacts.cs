@@ -573,6 +573,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => simpleName.IsKind(SyntaxKind.GenericName) ||
                simpleName.GetLastToken().GetNextToken().Kind() == SyntaxKind.LessThanToken;
 
+        public SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfGenericName(SyntaxNode? genericName)
+            => (genericName as GenericNameSyntax)?.TypeArgumentList.Arguments ?? default;
+
         public SyntaxNode? GetTargetOfMemberBinding(SyntaxNode? node)
             => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
 
@@ -1424,6 +1427,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxToken GetIdentifierOfParameter(SyntaxNode node)
             => ((ParameterSyntax)node).Identifier;
+
+        public SyntaxToken GetIdentifierOfTypeDeclaration(SyntaxNode node)
+            => node switch
+            {
+                BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
+                DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
+                _ => throw ExceptionUtilities.UnexpectedValue(node),
+            };
 
         public SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node)
             => ((IdentifierNameSyntax)node).Identifier;

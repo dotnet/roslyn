@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = null;
 
-                if (InExpressionTree || unconvertedInterpolatedString.Parts.ContainsAwaitExpression())
+                if (InExpressionTree || !ValidateInterpolatedStringParts(unconvertedInterpolatedString))
                 {
                     return false;
                 }
@@ -204,8 +204,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static bool ValidateInterpolatedStringParts(BoundUnconvertedInterpolatedString unconvertedInterpolatedString)
+            => !unconvertedInterpolatedString.Parts.ContainsAwaitExpression()
+               && unconvertedInterpolatedString.Parts.All(p => p is not BoundStringInsert { Value.Type.TypeKind: TypeKind.Dynamic });
+
         private static bool AllInterpolatedStringPartsAreStrings(ImmutableArray<BoundExpression> parts)
-            => parts.All(p => p is BoundLiteral or BoundStringInsert { Value: { Type: { SpecialType: SpecialType.System_String } }, Alignment: null, Format: null });
+            => parts.All(p => p is BoundLiteral or BoundStringInsert { Value.Type.SpecialType: SpecialType.System_String, Alignment: null, Format: null });
 
         private bool TryBindUnconvertedBinaryOperatorToDefaultInterpolatedStringHandler(BoundBinaryOperator binaryOperator, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out BoundBinaryOperator? convertedBinaryOperator)
         {
@@ -240,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isConstant = isConstant && current.Right.ConstantValue is not null;
                 var rightInterpolatedString = (BoundUnconvertedInterpolatedString)current.Right;
 
-                if (rightInterpolatedString.Parts.ContainsAwaitExpression())
+                if (!ValidateInterpolatedStringParts(rightInterpolatedString))
                 {
                     // Exception to case 3. Delegate to standard binding.
                     stack.Free();
@@ -259,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundUnconvertedInterpolatedString interpolatedString:
                         isConstant = isConstant && interpolatedString.ConstantValue is not null;
 
-                        if (interpolatedString.Parts.ContainsAwaitExpression())
+                        if (!ValidateInterpolatedStringParts(interpolatedString))
                         {
                             // Exception to case 3. Delegate to standard binding.
                             stack.Free();
@@ -821,7 +825,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var interpolatedStringConversion = memberAnalysisResult.ConversionForArg(interpolatedStringArgNum);
             Debug.Assert(interpolatedStringConversion.IsInterpolatedStringHandler);
             var interpolatedStringParameter = GetCorrespondingParameter(ref memberAnalysisResult, parameters, interpolatedStringArgNum);
-            Debug.Assert(interpolatedStringParameter.Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true });
+            Debug.Assert(interpolatedStringParameter is { Type: NamedTypeSymbol { IsInterpolatedStringHandlerType: true } }
+#pragma warning disable format
+                                                     or
+                                                     {
+                                                         IsParams: true,
+                                                         Type: ArrayTypeSymbol { ElementType: NamedTypeSymbol { IsInterpolatedStringHandlerType: true } },
+                                                         InterpolatedStringHandlerArgumentIndexes.IsEmpty: true
+                                                     });
+#pragma warning restore format
+            Debug.Assert(!interpolatedStringParameter.IsParams || memberAnalysisResult.Kind == MemberResolutionKind.ApplicableInExpandedForm);
 
             if (interpolatedStringParameter.HasInterpolatedStringHandlerArgumentError)
             {
@@ -849,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     interpolatedStringConversion,
                     isCast: false,
                     conversionGroupOpt: null,
-                    interpolatedStringParameter.Type,
+                    interpolatedStringParameter.IsParams ? ((ArrayTypeSymbol)interpolatedStringParameter.Type).ElementType : interpolatedStringParameter.Type,
                     diagnostics);
             }
 

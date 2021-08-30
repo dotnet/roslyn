@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers
@@ -100,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             if (_isValidName && isNewType)
             {
                 Icon = KnownMonikers.StatusInformation;
-                Message = ServicesVSResources.A_new_type_will_be_created;
+                Message = ServicesVSResources.New_Type_Name_colon;
                 ShowMessage = true;
             }
             else if (!_isValidName)

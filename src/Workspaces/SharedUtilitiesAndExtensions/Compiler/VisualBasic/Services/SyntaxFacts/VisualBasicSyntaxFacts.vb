@@ -552,6 +552,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return name.IsKind(SyntaxKind.GenericName)
         End Function
 
+        Public Function GetTypeArgumentsOfGenericName(genericName As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetTypeArgumentsOfGenericName
+            Dim castGenericName = TryCast(genericName, GenericNameSyntax)
+            If castGenericName IsNot Nothing Then
+                Return castGenericName.TypeArgumentList.Arguments
+            End If
+            Return Nothing
+        End Function
+
         Public Function GetExpressionOfMemberAccessExpression(node As SyntaxNode, Optional allowImplicitTarget As Boolean = False) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfMemberAccessExpression
             Return TryCast(node, MemberAccessExpressionSyntax)?.GetExpressionOfMemberAccessExpression(allowImplicitTarget)
         End Function
@@ -1484,6 +1492,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function GetIdentifierOfParameter(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfParameter
             Return DirectCast(node, ParameterSyntax).Identifier.Identifier
+        End Function
+
+        Public Function GetIdentifierOfTypeDeclaration(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfTypeDeclaration
+            Select Case node.Kind()
+                Case SyntaxKind.EnumStatement,
+                     SyntaxKind.StructureStatement,
+                     SyntaxKind.InterfaceStatement,
+                     SyntaxKind.ClassStatement,
+                     SyntaxKind.ModuleStatement
+                    Return DirectCast(node, TypeStatementSyntax).Identifier
+
+                Case SyntaxKind.DelegateSubStatement,
+                     SyntaxKind.DelegateFunctionStatement
+                    Return DirectCast(node, DelegateStatementSyntax).Identifier
+            End Select
+
+            Throw ExceptionUtilities.UnexpectedValue(node)
         End Function
 
         Public Function GetIdentifierOfIdentifierName(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfIdentifierName
