@@ -6273,9 +6273,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 group = conversion.ConversionGroupOpt;
                 Debug.Assert(group != null || !conversion.ExplicitCastInCode); // Explicit conversions should include a group.
+                Debug.Assert(conversion.Operand.ConstantValue != ConstantValue.Null
+                    || conversion.Operand is BoundLiteral { Type: null } or (not BoundLiteral and { Type: not null }));
                 if ((!includeExplicitConversions && group?.IsExplicitConversion == true)
                     || (!includePredefinedNullLiteralConversions && group?.Conversion.IsUserDefined != true && conversion.Operand is BoundLiteral { ConstantValue.IsNull: true }))
                 {
+                    Debug.Assert(expr.Type is not null);
                     return (expr, Conversion.Identity);
                 }
                 expr = conversion.Operand;
