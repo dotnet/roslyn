@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
@@ -172,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _ => throw ExceptionUtilities.UnexpectedValue(headerRelationship)
             };
 
-        private static string GetToolTipContentForMultipleHeader(InheritanceRelationship aggregateRelationship)
+        private static string GetToolTipContentForMultipleHeaders(InheritanceRelationship aggregateRelationship)
         {
             //
             if (aggregateRelationship.HasFlag(InheritanceRelationship.ImplementedInterface | InheritanceRelationship.BaseType | InheritanceRelationship.DerivedType))
@@ -222,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return ServicesVSResources._0_has_overridden_members_and_overriding_members;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.UnexpectedValue(aggregateRelationship);
         }
 
         public static TextBlock CreateToolTipTextBlockForSingleMember(
@@ -238,7 +239,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 var tooltipTemplate = GetToolTipTemplateForSingleTarget(target.RelationToMember);
                 return Format(classificationTypeMap, classificationFormatMap, tooltipTemplate, member.TaggedTexts, target.DefinitionItem.DisplayParts);
             }
-            else if (targets.Select(target => target.RelationToMember).IsSingle())
+
+            using var _ = CodeAnalysis.PooledObjects.PooledHashSet<InheritanceRelationship>.GetInstance(out var targetRelationshipSet);
+            foreach (var target in targets)
+            {
+                targetRelationshipSet.Add(target.RelationToMember);
+            }
+
+            if (targetRelationshipSet.Count == 1)
             {
                 var relationship = targets[0].RelationToMember;
                 var contentTemplate = GetToolTipTemplateForMultipleTargetsUnderSameHeader(relationship);
@@ -246,16 +254,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
             else
             {
-                var aggregateRelationship = GetAggregateRelationship(targets.SelectAsArray(target => target.RelationToMember));
-                var contentTemplate = GetToolTipContentForMultipleHeader(aggregateRelationship);
+                var aggregateRelationship = GetAggregateRelationship(targetRelationshipSet);
+                var contentTemplate = GetToolTipContentForMultipleHeaders(aggregateRelationship);
                 return Format(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts);
             }
         }
 
-        public static InheritanceRelationship GetAggregateRelationship(ImmutableArray<InheritanceRelationship> relationships)
+        public static InheritanceRelationship GetAggregateRelationship(HashSet<InheritanceRelationship> relationships)
         {
-            Contract.ThrowIfTrue(relationships.IsEmpty);
-            var result = relationships[0];
+            Contract.ThrowIfTrue(relationships.Count == 0);
+            var result = relationships.First();
             foreach (var relationship in relationships.Skip(1))
             {
                 result |= relationship;
