@@ -89,7 +89,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 resultId = _tokensCache.GetNextResultId();
                 if (newSemanticTokensData.Length > 0)
                 {
-                    var updatedTokens = new LSP.SemanticTokens { ResultId = resultId, Data = newSemanticTokensData };
+                    var updatedTokens = new RoslynSemanticTokens
+                    {
+                        ResultId = resultId,
+                        Data = newSemanticTokensData,
+                        IsFinalized = isFinalized
+                    };
+
                     await _tokensCache.UpdateCacheAsync(
                         request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
                 }
