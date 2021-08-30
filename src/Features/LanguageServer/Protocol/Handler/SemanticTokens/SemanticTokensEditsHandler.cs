@@ -64,6 +64,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             if (oldSemanticTokensData == null)
             {
                 var newResultId = _tokensCache.GetNextResultId();
+                var updatedTokens = new LSP.SemanticTokens { ResultId = newResultId, Data = newSemanticTokensData };
+                await _tokensCache.UpdateCacheAsync(
+                    request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
                 return new LSP.SemanticTokens { ResultId = newResultId, Data = newSemanticTokensData };
             }
 
@@ -106,22 +109,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // edits we send back to the client.
             var edits = LongestCommonSemanticTokensSubsequence.GetEdits(oldSemanticTokens, newSemanticTokens);
 
-            var processedEdits = ProcessEdits(newSemanticTokens, edits);
+            var processedEdits = ProcessEdits(newSemanticTokens, edits.ToArray());
             return processedEdits;
         }
 
         private static LSP.SemanticTokensEdit[] ProcessEdits(
             int[] newSemanticTokens,
-            IEnumerable<SequenceEdit> edits)
+            SequenceEdit[] edits)
         {
             using var _ = ArrayBuilder<RoslynSemanticTokensEdit>.GetInstance(out var results);
             var insertIndex = 0;
 
-            // Go through and attempt to combine individual edits into larger edits. The edits
-            // passed into this method have already been ordered from smallest original index ->
-            // largest original index.
-            foreach (var edit in edits)
+            // Go through and attempt to combine individual edits into larger edits. By default,
+            // edits are returned from Roslyn's LCS ordered from largest -> smallest index.
+            // However, to simplify computation, we process edits ordered from smallest -> largest
+            // index.
+            for (var i = edits.Length - 1; i >= 0; i--)
             {
+                var edit = edits[i];
+
                 // Retrieve the most recent edit to see if it can be expanded.
                 var editInProgress = results.Count > 0 ? results[^1] : null;
 
@@ -208,10 +214,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 {
                     var edits = s_instance.GetEdits(
                         oldSemanticTokens, oldSemanticTokens.Length, newSemanticTokens, newSemanticTokens.Length);
-
-                    // By default, edits are returned largest -> smallest index. For computation purposes later on,
-                    // we can want to have the edits ordered smallest -> largest index.
-                    return edits.Reverse();
+                    return edits;
                 }
                 catch (OutOfMemoryException e) when (FatalError.ReportAndCatch(e))
                 {

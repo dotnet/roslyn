@@ -1302,7 +1302,7 @@ class C
                 Dim notificationService = DirectCast(workspace.Services.GetService(Of INotificationService)(), INotificationServiceCallback)
                 notificationService.NotificationCallback = Sub(message, title, severity) actualSeverity = severity
 
-                editHandler.Apply(
+                Await editHandler.ApplyAsync(
                     workspace,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
                     Await actions.First().NestedCodeActions.First().GetOperationsAsync(CancellationToken.None),
@@ -2165,5 +2165,37 @@ class [|C|]
                 Await VerifyTagsAreCorrect(workspace, "BarGoo")
             End Using
         End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameInComment(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                            <Document>
+                                class [|$$MyClass|]
+                                {
+                                    /// <summary>
+                                    /// Initializes <see cref="MyClass"/>;
+                                    /// </summary>
+                                    MyClass() 
+                                    {
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                session.ApplyReplacementText("Example", True)
+                session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameInComments, True)
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace, "Example")
+            End Using
+        End Function
+
     End Class
 End Namespace

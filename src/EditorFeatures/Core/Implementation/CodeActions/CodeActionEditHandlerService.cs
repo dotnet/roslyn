@@ -10,6 +10,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
@@ -98,13 +99,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             return currentResult;
         }
 
-        public bool Apply(
+        public async Task<bool> ApplyAsync(
             Workspace workspace, Document fromDocument,
             ImmutableArray<CodeActionOperation> operations,
             string title, IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
-            this.AssertIsForeground();
+            // Much of the work we're going to do will be on the UI thread, so switch there preemptively.
+            // When we get to the expensive parts we can do in the BG then we'll switch over to relinquish 
+            // the UI thread.
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (operations.IsDefaultOrEmpty)
             {
@@ -118,20 +122,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     severity: NotificationSeverity.Error);
                 return false;
             }
-
-#if DEBUG && false
-            var documentErrorLookup = new HashSet<DocumentId>();
-            foreach (var project in workspace.CurrentSolution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    if (!document.HasAnyErrorsAsync(cancellationToken).WaitAndGetResult(cancellationToken))
-                    {
-                        documentErrorLookup.Add(document.Id);
-                    }
-                }
-            }
-#endif
 
             var oldSolution = workspace.CurrentSolution;
 
@@ -149,13 +139,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             var singleChangedDocument = TryGetSingleChangedText(oldSolution, operations);
             if (singleChangedDocument != null)
             {
-                var text = singleChangedDocument.GetTextSynchronously(cancellationToken);
+                var text = await singleChangedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
 
                 using (workspace.Services.GetService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
                 {
                     try
                     {
-                        applied = operations.Single().TryApply(workspace, progressTracker, cancellationToken);
+                        this.AssertIsForeground();
+
+                        applied = await operations.Single().TryApplyAsync(
+                            workspace, progressTracker, cancellationToken).ConfigureAwait(true);
                     }
                     catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                     {
@@ -179,9 +172,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                 try
                 {
-                    applied = ProcessOperations(
+                    // Come back to the UI thread after processing the operations so we can commit the transaction
+                    applied = await ProcessOperationsAsync(
                         workspace, operations, progressTracker,
-                        cancellationToken);
+                        cancellationToken).ConfigureAwait(true);
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
@@ -201,14 +195,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
         {
             Debug.Assert(operationsList.Length > 0);
             if (operationsList.Length > 1)
-            {
                 return null;
-            }
 
-            if (!(operationsList.Single() is ApplyChangesOperation applyOperation))
-            {
+            if (operationsList.Single() is not ApplyChangesOperation applyOperation)
                 return null;
-            }
 
             var newSolution = applyOperation.ChangedSolution;
             var changes = newSolution.GetChanges(oldSolution);
@@ -274,10 +264,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
         /// <returns><see langword="true"/> if all expected <paramref name="operations"/> are applied successfully;
         /// otherwise, <see langword="false"/>.</returns>
-        private static bool ProcessOperations(
+        private async Task<bool> ProcessOperationsAsync(
             Workspace workspace, ImmutableArray<CodeActionOperation> operations,
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             var applied = true;
             var seenApplyChanges = false;
             foreach (var operation in operations)
@@ -286,14 +278,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 {
                     // there must be only one ApplyChangesOperation, we will ignore all other ones.
                     if (seenApplyChanges)
-                    {
                         continue;
-                    }
 
                     seenApplyChanges = true;
                 }
 
-                applied &= operation.TryApply(workspace, progressTracker, cancellationToken);
+                this.AssertIsForeground();
+                applied &= await operation.TryApplyAsync(workspace, progressTracker, cancellationToken).ConfigureAwait(true);
             }
 
             return applied;
