@@ -2269,8 +2269,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundSlicePatternOperation(BoundSlicePattern boundNode)
         {
-            // PROTOTYPE(list-patterns) IOperation
-            return new DiscardPatternOperation(
+            return new SlicePatternOperation(
+                symbol: ((Symbol?)boundNode.SliceMethod ?? boundNode.IndexerAccess?.Indexer)?.GetPublicSymbol(),
+                pattern: (IPatternOperation?)Create(boundNode.Pattern),
                 inputType: boundNode.InputType.GetPublicSymbol(),
                 narrowedType: boundNode.NarrowedType.GetPublicSymbol(),
                 _semanticModel,
@@ -2280,8 +2281,11 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundListPatternOperation(BoundListPattern boundNode)
         {
-            // PROTOTYPE(list-patterns) IOperation
-            return new DiscardPatternOperation(
+            return new ListPatternOperation(
+                lengthProperty: boundNode.LengthProperty.GetPublicSymbol(),
+                symbol: (boundNode.IndexerSymbol ?? boundNode.IndexerAccess?.Indexer)?.GetPublicSymbol(),
+                patterns: boundNode.Subpatterns.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p), this),
+                declaredSymbol: boundNode.Variable.GetPublicSymbol(),
                 inputType: boundNode.InputType.GetPublicSymbol(),
                 narrowedType: boundNode.NarrowedType.GetPublicSymbol(),
                 _semanticModel,
