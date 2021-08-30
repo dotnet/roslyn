@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         this.AddError(
                             position: TextWindow.Position - currentQuoteCount,
                             width: currentQuoteCount,
-                            ErrorCode.ERR_Raw_string_literal_delimiter_must_be_on_its_own_line);
+                            ErrorCode.ERR_RawStringDelimiterOnOwnLine);
                         return false;
                     }
                 }
