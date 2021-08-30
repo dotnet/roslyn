@@ -67,6 +67,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         private protected abstract SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
+        private protected static bool IsConfigureAwaitable(Compilation compilation, ITypeSymbol symbol)
+        {
+            var originalDefinition = symbol.OriginalDefinition;
+            return
+                originalDefinition.Equals(compilation.TaskOfTType()) ||
+                originalDefinition.Equals(compilation.TaskType());
+        }
+
         public sealed override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;

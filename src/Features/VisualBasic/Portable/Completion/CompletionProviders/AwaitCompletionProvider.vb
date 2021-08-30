@@ -45,16 +45,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return token.GetAncestor(Function(node) node.IsAsyncSupportedFunctionSyntax())
         End Function
 
-        Private Protected Overrides Function GetDotAwaitKeywordContext(syntaxContext As SyntaxContext, cancellationToken As CancellationToken) As DotAwaitContext
+        Private Protected Overrides Function GetDotAwaitKeywordContext(ByVal syntaxContext As SyntaxContext, ByVal cancellationToken As CancellationToken) As DotAwaitContext
+            Dim position = syntaxContext.Position
+            Dim syntaxTree = syntaxContext.SyntaxTree
+            Dim potentialAwaitableExpression = TryCast(GetExpressionToPlaceAwaitInFrontOf(syntaxTree, position, cancellationToken), ExpressionSyntax)
+
+            If potentialAwaitableExpression IsNot Nothing Then
+                Dim semanticModel = syntaxContext.SemanticModel
+                Dim symbol = GetTypeSymbolOfExpression(semanticModel, potentialAwaitableExpression, cancellationToken)
+
+                If symbol IsNot Nothing AndAlso symbol.IsAwaitableNonDynamic(semanticModel, position) Then
+                    Dim parentOfAwaitable = potentialAwaitableExpression.Parent
+
+                    If Not (TypeOf parentOfAwaitable Is AwaitExpressionSyntax) Then
+                        Dim syntaxContextAtInsertationPosition = syntaxContext.GetLanguageService(Of ISyntaxContextService)().CreateContext(syntaxContext.Workspace, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken)
+
+                        If syntaxContextAtInsertationPosition.IsAwaitKeywordContext() Then
+                            Return If(IsConfigureAwaitable(syntaxContext.SemanticModel.Compilation, symbol), DotAwaitContext.AwaitAndConfigureAwait, DotAwaitContext.AwaitOnly)
+                        End If
+                    End If
+                End If
+            End If
+
             Return DotAwaitContext.None
         End Function
 
+        Private Shared Function GetTypeSymbolOfExpression(semanticModel As SemanticModel, potentialAwaitableExpression As ExpressionSyntax, cancellationToken As CancellationToken) As ITypeSymbol
+            Dim memberAccessExpression = TryCast(potentialAwaitableExpression, MemberAccessExpressionSyntax)?.Expression
+            If memberAccessExpression IsNot Nothing Then
+                Dim symbolInfo = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken)
+                Dim symbol = symbolInfo.Symbol
+                If TypeOf symbol Is ITypeSymbol Then ' e.g. Task.$$
+                    Return Nothing
+                End If
+
+                Return If(symbol?.GetSymbolType(),
+                    If(symbol?.GetMemberType(),
+                    semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type))
+            End If
+
+            Return Nothing
+        End Function
+
         Private Protected Overrides Function GetExpressionToPlaceAwaitInFrontOf(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxNode
+            Dim dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken)
+            If Not dotToken.HasValue Then
+                Return Nothing
+            End If
+
+            If TypeOf dotToken.Value.Parent Is MemberAccessExpressionSyntax Then
+                Dim memberAccess = CType(dotToken.Value.Parent, MemberAccessExpressionSyntax)
+                If memberAccess.Expression.GetParentConditionalAccessExpression() Is Nothing Then
+                    Return memberAccess
+                End If
+            End If
+
             Return Nothing
         End Function
 
         Private Protected Overrides Function GetDotTokenLeftOfPosition(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxToken?
-            Return Nothing
+            Dim tokenOnLeft = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+            Dim dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position)
+            If Not dotToken.IsKind(SyntaxKind.DotToken) Then
+                Return Nothing
+            End If
+
+            If dotToken.GetPreviousToken().IsKind(SyntaxKind.IntegerLiteralToken, SyntaxKind.FloatingLiteralToken, SyntaxKind.DecimalLiteralToken, SyntaxKind.DateLiteralToken) Then
+                Return Nothing
+            End If
+
+            Return dotToken
         End Function
     End Class
 End Namespace

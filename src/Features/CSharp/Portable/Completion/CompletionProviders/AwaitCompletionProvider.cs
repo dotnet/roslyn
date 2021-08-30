@@ -156,14 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 return semanticModel.GetTypeInfo(potentialAwaitableExpression, cancellationToken).Type;
             }
-
-            static bool IsConfigureAwaitable(Compilation compilation, ITypeSymbol symbol)
-            {
-                var originalDefinition = symbol.OriginalDefinition;
-                return
-                    originalDefinition.Equals(compilation.TaskOfTType()) ||
-                    originalDefinition.Equals(compilation.TaskType());
-            }
         }
     }
 }
