@@ -2004,7 +2004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RawStringNotInDirectives = 9100,
         ERR_UnterminatedRawString = 9101,
         ERR_TooManyQuotesForRawString = 9102,
-        ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal = 9103,
+        ERR_LineDoesNotStartWithSameWhitespace = 9103,
         ERR_Raw_string_literal_delimiter_must_be_on_its_own_line = 9104,
         ERR_Multi_line_raw_string_literals_are_only_allowed_in_verbatim_interpolated_strings = 9105,
         ERR_Multi_line_raw_string_literals_must_contain_at_least_one_line_of_content = 9106,

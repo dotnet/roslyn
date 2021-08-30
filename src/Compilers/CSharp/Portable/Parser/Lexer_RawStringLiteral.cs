@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AddError(
                         lineStartPosition,
                         width: TextWindow.Position - lineStartPosition,
-                        ErrorCode.ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal);
+                        ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
                     return;
                 }
             }
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AddError(
                         lineStartPosition,
                         width: TextWindow.Position - lineStartPosition,
-                        ErrorCode.ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal);
+                        ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
                     return;
                 }
             }
