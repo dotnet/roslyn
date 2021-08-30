@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // But report this is illegal so that the user knows to fix this up to be a normal string.
                     info.Kind = SyntaxKind.StringLiteralToken;
                     info.StringValue = "";
-                    this.AddError(ErrorCode.ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives);
+                    this.AddError(ErrorCode.ERR_RawStringNotInDirectives);
                 }
                 return;
             }

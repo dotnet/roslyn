@@ -238,7 +238,7 @@ System.Console.WriteLine(
 #line 1 """"""c:\""""""").VerifyDiagnostics(
                 // (2,9): error CS9100: Raw string literals are not allowed in preprocessor directives
                 // #line 1 """c:\"""
-                Diagnostic(ErrorCode.ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives, "").WithLocation(2, 9));
+                Diagnostic(ErrorCode.ERR_RawStringNotInDirectives, "").WithLocation(2, 9));
         }
 
         [Fact]
