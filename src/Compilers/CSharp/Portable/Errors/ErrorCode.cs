@@ -2007,7 +2007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LineDoesNotStartWithSameWhitespace = 9103,
         ERR_RawStringDelimiterOnOwnLine = 9104,
         ERR_RawStringInVerbatimInterpolatedStrings = 9105,
-        ERR_Multi_line_raw_string_literals_must_contain_at_least_one_line_of_content = 9106,
+        ERR_RawStringMustContainContent = 9106,
 
         #endregion
 

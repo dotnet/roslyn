@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AddError(
                         position: TextWindow.Position - startingQuoteCount,
                         width: startingQuoteCount,
-                        ErrorCode.ERR_Multi_line_raw_string_literals_must_contain_at_least_one_line_of_content);
+                        ErrorCode.ERR_RawStringMustContainContent);
                     return;
                 }
 
