@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
         private bool IsValidType(string typeName)
         {
-            if (string.IsNullOrEmpty(typeName) ||typeName == _sourceTypeName)
+            if (string.IsNullOrEmpty(typeName) || typeName == _sourceTypeName)
             {
                 return false;
             }

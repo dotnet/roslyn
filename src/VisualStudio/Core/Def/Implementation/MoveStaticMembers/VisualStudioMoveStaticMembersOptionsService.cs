@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -45,30 +46,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
         public MoveStaticMembersOptions GetMoveMembersToTypeOptions(Document document, INamedTypeSymbol selectedType, ISymbol? selectedNodeSymbol)
         {
-            var viewModel = GetViewModel(document, selectedType, selectedNodeSymbol, _glyphService, _uiThreadOperationExecutor);
+            var viewModel = GetViewModel(document, selectedType, selectedNodeSymbol, History, _glyphService, _uiThreadOperationExecutor);
 
             var dialog = new MoveStaticMembersDialog(viewModel);
 
             var result = dialog.ShowModal();
 
-            return GenerateOptions(document.Project.Language, viewModel, result.GetValueOrDefault());
-        }
-
-        // internal for testing purposes
-        internal static MoveStaticMembersOptions GenerateOptions(string language, MoveStaticMembersDialogViewModel viewModel, bool dialogResult)
-        {
-            if (dialogResult)
+            if (result.GetValueOrDefault())
             {
-                // if the destination name contains extra namespaces, we want the last one as that is the real type name
-                var typeName = viewModel.DestinationName.Split('.').Last();
-                var newFileName = Path.ChangeExtension(typeName, language == LanguageNames.CSharp ? ".cs" : ".vb");
-                return new MoveStaticMembersOptions(
-                    newFileName,
-                    viewModel.PrependedNamespace + viewModel.DestinationName,
-                    viewModel.MemberSelectionViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol));
+                return GenerateOptions(document.Project.Language, viewModel);
             }
 
             return MoveStaticMembersOptions.Cancelled;
+        }
+
+        // internal for testing purposes
+        internal static MoveStaticMembersOptions GenerateOptions(string language, MoveStaticMembersDialogViewModel viewModel)
+        {
+            // if the destination name contains extra namespaces, we want the last one as that is the real type name
+            var typeName = viewModel.DestinationName.TypeName.Split('.').Last();
+            var newFileName = Path.ChangeExtension(typeName, language == LanguageNames.CSharp ? ".cs" : ".vb");
+            return new MoveStaticMembersOptions(
+                newFileName,
+                viewModel.DestinationName.TypeName,
+                viewModel.MemberSelectionViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol));
         }
 
         // internal for testing purposes, get the view model
@@ -76,6 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             Document document,
             INamedTypeSymbol selectedType,
             ISymbol? selectedNodeSymbol,
+            LinkedList<(string, string)> history,
             IGlyphService? glyphService,
             IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
@@ -97,6 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 selectedType.ContainingNamespace,
                 selectedType,
                 document,
+                history,
                 cancellationTokenSource.Token);
 
             var candidateName = selectedType.Name + "Helpers";
@@ -114,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             return new MoveStaticMembersDialogViewModel(selectMembersViewModel,
                 defaultTypeName,
                 existingTypeNames,
-                containingNamespaceDisplay,
+                selectedType.Name,
                 document.GetRequiredLanguageService<ISyntaxFactsService>());
         }
 
@@ -123,10 +126,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         /// <summary>
         /// Construct all the type names declared in the project, 
         /// </summary>
-        private ImmutableArray<TypeNameItem> MakeTypeNameItems(
+        private static ImmutableArray<TypeNameItem> MakeTypeNameItems(
             INamespaceSymbol currentNamespace,
             INamedTypeSymbol currentType,
             Document currentDocument,
+            LinkedList<(string, string)> history,
             CancellationToken cancellationToken)
         {
             return currentNamespace.GetAllTypes(cancellationToken).SelectMany(t =>
@@ -137,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                     .Where(l => l.IsInSource &&
                         (currentType.Name != t.Name || GetFile(l) != currentDocument.Name))
                     .Select(l => new TypeNameItem(
-                        History.Contains((t.Name, currentDocument.Name)),
+                        history.Contains((t.Name, currentDocument.Name)),
                         GetFile(l),
                         t));
             })

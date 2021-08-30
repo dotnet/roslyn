@@ -1558,7 +1558,6 @@ End Namespace"
             Dim selection = ImmutableArray.Create("TestFunc")
             Dim expectedText1 = "
 Imports System.Runtime.CompilerServices
-Imports TestNs
 
 Namespace TestNs
     Public Module Class1
