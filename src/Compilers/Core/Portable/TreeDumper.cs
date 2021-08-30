@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             _sb.AppendLine();
-            var children = filter(node.Children).ToList();
+            var children = node.Children.Where(c => !skip(c)).ToList();
             for (int i = 0; i < children.Count; ++i)
             {
                 var child = children[i];
@@ -103,29 +103,26 @@ namespace Microsoft.CodeAnalysis
                 DoDumpCompact(child, indent + (i == children.Count - 1 ? "  " : "\u2502 "));
             }
 
-            static IEnumerable<TreeDumperNode> filter(IEnumerable<TreeDumperNode> nodes)
+            static bool skip(TreeDumperNode node)
             {
-                foreach (var node in nodes)
+                if (node is null)
                 {
-                    if (node is null)
-                    {
-                        continue;
-                    }
-
-                    if (node.Text is "locals" or "localFunctions"
-                        && node.Value is IList { Count: 0 })
-                    {
-                        continue;
-                    }
-
-                    if (node.Text is "hasErrors" or "isSuppressed" or "isRef"
-                        && node.Value is false)
-                    {
-                        continue;
-                    }
-
-                    yield return node;
+                    return true;
                 }
+
+                if (node.Text is "locals" or "localFunctions"
+                    && node.Value is IList { Count: 0 })
+                {
+                    return true;
+                }
+
+                if (node.Text is "hasErrors" or "isSuppressed" or "isRef"
+                    && node.Value is false)
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
 

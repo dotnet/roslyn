@@ -873,6 +873,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
             private void LowerWhenClauses(ImmutableArray<BoundDecisionDagNode> sortedNodes)
             {
+                if (!sortedNodes.Any(n => n.Kind == BoundKind.WhenDecisionDagNode)) return;
+
                 // The way the DAG is prepared, it is possible for different `BoundWhenDecisionDagNode` nodes to
                 // share the same `WhenExpression` (same `BoundExpression` instance).
                 // So we can't just lower each `BoundWhenDecisionDagNode` separately, as that would result in duplicate blocks
@@ -923,10 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 whenExpressionMap.Add(whenExpression, (labelToWhenExpression, list));
                             }
 
-                            if (!whenNodeMap.ContainsKey(whenNode))
-                            {
-                                whenNodeMap.Add(whenNode, (labelToWhenExpression, _nextWhenNodeIdentifier++));
-                            }
+                            whenNodeMap.Add(whenNode, (labelToWhenExpression, _nextWhenNodeIdentifier++));
                         }
                     }
                 }
