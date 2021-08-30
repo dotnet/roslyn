@@ -1658,6 +1658,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute);
         }
 
+        internal void EnsureNullableContextAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableContextAttribute);
+        }
+
         internal void EnsureNativeIntegerAttributeExists()
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute);
