@@ -12,42 +12,51 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return GetType(AwaitCompletionProvider)
         End Function
 
+        Protected Async Function VerifyAwaitKeyword(markup As String, Optional makeContainerAsync As Boolean = False, Optional includeConfigureAwait As Boolean = False) As Task
+            Await VerifyItemExistsAsync(markup, "Await", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing))
+            If includeConfigureAwait Then
+                Await VerifyItemExistsAsync(markup, "Awaitf", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing))
+            Else
+                Await VerifyItemIsAbsentAsync(markup, "Awaitf")
+            End If
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub InSynchronousMethodTest()
-            VerifyItemExistsAsync("
+        Public Async Function InSynchronousMethodTest() As Task
+            Await VerifyAwaitKeyword("
 Class C
      Sub Goo()
         Dim z = $$
     End Sub
 End Class
-", "Await")
-        End Sub
+", makeContainerAsync:=True)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub InMethodStatementTest()
-            VerifyItemExistsAsync("
+        Public Async Function InMethodStatementTest() As Task
+            Await VerifyAwaitKeyword("
 Class C
     Async Sub Goo()
         $$
     End Sub
 End Class
-", "Await")
-        End Sub
+")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub InMethodExpressionTest()
-            VerifyItemExistsAsync("
+        Public Async Function InMethodExpressionTest() As Task
+            Await VerifyAwaitKeyword("
 Class C
     Async Sub Goo()
         Dim z = $$
     End Sub
 End Class
-", "Await")
-        End Sub
+")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub NotInCatchTest()
-            VerifyItemExistsAsync("
+        Public Async Function NotInCatchTest() As Task
+            Await VerifyNoItemsExistAsync("
 Class C
     Async Sub Goo()
         Try
@@ -57,12 +66,12 @@ Class C
 
     End Sub
 End Class
-", "Await")
-        End Sub
+")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub NotInCatchExceptionFilterTest()
-            VerifyNoItemsExistAsync("
+        Public Async Function NotInCatchExceptionFilterTest() As Task
+            Await VerifyNoItemsExistAsync("
 Class C
     Async Sub Goo()
         Try
@@ -72,11 +81,11 @@ Class C
     End Sub
 End Class
 ")
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub InCatchNestedDelegateTest()
-            VerifyItemExistsAsync("
+        Public Async Function InCatchNestedDelegateTest() As Task
+            Await VerifyAwaitKeyword("
 Class C
     Async Sub Goo()
         Try
@@ -86,12 +95,12 @@ Class C
 
     End Sub
 End Class
-", "Await")
-        End Sub
+", makeContainerAsync:=True)
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub NotInFinallyTest()
-            VerifyItemExistsAsync("
+        Public Async Function NotInFinallyTest() As Task
+            Await VerifyNoItemsExistAsync("
 Class C
     Async Sub Goo()
         Try
@@ -101,12 +110,12 @@ Class C
 
     End Sub
 End Class
-", "Await")
-        End Sub
+")
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub NotInSyncLockTest()
-            VerifyItemExistsAsync("
+        Public Async Function NotInSyncLockTest() As Task
+            Await VerifyNoItemsExistAsync("
 Class C
     Async Sub Goo()
         SyncLock True
@@ -114,7 +123,7 @@ Class C
         End SyncLock
     End Sub
 End Class
-", "Await")
-        End Sub
+")
+        End Function
     End Class
 End Namespace
