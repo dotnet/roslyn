@@ -1135,7 +1135,7 @@ static class S
     internal static object E(this object o) { return null; }
     private static object F(this object o) { return null; }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1656: Cannot assign to 'E' because it is a 'method group'
                 //         o.E += o.E;

@@ -3786,5 +3786,125 @@ End Class
 </Workspace>
             Await TestStreamingFeature(input, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestMemberStaticAbstractMethodFromInterface(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            static abstract void {|Definition:M$$1|}();
+        }
+        class C1_1 : I1
+        {
+            public static void {|Definition:M1|}() { }
+        }
+        class C1_2 : I1
+        {
+            static void I1.{|Definition:M1|}() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDerivedMemberStaticAbstractMethodViaFeature1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            static abstract void {|Definition:M1|}();
+        }
+        class C1_1 : I1
+        {
+            public static void {|Definition:M$$1|}() { }
+        }
+        class C1_2 : I1
+        {
+            static void I1.M1() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDerivedMemberStaticAbstractMethodViaFeature2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            static abstract void {|Definition:M1|}();
+        }
+        class C1_1 : I1
+        {
+            public static void M1() { }
+        }
+        class C1_2 : I1
+        {
+            static void I1.{|Definition:M$$1|}() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDerivedMemberStaticAbstractMethodViaAPI1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            static abstract void {|Definition:M1|}();
+        }
+        class C1_1 : I1
+        {
+            public static void {|Definition:M$$1|}() { }
+        }
+        class C1_2 : I1
+        {
+            static void I1.{|Definition:M1|}() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDerivedMemberStaticAbstractMethodViaAPI2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            static abstract void {|Definition:M1|}();
+        }
+        class C1_1 : I1
+        {
+            public static void {|Definition:M1|}() { }
+        }
+        class C1_2 : I1
+        {
+            static void I1.{|Definition:M$$1|}() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
     End Class
 End Namespace

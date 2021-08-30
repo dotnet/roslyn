@@ -780,6 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (ultimateReceiver.Type.TypeKind == TypeKind.TypeParameter)
                 {
+                    // https://github.com/dotnet/roslyn/issues/53796: Do we really want to enable usage of static abstract members here?
                     Error(diagnostics, ErrorCode.ERR_BadSKunknown, ultimateReceiver.Syntax, ultimateReceiver.Type, MessageID.IDS_SK_TYVAR.Localize());
                 }
             }

@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -670,6 +669,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case TypeKind.Struct when symbol.IsRecord:
+                            // In case ref record structs are allowed in future, call AddKeyword(SyntaxKind.RefKeyword) and remove assertion.
+                            Debug.Assert(!symbol.IsRefLikeType);
+
+                            if (symbol.IsReadOnly)
+                            {
+                                AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                                AddSpace();
+                            }
+
                             AddKeyword(SyntaxKind.RecordKeyword);
                             AddSpace();
                             AddKeyword(SyntaxKind.StructKeyword);

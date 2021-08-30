@@ -1025,9 +1025,13 @@ outerDefault:
                 return false;
             }
 
-            // Note: we need to confirm the "arrayness" on the original definition because
-            // it's possible that the type becomes an array as a result of substitution.
             ParameterSymbol final = member.GetParameters().Last();
+            return IsValidParamsParameter(final);
+        }
+
+        public static bool IsValidParamsParameter(ParameterSymbol final)
+        {
+            Debug.Assert((object)final == final.ContainingSymbol.GetParameters().Last());
             return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 
@@ -1965,7 +1969,7 @@ outerDefault:
                     }
                 }
 
-                return PreferValOverInParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
+                return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
             }
 
             // If MP is a non-generic method and MQ is a generic method, then MP is better than MQ.
@@ -2105,11 +2109,11 @@ outerDefault:
                 return (m1ModifierCount < m2ModifierCount) ? BetterResult.Left : BetterResult.Right;
             }
 
-            // Otherwise, prefer methods with 'val' parameters over 'in' parameters.
-            return PreferValOverInParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
+            // Otherwise, prefer methods with 'val' parameters over 'in' parameters and over 'ref' parameters when the argument is an interpolated string handler.
+            return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
         }
 
-        private static BetterResult PreferValOverInParameters<TMember>(
+        private static BetterResult PreferValOverInOrRefInterpolatedHandlerParameters<TMember>(
             ArrayBuilder<BoundExpression> arguments,
             MemberResolutionResult<TMember> m1,
             ImmutableArray<ParameterSymbol> parameters1,
@@ -2117,7 +2121,7 @@ outerDefault:
             ImmutableArray<ParameterSymbol> parameters2)
             where TMember : Symbol
         {
-            BetterResult valOverInPreference = BetterResult.Neither;
+            BetterResult valOverInOrRefInterpolatedHandlerPreference = BetterResult.Neither;
 
             for (int i = 0; i < arguments.Count; ++i)
             {
@@ -2126,32 +2130,51 @@ outerDefault:
                     var p1 = GetParameter(i, m1.Result, parameters1);
                     var p2 = GetParameter(i, m2.Result, parameters2);
 
-                    if (p1.RefKind == RefKind.None && p2.RefKind == RefKind.In)
+                    bool isInterpolatedStringHandlerConversion = false;
+
+                    if (m1.IsValid && m2.IsValid)
                     {
-                        if (valOverInPreference == BetterResult.Right)
+                        var c1 = m1.Result.ConversionForArg(i);
+                        var c2 = m2.Result.ConversionForArg(i);
+
+                        isInterpolatedStringHandlerConversion = c1.IsInterpolatedStringHandler && c2.IsInterpolatedStringHandler;
+                        Debug.Assert(!isInterpolatedStringHandlerConversion || arguments[i] is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
+                    }
+
+                    if (p1.RefKind == RefKind.None && isAcceptableRefMismatch(p2.RefKind, isInterpolatedStringHandlerConversion))
+                    {
+                        if (valOverInOrRefInterpolatedHandlerPreference == BetterResult.Right)
                         {
                             return BetterResult.Neither;
                         }
                         else
                         {
-                            valOverInPreference = BetterResult.Left;
+                            valOverInOrRefInterpolatedHandlerPreference = BetterResult.Left;
                         }
                     }
-                    else if (p2.RefKind == RefKind.None && p1.RefKind == RefKind.In)
+                    else if (p2.RefKind == RefKind.None && isAcceptableRefMismatch(p1.RefKind, isInterpolatedStringHandlerConversion))
                     {
-                        if (valOverInPreference == BetterResult.Left)
+                        if (valOverInOrRefInterpolatedHandlerPreference == BetterResult.Left)
                         {
                             return BetterResult.Neither;
                         }
                         else
                         {
-                            valOverInPreference = BetterResult.Right;
+                            valOverInOrRefInterpolatedHandlerPreference = BetterResult.Right;
                         }
                     }
                 }
             }
 
-            return valOverInPreference;
+            return valOverInOrRefInterpolatedHandlerPreference;
+
+            static bool isAcceptableRefMismatch(RefKind refKind, bool isInterpolatedStringHandlerConversion)
+                => refKind switch
+                {
+                    RefKind.In => true,
+                    RefKind.Ref when isInterpolatedStringHandlerConversion => true,
+                    _ => false
+                };
         }
 
         private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, out int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
@@ -2399,6 +2422,25 @@ outerDefault:
                 // Neither conversion from expression is better when the argument is an implicitly-typed out variable declaration.
                 okToDowngradeToNeither = false;
                 return BetterResult.Neither;
+            }
+
+            // C# 10 added interpolated string handler conversions, with the following rule:
+            // Given an implicit conversion C1 that converts from an expression E to a type T1, 
+            // and an implicit conversion C2 that converts from an expression E to a type T2,
+            // C1 is a better conversion than C2 if E is a non-constant interpolated string expression, C1
+            // is an interpolated string handler conversion, and C2 is not an interpolated string
+            // handler conversion
+            if (node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null } or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true, ConstantValue: null })
+            {
+                switch ((conv1.Kind, conv2.Kind))
+                {
+                    case (ConversionKind.InterpolatedStringHandler, ConversionKind.InterpolatedStringHandler):
+                        return BetterResult.Neither;
+                    case (ConversionKind.InterpolatedStringHandler, _):
+                        return BetterResult.Left;
+                    case (_, ConversionKind.InterpolatedStringHandler):
+                        return BetterResult.Right;
+                }
             }
 
             // Given an implicit conversion C1 that converts from an expression E to a type T1, 
@@ -3589,6 +3631,18 @@ outerDefault:
                         }
                     }
 
+                    bool hasInterpolatedStringRefMismatch = false;
+                    if (argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
+                        && parameterRefKind == RefKind.Ref
+                        && parameters.ParameterTypes[argumentPosition].Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true, IsValueType: true })
+                    {
+                        // For interpolated strings handlers, we allow an interpolated string expression to be passed as if `ref` was specified
+                        // in the source when the handler type is a value type.
+                        // https://github.com/dotnet/roslyn/issues/54584 allow binary additions of interpolated strings to match as well.
+                        hasInterpolatedStringRefMismatch = true;
+                        argumentRefKind = parameterRefKind;
+                    }
+
                     conversion = CheckArgumentForApplicability(
                         candidate,
                         argument,
@@ -3597,7 +3651,8 @@ outerDefault:
                         parameterRefKind,
                         ignoreOpenTypes,
                         ref useSiteInfo,
-                        forExtensionMethodThisArg);
+                        forExtensionMethodThisArg,
+                        hasInterpolatedStringRefMismatch);
 
                     if (forExtensionMethodThisArg && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
                     {
@@ -3614,7 +3669,7 @@ outerDefault:
 
                     if (!conversion.Exists)
                     {
-                        badArguments = badArguments ?? ArrayBuilder<int>.GetInstance();
+                        badArguments ??= ArrayBuilder<int>.GetInstance();
                         badArguments.Add(argumentPosition);
                     }
                 }
@@ -3658,7 +3713,8 @@ outerDefault:
             RefKind parRefKind,
             bool ignoreOpenTypes,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            bool forExtensionMethodThisArg)
+            bool forExtensionMethodThisArg,
+            bool hasInterpolatedStringRefMismatch)
         {
             // Spec 7.5.3.1
             // For each argument in A, the parameter passing mode of the argument (i.e., value, ref, or out) is identical
@@ -3699,12 +3755,20 @@ outerDefault:
                 return Conversion.Identity;
             }
 
-            if (argRefKind == RefKind.None)
+            if (argRefKind == RefKind.None || hasInterpolatedStringRefMismatch)
             {
                 var conversion = forExtensionMethodThisArg ?
                     Conversions.ClassifyImplicitExtensionMethodThisArgConversion(argument, argument.Type, parameterType, ref useSiteInfo) :
                     Conversions.ClassifyImplicitConversionFromExpression(argument, parameterType, ref useSiteInfo);
                 Debug.Assert((!conversion.Exists) || conversion.IsImplicit, "ClassifyImplicitConversion should only return implicit conversions");
+
+                if (hasInterpolatedStringRefMismatch && !conversion.IsInterpolatedStringHandler)
+                {
+                    // We allowed a ref mismatch under the assumption the conversion would be an interpolated string handler conversion. If it's not, then there was
+                    // actually no conversion because of the refkind mismatch.
+                    return Conversion.NoConversion;
+                }
+
                 return conversion;
             }
 

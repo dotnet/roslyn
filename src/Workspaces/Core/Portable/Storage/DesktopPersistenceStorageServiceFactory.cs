@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 // When building for source-build, there is no sqlite dependency
 #if !DOTNET_BUILD_FROM_SOURCE
@@ -36,12 +37,16 @@ namespace Microsoft.CodeAnalysis.Storage
 #else
 
         private readonly SQLiteConnectionPoolService _connectionPoolService;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DesktopPersistenceStorageServiceFactory(SQLiteConnectionPoolService connectionPoolService)
+        public DesktopPersistenceStorageServiceFactory(
+            SQLiteConnectionPoolService connectionPoolService,
+            IAsynchronousOperationListenerProvider asyncOperationListenerProvider)
         {
             _connectionPoolService = connectionPoolService;
+            _asyncListener = asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -55,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 switch (database)
                 {
                     case StorageDatabase.SQLite:
-                        return new SQLitePersistentStorageService(options, _connectionPoolService, locationService);
+                        return new SQLitePersistentStorageService(options, _connectionPoolService, locationService, _asyncListener);
 
                     case StorageDatabase.CloudCache:
                         var factory = workspaceServices.GetService<ICloudCacheStorageServiceFactory>();

@@ -64,6 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
                 Dim newNode = GetReplacement(document, node)
                 editor.ReplaceNode(node, newNode)
             Next
+
             Return Task.CompletedTask
         End Function
 

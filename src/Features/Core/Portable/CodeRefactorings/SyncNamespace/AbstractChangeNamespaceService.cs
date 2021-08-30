@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         protected abstract Task<ImmutableArray<(DocumentId id, SyntaxNode container)>> GetValidContainersFromAllLinkedDocumentsAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
         private static bool IsValidContainer(SyntaxNode container)
-            => container is TCompilationUnitSyntax || container is TNamespaceDeclarationSyntax;
+            => container is TCompilationUnitSyntax or TNamespaceDeclarationSyntax;
 
         protected static bool IsGlobalNamespace(ImmutableArray<string> parts)
             => parts.Length == 1 && parts[0].Length == 0;

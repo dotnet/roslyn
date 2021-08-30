@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool SkipVarianceSafetyChecks(Symbol member)
         {
-            if (member.IsStatic)
+            if (member.IsStatic && !member.IsAbstract)
             {
                 return MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers.RequiredVersion() <= member.DeclaringCompilation.LanguageVersion;
             }
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // "requires output-safe", and "requires input-safe and output-safe".  This would make the error codes much easier to document and
             // much more actionable.
             // UNDONE: related location for use is much more useful
-            if (!(context is TypeSymbol) && context.IsStatic)
+            if (!(context is TypeSymbol) && context.IsStatic && !context.IsAbstract)
             {
                 diagnostics.Add(ErrorCode.ERR_UnexpectedVarianceStaticMember, location, context, unsafeTypeParameter, actualVariance.Localize(), expectedVariance.Localize(),
                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers.RequiredVersion()));

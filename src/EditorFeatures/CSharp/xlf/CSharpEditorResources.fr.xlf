@@ -372,6 +372,11 @@
         <target state="translated">Préférer une fonction locale à une fonction anonyme</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="new">Prefer 'null' check over type check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
         <target state="translated">Préférer les critères spéciaux</target>

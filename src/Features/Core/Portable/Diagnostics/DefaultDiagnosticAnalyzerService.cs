@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 public override bool Equals(object obj)
                 {
-                    if (!(obj is DefaultUpdateArgsId other))
+                    if (obj is not DefaultUpdateArgsId other)
                     {
                         return false;
                     }

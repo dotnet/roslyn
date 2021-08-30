@@ -38,6 +38,7 @@
 
 package name=$(MSBuildProjectName)
         version=$(VsixVersion)
+        vs.package.productArch=neutral
 
 folder InstallDir:\Common7\ServiceHub\Services\RoslynCodeAnalysisService
   @(_FileEntries, '%0d%0a  ')

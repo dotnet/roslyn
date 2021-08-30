@@ -148,12 +148,14 @@ jobs:
     configuration: Debug
     testArguments: --testCoreClr --helixQueueName OSX.1014.Amd64.Open
 
+- template: eng/common/templates/jobs/source-build.yml
+
 # Build Correctness Jobs
 
 - job: Correctness_Determinism
   pool:
     name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+    queue: BuildPool.Windows.10.Amd64.VS2019.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -169,7 +171,7 @@ jobs:
 - job: Correctness_Build
   pool:
     name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+    queue: BuildPool.Windows.10.Amd64.VS2019.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -197,30 +199,6 @@ jobs:
         ArtifactName: 'VSIX - PreRelease'
         publishLocation: Container
       condition: succeeded()
-
-- job: Correctness_SourceBuild
-  pool:
-   name: NetCorePublic-Pool
-   queue: BuildPool.Ubuntu.1804.amd64.Open
-  timeoutInMinutes: 90
-  steps:
-    - template: eng/pipelines/checkout-unix-task.yml
-
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --binaryLog --sourceBuild
-      displayName: Build
-
-    - template: eng/pipelines/publish-logs.yml
-      parameters:
-        jobName: Correctness_SourceBuild
-        configuration: Release
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/Debug'
-        ArtifactName: 'SourceBuild_Test'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
 
 - job: Correctness_Rebuild
   pool:

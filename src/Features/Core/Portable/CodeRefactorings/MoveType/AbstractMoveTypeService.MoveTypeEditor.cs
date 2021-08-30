@@ -242,9 +242,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     return false;
                 }
 
-                return node is TTypeDeclarationSyntax ||
-                       node is TMemberDeclarationSyntax ||
-                       node is TNamespaceDeclarationSyntax;
+                return node is TTypeDeclarationSyntax or
+                       TMemberDeclarationSyntax or
+                       TNamespaceDeclarationSyntax;
             }
 
             /// <summary>

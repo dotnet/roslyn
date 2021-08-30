@@ -317,6 +317,11 @@
         <target state="translated">Kvalifikovat přístup k vlastnosti pomocí this nebo Me</target>
         <note />
       </trans-unit>
+      <trans-unit id="Reassigned_variable">
+        <source>Reassigned variable</source>
+        <target state="new">Reassigned variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Přejmenovat _soubor (typ neodpovídá názvu souboru)</target>

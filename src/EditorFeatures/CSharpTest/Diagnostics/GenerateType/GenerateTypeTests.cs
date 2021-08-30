@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -4876,6 +4878,36 @@ namespace Namespace1.Namespace2
                 expected,
                 expectedContainers: ImmutableArray<string>.Empty,
                 expectedDocumentName: "ClassB.cs");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateTypeInFolderNotDefaultNamespace_0_FileScopedNamespace()
+        {
+            var code = @"<Workspace>
+                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DefaultNamespace = ""Namespace1.Namespace2"">
+                        <Document FilePath=""Test1.cs"">
+namespace Namespace1.Namespace2;
+
+public class ClassA : [|$$ClassB|]
+{
+}
+                        </Document>
+                    </Project>
+                </Workspace>";
+
+            var expected = @"namespace Namespace1.Namespace2;
+
+public class ClassB
+{
+}";
+
+            await TestAddDocumentInRegularAndScriptAsync(code,
+                expected,
+                expectedContainers: ImmutableArray<string>.Empty,
+                expectedDocumentName: "ClassB.cs",
+                new TestParameters(
+                    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10),
+                    options: Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)));
         }
 
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]

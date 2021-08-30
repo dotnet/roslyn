@@ -229,6 +229,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                                                                ordinalIgnoreCaseStringComparer.Equals(x.XmlNamespace.Value.ToString(), xmlNamespaceImportsClause.XmlNamespace.Value.ToString())) Then
                         uniqueClauses.Add(clause)
                     End If
+
                     Continue For
                 End If
             Next

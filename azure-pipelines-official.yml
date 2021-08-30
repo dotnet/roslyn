@@ -63,6 +63,7 @@ variables:
     value: '[Skip-SymbolCheck]'
 
 stages:
+
 - stage: build
   displayName: Build and Test
 
@@ -75,12 +76,14 @@ stages:
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
+  - template: eng/common/templates/jobs/source-build.yml
+
   - job: OfficialBuild
     displayName: Official Build
     timeoutInMinutes: 360
     pool:
       name: NetCoreInternal-Pool
-      queue: BuildPool.Server.Amd64.VS2017
+      queue: BuildPool.Server.Amd64.VS2019
 
     steps:
     - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
@@ -175,6 +178,7 @@ stages:
                    /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
+                   /p:IgnoreIbcMergeErrors=true
       condition: succeeded()
 
     - task: PowerShell@2

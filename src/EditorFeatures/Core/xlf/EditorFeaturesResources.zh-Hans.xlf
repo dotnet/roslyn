@@ -317,6 +317,11 @@
         <target state="translated">使用 "this" 或 "Me" 限定属性访问</target>
         <note />
       </trans-unit>
+      <trans-unit id="Reassigned_variable">
+        <source>Reassigned variable</source>
+        <target state="new">Reassigned variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">重命名文件(类型与文件名不匹配)(_F)</target>

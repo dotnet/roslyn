@@ -317,6 +317,11 @@
         <target state="translated">Kwalifikuj dostęp do właściwości przy użyciu zapisu „this.” lub „me.”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Reassigned_variable">
+        <source>Reassigned variable</source>
+        <target state="new">Reassigned variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Zmień nazwę _pliku (typ nie zgadza się z nazwą pliku)</target>

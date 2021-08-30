@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 ? optionsRule
                 : GetRules().SnippetsRule;
 
-            if (snippetsRule == SnippetsRule.Default ||
-                snippetsRule == SnippetsRule.NeverInclude)
+            if (snippetsRule is SnippetsRule.Default or
+                SnippetsRule.NeverInclude)
             {
                 return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
             }

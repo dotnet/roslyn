@@ -147,6 +147,11 @@
         <target state="translated">Client für C#-/Visual Basic-Diagnosesprache</target>
         <note />
       </trans-unit>
+      <trans-unit id="Calculating">
+        <source>Calculating...</source>
+        <target state="new">Calculating...</target>
+        <note>Used in UI to represent progress in the context of loading items. </note>
+      </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
         <target state="translated">Abhängige Objekte werden berechnet...</target>
@@ -240,6 +245,11 @@
       <trans-unit id="Current_parameter">
         <source>Current parameter</source>
         <target state="translated">Aktueller Parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Derived_types">
+        <source>Derived types</source>
+        <target state="new">Derived types</target>
         <note />
       </trans-unit>
       <trans-unit id="Disabled">
@@ -377,6 +387,11 @@
         <target state="translated">ID</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implemented_interfaces">
+        <source>Implemented interfaces</source>
+        <target state="new">Implemented interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implemented_members">
         <source>Implemented members</source>
         <target state="translated">Implementierte Member</target>
@@ -385,6 +400,11 @@
       <trans-unit id="Implementing_members">
         <source>Implementing members</source>
         <target state="translated">Member werden implementiert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_types">
+        <source>Implementing types</source>
+        <target state="new">Implementing types</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -415,6 +435,11 @@
       <trans-unit id="Inheritance_Margin_experimental">
         <source>Inheritance Margin (experimental)</source>
         <target state="translated">Vererbungsrand (experimentell)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_interfaces">
+        <source>Inherited interfaces</source>
+        <target state="new">Inherited interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
@@ -540,6 +565,11 @@
       <trans-unit id="Namespace_0">
         <source>Namespace: '{0}'</source>
         <target state="translated">Namespace: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespace_declarations">
+        <source>Namespace declarations</source>
+        <target state="new">Namespace declarations</target>
         <note />
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
@@ -962,6 +992,11 @@
         <target state="translated">Sucheinstellungen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
+        <source>Select an appropriate symbol to start value tracking</source>
+        <target state="new">Select an appropriate symbol to start value tracking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Select_destination">
         <source>Select destination</source>
         <target state="translated">Ziel auswählen</target>
@@ -1035,6 +1070,11 @@
       <trans-unit id="Show_inheritance_margin">
         <source>Show inheritance margin</source>
         <target state="translated">Vererbungsrand anzeigen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
+        <source>Skip analyzers for implicitly triggered builds</source>
+        <target state="new">Skip analyzers for implicitly triggered builds</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -1122,6 +1162,11 @@
         <target state="translated">Der Typname wurde erkannt.</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
+      <trans-unit id="Underline_reassigned_variables">
+        <source>Underline reassigned variables</source>
+        <target state="new">Underline reassigned variables</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="translated">Der nicht verwendete Wert wird explizit einer nicht verwendeten lokalen Variablen zugewiesen.</target>
@@ -1166,6 +1211,11 @@
         <source>Value</source>
         <target state="translated">Wert</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Value_Tracking">
+        <source>Value Tracking</source>
+        <target state="new">Value Tracking</target>
+        <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
@@ -2584,34 +2634,8 @@ Zusätzliche Informationen: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Aktivieren der Navigation zu dekompilierten Quellen (experimentell)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
-
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
-
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">WICHTIG: Visual Studio umfasst eine Funktionalität für die Dekompilierung ("Decompiler"), mit der Quellcode aus Binärcode reproduziert werden kann. Indem Sie auf den Decompiler zugreifen und ihn verwenden, erklären Sie sich mit den Lizenzbedingungen von Visual Studio und den nachstehenden Bedingungen für den Decompiler einverstanden. Wenn Sie mit diesen kombinierten Bedingungen nicht einverstanden sind, dürfen Sie nicht auf den Decompiler zugreifen oder ihn verwenden.
-
-Sie erkennen an, dass der Binärcode und der Quellcode möglicherweise durch Urheberrechts- und Markengesetze geschützt sind. Bevor Sie den Decompiler für Binärcode verwenden, müssen Sie zunächst Folgendes sicherstellen:
-(i) Sie müssen sich vergewissern, dass die Lizenzbestimmungen zur Regelung Ihrer Verwendung des Binärcodes keine Klausel enthalten, die das Dekompilieren der Software verbietet, oder
-(ii) Sie müssen die Erlaubnis zur Dekompilierung der Software beim Besitzer der Software einholen.
-
-Ihre Verwendung des Decompilers ist optional. Microsoft übernimmt keinerlei Verantwortung und lehnt jede Haftung für Ihre Nutzung des Decompilers ab, die gegen Gesetze oder Softwarelizenzbedingungen verstößt, die das Dekompilieren der Software verbieten.
-
-Ich stimme allen oben genannten Punkten zu:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">Rechtlicher Hinweis zum Decompiler</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="needs-review-translation">Aktivieren der Navigation zu dekompilierten Quellen (experimentell)</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

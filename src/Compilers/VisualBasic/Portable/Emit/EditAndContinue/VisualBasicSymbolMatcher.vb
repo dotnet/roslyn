@@ -365,7 +365,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Public Overrides Function VisitNamespace([namespace] As NamespaceSymbol) As Symbol
                 Dim otherContainer As Symbol = Visit([namespace].ContainingSymbol)
-                Debug.Assert(otherContainer IsNot Nothing)
+
+                ' TODO: Workaround for https//github.com/dotnet/roslyn/issues/54939.
+                ' We should fail if the container can't be mapped.
+                ' Currently this only occurs when determining reloadable type name for a type added to a new namespace,
+                ' which is a rude edit.
+                ' Debug.Assert(otherContainer IsNot Nothing)
+                If otherContainer Is Nothing Then
+                    Return Nothing
+                End If
+
 
                 Select Case otherContainer.Kind
                     Case SymbolKind.NetModule

@@ -317,6 +317,11 @@
         <target state="translated">Qualificar o acesso de propriedade com 'this' ou 'Me'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Reassigned_variable">
+        <source>Reassigned variable</source>
+        <target state="new">Reassigned variable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Renomear _arquivo (o tipo não corresponde ao nome do arquivo)</target>

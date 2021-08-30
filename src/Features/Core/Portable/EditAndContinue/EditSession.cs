@@ -9,12 +9,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
@@ -34,11 +36,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal readonly AsyncLazy<ActiveStatementsMap> BaseActiveStatements;
 
         /// <summary>
-        /// For each base active statement the exception regions around that statement. 
-        /// </summary>
-        internal ImmutableArray<ActiveStatementExceptionRegions> _lazyBaseActiveExceptionRegions;
-
-        /// <summary>
         /// Cache of document EnC analyses. 
         /// </summary>
         internal readonly EditAndContinueDocumentAnalysesCache Analyses;
@@ -53,12 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly HashSet<DocumentId> _documentsWithReportedDiagnostics = new();
         private readonly object _documentsWithReportedDiagnosticsGuard = new();
 
-        private PendingSolutionUpdate? _pendingUpdate;
-
-        internal EditSession(
-            DebuggingSession debuggingSession,
-            EditSessionTelemetry telemetry,
-            bool inBreakState)
+        internal EditSession(DebuggingSession debuggingSession, EditSessionTelemetry telemetry, bool inBreakState)
         {
             DebuggingSession = debuggingSession;
             Telemetry = telemetry;
@@ -100,200 +92,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
-                return CreateActiveStatementsMap(await DebuggingSession.DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
+                var debugInfos = await DebuggingSession.DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
+                return ActiveStatementsMap.Create(debugInfos, _nonRemappableRegions);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return new ActiveStatementsMap(
-                    SpecializedCollections.EmptyReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>>(),
-                    SpecializedCollections.EmptyReadOnlyDictionary<ManagedInstructionId, ActiveStatement>());
+                return ActiveStatementsMap.Empty;
             }
         }
 
-        private ActiveStatementsMap CreateActiveStatementsMap(ImmutableArray<ManagedActiveStatementDebugInfo> debugInfos)
-        {
-            var byDocument = PooledDictionary<DocumentId, ArrayBuilder<ActiveStatement>>.GetInstance();
-            var byInstruction = PooledDictionary<ManagedInstructionId, ActiveStatement>.GetInstance();
-
-            bool supportsEditAndContinue(DocumentId documentId)
-                => EditAndContinueWorkspaceService.SupportsEditAndContinue(DebuggingSession.LastCommittedSolution.GetProject(documentId.ProjectId)!);
-
-            foreach (var debugInfo in debugInfos)
-            {
-                var documentName = debugInfo.DocumentName;
-                if (documentName == null)
-                {
-                    // Ignore active statements that do not have a source location.
-                    continue;
-                }
-
-                // TODO: https://github.com/dotnet/roslyn/issues/49938
-                // The committed solution may not contain all documents present in the PDB.
-                var documentIds = DebuggingSession.LastCommittedSolution.GetDocumentIdsWithFilePath(documentName);
-                var firstDocumentId = documentIds.FirstOrDefault(supportsEditAndContinue);
-                if (firstDocumentId == null)
-                {
-                    // Ignore active statements that don't belong to the solution or language that supports EnC service.
-                    continue;
-                }
-
-                if (!byDocument.TryGetValue(firstDocumentId, out var primaryDocumentActiveStatements))
-                {
-                    byDocument.Add(firstDocumentId, primaryDocumentActiveStatements = ArrayBuilder<ActiveStatement>.GetInstance());
-                }
-
-                var activeStatement = new ActiveStatement(
-                    ordinal: byInstruction.Count,
-                    primaryDocumentOrdinal: primaryDocumentActiveStatements.Count,
-                    documentIds: documentIds,
-                    flags: debugInfo.Flags,
-                    span: GetUpToDateSpan(debugInfo),
-                    instructionId: debugInfo.ActiveInstruction);
-
-                primaryDocumentActiveStatements.Add(activeStatement);
-
-                // TODO: associate only those documents that are from a project with the right module id
-                // https://github.com/dotnet/roslyn/issues/24320
-                for (var i = 1; i < documentIds.Length; i++)
-                {
-                    var documentId = documentIds[i];
-                    if (!supportsEditAndContinue(documentId))
-                    {
-                        continue;
-                    }
-
-                    if (!byDocument.TryGetValue(documentId, out var linkedDocumentActiveStatements))
-                    {
-                        byDocument.Add(documentId, linkedDocumentActiveStatements = ArrayBuilder<ActiveStatement>.GetInstance());
-                    }
-
-                    linkedDocumentActiveStatements.Add(activeStatement);
-                }
-
-                try
-                {
-                    byInstruction.Add(debugInfo.ActiveInstruction, activeStatement);
-                }
-                catch (ArgumentException)
-                {
-                    throw new InvalidOperationException($"Multiple active statements with the same instruction id returned by Active Statement Provider");
-                }
-            }
-
-            return new ActiveStatementsMap(byDocument.ToMultiDictionaryAndFree(), byInstruction.ToDictionaryAndFree());
-        }
-
-        private LinePositionSpan GetUpToDateSpan(ManagedActiveStatementDebugInfo activeStatementInfo)
-        {
-            var activeSpan = activeStatementInfo.SourceSpan.ToLinePositionSpan();
-
-            if ((activeStatementInfo.Flags & ActiveStatementFlags.MethodUpToDate) != 0)
-            {
-                return activeSpan;
-            }
-
-            var instructionId = activeStatementInfo.ActiveInstruction;
-
-            // Map active statement spans in non-remappable regions to the latest source locations.
-            if (_nonRemappableRegions.TryGetValue(instructionId.Method, out var regionsInMethod))
-            {
-                foreach (var region in regionsInMethod)
-                {
-                    if (region.Span.Contains(activeSpan))
-                    {
-                        return activeSpan.AddLineDelta(region.LineDelta);
-                    }
-                }
-            }
-
-            // The active statement is in a method that's not up-to-date but the active span have not changed.
-            // We only add changed spans to non-remappable regions map, so we won't find unchanged span there.
-            // Return the original span.
-            return activeSpan;
-        }
-
-        /// <summary>
-        /// Calculates exception regions for all active statements.
-        /// If an active statement is in a document that's out-of-sync returns default(<see cref="ActiveStatementExceptionRegions"/>) for that statement.
-        /// </summary>
-        internal async Task<ImmutableArray<ActiveStatementExceptionRegions>> GetBaseActiveExceptionRegionsAsync(Solution solution, CancellationToken cancellationToken)
-        {
-            try
-            {
-                if (!_lazyBaseActiveExceptionRegions.IsDefault)
-                {
-                    return _lazyBaseActiveExceptionRegions;
-                }
-
-                var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                var instructionMap = baseActiveStatements.InstructionMap;
-                using var builderDisposer = ArrayBuilder<ActiveStatementExceptionRegions>.GetInstance(instructionMap.Count, out var builder);
-                builder.Count = instructionMap.Count;
-
-                var hasOutOfSyncDocuments = false;
-
-                foreach (var activeStatement in instructionMap.Values)
-                {
-                    bool isCovered;
-                    ImmutableArray<LinePositionSpan> exceptionRegions;
-
-                    // Can't calculate exception regions for active statements in out-of-sync documents.
-                    var primaryDocument = await solution.GetDocumentAsync(activeStatement.PrimaryDocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                    var (baseDocument, _) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(activeStatement.PrimaryDocumentId, primaryDocument, cancellationToken).ConfigureAwait(false);
-                    if (baseDocument != null)
-                    {
-                        Debug.Assert(baseDocument.SupportsSyntaxTree);
-
-                        var sourceText = await baseDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        var syntaxRoot = await baseDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                        Contract.ThrowIfNull(syntaxRoot);
-
-                        // The analyzer service have to be available as we only track active statements in projects that support EnC.
-                        var analyzer = baseDocument.Project.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
-                        exceptionRegions = analyzer.GetExceptionRegions(sourceText, syntaxRoot, activeStatement.Span, activeStatement.IsNonLeaf, out isCovered);
-                    }
-                    else
-                    {
-                        // Document is either out-of-sync, design-time-only or missing from the baseline.
-                        // If it's missing or design-time-only it can't have active statements.
-                        hasOutOfSyncDocuments = true;
-                        isCovered = false;
-                        exceptionRegions = default;
-                    }
-
-                    builder[activeStatement.Ordinal] = new ActiveStatementExceptionRegions(exceptionRegions, isCovered);
-                }
-
-                var result = builder.ToImmutable();
-
-                // Only cache results if no active statements are in out-of-sync documents.
-                if (!hasOutOfSyncDocuments)
-                {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyBaseActiveExceptionRegions, result);
-                }
-
-                return result;
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return ImmutableArray<ActiveStatementExceptionRegions>.Empty;
-            }
-        }
-
-        private static async Task PopulateChangedAndAddedDocumentsAsync(CommittedSolution baseSolution, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
+        private static async Task PopulateChangedAndAddedDocumentsAsync(CommittedSolution oldSolution, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
         {
             changedOrAddedDocuments.Clear();
 
-            if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(newProject))
+            if (!newProject.SupportsEditAndContinue())
             {
                 return;
             }
 
-            var oldProject = baseSolution.GetProject(newProject.Id);
-            if (oldProject == newProject)
-            {
-                return;
-            }
+            var oldProject = oldSolution.GetProject(newProject.Id);
 
             // When debugging session is started some projects might not have been loaded to the workspace yet. 
             // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
@@ -308,9 +125,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
+            if (oldProject.State == newProject.State)
+            {
+                return;
+            }
+
             foreach (var documentId in newProject.State.DocumentStates.GetChangedStateIds(oldProject.State.DocumentStates, ignoreUnchangedContent: true))
             {
-                var document = newProject.GetDocument(documentId)!;
+                var document = newProject.GetRequiredDocument(documentId);
                 if (document.State.Attributes.DesignTimeOnly)
                 {
                     continue;
@@ -325,7 +147,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // (there had to be one as the content doesn't match). When we are about to apply changes it is ok to ignore this
                 // document because the user does not see the change yet in the buffer (if the doc is open) and won't be confused
                 // if it is not applied yet. The change will be applied later after it's observed by the workspace.
-                var baseSource = await oldProject.GetDocument(documentId)!.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var baseSource = await oldProject.GetRequiredDocument(documentId).GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var source = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (baseSource.ContentEquals(source))
                 {
@@ -337,7 +159,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var documentId in newProject.State.DocumentStates.GetAddedStateIds(oldProject.State.DocumentStates))
             {
-                var document = newProject.GetDocument(documentId)!;
+                var document = newProject.GetRequiredDocument(documentId);
                 if (document.State.Attributes.DesignTimeOnly)
                 {
                     continue;
@@ -347,27 +169,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // TODO: support document removal/rename (see https://github.com/dotnet/roslyn/issues/41144, https://github.com/dotnet/roslyn/issues/49013).
-
-            // Given the following assumptions:
-            // - source generators are deterministic,
-            // - source documents, metadata references and compilation options have not changed,
-            // - additional documents have not changed,
-            // - analyzer config documents have not changed,
-            // the outputs of source generators will not change.
-            // 
-            // Currently it's not possible to change compilation options (Project System is readonly during debugging).
-            // Source documents are checked above.
-
-            if (changedOrAddedDocuments.IsEmpty() &&
-                newProject.State.DocumentStates.GetRemovedStateIds(oldProject.State.DocumentStates).IsEmpty() &&
-                !newProject.State.AdditionalDocumentStates.HasAnyStateChanges(oldProject.State.AdditionalDocumentStates) &&
-                !newProject.State.AnalyzerConfigDocumentStates.HasAnyStateChanges(oldProject.State.AnalyzerConfigDocumentStates))
+            if (changedOrAddedDocuments.IsEmpty() && !HasChangesThatMayAffectSourceGenerators(oldProject.State, newProject.State))
             {
                 // Based on the above assumption there are no changes in source generated files.
                 return;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             var oldSourceGeneratedDocumentStates = await oldProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             var newSourceGeneratedDocumentStates = await newProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
 
             foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
@@ -393,14 +206,62 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
+        internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(CommittedSolution oldSolution, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var oldProject = oldSolution.GetRequiredProject(newProject.Id);
+
+            if (!newProject.SupportsEditAndContinue() || oldProject.State == newProject.State)
+            {
+                yield break;
+            }
+
+            foreach (var documentId in newProject.State.DocumentStates.GetChangedStateIds(oldProject.State.DocumentStates, ignoreUnchangedContent: true))
+            {
+                yield return documentId;
+            }
+
+            if (!HasChangesThatMayAffectSourceGenerators(oldProject.State, newProject.State))
+            {
+                // Based on the above assumption there are no changes in source generated files.
+                yield break;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var oldSourceGeneratedDocumentStates = await oldProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var newSourceGeneratedDocumentStates = await newProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
+
+            foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
+            {
+                yield return documentId;
+            }
+        }
+
+        /// <summary>
+        /// Given the following assumptions:
+        /// - source generators are deterministic,
+        /// - source documents, metadata references and compilation options have not changed,
+        /// - additional documents have not changed,
+        /// - analyzer config documents have not changed,
+        /// the outputs of source generators will not change.
+        /// 
+        /// Currently it's not possible to change compilation options (Project System is readonly during debugging).
+        /// </summary>
+        private static bool HasChangesThatMayAffectSourceGenerators(ProjectState oldProject, ProjectState newProject)
+            => newProject.DocumentStates.HasAnyStateChanges(oldProject.DocumentStates) ||
+               newProject.AdditionalDocumentStates.HasAnyStateChanges(oldProject.AdditionalDocumentStates) ||
+               newProject.AnalyzerConfigDocumentStates.HasAnyStateChanges(oldProject.AnalyzerConfigDocumentStates);
+
         private async Task<(ImmutableArray<DocumentAnalysisResults> results, ImmutableArray<Diagnostic> diagnostics)> AnalyzeDocumentsAsync(
-            Project newProject,
             ArrayBuilder<Document> changedOrAddedDocuments,
-            SolutionActiveStatementSpanProvider newDocumentActiveStatementSpanProvider,
+            ActiveStatementSpanProvider newDocumentActiveStatementSpanProvider,
             CancellationToken cancellationToken)
         {
             using var _1 = ArrayBuilder<Diagnostic>.GetInstance(out var documentDiagnostics);
-            using var _2 = ArrayBuilder<(Document newDocument, ImmutableArray<TextSpan> newActiveStatementSpans)>.GetInstance(out var builder);
+            using var _2 = ArrayBuilder<(Document? oldDocument, Document newDocument)>.GetInstance(out var documents);
 
             foreach (var newDocument in changedOrAddedDocuments)
             {
@@ -422,11 +283,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // If the module has been built it might get loaded later during the debugging session,
                         // at which point we apply all changes that have been made to the project so far.
 
-                        // Fetch the active statement spans for the new document snapshot.
-                        // These are the locations of the spans tracked by the editor from the base document to the current snapshot.
-                        var activeStatementSpans = await newDocumentActiveStatementSpanProvider(newDocument.Id, cancellationToken).ConfigureAwait(false);
-
-                        builder.Add((newDocument, activeStatementSpans));
+                        documents.Add((oldDocument, newDocument));
                         break;
 
                     default:
@@ -434,17 +291,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            // The base project may have been updated as documents were brought up-to-date in the committed solution.
-            // Get the latest available snapshot of the base project from the committed solution and use it for analyses of all documents,
-            // so that we use a single compilation for the base project (for efficiency).
-            // Note that some other request might be updating documents in the committed solution that were not changed (not in changedOrAddedDocuments)
-            // but are not up-to-date. These documents do not have impact on the analysis unless we read semantic information
-            // from the project compilation. When reading such information we need to be aware of its potential incompleteness
-            // and consult the compiler output binary (see https://github.com/dotnet/roslyn/issues/51261).
-            var oldProject = DebuggingSession.LastCommittedSolution.GetProject(newProject.Id);
-            Contract.ThrowIfNull(oldProject);
-
-            var analyses = await Analyses.GetDocumentAnalysesAsync(oldProject, builder, DebuggingSession.Capabilities, cancellationToken).ConfigureAwait(false);
+            var analyses = await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, documents, newDocumentActiveStatementSpanProvider, DebuggingSession.Capabilities, cancellationToken).ConfigureAwait(false);
             return (analyses, documentDiagnostics.ToImmutable());
         }
 
@@ -469,7 +316,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Checks only projects containing a given <paramref name="sourceFilePath"/> or all projects of the solution if <paramref name="sourceFilePath"/> is null.
         /// Invoked by the debugger on every step. It is critical for stepping performance that this method returns as fast as possible in absence of changes.
         /// </summary>
-        public async ValueTask<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider solutionActiveStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
+        public async ValueTask<bool> HasChangesAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
         {
             try
             {
@@ -511,7 +358,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(project, changedOrAddedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(changedOrAddedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                     if (documentDiagnostics.Any())
                     {
                         EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: out-of-sync documents present (diagnostic: '{2}')",
@@ -582,17 +429,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return ProjectAnalysisSummary.ValidChanges;
         }
 
-        internal static ProjectChanges GetProjectChanges(
+        internal static async ValueTask<ProjectChanges> GetProjectChangesAsync(
+            ActiveStatementsMap baseActiveStatements,
             Compilation oldCompilation,
             Compilation newCompilation,
+            Project oldProject,
+            Project newProject,
             ImmutableArray<DocumentAnalysisResults> changedDocumentAnalyses,
             CancellationToken cancellationToken)
         {
             try
             {
                 using var _1 = ArrayBuilder<SemanticEditInfo>.GetInstance(out var allEdits);
-                using var _2 = ArrayBuilder<(DocumentId, ImmutableArray<SourceLineUpdate>)>.GetInstance(out var allLineEdits);
-                using var _3 = ArrayBuilder<(DocumentId, ImmutableArray<ActiveStatement>, ImmutableArray<ImmutableArray<LinePositionSpan>>)>.GetInstance(out var activeStatementsInChangedDocuments);
+                using var _2 = ArrayBuilder<SequencePointUpdates>.GetInstance(out var allLineEdits);
+                using var _3 = ArrayBuilder<DocumentActiveStatementChanges>.GetInstance(out var activeStatementsInChangedDocuments);
+
+                var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
 
                 foreach (var analysis in changedDocumentAnalyses)
                 {
@@ -604,18 +456,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // we shouldn't be asking for deltas in presence of errors:
                     Contract.ThrowIfTrue(analysis.HasChangesAndErrors);
 
+                    // Active statements are calculated if document changed and has no syntax errors:
+                    Contract.ThrowIfTrue(analysis.ActiveStatements.IsDefault);
+
                     allEdits.AddRange(analysis.SemanticEdits);
-
-                    var documentId = analysis.DocumentId;
-
-                    if (analysis.LineEdits.Length > 0)
-                    {
-                        allLineEdits.Add((documentId, analysis.LineEdits));
-                    }
+                    allLineEdits.AddRange(analysis.LineEdits);
 
                     if (analysis.ActiveStatements.Length > 0)
                     {
-                        activeStatementsInChangedDocuments.Add((documentId, analysis.ActiveStatements, analysis.ExceptionRegions));
+                        var oldDocument = await oldProject.GetDocumentAsync(analysis.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+
+                        var oldActiveStatements = (oldDocument == null) ? ImmutableArray<UnmappedActiveStatement>.Empty :
+                            await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
+
+                        activeStatementsInChangedDocuments.Add(new(oldActiveStatements, analysis.ActiveStatements, analysis.ExceptionRegions));
                     }
                 }
 
@@ -643,12 +497,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             using var _0 = ArrayBuilder<SemanticEdit>.GetInstance(edits.Count, out var mergedEditsBuilder);
             using var _1 = PooledHashSet<ISymbol>.GetInstance(out var addedSymbolsBuilder);
-            using var _2 = ArrayBuilder<(ISymbol? oldSymbol, ISymbol newSymbol)>.GetInstance(edits.Count, out var resolvedSymbols);
+            using var _2 = ArrayBuilder<(ISymbol? oldSymbol, ISymbol? newSymbol)>.GetInstance(edits.Count, out var resolvedSymbols);
 
             foreach (var edit in edits)
             {
                 SymbolKeyResolution oldResolution;
-                if (edit.Kind == SemanticEditKind.Update)
+                if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Delete)
                 {
                     oldResolution = edit.Symbol.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken);
                     Contract.ThrowIfNull(oldResolution.Symbol);
@@ -658,8 +512,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     oldResolution = default;
                 }
 
-                var newResolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
-                Contract.ThrowIfNull(newResolution.Symbol);
+                SymbolKeyResolution newResolution;
+                if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Insert or SemanticEditKind.Replace)
+                {
+                    newResolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
+                    Contract.ThrowIfNull(newResolution.Symbol);
+                }
+                else
+                {
+                    newResolution = default;
+                }
 
                 resolvedSymbols.Add((oldResolution.Symbol, newResolution.Symbol));
             }
@@ -674,7 +536,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (edit.Kind == SemanticEditKind.Insert)
                     {
-                        // Inserts do not need partial type merging.
+                        Contract.ThrowIfNull(newSymbol);
                         addedSymbolsBuilder.Add(newSymbol);
                     }
 
@@ -698,7 +560,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Calculate merged syntax map for each partial type symbol:
 
             var symbolKeyComparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true);
-            var mergedSyntaxMaps = new Dictionary<SymbolKey, Func<SyntaxNode, SyntaxNode?>>(symbolKeyComparer);
+            var mergedSyntaxMaps = new Dictionary<SymbolKey, Func<SyntaxNode, SyntaxNode?>?>(symbolKeyComparer);
 
             var editsByPartialType = edits
                 .Where(edit => edit.PartialType != null)
@@ -706,15 +568,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             foreach (var partialTypeEdits in editsByPartialType)
             {
-                Debug.Assert(partialTypeEdits.All(edit => edit.SyntaxMapTree != null && edit.SyntaxMap != null));
+                // Either all edits have syntax map or none has.
+                Debug.Assert(
+                    partialTypeEdits.All(edit => edit.SyntaxMapTree != null && edit.SyntaxMap != null) ||
+                    partialTypeEdits.All(edit => edit.SyntaxMapTree == null && edit.SyntaxMap == null));
 
-                var newTrees = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMapTree!);
-                var syntaxMaps = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMap!);
+                Func<SyntaxNode, SyntaxNode?>? mergedSyntaxMap;
+                if (partialTypeEdits.First().SyntaxMap != null)
+                {
+                    var newTrees = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMapTree!);
+                    var syntaxMaps = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMap!);
+                    mergedSyntaxMap = node => syntaxMaps[newTrees.IndexOf(node.SyntaxTree)](node);
+                }
+                else
+                {
+                    mergedSyntaxMap = null;
+                }
 
-                mergedSyntaxMaps.Add(partialTypeEdits.Key, node => syntaxMaps[newTrees.IndexOf(node.SyntaxTree)](node));
+                mergedSyntaxMaps.Add(partialTypeEdits.Key, mergedSyntaxMap);
             }
 
-            // Deduplicate updates based on new symbol and use merged syntax map calculated above for a given partial type.
+            // Deduplicate edits based on their target symbol and use merged syntax map calculated above for a given partial type.
 
             using var _3 = PooledHashSet<ISymbol>.GetInstance(out var visitedSymbols);
 
@@ -724,12 +598,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (edit.PartialType != null)
                 {
-                    Contract.ThrowIfFalse(edit.Kind == SemanticEditKind.Update);
-
                     var (oldSymbol, newSymbol) = resolvedSymbols[i];
-                    if (visitedSymbols.Add(newSymbol))
+                    if (visitedSymbols.Add(newSymbol ?? oldSymbol!))
                     {
-                        mergedEditsBuilder.Add(new SemanticEdit(SemanticEditKind.Update, oldSymbol, newSymbol, mergedSyntaxMaps[edit.PartialType.Value], preserveLocalVariables: true));
+                        var syntaxMap = mergedSyntaxMaps[edit.PartialType.Value];
+                        mergedEditsBuilder.Add(new SemanticEdit(edit.Kind, oldSymbol, newSymbol, syntaxMap, preserveLocalVariables: syntaxMap != null));
                     }
                 }
             }
@@ -738,7 +611,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             addedSymbols = addedSymbolsBuilder.ToImmutableHashSet();
         }
 
-        public async Task<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider solutionActiveStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, CancellationToken cancellationToken)
         {
             try
             {
@@ -798,7 +671,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // which change we have not observed yet. Then call-sites of C.M in a changed document observed by the analysis will be seen as C.M(object) 
                     // instead of the true C.M(string).
 
-                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(newProject, changedOrAddedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(changedOrAddedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                     if (documentDiagnostics.Any())
                     {
                         // The diagnostic hasn't been reported by GetDocumentDiagnosticsAsync since out-of-sync documents are likely to be synchronized
@@ -863,26 +736,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     Contract.ThrowIfNull(oldCompilation);
                     Contract.ThrowIfNull(newCompilation);
 
-                    var projectChanges = GetProjectChanges(oldCompilation, newCompilation, changedDocumentAnalyses, cancellationToken);
-                    var oldActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-                    // Exception regions of active statements in changed documents are calculated (non-default),
-                    // since we already checked that no changed document is out-of-sync above.
-                    var oldActiveExceptionRegions = await GetBaseActiveExceptionRegionsAsync(solution, cancellationToken).ConfigureAwait(false);
-
-                    var lineEdits = await projectChanges.LineChanges.SelectAsArrayAsync(async (lineChange, cancellationToken) =>
-                    {
-                        var document = await newProject.GetDocumentAsync(lineChange.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                        Contract.ThrowIfNull(document);
-                        Contract.ThrowIfNull(document.FilePath);
-                        return new SequencePointUpdates(document.FilePath, lineChange.Changes);
-                    }, cancellationToken).ConfigureAwait(false);
+                    var oldActiveStatementsMap = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    var projectChanges = await GetProjectChangesAsync(oldActiveStatementsMap, oldCompilation, newCompilation, oldProject, newProject, changedDocumentAnalyses, cancellationToken).ConfigureAwait(false);
 
                     using var pdbStream = SerializableBytes.CreateWritableStream();
                     using var metadataStream = SerializableBytes.CreateWritableStream();
                     using var ilStream = SerializableBytes.CreateWritableStream();
-
-                    var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
 
                     // project must support compilations since it supports EnC
                     Contract.ThrowIfNull(newCompilation);
@@ -894,23 +753,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         metadataStream,
                         ilStream,
                         pdbStream,
-                        updatedMethods,
                         cancellationToken);
 
                     if (emitResult.Success)
                     {
                         Contract.ThrowIfNull(emitResult.Baseline);
 
-                        var updatedMethodTokens = updatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+                        var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+                        var changedTypeTokens = emitResult.ChangedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
 
                         // Determine all active statements whose span changed and exception region span deltas.
                         GetActiveStatementAndExceptionRegionSpans(
                             mvid,
-                            oldActiveStatements,
-                            oldActiveExceptionRegions,
+                            oldActiveStatementsMap,
                             updatedMethodTokens,
                             _nonRemappableRegions,
-                            projectChanges.NewActiveStatements,
+                            projectChanges.ActiveStatementChanges,
                             out var activeStatementsInUpdatedMethods,
                             out var moduleNonRemappableRegions,
                             out var exceptionRegionUpdates);
@@ -920,9 +778,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             ilStream.ToImmutableArray(),
                             metadataStream.ToImmutableArray(),
                             pdbStream.ToImmutableArray(),
-                            lineEdits,
+                            projectChanges.LineChanges,
                             updatedMethodTokens,
-                            updatedTypes: ImmutableArray<int>.Empty,
+                            changedTypeTokens,
                             activeStatementsInUpdatedMethods,
                             exceptionRegionUpdates));
 
@@ -974,49 +832,53 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // internal for testing
         internal static void GetActiveStatementAndExceptionRegionSpans(
             Guid moduleId,
-            ActiveStatementsMap baseActiveStatements,
-            ImmutableArray<ActiveStatementExceptionRegions> baseActiveExceptionRegions,
+            ActiveStatementsMap oldActiveStatementMap,
             ImmutableArray<int> updatedMethodTokens,
             ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> previousNonRemappableRegions,
-            ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> newActiveStatementsInChangedDocuments,
+            ImmutableArray<DocumentActiveStatementChanges> activeStatementsInChangedDocuments,
             out ImmutableArray<ManagedActiveStatementUpdate> activeStatementsInUpdatedMethods,
             out ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)> nonRemappableRegions,
             out ImmutableArray<ManagedExceptionRegionUpdate> exceptionRegionUpdates)
         {
-            using var _1 = PooledDictionary<(ManagedModuleMethodId MethodId, LinePositionSpan BaseSpan), LinePositionSpan>.GetInstance(out var changedNonRemappableSpans);
+            using var _1 = PooledDictionary<(ManagedModuleMethodId MethodId, SourceFileSpan BaseSpan), SourceFileSpan>.GetInstance(out var changedNonRemappableSpans);
             var activeStatementsInUpdatedMethodsBuilder = ArrayBuilder<ManagedActiveStatementUpdate>.GetInstance();
             var nonRemappableRegionsBuilder = ArrayBuilder<(ManagedModuleMethodId Method, NonRemappableRegion Region)>.GetInstance();
 
             // Process active statements and their exception regions in changed documents of this project/module:
-            foreach (var (documentId, newActiveStatements, newExceptionRegions) in newActiveStatementsInChangedDocuments)
+            foreach (var (oldActiveStatements, newActiveStatements, newExceptionRegions) in activeStatementsInChangedDocuments)
             {
-                var oldActiveStatements = baseActiveStatements.DocumentMap[documentId];
-                Debug.Assert(oldActiveStatements.Length == newActiveStatements.Length);
+                Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Length);
                 Debug.Assert(newActiveStatements.Length == newExceptionRegions.Length);
 
                 for (var i = 0; i < newActiveStatements.Length; i++)
                 {
-                    var oldActiveStatement = oldActiveStatements[i];
+                    var (_, oldActiveStatement, oldActiveStatementExceptionRegions) = oldActiveStatements[i];
                     var newActiveStatement = newActiveStatements[i];
-                    var oldInstructionId = oldActiveStatement.InstructionId;
-                    var oldMethodId = oldInstructionId.Method.Method;
+                    var newActiveStatementExceptionRegions = newExceptionRegions[i];
 
-                    var isMethodUpdated = updatedMethodTokens.Contains(oldMethodId.Token);
+                    var instructionId = newActiveStatement.InstructionId;
+                    var methodId = instructionId.Method.Method;
+
+                    var isMethodUpdated = updatedMethodTokens.Contains(methodId.Token);
                     if (isMethodUpdated)
                     {
-                        activeStatementsInUpdatedMethodsBuilder.Add(new ManagedActiveStatementUpdate(oldMethodId, oldInstructionId.ILOffset, newActiveStatement.Span.ToSourceSpan()));
+                        activeStatementsInUpdatedMethodsBuilder.Add(new ManagedActiveStatementUpdate(methodId, instructionId.ILOffset, newActiveStatement.Span.ToSourceSpan()));
                     }
 
-                    void AddNonRemappableRegion(LinePositionSpan oldSpan, LinePositionSpan newSpan, bool isExceptionRegion)
+                    // Adds a region with specified PDB spans.
+                    void AddNonRemappableRegion(SourceFileSpan oldSpan, SourceFileSpan newSpan, bool isExceptionRegion)
                     {
-                        if (oldActiveStatement.IsMethodUpToDate)
+                        // it is a rude edit to change the path of the region span:
+                        Debug.Assert(oldSpan.Path == newSpan.Path);
+
+                        if (newActiveStatement.IsMethodUpToDate)
                         {
                             // Start tracking non-remappable regions for active statements in methods that were up-to-date 
                             // when break state was entered and now being updated (regardless of whether the active span changed or not).
                             if (isMethodUpdated)
                             {
-                                var lineDelta = oldSpan.GetLineDelta(newSpan: newSpan);
-                                nonRemappableRegionsBuilder.Add((oldMethodId, new NonRemappableRegion(oldSpan, lineDelta, isExceptionRegion)));
+                                var lineDelta = oldSpan.Span.GetLineDelta(newSpan: newSpan.Span);
+                                nonRemappableRegionsBuilder.Add((methodId, new NonRemappableRegion(oldSpan, lineDelta, isExceptionRegion)));
                             }
 
                             // If the method has been up-to-date and it is not updated now then either the active statement span has not changed,
@@ -1024,23 +886,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // for the active statement since movement of whole method bodies (if any) is handled only on PDB level without 
                             // triggering any remapping on the IL level.
                         }
-                        else if (oldSpan != newSpan)
+                        else if (oldSpan.Span != newSpan.Span)
                         {
                             // The method is not up-to-date hence we maintain non-remapable span map for it that needs to be updated.
-                            changedNonRemappableSpans[(oldMethodId, oldSpan)] = newSpan;
+                            changedNonRemappableSpans[(methodId, oldSpan)] = newSpan;
                         }
                     }
 
-                    AddNonRemappableRegion(oldActiveStatement.Span, newActiveStatement.Span, isExceptionRegion: false);
+                    AddNonRemappableRegion(oldActiveStatement.FileSpan, newActiveStatement.FileSpan, isExceptionRegion: false);
 
                     // The spans of the exception regions are known (non-default) for active statements in changed documents
-                    // as we ensured earlier that all changed documents are in-sync. The outer loop only enumerates active 
-                    // statements of changed documents, so the corresponding exception regions are initialized.
+                    // as we ensured earlier that all changed documents are in-sync.
 
-                    var j = 0;
-                    foreach (var oldSpan in baseActiveExceptionRegions[oldActiveStatement.Ordinal].Spans)
+                    for (var j = 0; j < oldActiveStatementExceptionRegions.Spans.Length; j++)
                     {
-                        AddNonRemappableRegion(oldSpan, newExceptionRegions[oldActiveStatement.PrimaryDocumentOrdinal][j++], isExceptionRegion: true);
+                        AddNonRemappableRegion(oldActiveStatementExceptionRegions.Spans[j], newActiveStatementExceptionRegions[j], isExceptionRegion: true);
                     }
                 }
             }
@@ -1049,7 +909,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Gather all active method instances contained in this project/module that are not up-to-date:
             using var _2 = PooledHashSet<ManagedModuleMethodId>.GetInstance(out var unremappedActiveMethods);
-            foreach (var (instruction, baseActiveStatement) in baseActiveStatements.InstructionMap)
+            foreach (var (instruction, baseActiveStatement) in oldActiveStatementMap.InstructionMap)
             {
                 if (moduleId == instruction.Method.Module && !baseActiveStatement.IsMethodUpToDate)
                 {
@@ -1082,10 +942,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         if (changedNonRemappableSpans.TryGetValue((methodInstance.Method, baseSpan), out var newSpan))
                         {
                             // all spans must be of the same size:
-                            Debug.Assert(newSpan.End.Line - newSpan.Start.Line == baseSpan.End.Line - baseSpan.Start.Line);
-                            Debug.Assert(region.Span.End.Line - region.Span.Start.Line == baseSpan.End.Line - baseSpan.Start.Line);
+                            Debug.Assert(newSpan.Span.End.Line - newSpan.Span.Start.Line == baseSpan.Span.End.Line - baseSpan.Span.Start.Line);
+                            Debug.Assert(region.Span.Span.End.Line - region.Span.Span.Start.Line == baseSpan.Span.End.Line - baseSpan.Span.Start.Line);
+                            Debug.Assert(newSpan.Path == region.Span.Path);
 
-                            newRegion = region.WithLineDelta(region.Span.GetLineDelta(newSpan: newSpan));
+                            newRegion = region.WithLineDelta(region.Span.Span.GetLineDelta(newSpan: newSpan.Span));
                         }
                         else
                         {
@@ -1099,6 +960,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             nonRemappableRegions = nonRemappableRegionsBuilder.ToImmutableAndFree();
 
+            // Note: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1319289
+            //
+            // The update should include the file name, otherwise it is not possible for the debugger to find 
+            // the right IL span of the exception handler in case when multiple handlers in the same method
+            // have the same mapped span but different mapped file name:
+            //
+            //   try { active statement }
+            //   #line 20 "bar"
+            //   catch (IOException) { }
+            //   #line 20 "baz"
+            //   catch (Exception) { }
+            //
             // The range span in exception region updates is the new span. Deltas are inverse.
             //   old = new + delta
             //   new = old – delta
@@ -1107,39 +980,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 r => new ManagedExceptionRegionUpdate(
                     r.Method,
                     -r.Region.LineDelta,
-                    r.Region.Span.AddLineDelta(r.Region.LineDelta).ToSourceSpan()));
-        }
-
-        internal void StorePendingUpdate(Solution solution, SolutionUpdate update)
-        {
-            var previousPendingUpdate = Interlocked.Exchange(ref _pendingUpdate, new PendingSolutionUpdate(
-                solution,
-                update.EmitBaselines,
-                update.ModuleUpdates.Updates,
-                update.NonRemappableRegions));
-
-            // commit/discard was not called:
-            Contract.ThrowIfFalse(previousPendingUpdate == null);
-        }
-
-        internal PendingSolutionUpdate RetrievePendingUpdate()
-        {
-            var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
-            Contract.ThrowIfNull(pendingUpdate);
-            return pendingUpdate;
-        }
-
-        internal TestAccessor GetTestAccessor()
-            => new(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly EditSession _instance;
-
-            internal TestAccessor(EditSession instance)
-                => _instance = instance;
-
-            public PendingSolutionUpdate? GetPendingSolutionUpdate() => _instance._pendingUpdate;
+                    r.Region.Span.AddLineDelta(r.Region.LineDelta).Span.ToSourceSpan()));
         }
     }
 }

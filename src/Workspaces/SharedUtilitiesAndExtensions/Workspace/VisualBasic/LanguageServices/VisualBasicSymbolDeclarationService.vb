@@ -8,7 +8,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageService(GetType(ISymbolDeclarationService), LanguageNames.VisualBasic), [Shared]>
@@ -29,50 +28,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                       ImmutableArray(Of SyntaxReference).Empty,
                       symbol.DeclaringSyntaxReferences.SelectAsArray(Of SyntaxReference)(
                         Function(r) New BlockSyntaxReference(r)))
-        End Function
-
-        ''' <summary>
-        ''' If "node" is the begin statement of a declaration block, return that block, otherwise
-        ''' return node.
-        ''' </summary>
-        Private Shared Function GetBlockFromBegin(node As SyntaxNode) As SyntaxNode
-            Dim parent As SyntaxNode = node.Parent
-            Dim begin As SyntaxNode = Nothing
-
-            If parent IsNot Nothing Then
-                Select Case parent.Kind
-                    Case SyntaxKind.NamespaceBlock
-                        begin = DirectCast(parent, NamespaceBlockSyntax).NamespaceStatement
-
-                    Case SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ClassBlock
-                        begin = DirectCast(parent, TypeBlockSyntax).BlockStatement
-
-                    Case SyntaxKind.EnumBlock
-                        begin = DirectCast(parent, EnumBlockSyntax).EnumStatement
-
-                    Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock,
-                         SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
-                         SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
-                        begin = DirectCast(parent, MethodBlockBaseSyntax).BlockStatement
-
-                    Case SyntaxKind.PropertyBlock
-                        begin = DirectCast(parent, PropertyBlockSyntax).PropertyStatement
-
-                    Case SyntaxKind.EventBlock
-                        begin = DirectCast(parent, EventBlockSyntax).EventStatement
-
-                    Case SyntaxKind.VariableDeclarator
-                        If DirectCast(parent, VariableDeclaratorSyntax).Names.Count = 1 Then
-                            begin = node
-                        End If
-                End Select
-            End If
-
-            If begin Is node Then
-                Return parent
-            Else
-                Return node
-            End If
         End Function
 
         Private Class BlockSyntaxReference

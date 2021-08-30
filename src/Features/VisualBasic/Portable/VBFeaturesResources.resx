@@ -1126,9 +1126,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>WithEvents field</value>
     <comment>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</comment>
   </data>
-  <data name="property_accessor" xml:space="preserve">
-    <value>property accessor</value>
-  </data>
   <data name="as_clause" xml:space="preserve">
     <value>as clause</value>
     <comment>{Locked="as"} "as" is a VB keyword and should not be localized.</comment>

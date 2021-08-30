@@ -1515,7 +1515,7 @@ namespace Baz
         private static void AssertRelativeOrder(List<string> expectedTypesInRelativeOrder, ImmutableArray<CompletionItem> allCompletionItems)
         {
             var hashset = new HashSet<string>(expectedTypesInRelativeOrder);
-            var actualTypesInRelativeOrder = allCompletionItems.Where(item => hashset.Contains(item.DisplayText)).Select(item => item.DisplayText).ToImmutableArray();
+            var actualTypesInRelativeOrder = allCompletionItems.SelectAsArray(item => hashset.Contains(item.DisplayText), item => item.DisplayText);
 
             Assert.Equal(expectedTypesInRelativeOrder.Count, actualTypesInRelativeOrder.Length);
             for (var i = 0; i < expectedTypesInRelativeOrder.Count; ++i)

@@ -117,8 +117,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableDictionary<string, string> properties,
-            bool displayIfNoReferences) :
-            this(
+            bool displayIfNoReferences)
+            : this(
                 tags,
                 displayParts,
                 nameDisplayParts,

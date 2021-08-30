@@ -3537,7 +3537,7 @@ partial class Program
     }
 }";
 
-            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>();
@@ -3607,23 +3607,23 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (9,13): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,13): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         a = [A, B] (x, y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A, B]").WithArguments("lambda attributes").WithLocation(9, 13),
-                // (10,14): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[A, B]").WithArguments("lambda attributes", "10.0").WithLocation(9, 13),
+                // (10,14): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         a = ([A] x, [B] y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(10, 14),
-                // (10,21): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[A]").WithArguments("lambda attributes", "10.0").WithLocation(10, 14),
+                // (10,21): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         a = ([A] x, [B] y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(10, 21),
-                // (11,24): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[B]").WithArguments("lambda attributes", "10.0").WithLocation(10, 21),
+                // (11,24): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         a = (object x, [A][B] object y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(11, 24),
-                // (11,27): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[A]").WithArguments("lambda attributes", "10.0").WithLocation(11, 24),
+                // (11,27): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         a = (object x, [A][B] object y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(11, 27));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[B]").WithArguments("lambda attributes", "10.0").WithLocation(11, 27));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
         }
 
@@ -3662,7 +3662,7 @@ class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -4239,7 +4239,7 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, UnmanagedCallersOnlyAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (7,21): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static methods or static local functions.
+                // (7,21): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //         Action a = [UnmanagedCallersOnly] static () => { };
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(7, 21));
         }
@@ -4351,6 +4351,832 @@ class Program
             var expr = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
             var lambda = GetLambdaSymbol(model, expr);
             Assert.Equal(FlowAnalysisAnnotations.NotNullWhenTrue, lambda.Parameters[0].FlowAnalysisAnnotations);
+        }
+
+        [Fact]
+        public void LambdaReturnType_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T>()
+    {
+        Func<T> f1 = T () => default;
+        Func<T, T> f2 = T (x) => { return x; };
+        Func<T, T> f3 = T (T x) => x;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (6,22): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         Func<T> f1 = T () => default;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "T").WithArguments("lambda return type", "10.0").WithLocation(6, 22),
+                // (7,25): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         Func<T, T> f2 = T (x) => { return x; };
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "T").WithArguments("lambda return type", "10.0").WithLocation(7, 25),
+                // (8,25): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         Func<T, T> f3 = T (T x) => x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "T").WithArguments("lambda return type", "10.0").WithLocation(8, 25));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaReturnType_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T, U>()
+    {
+        Func<T> f1;
+        Func<U> f2;
+        f1 = T () => default;
+        f2 = T () => default;
+        f1 = U () => default;
+        f2 = U () => default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,14): error CS8934: Cannot convert lambda expression to type 'Func<U>' because the return type does not match the delegate return type
+                //         f2 = T () => default;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T () => default").WithArguments("lambda expression", "System.Func<U>").WithLocation(9, 14),
+                // (10,14): error CS8934: Cannot convert lambda expression to type 'Func<T>' because the return type does not match the delegate return type
+                //         f1 = U () => default;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "U () => default").WithArguments("lambda expression", "System.Func<T>").WithLocation(10, 14));
+        }
+
+        [Fact]
+        public void LambdaReturnType_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T, U>() where U : T
+    {
+        Func<T> f1;
+        Func<U> f2;
+        f1 = T () => default;
+        f2 = T () => default;
+        f1 = U () => default;
+        f2 = U () => default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,14): error CS8934: Cannot convert lambda expression to type 'Func<U>' because the return type does not match the delegate return type
+                //         f2 = T () => default;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T () => default").WithArguments("lambda expression", "System.Func<U>").WithLocation(9, 14),
+                // (10,14): error CS8934: Cannot convert lambda expression to type 'Func<T>' because the return type does not match the delegate return type
+                //         f1 = U () => default;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "U () => default").WithArguments("lambda expression", "System.Func<T>").WithLocation(10, 14));
+        }
+
+        [Fact]
+        public void LambdaReturnType_04()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void F<T, U>()
+    {
+        Expression<Func<T>> e1;
+        Expression<Func<U>> e2;
+        e1 = T () => default;
+        e2 = T () => default;
+        e1 = U () => default;
+        e2 = U () => default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,14): error CS8934: Cannot convert lambda expression to type 'Expression<Func<U>>' because the return type does not match the delegate return type
+                //         e2 = T () => default;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T () => default").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<U>>").WithLocation(10, 14),
+                // (11,14): error CS8934: Cannot convert lambda expression to type 'Expression<Func<T>>' because the return type does not match the delegate return type
+                //         e1 = U () => default;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "U () => default").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<T>>").WithLocation(11, 14));
+        }
+
+        [Fact]
+        public void LambdaReturnType_05()
+        {
+            var source =
+@"#nullable enable
+using System;
+class Program
+{
+    static void Main()
+    {
+        Func<dynamic> f1 = object () => default!;
+        Func<(int, int)> f2 = (int X, int Y) () => default;
+        Func<string?> f3 = string () => default!;
+        Func<IntPtr> f4 = nint () => default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,28): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string?>' (possibly because of nullability attributes).
+                //         Func<string?> f3 = string () => default!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string () => default!").WithArguments("lambda expression", "System.Func<string?>").WithLocation(9, 28));
+        }
+
+        [Fact]
+        public void LambdaReturnType_06()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<object>> e1 = dynamic () => default!;
+        Expression<Func<(int X, int Y)>> e2 = (int, int) () => default;
+        Expression<Func<string>> e3 = string? () => default;
+        Expression<Func<nint>> e4 = IntPtr () => default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,39): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string>' (possibly because of nullability attributes).
+                //         Expression<Func<string>> e3 = string? () => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () => default").WithArguments("lambda expression", "System.Func<string>").WithLocation(10, 39));
+        }
+
+        [Fact]
+        public void LambdaReturnType_07()
+        {
+            var source =
+@"#nullable enable
+using System;
+struct S<T> { }
+class Program
+{
+    static void Main()
+    {
+        Delegate d1 = string? () => default;
+        Delegate d2 = string () => default;
+        Delegate d3 = S<object?> () => default(S<object?>);
+        Delegate d4 = S<object?> () => default(S<object>);
+        Delegate d5 = S<object> () => default(S<object?>);
+        Delegate d6 = S<object> () => default(S<object>);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,36): warning CS8603: Possible null reference return.
+                //         Delegate d2 = string () => default;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "default").WithLocation(9, 36),
+                // (11,40): warning CS8619: Nullability of reference types in value of type 'S<object>' doesn't match target type 'S<object?>'.
+                //         Delegate d4 = S<object?> () => default(S<object>);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "default(S<object>)").WithArguments("S<object>", "S<object?>").WithLocation(11, 40),
+                // (12,39): warning CS8619: Nullability of reference types in value of type 'S<object?>' doesn't match target type 'S<object>'.
+                //         Delegate d5 = S<object> () => default(S<object?>);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "default(S<object?>)").WithArguments("S<object?>", "S<object>").WithLocation(12, 39));
+        }
+
+        [Fact]
+        public void LambdaReturnType_08()
+        {
+            var source =
+@"#nullable enable
+using System;
+struct S<T> { }
+class Program
+{
+    static void Main()
+    {
+        Func<string?> f1 = string? () => throw null!;
+        Func<string?> f2 = string () => throw null!;
+        Func<string> f3 = string? () => throw null!;
+        Func<string> f4 = string () => throw null!;
+        Func<S<object?>> f5 = S<object?> () => throw null!;
+        Func<S<object?>> f6 = S<object> () => throw null!;
+        Func<S<object>> f7 = S<object?> () => throw null!;
+        Func<S<object>> f8 = S<object> () => throw null!;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (9,28): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string?>' (possibly because of nullability attributes).
+                //         Func<string?> f2 = string () => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string () => throw null!").WithArguments("lambda expression", "System.Func<string?>").WithLocation(9, 28),
+                // (10,27): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string>' (possibly because of nullability attributes).
+                //         Func<string> f3 = string? () => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () => throw null!").WithArguments("lambda expression", "System.Func<string>").WithLocation(10, 27),
+                // (13,31): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<S<object?>>' (possibly because of nullability attributes).
+                //         Func<S<object?>> f6 = S<object> () => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "S<object> () => throw null!").WithArguments("lambda expression", "System.Func<S<object?>>").WithLocation(13, 31),
+                // (14,30): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<S<object>>' (possibly because of nullability attributes).
+                //         Func<S<object>> f7 = S<object?> () => throw null!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "S<object?> () => throw null!").WithArguments("lambda expression", "System.Func<S<object>>").WithLocation(14, 30));
+        }
+
+        [Fact]
+        public void LambdaReturnType_09()
+        {
+            var source =
+@"#nullable enable
+struct S<T> { }
+delegate ref T D1<T>();
+delegate ref readonly T D2<T>();
+class Program
+{
+    static void Main()
+    {
+        D1<S<object?>> f1 = (ref S<object?> () => throw null!);
+        D1<S<object?>> f2 = (ref S<object> () => throw null!);
+        D1<S<object>> f3 = (ref S<object?> () => throw null!);
+        D1<S<object>> f4 = (ref S<object> () => throw null!);
+        D2<S<object?>> f5 = (ref readonly S<object?> () => throw null!);
+        D2<S<object?>> f6 = (ref readonly S<object> () => throw null!);
+        D2<S<object>> f7 = (ref readonly S<object?> () => throw null!);
+        D2<S<object>> f8 = (ref readonly S<object> () => throw null!);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,30): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D1<S<object?>>' (possibly because of nullability attributes).
+                //         D1<S<object?>> f2 = (ref S<object> () => throw null!);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref S<object> () => throw null!").WithArguments("lambda expression", "D1<S<object?>>").WithLocation(10, 30),
+                // (11,29): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D1<S<object>>' (possibly because of nullability attributes).
+                //         D1<S<object>> f3 = (ref S<object?> () => throw null!);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref S<object?> () => throw null!").WithArguments("lambda expression", "D1<S<object>>").WithLocation(11, 29),
+                // (14,30): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D2<S<object?>>' (possibly because of nullability attributes).
+                //         D2<S<object?>> f6 = (ref readonly S<object> () => throw null!);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref readonly S<object> () => throw null!").WithArguments("lambda expression", "D2<S<object?>>").WithLocation(14, 30),
+                // (15,29): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D2<S<object>>' (possibly because of nullability attributes).
+                //         D2<S<object>> f7 = (ref readonly S<object?> () => throw null!);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref readonly S<object?> () => throw null!").WithArguments("lambda expression", "D2<S<object>>").WithLocation(15, 29));
+        }
+
+        [Fact]
+        public void LambdaReturnType_10()
+        {
+            var source =
+@"delegate T D1<T>(ref T t);
+delegate ref T D2<T>(ref T t);
+delegate ref readonly T D3<T>(ref T t);
+class Program
+{
+    static void F<T>()
+    {
+        D1<T> d1;
+        D2<T> d2;
+        D3<T> d3;
+        d1 = T (ref T t) => t;
+        d2 = T (ref T t) => t;
+        d3 = T (ref T t) => t;
+        d1 = (ref T (ref T t) => ref t);
+        d2 = (ref T (ref T t) => ref t);
+        d3 = (ref T (ref T t) => ref t);
+        d1 = (ref readonly T (ref T t) => ref t);
+        d2 = (ref readonly T (ref T t) => ref t);
+        d3 = (ref readonly T (ref T t) => ref t);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (12,14): error CS8934: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
+                //         d2 = T (ref T t) => t;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T (ref T t) => t").WithArguments("lambda expression", "D2<T>").WithLocation(12, 14),
+                // (13,14): error CS8934: Cannot convert lambda expression to type 'D3<T>' because the return type does not match the delegate return type
+                //         d3 = T (ref T t) => t;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "T (ref T t) => t").WithArguments("lambda expression", "D3<T>").WithLocation(13, 14),
+                // (14,15): error CS8934: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
+                //         d1 = (ref T (ref T t) => ref t);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref T (ref T t) => ref t").WithArguments("lambda expression", "D1<T>").WithLocation(14, 15),
+                // (16,15): error CS8934: Cannot convert lambda expression to type 'D3<T>' because the return type does not match the delegate return type
+                //         d3 = (ref T (ref T t) => ref t);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref T (ref T t) => ref t").WithArguments("lambda expression", "D3<T>").WithLocation(16, 15),
+                // (17,15): error CS8934: Cannot convert lambda expression to type 'D1<T>' because the return type does not match the delegate return type
+                //         d1 = (ref readonly T (ref T t) => ref t);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref readonly T (ref T t) => ref t").WithArguments("lambda expression", "D1<T>").WithLocation(17, 15),
+                // (18,15): error CS8934: Cannot convert lambda expression to type 'D2<T>' because the return type does not match the delegate return type
+                //         d2 = (ref readonly T (ref T t) => ref t);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "ref readonly T (ref T t) => ref t").WithArguments("lambda expression", "D2<T>").WithLocation(18, 15));
+        }
+
+        [Fact]
+        public void LambdaReturnType_11()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d;
+        d = (ref void () => { });
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,14): error CS8917: The delegate type could not be inferred.
+                //         d = (ref void () => { });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ref void () => { }").WithLocation(7, 14),
+                // (7,18): error CS1547: Keyword 'void' cannot be used in this context
+                //         d = (ref void () => { });
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 18));
+        }
+
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void LambdaReturnType_12()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d;
+        d = TypedReference () => throw null;
+        d = RuntimeArgumentHandle () => throw null;
+        d = ArgIterator () => throw null;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //         d = TypedReference () => throw null;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference").WithLocation(7, 13),
+                // (7,13): error CS8917: The delegate type could not be inferred.
+                //         d = TypedReference () => throw null;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "TypedReference () => throw null").WithLocation(7, 13),
+                // (8,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'RuntimeArgumentHandle'
+                //         d = RuntimeArgumentHandle () => throw null;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(8, 13),
+                // (8,13): error CS8917: The delegate type could not be inferred.
+                //         d = RuntimeArgumentHandle () => throw null;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "RuntimeArgumentHandle () => throw null").WithLocation(8, 13),
+                // (9,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'ArgIterator'
+                //         d = ArgIterator () => throw null;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(9, 13),
+                // (9,13): error CS8917: The delegate type could not be inferred.
+                //         d = ArgIterator () => throw null;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ArgIterator () => throw null").WithLocation(9, 13));
+        }
+
+        [Fact]
+        public void LambdaReturnType_13()
+        {
+            var source =
+@"static class S { }
+delegate S D();
+class Program
+{
+    static void Main()
+    {
+        D d = S () => default;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS0722: 'S': static types cannot be used as return types
+                //         D d = S () => default;
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "S").WithArguments("S").WithLocation(7, 15));
+        }
+
+        [Fact]
+        public void LambdaReturnType_14()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d = async int () => 0;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (6,35): error CS1983: The return type of an async method must be void, Task, Task<T>, a task-like type, IAsyncEnumerable<T>, or IAsyncEnumerator<T>
+                //         Delegate d = async int () => 0;
+                Diagnostic(ErrorCode.ERR_BadAsyncReturn, "=>").WithLocation(6, 35),
+                // (6,35): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         Delegate d = async int () => 0;
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(6, 35));
+        }
+
+        [Fact]
+        public void LambdaReturnType_15()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+delegate ref Task D(string s);
+class Program
+{
+    static void Main()
+    {
+        Delegate d1 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
+        D d2 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,23): error CS8917: The delegate type could not be inferred.
+                //         Delegate d1 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "async ref Task (s) => { _ = s.Length; await Task.Yield(); }").WithLocation(8, 23),
+                // (8,29): error CS1073: Unexpected token 'ref'
+                //         Delegate d1 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(8, 29),
+                // (9,22): error CS1073: Unexpected token 'ref'
+                //         D d2 = async ref Task (s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void LambdaReturnType_16()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+delegate ref Task D(string s);
+class Program
+{
+    static void Main()
+    {
+        Delegate d1 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
+        D d2 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,29): error CS1073: Unexpected token 'ref'
+                //         Delegate d1 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(8, 29),
+                // (9,22): error CS1073: Unexpected token 'ref'
+                //         D d2 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(9, 22));
+        }
+
+        [Fact]
+        public void LambdaReturnType_17()
+        {
+            var source =
+@"#nullable enable
+using System;
+class Program
+{
+    static void F(string? x, string y)
+    {
+        Func<string?> f1 = string () => { if (x is null) return x; return y; };
+        Func<string> f2 = string? () => { if (x is not null) return x; return y; };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,28): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string?>' (possibly because of nullability attributes).
+                //         Func<string?> f1 = string () => { if (x is null) return x; return y; };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string () => { if (x is null) return x; return y; }").WithArguments("lambda expression", "System.Func<string?>").WithLocation(7, 28),
+                // (7,65): warning CS8603: Possible null reference return.
+                //         Func<string?> f1 = string () => { if (x is null) return x; return y; };
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x").WithLocation(7, 65),
+                // (8,27): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string>' (possibly because of nullability attributes).
+                //         Func<string> f2 = string? () => { if (x is not null) return x; return y; };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () => { if (x is not null) return x; return y; }").WithArguments("lambda expression", "System.Func<string>").WithLocation(8, 27));
+        }
+
+        [Fact]
+        public void LambdaReturnType_CustomModifiers_01()
+        {
+            var sourceA =
+@".class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed { }
+    .method public hidebysig newslot virtual instance int32 modopt([mscorlib]System.Int16) Invoke () runtime managed { }
+    .method public hidebysig newslot virtual instance class [mscorlib]System.IAsyncResult BeginInvoke (class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed { }
+    .method public hidebysig newslot virtual instance int32 modopt([mscorlib]System.Int16) EndInvoke (class [mscorlib]System.IAsyncResult result) runtime managed { }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class Program
+{
+    static void F(D d)
+    {
+        System.Console.WriteLine(d());
+    }
+    static void Main()
+    {
+        F(() => 1);
+        F(int () => 2);
+    }
+}";
+            CompileAndVerify(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview, expectedOutput:
+@"1
+2");
+        }
+
+        [Fact]
+        public void LambdaReturnType_CustomModifiers_02()
+        {
+            var sourceA =
+@".class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed { }
+    .method public hidebysig newslot virtual instance int32 modreq([mscorlib]System.Int16) Invoke () runtime managed { }
+    .method public hidebysig newslot virtual instance class [mscorlib]System.IAsyncResult BeginInvoke (class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed { }
+    .method public hidebysig newslot virtual instance int32 modreq([mscorlib]System.Int16) EndInvoke (class [mscorlib]System.IAsyncResult result) runtime managed { }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"class Program
+{
+    static void F(D d)
+    {
+        System.Console.WriteLine(d());
+    }
+    static void Main()
+    {
+        F(() => 1);
+        F(int () => 2);
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,34): error CS0570: 'D.Invoke()' is not supported by the language
+                //         System.Console.WriteLine(d());
+                Diagnostic(ErrorCode.ERR_BindToBogus, "d()").WithArguments("D.Invoke()").WithLocation(5, 34),
+                // (9,11): error CS0570: 'D.Invoke()' is not supported by the language
+                //         F(() => 1);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "() => 1").WithArguments("D.Invoke()").WithLocation(9, 11),
+                // (10,11): error CS0570: 'D.Invoke()' is not supported by the language
+                //         F(int () => 2);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "int () => 2").WithArguments("D.Invoke()").WithLocation(10, 11));
+        }
+
+        [Fact]
+        public void LambdaReturnType_UseSiteErrors()
+        {
+            var sourceA =
+@".class public sealed A extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.RequiredAttributeAttribute::.ctor(class [mscorlib]System.Type) = ( 01 00 FF 00 00 ) 
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}";
+            var refA = CompileIL(sourceA);
+
+            var sourceB =
+@"using System;
+class B
+{
+    static void F<T>(Func<T> f) { }
+    static void Main()
+    {
+        F(A () => default);
+    }
+}";
+            var comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0648: 'A' is a type not supported by the language
+                //         F(A () => default);
+                Diagnostic(ErrorCode.ERR_BogusType, "A").WithArguments("A").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void AsyncLambdaParameters_01()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+delegate Task D(ref string s);
+class Program
+{
+    static void Main()
+    {
+        Delegate d1 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
+        D d2 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,41): error CS1988: Async methods cannot have ref, in or out parameters
+                //         Delegate d1 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "s").WithLocation(8, 41),
+                // (9,34): error CS1988: Async methods cannot have ref, in or out parameters
+                //         D d2 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "s").WithLocation(9, 34));
+        }
+
+        [ConditionalFact(typeof(DesktopOnly))]
+        public void AsyncLambdaParameters_02()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+delegate void D1(TypedReference r);
+delegate void D2(RuntimeArgumentHandle h);
+delegate void D3(ArgIterator i);
+class Program
+{
+    static void Main()
+    {
+        D1 d1 = async (TypedReference r) => { await Task.Yield(); };
+        D2 d2 = async (RuntimeArgumentHandle h) => { await Task.Yield(); };
+        D3 d3 = async (ArgIterator i) => { await Task.Yield(); };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,39): error CS4012: Parameters or locals of type 'TypedReference' cannot be declared in async methods or async lambda expressions.
+                //         D1 d1 = async (TypedReference r) => { await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "r").WithArguments("System.TypedReference").WithLocation(10, 39),
+                // (11,46): error CS4012: Parameters or locals of type 'RuntimeArgumentHandle' cannot be declared in async methods or async lambda expressions.
+                //         D2 d2 = async (RuntimeArgumentHandle h) => { await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 46),
+                // (12,36): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or async lambda expressions.
+                //         D3 d3 = async (ArgIterator i) => { await Task.Yield(); };
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "i").WithArguments("System.ArgIterator").WithLocation(12, 36));
+        }
+
+        [Fact]
+        public void BestType_01()
+        {
+            var source =
+@"using System;
+class A { }
+class B1 : A { }
+class B2 : A { }
+interface I { }
+class C1 : I { }
+class C2 : I { }
+class Program
+{
+    static void F<T>(Func<bool, T> f) { }
+    static void Main()
+    {
+        F((bool b) => { if (b) return new B1(); return new B2(); });
+        F((bool b) => { if (b) return new C1(); return new C2(); });
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (13,9): error CS0411: The type arguments for method 'Program.F<T>(Func<bool, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F((bool b) => { if (b) return new B1(); return new B2(); });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<bool, T>)").WithLocation(13, 9),
+                // (14,9): error CS0411: The type arguments for method 'Program.F<T>(Func<bool, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F((bool b) => { if (b) return new C1(); return new C2(); });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<bool, T>)").WithLocation(14, 9));
+        }
+
+        // As above but with explicit return type.
+        [Fact]
+        public void BestType_02()
+        {
+            var source =
+@"using System;
+class A { }
+class B1 : A { }
+class B2 : A { }
+interface I { }
+class C1 : I { }
+class C2 : I { }
+class Program
+{
+    static void F<T>(Func<bool, T> f) { Console.WriteLine(typeof(T)); }
+    static void Main()
+    {
+        F(A (bool b) => { if (b) return new B1(); return new B2(); });
+        F(I (bool b) => { if (b) return new C1(); return new C2(); });
+    }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput:
+@"A
+I");
+        }
+
+        [Fact]
+        public void BestType_03()
+        {
+            var source =
+@"using System;
+class A { }
+class B1 : A { }
+class B2 : A { }
+class Program
+{
+    static void F<T>(Func<T> x, Func<T> y) { }
+    static void Main()
+    {
+        F(B2 () => null, B2 () => null);
+        F(A () => null, B2 () => null);
+        F(B1 () => null, B2 () => null);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (11,25): error CS8934: Cannot convert lambda expression to type 'Func<A>' because the return type does not match the delegate return type
+                //         F(A () => null, B2 () => null);
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "B2 () => null").WithArguments("lambda expression", "System.Func<A>").WithLocation(11, 25),
+                // (12,9): error CS0411: The type arguments for method 'Program.F<T>(Func<T>, Func<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(B1 () => null, B2 () => null);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<T>, System.Func<T>)").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void TypeInference_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T>(Func<object, T> f)
+    {
+        Console.WriteLine(typeof(T));
+    }
+    static void Main()
+    {
+        F(long (o) => 1);
+    }
+}";
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"System.Int64");
+        }
+
+        // Should method type inference make an explicit type inference
+        // from the lambda expression return type?
+        [Fact]
+        public void TypeInference_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T>(Func<T, T> f)
+    {
+        Console.WriteLine(typeof(T));
+    }
+    static void Main()
+    {
+        F(int (i) => i);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS0411: The type arguments for method 'Program.F<T>(Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F(int (i) => i);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(System.Func<T, T>)").WithLocation(10, 9));
+        }
+
+        // CS4031 is not reported for async lambda in [SecurityCritical] type.
+        [Fact]
+        [WorkItem(54074, "https://github.com/dotnet/roslyn/issues/54074")]
+        public void SecurityCritical_AsyncLambda()
+        {
+            var source =
+@"using System;
+using System.Security;
+using System.Threading.Tasks;
+[SecurityCritical]
+class Program
+{
+    static void Main()
+    {
+        Func<Task> f = async () => await Task.Yield();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        // CS4031 is not reported for async lambda in [SecurityCritical] type.
+        [Fact]
+        [WorkItem(54074, "https://github.com/dotnet/roslyn/issues/54074")]
+        public void SecurityCritical_AsyncLambda_AttributeArgument()
+        {
+            var source =
+@"using System;
+using System.Security;
+using System.Threading.Tasks;
+class A : Attribute
+{
+    internal A(int i) { }
+}
+[SecurityCritical]
+[A(F(async () => await Task.Yield()))]
+class Program
+{
+    internal static int F(Func<Task> f) => 0;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(F(async () => await Task.Yield()))]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F(async () => await Task.Yield())").WithLocation(9, 4));
         }
 
         private static LambdaSymbol GetLambdaSymbol(SemanticModel model, LambdaExpressionSyntax syntax)

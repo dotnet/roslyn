@@ -41,19 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             Targets = targets;
         }
 
-        public static MemberMenuItemViewModel CreateWithNoHeaderInTargets(InheritanceMarginItem member)
-        {
-            var displayName = member.DisplayTexts.JoinText();
-            return new MemberMenuItemViewModel(
-                displayName,
-                member.Glyph.GetImageMoniker(),
-                displayName,
-                member.TargetItems
-                    .OrderBy(item => item.DisplayName)
-                    .SelectAsArray(item => TargetMenuItemViewModel.Create(item, indent: false))
-                    .CastArray<InheritanceMenuItemViewModel>());
-        }
-
         public static MemberMenuItemViewModel CreateWithHeaderInTargets(InheritanceMarginItem member)
         {
             var displayName = member.DisplayTexts.JoinText();

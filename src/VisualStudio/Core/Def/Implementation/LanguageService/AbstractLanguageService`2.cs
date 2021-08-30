@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -262,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 this.DebuggerLanguageId,
                 (TLanguageService)this,
                 languageServices,
-                this.Package.ComponentModel.GetService<IWaitIndicator>());
+                this.Package.ComponentModel.GetService<IUIThreadOperationExecutor>());
         }
 
         private void UninitializeLanguageDebugInfo()

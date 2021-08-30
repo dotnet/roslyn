@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -45,10 +46,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public readonly ICodeActionEditHandlerService EditHandler;
         public readonly IAsynchronousOperationListener OperationListener;
-        public readonly IWaitIndicator WaitIndicator;
+        public readonly IUIThreadOperationExecutor UIThreadOperationExecutor;
         public readonly ImmutableArray<Lazy<ISuggestedActionCallback>> ActionCallbacks;
 
-        public readonly ImmutableArray<Lazy<IImageMonikerService, OrderableMetadata>> ImageMonikerServices;
+        public readonly ImmutableArray<Lazy<IImageIdService, OrderableMetadata>> ImageIdServices;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -58,10 +59,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IDiagnosticAnalyzerService diagnosticService,
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandler,
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
             IAsynchronousOperationListenerProvider listenerProvider,
-            [ImportMany] IEnumerable<Lazy<IImageMonikerService, OrderableMetadata>> imageMonikerServices,
+            [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices,
             [ImportMany] IEnumerable<Lazy<ISuggestedActionCallback>> actionCallbacks)
         {
             _threadingContext = threadingContext;
@@ -71,10 +72,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
             ActionCallbacks = actionCallbacks.ToImmutableArray();
             EditHandler = editHandler;
-            WaitIndicator = waitIndicator;
+            UIThreadOperationExecutor = uiThreadOperationExecutor;
             OperationListener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
 
-            ImageMonikerServices = ExtensionOrderer.Order(imageMonikerServices).ToImmutableArray();
+            ImageIdServices = ExtensionOrderer.Order(imageIdServices).ToImmutableArray();
         }
 
         public ISuggestedActionsSource? CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)

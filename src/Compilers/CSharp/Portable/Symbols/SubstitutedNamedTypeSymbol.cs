@@ -318,6 +318,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            if (_unbound)
+            {
+                yield break;
+            }
+
+            foreach ((MethodSymbol body, MethodSymbol implemented) in OriginalDefinition.SynthesizedInterfaceMethodImpls())
+            {
+                var newBody = ExplicitInterfaceHelpers.SubstituteExplicitInterfaceImplementation(body, this.TypeSubstitution);
+                var newImplemented = ExplicitInterfaceHelpers.SubstituteExplicitInterfaceImplementation(implemented, this.TypeSubstitution);
+                yield return (newBody, newImplemented);
+            }
+        }
+#nullable disable
+
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
         {
             throw ExceptionUtilities.Unreachable;

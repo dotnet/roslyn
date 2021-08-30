@@ -1353,7 +1353,7 @@ class C
         System.Console.Write((null, () => 2) == default);
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0034: Operator '==' is ambiguous on operands of type '<null>' and 'default'
                 //         System.Console.Write((null, () => 1) == (default, default));
@@ -1361,6 +1361,16 @@ class C
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'lambda expression' and 'default'
                 //         System.Console.Write((null, () => 1) == (default, default));
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, () => 1) == (default, default)").WithArguments("==", "lambda expression", "default").WithLocation(6, 30),
+                // (7,30): error CS0034: Operator '==' is ambiguous on operands of type '(<null>, lambda expression)' and 'default'
+                //         System.Console.Write((null, () => 2) == default);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 2) == default").WithArguments("==", "(<null>, lambda expression)", "default").WithLocation(7, 30)
+                );
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0034: Operator '==' is ambiguous on operands of type '<null>' and 'default'
+                //         System.Console.Write((null, () => 1) == (default, default));
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 1) == (default, default)").WithArguments("==", "<null>", "default").WithLocation(6, 30),
                 // (7,30): error CS0034: Operator '==' is ambiguous on operands of type '(<null>, lambda expression)' and 'default'
                 //         System.Console.Write((null, () => 2) == default);
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 2) == default").WithArguments("==", "(<null>, lambda expression)", "default").WithLocation(7, 30)
@@ -2006,7 +2016,7 @@ public class C
         if ("""" == 1) {}
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0815: Cannot assign (<null>, <null>) to an implicitly-typed variable
                 //         var t = (null, null);
@@ -2014,6 +2024,16 @@ public class C
                 // (7,13): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
                 //         if (null == (() => {}) ) {}
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "null == (() => {})").WithArguments("==", "<null>", "lambda expression").WithLocation(7, 13),
+                // (8,13): error CS0019: Operator '==' cannot be applied to operands of type 'string' and 'int'
+                //         if ("" == 1) {}
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @""""" == 1").WithArguments("==", "string", "int").WithLocation(8, 13)
+                );
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0815: Cannot assign (<null>, <null>) to an implicitly-typed variable
+                //         var t = (null, null);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "t = (null, null)").WithArguments("(<null>, <null>)").WithLocation(6, 13),
                 // (8,13): error CS0019: Operator '==' cannot be applied to operands of type 'string' and 'int'
                 //         if ("" == 1) {}
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, @""""" == 1").WithArguments("==", "string", "int").WithLocation(8, 13)

@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                         isCollapsible: true,
                         textSpan: GetTextSpan(node),
                         hintSpan: GetHintSpan(node),
-                        type: type));
+                        type: type,
+                        autoCollapse: parentKind == SyntaxKind.LocalFunctionStatement && node.Parent.IsParentKind(SyntaxKind.GlobalStatement)));
                 }
             }
 

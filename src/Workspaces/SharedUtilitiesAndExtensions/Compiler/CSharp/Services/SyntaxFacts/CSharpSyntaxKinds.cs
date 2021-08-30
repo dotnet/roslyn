@@ -85,9 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int Parameter => (int)SyntaxKind.Parameter;
         public int TypeConstraint => (int)SyntaxKind.TypeConstraint;
         public int VariableDeclarator => (int)SyntaxKind.VariableDeclarator;
+        public int FieldDeclaration => (int)SyntaxKind.FieldDeclaration;
         public int ParameterList => (int)SyntaxKind.ParameterList;
         public int TypeArgumentList => (int)SyntaxKind.TypeArgumentList;
         public int? GlobalStatement => (int)SyntaxKind.GlobalStatement;
+
+        public int EqualsValueClause => (int)SyntaxKind.EqualsValueClause;
 
         public int Interpolation => (int)SyntaxKind.Interpolation;
         public int InterpolatedStringExpression => (int)SyntaxKind.InterpolatedStringExpression;

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
         {
             if (!TryGetMetadataCompilationOptionsBlobReader(out var reader))
             {
-                throw new InvalidOperationException("Does not contain metadata compilation options");
+                throw new InvalidOperationException(RebuildResources.Does_not_contain_metadata_compilation_options);
             }
             return reader;
         }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
             var pdbCompilationOptions = GetMetadataCompilationOptions();
             if (!pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Language, out var language))
             {
-                throw new Exception("Invalid language name");
+                throw new Exception(RebuildResources.Invalid_language_name);
             }
 
             return language;
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 // byte has data. 
                 if ((embedInteropTypesAndKind & 0b11111100) != 0)
                 {
-                    throw new InvalidDataException($"Unexpected value for EmbedInteropTypes/MetadataImageKind {embedInteropTypesAndKind}");
+                    throw new InvalidDataException(string.Format(RebuildResources.Unexpected_value_for_EmbedInteropTypes_MetadataImageKind_0, embedInteropTypesAndKind));
                 }
 
                 var embedInteropTypes = (embedInteropTypesAndKind & 0b10) == 0b10;
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 {
                     if (value is null or { Length: 0 })
                     {
-                        throw new InvalidDataException("Encountered null or empty key for compilation options pairs");
+                        throw new InvalidDataException(RebuildResources.Encountered_null_or_empty_key_for_compilation_options_pairs);
                     }
 
                     key = value;
