@@ -145,11 +145,11 @@ public interface IBar
 public class Bar : IBar
 {
 }"
-            Dim tooltipTextForIBar = String.Format(ServicesVSResources._0_is_inherited, "interface IBar")
+            Dim tooltipTextForIBar = String.Format(ServicesVSResources._0_is_implemented_by_1, "interface IBar", "class Bar")
             Dim targetForIBar = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Implementing_types, KnownMonikers.Implemented, ServicesVSResources.Implementing_types)).
                 Add(New TargetMenuItemViewModel("Bar", KnownMonikers.ClassPublic, "Bar", Nothing))
 
-            Dim tooltipTextForBar = String.Format(ServicesVSResources._0_is_inherited, "class Bar")
+            Dim tooltipTextForBar = String.Format(ServicesVSResources._0_implements_1, "class Bar", "interface IBar")
             Dim targetForBar = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Implemented_interfaces, KnownMonikers.Implementing, ServicesVSResources.Implemented_interfaces)).
                 Add(New TargetMenuItemViewModel("IBar", KnownMonikers.InterfacePublic, "IBar", Nothing))
 
@@ -181,19 +181,19 @@ public class Bar : AbsBar
     public override void Foo();
 }"
 
-            Dim tooltipTextForAbsBar = String.Format(ServicesVSResources._0_is_inherited, "class AbsBar")
+            Dim tooltipTextForAbsBar = String.Format(ServicesVSResources._0_derives_1, "class AbsBar", "class Bar")
             Dim targetForAbsBar = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden, ServicesVSResources.Derived_types)).
                 Add(New TargetMenuItemViewModel("Bar", KnownMonikers.ClassPublic, "Bar", Nothing))
 
-            Dim tooltipTextForAbstractFoo = String.Format(ServicesVSResources._0_is_inherited, "abstract void AbsBar.Foo()")
+            Dim tooltipTextForAbstractFoo = String.Format(ServicesVSResources._0_is_overridden_by_1, "abstract void AbsBar.Foo()", "override void Bar.Foo()")
             Dim targetForAbsFoo = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Overriding_members, KnownMonikers.Overridden, ServicesVSResources.Overriding_members)).
                 Add(New TargetMenuItemViewModel("Bar.Foo", KnownMonikers.MethodPublic, "Bar.Foo", Nothing))
 
-            Dim tooltipTextForBar = String.Format(ServicesVSResources._0_is_inherited, "class Bar")
+            Dim tooltipTextForBar = String.Format(ServicesVSResources._0_is_derived_from__1, "class Bar", "class AbsBar")
             Dim targetForBar = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
                 Add(New TargetMenuItemViewModel("AbsBar", KnownMonikers.ClassPublic, "AbsBar", Nothing))
 
-            Dim tooltipTextForOverrideFoo = String.Format(ServicesVSResources._0_is_inherited, "override void Bar.Foo()")
+            Dim tooltipTextForOverrideFoo = String.Format(ServicesVSResources._0_overrides_1, "override void Bar.Foo()", "abstract void AbsBar.Foo()")
             Dim targetForOverrideFoo = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Overridden_members, KnownMonikers.Overriding, ServicesVSResources.Overridden_members)).
                 Add(New TargetMenuItemViewModel("AbsBar.Foo", KnownMonikers.MethodPublic, "AbsBar.Foo", Nothing))
 
@@ -231,20 +231,20 @@ public interface IBar1 { }
 public interface IBar2 : IBar1 { }
 public interface IBar3 : IBar2 { }
 "
-            Dim tooltipTextForIBar1 = String.Format(ServicesVSResources._0_is_inherited, "interface IBar1")
+            Dim tooltipTextForIBar1 = String.Format(ServicesVSResources._0_has_multiple_implementing_types, "interface IBar1")
             Dim targetForIBar1 = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(
                 New HeaderMenuItemViewModel(ServicesVSResources.Implementing_types, KnownMonikers.Implemented, ServicesVSResources.Implementing_types),
                 New TargetMenuItemViewModel("IBar2", KnownMonikers.InterfacePublic, "IBar2", Nothing),
                 New TargetMenuItemViewModel("IBar3", KnownMonikers.InterfacePublic, "IBar3", Nothing))
 
-            Dim tooltipTextForIBar2 = String.Format(ServicesVSResources._0_is_inherited, "interface IBar2")
+            Dim tooltipTextForIBar2 = String.Format(ServicesVSResources._0_has_inherited_interfaces_and_implementing_types, "interface IBar2")
             Dim targetForIBar2 = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(
                 New HeaderMenuItemViewModel(ServicesVSResources.Inherited_interfaces, KnownMonikers.Implementing, ServicesVSResources.Inherited_interfaces),
                 New TargetMenuItemViewModel("IBar1", KnownMonikers.InterfacePublic, "IBar1", Nothing),
                 New HeaderMenuItemViewModel(ServicesVSResources.Implementing_types, KnownMonikers.Implemented, ServicesVSResources.Implementing_types),
                 New TargetMenuItemViewModel("IBar3", KnownMonikers.InterfacePublic, "IBar3", Nothing))
 
-            Dim tooltipTextForIBar3 = String.Format(ServicesVSResources._0_is_inherited, "interface IBar3")
+            Dim tooltipTextForIBar3 = String.Format(ServicesVSResources._0_has_multiple_inherited_interfaces, "interface IBar3")
             Dim targetForIBar3 = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(
                 New HeaderMenuItemViewModel(ServicesVSResources.Inherited_interfaces, KnownMonikers.Implementing, ServicesVSResources.Inherited_interfaces),
                 New TargetMenuItemViewModel("IBar1", KnownMonikers.InterfacePublic, "IBar1", Nothing),
@@ -285,7 +285,7 @@ public class BarSample : IBar1
     public virtual event EventHandler e1, e2;
 }"
 
-            Dim tooltipTextForIBar1 = String.Format(ServicesVSResources._0_is_inherited, "interface IBar1")
+            Dim tooltipTextForIBar1 = String.Format(ServicesVSResources._0_is_implemented_by_1, "interface IBar1", "class BarSample")
             Dim targetForIBar1 = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(
                 New HeaderMenuItemViewModel(ServicesVSResources.Implementing_types, KnownMonikers.Implemented, ServicesVSResources.Implementing_types),
                 New TargetMenuItemViewModel("BarSample", KnownMonikers.ClassPublic, "BarSample", Nothing))
@@ -299,7 +299,7 @@ public class BarSample : IBar1
                     New HeaderMenuItemViewModel(ServicesVSResources.Implementing_members, KnownMonikers.Implemented, ServicesVSResources.Implementing_members),
                     New TargetMenuItemViewModel("BarSample.e2", KnownMonikers.EventPublic, "BarSample.e2", Nothing))))
 
-            Dim tooltipTextForBarSample = String.Format(ServicesVSResources._0_is_inherited, "class BarSample")
+            Dim tooltipTextForBarSample = String.Format(ServicesVSResources._0_implements_1, "class BarSample", "interface IBar1")
             Dim targetForBarSample = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(
                 New HeaderMenuItemViewModel(ServicesVSResources.Implemented_interfaces, KnownMonikers.Implementing, ServicesVSResources.Implemented_interfaces),
                 New TargetMenuItemViewModel("IBar1", KnownMonikers.InterfaceInternal, "IBar1", Nothing))

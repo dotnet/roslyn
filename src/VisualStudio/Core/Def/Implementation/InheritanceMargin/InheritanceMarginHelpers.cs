@@ -240,7 +240,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             throw ExceptionUtilities.UnexpectedValue(aggregateRelationship);
         }
 
-        public static TextBlock CreateToolTipTextBlockForSingleMember(
+        /// <summary>
+        /// Create the TextBlock used as the tooltip of the glyph. (The texts of the textBlock is colorized)
+        /// Also return the content of the text block.
+        /// </summary>
+        public static (TextBlock tooltipTextBlock, string tooltipText) CreateToolTipForSingleMember(
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
             InheritanceMarginItem member)
@@ -250,8 +254,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (targets.Length == 1)
             {
                 var target = targets[0];
-                var tooltipTemplate = GetToolTipTemplateForSingleTarget(target.RelationToMember);
-                return FormatTaggedText(classificationTypeMap, classificationFormatMap, tooltipTemplate, member.TaggedTexts, target.DefinitionItem.DisplayParts);
+                var contentTemplate = GetToolTipTemplateForSingleTarget(target.RelationToMember);
+                var tooltipTextBlock = FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts, target.DefinitionItem.DisplayParts);
+                var automationName = string.Format(contentTemplate, member.TaggedTexts.JoinText(), target.DefinitionItem.DisplayParts.JoinText());
+                return (tooltipTextBlock, automationName);
             }
 
             using var _ = CodeAnalysis.PooledObjects.PooledHashSet<InheritanceRelationship>.GetInstance(out var targetRelationshipSet);
@@ -264,13 +270,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 var relationship = targets[0].RelationToMember;
                 var contentTemplate = GetToolTipTemplateForMultipleTargetsUnderSameHeader(relationship);
-                return FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts);
+                var toolTipTextBlock = FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts);
+                var automationName = string.Format(contentTemplate, member.TaggedTexts.JoinText());
+                return (toolTipTextBlock, automationName);
             }
             else
             {
                 var aggregateRelationship = GetAggregateRelationship(targetRelationshipSet);
                 var contentTemplate = GetToolTipContentForMultipleHeaders(aggregateRelationship);
-                return FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts);
+                var toolTipTextBlock = FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts);
+                var automationName = string.Format(contentTemplate, member.TaggedTexts.JoinText());
+                return (toolTipTextBlock, automationName);
             }
         }
 
@@ -325,7 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 var prefixString = contentTemplate[endOfPreviousPlaceHolder..currentIndex];
                 inlinesBuilder.Add(new Run(prefixString));
 
-                // Add the tagged text
+                // Add the TaggedTexts
                 var currentTaggedText = taggedTexts[i];
                 inlinesBuilder.AddRange(currentTaggedText.ToInlines(classificationFormatMap, classificationTypeMap));
 

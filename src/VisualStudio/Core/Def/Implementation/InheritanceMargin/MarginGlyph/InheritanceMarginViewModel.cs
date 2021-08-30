@@ -71,9 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (members.Length == 1)
             {
                 var member = tag.MembersOnLine[0];
-                var automationName = string.Format(ServicesVSResources._0_is_inherited, member.TaggedTexts.JoinText());
                 var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForSingleMember(member.TargetItems);
-                var tooltipTextBlock = InheritanceMarginHelpers.CreateToolTipTextBlockForSingleMember(classificationTypeMap, classificationFormatMap, member);
+                var (tooltipTextBlock, automationName) = InheritanceMarginHelpers.CreateToolTipForSingleMember(classificationTypeMap, classificationFormatMap, member);
                 return new InheritanceMarginViewModel(tag.Moniker, tooltipTextBlock, automationName, scaleFactor, menuItemViewModels);
             }
             else
