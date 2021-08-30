@@ -6689,7 +6689,7 @@ namespace NS2
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, False) _
+                    .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForCompletion, False) _
                     .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 state.SendInvokeCompletionList()
@@ -6745,7 +6745,7 @@ namespace NS2
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, False) _
+                    .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForCompletion, False) _
                     .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, -1) _
                     .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
