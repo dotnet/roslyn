@@ -2002,7 +2002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PROTOTYPE: renumber these if necessary.
         ERR_RawStringNotInDirectives = 9100,
-        ERR_Unterminated_raw_string_literal = 9101,
+        ERR_UnterminatedRawString = 9101,
         ERR_Too_many_closing_quotes_for_raw_string_literal = 9102,
         ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal = 9103,
         ERR_Raw_string_literal_delimiter_must_be_on_its_own_line = 9104,

@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // See if we reached the end of the line or file before hitting the end.
                 if (SyntaxFacts.IsNewLine(currentChar))
                 {
-                    this.AddError(TextWindow.Position, width: GetNewLineWidth(currentChar), ErrorCode.ERR_Unterminated_raw_string_literal);
+                    this.AddError(TextWindow.Position, width: GetNewLineWidth(currentChar), ErrorCode.ERR_UnterminatedRawString);
                     return;
                 }
                 else if (IsAtEndOfText(currentChar))
                 {
-                    this.AddError(TextWindow.Position, width: 0, ErrorCode.ERR_Unterminated_raw_string_literal);
+                    this.AddError(TextWindow.Position, width: 0, ErrorCode.ERR_UnterminatedRawString);
                     return;
                 }
 
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var currentChar = TextWindow.PeekChar();
                 if (IsAtEndOfText(currentChar))
                 {
-                    this.AddError(TextWindow.Position, width: 0, ErrorCode.ERR_Unterminated_raw_string_literal);
+                    this.AddError(TextWindow.Position, width: 0, ErrorCode.ERR_UnterminatedRawString);
                     return false;
                 }
 

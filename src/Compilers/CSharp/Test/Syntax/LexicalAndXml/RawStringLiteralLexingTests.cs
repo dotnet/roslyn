@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
             TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: true, trailingTrivia: false, testOutput);
 
             // If we don't have an unterminated raw string, then also try with some trailing trivia attached.
-            if (!markup.Contains("CS" + (int)ErrorCode.ERR_Unterminated_raw_string_literal))
+            if (!markup.Contains("CS" + (int)ErrorCode.ERR_UnterminatedRawString))
             {
                 TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: false, trailingTrivia: true, testOutput);
                 TestSingleTokenWorker(markup, expectedKind, expectedValue, leadingTrivia: true, trailingTrivia: true, testOutput);
