@@ -8,6 +8,7 @@ Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
@@ -6650,6 +6651,118 @@ class C
 
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function WarmUpTypeImportCompletionCache(populateCache As Boolean) As Task
+
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
+                        <ProjectReference>RefProj</ProjectReference>
+                        <Document FilePath="C.cs"><![CDATA[
+namespace NS1
+    public class C1
+    {
+        void M()
+        {
+            $$
+        }
+    }
+}
+                        ]]></Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="RefProj" CommonReferences="true">
+                        <Document><![CDATA[
+namespace NS2
+{
+    public class UnimportedType
+    {
+    }
+}
+                        ]]></Document>
+                    </Project>
+                </Workspace>)
+
+                If populateCache Then
+                    Dim service = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ITypeImportCompletionService)()
+                    Dim document = state.Workspace.CurrentSolution.GetDocument(state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id)
+                    Await service.WarmUpCacheAsync(document.Project, CancellationToken.None)
+                End If
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, False) _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                ' w/o warming up cache in advance, the first time import completion get triggered we will not return anything from references
+                If populateCache Then
+                    Await state.AssertCompletionItemsContain(displayText:="UnimportedType", displayTextSuffix:="")
+                Else
+                    Await state.AssertCompletionItemsDoNotContainAny("UnimportedType")
+                End If
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function WarmUpExtensionMethodImportCompletionCache(populateCache As Boolean) As Task
+
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
+                        <ProjectReference>RefProj</ProjectReference>
+                        <Document FilePath="C.cs"><![CDATA[
+namespace NS1
+    public class C1
+    {
+        void M(int x)
+        {
+            x.$$
+        }
+    }
+}
+                        ]]></Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="RefProj" CommonReferences="true">
+                        <Document><![CDATA[
+namespace NS2
+{
+    public static class Ext
+    {
+        public static bool IntegerExtMethod(this int x) => false;
+    }
+}
+                        ]]></Document>
+                    </Project>
+                </Workspace>)
+
+                If populateCache Then
+                    Dim service = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ITypeImportCompletionService)()
+                    Dim document = state.Workspace.CurrentSolution.GetDocument(state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id)
+                    Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None)
+                End If
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, False) _
+                    .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, -1) _
+                    .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
+
+                state.SendInvokeCompletionList()
+                Await state.WaitForUIRenderedAsync()
+
+                ' w/o warming up cache in advance, the first time import completion get triggered we will not return anything from references
+                If populateCache Then
+                    Await state.AssertCompletionItemsContain(displayText:="IntegerExtMethod", displayTextSuffix:="")
+                Else
+                    Await state.AssertCompletionItemsDoNotContainAny("IntegerExtMethod")
+                End If
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestExpanderWithImportCompletionDisabled(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -9295,7 +9408,7 @@ class C
                 Await state.AssertNoCompletionSession()
                 Assert.Contains(NotifyCommittingItemCompletionProvider.DisplayText, state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
 
-                Await notifyProvider.checkpoint.Task
+                Await notifyProvider.Checkpoint.Task
                 Assert.False(notifyProvider.CalledOnMainThread)
             End Using
         End Function
