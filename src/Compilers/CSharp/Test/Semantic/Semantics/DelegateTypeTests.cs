@@ -673,6 +673,10 @@ $@"class Program
             yield return getData("object () => default", "System.Func<System.Object>");
             yield return getData("void () => { }", "System.Action");
 
+            // These two lambdas have different signatures but produce the same delegate names: https://github.com/dotnet/roslyn/issues/55570
+            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, ref int _17) => { }", "<>A{00000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>");
+            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, in int _17)  => { }", "<>A{00000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>");
+
             static object?[] getData(string expr, string? expectedType) =>
                 new object?[] { expr, expectedType };
         }

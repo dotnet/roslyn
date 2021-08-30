@@ -350,39 +350,86 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>p__" + StringExtensions.GetNumeral(uniqueId);
         }
 
+        internal const string ActionDelegateNamePrefix = "<>A";
+        internal const string FuncDelegateNamePrefix = "<>F";
+        private const int DelegateNamePrefixLength = 3;
+        private const int DelegateNamePrefixLengthWithOpenBrace = 4;
+
         /// <summary>
         /// Produces name of the synthesized delegate symbol that encodes the parameter byref-ness and return type of the delegate.
         /// The arity is appended via `N suffix in MetadataName calculation since the delegate is generic.
         /// </summary>
-        internal static string MakeDynamicCallSiteDelegateName(RefKindVector byRefs, bool returnsVoid, int generation)
+        internal static string MakeSynthesizedDelegateName(RefKindVector byRefs, bool returnsVoid, int generation)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
 
-            builder.Append(returnsVoid ? "<>A" : "<>F");
+            builder.Append(returnsVoid ? ActionDelegateNamePrefix : FuncDelegateNamePrefix);
 
             if (!byRefs.IsNull)
             {
-                builder.Append("{");
-
-                int i = 0;
-                foreach (int byRefIndex in byRefs.Words())
-                {
-                    if (i > 0)
-                    {
-                        builder.Append(",");
-                    }
-
-                    builder.AppendFormat("{0:x8}", byRefIndex);
-                    i++;
-                }
-
-                builder.Append("}");
-                Debug.Assert(i > 0);
+                builder.Append(byRefs.ToRefKindString());
             }
 
             AppendOptionalGeneration(builder, generation);
             return pooledBuilder.ToStringAndFree();
+        }
+
+        internal static bool TryParseSynthesizedDelegateName(string name, out RefKindVector byRefs, out bool returnsVoid, out int generation, out int parameterCount)
+        {
+            byRefs = default;
+            parameterCount = 0;
+            generation = 0;
+
+            name = MetadataHelpers.InferTypeArityAndUnmangleMetadataName(name, out var arity);
+
+            returnsVoid = name.StartsWith(ActionDelegateNamePrefix);
+
+            if (!returnsVoid && !name.StartsWith(FuncDelegateNamePrefix))
+            {
+                return false;
+            }
+
+            // The character after the prefix should be an open brace
+            if (name[DelegateNamePrefixLength] != '{')
+            {
+                return false;
+            }
+
+            parameterCount = arity - (returnsVoid ? 0 : 1);
+
+            var lastBraceIndex = name.LastIndexOf('}');
+            if (lastBraceIndex < 0)
+            {
+                return false;
+            }
+
+            // The ref kind string is between the two braces
+            var refKindString = name[DelegateNamePrefixLengthWithOpenBrace..lastBraceIndex];
+
+            if (!RefKindVector.TryParse(refKindString, arity, out byRefs))
+            {
+                return false;
+            }
+
+            // If there is a generation index it will be directly after the brace, otherwise the brace
+            // is the last character
+            if (lastBraceIndex < name.Length - 1)
+            {
+                // Format is a '#' followed by the generation number
+                if (name[lastBraceIndex + 1] != '#')
+                {
+                    return false;
+                }
+
+                if (!int.TryParse(name[(lastBraceIndex + 2)..], out generation))
+                {
+                    return false;
+                }
+            }
+
+            Debug.Assert(name == MakeSynthesizedDelegateName(byRefs, returnsVoid, generation));
+            return true;
         }
 
         internal static string AsyncBuilderFieldName()
