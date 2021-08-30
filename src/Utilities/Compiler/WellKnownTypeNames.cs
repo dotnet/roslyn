@@ -31,6 +31,10 @@ namespace Analyzer.Utilities
         public const string MicrosoftCodeAnalysisHostMefMefConstruction = "Microsoft.CodeAnalysis.Host.Mef.MefConstruction";
         public const string MicrosoftEntityFrameworkCoreEntityFrameworkQueryableExtensions = "Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions";
         public const string MicrosoftEntityFrameworkCoreRelationalQueryableExtensions = "Microsoft.EntityFrameworkCore.RelationalQueryableExtensions";
+        public const string MicrosoftIdentityModelTokensAudienceValidator = "Microsoft.IdentityModel.Tokens.AudienceValidator";
+        public const string MicrosoftIdentityModelTokensLifetimeValidator = "Microsoft.IdentityModel.Tokens.LifetimeValidator";
+        public const string MicrosoftIdentityModelTokensSecurityToken = "Microsoft.IdentityModel.Tokens.SecurityToken";
+        public const string MicrosoftIdentityModelTokensTokenValidationParameters = "Microsoft.IdentityModel.Tokens.TokenValidationParameters";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
         public const string MicrosoftSecurityApplicationAntiXssEncoder = "Microsoft.Security.Application.AntiXssEncoder";
         public const string MicrosoftSecurityApplicationEncoder = "Microsoft.Security.Application.Encoder";

@@ -37,6 +37,9 @@ namespace Test.Utilities
         public static ReferenceAssemblies DefaultWithNewtonsoftJson { get; } = Default
             .AddPackages(ImmutableArray.Create(new PackageIdentity("Newtonsoft.Json", "10.0.1")));
 
+        public static ReferenceAssemblies DefaultWithWilson { get; } = Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.IdentityModel.Tokens", "6.12.0")));
+
         public static ReferenceAssemblies DefaultWithWinForms { get; } = Default
             .AddAssemblies(ImmutableArray.Create("System.Windows.Forms"));
 
