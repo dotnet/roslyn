@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
         <Fact()>
         Public Sub PresentCorLib()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestMetadata.NetCoreApp.SystemRuntime})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetCoreApp.SystemRuntime})
             Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
 
             Dim knownMissingTypes As HashSet(Of Integer) = New HashSet(Of Integer)
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences({MetadataReference.CreateFromImage(TestMetadata.ResourcesNetCoreApp.SystemRuntime)})
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetCoreApp.SystemRuntime})
             msCorLibRef = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 
