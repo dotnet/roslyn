@@ -839,35 +839,35 @@ class C
         }
 
         [Theory]
-        [InlineData("[System.CLSCompliantAttribute]")]
-        [InlineData("[System.Diagnostics.CodeAnalysis.AllowNullAttribute]")]
-        [InlineData("[System.Diagnostics.CodeAnalysis.DisallowNullAttribute]")]
-        [InlineData("[System.Diagnostics.CodeAnalysis.MaybeNullAttribute]")]
-        [InlineData("[System.Diagnostics.CodeAnalysis.NotNullAttribute]")]
-        [InlineData("[System.NonSerializedAttribute]")]
-        [InlineData("[System.Reflection.AssemblyAlgorithmIdAttribute]")]
-        [InlineData("[System.Reflection.AssemblyCultureAttribute]")]
-        [InlineData("[System.Reflection.AssemblyFlagsAttribute]")]
-        [InlineData("[System.Reflection.AssemblyVersionAttribute]")]
-        [InlineData("[System.Runtime.CompilerServices.DllImportAttribute]")]
-        [InlineData("[System.Runtime.CompilerServices.IndexerNameAttribute]")]
-        [InlineData("[System.Runtime.CompilerServices.MethodImplAttribute]")]
-        [InlineData("[System.Runtime.CompilerServices.SpecialNameAttribute]")]
-        [InlineData("[System.Runtime.CompilerServices.TypeForwardedToAttribute]")]
-        [InlineData("[System.Runtime.InteropServices.ComImportAttribute]")]
-        [InlineData("[System.Runtime.InteropServices.DefaultParameterValueAttribute]")]
-        [InlineData("[System.Runtime.InteropServices.FieldOffsetAttribute]")]
-        [InlineData("[System.Runtime.InteropServices.InAttribute]")]
-        [InlineData("[System.Runtime.InteropServices.MarshalAsAttribute]")]
-        [InlineData("[System.Runtime.InteropServices.OptionalAttribute]")]
-        [InlineData("[System.Runtime.InteropServices.OutAttribute]")]
-        [InlineData("[System.Runtime.InteropServices.PreserveSigAttribute]")]
-        [InlineData("[System.Runtime.InteropServices.StructLayoutAttribute]")]
-        [InlineData("[System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeImportAttribute]")]
-        [InlineData("[System.Security.DynamicSecurityMethodAttribute]")]
-        [InlineData("[System.SerializableAttribute]")]
-        [InlineData("[System.Runtime.CompilerServices.AsyncMethodBuilderAttribute]")]
-        public void Type_Attribute_Insert_SupportedByRuntime_NonCustomAttribute(string attributeType)
+        [InlineData("[System.CLSCompliantAttribute]", "CLSCompliantAttribute")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.AllowNullAttribute]", "AllowNullAttribute")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.DisallowNullAttribute]", "DisallowNullAttribute")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.MaybeNullAttribute]", "MaybeNullAttribute")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.NotNullAttribute]", "NotNullAttribute")]
+        [InlineData("[System.NonSerializedAttribute]", "NonSerializedAttribute")]
+        [InlineData("[System.Reflection.AssemblyAlgorithmIdAttribute]", "AssemblyAlgorithmIdAttribute")]
+        [InlineData("[System.Reflection.AssemblyCultureAttribute]", "AssemblyCultureAttribute")]
+        [InlineData("[System.Reflection.AssemblyFlagsAttribute]", "AssemblyFlagsAttribute")]
+        [InlineData("[System.Reflection.AssemblyVersionAttribute]", "AssemblyVersionAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.DllImportAttribute]", "DllImportAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.IndexerNameAttribute]", "IndexerNameAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.MethodImplAttribute]", "MethodImplAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.SpecialNameAttribute]", "SpecialNameAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.TypeForwardedToAttribute]", "TypeForwardedToAttribute")]
+        [InlineData("[System.Runtime.InteropServices.ComImportAttribute]", "ComImportAttribute")]
+        [InlineData("[System.Runtime.InteropServices.DefaultParameterValueAttribute]", "DefaultParameterValueAttribute")]
+        [InlineData("[System.Runtime.InteropServices.FieldOffsetAttribute]", "FieldOffsetAttribute")]
+        [InlineData("[System.Runtime.InteropServices.InAttribute]", "InAttribute")]
+        [InlineData("[System.Runtime.InteropServices.MarshalAsAttribute]", "MarshalAsAttribute")]
+        [InlineData("[System.Runtime.InteropServices.OptionalAttribute]", "OptionalAttribute")]
+        [InlineData("[System.Runtime.InteropServices.OutAttribute]", "OutAttribute")]
+        [InlineData("[System.Runtime.InteropServices.PreserveSigAttribute]", "PreserveSigAttribute")]
+        [InlineData("[System.Runtime.InteropServices.StructLayoutAttribute]", "StructLayoutAttribute")]
+        [InlineData("[System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeImportAttribute]", "WindowsRuntimeImportAttribute")]
+        [InlineData("[System.Security.DynamicSecurityMethodAttribute]", "DynamicSecurityMethodAttribute")]
+        [InlineData("[System.SerializableAttribute]", "SerializableAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.AsyncMethodBuilderAttribute]", "AsyncMethodBuilderAttribute")]
+        public void Type_Attribute_Insert_SupportedByRuntime_NonCustomAttribute(string attributeType, string attributeName)
         {
             var src1 = @"class C { public void M(int a) {} }";
             var src2 = attributeType + @"class C { public void M(int a) {} } ";
@@ -879,7 +879,7 @@ class C
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "class C", FeaturesResources.class_));
+                Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "class C", attributeName, FeaturesResources.class_));
         }
 
         [Fact]
@@ -15247,7 +15247,7 @@ class C { static void M(string a) { } }
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "int a", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "int a", "AAttribute", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -15266,7 +15266,7 @@ class C { static void M(string a) { } }
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "int a", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "int a", "AAttribute", FeaturesResources.parameter));
         }
 
         [Fact]

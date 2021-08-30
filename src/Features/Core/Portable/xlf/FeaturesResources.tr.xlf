@@ -350,6 +350,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="new">Changing parameter types of {0} requires restarting the application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
+        <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
+        <target state="new">Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
         <source>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</source>
         <target state="new">Changing the declaration scope of a captured variable '{0}' requires restarting the application.</target>
@@ -2418,11 +2423,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Updating the attributes of {0} requires restarting the application because it is not supported by the runtime.</source>
         <target state="new">Updating the attributes of {0} requires restarting the application because it is not supported by the runtime.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_attributes_of_0_requires_restarting_the_application_because_one_or_more_attributes_affect_compiler_behaviour">
-        <source>Updating the attributes of {0} requires restarting the application because one or more attributes affect compiler behaviour</source>
-        <target state="new">Updating the attributes of {0} requires restarting the application because one or more attributes affect compiler behaviour</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_requires_restarting_the_application">

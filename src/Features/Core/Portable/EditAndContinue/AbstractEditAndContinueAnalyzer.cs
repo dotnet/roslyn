@@ -3812,20 +3812,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
-            // We need diagnostics reported if the runtime doesn't support changing attributes,
-            // but even if it does, only attributes stored in the CustomAttributes table are editable
-            var rudeEdit = changedAttributes.Any(IsNonCustomAttribute)
-                ? RudeEditKind.ChangingNonCustomAttribute
-                : (!capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes)
-                    ? RudeEditKind.ChangingAttributesNotSupportedByRuntime
-                    : RudeEditKind.None);
-
-            if (rudeEdit != RudeEditKind.None)
+            // If the runtime doesn't support changing attributes we don't need to check anything else
+            if (!capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes))
             {
-                ReportUpdateRudeEdit(diagnostics, rudeEdit, oldSymbol, newSymbol, newNode, newCompilation, cancellationToken);
-
-                // If the runtime doesn't support edits then pretend there weren't changes, so no edits are produced
+                ReportUpdateRudeEdit(diagnostics, RudeEditKind.ChangingAttributesNotSupportedByRuntime, oldSymbol, newSymbol, newNode, newCompilation, cancellationToken);
                 return false;
+            }
+
+            // Even if the runtime supports attribute changes, only attributes stored in the CustomAttributes table are editable
+            foreach (var attributeData in changedAttributes)
+            {
+                if (IsNonCustomAttribute(attributeData))
+                {
+                    var node = newNode ?? GetRudeEditDiagnosticNode(newSymbol, cancellationToken);
+                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ChangingNonCustomAttribute, GetDiagnosticSpan(node, EditKind.Update), node, new[]
+                    {
+                        attributeData.AttributeClass!.Name,
+                        GetDisplayName(newSymbol)
+                    }));
+
+                    return false;
+                }
             }
 
             return true;
