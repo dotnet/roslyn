@@ -2006,7 +2006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TooManyQuotesForRawString = 9102,
         ERR_LineDoesNotStartWithSameWhitespace = 9103,
         ERR_RawStringDelimiterOnOwnLine = 9104,
-        ERR_Multi_line_raw_string_literals_are_only_allowed_in_verbatim_interpolated_strings = 9105,
+        ERR_RawStringInVerbatimInterpolatedStrings = 9105,
         ERR_Multi_line_raw_string_literals_must_contain_at_least_one_line_of_content = 9106,
 
         #endregion
