@@ -63,7 +63,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     name, expandedByDefault, presenter, context, definitionItem);
             }
 
-            public Task<bool> TryNavigateToAsync(bool isPreview, CancellationToken cancellationToken)
+            public bool CanNavigateTo()
+                => true;
+
+            public Task NavigateToAsync(bool isPreview, CancellationToken cancellationToken)
                 => DefinitionItem.TryNavigateToAsync(
                     _presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview, cancellationToken); // Only activate the tab if not opening in preview
 
