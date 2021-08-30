@@ -90,9 +90,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             if (supportsVSExtensions)
             {
-                var context = document != null
-                    ? new IntellisenseQuickInfoBuilderContext(document, threadingContext: null, streamingPresenter: null)
-                    : null;
+                var context = document == null
+                    ? null
+                    : new IntellisenseQuickInfoBuilderContext(
+                        document,
+                        threadingContext: null,
+                        operationExecutor: null,
+                        asynchronousOperationListener: null,
+                        streamingPresenter: null);
                 return new VSInternalHover
                 {
                     Range = ProtocolConversions.TextSpanToRange(info.Span, text),
