@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -36,14 +36,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private bool? _isImportCompletionExperimentEnabled = null;
 
-        private bool IsExperimentEnabled(Workspace workspace)
+        private bool IsExperimentEnabled(OptionSet options)
         {
-            if (!_isImportCompletionExperimentEnabled.HasValue)
-            {
-                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
-                _isImportCompletionExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion);
-            }
-
+            _isImportCompletionExperimentEnabled ??= options.GetOption(CompletionOptions.TypeImportCompletionFeatureFlag);
             return _isImportCompletionExperimentEnabled == true;
         }
 
@@ -70,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
                 if (importCompletionOptionValue == false ||
-                    (importCompletionOptionValue == null && !IsExperimentEnabled(document.Project.Solution.Workspace)))
+                    (importCompletionOptionValue == null && !IsExperimentEnabled(completionContext.Options)))
                 {
                     return;
                 }
