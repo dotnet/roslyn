@@ -1549,6 +1549,201 @@ delegate void D([A]int x);
                 Handle(2, TableIndex.AssemblyRef));
         }
 
+        [Fact]
+        public void TypePropertyField_Attributes()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandard20)
+                .AddGeneration(
+                    source: @"
+enum E
+{
+    A
+}
+
+class C
+{
+    private int _x;
+    public int X { get; }
+}
+
+delegate int D(int x);
+",
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "E", "C", "D");
+                        g.VerifyMethodDefNames("get_X", ".ctor", ".ctor", "Invoke", "BeginInvoke", "EndInvoke");
+                        g.VerifyPropertyDefNames("X");
+                        g.VerifyFieldDefNames("value__", "A", "_x", "<X>k__BackingField");
+                        g.VerifyTableSize(TableIndex.CustomAttribute, 6);
+                    })
+
+                .AddGeneration(
+                    source: @"
+using System.ComponentModel;
+
+[Description(""E"")]
+enum E
+{
+    [Description(""A"")]
+    A
+}
+
+[Description(""C"")]
+class C
+{
+    [Description(""_x"")]
+    private int _x;
+    [Description(""X"")]
+    public int X { get; }
+}
+
+[Description(""D"")]
+delegate int D(int x);
+",
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("E")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("E.A")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C._x")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.X")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("D"))
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("E", "C", "D");
+                        g.VerifyMethodDefNames();
+                        g.VerifyTableSize(TableIndex.CustomAttribute, 6);
+                        g.VerifyCustomAttributes(new[]
+                        {
+                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(7, TableIndex.MemberRef)), // C.X
+                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(7, TableIndex.MemberRef)),    // E.A
+                            new CustomAttributeRow(Handle(2, TableIndex.TypeDef), Handle(7, TableIndex.MemberRef)),  // E
+                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(7, TableIndex.MemberRef)),    // C._x
+                            new CustomAttributeRow(Handle(3, TableIndex.TypeDef), Handle(7, TableIndex.MemberRef)),  // C
+                            new CustomAttributeRow(Handle(4, TableIndex.TypeDef), Handle(7, TableIndex.MemberRef))   // D
+                        });
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Constant, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(2, TableIndex.TypeDef),
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(3, TableIndex.Field),
+                            Handle(2, TableIndex.Constant),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(9, TableIndex.CustomAttribute),
+                            Handle(10, TableIndex.CustomAttribute),
+                            Handle(11, TableIndex.CustomAttribute),
+                            Handle(12, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(2, TableIndex.MethodSemantics)
+                        });
+                    })
+
+                .AddGeneration(
+                    source: @"
+using System.ComponentModel;
+
+[Description(""E_2"")]
+enum E
+{
+    [Description(""A_2"")]
+    A
+}
+
+[Description(""C_2"")]
+class C
+{
+    [Description(""_x_2"")]
+    private int _x;
+    [Description(""X_2"")]
+    public int X { get; }
+}
+
+[Description(""D_2"")]
+delegate int D(int x);
+",
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, c => c.GetMember("E")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("E.A")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C._x")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.X")),
+                        Edit(SemanticEditKind.Update, c => c.GetMember("D"))
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("E", "C", "D");
+                        g.VerifyMethodDefNames();
+                        g.VerifyTableSize(TableIndex.CustomAttribute, 6);
+                        g.VerifyCustomAttributes(new[]
+                        {
+                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(8, TableIndex.MemberRef)), // C.X
+                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(8, TableIndex.MemberRef)),    // E.A
+                            new CustomAttributeRow(Handle(2, TableIndex.TypeDef), Handle(8, TableIndex.MemberRef)),  // E
+                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(8, TableIndex.MemberRef)),    // C._x
+                            new CustomAttributeRow(Handle(3, TableIndex.TypeDef), Handle(8, TableIndex.MemberRef)),  // C
+                            new CustomAttributeRow(Handle(4, TableIndex.TypeDef), Handle(8, TableIndex.MemberRef))   // D
+                        });
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Constant, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),   // Same row numbers as previous gen
+                            Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        });
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(2, TableIndex.TypeDef),
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(3, TableIndex.Field),
+                            Handle(3, TableIndex.Constant),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(8, TableIndex.CustomAttribute),
+                            Handle(9, TableIndex.CustomAttribute),
+                            Handle(10, TableIndex.CustomAttribute),
+                            Handle(11, TableIndex.CustomAttribute),
+                            Handle(12, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(3, TableIndex.MethodSemantics)
+                        });
+                    })
+
+                .Verify();
+        }
+
         /// <summary>
         /// Add a method that requires entries in the ParameterDefs table.
         /// Specifically, normal parameters or return types with attributes.
