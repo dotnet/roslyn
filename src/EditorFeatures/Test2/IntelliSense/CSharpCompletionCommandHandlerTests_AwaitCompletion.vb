@@ -679,6 +679,10 @@ public class C
                 "await Task.Run(async () => await someTask  $$    );"
                 },
                 {
+                "await Task.Run(ASYNC () => someTask.$$.);",
+                "await Task.Run(async () => await someTask$$.);"
+                },
+                {
                 "Task.Run(async () => await someTask).$$",
                 "await Task.Run(async () => await someTask)$$"
                 }
