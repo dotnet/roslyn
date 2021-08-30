@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Options
         public FeatureFlagStorageLocation(string name)
         {
             // feature flag name must be qualified by a component name, e.g. "Roslyn.", "Xaml.", "Lsp.", etc.
-            Contract.ThrowIfFalse(name.IndexOf('.') < 0);
+            Contract.ThrowIfFalse(name.IndexOf('.') > 0);
             Name = name;
         }
     }
