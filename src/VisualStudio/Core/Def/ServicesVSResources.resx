@@ -1699,6 +1699,18 @@ Additional information: {1}</value>
   <data name="Search_Settings" xml:space="preserve">
     <value>Search Settings</value>
   </data>
+  <data name="Inline_Diagnostics_experimental" xml:space="preserve">
+    <value>Inline Diagnostics (experimental)</value>
+  </data>
+  <data name="Display_diagnostics_inline_experimental" xml:space="preserve">
+    <value>Display diagnostics inline (experimental)</value>
+  </data>
+  <data name="at_the_end_of_the_line_of_code" xml:space="preserve">
+    <value>at the end of the line of code</value>
+  </data>
+  <data name="on_the_right_edge_of_the_editor_window" xml:space="preserve">
+    <value>on the right edge of the editor window</value>
+  </data>
   <data name="Multiple_members_are_inherited" xml:space="preserve">
     <value>Multiple members are inherited</value>
   </data>
@@ -1797,12 +1809,6 @@ Additional information: {1}</value>
     <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
     <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
   </data>
-  <data name="Package_install_canceled" xml:space="preserve">
-    <value>Package install canceled</value>
-  </data>
-  <data name="Package_uninstall_canceled" xml:space="preserve">
-    <value>Package uninstall canceled</value>
-  </data>
   <data name="Default_Current_Document" xml:space="preserve">
     <value>Default (Current Document)</value>
     <comment>This text is a menu command</comment>
@@ -1814,5 +1820,11 @@ Additional information: {1}</value>
   <data name="Default_Open_Documents" xml:space="preserve">
     <value>Default (Open Documents)</value>
     <comment>This text is a menu command</comment>
+  </data>
+  <data name="Package_install_canceled" xml:space="preserve">
+    <value>Package install canceled</value>
+  </data>
+  <data name="Package_uninstall_canceled" xml:space="preserve">
+    <value>Package uninstall canceled</value>
   </data>
 </root>
