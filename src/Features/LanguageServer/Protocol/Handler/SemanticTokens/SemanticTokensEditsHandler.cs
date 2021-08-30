@@ -17,7 +17,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     /// <summary>
-    /// Computes the semantic tokens edits for a file. An edit request is received every 2s,
+    /// Computes the semantic tokens edits for a file. Clients may make edit requests on a timer,
     /// or every time an edit is made by the user.
     /// </summary>
     internal class SemanticTokensEditsHandler : IRequestHandler<LSP.SemanticTokensDeltaParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensDelta>>
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // Even though we want to ultimately pass edits back to LSP, we still need to compute all semantic tokens,
             // both for caching purposes and in order to have a baseline comparison when computing the edits.
-            var (newSemanticTokensData, isPartial) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+            var (newSemanticTokensData, isFinalized) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 context.Document, SemanticTokensCache.TokenTypeToIndex,
                 range: null, cancellationToken).ConfigureAwait(false);
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 {
                     ResultId = newResultId,
                     Data = newSemanticTokensData,
-                    IsPartial = isPartial,
+                    IsFinalized = isFinalized,
                 };
 
                 if (newSemanticTokensData.Length > 0)
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             {
                 ResultId = resultId,
                 Edits = editArray,
-                IsPartial = isPartial
+                IsFinalized = isFinalized
             };
 
             return edits;

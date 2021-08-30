@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// <summary>
         /// Returns the semantic tokens data for a given document with an optional range.
         /// </summary>
-        internal static async Task<(int[], bool isPartial)> ComputeSemanticTokensDataAsync(
+        internal static async Task<(int[], bool isFinalized)> ComputeSemanticTokensDataAsync(
             Document document,
             Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
@@ -119,11 +119,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // can pass in a range if they wish.
             var textSpan = range is null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
 
-            // If the full compilation is not yet available, we'll try getting a partial one.
-            var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
-            var semanticModel = await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
+            // results but will speed up how quickly we can respond to the client's request.
+            document = document.WithFrozenPartialSemantics(cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(semanticModel);
-            var isPartial = !(document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation);
+            var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
 
             var classifiedSpans = Classifier.GetClassifiedSpans(semanticModel, textSpan, document.Project.Solution.Workspace, cancellationToken);
             Contract.ThrowIfNull(classifiedSpans, "classifiedSpans is null");
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // TO-DO: We should implement support for streaming if LSP adds support for it:
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
-            return (ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex), isPartial);
+            return (ComputeTokens(text.Lines, updatedClassifiedSpans, tokenTypesToIndex), isFinalized);
         }
 
         private static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)

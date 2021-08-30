@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // partial token results. In addition, a range request is only ever called with a whole
             // document request, so caching range results is unnecessary since the whole document
             // handler will cache the results anyway.
-            var (tokensData, isPartial) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+            var (tokensData, isFinalized) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 context.Document, SemanticTokensCache.TokenTypeToIndex,
                 request.Range, cancellationToken).ConfigureAwait(false);
 
-            return new RoslynSemanticTokens { ResultId = resultId, Data = tokensData, IsPartial = isPartial };
+            return new RoslynSemanticTokens { ResultId = resultId, Data = tokensData, IsFinalized = isFinalized };
         }
     }
 }

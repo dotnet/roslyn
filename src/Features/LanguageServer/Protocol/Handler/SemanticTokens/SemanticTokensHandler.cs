@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Contract.ThrowIfNull(context.Document, "Document is null.");
 
             var resultId = _tokensCache.GetNextResultId();
-            var (tokensData, isPartial) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+            var (tokensData, isFinalized) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 context.Document, SemanticTokensCache.TokenTypeToIndex,
                 range: null, cancellationToken).ConfigureAwait(false);
 
-            var tokens = new RoslynSemanticTokens { ResultId = resultId, Data = tokensData, IsPartial = isPartial };
+            var tokens = new RoslynSemanticTokens { ResultId = resultId, Data = tokensData, IsFinalized = isFinalized };
             if (tokensData.Length > 0)
             {
                 await _tokensCache.UpdateCacheAsync(request.TextDocument.Uri, tokens, cancellationToken).ConfigureAwait(false);
