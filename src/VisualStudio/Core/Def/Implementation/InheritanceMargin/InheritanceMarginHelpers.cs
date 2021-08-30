@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
@@ -175,49 +174,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private static string GetToolTipContentForMultipleHeaders(InheritanceRelationship aggregateRelationship)
         {
-            //
+            // For class/struct,
+            // 'class Bar' has Implemented interfaces, Base types and Derived types
             if (aggregateRelationship.HasFlag(InheritanceRelationship.ImplementedInterface | InheritanceRelationship.BaseType | InheritanceRelationship.DerivedType))
             {
                 return ServicesVSResources._0_has_implemented_interfaces_based_types_and_derived_types;
             }
 
+            // For class/struct
+            // 'class Bar' has Implemented interfaces and Base types
             if (aggregateRelationship.HasFlag(InheritanceRelationship.ImplementedInterface | InheritanceRelationship.BaseType))
             {
                 return ServicesVSResources._0_has_implemented_interfaces_and_based_types;
             }
 
+            // For class/struct
+            // 'class Bar' has Base types and Derived types
             if (aggregateRelationship.HasFlag(InheritanceRelationship.BaseType | InheritanceRelationship.DerivedType))
             {
                 return ServicesVSResources._0_has_base_types_and_derived_types;
             }
 
+            // For class/struct
+            // 'class Bar' has Implemented interfaces and Derived types
             if (aggregateRelationship.HasFlag(InheritanceRelationship.ImplementedInterface | InheritanceRelationship.DerivedType))
             {
                 return ServicesVSResources._0_has_implemented_interfaces_and_derived_types;
             }
 
-            //
+            // For interface
+            // 'interface IBar' has inherited interfaces and Implementing types
             if (aggregateRelationship.HasFlag(InheritanceRelationship.InheritedInterface | InheritanceRelationship.ImplementingType))
             {
                 return ServicesVSResources._0_has_inherited_interfaces_and_implementing_types;
             }
 
-            //
+            // For member of class/struct
+            // 'Bar()' has Implemented members, Overridden members and Overriding members.
             if (aggregateRelationship.HasFlag(InheritanceRelationship.ImplementedMember | InheritanceRelationship.OverriddenMember | InheritanceRelationship.OverridingMember))
             {
                 return ServicesVSResources._0_has_implemented_members_overridden_members_and_overriding_members;
             }
 
+            // For member of class/struct
+            // 'Bar()' has Implemented members and Overridden members.
             if (aggregateRelationship.HasFlag(InheritanceRelationship.ImplementedMember | InheritanceRelationship.OverriddenMember))
             {
                 return ServicesVSResources._0_has_implemented_members_and_overridden_members;
             }
 
+            // For member of class/struct
+            // 'Bar()' has Implemented members and Overriding members.
             if (aggregateRelationship.HasFlag(InheritanceRelationship.ImplementedMember | InheritanceRelationship.OverridingMember))
             {
                 return ServicesVSResources._0_has_implemented_members_and_overriding_members;
             }
 
+            // For member of class/struct
+            // 'Bar()' has Overridden members and Overriding members.
             if (aggregateRelationship.HasFlag(InheritanceRelationship.OverriddenMember | InheritanceRelationship.OverridingMember))
             {
                 return ServicesVSResources._0_has_overridden_members_and_overriding_members;
@@ -237,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 var target = targets[0];
                 var tooltipTemplate = GetToolTipTemplateForSingleTarget(target.RelationToMember);
-                return Format(classificationTypeMap, classificationFormatMap, tooltipTemplate, member.TaggedTexts, target.DefinitionItem.DisplayParts);
+                return FormatTaggedText(classificationTypeMap, classificationFormatMap, tooltipTemplate, member.TaggedTexts, target.DefinitionItem.DisplayParts);
             }
 
             using var _ = CodeAnalysis.PooledObjects.PooledHashSet<InheritanceRelationship>.GetInstance(out var targetRelationshipSet);
@@ -250,17 +264,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 var relationship = targets[0].RelationToMember;
                 var contentTemplate = GetToolTipTemplateForMultipleTargetsUnderSameHeader(relationship);
-                return Format(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts);
+                return FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts);
             }
             else
             {
                 var aggregateRelationship = GetAggregateRelationship(targetRelationshipSet);
                 var contentTemplate = GetToolTipContentForMultipleHeaders(aggregateRelationship);
-                return Format(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts);
+                return FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts);
             }
         }
 
-        public static InheritanceRelationship GetAggregateRelationship(HashSet<InheritanceRelationship> relationships)
+        private static InheritanceRelationship GetAggregateRelationship(HashSet<InheritanceRelationship> relationships)
         {
             Contract.ThrowIfTrue(relationships.Count == 0);
             var result = relationships.First();
@@ -272,48 +286,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             return result;
         }
 
-        private static TextBlock Format(
+        /// <summary>
+        /// Format the <paramref name="contentTemplate"/> using the <paramref name="taggedTexts"/>. And return the formatted text as a TextBlock.
+        /// <paramref name="contentTemplate"/> is a localized text with placeholders in it.
+        /// e.g. '{0}' is inherited. '{0}' implements '{1}'.
+        /// <paramref name="taggedTexts"/> is a array of tagged texts used to generate colorized text.
+        /// </summary>
+        private static TextBlock FormatTaggedText(
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
             string contentTemplate,
-            ImmutableArray<TaggedText> memberTaggedText)
+            params ImmutableArray<TaggedText>[] taggedTexts)
         {
-            var allInlines = new List<Inline>();
-            var startOfTheFirstPlaceholder = contentTemplate.IndexOf("{0}", StringComparison.Ordinal);
-            var prefixString = contentTemplate[..startOfTheFirstPlaceholder];
-            var firstInlines = memberTaggedText.ToInlines(classificationFormatMap, classificationTypeMap);
-            allInlines.Add(new Run(prefixString));
-            allInlines.AddRange(firstInlines);
-            var suffixString = contentTemplate[(startOfTheFirstPlaceholder + "{0}".Length)..];
-            allInlines.Add(new Run(suffixString));
-            var toolTipTextBlock = allInlines.ToTextBlock(classificationFormatMap);
-            toolTipTextBlock.FlowDirection = FlowDirection.LeftToRight;
-            return toolTipTextBlock;
-        }
+            Contract.ThrowIfTrue(taggedTexts.Length == 0);
+            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<Inline>.GetInstance(out var inlinesBuilder);
+            using var __ = CodeAnalysis.PooledObjects.ArrayBuilder<int>.GetInstance(out var indexBuilder);
 
-        private static TextBlock Format(
-            ClassificationTypeMap classificationTypeMap,
-            IClassificationFormatMap classificationFormatMap,
-            string contentTemplate,
-            ImmutableArray<TaggedText> firstTaggedText,
-            ImmutableArray<TaggedText> secondTaggedText)
-        {
-            var allInlines = new List<Inline>();
-            var startOfTheFirstPlaceholder = contentTemplate.IndexOf("{0}", StringComparison.Ordinal);
+            // 1. Find all the indexes of the placeholders from the template.
+            for (var i = 0; i < taggedTexts.Length; i++)
+            {
+                indexBuilder.Add(contentTemplate.IndexOf($"{{{i}}}", StringComparison.Ordinal));
+            }
 
-            var prefixString = contentTemplate[..startOfTheFirstPlaceholder];
-            var firstInlines = firstTaggedText.ToInlines(classificationFormatMap, classificationTypeMap);
-            allInlines.Add(new Run(prefixString));
-            allInlines.AddRange(firstInlines);
-            var startOfTheSecondPlaceholder = contentTemplate.IndexOf("{1}", StringComparison.Ordinal);
-            var stringBetweenFirstAndSecondPlaceHolder = contentTemplate[(startOfTheFirstPlaceholder + "{0}".Length)..startOfTheSecondPlaceholder];
-            allInlines.Add(new Run(stringBetweenFirstAndSecondPlaceHolder));
-            var secondInlines = secondTaggedText.ToInlines(classificationFormatMap, classificationTypeMap);
-            allInlines.AddRange(secondInlines);
-            var suffixString = contentTemplate[(startOfTheSecondPlaceholder + "{1}".Length)..];
-            allInlines.Add(new Run(suffixString));
+            var indexArray = indexBuilder.ToImmutable();
+            Contract.ThrowIfTrue(taggedTexts.Length != indexArray.Length);
+            var lengthOfThePlaceholder = "{0}".Length;
 
-            var toolTipTextBlock = allInlines.ToTextBlock(classificationFormatMap);
+            // 2. Spilt the template and insert Inline to the builder
+            for (var i = 0; i < indexArray.Length; i++)
+            {
+                // Have two index point to the start of current placeholder and the end of the previous placeholder
+                // ".....{0}.....{1}....{2}...."
+                //         ↑     ↑
+                //    prevIndex  currentIndex
+                // to insert the string between {0} and {1}
+                var endOfPreviousPlaceHolder = i == 0 ? 0 : indexArray[i - 1] + lengthOfThePlaceholder;
+                var currentIndex = indexArray[i];
+                var prefixString = contentTemplate[endOfPreviousPlaceHolder..currentIndex];
+                inlinesBuilder.Add(new Run(prefixString));
+
+                // Add the tagged text
+                var currentTaggedText = taggedTexts[i];
+                inlinesBuilder.AddRange(currentTaggedText.ToInlines(classificationFormatMap, classificationTypeMap));
+
+                // If this is the last placeholder, try to see if we need to append the suffix string to the end
+                // ".....{0}.....{1}....{2}...."
+                //                      ↑
+                //                      currentIndex
+                if (i == indexArray.Length - 1 && currentIndex + lengthOfThePlaceholder < contentTemplate.Length)
+                {
+                    var suffixString = contentTemplate[(currentIndex + lengthOfThePlaceholder)..];
+                    if (!string.IsNullOrEmpty(suffixString))
+                    {
+                        inlinesBuilder.Add(new Run(suffixString));
+                    }
+                }
+            }
+
+            var toolTipTextBlock = inlinesBuilder.ToTextBlock(classificationFormatMap);
             toolTipTextBlock.FlowDirection = FlowDirection.LeftToRight;
             return toolTipTextBlock;
         }

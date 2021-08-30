@@ -71,18 +71,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (members.Length == 1)
             {
                 var member = tag.MembersOnLine[0];
-
-                //// Here we want to show a classified text with loc text,
-                //// e.g. 'Bar' is inherited.
-                //// But the classified text are inlines, so can't directly use string.format to generate the string
-                //var inlines = member.TaggedTexts.ToInlines(classificationFormatMap, classificationTypeMap);
-                //var startOfThePlaceholder = ServicesVSResources._0_is_inherited.IndexOf("{0}", StringComparison.Ordinal);
-                //var prefixString = ServicesVSResources._0_is_inherited[..startOfThePlaceholder];
-                //var suffixString = ServicesVSResources._0_is_inherited[(startOfThePlaceholder + "{0}".Length)..];
-                //inlines.Insert(0, new Run(prefixString));
-                //inlines.Add(new Run(suffixString));
-                //var toolTipTextBlock = inlines.ToTextBlock(classificationFormatMap);
-                //toolTipTextBlock.FlowDirection = FlowDirection.LeftToRight;
                 var automationName = string.Format(ServicesVSResources._0_is_inherited, member.TaggedTexts.JoinText());
                 var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForSingleMember(member.TargetItems);
                 var tooltipTextBlock = InheritanceMarginHelpers.CreateToolTipTextBlockForSingleMember(classificationTypeMap, classificationFormatMap, member);
