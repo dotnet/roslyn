@@ -987,26 +987,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(whenNodes.All(n => n.Syntax == whenClauseSyntax));
                     Debug.Assert(whenNodes.All(n => n.WhenExpression == whenExpression));
                     Debug.Assert(whenNodes.All(n => n.Bindings == whenNodes[0].Bindings));
-                    Debug.Assert(whenNodes.All(n => whenTrueLabel == GetDagNodeLabel(whenNodes[0].WhenTrue)));
+                    Debug.Assert(whenNodes.All(n => GetDagNodeLabel(n.WhenTrue) == whenTrueLabel));
 
                     ArrayBuilder<BoundStatement> sectionBuilder = BuilderForSection(whenClauseSyntax);
                     sectionBuilder.Add(_factory.Label(labelToWhenExpression));
                     lowerBindings(whenNodes[0].Bindings, sectionBuilder);
-
-                    // if (loweredWhenExpression)
-                    // {
-                    //   jump to whenTrue label
-                    // }
-                    _factory.Syntax = whenClauseSyntax;
-                    BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenExpression), whenTrueLabel, jumpIfTrue: true);
-
-                    // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
-                    if (GenerateInstrumentation && !whenExpression.WasCompilerGenerated)
-                    {
-                        conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGoto);
-                    }
-
-                    sectionBuilder.Add(conditionalGoto);
+                    addConditionalGoto(whenExpression, whenClauseSyntax, whenTrueLabel, sectionBuilder);
 
                     var whenFalseSwitchSections = ArrayBuilder<SyntheticSwitchSection>.GetInstance();
                     foreach (var whenNode in whenNodes)
@@ -1026,6 +1012,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We hide the jump back into the decision dag, as it is not logically part of the when clause
                     sectionBuilder.Add(GenerateInstrumentation ? _factory.HiddenSequencePoint(jumps) : jumps);
+
+                }
+
+                // if (loweredWhenExpression)
+                // {
+                //   jump to whenTrue label
+                // }
+                void addConditionalGoto(BoundExpression whenExpression, SyntaxNode whenClauseSyntax, LabelSymbol whenTrueLabel, ArrayBuilder<BoundStatement> sectionBuilder)
+                {
+                    _factory.Syntax = whenClauseSyntax;
+                    BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenExpression), whenTrueLabel, jumpIfTrue: true);
+
+                    // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
+                    if (GenerateInstrumentation && !whenExpression.WasCompilerGenerated)
+                    {
+                        conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenExpression, conditionalGoto);
+                    }
+
+                    sectionBuilder.Add(conditionalGoto);
                 }
 
                 bool isSharedWhenExpression(BoundExpression? whenExpression)
@@ -1054,20 +1059,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var trueLabel = GetDagNodeLabel(whenTrue);
                     if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValue != ConstantValue.True)
                     {
-                        _factory.Syntax = whenClause.Syntax;
-                        BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), trueLabel, jumpIfTrue: true);
-
-                        // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
-                        if (GenerateInstrumentation && !whenClause.WhenExpression.WasCompilerGenerated)
-                        {
-                            conditionalGoto = _localRewriter._instrumenter.InstrumentSwitchWhenClauseConditionalGotoBody(whenClause.WhenExpression, conditionalGoto);
-                        }
-
-                        sectionBuilder.Add(conditionalGoto);
-
-                        Debug.Assert(whenFalse != null);
+                        addConditionalGoto(whenClause.WhenExpression, whenClause.Syntax, trueLabel, sectionBuilder);
 
                         // We hide the jump back into the decision dag, as it is not logically part of the when clause
+                        Debug.Assert(whenFalse != null);
                         BoundStatement jump = _factory.Goto(GetDagNodeLabel(whenFalse));
                         sectionBuilder.Add(GenerateInstrumentation ? _factory.HiddenSequencePoint(jump) : jump);
                     }
