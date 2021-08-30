@@ -125,5 +125,19 @@ Class C
 End Class
 ")
         End Function
+
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function DotAwaitInAsyncSub() As Task
+            Await VerifyAwaitKeyword("
+Imports System.Threading.Tasks
+
+Class C
+    Async Sub Goo()
+        Task.CompletedTask.$$
+    End Sub
+End Class
+", includeConfigureAwait:=True)
+        End Function
     End Class
 End Namespace
