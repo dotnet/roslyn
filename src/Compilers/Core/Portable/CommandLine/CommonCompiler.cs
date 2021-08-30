@@ -761,6 +761,13 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(!string.IsNullOrWhiteSpace(Arguments.OutputFileName));
 
+                // CONSIDER: The only piece of the cache key that is requried for correctness is the generators that were used.
+                //           We set up the graph statically based on the generators, so as long as the generator inputs havn't
+                //           changed we can run technically run any project against anothers cache and still get the correct results.
+                //           Obviously that would remove the point of the cache, so we also key off of the output file name
+                //           and output path so that collisions are unlikely and we'll usually get the correct cache for any 
+                //           given compilation. 
+
                 PooledStringBuilder sb = PooledStringBuilder.GetInstance();
                 sb.Builder.Append(Arguments.GetOutputFilePath(Arguments.OutputFileName));
                 foreach (var generator in generators)
