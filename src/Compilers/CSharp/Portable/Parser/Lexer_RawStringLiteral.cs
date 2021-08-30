@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AddError(
                         position: TextWindow.Position - excessQuoteCount,
                         width: excessQuoteCount,
-                        ErrorCode.ERR_Too_many_closing_quotes_for_raw_string_literal);
+                        ErrorCode.ERR_TooManyQuotesForRawString);
                 }
 
                 // We have enough quotes to finish this string at this point.
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AddError(
                         position: TextWindow.Position - excessQuoteCount,
                         width: excessQuoteCount,
-                        ErrorCode.ERR_Too_many_closing_quotes_for_raw_string_literal);
+                        ErrorCode.ERR_TooManyQuotesForRawString);
                 }
 
                 // Done scanning lines.
