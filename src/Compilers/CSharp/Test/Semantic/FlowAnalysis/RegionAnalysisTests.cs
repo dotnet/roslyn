@@ -4774,6 +4774,60 @@ class C
             Assert.Equal("this", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
         }
 
+        [Fact, WorkItem(53591, "https://github.com/dotnet/roslyn/issues/53591")]
+        public void TestNameOfInLambda()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+    void M()
+    {
+        Func<string> x = /*<bind>*/() => nameof(ClosureCreated)/*</bind>*/;
+    }
+}");
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+        }
+
+        [Fact, WorkItem(53591, "https://github.com/dotnet/roslyn/issues/53591")]
+        public void TestNameOfWithAssignmentInLambda()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+    void M()
+    {
+        Func<string> x = /*<bind>*/() => nameof(this = null)/*</bind>*/;
+    }
+}");
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+        }
+
+        [Fact, WorkItem(53591, "https://github.com/dotnet/roslyn/issues/53591")]
+        public void TestUnreachableThisInLambda()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+    void M()
+    {
+        Func<string> x = /*<bind>*/() => false ? this.ToString() : string.Empty/*</bind>*/;
+    }
+}");
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("this", GetSymbolNamesJoined(analysis.Captured));
+            Assert.Equal("this", GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+        }
+
         [Fact]
         public void TestReturnFromLambda()
         {
@@ -8658,6 +8712,59 @@ Func<int> lambda = () => { /*<bind>*/return args.Length;/*</bind>*/ };
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
             Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
             Assert.Equal("lambda, args", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        #endregion
+
+        #region Interpolated String Handlers
+
+        [Theory]
+        [CombinatorialData]
+        public void TestInterpolatedStringHandlers(bool validityParameter, bool useBoolReturns)
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+int i1;
+int i2;
+
+/*<bind>*/
+CustomHandler c = $""{i1 = 1}{i2 = 2}"";
+/*</bind>*/
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount" + (validityParameter ? ", out bool success" : "") + @")
+    {
+" + (validityParameter ? "success = true;" : "") + @"
+    }
+
+    public " + (useBoolReturns ? "bool" : "void") + @" AppendFormatted(int i) => throw null;
+}
+" + InterpolatedStringHandlerAttribute;
+
+            var (controlFlowAnalysisResults, dataFlowAnalysisResults) = CompileAndAnalyzeControlAndDataFlowStatements(code);
+            Assert.Equal(0, controlFlowAnalysisResults.EntryPoints.Count());
+            Assert.Equal(0, controlFlowAnalysisResults.ExitPoints.Count());
+            Assert.True(controlFlowAnalysisResults.EndPointIsReachable);
+            Assert.Equal("c", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("args", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnEntry));
+
+            var definitelyAssigned = (validityParameter, useBoolReturns) switch
+            {
+                (true, _) => "c",
+                (_, true) => "i1, c",
+                (_, false) => "i1, i2, c"
+            };
+
+            Assert.Equal(definitelyAssigned + ", args", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("i1, i2, c", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("args", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
         #endregion

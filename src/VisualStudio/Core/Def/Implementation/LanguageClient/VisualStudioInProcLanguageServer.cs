@@ -44,9 +44,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspLogger logger,
             IDiagnosticService? diagnosticService,
+            ImmutableArray<string> supportedLanguages,
             string? clientName,
             string userVisibleServerName,
-            string telemetryServerTypeName) : base(requestDispatcherFactory, jsonRpc, capabilitiesProvider, workspaceRegistrationService, listenerProvider, logger, clientName, userVisibleServerName, telemetryServerTypeName)
+            string telemetryServerTypeName)
+            : base(requestDispatcherFactory, jsonRpc, capabilitiesProvider, workspaceRegistrationService, listenerProvider, logger, supportedLanguages, clientName, userVisibleServerName, telemetryServerTypeName)
         {
             _diagnosticService = diagnosticService;
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
@@ -375,9 +377,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return ProtocolConversions.LinePositionToRange(linePositionSpan);
         }
 
-        internal TestAccessor GetTestAccessor() => new(this);
+        internal new TestAccessor GetTestAccessor() => new(this);
 
-        internal readonly struct TestAccessor
+        internal new readonly struct TestAccessor
         {
             private readonly VisualStudioInProcLanguageServer _server;
 

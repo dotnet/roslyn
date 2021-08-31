@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsCallerMemberName)
             {
-                // CS8962: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.
+                // CS8962: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerMemberNameAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
             else if (attribute.CommonConstructorArguments.Length == 1 &&
@@ -1158,6 +1158,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, errorLocation, Type);
                 setInterpolatedStringHandlerAttributeError(ref arguments);
                 return;
+            }
+
+            if (this is LambdaParameterSymbol)
+            {
+                // Lambda parameters will ignore this attribute at usage
+                diagnostics.Add(ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters, errorLocation);
             }
 
             TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
@@ -1236,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (name == "")
                 {
                     // Name refers to the "this" instance parameter.
-                    if (!ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor })
+                    if (!ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke or MethodKind.LambdaMethod })
                     {
                         // '{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.
                         diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);

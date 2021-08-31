@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [ContentType(ContentTypeNames.XamlContentType)]
     [Name("Roslyn Code Fix")]
     [Order]
+    [SuggestedActionPriority(DefaultOrderings.Highest)]
+    [SuggestedActionPriority(DefaultOrderings.Default)]
     internal partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
         private static readonly Guid s_CSharpSourceGuid = new Guid("b967fea8-e2c3-4984-87d4-71a38f49e16a");
@@ -49,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public readonly ICodeActionEditHandlerService EditHandler;
         public readonly IAsynchronousOperationListener OperationListener;
         public readonly IUIThreadOperationExecutor UIThreadOperationExecutor;
-        public readonly ImmutableArray<Lazy<ISuggestedActionCallback>> ActionCallbacks;
 
         public readonly ImmutableArray<Lazy<IImageIdService, OrderableMetadata>> ImageIdServices;
 
@@ -65,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
             IAsynchronousOperationListenerProvider listenerProvider,
             IGlobalOptionService optionService,
-            [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices,
-            [ImportMany] IEnumerable<Lazy<ISuggestedActionCallback>> actionCallbacks)
+            [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices)
         {
             _threadingContext = threadingContext;
             _codeRefactoringService = codeRefactoringService;
@@ -74,7 +74,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _codeFixService = codeFixService;
             _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
             _optionService = optionService;
-            ActionCallbacks = actionCallbacks.ToImmutableArray();
             EditHandler = editHandler;
             UIThreadOperationExecutor = uiThreadOperationExecutor;
             OperationListener = listenerProvider.GetListener(FeatureAttribute.LightBulb);

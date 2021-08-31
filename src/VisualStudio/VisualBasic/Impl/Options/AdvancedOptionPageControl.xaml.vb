@@ -142,6 +142,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(ShowHintsForLiterals, InlineHintsOptions.ForLiteralParameters, LanguageNames.VisualBasic)
             BindToOption(ShowHintsForNewExpressions, InlineHintsOptions.ForObjectCreationParameters, LanguageNames.VisualBasic)
             BindToOption(ShowHintsForEverythingElse, InlineHintsOptions.ForOtherParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForIndexers, InlineHintsOptions.ForIndexerParameters, LanguageNames.VisualBasic)
             BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
             BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
 
@@ -150,6 +151,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              ' Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
                              Return True
                          End Function)
+            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin)
         End Sub
 
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -172,6 +174,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ShowHintsForLiterals.IsEnabled = enabledForParameters
             ShowHintsForNewExpressions.IsEnabled = enabledForParameters
             ShowHintsForEverythingElse.IsEnabled = enabledForParameters
+            ShowHintsForIndexers.IsEnabled = enabledForParameters
             SuppressHintsWhenParameterNameMatchesTheMethodsIntent.IsEnabled = enabledForParameters
             SuppressHintsWhenParameterNamesDifferOnlyBySuffix.IsEnabled = enabledForParameters
         End Sub

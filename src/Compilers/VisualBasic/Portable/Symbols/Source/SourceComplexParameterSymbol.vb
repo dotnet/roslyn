@@ -249,11 +249,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
             Get
-                If Not _syntaxRef.SyntaxTree.Options.Features.ContainsKey(InternalSyntax.GetFeatureFlag(InternalSyntax.Feature.CallerArgumentExpression)) Then
-                    ' Silently require feature flag for this feature until Aleksey approves.
-                    Return -1
-                End If
-
                 Dim attributeSource As SourceParameterSymbol = If(Me.BoundAttributesSource, Me)
 
                 Dim data = attributeSource.GetEarlyDecodedWellKnownAttributeData()

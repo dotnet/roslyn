@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../ServicesVSResources.resx">
     <body>
-      <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
-        <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="translated">Um novo arquivo .editorconfig foi detectado na raiz da sua solução. Deseja torná-lo um item de solução?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">Um namespace será criado</target>
@@ -75,6 +70,11 @@
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Sempre para esclarecimento</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_Defaults">
+        <source>Analyzer Defaults</source>
+        <target state="new">Analyzer Defaults</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzers">
@@ -222,6 +222,11 @@
         <target state="translated">Colorir expressões regulares</target>
         <note />
       </trans-unit>
+      <trans-unit id="Combine_inheritance_margin_with_indicator_margin">
+        <source>Combine inheritance margin with indicator margin</source>
+        <target state="new">Combine inheritance margin with indicator margin</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
         <target state="translated">Comentários</target>
@@ -251,6 +256,21 @@
         <source>Current parameter</source>
         <target state="translated">Parâmetro atual</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Default_Current_Document">
+        <source>Default (Current Document)</source>
+        <target state="new">Default (Current Document)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Entire_Solution">
+        <source>Default (Entire Solution)</source>
+        <target state="new">Default (Entire Solution)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Open_Documents">
+        <source>Default (Open Documents)</source>
+        <target state="new">Default (Open Documents)</target>
+        <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Derived_types">
         <source>Derived types</source>
@@ -372,11 +392,6 @@
         <target state="translated">Formatar o documento</target>
         <note />
       </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="translated">Formatação</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Gerar o arquivo .editorconfig das configurações</target>
@@ -437,9 +452,9 @@
         <target state="translated">Indexado no repositório</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inheritance_Margin_experimental">
-        <source>Inheritance Margin (experimental)</source>
-        <target state="translated">Margem de Herança (experimental)</target>
+      <trans-unit id="Inheritance_Margin">
+        <source>Inheritance Margin</source>
+        <target state="new">Inheritance Margin</target>
         <note />
       </trans-unit>
       <trans-unit id="Inherited_interfaces">
@@ -447,9 +462,9 @@
         <target state="new">Inherited interfaces</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Hints_experimental">
-        <source>Inline Hints (experimental)</source>
-        <target state="translated">Dicas Embutidas (experimental)</target>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="new">Inline Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -522,6 +537,11 @@
         <target state="translated">Metadados locais</target>
         <note />
       </trans-unit>
+      <trans-unit id="Location">
+        <source>Location</source>
+        <target state="new">Location</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
         <target state="translated">Fazer '{0}' abstrato</target>
@@ -581,6 +601,11 @@
         <source>Namespace declarations</source>
         <target state="new">Namespace declarations</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Namespaces_have_been_updated">
+        <source>Namespaces have been updated.</source>
+        <target state="new">Namespaces have been updated.</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -752,6 +777,11 @@
         <target state="translated">Nova linha (\\n)</target>
         <note />
       </trans-unit>
+      <trans-unit id="No_namespaces_needed_updating">
+        <source>No namespaces needed updating.</source>
+        <target state="new">No namespaces needed updating.</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="No_unused_references_were_found">
         <source>No unused references were found.</source>
         <target state="translated">Não foi encontrada nenhuma referência não usada.</target>
@@ -800,6 +830,16 @@
       <trans-unit id="Overriding_members">
         <source>Overriding members</source>
         <target state="translated">Substituindo membros</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_install_canceled">
+        <source>Package install canceled</source>
+        <target state="new">Package install canceled</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_uninstall_canceled">
+        <source>Package uninstall canceled</source>
+        <target state="new">Package uninstall canceled</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
@@ -1072,6 +1112,11 @@
         <target state="translated">Mostrar dicas para a criação de objeto implícito</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="new">Show hints for indexers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">Mostrar as dicas para os tipos de parâmetro lambda</target>
@@ -1121,6 +1166,11 @@
         <source>Symbols without references</source>
         <target state="translated">Símbolos sem referências</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Sync_Namespaces">
+        <source>Sync Namespaces</source>
+        <target state="new">Sync Namespaces</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
@@ -1197,6 +1247,11 @@
         <target state="translated">O valor não utilizado é explicitamente atribuído ao descarte</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_namspaces">
+        <source>Updating namespaces...</source>
+        <target state="new">Updating namespaces...</target>
+        <note>"namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="Updating_project_references">
         <source>Updating project references...</source>
         <target state="translated">Atualizando as referências do projeto...</target>
@@ -1262,6 +1317,11 @@
         <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Studio_Settings">
+        <source>Visual Studio Settings</source>
+        <target state="new">Visual Studio Settings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">Aviso</target>
@@ -1285,6 +1345,11 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">Este workspace não é compatível com a atualização das opções de compilação do Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Whitespace">
+        <source>Whitespace</source>
+        <target state="new">Whitespace</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">

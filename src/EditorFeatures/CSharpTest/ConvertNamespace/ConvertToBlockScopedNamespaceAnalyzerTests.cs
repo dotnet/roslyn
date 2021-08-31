@@ -40,6 +40,26 @@ namespace N
         }
 
         [Fact]
+        public async Task TestConvertToBlockScopedInCSharp9_NotSilent()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+{|CS8773:namespace|} [|N|];
+",
+                FixedCode = @"
+namespace N
+{
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Suggestion }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestNoConvertToBlockScopedInCSharp10WithBlockScopedPreference()
         {
             var code = @"

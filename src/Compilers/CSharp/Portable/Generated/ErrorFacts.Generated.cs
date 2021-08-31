@@ -276,6 +276,7 @@
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                 case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
+                case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                     return true;
                 default:
                     return false;

@@ -23,23 +23,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     [Shared]
     [Export(typeof(IManagedEditAndContinueLanguageService))]
+    [Export(typeof(IEditAndContinueSolutionProvider))]
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
-    internal sealed class ManagedEditAndContinueLanguageService : IManagedEditAndContinueLanguageService
+    internal sealed class ManagedEditAndContinueLanguageService : IManagedEditAndContinueLanguageService, IEditAndContinueSolutionProvider
     {
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
-        private readonly IManagedEditAndContinueDebuggerService _debuggerService;
+        private readonly Lazy<IManagedEditAndContinueDebuggerService> _debuggerService;
         private readonly Lazy<IHostWorkspaceProvider> _workspaceProvider;
 
         private RemoteDebuggingSessionProxy? _debuggingSession;
 
+        private Solution? _pendingUpdatedSolution;
+        public event Action<Solution>? SolutionCommitted;
+
         private bool _disabled;
 
+        /// <summary>
+        /// Import <see cref="IHostWorkspaceProvider"/> and <see cref="IManagedEditAndContinueDebuggerService"/> lazily so that the host does not need to implement them
+        /// unless it implements debugger components.
+        /// </summary>
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ManagedEditAndContinueLanguageService(
             Lazy<IHostWorkspaceProvider> workspaceProvider,
-            IManagedEditAndContinueDebuggerService debuggerService,
+            Lazy<IManagedEditAndContinueDebuggerService> debuggerService,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {
@@ -90,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                 _debuggingSession = await proxy.StartDebuggingSessionAsync(
                     solution,
-                    _debuggerService,
+                    _debuggerService.Value,
                     captureMatchingDocuments: openedDocumentIds,
                     captureAllMatchingDocuments: false,
                     reportDiagnostics: true,
@@ -118,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             try
             {
-                await session.BreakStateEnteredAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
+                await session.BreakStateChangedAsync(_diagnosticService, inBreakState: true, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -131,23 +139,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             await GetActiveStatementTrackingService().StartTrackingAsync(solution, session, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task ExitBreakStateAsync(CancellationToken cancellationToken)
+        public async Task ExitBreakStateAsync(CancellationToken cancellationToken)
         {
             GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
 
-            if (!_disabled)
+            if (_disabled)
             {
-                GetActiveStatementTrackingService().EndTracking();
+                return;
             }
 
-            return Task.CompletedTask;
+            var session = GetDebuggingSession();
+
+            try
+            {
+                await session.BreakStateChangedAsync(_diagnosticService, inBreakState: false, cancellationToken).ConfigureAwait(false);
+                GetActiveStatementTrackingService().EndTracking();
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            {
+                _disabled = true;
+                return;
+            }
         }
 
         public async Task CommitUpdatesAsync(CancellationToken cancellationToken)
         {
+            if (_disabled)
+            {
+                return;
+            }
+
             try
             {
-                Contract.ThrowIfTrue(_disabled);
+                var committedSolution = Interlocked.Exchange(ref _pendingUpdatedSolution, null);
+                Contract.ThrowIfNull(committedSolution);
+                SolutionCommitted?.Invoke(committedSolution);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            {
+            }
+
+            try
+            {
                 await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
@@ -161,6 +194,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 return;
             }
+
+            _pendingUpdatedSolution = null;
 
             try
             {
@@ -228,6 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 var solution = GetCurrentCompileTimeSolution();
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
                 var (updates, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+                _pendingUpdatedSolution = solution;
                 return updates;
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))

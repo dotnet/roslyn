@@ -58,7 +58,7 @@ class C
   void F()
   {
     $$  }
-}", LanguageVersion.CSharp9, CSharpFeaturesResources.Make_container_async);
+}", LanguageVersion.CSharp9, FeaturesResources.Make_containing_scope_async);
         }
 
         [Fact]
@@ -102,7 +102,7 @@ class C
   {
     var z = $$  }
 }
-", LanguageVersion.CSharp9, CSharpFeaturesResources.Make_container_async);
+", LanguageVersion.CSharp9, FeaturesResources.Make_containing_scope_async);
         }
 
         [Fact]

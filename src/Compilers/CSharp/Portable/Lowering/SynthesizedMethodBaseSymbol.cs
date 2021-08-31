@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             // do not generate attributes for members of compiler-generated types:
-            if (ContainingType.IsImplicitlyDeclared || ContainingType is SimpleProgramNamedTypeSymbol)
+            if (ContainingType.IsImplicitlyDeclared)
             {
                 return;
             }

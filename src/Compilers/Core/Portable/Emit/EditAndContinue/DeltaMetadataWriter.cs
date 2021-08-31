@@ -217,6 +217,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 // Guid stream accumulates on the GUID heap unlike other heaps, so the previous generations are already included.
                 guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid],
                 anonymousTypeMap: ((IPEDeltaAssemblyBuilder)module).GetAnonymousTypeMap(),
+                synthesizedDelegates: ((IPEDeltaAssemblyBuilder)module).GetSynthesizedDelegates(),
                 synthesizedMembers: synthesizedMembers,
                 addedOrChangedMethods: AddRange(_previousGeneration.AddedOrChangedMethods, addedOrChangedMethodsByIndex),
                 debugInformationProvider: _previousGeneration.DebugInformationProvider,
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var def in _changedTypeDefs)
             {
-                types.Add(MetadataTokens.TypeDefinitionHandle(_typeDefs.GetRowId(def)));
+                types.Add(GetTypeDefinitionHandle(def));
             }
         }
 
@@ -856,7 +857,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 if (index.IsAddedNotChanged(member))
                 {
-                    int typeRowId = _typeDefs.GetRowId(member.ContainingTypeDefinition);
+                    int typeRowId = MetadataTokens.GetRowNumber(GetTypeDefinitionHandle(member.ContainingTypeDefinition));
                     int mapRowId = map.GetRowId(typeRowId);
 
                     metadata.AddEncLogEntry(
@@ -881,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (index.IsAddedNotChanged(member))
                 {
                     metadata.AddEncLogEntry(
-                        entity: MetadataTokens.TypeDefinitionHandle(_typeDefs.GetRowId(member.ContainingTypeDefinition)),
+                        entity: GetTypeDefinitionHandle(member.ContainingTypeDefinition),
                         code: addCode);
                 }
 

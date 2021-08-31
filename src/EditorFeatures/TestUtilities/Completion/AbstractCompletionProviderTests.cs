@@ -506,7 +506,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected virtual OptionSet WithChangedOptions(OptionSet options) => options;
+        protected virtual OptionSet WithChangedOptions(OptionSet options)
+            => options;
+
         private Document WithChangedOptions(Document document)
         {
             var workspace = document.Project.Solution.Workspace;

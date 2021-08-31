@@ -1101,8 +1101,13 @@ class C
 }
 
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular9);
             var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics(
+                // (9,15): error CS1660: Cannot convert lambda expression to type 'IList<C>' because it is not a delegate type
+                //         tmp.M((a, b) => c.Add);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(a, b) => c.Add").WithArguments("lambda expression", "System.Collections.Generic.IList<C>").WithLocation(9, 15));
+
             var model = comp.GetSemanticModel(tree);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single().Body;
@@ -4678,6 +4683,7 @@ class Program
     {
         Delegate d;
         d = (ref void () => { });
+        d = (ref readonly void () => { });
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -4687,7 +4693,13 @@ class Program
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ref void () => { }").WithLocation(7, 14),
                 // (7,18): error CS1547: Keyword 'void' cannot be used in this context
                 //         d = (ref void () => { });
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 18));
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 18),
+                // (8,14): error CS8917: The delegate type could not be inferred.
+                //         d = (ref readonly void () => { });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ref readonly void () => { }").WithLocation(8, 14),
+                // (8,27): error CS1547: Keyword 'void' cannot be used in this context
+                //         d = (ref readonly void () => { });
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 27));
         }
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
