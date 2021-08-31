@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 {
                     if (seenSymbols.Add(anonymousType))
                     {
-                        var anonymousParts = anonymousTypeService.GetAnonymousTypeParts(anonymousType, semanticModel, position);
+                        var anonymousParts = anonymousTypeService.GetTypeParts(anonymousType, semanticModel, position);
                         AddParts(anonymousTypeService, finalParts, anonymousParts, semanticModel, position, seenSymbols);
                         seenSymbols.Remove(anonymousType);
                     }

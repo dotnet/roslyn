@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
         {
         }
 
-        public override ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
+        public override ImmutableArray<SymbolDisplayPart> GetTypeParts(
             INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
         {
             using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var members);
