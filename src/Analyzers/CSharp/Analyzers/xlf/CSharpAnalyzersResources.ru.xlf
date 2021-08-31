@@ -267,6 +267,11 @@
         <target state="translated">Используйте сопоставление шаблонов</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="new">Use pattern matching (may change code meaning)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">Использовать оператор диапазона</target>
