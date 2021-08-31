@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal interface IStructuralTypeDisplayService : ILanguageService
     {
-        AnonymousTypeDisplayInfo GetNormalAnonymousTypeDisplayInfo(
+        StructuralTypeDisplayInfo GetNormalAnonymousTypeDisplayInfo(
             ISymbol orderSymbol,
             IEnumerable<INamedTypeSymbol> directNormalAnonymousTypeReferences,
             SemanticModel semanticModel,

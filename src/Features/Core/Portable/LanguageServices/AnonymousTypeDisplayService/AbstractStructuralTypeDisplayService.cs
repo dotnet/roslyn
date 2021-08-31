@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
             INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
 
-        public AnonymousTypeDisplayInfo GetNormalAnonymousTypeDisplayInfo(
+        public StructuralTypeDisplayInfo GetNormalAnonymousTypeDisplayInfo(
             ISymbol orderSymbol,
             IEnumerable<INamedTypeSymbol> directNormalAnonymousTypeReferences,
             SemanticModel semanticModel,
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             if (!directNormalAnonymousTypeReferences.Any())
             {
-                return new AnonymousTypeDisplayInfo(
+                return new StructuralTypeDisplayInfo(
                     SpecializedCollections.EmptyDictionary<INamedTypeSymbol, string>(),
                     SpecializedCollections.EmptyList<SymbolDisplayPart>());
             }
@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             // Finally, assign a name to all the anonymous types.
             var anonymousTypeToName = GenerateAnonymousTypeNames(transitiveNormalAnonymousTypeReferences);
-            anonymousTypeParts = AnonymousTypeDisplayInfo.ReplaceAnonymousTypes(anonymousTypeParts, anonymousTypeToName);
+            anonymousTypeParts = StructuralTypeDisplayInfo.ReplaceAnonymousTypes(anonymousTypeParts, anonymousTypeToName);
 
-            return new AnonymousTypeDisplayInfo(anonymousTypeToName, anonymousTypeParts);
+            return new StructuralTypeDisplayInfo(anonymousTypeToName, anonymousTypeParts);
         }
 
         private static Dictionary<INamedTypeSymbol, string> GenerateAnonymousTypeNames(
