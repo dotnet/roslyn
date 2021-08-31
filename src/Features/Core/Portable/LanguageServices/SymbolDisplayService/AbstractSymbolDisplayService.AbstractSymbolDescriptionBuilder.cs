@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 await AddDescriptionPartAsync(firstSymbol).ConfigureAwait(false);
 
                 AddOverloadCountPart(symbols);
-                FixAllAnonymousTypes(firstSymbol);
+                FixAllStructuralTypes(firstSymbol);
                 AddExceptions(firstSymbol);
                 AddCaptures(firstSymbol);
 

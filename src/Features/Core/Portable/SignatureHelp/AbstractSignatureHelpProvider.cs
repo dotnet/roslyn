@@ -193,22 +193,22 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             var info = structuralTypeDisplayService.GetTypeDisplayInfo(
                 orderSymbol, directAnonymousTypeReferences, semanticModel, position);
 
-            if (info.AnonymousTypesParts.Count > 0)
+            if (info.TypesParts.Count > 0)
             {
                 var anonymousTypeParts = new List<SymbolDisplayPart>
                 {
                     new SymbolDisplayPart(SymbolDisplayPartKind.Space, null, "\r\n\r\n")
                 };
 
-                anonymousTypeParts.AddRange(info.AnonymousTypesParts);
+                anonymousTypeParts.AddRange(info.TypesParts);
 
                 return new SymbolKeySignatureHelpItem(
                     orderSymbol,
                     isVariadic,
                     documentationFactory,
-                    info.ReplaceAnonymousTypes(prefixParts).ToTaggedText(),
-                    info.ReplaceAnonymousTypes(separatorParts).ToTaggedText(),
-                    info.ReplaceAnonymousTypes(suffixParts).ToTaggedText(),
+                    info.ReplaceStructuralTypes(prefixParts).ToTaggedText(),
+                    info.ReplaceStructuralTypes(separatorParts).ToTaggedText(),
+                    info.ReplaceStructuralTypes(suffixParts).ToTaggedText(),
                     parameters.Select(p => ReplaceAnonymousTypes(p, info)).Select(p => (SignatureHelpParameter)p),
                     anonymousTypeParts.ToTaggedText());
             }
@@ -232,8 +232,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 parameter.Name,
                 parameter.IsOptional,
                 parameter.DocumentationFactory,
-                info.ReplaceAnonymousTypes(parameter.DisplayParts),
-                info.ReplaceAnonymousTypes(parameter.SelectedDisplayParts));
+                info.ReplaceStructuralTypes(parameter.DisplayParts),
+                info.ReplaceStructuralTypes(parameter.SelectedDisplayParts));
         }
 
         private static SignatureHelpSymbolParameter InlineDelegateAnonymousTypes(

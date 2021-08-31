@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             // Finally, assign a name to all the anonymous types.
             var anonymousTypeToName = GenerateAnonymousTypeNames(transitiveNormalAnonymousTypeReferences);
-            anonymousTypeParts = StructuralTypeDisplayInfo.ReplaceAnonymousTypes(anonymousTypeParts, anonymousTypeToName);
+            anonymousTypeParts = StructuralTypeDisplayInfo.ReplaceStructuralTypes(anonymousTypeParts, anonymousTypeToName);
 
             return new StructuralTypeDisplayInfo(anonymousTypeToName, anonymousTypeParts);
         }

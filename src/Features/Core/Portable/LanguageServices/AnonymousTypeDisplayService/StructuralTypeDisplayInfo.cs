@@ -8,30 +8,30 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal readonly struct StructuralTypeDisplayInfo
     {
-        public IDictionary<INamedTypeSymbol, string> AnonymousTypeToName { get; }
-        public IList<SymbolDisplayPart> AnonymousTypesParts { get; }
+        public IDictionary<INamedTypeSymbol, string> StructuralTypeToName { get; }
+        public IList<SymbolDisplayPart> TypesParts { get; }
 
         public StructuralTypeDisplayInfo(
-            IDictionary<INamedTypeSymbol, string> anonymousTypeToName,
-            IList<SymbolDisplayPart> anonymousTypesParts)
+            IDictionary<INamedTypeSymbol, string> structuralTypeToName,
+            IList<SymbolDisplayPart> typesParts)
             : this()
         {
-            AnonymousTypeToName = anonymousTypeToName;
-            AnonymousTypesParts = anonymousTypesParts;
+            StructuralTypeToName = structuralTypeToName;
+            TypesParts = typesParts;
         }
 
-        public IList<SymbolDisplayPart> ReplaceAnonymousTypes(IList<SymbolDisplayPart> parts)
-            => ReplaceAnonymousTypes(parts, AnonymousTypeToName);
+        public IList<SymbolDisplayPart> ReplaceStructuralTypes(IList<SymbolDisplayPart> parts)
+            => ReplaceStructuralTypes(parts, StructuralTypeToName);
 
-        public static IList<SymbolDisplayPart> ReplaceAnonymousTypes(
+        public static IList<SymbolDisplayPart> ReplaceStructuralTypes(
             IList<SymbolDisplayPart> parts,
-            IDictionary<INamedTypeSymbol, string> anonymousTypeToName)
+            IDictionary<INamedTypeSymbol, string> structuralTypeToName)
         {
             var result = parts;
             for (var i = 0; i < result.Count; i++)
             {
                 var part = result[i];
-                if (part.Symbol is INamedTypeSymbol type && anonymousTypeToName.TryGetValue(type, out var name) && part.ToString() != name)
+                if (part.Symbol is INamedTypeSymbol type && structuralTypeToName.TryGetValue(type, out var name) && part.ToString() != name)
                 {
                     result = result == parts ? new List<SymbolDisplayPart>(parts) : result;
                     result[i] = new SymbolDisplayPart(part.Kind, part.Symbol, name);
