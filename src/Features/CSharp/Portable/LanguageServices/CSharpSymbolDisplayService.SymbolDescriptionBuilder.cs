@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 SemanticModel semanticModel,
                 int position,
                 Workspace workspace,
-                IStructuralTypeDisplayService anonymousTypeDisplayService,
+                IStructuralTypeDisplayService structuralTypeDisplayService,
                 CancellationToken cancellationToken)
-                : base(semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
+                : base(semanticModel, position, workspace, structuralTypeDisplayService, cancellationToken)
             {
             }
 

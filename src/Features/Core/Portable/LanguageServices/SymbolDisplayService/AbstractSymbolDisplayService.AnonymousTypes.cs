@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 restart:
                 foreach (var (group, parts) in _groupMap)
                 {
-                    var updatedParts = _anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parts, _semanticModel, _position);
+                    var updatedParts = _structuralTypeDisplayService.InlineDelegateAnonymousTypes(parts, _semanticModel, _position);
                     if (parts != updatedParts)
                     {
                         _groupMap[group] = updatedParts;
@@ -47,7 +47,7 @@ restart:
                     where part.Symbol.IsNormalAnonymousType()
                     select (INamedTypeSymbol)part.Symbol;
 
-                var info = _anonymousTypeDisplayService.GetTypeDisplayInfo(
+                var info = _structuralTypeDisplayService.GetTypeDisplayInfo(
                     firstSymbol, directNormalAnonymousTypeReferences, _semanticModel, _position);
 
                 if (info.AnonymousTypesParts.Count > 0)

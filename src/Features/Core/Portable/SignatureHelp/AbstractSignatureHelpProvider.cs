@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             SemanticModel semanticModel,
             int position,
             ISymbolDisplayService symbolDisplayService,
-            IStructuralTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             bool isVariadic,
             Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
             IList<SymbolDisplayPart> prefixParts,
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SignatureHelpSymbolParameter> parameters,
             IList<SymbolDisplayPart>? descriptionParts = null)
         {
-            return CreateItem(orderSymbol, semanticModel, position, anonymousTypeDisplayService,
+            return CreateItem(orderSymbol, semanticModel, position, structuralTypeDisplayService,
                 isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
         }
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             ISymbol orderSymbol,
             SemanticModel semanticModel,
             int position,
-            IStructuralTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             bool isVariadic,
             Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IList<SymbolDisplayPart> prefixParts,
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SignatureHelpSymbolParameter> parameters,
             IList<SymbolDisplayPart>? descriptionParts = null)
         {
-            return CreateItemImpl(orderSymbol, semanticModel, position, anonymousTypeDisplayService,
+            return CreateItemImpl(orderSymbol, semanticModel, position, structuralTypeDisplayService,
                 isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
         }
 
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             ISymbol orderSymbol,
             SemanticModel semanticModel,
             int position,
-            IStructuralTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             bool isVariadic,
             Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IList<SymbolDisplayPart> prefixParts,
@@ -172,10 +172,10 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SignatureHelpSymbolParameter> parameters,
             IList<SymbolDisplayPart>? descriptionParts)
         {
-            prefixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts, semanticModel, position);
-            separatorParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(separatorParts, semanticModel, position);
-            suffixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(suffixParts, semanticModel, position);
-            parameters = parameters.Select(p => InlineDelegateAnonymousTypes(p, semanticModel, position, anonymousTypeDisplayService)).ToList();
+            prefixParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts, semanticModel, position);
+            separatorParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(separatorParts, semanticModel, position);
+            suffixParts = structuralTypeDisplayService.InlineDelegateAnonymousTypes(suffixParts, semanticModel, position);
+            parameters = parameters.Select(p => InlineDelegateAnonymousTypes(p, semanticModel, position, structuralTypeDisplayService)).ToList();
             descriptionParts = descriptionParts == null
                 ? SpecializedCollections.EmptyList<SymbolDisplayPart>()
                 : descriptionParts;
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 where part.Symbol.IsNormalAnonymousType()
                 select (INamedTypeSymbol)part.Symbol!;
 
-            var info = anonymousTypeDisplayService.GetTypeDisplayInfo(
+            var info = structuralTypeDisplayService.GetTypeDisplayInfo(
                 orderSymbol, directAnonymousTypeReferences, semanticModel, position);
 
             if (info.AnonymousTypesParts.Count > 0)
@@ -240,16 +240,16 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             SignatureHelpSymbolParameter parameter,
             SemanticModel semanticModel,
             int position,
-            IStructuralTypeDisplayService anonymousTypeDisplayService)
+            IStructuralTypeDisplayService structuralTypeDisplayService)
         {
             return new SignatureHelpSymbolParameter(
                 parameter.Name,
                 parameter.IsOptional,
                 parameter.DocumentationFactory,
-                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.DisplayParts, semanticModel, position),
-                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.PrefixDisplayParts, semanticModel, position),
-                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SuffixDisplayParts, semanticModel, position),
-                anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SelectedDisplayParts, semanticModel, position));
+                structuralTypeDisplayService.InlineDelegateAnonymousTypes(parameter.DisplayParts, semanticModel, position),
+                structuralTypeDisplayService.InlineDelegateAnonymousTypes(parameter.PrefixDisplayParts, semanticModel, position),
+                structuralTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SuffixDisplayParts, semanticModel, position),
+                structuralTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SelectedDisplayParts, semanticModel, position));
         }
 
         public async Task<SignatureHelpItems?> GetItemsAsync(
