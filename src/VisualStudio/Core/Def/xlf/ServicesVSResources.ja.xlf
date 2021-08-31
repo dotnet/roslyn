@@ -1472,7 +1472,7 @@
         <target state="new">'{0}' has base types and derived types</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_has_implemented_interfaces_and_based_types">
+      <trans-unit id="_0_has_implemented_interfaces_and_base_types">
         <source>'{0}' has implemented interfaces and base types</source>
         <target state="new">'{0}' has implemented interfaces and base types</target>
         <note />
@@ -1482,9 +1482,9 @@
         <target state="new">'{0}' has implemented interfaces and derived types</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_has_implemented_interfaces_based_types_and_derived_types">
-        <source>'{0}' has implemented interfaces, based types and derived types</source>
-        <target state="new">'{0}' has implemented interfaces, based types and derived types</target>
+      <trans-unit id="_0_has_implemented_interfaces_base_types_and_derived_types">
+        <source>'{0}' has implemented interfaces, base types and derived types</source>
+        <target state="new">'{0}' has implemented interfaces, base types and derived types</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_has_implemented_members_and_overridden_members">
@@ -1547,7 +1547,7 @@
         <target state="new">'{0}' implements members from multiple interfaces</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_is_derived_from _1">
+      <trans-unit id="_0_is_derived_from_1">
         <source>'{0}' is derived from '{1}'</source>
         <target state="new">'{0}' is derived from '{1}'</target>
         <note />
@@ -1560,11 +1560,6 @@
       <trans-unit id="_0_is_implemented_by_members_from_multiple_types">
         <source>'{0}' is implemented by members from multiple types</source>
         <target state="new">'{0}' is implemented by members from multiple types</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_is_inherited">
-        <source>'{0}' is inherited</source>
-        <target state="translated">'{0}' が継承済み</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_inherited_from_1">

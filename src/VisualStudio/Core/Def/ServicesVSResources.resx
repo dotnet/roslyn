@@ -1702,9 +1702,6 @@ Additional information: {1}</value>
   <data name="Multiple_members_are_inherited" xml:space="preserve">
     <value>Multiple members are inherited</value>
   </data>
-  <data name="_0_is_inherited" xml:space="preserve">
-    <value>'{0}' is inherited</value>
-  </data>
   <data name="Navigate_to_0" xml:space="preserve">
     <value>Navigate to '{0}'</value>
   </data>
@@ -1821,14 +1818,14 @@ Additional information: {1}</value>
   <data name="_0_has_base_types_and_derived_types" xml:space="preserve">
     <value>'{0}' has base types and derived types</value>
   </data>
-  <data name="_0_has_implemented_interfaces_and_based_types" xml:space="preserve">
+  <data name="_0_has_implemented_interfaces_and_base_types" xml:space="preserve">
     <value>'{0}' has implemented interfaces and base types</value>
   </data>
   <data name="_0_has_implemented_interfaces_and_derived_types" xml:space="preserve">
     <value>'{0}' has implemented interfaces and derived types</value>
   </data>
-  <data name="_0_has_implemented_interfaces_based_types_and_derived_types" xml:space="preserve">
-    <value>'{0}' has implemented interfaces, based types and derived types</value>
+  <data name="_0_has_implemented_interfaces_base_types_and_derived_types" xml:space="preserve">
+    <value>'{0}' has implemented interfaces, base types and derived types</value>
   </data>
   <data name="_0_has_implemented_members_and_overridden_members" xml:space="preserve">
     <value>'{0}' has implemented members and overridden members</value>
@@ -1866,7 +1863,7 @@ Additional information: {1}</value>
   <data name="_0_implements_members_from_multiple_interfaces" xml:space="preserve">
     <value>'{0}' implements members from multiple interfaces</value>
   </data>
-  <data name="_0_is_derived_from _1" xml:space="preserve">
+  <data name="_0_is_derived_from_1" xml:space="preserve">
     <value>'{0}' is derived from '{1}'</value>
   </data>
   <data name="_0_is_implemented_by_1" xml:space="preserve">

@@ -359,8 +359,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 includeHiddenLocations: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var displayName = targetSymbol.ToDisplayString(s_displayFormat);
-
             return new SerializableInheritanceTargetItem(
                 inheritanceRelationship,
                 // Id is used by FAR service for caching, it is not used in inheritance margin

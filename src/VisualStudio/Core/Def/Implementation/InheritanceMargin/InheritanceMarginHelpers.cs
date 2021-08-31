@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             => headerRelationship switch
             {
                 InheritanceRelationship.ImplementedInterface => ServicesVSResources._0_implements_1,
-                InheritanceRelationship.BaseType => ServicesVSResources._0_is_derived_from__1,
+                InheritanceRelationship.BaseType => ServicesVSResources._0_is_derived_from_1,
                 InheritanceRelationship.DerivedType => ServicesVSResources._0_derives_1,
                 InheritanceRelationship.InheritedInterface => ServicesVSResources._0_is_inherited_from_1,
                 InheritanceRelationship.ImplementingType => ServicesVSResources._0_is_implemented_by_1,
@@ -175,14 +175,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // 'class Bar' has Implemented interfaces, Base types and Derived types
             if (aggregateRelationship.HasFlag(InheritanceRelationship.ImplementedInterface | InheritanceRelationship.BaseType | InheritanceRelationship.DerivedType))
             {
-                return ServicesVSResources._0_has_implemented_interfaces_based_types_and_derived_types;
+                return ServicesVSResources._0_has_implemented_interfaces_base_types_and_derived_types;
             }
 
             // For class/struct
             // 'class Bar' has Implemented interfaces and Base types
             if (aggregateRelationship.HasFlag(InheritanceRelationship.ImplementedInterface | InheritanceRelationship.BaseType))
             {
-                return ServicesVSResources._0_has_implemented_interfaces_and_based_types;
+                return ServicesVSResources._0_has_implemented_interfaces_and_base_types;
             }
 
             // For class/struct

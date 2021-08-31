@@ -209,7 +209,7 @@ public class Bar : AbsBar
             Dim targetForAbsFoo = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Overriding_members, KnownMonikers.Overridden, ServicesVSResources.Overriding_members)).
                 Add(New TargetMenuItemViewModel("Bar.Foo", KnownMonikers.MethodPublic, "Bar.Foo", Nothing))
 
-            Dim tooltipTextForBar = String.Format(ServicesVSResources._0_is_derived_from__1, "Bar", "AbsBar")
+            Dim tooltipTextForBar = String.Format(ServicesVSResources._0_is_derived_from_1, "Bar", "AbsBar")
             Dim targetForBar = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
                 Add(New TargetMenuItemViewModel("AbsBar", KnownMonikers.ClassPublic, "AbsBar", Nothing))
 
@@ -623,7 +623,7 @@ public class SubBar : Bar { }"
                 Add(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden, ServicesVSResources.Derived_types)).
                 Add(New TargetMenuItemViewModel("SubBar", KnownMonikers.ClassPublic, "SubBar", Nothing))
 
-            Dim tooltipTextForSubBar = String.Format(ServicesVSResources._0_has_implemented_interfaces_and_based_types, "SubBar")
+            Dim tooltipTextForSubBar = String.Format(ServicesVSResources._0_has_implemented_interfaces_and_base_types, "SubBar")
             Dim targetForBaseBar1 = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Implemented_interfaces, KnownMonikers.Implementing, ServicesVSResources.Implemented_interfaces)).
                 Add(New TargetMenuItemViewModel("IEnumerable", KnownMonikers.InterfacePublic, "IEnumerable", Nothing)).
                 Add(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
@@ -675,7 +675,7 @@ public class SubBar : Bar
                 Add(New TargetMenuItemViewModel("Bar.GetEnumerator", KnownMonikers.MethodPublic, "Bar.GetEnumerator", Nothing)).
                 Add(New TargetMenuItemViewModel("SubBar.GetEnumerator", KnownMonikers.MethodPublic, "SubBar.GetEnumerator", Nothing))
 
-            Dim tooltipTextForBar = String.Format(ServicesVSResources._0_has_implemented_interfaces_based_types_and_derived_types, "Bar")
+            Dim tooltipTextForBar = String.Format(ServicesVSResources._0_has_implemented_interfaces_base_types_and_derived_types, "Bar")
             Dim targetForBar = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Implemented_interfaces, KnownMonikers.Implementing, ServicesVSResources.Implemented_interfaces)).
                 Add(New TargetMenuItemViewModel("IEnumerable", KnownMonikers.InterfacePublic, "IEnumerable", Nothing)).
                 Add(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
@@ -691,7 +691,7 @@ public class SubBar : Bar
                 Add(New HeaderMenuItemViewModel(ServicesVSResources.Overriding_members, KnownMonikers.Overridden, ServicesVSResources.Overriding_members)).
                 Add(New TargetMenuItemViewModel("SubBar.GetEnumerator", KnownMonikers.MethodPublic, "SubBar.GetEnumerator", Nothing))
 
-            Dim tooltipTextForSubBar = String.Format(ServicesVSResources._0_has_implemented_interfaces_and_based_types, "SubBar")
+            Dim tooltipTextForSubBar = String.Format(ServicesVSResources._0_has_implemented_interfaces_and_base_types, "SubBar")
             Dim targetForBaseBar1 = ImmutableArray.Create(Of InheritanceMenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Implemented_interfaces, KnownMonikers.Implementing, ServicesVSResources.Implemented_interfaces)).
                 Add(New TargetMenuItemViewModel("IEnumerable", KnownMonikers.InterfacePublic, "IEnumerable", Nothing)).
                 Add(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
