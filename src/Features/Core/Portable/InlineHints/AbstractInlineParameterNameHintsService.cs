@@ -260,9 +260,9 @@ namespace Microsoft.CodeAnalysis.InlineHints
             }
         }
 
-        private static bool ParameterMatchesArgumentName(string? identifierArgument, IParameterSymbol? parameter, ISyntaxFactsService syntaxFacts)
+        private static bool ParameterMatchesArgumentName(string? identifierArgument, IParameterSymbol parameter, ISyntaxFactsService syntaxFacts)
         {
-            if (identifierArgument is null || parameter is null)
+            if (identifierArgument is null)
             {
                 return false;
             }
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         protected static string GetIdentifierNameFromArgument(SyntaxNode argument, ISyntaxFactsService syntaxFacts)
         {
             var identifierNameSyntax = syntaxFacts.GetExpressionOfArgument(argument);
-            if (identifierNameSyntax == null)
+            if (identifierNameSyntax == null || !syntaxFacts.IsIdentifierName(identifierNameSyntax))
             {
                 return string.Empty;
             }
