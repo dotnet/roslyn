@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal readonly struct StructuralTypeDisplayInfo
-
     {
         public IDictionary<INamedTypeSymbol, string> AnonymousTypeToName { get; }
         public IList<SymbolDisplayPart> AnonymousTypesParts { get; }
