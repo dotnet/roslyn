@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         [Order(After = PredefinedAdornmentLayers.TextMarker)]
         [Order(After = PredefinedAdornmentLayers.CurrentLineHighlighter)]
         [Order(After = PredefinedAdornmentLayers.Squiggle)]
-        internal readonly AdornmentLayerDefinition AdornmentLayer;
+        internal readonly AdornmentLayerDefinition? AdornmentLayer;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
