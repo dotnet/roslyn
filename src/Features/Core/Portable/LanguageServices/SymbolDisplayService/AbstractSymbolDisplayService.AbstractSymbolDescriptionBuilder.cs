@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     case SymbolDescriptionGroups.ValueDocumentation:
                         return 1;
 
-                    case SymbolDescriptionGroups.AnonymousTypes:
+                    case SymbolDescriptionGroups.StructuralTypes:
                         return 0;
 
                     case SymbolDescriptionGroups.Exceptions:

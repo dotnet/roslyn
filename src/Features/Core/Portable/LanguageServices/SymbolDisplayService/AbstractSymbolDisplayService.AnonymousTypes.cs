@@ -44,7 +44,7 @@ restart:
                 var directStructuralTypes =
                     from parts in _groupMap.Values
                     from part in parts
-                    where part.Symbol.IsNormalAnonymousType()
+                    where part.Symbol.IsNormalAnonymousType() || part.Symbol.IsTupleType()
                     select (INamedTypeSymbol)part.Symbol;
 
                 var info = _structuralTypeDisplayService.GetTypeDisplayInfo(
@@ -52,8 +52,7 @@ restart:
 
                 if (info.TypesParts.Count > 0)
                 {
-                    AddToGroup(SymbolDescriptionGroups.AnonymousTypes,
-                        info.TypesParts);
+                    AddToGroup(SymbolDescriptionGroups.StructuralTypes, info.TypesParts);
 
 restart:
                     foreach (var (group, parts) in _groupMap)

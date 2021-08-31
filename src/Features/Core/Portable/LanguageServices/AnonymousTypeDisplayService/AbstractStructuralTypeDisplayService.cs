@@ -17,32 +17,32 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public StructuralTypeDisplayInfo GetTypeDisplayInfo(
             ISymbol orderSymbol,
-            IEnumerable<INamedTypeSymbol> directNormalAnonymousTypeReferences,
+            IEnumerable<INamedTypeSymbol> directStructuralTypeReferences,
             SemanticModel semanticModel,
             int position)
         {
-            if (!directNormalAnonymousTypeReferences.Any())
+            if (!directStructuralTypeReferences.Any())
             {
                 return new StructuralTypeDisplayInfo(
                     SpecializedCollections.EmptyDictionary<INamedTypeSymbol, string>(),
                     SpecializedCollections.EmptyList<SymbolDisplayPart>());
             }
 
-            var transitiveNormalAnonymousTypeReferences = GetTransitiveNormalAnonymousTypeReferences(directNormalAnonymousTypeReferences.ToSet());
-            transitiveNormalAnonymousTypeReferences = OrderAnonymousTypes(transitiveNormalAnonymousTypeReferences, orderSymbol);
+            var transitiveStructuralTypeReferences = GetTransitiveNormalAnonymousTypeReferences(directStructuralTypeReferences.ToSet());
+            transitiveStructuralTypeReferences = OrderAnonymousTypes(transitiveStructuralTypeReferences, orderSymbol);
 
             IList<SymbolDisplayPart> anonymousTypeParts = new List<SymbolDisplayPart>();
-            anonymousTypeParts.Add(PlainText(FeaturesResources.Anonymous_Types_colon));
+            anonymousTypeParts.Add(PlainText(FeaturesResources.Structural_Types_colon));
             anonymousTypeParts.AddRange(LineBreak());
 
-            for (var i = 0; i < transitiveNormalAnonymousTypeReferences.Count; i++)
+            for (var i = 0; i < transitiveStructuralTypeReferences.Count; i++)
             {
                 if (i != 0)
                 {
                     anonymousTypeParts.AddRange(LineBreak());
                 }
 
-                var anonymousType = transitiveNormalAnonymousTypeReferences[i];
+                var anonymousType = transitiveStructuralTypeReferences[i];
                 anonymousTypeParts.AddRange(Space(count: 4));
                 anonymousTypeParts.Add(Part(SymbolDisplayPartKind.ClassName, anonymousType, anonymousType.Name));
                 anonymousTypeParts.AddRange(Space());
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             anonymousTypeParts = this.InlineDelegateAnonymousTypes(anonymousTypeParts, semanticModel, position);
 
             // Finally, assign a name to all the anonymous types.
-            var anonymousTypeToName = GenerateAnonymousTypeNames(transitiveNormalAnonymousTypeReferences);
+            var anonymousTypeToName = GenerateAnonymousTypeNames(transitiveStructuralTypeReferences);
             anonymousTypeParts = StructuralTypeDisplayInfo.ReplaceStructuralTypes(anonymousTypeParts, anonymousTypeToName);
 
             return new StructuralTypeDisplayInfo(anonymousTypeToName, anonymousTypeParts);

@@ -2250,6 +2250,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">스트림은 읽기 및 찾기 작업을 지원해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Structural_Types_colon">
+        <source>Structural Types:</source>
+        <target state="new">Structural Types:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0}을(를) 표시하지 않음</target>
@@ -3333,11 +3338,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">'{0}'에 대한 쿼리 변수 지정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">익명 형식:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">

@@ -2250,6 +2250,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Akış okuma ve arama işlemlerini desteklemelidir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Structural_Types_colon">
+        <source>Structural Types:</source>
+        <target state="new">Structural Types:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0} eylemini bastır</target>
@@ -3333,11 +3338,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">'{0}' için sorgu değişkenini ortaya çıkar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">Anonim Türler:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">

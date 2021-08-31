@@ -2250,6 +2250,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">O fluxo deve fornecer suporte a operações de leitura e busca.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Structural_Types_colon">
+        <source>Structural Types:</source>
+        <target state="new">Structural Types:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Suprimir {0}</target>
@@ -3333,11 +3338,6 @@ Se o especificador de formato "M" for usado sem outros especificadores de format
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">Introduzir variável de consulta para "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">Tipos Anônimos:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">
