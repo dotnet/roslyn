@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
         string MetadataName { get; }
 
         /// <summary>
-        /// Gets the metadata token
+        /// Gets the metadata token associated with this symbol, or 0 if the symbol is not loaded from metadata.
         /// </summary>
         int MetadataToken { get; }
 
