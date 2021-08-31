@@ -78,15 +78,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         private void OnDestinationUpdated()
         {
             var isNewType = DestinationName.IsNew;
-            _isValidName = !isNewType || IsValidType(DestinationName!.TypeName);
+            CanSubmit = !isNewType || IsValidType(DestinationName!.TypeName);
 
-            if (_isValidName && isNewType)
+            if (CanSubmit && isNewType)
             {
                 Icon = KnownMonikers.StatusInformation;
                 Message = ServicesVSResources.New_Type_Name_colon;
                 ShowMessage = true;
             }
-            else if (!_isValidName)
+            else if (!CanSubmit)
             {
                 Icon = KnownMonikers.StatusInvalid;
                 Message = ServicesVSResources.Invalid_type_name;
@@ -97,19 +97,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 ShowMessage = false;
             }
 
-            ShownTypes = AvailableTypes.WhereAsArray(t => t.TypeName.Contains(SearchText));
-            if (_isValidName)
+            var shownTypes = AvailableTypes.WhereAsArray(t => t.TypeName.Contains(SearchText));
+            // always show option to make new type if valid
+            if (isNewType)
             {
-                // always show option to make new type if valid
-                if (isNewType)
-                {
-                    ShownTypes = ShownTypes.Insert(0, DestinationName);
-                }
-                else
-                {
-                    ShownTypes = ShownTypes.Insert(0, new TypeNameItem(DestinationName.TypeName));
-                }
+                shownTypes = shownTypes.Insert(0, DestinationName);
             }
+
+            ShownTypes = shownTypes;
         }
 
         private bool IsValidType(string typeName)
@@ -195,10 +190,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             private set => SetProperty(ref _showMessage, value);
         }
 
-        private bool _isValidName = true;
+        private bool _canSubmit = true;
         public bool CanSubmit
         {
-            get => _isValidName && MemberSelectionViewModel.CheckedMembers.Length > 0;
+            get => _canSubmit;
+            set => SetProperty(ref _canSubmit, value);
         }
     }
 }
