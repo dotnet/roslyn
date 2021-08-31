@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             transitiveStructuralTypeReferences = OrderStructuralTypes(transitiveStructuralTypeReferences, orderSymbol);
 
             IList<SymbolDisplayPart> typeParts = new List<SymbolDisplayPart>();
-            typeParts.Add(PlainText(FeaturesResources.Structural_Types_colon));
+            typeParts.Add(PlainText(FeaturesResources.Types_colon));
             typeParts.AddRange(LineBreak());
 
             for (var i = 0; i < transitiveStructuralTypeReferences.Length; i++)
@@ -149,16 +149,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             foreach (var type in structuralTypes)
                 type.Accept(visitor);
 
+            // If we have at least one tuple that showed up multiple times, then move *all* tuples to the 'Types:'
+            // section to clean up the display.
+            var hasAtLeastOneTupleWhichAppearsMultipleTimes = transitiveReferences.Any(kvp => kvp.Key.IsTupleType && kvp.Value.count >= 2);
+
             using var _ = ArrayBuilder<INamedTypeSymbol>.GetInstance(out var result);
 
-            foreach (var (namedType, (order, count)) in transitiveReferences.OrderBy(kvp => kvp.Value.order))
+            foreach (var (namedType, _) in transitiveReferences.OrderBy(kvp => kvp.Value.order))
             {
-                if (namedType.IsTupleType && count == 1)
-                {
-                    // Ignore tuples only referenced once.  We'll keep them inline.  If the tuple shows up multiple times,
-                    // then we'll extract it out to the 'Structural Types' section to prevent lots of duplications.
+                if (namedType.IsTupleType && !hasAtLeastOneTupleWhichAppearsMultipleTimes)
                     continue;
-                }
 
                 result.Add(namedType);
             }

@@ -3351,7 +3351,7 @@ namespace N {
 ",
             MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<'a> IEnumerable<int>.Select<int, 'a>(Func<int, 'a> selector)"),
             AnonymousTypes($@"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ int i, bool j }}"));
         }
 
@@ -3925,7 +3925,7 @@ class C
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{  }}"));
         }
 
@@ -3943,7 +3943,7 @@ x[0].$$Address",
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ string Name, 'b Address }}
     'b {FeaturesResources.is_} new {{ string Street, string Zip }}"));
 
@@ -3956,7 +3956,7 @@ x[0].$$Name",
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ string Name, 'b Address }}
     'b {FeaturesResources.is_} new {{ string Street, string Zip }}"));
         }
@@ -3985,7 +3985,7 @@ $@"
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ int N }}"));
         }
 
@@ -7654,12 +7654,25 @@ TResult {FeaturesResources.is_} string"));
                 MainDescription(@"void C.M('a s, 'a t)"),
                 NoTypeParameterMap,
                 AnonymousTypes($@"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} (int x, string y)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestMultipleTupleTypesDifferentTypes()
+        public async Task TestMultipleTupleTypesDifferentTypes1()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) s, (int a, string b) u) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M((int x, string y) s, (int a, string b) u)"),
+                NoTypeParameterMap);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesDifferentTypes2()
         {
             await TestInClassAsync(
 @"void M((int x, string y) s, (int x, string y) t, (int a, string b) u, (int a, string b) v) { }
@@ -7670,7 +7683,24 @@ TResult {FeaturesResources.is_} string"));
                 MainDescription(@"void C.M('a s, 'a t, 'b u, 'b v)"),
                 NoTypeParameterMap,
                 AnonymousTypes($@"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (int x, string y)
+    'b {FeaturesResources.is_} (int a, string b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesDifferentTypes3()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) s, (int x, string y) t, (int a, string b) u) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M('a s, 'a t, 'b u)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} (int x, string y)
     'b {FeaturesResources.is_} (int a, string b)"));
         }
@@ -7688,7 +7718,7 @@ TResult {FeaturesResources.is_} string"));
                 MainDescription(@"'a C.M<'a>('a t)"),
                 NoTypeParameterMap,
                 AnonymousTypes($@"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} (int a, string b)"));
         }
 
@@ -7705,7 +7735,7 @@ TResult {FeaturesResources.is_} string"));
                 MainDescription(@"'a C.M<'a>('a t)"),
                 NoTypeParameterMap,
                 AnonymousTypes($@"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ (int a, string b) x }}"));
         }
 
@@ -7722,7 +7752,7 @@ TResult {FeaturesResources.is_} string"));
                 MainDescription(@"'a C.M<'a>('a t)"),
                 NoTypeParameterMap,
                 AnonymousTypes($@"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ 'b x, 'b y }}
     'b {FeaturesResources.is_} (int a, string b)"));
         }

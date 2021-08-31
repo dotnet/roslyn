@@ -2250,11 +2250,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Stream muss Lese- und Suchvorgänge unterstützen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Structural_Types_colon">
-        <source>Structural Types:</source>
-        <target state="new">Structural Types:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0} unterdrücken</target>
@@ -2299,6 +2294,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <source>Too many )'s</source>
         <target state="translated">Zu viele )-Zeichen.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
+      </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="new">Types:</target>
+        <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>

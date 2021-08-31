@@ -887,7 +887,7 @@ Class C
 End Class]]></Text>.NormalizedValue,
             MainDescription("AnonymousType 'a"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Structural_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
         End Function
 
         <WorkItem(543226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543226")>
@@ -905,7 +905,7 @@ Module Program
 End Module]]></Text>.NormalizedValue,
             MainDescription("ReadOnly Property 'a.Name As String"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Structural_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
         End Function
 
         <WorkItem(543223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543223")>
@@ -920,7 +920,7 @@ End Class
 ]]></Text>.NormalizedValue,
             MainDescription("AnonymousType 'a"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Structural_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Goo As ? }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Goo As ? }}"))
         End Function
 
         <WorkItem(543242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543242")>
@@ -982,7 +982,7 @@ Module Program
 End Module
 ]]></Text>.NormalizedValue,
             MainDescription($"({FeaturesResources.local_variable}) a As <Function() As 'a>"),
-            AnonymousTypes(vbCrLf & FeaturesResources.Structural_Types_colon & vbCrLf &
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf &
                            $"    'a {FeaturesResources.is_} New With {{ .Goo As String }}"))
         End Function
 
@@ -1000,7 +1000,7 @@ Module Program
 End Module
 ]]></Text>.NormalizedValue,
             MainDescription($"({FeaturesResources.local_variable}) a As <Function(i As Integer) As 'a>"),
-            AnonymousTypes(vbCrLf & FeaturesResources.Structural_Types_colon & vbCrLf &
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf &
                            $"    'a {FeaturesResources.is_} New With {{ .Sq As Integer, .M As <Function(j As Integer) As Integer> }}"))
         End Function
 
@@ -2668,12 +2668,24 @@ End Class",
                 MainDescription("Sub C.M(s As 'a, t As 'a)"),
                 NoTypeParameterMap,
                 AnonymousTypes($"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} (x As Integer, y As String)"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
-        Public Async Function TestMultipleTupleTypesDifferentTypes() As Task
+        Public Async Function TestMultipleTupleTypesDifferentTypes1() As Task
+            Await TestInClassAsync(
+"sub M(s As (x As Integer, y As String), u As (a As Integer, b As String))
+ end sub
+ sub N()
+    $$M(nothing)
+ end sub",
+                MainDescription("Sub C.M(s As (x As Integer, y As String), u As (a As Integer, b As String))"),
+                NoTypeParameterMap)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesDifferentTypes2() As Task
             Await TestInClassAsync(
 "sub M(s As (x As Integer, y As String), t As (x As Integer, y As String), u As (a As Integer, b As String), v as (a As Integer, b As String))
  end sub
@@ -2683,7 +2695,23 @@ End Class",
                 MainDescription("Sub C.M(s As 'a, t As 'a, u As 'b, v As 'b)"),
                 NoTypeParameterMap,
                 AnonymousTypes($"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (x As Integer, y As String)
+    'b {FeaturesResources.is_} (a As Integer, b As String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesDifferentTypes3() As Task
+            Await TestInClassAsync(
+"sub M(s As (x As Integer, y As String), t As (x As Integer, y As String), u As (a As Integer, b As String))
+ end sub
+ sub N()
+    $$M(nothing)
+ end sub",
+                MainDescription("Sub C.M(s As 'a, t As 'a, u As 'b)"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} (x As Integer, y As String)
     'b {FeaturesResources.is_} (a As Integer, b As String)"))
         End Function
@@ -2700,7 +2728,7 @@ End Class",
                 MainDescription("Function C.M(Of 'a)(t As 'a) As 'a"),
                 NoTypeParameterMap,
                 AnonymousTypes($"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} (a As Integer, b As String)"))
         End Function
 
@@ -2716,7 +2744,7 @@ End Class",
                 MainDescription("Function C.M(Of 'a)(t As 'a) As 'a"),
                 NoTypeParameterMap,
                 AnonymousTypes($"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} New With {{ Key .x As (a As Integer, b As String) }}"))
         End Function
 
@@ -2732,7 +2760,7 @@ End Class",
                 MainDescription("Function C.M(Of 'a)(t As 'a) As 'a"),
                 NoTypeParameterMap,
                 AnonymousTypes($"
-{FeaturesResources.Structural_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} New With {{ Key .x As 'b, Key .y As 'b }}
     'b {FeaturesResources.is_} (a As Integer, b As String)"))
         End Function

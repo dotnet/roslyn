@@ -2250,11 +2250,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">스트림은 읽기 및 찾기 작업을 지원해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Structural_Types_colon">
-        <source>Structural Types:</source>
-        <target state="new">Structural Types:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">{0}을(를) 표시하지 않음</target>
@@ -2299,6 +2294,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Too many )'s</source>
         <target state="translated">)가 너무 많습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
+      </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="new">Types:</target>
+        <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
