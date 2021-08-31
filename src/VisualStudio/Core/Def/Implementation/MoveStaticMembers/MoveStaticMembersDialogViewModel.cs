@@ -52,9 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             // TODO change once we allow movement to existing types
             var fullyQualifiedTypeName = PrependedNamespace + DestinationName;
             var isNewType = !_existingNames.Contains(fullyQualifiedTypeName);
-            _isValidName = isNewType && IsValidType(fullyQualifiedTypeName);
+            CanSubmit = isNewType && IsValidType(fullyQualifiedTypeName);
 
-            if (_isValidName)
+            if (CanSubmit)
             {
                 Icon = KnownMonikers.StatusInformation;
                 Message = ServicesVSResources.New_Type_Name_colon;
@@ -118,10 +118,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             private set => SetProperty(ref _showMessage, value);
         }
 
-        private bool _isValidName = true;
+        private bool _canSubmit = true;
         public bool CanSubmit
         {
-            get => _isValidName && MemberSelectionViewModel.CheckedMembers.Length > 0;
+            get => _canSubmit;
+            set => SetProperty(ref _canSubmit, value);
         }
     }
 }

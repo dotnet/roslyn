@@ -244,6 +244,36 @@ End Namespace
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveNothing() As Task
+            Dim initialMarkup = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray(Of String).Empty
+            Dim expectedText1 = "
+Namespace TestNs
+    Public Class Class1
+        Public Shared Function Test[||]Func() As Integer
+            Return 0
+        End Function
+    End Class
+End Namespace"
+            Dim expectedText2 = "Namespace TestNs
+    Class Class1Helpers
+    End Class
+End Namespace
+"
+
+            Await TestMovementNewFileAsync(initialMarkup, expectedText1, expectedText2, newFileName, selection, newTypeName)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function TestMoveFunctionWithTrivia() As Task
             Dim initialMarkup = "
 Namespace TestNs
