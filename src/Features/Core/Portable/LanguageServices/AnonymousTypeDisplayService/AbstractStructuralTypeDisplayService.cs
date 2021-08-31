@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal abstract partial class AbstractStructuralTypeDisplayService : IStructuralTypeDisplayService
     {
         public abstract ImmutableArray<SymbolDisplayPart> GetTypeParts(
-            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
+            INamedTypeSymbol structuralType, SemanticModel semanticModel, int position);
 
         public StructuralTypeDisplayInfo GetTypeDisplayInfo(
             ISymbol orderSymbol,
