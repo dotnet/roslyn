@@ -282,6 +282,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Show_inheritance_margin
             => ServicesVSResources.Show_inheritance_margin;
 
+        public static string Combine_inheritance_margin_with_indicator_margin
+            => ServicesVSResources.Combine_inheritance_margin_with_indicator_margin;
+
         public static string Inheritance_Margin_experimental
             => ServicesVSResources.Inheritance_Margin_experimental;
     }

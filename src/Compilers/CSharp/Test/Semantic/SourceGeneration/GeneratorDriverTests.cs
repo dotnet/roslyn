@@ -2037,7 +2037,48 @@ class C { }
 
                 bool isTextForKind(GeneratedSourceResult s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs";
             }
+        }
 
+        [Fact]
+        public void Metadata_References_Provider()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            var metadataRefs = new[] {
+                MetadataReference.CreateFromAssemblyInternal(this.GetType().Assembly),
+                MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly)
+            };
+            Compilation compilation = CreateEmptyCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions, references: metadataRefs);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<string?> referenceList = new List<string?>();
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.MetadataReferencesProvider, (spc, r) => { referenceList.Add(r.Display); });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            Assert.Equal(referenceList[0], metadataRefs[0].Display);
+            Assert.Equal(referenceList[1], metadataRefs[1].Display);
+
+            // re-run and check we didn't see anything new
+            referenceList.Clear();
+
+            driver = driver.RunGenerators(compilation);
+            Assert.Empty(referenceList);
+
+            // Modify the reference
+            var modifiedRef = metadataRefs[0].WithAliases(new[] { "Alias " });
+            metadataRefs[0] = modifiedRef;
+            compilation = compilation.WithReferences(metadataRefs);
+
+            driver = driver.RunGenerators(compilation);
+            Assert.Single(referenceList, modifiedRef.Display);
         }
     }
 }
