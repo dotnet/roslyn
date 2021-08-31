@@ -6037,7 +6037,7 @@ public class C
     }
 }
 ",
-                MainDescription("(System.Int32, System.Int32)"));
+                MainDescription("(int, int)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -7627,6 +7627,69 @@ TResult {FeaturesResources.is_} string"));
     }
 }",
                 MainDescription("delegate string <anonymous delegate>(ref int)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestSingleTupleType()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) t) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M((int x, string y) t)"),
+                NoTypeParameterMap);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesSameType()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) s, (int x, string y) t) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M('a s, 'a t)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Structural_Types_colon}
+    'a {FeaturesResources.is_} (int x, string y)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesDifferentTypes()
+        {
+            await TestInClassAsync(
+@"void M((int x, string y) s, (int x, string y) t, (int a, string b) u, (int a, string b) v) { }
+  void N()
+  {
+    $$M(default);
+  }",
+                MainDescription(@"void C.M('a s, 'a t, 'b u, 'b v)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Structural_Types_colon}
+    'a {FeaturesResources.is_} (int x, string y)
+    'b {FeaturesResources.is_} (int a, string b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestMultipleTupleTypesInference()
+        {
+            await TestInClassAsync(
+@"T M<T>(T t) { }
+  void N()
+  {
+    (int a, string b) x = default;
+    $$M(x);
+  }",
+                MainDescription(@"'a C.M<'a>('a t)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Structural_Types_colon}
+    'a {FeaturesResources.is_} (int a, string b)"));
         }
     }
 }
