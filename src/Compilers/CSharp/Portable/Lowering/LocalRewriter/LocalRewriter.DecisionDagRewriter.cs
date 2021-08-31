@@ -1012,7 +1012,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We hide the jump back into the decision dag, as it is not logically part of the when clause
                     sectionBuilder.Add(GenerateInstrumentation ? _factory.HiddenSequencePoint(jumps) : jumps);
-
                 }
 
                 // if (loweredWhenExpression)
