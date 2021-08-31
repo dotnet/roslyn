@@ -47,7 +47,7 @@ restart:
                     where part.Symbol.IsNormalAnonymousType()
                     select (INamedTypeSymbol)part.Symbol;
 
-                var info = _anonymousTypeDisplayService.GetNormalAnonymousTypeDisplayInfo(
+                var info = _anonymousTypeDisplayService.GetTypeDisplayInfo(
                     firstSymbol, directNormalAnonymousTypeReferences, _semanticModel, _position);
 
                 if (info.AnonymousTypesParts.Count > 0)

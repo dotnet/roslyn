@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 where part.Symbol.IsNormalAnonymousType()
                 select (INamedTypeSymbol)part.Symbol!;
 
-            var info = anonymousTypeDisplayService.GetNormalAnonymousTypeDisplayInfo(
+            var info = anonymousTypeDisplayService.GetTypeDisplayInfo(
                 orderSymbol, directAnonymousTypeReferences, semanticModel, position);
 
             if (info.AnonymousTypesParts.Count > 0)

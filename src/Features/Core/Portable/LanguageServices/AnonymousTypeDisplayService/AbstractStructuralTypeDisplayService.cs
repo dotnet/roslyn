@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
             INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
 
-        public StructuralTypeDisplayInfo GetNormalAnonymousTypeDisplayInfo(
+        public StructuralTypeDisplayInfo GetTypeDisplayInfo(
             ISymbol orderSymbol,
             IEnumerable<INamedTypeSymbol> directNormalAnonymousTypeReferences,
             SemanticModel semanticModel,
