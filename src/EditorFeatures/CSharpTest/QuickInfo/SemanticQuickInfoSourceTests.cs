@@ -7691,5 +7691,40 @@ TResult {FeaturesResources.is_} string"));
 {FeaturesResources.Structural_Types_colon}
     'a {FeaturesResources.is_} (int a, string b)"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousTypeWithTupleTypesInference1()
+        {
+            await TestInClassAsync(
+@"T M<T>(T t) { }
+  void N()
+  {
+    var v = new { x = default((int a, string b)) };
+    $$M(v);
+  }",
+                MainDescription(@"'a C.M<'a>('a t)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Structural_Types_colon}
+    'a {FeaturesResources.is_} new {{ (int a, string b) x }}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestAnonymousTypeWithTupleTypesInference2()
+        {
+            await TestInClassAsync(
+@"T M<T>(T t) { }
+  void N()
+  {
+    var v = new { x = default((int a, string b)), y = default((int a, string b)) };
+    $$M(v);
+  }",
+                MainDescription(@"'a C.M<'a>('a t)"),
+                NoTypeParameterMap,
+                AnonymousTypes($@"
+{FeaturesResources.Structural_Types_colon}
+    'a {FeaturesResources.is_} new {{ (int a, string b) x, (int a, string b) y }}
+    'b {FeaturesResources.is_} (int a, string b)"));
+        }
     }
 }
