@@ -725,5 +725,166 @@ namespace {fixedNamespace3}
 
             await RunTestAsync(sources, fixedSources);
         }
+
+        [Fact]
+        public async Task FixAll_MultipleProjects()
+        {
+            var declaredNamespace = "Bar.Baz";
+
+            var folder1 = CreateFolderPath("A", "B", "C");
+            var fixedNamespace1 = $"{DefaultNamespace}.A.B.C";
+
+            var folder2 = CreateFolderPath("Second", "Folder", "Path");
+            var fixedNamespace2 = $"{DefaultNamespace}.Second.Folder.Path";
+
+            var folder3 = CreateFolderPath("Third", "Folder", "Path");
+            var fixedNamespace3 = $"{DefaultNamespace}.Third.Folder.Path";
+
+            var code1 =
+$@"namespace [|{declaredNamespace}|]
+{{
+    public class Class1
+    {{
+        Class2 C2 {{ get; }}
+        Class3 C3 {{ get; }}
+    }}
+}}";
+
+            var fixed1 =
+$@"using {fixedNamespace2};
+using {fixedNamespace3};
+
+namespace {fixedNamespace1}
+{{
+    public class Class1
+    {{
+        Class2 C2 {{ get; }}
+        Class3 C3 {{ get; }}
+    }}
+}}";
+
+            var code2 =
+$@"namespace [|{declaredNamespace}|]
+{{
+    class Class2
+    {{
+        Class1 C1 {{ get; }}
+        Class3 C3 {{ get; }}
+    }}
+}}";
+
+            var fixed2 =
+$@"using {fixedNamespace1};
+using {fixedNamespace3};
+
+namespace {fixedNamespace2}
+{{
+    class Class2
+    {{
+        Class1 C1 {{ get; }}
+        Class3 C3 {{ get; }}
+    }}
+}}";
+
+            var code3 =
+$@"namespace [|{declaredNamespace}|]
+{{
+    class Class3
+    {{
+        Class1 C1 {{ get; }}
+        Class2 C2 {{ get; }}
+    }}
+}}";
+
+            var fixed3 =
+$@"using {fixedNamespace1};
+using {fixedNamespace2};
+
+namespace {fixedNamespace3}
+{{
+    class Class3
+    {{
+        Class1 C1 {{ get; }}
+        Class2 C2 {{ get; }}
+    }}
+}}";
+
+            var sources = new[]
+            {
+                (Path.Combine(folder1, "Class1.cs"), code1),
+                (Path.Combine(folder2, "Class2.cs"), code2),
+                (Path.Combine(folder3, "Class3.cs"), code3),
+            };
+
+            var fixedSources = new[]
+            {
+                (Path.Combine(folder1, "Class1.cs"), fixed1),
+                (Path.Combine(folder2, "Class2.cs"), fixed2),
+                (Path.Combine(folder3, "Class3.cs"), fixed3),
+            };
+
+            var project2Source =
+@$"using {declaredNamespace};
+
+namespace [|Project2.Test|]
+{{
+    class P
+    {{
+        Class1 _c1;
+    }}
+}}";
+
+            var project2FixedSource =
+$@"namespace Test.Root.Namespace.A.B.C
+{{
+    class P
+    {{
+        Class1 _c1;
+    }}
+}}";
+
+            var testState = new VerifyCS.Test
+            {
+                EditorConfig = EditorConfig,
+                CodeFixTestBehaviors = CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInProjectCheck,
+                LanguageVersion = LanguageVersion.CSharp10,
+                TestState =
+                {
+                    AdditionalProjects = {
+                        ["Project2"] = {
+                            Sources = { },
+                            AnalyzerConfigFiles = { ("/.editorconfig", EditorConfig) }
+                        },
+                    }
+                },
+                FixedState =
+                {
+                    AdditionalProjects =
+                    {
+                        ["Project2"] = {
+                            Sources = { },
+                            AnalyzerConfigFiles = { ("/.editorconfig", EditorConfig) }
+                        }
+                    }
+                }
+            };
+
+            foreach (var (fileName, content) in sources)
+                testState.TestState.Sources.Add((fileName, content));
+
+            fixedSources ??= Array.Empty<(string, string)>();
+            foreach (var (fileName, content) in fixedSources)
+                testState.FixedState.Sources.Add((fileName, content));
+
+            var project2 = testState.TestState.AdditionalProjects["Project2"];
+            project2.AdditionalProjectReferences.Add(testState.TestState.Name);
+            project2.Sources.Add((Path.Combine(folder1, "P.cs"), project2Source));
+
+            var fixedProject2 = testState.FixedState.AdditionalProjects["Project2"];
+            fixedProject2.AdditionalProjectReferences.Add(testState.TestState.Name);
+            fixedProject2.Sources.Add((Path.Combine(folder1, "P.cs"), project2FixedSource));
+
+            await testState.RunAsync();
+        }
     }
 }

@@ -82,6 +82,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_hints_for_implicit_object_creation
             => ServicesVSResources.Show_hints_for_implicit_object_creation;
 
+        public static string Option_Display_diagnostics_inline_experimental
+            => ServicesVSResources.Display_diagnostics_inline_experimental;
+
+        public static string Option_at_the_end_of_the_line_of_code
+            => ServicesVSResources.at_the_end_of_the_line_of_code;
+
+        public static string Option_on_the_right_edge_of_the_editor_window
+            => ServicesVSResources.on_the_right_edge_of_the_editor_window;
+
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
 

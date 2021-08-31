@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor
         SolutionPreviewResult GetPreviews(
             Workspace workspace, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken);
 
-        bool Apply(
+        Task<bool> ApplyAsync(
             Workspace workspace, Document fromDocument,
             ImmutableArray<CodeActionOperation> operations,
             string title, IProgressTracker progressTracker,
