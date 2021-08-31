@@ -132,12 +132,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             ISet<INamedTypeSymbol> structuralTypes)
         {
             var transitiveReferences = new List<INamedTypeSymbol>();
-            var visitor = new NormalAnonymousTypeCollectorVisitor(transitiveReferences);
+            var visitor = new StructuralTypeCollectorVisitor(transitiveReferences);
 
             foreach (var type in structuralTypes)
-            {
                 type.Accept(visitor);
-            }
 
             return transitiveReferences;
         }

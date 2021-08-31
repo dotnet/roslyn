@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal partial class AbstractStructuralTypeDisplayService
     {
-        private class NormalAnonymousTypeCollectorVisitor : SymbolVisitor
+        private class StructuralTypeCollectorVisitor : SymbolVisitor
         {
             private readonly ISet<INamedTypeSymbol> _seenTypes = new HashSet<INamedTypeSymbol>();
             private readonly ICollection<INamedTypeSymbol> _namedTypes;
 
-            public NormalAnonymousTypeCollectorVisitor(ICollection<INamedTypeSymbol> namedTypes)
+            public StructuralTypeCollectorVisitor(ICollection<INamedTypeSymbol> namedTypes)
                 => _namedTypes = namedTypes;
 
             public override void DefaultVisit(ISymbol node)
@@ -55,14 +55,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 // 'b Select<'a, 'b>('a a);
 
                 foreach (var typeArgument in symbol.TypeArguments)
-                {
                     typeArgument.Accept(this);
-                }
 
                 foreach (var parameter in symbol.Parameters)
-                {
                     parameter.Accept(this);
-                }
 
                 symbol.ReturnType.Accept(this);
             }
@@ -80,20 +76,23 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         _namedTypes.Add(symbol);
 
                         foreach (var property in symbol.GetValidAnonymousTypeProperties())
-                        {
                             property.Accept(this);
-                        }
+                    }
+                    else if (symbol.IsTupleType)
+                    {
+                        _namedTypes.Add(symbol);
+
+                        foreach (var field in symbol.TupleElements)
+                            field.Accept(this);
                     }
                     else if (symbol.IsAnonymousDelegateType())
                     {
-                        symbol.DelegateInvokeMethod.Accept(this);
+                        symbol.DelegateInvokeMethod?.Accept(this);
                     }
                     else
                     {
                         foreach (var typeArgument in symbol.GetAllTypeArguments())
-                        {
                             typeArgument.Accept(this);
-                        }
                     }
                 }
             }
@@ -113,9 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 symbol.Type.Accept(this);
 
                 foreach (var parameter in symbol.Parameters)
-                {
                     parameter.Accept(this);
-                }
             }
 
             public override void VisitEvent(IEventSymbol symbol)
@@ -124,9 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             public override void VisitTypeParameter(ITypeParameterSymbol symbol)
             {
                 foreach (var constraint in symbol.ConstraintTypes)
-                {
                     constraint.Accept(this);
-                }
             }
 
             public override void VisitRangeVariable(IRangeVariableSymbol symbol)
