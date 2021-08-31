@@ -36,7 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
                     workspaceDoc,
                     memberSymbol.ContainingType,
                     memberSymbol,
-                    New LinkedList(Of (String, String)),
+                    New LinkedList(Of INamedTypeSymbol),
                     Nothing,
                     workspace.GetService(Of IUIThreadOperationExecutor))
             End Using

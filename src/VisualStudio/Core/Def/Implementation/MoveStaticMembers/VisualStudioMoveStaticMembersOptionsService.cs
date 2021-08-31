@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
         private const int HistorySize = 3;
 
-        public readonly LinkedList<(string, string)> History = new();
+        public readonly LinkedList<INamedTypeSymbol> History = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -54,10 +54,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
             if (result.GetValueOrDefault())
             {
+                UpdateHistory(viewModel);
                 return GenerateOptions(document.Project.Language, viewModel);
             }
 
             return MoveStaticMembersOptions.Cancelled;
+        }
+
+        private void UpdateHistory(MoveStaticMembersDialogViewModel viewModel)
+        {
+            if (viewModel.DestinationName.IsNew || viewModel.DestinationName.IsFromHistory)
+            {
+                // if we create a new destination or already have it in the history,
+                // we don't need to update our history list.
+                return;
+            }
+
+            History.AddFirst(viewModel.DestinationName.NamedType!);
+            if (History.Count > HistorySize)
+            {
+                History.RemoveLast();
+            }
         }
 
         // internal for testing purposes
@@ -75,13 +92,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                     viewModel.PrependedNamespace + destination.TypeName,
                     selectedMembers);
             }
-            else
-            {
-                return new MoveStaticMembersOptions(
-                    destination.DeclarationFile,
-                    destination.NamedType!,
-                    selectedMembers);
-            }
+
+            return new MoveStaticMembersOptions(
+                destination.DeclarationFile,
+                destination.NamedType!,
+                selectedMembers);
         }
 
         // internal for testing purposes, get the view model
@@ -89,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             Document document,
             INamedTypeSymbol selectedType,
             ISymbol? selectedNodeSymbol,
-            LinkedList<(string, string)> history,
+            LinkedList<INamedTypeSymbol> history,
             IGlyphService? glyphService,
             IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
@@ -143,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             INamespaceSymbol currentNamespace,
             INamedTypeSymbol currentType,
             Document currentDocument,
-            LinkedList<(string, string)> history,
+            LinkedList<INamedTypeSymbol> history,
             CancellationToken cancellationToken)
         {
             return currentNamespace.GetAllTypes(cancellationToken).SelectMany(t =>
@@ -154,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                     .Where(l => l.IsInSource &&
                         (currentType.Name != t.Name || GetFile(l) != currentDocument.Name))
                     .Select(l => new TypeNameItem(
-                        history.Contains((t.Name, currentDocument.Name)),
+                        history.Contains(t),
                         GetFile(l),
                         t));
             })
