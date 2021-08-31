@@ -30,7 +30,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly Glyph Glyph;
 
         /// <summary>
-        /// TaggedTexts used to show the colorized display name.
+        /// The display name used in the context menu.
+        /// </summary>
+        public readonly string DisplayName;
+
+        /// <summary>
+        /// TaggedTexts used to show the colorized display name in tooltip.
         /// </summary>
         public readonly ImmutableArray<TaggedText> DisplayTaggedTexts;
 
@@ -38,11 +43,13 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             InheritanceRelationship relationToMember,
             DefinitionItem.DetachedDefinitionItem definitionItem,
             Glyph glyph,
+            string displayName,
             ImmutableArray<TaggedText> displayTaggedTexts)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
             Glyph = glyph;
+            DisplayName = displayName;
             DisplayTaggedTexts = displayTaggedTexts;
         }
 
@@ -59,6 +66,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 serializableItem.RelationToMember,
                 definitionItem.Detach(),
                 serializableItem.Glyph,
+                serializableItem.DisplayName,
                 serializableItem.DisplayTaggedTexts);
         }
     }

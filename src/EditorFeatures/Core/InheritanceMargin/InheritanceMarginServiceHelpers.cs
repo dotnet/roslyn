@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
                     SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
+        private static readonly SymbolDisplayFormat s_toolDisplayFormat = s_displayFormat
+            .AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword);
+
         public static async ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMemberItemAsync(
             Solution solution,
             ProjectId projectId,
@@ -364,6 +367,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 // Id is used by FAR service for caching, it is not used in inheritance margin
                 SerializableDefinitionItem.Dehydrate(id: 0, definition),
                 targetSymbol.GetGlyph(),
+                targetSymbol.ToDisplayString(s_displayFormat),
                 GetDisplayTaggedTexts(targetSymbol));
         }
 
@@ -490,6 +494,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// Generate the tagged text used in the tooltip.
         /// </summary>
         private static ImmutableArray<TaggedText> GetDisplayTaggedTexts(ISymbol symbol)
-            => symbol.ToDisplayParts(s_displayFormat).ToTaggedText();
+            => symbol.ToDisplayParts(s_toolDisplayFormat).ToTaggedText();
     }
 }

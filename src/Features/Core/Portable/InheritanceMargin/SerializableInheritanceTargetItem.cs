@@ -21,17 +21,22 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly Glyph Glyph;
 
         [DataMember(Order = 3)]
+        public readonly string DisplayName;
+
+        [DataMember(Order = 4)]
         public readonly ImmutableArray<TaggedText> DisplayTaggedTexts;
 
         public SerializableInheritanceTargetItem(
             InheritanceRelationship relationToMember,
             SerializableDefinitionItem definitionItem,
             Glyph glyph,
+            string displayName,
             ImmutableArray<TaggedText> displayTaggedTexts)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
             Glyph = glyph;
+            DisplayName = displayName;
             DisplayTaggedTexts = displayTaggedTexts;
         }
     }

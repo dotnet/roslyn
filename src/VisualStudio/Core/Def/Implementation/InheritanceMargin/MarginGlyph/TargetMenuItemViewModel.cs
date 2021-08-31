@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         public static TargetMenuItemViewModel Create(InheritanceTargetItem target)
         {
-            var displayContent = target.DisplayTaggedTexts.JoinText();
+            var displayContent = target.DisplayName;
             var imageMoniker = target.Glyph.GetImageMoniker();
             return new TargetMenuItemViewModel(
                 displayContent,
