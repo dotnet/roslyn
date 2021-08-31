@@ -39,5 +39,5 @@
     </ItemGroup>
   </Target>
 
-  <Import Project="..\Microsoft.Net.Compilers.Toolset\DesktopCompilerArtifacts.targets" />
+  <Import Project="..\Microsoft.Net.Compilers.Toolset\DesktopCompilerArtifacts.targets"/>
 </Project>
