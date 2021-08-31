@@ -7,7 +7,9 @@ using System;
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     /// <summary>
-    /// Indicate the relationship between the member and its inheritance target
+    /// Indicate the relationship between the member and its inheritance target.
+    /// Note: the value of the enum value is used to order headers of the context menu items, and to make sure they match
+    /// the content of tooltip.
     /// </summary>
     [Flags]
     internal enum InheritanceRelationship
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         None = 0,
 
         /// <summary>
-        /// Implented interfaces for class or struct. Shown as I↑
+        /// Implemented interfaces for class or struct. Shown as I↑
         /// </summary>
         ImplementedInterface = 1,
 
@@ -53,12 +55,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         OverriddenMember = 64,
 
         /// <summary>
-        /// Overrrding member for member in class or structure. Shown as O↓
+        /// Overriding member for member in class or structure. Shown as O↓
         /// </summary>
         OverridingMember = 128,
 
         /// <summary>
-        /// Implmenting member for member in interface. Shown as I↓
+        /// Implementing member for member in interface. Shown as I↓
         /// </summary>
         ImplementingMember = 256,
     }

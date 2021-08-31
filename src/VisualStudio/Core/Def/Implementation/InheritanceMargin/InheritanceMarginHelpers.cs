@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         }
 
         public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemViewModelsForSingleMember(ImmutableArray<InheritanceTargetItem> targets)
-            => targets.OrderBy(target => target.DisplayName)
+            => targets.OrderBy(target => target.DisplayTaggedTexts.JoinText())
                 .GroupBy(target => target.RelationToMember)
                 .OrderBy(grouping => grouping.Key)
                 .SelectMany(grouping => CreateMenuItemsWithHeader(grouping.Key, grouping))
@@ -107,9 +107,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemViewModelsForMultipleMembers(ImmutableArray<InheritanceMarginItem> members)
         {
             Contract.ThrowIfTrue(members.Length <= 1);
-            // For multiple members, check if all the targets have the same inheritance relationship.
-            // If so, then don't add the header, because it is already indicated by the margin.
-            // Otherwise, add the Header.
             return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeaderInTargets).CastArray<InheritanceMenuItemViewModel>();
         }
 
@@ -255,7 +252,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 var target = targets[0];
                 var contentTemplate = GetToolTipTemplateForSingleTarget(target.RelationToMember);
-                var tooltipTextBlock = FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts, target.DefinitionItem.DisplayParts);
+                var tooltipTextBlock = FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts, target.DisplayTaggedTexts);
                 var automationName = string.Format(contentTemplate, member.TaggedTexts.JoinText(), target.DefinitionItem.DisplayParts.JoinText());
                 return (tooltipTextBlock, automationName);
             }

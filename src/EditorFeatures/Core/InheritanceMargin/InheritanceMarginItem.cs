@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             var targetItems = await serializableItem.TargetItems.SelectAsArrayAsync(
                     (item, _) => InheritanceTargetItem.ConvertAsync(solution, item, cancellationToken), cancellationToken).ConfigureAwait(false);
-            return new InheritanceMarginItem(serializableItem.LineNumber, serializableItem.DisplayTexts, serializableItem.Glyph, targetItems);
+            return new InheritanceMarginItem(serializableItem.LineNumber, serializableItem.DisplayTaggedTexts, serializableItem.Glyph, targetItems);
         }
     }
 }

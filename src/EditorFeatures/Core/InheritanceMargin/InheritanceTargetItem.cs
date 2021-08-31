@@ -30,20 +30,20 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly Glyph Glyph;
 
         /// <summary>
-        /// The display name used in the glyph's context menu.
+        /// TaggedTexts used to show the colorized display name.
         /// </summary>
-        public readonly string DisplayName;
+        public readonly ImmutableArray<TaggedText> DisplayTaggedTexts;
 
         public InheritanceTargetItem(
             InheritanceRelationship relationToMember,
             DefinitionItem.DetachedDefinitionItem definitionItem,
             Glyph glyph,
-            string displayName)
+            ImmutableArray<TaggedText> displayTaggedTexts)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
             Glyph = glyph;
-            DisplayName = displayName;
+            DisplayTaggedTexts = displayTaggedTexts;
         }
 
         public static async ValueTask<InheritanceTargetItem> ConvertAsync(
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 serializableItem.RelationToMember,
                 definitionItem.Detach(),
                 serializableItem.Glyph,
-                serializableItem.DisplayName);
+                serializableItem.DisplayTaggedTexts);
         }
     }
 }

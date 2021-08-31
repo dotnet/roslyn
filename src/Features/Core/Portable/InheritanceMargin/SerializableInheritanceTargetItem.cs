@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.FindUsages;
 
@@ -20,18 +21,18 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly Glyph Glyph;
 
         [DataMember(Order = 3)]
-        public readonly string DisplayName;
+        public readonly ImmutableArray<TaggedText> DisplayTaggedTexts;
 
         public SerializableInheritanceTargetItem(
             InheritanceRelationship relationToMember,
             SerializableDefinitionItem definitionItem,
             Glyph glyph,
-            string displayName)
+            ImmutableArray<TaggedText> displayTaggedTexts)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
             Glyph = glyph;
-            DisplayName = displayName;
+            DisplayTaggedTexts = displayTaggedTexts;
         }
     }
 }

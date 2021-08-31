@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.InheritanceMargin;
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         public static TargetMenuItemViewModel Create(InheritanceTargetItem target)
         {
-            var displayContent = target.DisplayName;
+            var displayContent = target.DisplayTaggedTexts.JoinText();
             var imageMoniker = target.Glyph.GetImageMoniker();
             return new TargetMenuItemViewModel(
                 displayContent,

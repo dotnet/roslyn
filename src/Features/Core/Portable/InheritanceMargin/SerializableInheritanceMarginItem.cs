@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly int LineNumber;
 
         [DataMember(Order = 1)]
-        public readonly ImmutableArray<TaggedText> DisplayTexts;
+        public readonly ImmutableArray<TaggedText> DisplayTaggedTexts;
 
         [DataMember(Order = 2)]
         public readonly Glyph Glyph;
@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         [DataMember(Order = 3)]
         public readonly ImmutableArray<SerializableInheritanceTargetItem> TargetItems;
 
-        public SerializableInheritanceMarginItem(int lineNumber, ImmutableArray<TaggedText> displayTexts, Glyph glyph, ImmutableArray<SerializableInheritanceTargetItem> targetItems)
+        public SerializableInheritanceMarginItem(int lineNumber, ImmutableArray<TaggedText> displayTaggedTexts, Glyph glyph, ImmutableArray<SerializableInheritanceTargetItem> targetItems)
         {
             LineNumber = lineNumber;
-            DisplayTexts = displayTexts;
+            DisplayTaggedTexts = displayTaggedTexts;
             Glyph = glyph;
             TargetItems = targetItems;
         }
