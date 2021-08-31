@@ -34,7 +34,12 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> _serializableOptionsByLanguage;
         private readonly HashSet<string> _forceComputedLanguages;
 
+        // access is interlocked
+        private ImmutableArray<Workspace> _registeredWorkspaces;
+
         private readonly object _gate = new();
+
+        #region Guarded by _gate
 
 #pragma warning disable IDE0044 // Add readonly modifier - https://github.com/dotnet/roslyn/issues/33009
         private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _neutralEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;
@@ -46,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Options
 
         private ImmutableDictionary<OptionKey, object?> _currentValues;
         private ImmutableHashSet<OptionKey> _changedOptionKeys;
-        private ImmutableArray<Workspace> _registeredWorkspaces;
+
+        #endregion
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
