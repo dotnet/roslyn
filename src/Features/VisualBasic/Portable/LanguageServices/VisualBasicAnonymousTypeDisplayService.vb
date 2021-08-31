@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     <Export, [Shared]>
     <ExportLanguageService(GetType(IStructuralTypeDisplayService), LanguageNames.VisualBasic)>
     Friend Class VisualBasicAnonymousTypeDisplayService
-        Inherits AbstractAnonymousTypeDisplayService
+        Inherits AbstractStructuralTypeDisplayService
 
         Private Shared ReadOnly s_anonymousDelegateFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
             globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
