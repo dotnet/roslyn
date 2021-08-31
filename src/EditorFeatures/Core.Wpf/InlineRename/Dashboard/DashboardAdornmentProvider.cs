@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly InlineRenameService _renameService;
         private readonly IEditorFormatMapService _editorFormatMapService;
+        private readonly IDashboardColorUpdater? _dashboardColorUpdater;
+
         public const string AdornmentLayerName = "RoslynRenameDashboard";
 
         [Export]
@@ -40,16 +42,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DashboardAdornmentProvider(
             InlineRenameService renameService,
-            IEditorFormatMapService editorFormatMapService)
+            IEditorFormatMapService editorFormatMapService,
+            [Import(AllowDefault = true)] IDashboardColorUpdater? dashboardColorUpdater)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
+            _dashboardColorUpdater = dashboardColorUpdater;
         }
 
         public void SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
         {
             // Create it for the view if we don't already have one
-            textView.GetOrCreateAutoClosingProperty(v => new DashboardAdornmentManager(_renameService, _editorFormatMapService, v));
+            textView.GetOrCreateAutoClosingProperty(v => new DashboardAdornmentManager(_renameService, _editorFormatMapService, _dashboardColorUpdater, v));
         }
 
         public void SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
