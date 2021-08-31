@@ -121,10 +121,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.
-            document = document.WithFrozenPartialSemantics(cancellationToken);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
+            var semanticModel = await frozenDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(semanticModel);
             var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
+            document = frozenDocument;
 
             var classifiedSpans = Classifier.GetClassifiedSpans(semanticModel, textSpan, document.Project.Solution.Workspace, cancellationToken);
             Contract.ThrowIfNull(classifiedSpans, "classifiedSpans is null");
