@@ -170,6 +170,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         Friend Overrides Function IsAwaitKeywordContext() As Boolean
             If IsAnyExpressionContext OrElse IsSingleLineStatementContext Then
+                If IsInQuery Then
+                    ' There actually are some places where Await is allowed, but we don't support these. See BC36929 for details:
+                    ' BC36929: 'Await' may only be used in a query expression within the first collection expression of the initial 'From' clause or within the collection expression of a 'Join' clause.
+                    Return False
+                End If
                 For Each node In TargetToken.GetAncestors(Of SyntaxNode)()
                     If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression, SyntaxKind.SingleLineFunctionLambdaExpression,
                                         SyntaxKind.MultiLineSubLambdaExpression, SyntaxKind.MultiLineFunctionLambdaExpression) Then
