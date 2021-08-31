@@ -2643,5 +2643,65 @@ End Class",
                 Documentation("Summary text"),
                 Value($"{vbCrLf}{FeaturesResources.Value_colon}{vbCrLf}  Value text"))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestSingleTupleType() As Task
+            Await TestInClassAsync(
+"sub M(t as (x as integer, y as string))
+ end sub
+
+ sub N()
+    $$M(nothing)
+ end sub",
+                MainDescription("Sub C.M(t As (x As Integer, y As String))"),
+                NoTypeParameterMap)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesSameType() As Task
+            Await TestInClassAsync(
+"sub M(s As (x As Integer, y As String), t As (x As Integer, y As String)) { }
+  void N()
+  {
+    $$M(default)
+  }",
+                MainDescription("Sub C.M(s As 'a, t As 'a)"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Structural_Types_colon}
+    'a {FeaturesResources.is_} (x As Integer, y As String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesDifferentTypes() As Task
+            Await TestInClassAsync(
+"sub M(s As (x As Integer, y As String), t As (x As Integer, y As String), u As (a As Integer, b As String), v as (a As Integer, b As String))
+ end sub
+ sub N()
+    $$M(nothing)
+ end sub",
+                MainDescription("Sub C.M(s As 'a, t As 'a, u As 'b, v As 'b)"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Structural_Types_colon}
+    'a {FeaturesResources.is_} (x As Integer, y As String)
+    'b {FeaturesResources.is_} (a As Integer, b As String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesInference() As Task
+            Await TestInClassAsync(
+"function M(of T)(t as T) as T
+ end function
+  sub N()
+    dim x as (a As Integer, b As String) = nothing
+    $$M(x)
+  end sub",
+                MainDescription("Function C.M(Of 'a)(t As 'a) As 'a"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Structural_Types_colon}
+    'a {FeaturesResources.is_} (a As Integer, b As String)"))
+        End Function
     End Class
 End Namespace
