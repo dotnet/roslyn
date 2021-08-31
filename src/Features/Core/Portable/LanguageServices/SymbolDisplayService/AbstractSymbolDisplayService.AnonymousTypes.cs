@@ -54,16 +54,8 @@ restart:
                 {
                     AddToGroup(SymbolDescriptionGroups.StructuralTypes, info.TypesParts);
 
-restart:
-                    foreach (var (group, parts) in _groupMap)
-                    {
-                        var updatedParts = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
-                        if (parts != updatedParts)
-                        {
-                            _groupMap[group] = updatedParts;
-                            goto restart;
-                        }
-                    }
+                    foreach (var (group, parts) in _groupMap.ToArray())
+                        _groupMap[group] = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
                 }
             }
         }

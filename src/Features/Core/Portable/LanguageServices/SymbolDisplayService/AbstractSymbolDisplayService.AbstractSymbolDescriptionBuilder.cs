@@ -65,14 +65,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
                         SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
                         SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral |
-                        SymbolDisplayMiscellaneousOptions.UseValueTuple);
+                        SymbolDisplayMiscellaneousOptions.DoNotExpandTupleType);
 
             private static readonly SymbolDisplayFormat s_descriptionStyle =
                 new(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                     delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
                     parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
-                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseValueTuple,
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.DoNotExpandTupleType,
                     kindOptions: SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword);
 
             private static readonly SymbolDisplayFormat s_globalNamespaceStyle =

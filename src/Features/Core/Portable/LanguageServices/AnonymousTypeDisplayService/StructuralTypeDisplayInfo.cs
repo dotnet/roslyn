@@ -29,31 +29,39 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             SemanticModel semanticModel,
             int position)
         {
-            var result = new List<SymbolDisplayPart>();
-            for (var i = 0; i < parts.Count; i++)
+            bool changed;
+            do
             {
-                var part = parts[i];
-                if (part.Symbol is INamedTypeSymbol type)
-                {
-                    if (structuralTypeToName.TryGetValue(type, out var name) &&
-                        part.ToString() != name)
-                    {
-                        result.Add(new SymbolDisplayPart(part.Kind, part.Symbol, name));
-                        continue;
-                    }
+                changed = false;
 
-                    // Expand out any tuples we're not placing in the Structural Type section.
-                    if (type.IsTupleType)
+                for (var i = 0; i < parts.Count; i++)
+                {
+                    var part = parts[i];
+                    if (part.Symbol is INamedTypeSymbol type)
                     {
-                        result.AddRange(type.ToMinimalDisplayParts(semanticModel, position));
-                        continue;
+                        if (structuralTypeToName.TryGetValue(type, out var name) &&
+                            part.ToString() != name)
+                        {
+                            parts[i] = new SymbolDisplayPart(part.Kind, part.Symbol, name);
+                            changed = true;
+                            continue;
+                        }
+
+                        // Expand out any tuples we're not placing in the Structural Type section.
+                        if (type.IsTupleType && part.ToString() == "<tuple>")
+                        {
+                            parts.RemoveAt(i);
+                            var displayParts = type.ToMinimalDisplayParts(semanticModel, position);
+                            for (var n = displayParts.Length - 1; n >= 0; n--)
+                                parts.Insert(i, displayParts[n]);
+                            changed = true;
+                            break;
+                        }
                     }
                 }
+            } while (changed);
 
-                result.Add(part);
-            }
-
-            return result;
+            return parts;
         }
     }
 }
