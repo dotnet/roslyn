@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal abstract partial class AbstractAnonymousTypeDisplayService : IAnonymousTypeDisplayService
+    internal abstract partial class AbstractAnonymousTypeDisplayService : IStructuralTypeDisplayService
     {
         public abstract ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
             INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);

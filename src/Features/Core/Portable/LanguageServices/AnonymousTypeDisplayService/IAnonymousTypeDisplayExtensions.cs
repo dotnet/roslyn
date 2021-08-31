@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal static class IAnonymousTypeDisplayExtensions
     {
         public static IList<SymbolDisplayPart> InlineDelegateAnonymousTypes(
-            this IAnonymousTypeDisplayService service, IList<SymbolDisplayPart> parts, SemanticModel semanticModel, int position)
+            this IStructuralTypeDisplayService service, IList<SymbolDisplayPart> parts, SemanticModel semanticModel, int position)
         {
             var result = parts;
             while (true)

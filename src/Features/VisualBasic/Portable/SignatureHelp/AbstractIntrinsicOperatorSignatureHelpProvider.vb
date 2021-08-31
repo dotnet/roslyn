@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim suffixParts = documentation.GetSuffix(semanticModel, position, Nothing, cancellationToken)
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
 
             Return CreateItem(
                 Nothing, semanticModel, position,

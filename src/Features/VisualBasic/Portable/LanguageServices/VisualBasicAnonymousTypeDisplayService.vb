@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
 
     <Export, [Shared]>
-    <ExportLanguageService(GetType(IAnonymousTypeDisplayService), LanguageNames.VisualBasic)>
+    <ExportLanguageService(GetType(IStructuralTypeDisplayService), LanguageNames.VisualBasic)>
     Friend Class VisualBasicAnonymousTypeDisplayService
         Inherits AbstractAnonymousTypeDisplayService
 

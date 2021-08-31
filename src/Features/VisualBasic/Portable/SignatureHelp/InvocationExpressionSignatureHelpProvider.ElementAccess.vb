@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Private Shared Function GetElementAccessItems(leftExpression As ExpressionSyntax,
                                                semanticModel As SemanticModel,
-                                               anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                                               anonymousTypeDisplayService As IStructuralTypeDisplayService,
                                                documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                                within As ISymbol,
                                                defaultProperties As IList(Of IPropertySymbol),
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Shared Function ConvertIndexer(indexer As IPropertySymbol,
                                         position As Integer,
                                         semanticModel As SemanticModel,
-                                        anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                                        anonymousTypeDisplayService As IStructuralTypeDisplayService,
                                         documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim item = CreateItem(
                 indexer, semanticModel, position,

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                                     position As Integer,
                                                     semanticModel As SemanticModel) As SignatureHelpItem
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Return CreateItem(

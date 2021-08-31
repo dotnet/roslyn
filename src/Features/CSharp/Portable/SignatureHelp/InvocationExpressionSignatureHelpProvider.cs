@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             methodGroup = methodGroup.Sort(
                 semanticModel, invocationExpression.SpanStart);
 
-            var anonymousTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IAnonymousTypeDisplayService>();
+            var anonymousTypeDisplayService = document.Project.LanguageServices.GetRequiredService<IStructuralTypeDisplayService>();
             var documentationCommentFormattingService = document.Project.LanguageServices.GetRequiredService<IDocumentationCommentFormattingService>();
 
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList);

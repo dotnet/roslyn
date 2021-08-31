@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Private Shared Function GetDelegateInvokeItems(invocationExpression As InvocationExpressionSyntax,
                                                 semanticModel As SemanticModel,
-                                                anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                                                anonymousTypeDisplayService As IStructuralTypeDisplayService,
                                                 documentationCommentFormattingService As IDocumentationCommentFormattingService,
                                                 delegateType As INamedTypeSymbol,
                                                 cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)

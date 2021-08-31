@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             SemanticModel semanticModel,
             int position,
             ISymbolDisplayService symbolDisplayService,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService anonymousTypeDisplayService,
             bool isVariadic,
             Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
             IList<SymbolDisplayPart> prefixParts,
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             ISymbol orderSymbol,
             SemanticModel semanticModel,
             int position,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService anonymousTypeDisplayService,
             bool isVariadic,
             Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IList<SymbolDisplayPart> prefixParts,
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             ISymbol orderSymbol,
             SemanticModel semanticModel,
             int position,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService anonymousTypeDisplayService,
             bool isVariadic,
             Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IList<SymbolDisplayPart> prefixParts,
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             SignatureHelpSymbolParameter parameter,
             SemanticModel semanticModel,
             int position,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService)
+            IStructuralTypeDisplayService anonymousTypeDisplayService)
         {
             return new SignatureHelpSymbolParameter(
                 parameter.Name,

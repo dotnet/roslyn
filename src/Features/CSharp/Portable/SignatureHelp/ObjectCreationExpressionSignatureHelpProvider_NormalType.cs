@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             Document document,
             BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService anonymousTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService,
             INamedTypeSymbol normalType,
             ISymbol within,
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IMethodSymbol constructor,
             BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService anonymousTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService)
         {
             var position = objectCreationExpression.SpanStart;

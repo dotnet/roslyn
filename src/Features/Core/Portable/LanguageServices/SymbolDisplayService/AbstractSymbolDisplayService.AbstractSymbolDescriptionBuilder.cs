@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private readonly SemanticModel _semanticModel;
             private readonly int _position;
-            private readonly IAnonymousTypeDisplayService _anonymousTypeDisplayService;
+            private readonly IStructuralTypeDisplayService _anonymousTypeDisplayService;
             private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = new();
             private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = new();
             private readonly Func<ISymbol, string> _getNavigationHint;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 SemanticModel semanticModel,
                 int position,
                 Workspace workspace,
-                IAnonymousTypeDisplayService anonymousTypeDisplayService,
+                IStructuralTypeDisplayService anonymousTypeDisplayService,
                 CancellationToken cancellationToken)
             {
                 _anonymousTypeDisplayService = anonymousTypeDisplayService;

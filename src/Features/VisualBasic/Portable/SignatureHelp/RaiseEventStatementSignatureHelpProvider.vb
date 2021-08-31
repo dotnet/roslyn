@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                        FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                        Sort(semanticModel, raiseEventStatement.SpanStart)
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(raiseEventStatement.ArgumentList, raiseEventStatement.Name.SpanStart)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             eventSymbol As IEventSymbol,
             raiseEventStatement As RaiseEventStatementSyntax,
             semanticModel As SemanticModel,
-            anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+            anonymousTypeDisplayService As IStructuralTypeDisplayService,
             documentationCommentFormattingService As IDocumentationCommentFormattingService
         ) As SignatureHelpItem
 

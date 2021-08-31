@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private static (IList<SignatureHelpItem>? items, int? selectedItem) GetDelegateTypeConstructors(
             BaseObjectCreationExpressionSyntax objectCreationExpression,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService anonymousTypeDisplayService,
             INamedTypeSymbol delegateType)
         {
             var invokeMethod = delegateType.DelegateInvokeMethod;

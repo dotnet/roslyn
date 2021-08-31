@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Public Sub New(semanticModel As SemanticModel,
                            position As Integer,
                            workspace As Workspace,
-                           anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                           anonymousTypeDisplayService As IStructuralTypeDisplayService,
                            cancellationToken As CancellationToken)
                 MyBase.New(semanticModel, position, workspace, anonymousTypeDisplayService, cancellationToken)
             End Sub

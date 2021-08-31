@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal interface IAnonymousTypeDisplayService : ILanguageService
+    internal interface IStructuralTypeDisplayService : ILanguageService
     {
         AnonymousTypeDisplayInfo GetNormalAnonymousTypeDisplayInfo(
             ISymbol orderSymbol,

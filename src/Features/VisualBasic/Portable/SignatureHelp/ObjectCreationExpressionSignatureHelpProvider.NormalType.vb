@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         Private Shared Function GetNormalTypeConstructors(document As Document,
                                                    objectCreationExpression As ObjectCreationExpressionSyntax,
                                                    semanticModel As SemanticModel,
-                                                   anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                                                   anonymousTypeDisplayService As IStructuralTypeDisplayService,
                                                    normalType As INamedTypeSymbol,
                                                    within As ISymbol,
                                                    cancellationToken As CancellationToken) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         End Function
 
         Private Shared Function ConvertNormalTypeConstructor(constructor As IMethodSymbol, objectCreationExpression As ObjectCreationExpressionSyntax, semanticModel As SemanticModel,
-                                                      anonymousTypeDisplayService As IAnonymousTypeDisplayService,
+                                                      anonymousTypeDisplayService As IStructuralTypeDisplayService,
                                                       documentationCommentFormattingService As IDocumentationCommentFormattingService) As SignatureHelpItem
             Dim position = objectCreationExpression.SpanStart
             Dim item = CreateItem(
