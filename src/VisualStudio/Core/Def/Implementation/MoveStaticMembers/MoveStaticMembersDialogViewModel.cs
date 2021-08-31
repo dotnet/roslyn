@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.VisualStudio.Imaging;
@@ -26,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             string defaultType,
             ImmutableArray<TypeNameItem> availableTypes,
             string sourceTypeName,
+            string containingNamespace,
             ISyntaxFacts syntaxFacts)
         {
             MemberSelectionViewModel = memberSelectionViewModel;
@@ -34,10 +36,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             AvailableTypes = availableTypes;
             _destinationName = new TypeNameItem(defaultType);
             _sourceTypeName = sourceTypeName;
+            _prependedNamespace = containingNamespace + ".";
 
             PropertyChanged += MoveMembersToTypeDialogViewModel_PropertyChanged;
             // Set message and icon + shownTypes
-            OnSearchTextUpdated();
             OnDestinationUpdated();
         }
 
@@ -48,34 +50,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 case nameof(DestinationName):
                     OnDestinationUpdated();
                     break;
-                case nameof(SearchText):
-                    OnSearchTextUpdated();
-                    break;
                 case nameof(SelectedIndex):
-                    OnSelectedIdnexUpdated();
+                    OnSearchTextOrIndexUpdated();
+                    break;
+                case nameof(SearchText):
+                    OnSearchTextOrIndexUpdated();
                     break;
             }
         }
 
-        private void OnSelectedIdnexUpdated()
+        private void OnSearchTextOrIndexUpdated()
         {
-            // User changed their selection in the dropdown
-            if (SelectedIndex == -1)
-            {
-                // removed selection, search text will handle the dropdown
-                // even if the text hasn't changed
-                OnSearchTextUpdated();
-            }
-            else
-            {
-                DestinationName = ShownTypes[SelectedIndex];
-            }
-        }
-
-        private void OnSearchTextUpdated()
-        {
+            // we either typed something or changed the selection
             if (SelectedIndex != -1 && SearchText == ShownTypes[SelectedIndex].TypeName)
             {
+                // The user has selected a destination
                 DestinationName = ShownTypes[SelectedIndex];
             }
             else
@@ -83,11 +72,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 // Search text is not selecting anything, create a destination for the
                 // contents of the text.
                 DestinationName = new TypeNameItem(SearchText);
-                ShownTypes = AvailableTypes.WhereAsArray(t => t.TypeName.Contains(SearchText));
-                if (_isValidName)
-                {
-                    ShownTypes = ShownTypes.Insert(0, DestinationName);
-                }
             }
         }
 
@@ -112,11 +96,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             {
                 ShowMessage = false;
             }
+
+            ShownTypes = AvailableTypes.WhereAsArray(t => t.TypeName.Contains(SearchText));
+            if (_isValidName)
+            {
+                // always show option to make new type if valid
+                if (isNewType)
+                {
+                    ShownTypes = ShownTypes.Insert(0, DestinationName);
+                }
+                else
+                {
+                    ShownTypes = ShownTypes.Insert(0, new TypeNameItem(DestinationName.TypeName));
+                }
+            }
         }
 
         private bool IsValidType(string typeName)
         {
-            if (string.IsNullOrEmpty(typeName) || typeName == _sourceTypeName)
+            if (string.IsNullOrEmpty(typeName) ||
+                typeName == _sourceTypeName ||
+                AvailableTypes.Any(t => t.TypeName == (PrependedNamespace + typeName)))
             {
                 return false;
             }
@@ -132,6 +132,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             }
 
             return true;
+        }
+
+        private string _prependedNamespace;
+        public string PrependedNamespace
+        {
+            get => _prependedNamespace;
+            set => SetProperty(ref _prependedNamespace, value);
         }
 
         private TypeNameItem _destinationName;

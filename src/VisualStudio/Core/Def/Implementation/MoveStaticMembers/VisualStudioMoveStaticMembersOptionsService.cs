@@ -63,13 +63,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         // internal for testing purposes
         internal static MoveStaticMembersOptions GenerateOptions(string language, MoveStaticMembersDialogViewModel viewModel)
         {
-            // if the destination name contains extra namespaces, we want the last one as that is the real type name
-            var typeName = viewModel.DestinationName.TypeName.Split('.').Last();
-            var newFileName = Path.ChangeExtension(typeName, language == LanguageNames.CSharp ? ".cs" : ".vb");
-            return new MoveStaticMembersOptions(
-                newFileName,
-                viewModel.DestinationName.TypeName,
-                viewModel.MemberSelectionViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol));
+            var destination = viewModel.DestinationName;
+            var selectedMembers = viewModel.MemberSelectionViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol);
+            if (destination.IsNew)
+            {
+                // if the destination name contains extra namespaces, we want the last one as that is the real type name
+                var typeName = destination.TypeName.Split('.').Last();
+                var newFileName = Path.ChangeExtension(typeName, language == LanguageNames.CSharp ? ".cs" : ".vb");
+                return new MoveStaticMembersOptions(
+                    newFileName,
+                    viewModel.PrependedNamespace + destination.TypeName,
+                    selectedMembers);
+            }
+            else
+            {
+                return new MoveStaticMembersOptions(
+                    destination.DeclarationFile,
+                    destination.NamedType!,
+                    selectedMembers);
+            }
         }
 
         // internal for testing purposes, get the view model
@@ -118,6 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 defaultTypeName,
                 existingTypeNames,
                 selectedType.Name,
+                containingNamespaceDisplay,
                 document.GetRequiredLanguageService<ISyntaxFactsService>());
         }
 

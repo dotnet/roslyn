@@ -9,7 +9,6 @@
     xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
     xmlns:movestaticmembers="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers" 
     d:DataContext="{d:DesignInstance Type=movestaticmembers:MoveStaticMembersDialogViewModel}"
-    vs:ThemedDialogStyleLoader.UseDefaultThemedDialogStyles="True"
     x:Uid="MoveStaticMembersDialog"
     x:Name="dialog"
     x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers.MoveStaticMembersDialog"
@@ -23,8 +22,7 @@
     HasDialogFrame="True"
     ShowInTaskbar="False"
     ResizeMode="CanResize"
-    Title="{Binding MoveStaticMembersDialogTitle, ElementName=dialog}"
-    Background="{DynamicResource {x:Static vs:ThemedDialogColors.WindowPanelBrushKey}}">
+    Title="{Binding MoveStaticMembersDialogTitle, ElementName=dialog}">
     <vs:DialogWindow.Resources>
         <Thickness x:Key="ButtonPadding">9, 2, 9, 2</Thickness>
         <sys:Double x:Key="ButtonWidth">73</sys:Double>
@@ -54,7 +52,7 @@
                 Text="{Binding SearchText, Mode=TwoWay}"
                 SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
                 ItemsSource="{Binding ShownTypes, Mode=OneWay}"
-                BorderThickness="0" 
+                BorderThickness="1" 
                 Margin="0 0 20 0"
                 MaxDropDownHeight="150">
                 <ComboBox.ItemContainerStyle>
@@ -96,7 +94,8 @@
             </ComboBox>
 
 
-            <GroupBox>
+            <GroupBox
+                BorderThickness="0">
                 <GroupBox.Style>
                     <Style TargetType="GroupBox">
                         <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
@@ -117,8 +116,7 @@
                         <vs:LiveTextBlock 
                             x:Name="MessageText"
                             Text="{Binding Message}"
-                            Margin="7, 0, 0, 0"
-                            Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                            Margin="7, 0, 0, 0"/>
                     </StackPanel>
                 </GroupBox.Header>
 
@@ -135,14 +133,12 @@
                         HorizontalAlignment="Right"
                         x:Name="Namespace"
                         Text="{Binding PrependedNamespace}"
-                        TextTrimming="CharacterEllipsis"
-                        Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                        TextTrimming="CharacterEllipsis"/>
 
                     <vs:LiveTextBlock 
                         Grid.Column="1"
                         x:Name="TypeName"
-                        Text="{Binding DestinationName}"
-                        Foreground="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                        Text="{Binding DestinationName.TypeName}"/>
                 </Grid>
             </GroupBox>
         </StackPanel>
@@ -154,11 +150,6 @@
             Grid.Row="1"
             Header="{Binding ElementName=dialog, Path=SelectMembers}"
             BorderThickness="1">
-            <GroupBox.Style>
-                <Style TargetType="GroupBox">
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
-                </Style>
-            </GroupBox.Style>
 
             <ContentPresenter Content="{Binding ElementName=dialog, Path=MemberSelectionControl}" />
         </GroupBox>

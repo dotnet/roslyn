@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.MoveStaticMembers
 Imports Microsoft.CodeAnalysis.PullMemberUp
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -39,6 +40,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
                     Nothing,
                     workspace.GetService(Of IUIThreadOperationExecutor))
             End Using
+        End Function
+
+        Private Function Submit(viewModel As MoveStaticMembersDialogViewModel, cSharp As Boolean) As MoveStaticMembersOptions
+            Assert.True(viewModel.CanSubmit)
+            Dim language = If(cSharp, LanguageNames.CSharp, LanguageNames.VisualBasic)
+
+            Return VisualStudioMoveStaticMembersOptionsService.GenerateOptions(language, viewModel)
         End Function
 
         Private Function FindMemberByName(name As String, memberArray As ImmutableArray(Of SymbolViewModel(Of ISymbol))) As SymbolViewModel(Of ISymbol)
@@ -89,9 +97,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             viewModel.SearchText = "ExtraNs.TestClassHelpers"
             Assert.Equal("ExtraNs.TestClassHelpers", viewModel.SearchText)
             Assert.True(viewModel.DestinationName.IsNew)
-            Assert.True(viewModel.CanSubmit)
 
-            Dim options = VisualStudioMoveStaticMembersOptionsService.GenerateOptions(LanguageNames.CSharp, viewModel)
+            Dim options = Submit(viewModel, cSharp:=True)
             Assert.False(options.IsCancelled)
             Assert.Equal("TestClassHelpers.cs", options.FileName)
             Assert.Equal("TestClassHelpers", options.TypeName)
@@ -346,9 +353,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             viewModel.SearchText = "ExtraNs.TestClassHelpers"
             Assert.Equal("ExtraNs.TestClassHelpers", viewModel.SearchText)
             Assert.True(viewModel.DestinationName.IsNew)
-            Assert.True(viewModel.CanSubmit)
 
-            Dim options = VisualStudioMoveStaticMembersOptionsService.GenerateOptions(LanguageNames.VisualBasic, viewModel)
+            Dim options = Submit(viewModel, cSharp:=False)
             Assert.False(options.IsCancelled)
             Assert.Equal("TestClassHelpers.vb", options.FileName)
             Assert.Equal("TestClassHelpers", options.TypeName)

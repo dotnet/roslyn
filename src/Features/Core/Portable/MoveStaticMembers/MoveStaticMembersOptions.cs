@@ -13,9 +13,16 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
         public string FileName { get; }
 
-        public string TypeName { get; }
+        public bool IsNewType { get; }
 
-        public string NamespaceDisplay { get; }
+        /// only has value when IsNewType is false
+        public INamedTypeSymbol? Destination { get; }
+
+        /// only has value when IsNewType is true
+        public string? TypeName { get; }
+
+        /// only has value when IsNewType is true
+        public string? NamespaceDisplay { get; }
 
         public ImmutableArray<ISymbol> SelectedMembers { get; }
 
@@ -27,12 +34,29 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
         public MoveStaticMembersOptions(
             string fileName,
+            INamedTypeSymbol destination,
+            ImmutableArray<ISymbol> selectedMembers,
+            bool isCancelled = false)
+        {
+            IsCancelled = isCancelled;
+            FileName = fileName;
+            IsNewType = false;
+            Destination = destination;
+            TypeName = null;
+            NamespaceDisplay = null;
+            SelectedMembers = selectedMembers;
+        }
+
+        public MoveStaticMembersOptions(
+            string fileName,
             string fullTypeName,
             ImmutableArray<ISymbol> selectedMembers,
             bool isCancelled = false)
         {
             IsCancelled = isCancelled;
             FileName = fileName;
+            IsNewType = true;
+            Destination = null;
             var namespacesAndType = fullTypeName.Split(separator: '.');
             TypeName = namespacesAndType.Last();
             NamespaceDisplay = string.Join(separator: ".", namespacesAndType.Take(namespacesAndType.Length - 1));
