@@ -7,33 +7,26 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    /// <summary>
-    /// Service exposed to determine what diagnostic mode a workspace is in.  Exposed in this fashion so that individual
-    /// workspaces can override that value based on other factors.
-    /// </summary>
-    internal interface IDiagnosticModeService : IWorkspaceService
-    {
-        DiagnosticMode GetDiagnosticMode(Option2<DiagnosticMode> diagnosticMode);
-    }
-
     internal static class DiagnosticModeExtensions
     {
-        public static DiagnosticMode GetDiagnosticMode(this Workspace workspace, Option2<DiagnosticMode> option)
+        private static DiagnosticMode GetDiagnosticMode(Workspace workspace, Option2<DiagnosticMode> option)
         {
-            var service = workspace.Services.GetRequiredService<IDiagnosticModeService>();
-            return service.GetDiagnosticMode(option);
+            var diagnosticModeOption = workspace.Options.GetOption(option);
+
+            // If the workspace diagnostic mode is set to Default, defer to the feature flag service.
+            if (diagnosticModeOption == DiagnosticMode.Default)
+            {
+                return workspace.Options.GetOption(DiagnosticOptions.LspPullDiagnosticsFeatureFlag) ? DiagnosticMode.Pull : DiagnosticMode.Push;
+            }
+
+            // Otherwise, defer to the workspace+option to determine what mode we're in.
+            return diagnosticModeOption;
         }
 
         public static bool IsPullDiagnostics(this Workspace workspace, Option2<DiagnosticMode> option)
-        {
-            var mode = GetDiagnosticMode(workspace, option);
-            return mode == DiagnosticMode.Pull;
-        }
+            => GetDiagnosticMode(workspace, option) == DiagnosticMode.Pull;
 
         public static bool IsPushDiagnostics(this Workspace workspace, Option2<DiagnosticMode> option)
-        {
-            var mode = GetDiagnosticMode(workspace, option);
-            return mode == DiagnosticMode.Push;
-        }
+            => GetDiagnosticMode(workspace, option) == DiagnosticMode.Push;
     }
 }
