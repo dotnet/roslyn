@@ -1741,6 +1741,74 @@ End Namespace
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function TestMoveFunctionWithRootNamespace() As Task
             Dim initialMarkup = "
+Public Class Class1
+    Public Shared Function Test[||]Func() As Integer
+        Return 0
+    End Function
+End Class"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText1 = "
+Public Class Class1
+End Class"
+            ' if we cut out the root namespace, the returned namespace should still be the same
+            Dim expectedText2 = "Class Class1Helpers
+    Public Shared Function TestFunc() As Integer
+        Return 0
+    End Function
+End Class
+"
+
+            Dim test = New Test(newTypeName, selection, newFileName) With {.TestCode = initialMarkup}
+            test.FixedState.Sources.Add(expectedText1)
+            test.FixedState.Sources.Add((newFileName, expectedText2))
+            test.SolutionTransforms.Add(
+                Function(solution, projectId)
+                    Dim project = solution.GetProject(projectId)
+                    Dim compilationOptions = DirectCast(project.CompilationOptions, VisualBasicCompilationOptions)
+                    Return project.WithCompilationOptions(compilationOptions.WithRootNamespace("RootNs")).Solution
+                End Function)
+            Await test.RunAsync()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionWithMultipleRootNamespaces() As Task
+            Dim initialMarkup = "
+Public Class Class1
+    Public Shared Function Test[||]Func() As Integer
+        Return 0
+    End Function
+End Class"
+            Dim newTypeName = "Class1Helpers"
+            Dim newFileName = "Class1Helpers.vb"
+            Dim selection = ImmutableArray.Create("TestFunc")
+            Dim expectedText1 = "
+Public Class Class1
+End Class"
+            ' if we cut out the root namespace, the returned namespace should still be the same
+            Dim expectedText2 = "Class Class1Helpers
+    Public Shared Function TestFunc() As Integer
+        Return 0
+    End Function
+End Class
+"
+
+            Dim test = New Test(newTypeName, selection, newFileName) With {.TestCode = initialMarkup}
+            test.FixedState.Sources.Add(expectedText1)
+            test.FixedState.Sources.Add((newFileName, expectedText2))
+            test.SolutionTransforms.Add(
+                Function(solution, projectId)
+                    Dim project = solution.GetProject(projectId)
+                    Dim compilationOptions = DirectCast(project.CompilationOptions, VisualBasicCompilationOptions)
+                    Return project.WithCompilationOptions(compilationOptions.WithRootNamespace("RootNs.TestNs")).Solution
+                End Function)
+            Await test.RunAsync()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function TestMoveFunctionWithRootAndNestedNamespace() As Task
+            Dim initialMarkup = "
 Namespace TestNs
     Public Class Class1
         Public Shared Function Test[||]Func() As Integer
