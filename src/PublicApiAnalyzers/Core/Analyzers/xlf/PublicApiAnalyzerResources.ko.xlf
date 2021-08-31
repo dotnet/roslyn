@@ -173,9 +173,9 @@
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
-        <source>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">public 형식 및 멤버를 제거하면 PublicAPI.txt의 해당 항목도 제거되어야 합니다. 이로 인해 코드 검토 및 소스 제어 기록에서 API 변경 내용을 쉽게 확인할 수 있고 큰 변경을 방지할 수 있습니다.</target>
-        <note />
+        <source>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="needs-review-translation">public 형식 및 멤버를 제거하면 PublicAPI.txt의 해당 항목도 제거되어야 합니다. 이로 인해 코드 검토 및 소스 제어 기록에서 API 변경 내용을 쉽게 확인할 수 있고 큰 변경을 방지할 수 있습니다.</target>
+        <note>{Locked="*REMOVED*"}</note>
       </trans-unit>
       <trans-unit id="RemoveDeletedApiMessage">
         <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>
