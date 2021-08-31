@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// <summary>
         /// Tagged texts used to show colorized display name for this member.
         /// </summary>
-        public readonly ImmutableArray<TaggedText> TaggedTexts;
+        public readonly ImmutableArray<TaggedText> DisplayTaggedTexts;
 
         /// <summary>
         /// Member's glyph.
@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
         public InheritanceMarginItem(
             int lineNumber,
-            ImmutableArray<TaggedText> displayTexts,
+            ImmutableArray<TaggedText> displayTaggedTexts,
             Glyph glyph,
             ImmutableArray<InheritanceTargetItem> targetItems)
         {
             LineNumber = lineNumber;
-            TaggedTexts = displayTexts;
+            DisplayTaggedTexts = displayTaggedTexts;
             Glyph = glyph;
             TargetItems = targetItems;
         }

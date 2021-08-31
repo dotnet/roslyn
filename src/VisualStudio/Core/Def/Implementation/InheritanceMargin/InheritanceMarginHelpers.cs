@@ -252,8 +252,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 var target = targets[0];
                 var contentTemplate = GetToolTipTemplateForSingleTarget(target.RelationToMember);
-                var tooltipTextBlock = FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts, target.DisplayTaggedTexts);
-                var automationName = string.Format(contentTemplate, member.TaggedTexts.JoinText(), target.DefinitionItem.DisplayParts.JoinText());
+                var tooltipTextBlock = FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.DisplayTaggedTexts, target.DisplayTaggedTexts);
+                var automationName = string.Format(contentTemplate, member.DisplayTaggedTexts.JoinText(), target.DefinitionItem.DisplayParts.JoinText());
                 return (tooltipTextBlock, automationName);
             }
 
@@ -267,16 +267,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 var relationship = targets[0].RelationToMember;
                 var contentTemplate = GetToolTipTemplateForMultipleTargetsUnderSameHeader(relationship);
-                var toolTipTextBlock = FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts);
-                var automationName = string.Format(contentTemplate, member.TaggedTexts.JoinText());
+                var toolTipTextBlock = FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.DisplayTaggedTexts);
+                var automationName = string.Format(contentTemplate, member.DisplayTaggedTexts.JoinText());
                 return (toolTipTextBlock, automationName);
             }
             else
             {
                 var aggregateRelationship = GetAggregateRelationship(targetRelationshipSet);
                 var contentTemplate = GetToolTipContentForMultipleHeaders(aggregateRelationship);
-                var toolTipTextBlock = FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.TaggedTexts);
-                var automationName = string.Format(contentTemplate, member.TaggedTexts.JoinText());
+                var toolTipTextBlock = FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.DisplayTaggedTexts);
+                var automationName = string.Format(contentTemplate, member.DisplayTaggedTexts.JoinText());
                 return (toolTipTextBlock, automationName);
             }
         }

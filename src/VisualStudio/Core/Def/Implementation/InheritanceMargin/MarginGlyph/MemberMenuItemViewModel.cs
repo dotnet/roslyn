@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         public static MemberMenuItemViewModel CreateWithHeaderInTargets(InheritanceMarginItem member)
         {
-            var displayName = member.TaggedTexts.JoinText();
+            var displayName = member.DisplayTaggedTexts.JoinText();
             var targetsByRelationship = InheritanceMarginHelpers.CreateMenuItemViewModelsForSingleMember(member.TargetItems);
             return new MemberMenuItemViewModel(
                 displayName,
