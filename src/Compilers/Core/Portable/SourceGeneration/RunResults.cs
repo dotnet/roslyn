@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The wall clock time that this generator pass took to execute.
         /// </summary>
-        public TimeSpan ElapsedTime { get; }
+        internal TimeSpan ElapsedTime { get; }
 
         /// <summary>
         /// The <see cref="Diagnostic"/>s produced by all generators run during this generation pass.
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The wallclock time that elapsed while this generator was running.
         /// </summary>
-        public TimeSpan ElapsedTime { get; }
+        internal TimeSpan ElapsedTime { get; }
     }
 
     /// <summary>
