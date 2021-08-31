@@ -256,7 +256,7 @@
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Name="InheritanceMarginGroupbox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Inheritance_Margin_experimental}">
+                      Header="{x:Static local:AdvancedOptionPageStrings.Inheritance_Margin}">
                 <StackPanel>
                     <CheckBox x:Uid="ShowInheritanceMargin"
                               x:Name="ShowInheritanceMargin"

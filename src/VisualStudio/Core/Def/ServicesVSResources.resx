@@ -1645,8 +1645,8 @@ Additional information: {1}</value>
   <data name="Show_inheritance_margin" xml:space="preserve">
     <value>Show inheritance margin</value>
   </data>
-  <data name="Inheritance_Margin_experimental" xml:space="preserve">
-    <value>Inheritance Margin (experimental)</value>
+  <data name="Inheritance_Margin" xml:space="preserve">
+    <value>Inheritance Margin</value>
   </data>
   <data name="Analyzers" xml:space="preserve">
     <value>Analyzers</value>

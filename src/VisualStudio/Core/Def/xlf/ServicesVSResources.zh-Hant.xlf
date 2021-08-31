@@ -452,9 +452,9 @@
         <target state="translated">已在存放庫中編制索引</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inheritance_Margin_experimental">
-        <source>Inheritance Margin (experimental)</source>
-        <target state="translated">繼承邊界 (實驗性)</target>
+      <trans-unit id="Inheritance_Margin">
+        <source>Inheritance Margin</source>
+        <target state="new">Inheritance Margin</target>
         <note />
       </trans-unit>
       <trans-unit id="Inherited_interfaces">
