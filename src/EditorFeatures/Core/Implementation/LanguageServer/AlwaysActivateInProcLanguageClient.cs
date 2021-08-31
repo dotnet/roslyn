@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.LanguageServer;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var serverCapabilities = new VSInternalServerCapabilities();
 
             // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
-            var isLspEditorEnabled = Workspace.Services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(DefaultWorkspaceContextService.LspEditorFeatureFlagName);
+            var isLspEditorEnabled = WorkspaceServices.GetRequiredService<IExperimentationService>().IsExperimentEnabled(DefaultWorkspaceContextService.LspEditorFeatureFlagName);
             if (isLspEditorEnabled)
             {
                 serverCapabilities = (VSInternalServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);

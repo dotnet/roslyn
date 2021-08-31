@@ -16,6 +16,11 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
+    /// <summary>
+    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once
+    /// we no longer reference the <see cref="IInlineRenameService"/>
+    /// See https://github.com/dotnet/roslyn/issues/55142
+    /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(LSP.Methods.TextDocumentRenameName)]
     internal class RenameHandler : AbstractStatelessRequestHandler<LSP.RenameParams, WorkspaceEdit?>

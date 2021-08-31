@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
+using Microsoft.CodeAnalysis.Editor.Implementation.LanguageServer;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Experimentation;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 using Microsoft.VisualStudio.Utilities;
 
@@ -34,13 +35,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public XamlInProcLanguageClient(
             XamlRequestDispatcherFactory xamlDispatcherFactory,
+<<<<<<< HEAD
             IGlobalOptionService globalOptions,
+=======
+            ILspWorkspaceServicesProvider workspaceServices,
+>>>>>>> 85406c0cb03 (Move LSP client integration down to editor features to support VSMac)
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
+<<<<<<< HEAD
             : base(xamlDispatcherFactory, globalOptions, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+=======
+            : base(xamlDispatcherFactory, workspaceServices, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+>>>>>>> 85406c0cb03 (Move LSP client integration down to editor features to support VSMac)
         {
         }
 
@@ -65,6 +74,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         public override bool ShowNotificationOnInitializeFailed => IsXamlLspIntelliSenseEnabled();
 
         private bool IsXamlLspIntelliSenseEnabled()
+<<<<<<< HEAD
             => GlobalOptions.GetOption(XamlOptions.EnableLspIntelliSenseFeatureFlag);
+=======
+        {
+            var experimentationService = WorkspaceServices.GetRequiredService<CodeAnalysis.Experiments.IExperimentationService>();
+            return experimentationService.IsExperimentEnabled(StringConstants.EnableLspIntelliSense);
+        }
+>>>>>>> 85406c0cb03 (Move LSP client integration down to editor features to support VSMac)
     }
 }

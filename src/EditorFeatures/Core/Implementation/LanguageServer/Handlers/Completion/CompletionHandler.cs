@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
     /// Handle a completion request.
+    ///
+    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once the
+    /// references to VS Icon types are removed.
+    /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {

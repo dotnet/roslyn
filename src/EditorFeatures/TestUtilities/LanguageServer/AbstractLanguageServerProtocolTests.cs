@@ -187,7 +187,7 @@ namespace Roslyn.Test.Utilities
                 Kind = kind,
                 Name = name,
                 Location = location,
-                Icon = ProtocolConversions.GetImageIdFromGlyph(glyph)
+                Icon = VSLspExtensionConversions.GetImageIdFromGlyph(glyph)
             };
 
             if (containerName != null)

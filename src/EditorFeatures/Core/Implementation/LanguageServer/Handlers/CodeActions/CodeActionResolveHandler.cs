@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// system allows the basic code action data to be computed quickly, and the
     /// complex data, such as edits and commands, to be computed only when necessary
     /// (i.e. when hovering/previewing a code action).
+    /// 
+    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once the
+    /// EditorFeatures references in <see cref="RunCodeActionHandler"/> are removed.
+    /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
     internal class CodeActionResolveHandler : IRequestHandler<LSP.CodeAction, LSP.CodeAction>
     {
