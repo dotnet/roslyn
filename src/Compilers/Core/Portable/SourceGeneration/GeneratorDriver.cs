@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis
             return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
         }
 
-        private static (ImmutableArray<ISourceGenerator>, ImmutableArray<IIncrementalGenerator>) GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators)
+        private static (ImmutableArray<ISourceGenerator>, ImmutableArray<IIncrementalGenerator>) GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators, string sourceExtension)
         {
             return (generators, generators.SelectAsArray(g => g switch
             {
