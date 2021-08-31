@@ -19,7 +19,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed partial class DeclarePublicApiAnalyzer : DiagnosticAnalyzer
     {
+        internal const string ShippedFileNamePrefix = "PublicAPI.Shipped";
         internal const string ShippedFileName = "PublicAPI.Shipped.txt";
+        internal const string UnshippedFileNamePrefix = "PublicAPI.Unshipped";
+        internal const string Extension = ".txt";
         internal const string UnshippedFileName = "PublicAPI.Unshipped.txt";
         internal const string PublicApiNamePropertyBagKey = "PublicAPIName";
         internal const string PublicApiNameWithNullabilityPropertyBagKey = "PublicAPINameWithNullability";
@@ -31,6 +34,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
         internal const string InvalidReasonShippedCantHaveRemoved = "The shipped API file can't have removed members";
         internal const string InvalidReasonMisplacedNullableEnable = "The '#nullable enable' marker can only appear as the first line in the shipped API file";
         internal const string PublicApiIsShippedPropertyBagKey = "PublicAPIIsShipped";
+        internal const string FileName = "FileName";
 
         private const char ObliviousMarker = '~';
 
@@ -256,38 +260,42 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             compilationContext.RegisterCompilationEndAction(impl.OnCompilationEnd);
         }
 
-        private static ApiData ReadApiData(string path, SourceText sourceText, bool isShippedApi)
+        private static ApiData ReadApiData(IEnumerable<(string path, SourceText sourceText)> data, bool isShippedApi)
         {
             var apiBuilder = ImmutableArray.CreateBuilder<ApiLine>();
             var removedBuilder = ImmutableArray.CreateBuilder<RemovedApiLine>();
             var maxNullableRank = -1;
 
-            int rank = -1;
-            foreach (TextLine line in sourceText.Lines)
+            foreach (var (path, sourceText) in data)
             {
-                string text = line.ToString();
-                if (string.IsNullOrWhiteSpace(text))
-                {
-                    continue;
-                }
+                int rank = -1;
 
-                rank++;
+                foreach (TextLine line in sourceText.Lines)
+                {
+                    string text = line.ToString();
+                    if (string.IsNullOrWhiteSpace(text))
+                    {
+                        continue;
+                    }
 
-                if (text == NullableEnable)
-                {
-                    maxNullableRank = rank;
-                    continue;
-                }
+                    rank++;
 
-                var apiLine = new ApiLine(text, line.Span, sourceText, path, isShippedApi);
-                if (text.StartsWith(RemovedApiPrefix, StringComparison.Ordinal))
-                {
-                    string removedtext = text[RemovedApiPrefix.Length..];
-                    removedBuilder.Add(new RemovedApiLine(removedtext, apiLine));
-                }
-                else
-                {
-                    apiBuilder.Add(apiLine);
+                    if (text == NullableEnable)
+                    {
+                        maxNullableRank = Math.Max(rank, maxNullableRank);
+                        continue;
+                    }
+
+                    var apiLine = new ApiLine(text, line.Span, sourceText, path, isShippedApi);
+                    if (text.StartsWith(RemovedApiPrefix, StringComparison.Ordinal))
+                    {
+                        string removedtext = text[RemovedApiPrefix.Length..];
+                        removedBuilder.Add(new RemovedApiLine(removedtext, apiLine));
+                    }
+                    else
+                    {
+                        apiBuilder.Add(apiLine);
+                    }
                 }
             }
 
@@ -320,8 +328,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 return false;
             }
 
-            shippedData = ReadApiData(shippedText.Value.path, shippedText.Value.text, isShippedApi: true);
-            unshippedData = ReadApiData(unshippedText.Value.path, unshippedText.Value.text, isShippedApi: false);
+            shippedData = ReadApiData(shippedText, isShippedApi: true);
+            unshippedData = ReadApiData(unshippedText, isShippedApi: false);
             return true;
         }
 
@@ -375,24 +383,27 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
         }
 
+        private static bool IsFile(string path, string prefix, StringComparison comparison)
+            => path.StartsWith(prefix, comparison) && path.EndsWith(Extension, comparison);
+
         private static bool TryGetApiText(
             ImmutableArray<AdditionalText> additionalTexts,
             CancellationToken cancellationToken,
-            [NotNullWhen(returnValue: true)] out (string path, SourceText text)? shippedText,
-            [NotNullWhen(returnValue: true)] out (string path, SourceText text)? unshippedText)
+            [NotNullWhen(returnValue: true)] out List<(string path, SourceText text)>? shippedText,
+            [NotNullWhen(returnValue: true)] out List<(string path, SourceText text)>? unshippedText)
         {
             shippedText = null;
             unshippedText = null;
 
-            StringComparer comparer = StringComparer.Ordinal;
+            StringComparison comparison = StringComparison.Ordinal;
             foreach (AdditionalText additionalText in additionalTexts)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 string fileName = Path.GetFileName(additionalText.Path);
 
-                bool isShippedFile = comparer.Equals(fileName, ShippedFileName);
-                bool isUnshippedFile = comparer.Equals(fileName, UnshippedFileName);
+                bool isShippedFile = IsFile(fileName, ShippedFileNamePrefix, comparison);
+                bool isUnshippedFile = IsFile(fileName, UnshippedFileNamePrefix, comparison);
 
                 if (isShippedFile || isUnshippedFile)
                 {
@@ -406,12 +417,22 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     var data = (additionalText.Path, text);
                     if (isShippedFile)
                     {
-                        shippedText = data;
+                        if (shippedText is null)
+                        {
+                            shippedText = new();
+                        }
+
+                        shippedText.Add(data);
                     }
 
                     if (isUnshippedFile)
                     {
-                        unshippedText = data;
+                        if (unshippedText is null)
+                        {
+                            unshippedText = new();
+                        }
+
+                        unshippedText.Add(data);
                     }
                     continue;
                 }

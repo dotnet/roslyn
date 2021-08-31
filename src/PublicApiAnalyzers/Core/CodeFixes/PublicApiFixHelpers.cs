@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 
@@ -8,15 +9,22 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 {
     internal static class PublicApiFixHelpers
     {
-        internal static TextDocument? GetUnshippedDocument(Project project)
+        internal static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> kv, out TKey key, out TValue value)
         {
-            return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicApiAnalyzer.UnshippedFileName, StringComparison.Ordinal));
+            key = kv.Key;
+            value = kv.Value;
         }
 
-        internal static TextDocument? GetShippedDocument(Project project)
+        internal static TextDocument? GetPublicApiDocument(Project project, string name)
         {
-            return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicApiAnalyzer.ShippedFileName, StringComparison.Ordinal));
+            return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(name, StringComparison.Ordinal));
         }
+
+        internal static TextDocument? GetUnshippedDocument(Project project)
+            => GetPublicApiDocument(project, DeclarePublicApiAnalyzer.UnshippedFileName);
+
+        internal static TextDocument? GetShippedDocument(Project project)
+            => GetPublicApiDocument(project, DeclarePublicApiAnalyzer.ShippedFileName);
 
         /// <summary>
         /// Returns the trailing newline from the end of <paramref name="sourceText"/>, if one exists.

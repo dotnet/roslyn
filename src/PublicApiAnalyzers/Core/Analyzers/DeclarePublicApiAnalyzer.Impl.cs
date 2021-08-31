@@ -257,12 +257,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         }
                         else
                         {
-                            reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi);
+                            reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.Path);
                         }
                     }
                     else if (hasPublicApiEntryWithNullability && symbolUsesOblivious)
                     {
-                        reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi);
+                        reportAnnotateApi(symbol, isImplicitlyDeclaredConstructor, publicApiName, foundApiLine.IsShippedApi, foundApiLine.Path);
                     }
                 }
                 else
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     reportDiagnosticAtLocations(DeclareNewApiRule, propertyBag, errorMessageName);
                 }
 
-                void reportAnnotateApi(ISymbol symbol, bool isImplicitlyDeclaredConstructor, ApiName publicApiName, bool isShipped)
+                void reportAnnotateApi(ISymbol symbol, bool isImplicitlyDeclaredConstructor, ApiName publicApiName, bool isShipped, string filename)
                 {
                     // Public API missing annotations in public API file - report diagnostic.
                     string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
@@ -406,7 +406,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         .Add(PublicApiNamePropertyBagKey, publicApiName.Name)
                         .Add(PublicApiNameWithNullabilityPropertyBagKey, withObliviousIfNeeded(publicApiName.NameWithNullability))
                         .Add(MinimalNamePropertyBagKey, errorMessageName)
-                        .Add(PublicApiIsShippedPropertyBagKey, isShipped ? "true" : "false");
+                        .Add(PublicApiIsShippedPropertyBagKey, isShipped ? "true" : "false")
+                        .Add(FileName, filename);
 
                     reportDiagnosticAtLocations(AnnotateApiRule, propertyBag, errorMessageName);
                 }
