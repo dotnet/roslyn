@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<TypeWithAnnotations>[] _upperBounds;
         private readonly HashSet<TypeWithAnnotations>[] _lowerBounds;
 
-        // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/nullable-reference-types-specification.md#fixing
+        // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/nullable-reference-types-specification.md#fixing
         // If the resulting candidate is a reference type or a nonnullable value type and all of the
         // exact bounds or any of the lower bounds are nullable value types, nullable reference
         // types, null or default, then ? is added to the resulting candidate, making it a nullable
