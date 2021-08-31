@@ -363,5 +363,99 @@ End Class
 ", state.GetDocumentText())
             End Using
         End Function
+
+        <WpfFact>
+        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpression() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Imports System.Threading.Tasks
+
+Public Class C
+    Public Shared Async Function Main() As Task
+        Task.CompletedTask.$$
+    End Function
+End Class
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+Imports System.Threading.Tasks
+
+Public Class C
+    Public Shared Async Function Main() As Task
+        Await Task.CompletedTask
+    End Function
+End Class
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        Await Task.CompletedTask", "")
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpressionAndAsyncModifier() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Imports System.Threading.Tasks
+
+Public Class C
+    Public Shared Function Main() As Task
+        Task.CompletedTask.$$
+    End Function
+End Class
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
+
+                state.SendTab()
+                Assert.Equal("
+Imports System.Threading.Tasks
+
+Public Class C
+    Public Shared Async Function Main() As Task
+        Await Task.CompletedTask
+    End Function
+End Class
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        Await Task.CompletedTask", "")
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpressionAndAppendsConfigureAwait() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Imports System.Threading.Tasks
+
+Public Class C
+    Public Shared Async Function Main() As Task
+        Task.CompletedTask.$$
+    End Function
+End Class
+]]>
+                </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Await", "Awaitf")
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True)
+                state.SendTypeChars("f")
+                Await state.AssertSelectedCompletionItem(displayText:="Awaitf", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+Imports System.Threading.Tasks
+
+Public Class C
+    Public Shared Async Function Main() As Task
+        Await Task.CompletedTask.ConfigureAwait(False)
+    End Function
+End Class
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        Await Task.CompletedTask.ConfigureAwait(False)", "")
+            End Using
+        End Function
     End Class
 End Namespace
