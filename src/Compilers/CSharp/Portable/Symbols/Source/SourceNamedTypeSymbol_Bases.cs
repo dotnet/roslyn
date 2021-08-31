@@ -315,13 +315,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         baseType = partBase;
                         baseTypeLocation = decl.NameLocation;
                     }
-                    else if ((object)partBase != null && !TypeSymbol.Equals(partBase, baseType, TypeCompareKind.ConsiderEverything2) && partBase.TypeKind != TypeKind.Error)
+                    else if ((object)partBase != null && !TypeSymbol.Equals(partBase, baseType, TypeCompareKind.ConsiderEverything) && partBase.TypeKind != TypeKind.Error)
                     {
                         // the parts do not agree
+                        if (partBase.Equals(baseType, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                        {
+                            if (containsOnlyOblivious(baseType))
+                            {
+                                baseType = partBase;
+                                baseTypeLocation = decl.NameLocation;
+                                continue;
+                            }
+                            else if (containsOnlyOblivious(partBase))
+                            {
+                                continue;
+                            }
+                        }
+
                         var info = diagnostics.Add(ErrorCode.ERR_PartialMultipleBases, Locations[0], this);
                         baseType = new ExtendedErrorTypeSymbol(baseType, LookupResultKind.Ambiguous, info);
                         baseTypeLocation = decl.NameLocation;
                         reportedPartialConflict = true;
+
+                        static bool containsOnlyOblivious(TypeSymbol type)
+                        {
+                            return TypeWithAnnotations.Create(type).VisitType(
+                                type: null,
+                                static (type, arg, flag) => !type.Type.IsValueType && !type.NullableAnnotation.IsOblivious(),
+                                typePredicate: null,
+                                arg: (object)null) is null;
+                        }
                     }
                 }
 

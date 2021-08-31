@@ -3812,15 +3812,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return false;
             }
 
-            // We need diagnostics reported if the runtime doesn't support changing attributes,
-            // but even if it does, only attributes stored in the CustomAttributes table are editable
-            if (!capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes) ||
-                changedAttributes.Any(IsNonCustomAttribute))
+            // If the runtime doesn't support changing attributes we don't need to check anything else
+            if (!capabilities.HasFlag(EditAndContinueCapabilities.ChangeCustomAttributes))
             {
                 ReportUpdateRudeEdit(diagnostics, RudeEditKind.ChangingAttributesNotSupportedByRuntime, oldSymbol, newSymbol, newNode, newCompilation, cancellationToken);
-
-                // If the runtime doesn't support edits then pretend there weren't changes, so no edits are produced
                 return false;
+            }
+
+            // Even if the runtime supports attribute changes, only attributes stored in the CustomAttributes table are editable
+            foreach (var attributeData in changedAttributes)
+            {
+                if (IsNonCustomAttribute(attributeData))
+                {
+                    var node = newNode ?? GetRudeEditDiagnosticNode(newSymbol, cancellationToken);
+                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ChangingNonCustomAttribute, GetDiagnosticSpan(node, EditKind.Update), node, new[]
+                    {
+                        attributeData.AttributeClass!.Name,
+                        GetDisplayName(newSymbol)
+                    }));
+
+                    return false;
+                }
             }
 
             return true;
@@ -3864,12 +3876,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             static bool IsNonCustomAttribute(AttributeData attribute)
             {
-                // TODO: Use a compiler API to get this information rather than hard coding a list: https://github.com/dotnet/roslyn/issues/53410
-
-                // This list comes from ShouldEmitAttribute in src\Compilers\CSharp\Portable\Symbols\Attributes\AttributeData.cs
-                // and src\Compilers\VisualBasic\Portable\Symbols\Attributes\AttributeData.vb
                 return attribute.AttributeClass?.ToNameDisplayString() switch
                 {
+                    //
+                    // This list comes from ShouldEmitAttribute in src\Compilers\CSharp\Portable\Symbols\Attributes\AttributeData.cs
+                    // and src\Compilers\VisualBasic\Portable\Symbols\Attributes\AttributeData.vb
+                    // TODO: Use a compiler API to get this information rather than hard coding a list: https://github.com/dotnet/roslyn/issues/53410
+                    //
                     "System.CLSCompliantAttribute" => true,
                     "System.Diagnostics.CodeAnalysis.AllowNullAttribute" => true,
                     "System.Diagnostics.CodeAnalysis.DisallowNullAttribute" => true,
@@ -3897,6 +3910,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     "System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeImportAttribute" => true,
                     "System.Security.DynamicSecurityMethodAttribute" => true,
                     "System.SerializableAttribute" => true,
+
+                    //
+                    // This list is not from the compiler, but included explicitly for Edit and Continue purposes
+                    //
+
+                    // Applying [AsyncMethodBuilder] changes the code that is emitted:
+                    // * When the target is a method, for any await call to the method
+                    // * When the target is a type, for any await call to a method that returns that type
+                    //
+                    // Therefore applying this attribute can cause unbounded changes to emitted code anywhere in a project
+                    // which EnC wouldn't pick up, so we block it with a rude edit
+                    "System.Runtime.CompilerServices.AsyncMethodBuilderAttribute" => true,
+
+                    // Also security attributes
                     not null => IsSecurityAttribute(attribute.AttributeClass),
                     _ => false
                 };

@@ -8,11 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -97,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 internal override TypeWithAnnotations GetTypeWithAnnotations(BoundExpression expr)
                 {
-                    return TypeWithAnnotations.Create(expr.Type);
+                    return TypeWithAnnotations.Create(expr.GetTypeOrFunctionType());
                 }
 
                 internal override TypeWithAnnotations GetMethodGroupResultType(BoundMethodGroup group, MethodSymbol method)
@@ -124,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Indirect = 0x12
         }
 
+        private readonly CSharpCompilation _compilation;
         private readonly ConversionsBase _conversions;
         private readonly ImmutableArray<TypeParameterSymbol> _methodTypeParameters;
         private readonly NamedTypeSymbol _constructedContainingTypeOfMethod;
@@ -273,6 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var inferrer = new MethodTypeInferrer(
+                binder.Compilation,
                 conversions,
                 methodTypeParameters,
                 constructedContainingTypeOfMethod,
@@ -293,6 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // SPEC: with an empty set of bounds.
 
         private MethodTypeInferrer(
+            CSharpCompilation compilation,
             ConversionsBase conversions,
             ImmutableArray<TypeParameterSymbol> methodTypeParameters,
             NamedTypeSymbol constructedContainingTypeOfMethod,
@@ -301,6 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments,
             Extensions extensions)
         {
+            _compilation = compilation;
             _conversions = conversions;
             _methodTypeParameters = methodTypeParameters;
             _constructedContainingTypeOfMethod = constructedContainingTypeOfMethod;
@@ -578,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: * Otherwise, no inference is made for this argument
 
-            if (argument.Kind == BoundKind.UnboundLambda)
+            if (argument.Kind == BoundKind.UnboundLambda && target.Type.GetDelegateType() is { })
             {
                 ExplicitParameterTypeInference(argument, target, ref useSiteInfo);
             }
@@ -586,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !MakeExplicitParameterTypeInferences((BoundTupleLiteral)argument, target, kind, ref useSiteInfo))
             {
                 // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let's try to infer from argument type
-                if (IsReallyAType(argument.Type))
+                if (IsReallyAType(argument.GetTypeOrFunctionType()))
                 {
                     ExactOrBoundsInference(kind, _extensions.GetTypeWithAnnotations(argument), target, ref useSiteInfo);
                 }
@@ -2528,7 +2530,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
-#nullable disable
 
         ////////////////////////////////////////////////////////////////////////////////
         //
@@ -2538,11 +2539,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(IsUnfixed(iParam));
 
+            var typeParameter = _methodTypeParameters[iParam];
             var exact = _exactBounds[iParam];
             var lower = _lowerBounds[iParam];
             var upper = _upperBounds[iParam];
 
-            var best = Fix(exact, lower, upper, ref useSiteInfo, _conversions);
+            var best = Fix(_compilation, _conversions, typeParameter, exact, lower, upper, ref useSiteInfo);
             if (!best.HasType)
             {
                 return false;
@@ -2554,7 +2556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the first attempt succeeded, the result should be the same as
                 // the second attempt, although perhaps with different nullability.
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                var withoutNullability = Fix(exact, lower, upper, ref discardedUseSiteInfo, _conversions.WithNullability(false));
+                var withoutNullability = Fix(_compilation, _conversions.WithNullability(false), typeParameter, exact, lower, upper, ref discardedUseSiteInfo);
                 // https://github.com/dotnet/roslyn/issues/27961 Results may differ by tuple names or dynamic.
                 // See NullableReferenceTypesTests.TypeInference_TupleNameDifferences_01 for example.
                 Debug.Assert(best.Type.Equals(withoutNullability.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
@@ -2567,11 +2569,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static TypeWithAnnotations Fix(
-            HashSet<TypeWithAnnotations> exact,
-            HashSet<TypeWithAnnotations> lower,
-            HashSet<TypeWithAnnotations> upper,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            ConversionsBase conversions)
+            CSharpCompilation compilation,
+            ConversionsBase conversions,
+            TypeParameterSymbol typeParameter,
+            HashSet<TypeWithAnnotations>? exact,
+            HashSet<TypeWithAnnotations>? lower,
+            HashSet<TypeWithAnnotations>? upper,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // UNDONE: This method makes a lot of garbage.
 
@@ -2586,6 +2590,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Optimization: if we have two or more exact bounds, fixing is impossible.
 
             var candidates = new Dictionary<TypeWithAnnotations, TypeWithAnnotations>(EqualsIgnoringDynamicTupleNamesAndNullabilityComparer.Instance);
+
+            Debug.Assert(!containsFunctionTypes(exact));
+            Debug.Assert(!containsFunctionTypes(upper));
+
+            // Function types are dropped if there are any non-function types.
+            if (containsFunctionTypes(lower) &&
+                (containsNonFunctionTypes(lower) || containsNonFunctionTypes(exact) || containsNonFunctionTypes(upper)))
+            {
+                lower = removeFunctionTypes(lower);
+            }
 
             // Optimization: if we have one exact bound then we need not add any
             // inexact bounds; we're just going to remove them anyway.
@@ -2674,7 +2688,69 @@ OuterBreak:
 
             initialCandidates.Free();
 
+            if (isFunctionType(best, out var functionType))
+            {
+                // Realize the type as TDelegate, or Expression<TDelegate> if the type parameter
+                // is constrained to System.Linq.Expressions.Expression.
+                var resultType = functionType.GetInternalDelegateType();
+                if (hasExpressionTypeConstraint(typeParameter))
+                {
+                    var expressionOfTType = compilation.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression_T);
+                    resultType = expressionOfTType.Construct(resultType);
+                }
+                best = TypeWithAnnotations.Create(resultType, best.NullableAnnotation);
+            }
+
             return best;
+
+            static bool containsFunctionTypes([NotNullWhen(true)] HashSet<TypeWithAnnotations>? types)
+            {
+                return types?.Any(t => isFunctionType(t, out _)) == true;
+            }
+
+            static bool containsNonFunctionTypes([NotNullWhen(true)] HashSet<TypeWithAnnotations>? types)
+            {
+                return types?.Any(t => !isFunctionType(t, out _)) == true;
+            }
+
+            static bool isFunctionType(TypeWithAnnotations type, [NotNullWhen(true)] out FunctionTypeSymbol? functionType)
+            {
+                functionType = type.Type as FunctionTypeSymbol;
+                return functionType is not null;
+            }
+
+            static bool hasExpressionTypeConstraint(TypeParameterSymbol typeParameter)
+            {
+                var constraintTypes = typeParameter.ConstraintTypesNoUseSiteDiagnostics;
+                return constraintTypes.Any(t => isExpressionType(t.Type));
+            }
+
+            static bool isExpressionType(TypeSymbol? type)
+            {
+                while (type is { })
+                {
+                    if (type.IsGenericOrNonGenericExpressionType(out _))
+                    {
+                        return true;
+                    }
+                    type = type.BaseTypeNoUseSiteDiagnostics;
+                }
+                return false;
+            }
+
+            static HashSet<TypeWithAnnotations>? removeFunctionTypes(HashSet<TypeWithAnnotations> types)
+            {
+                HashSet<TypeWithAnnotations>? updated = null;
+                foreach (var type in types)
+                {
+                    if (!isFunctionType(type, out _))
+                    {
+                        updated ??= new HashSet<TypeWithAnnotations>(TypeWithAnnotations.EqualsComparer.ConsiderEverythingComparer);
+                        updated.Add(type);
+                    }
+                }
+                return updated;
+            }
         }
 
         private static bool ImplicitConversionExists(TypeWithAnnotations sourceWithAnnotations, TypeWithAnnotations destinationWithAnnotations, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConversionsBase conversions)
@@ -2695,6 +2771,7 @@ OuterBreak:
 
             return conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).Exists;
         }
+#nullable disable
 
         ////////////////////////////////////////////////////////////////////////////////
         //
@@ -2837,6 +2914,7 @@ OuterBreak:
         //
         // Clearly it is pointless to run multiple phases
         public static ImmutableArray<TypeWithAnnotations> InferTypeArgumentsFromFirstArgument(
+            CSharpCompilation compilation,
             ConversionsBase conversions,
             MethodSymbol method,
             ImmutableArray<BoundExpression> arguments,
@@ -2857,6 +2935,7 @@ OuterBreak:
             var constructedFromMethod = method.ConstructedFrom;
 
             var inferrer = new MethodTypeInferrer(
+                compilation,
                 conversions,
                 constructedFromMethod.TypeParameters,
                 constructedFromMethod.ContainingType,
@@ -2908,6 +2987,7 @@ OuterBreak:
             return true;
         }
 
+#nullable enable
         /// <summary>
         /// Return the inferred type arguments using null
         /// for any type arguments that were not inferred.
@@ -2917,9 +2997,9 @@ OuterBreak:
             return _fixedResults.AsImmutable();
         }
 
-        private static bool IsReallyAType(TypeSymbol type)
+        private static bool IsReallyAType(TypeSymbol? type)
         {
-            return (object)type != null &&
+            return type is { } &&
                 !type.IsErrorType() &&
                 !type.IsVoidType();
         }
