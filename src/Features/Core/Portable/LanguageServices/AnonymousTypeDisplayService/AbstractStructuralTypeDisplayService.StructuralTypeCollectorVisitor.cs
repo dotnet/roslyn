@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             public override void VisitNamedType(INamedTypeSymbol symbol)
             {
+                // If we're hitting an anonymous/tuple type another time, then up the count we have for it.
+                // that way we can tell how often this type appears in the final signature.
                 if (_namedTypes.TryGetValue(symbol, out var orderAndCount))
                 {
                     orderAndCount.count++;
