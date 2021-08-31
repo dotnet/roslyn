@@ -246,7 +246,6 @@ End Module
 ", includeConfigureAwait:=True)
         End Function
 
-
         <Theory>
         <InlineData("StaticField.$$")>
         <InlineData("StaticProperty.$$")>
@@ -325,6 +324,146 @@ Module Program
     End Function
 End Module
 ", includeConfigureAwait:=True)
+        End Function
+
+        <Theory>
+        <InlineData("Await Task.Run(Async Function() Task.CompletedTask.$$", False)>
+        <InlineData("Await Task.Run(Async Function() someTask.$$)", False)>
+        <InlineData("
+Await Task.Run(Async Function()
+                   someTask.$$
+               End Function)", False)>
+        <InlineData("
+Await Task.Run(Async Function()
+                   someTask.$$", False)>
+        <InlineData("Task.Run(Async Function() Await someTask).$$", False)>
+        <InlineData("Await Task.Run(Function() someTask.$$", True)>
+        Public Async Function DotAwaitSuggestInLambdas(lambda As String, makeContainerAsync As Boolean) As Task
+            Await VerifyAwaitKeyword($"
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Main() As Task
+        Dim someTask = Task.CompletedTask
+
+        {lambda}
+    End Function
+End Module
+", includeConfigureAwait:=True, makeContainerAsync:=makeContainerAsync)
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitNotAfterDotOnTaskIfAlreadyAwaited() As Task
+            Await VerifyNoItemsExistAsync("
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F(ByVal someTask As Task) As Task
+        Await someTask.$$
+    End Function
+End Class
+")
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitNotAfterTaskType() As Task
+            Await VerifyNoItemsExistAsync("
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Task.$$
+    End Function
+End Class
+")
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitNotInLock() As Task
+            Await VerifyNoItemsExistAsync("
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F(ByVal someTask As Task) As Task
+        SyncLock Me
+            someTask.$$
+        End SyncLock
+    End Function
+End Class
+")
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitNotInQuery() As Task
+            Await VerifyNoItemsExistAsync("
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Dim z = From t In {Task.CompletedTask} Select t.$$
+    End Function
+End Class
+")
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitNotAfterConditionalAccessOfTaskMembers() As Task
+            Await VerifyNoItemsExistAsync("
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F(ByVal someTask As Task) As Task
+        someTask?.$$
+    End Function
+End Class
+")
+        End Function
+
+        <Theory>
+        <InlineData("c?.SomeTask.$$")>
+        <InlineData("c.M()?.SomeTask.$$")>
+        <InlineData("c.Pro?.SomeTask.$$")>
+        <InlineData("c?.M().SomeTask.$$")>
+        <InlineData("c?.Pro.SomeTask.$$")>
+        <InlineData("c?.M()?.SomeTask.$$")>
+        <InlineData("c?.Pro?.SomeTask.$$")>
+        <InlineData("c.M()?.Pro.SomeTask.$$")>
+        <InlineData("c.Pro?.M().SomeTask.$$")>
+        <InlineData("c.M()?.M().M()?.M().SomeTask.$$")>
+        <InlineData("new C().M()?.Pro.M()?.M().SomeTask.$$")>
+        Public Async Function DotAwaitNotAfterDotInConditionalAccessChain(ByVal conditionalAccess As String) As Task
+            Await VerifyNoItemsExistAsync($"
+Imports System.Threading.Tasks
+
+Public Class C
+    Public ReadOnly Property SomeTask As Task
+        Get
+            Return Task.CompletedTask
+        End Get
+    End Property
+
+    Public ReadOnly Property Pro As C
+        Get
+            Return Me
+        End Get
+    End Property
+
+    Public Function M() As C
+        Return Me
+    End Function
+End Class
+
+Module Program
+    Async Function Main() As Task
+        Dim c = New C()
+
+        If True Then
+            {conditionalAccess}
+        End If
+    End Function
+End Module
+")
         End Function
     End Class
 End Namespace
