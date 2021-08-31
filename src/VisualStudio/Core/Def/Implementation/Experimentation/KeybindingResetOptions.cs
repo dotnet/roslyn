@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Experimentation
 
         public static readonly Option<bool> EnabledFeatureFlag = new(nameof(KeybindingResetOptions),
             nameof(EnabledFeatureFlag), defaultValue: false,
-            storageLocations: new FeatureFlagStorageLocation("KeybindingResetEnabled"));
+            storageLocations: new FeatureFlagStorageLocation("Roslyn.KeybindingResetEnabled"));
 
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             ReSharperStatus,
