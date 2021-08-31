@@ -31,15 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private bool HideAdvancedMembers { get; set; }
 
-        private bool UsePartialSemantic { get; set; } = false;
-
         protected override OptionSet WithChangedOptions(OptionSet options)
         {
-            return options
+            return base.WithChangedOptions(options)
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
-                .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, UsePartialSemantic);
+                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
         }
 
         protected override TestComposition GetComposition()
@@ -1746,6 +1743,51 @@ namespace BB
     }}
 }}";
             await VerifyProviderCommitAsync(markup, "C", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [InlineData(SourceCodeKind.Regular)]
+        [InlineData(SourceCodeKind.Script)]
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(54493, "https://github.com/dotnet/roslyn/issues/54493")]
+        public async Task CommitInLocalFunctionContext(SourceCodeKind kind)
+        {
+            var markup = @"
+namespace Foo
+{
+    public class MyClass { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            static $$
+        }
+    }
+}";
+
+            var expectedCodeAfterCommit = @"
+using Foo;
+
+namespace Foo
+{
+    public class MyClass { }
+}
+
+namespace Test
+{
+    class Program
+    {
+        public static void Main()
+        {
+            static MyClass
+        }
+    }
+}";
+
+            await VerifyProviderCommitAsync(markup, "MyClass", expectedCodeAfterCommit, commitChar: null, sourceCodeKind: kind);
         }
 
         private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)

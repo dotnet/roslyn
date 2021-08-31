@@ -225,55 +225,64 @@ class C
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source1);
-            var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default.WithDebugInformationFormat(format));
 
-            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), EmptyLocalsProvider);
+            var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default.WithDebugInformationFormat(format));
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
+
             var diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.F"))));
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Insert, null, f1)));
 
-            using (var md1 = diff1.GetMetadata())
-            {
-                var reader1 = md1.Reader;
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
 
-                // Add state machine type and its members:
-                // - Method '.ctor'
-                // - Method 'MoveNext'
-                // - Method 'SetStateMachine'
-                // - Field '<>1__state'
-                // - Field '<>t__builder'
-                // - Field '<>u__1'
-                // Add method F()
-                CheckEncLogDefinitions(reader1,
-                    Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                    Row(1, TableIndex.Field, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                    Row(2, TableIndex.Field, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                    Row(3, TableIndex.Field, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                    Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
-                    Row(1, TableIndex.Param, EditAndContinueOperation.Default),
-                    Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                    Row(1, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(2, TableIndex.MethodImpl, EditAndContinueOperation.Default),
-                    Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
-                    Row(1, TableIndex.InterfaceImpl, EditAndContinueOperation.Default));
+            CheckNames(readers, reader1.GetTypeDefNames(), "<F>d__0#1");
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", ".ctor", "MoveNext", "SetStateMachine");
+            CheckNames(readers, reader1.GetFieldDefNames(), "<>1__state", "<>t__builder", "<>u__1");
 
-                diff1.VerifyPdb(new[] { MetadataTokens.MethodDefinitionHandle(4) }, @"
+            // Add state machine type and its members:
+            // - Method '.ctor'
+            // - Method 'MoveNext'
+            // - Method 'SetStateMachine'
+            // - Field '<>1__state'
+            // - Field '<>t__builder'
+            // - Field '<>u__1'
+            // Add method F()
+            CheckEncLogDefinitions(reader1,
+                Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodImpl, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodImpl, EditAndContinueOperation.Default),
+                Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                Row(1, TableIndex.InterfaceImpl, EditAndContinueOperation.Default));
+
+            diff1.VerifyPdb(new[] { MetadataTokens.MethodDefinitionHandle(4) }, @"
     <symbols>
       <files>
         <file id=""1"" name="""" language=""C#"" />
@@ -306,7 +315,6 @@ class C
         </method>
       </methods>
     </symbols>");
-            }
         }
 
         [Fact]

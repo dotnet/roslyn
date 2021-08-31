@@ -200,13 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
-            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(expression);
-            if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
-            {
-                diagnostics.Add(ErrorCode.ERR_DefaultPattern, innerExpression.Location);
-                hasErrors = true;
-            }
-
+            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(expression, diagnostics, ref hasErrors);
             var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, ref hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
             if (wasExpression)
             {
@@ -218,47 +212,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasErrors)
                     CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureTypePattern, diagnostics);
 
-                if (hasSuppression(expression))
-                {
-                    diagnostics.Add(ErrorCode.ERR_IllegalSuppression, expression.Location);
-                    hasErrors = true;
-                }
-
                 var boundType = (BoundTypeExpression)convertedExpression;
                 bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;
                 return new BoundTypePattern(node, boundType, isExplicitNotNullTest, inputType, boundType.Type, hasErrors);
             }
-
-            static bool hasSuppression(ExpressionSyntax e)
-            {
-                while (true)
-                {
-                    switch (e)
-                    {
-                        case ParenthesizedExpressionSyntax p:
-                            e = p.Expression;
-                            break;
-                        case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression }:
-                            return true;
-                        default:
-                            return false;
-                    }
-                }
-            }
         }
 
-        private ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e)
+        private static ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e, BindingDiagnosticBag diagnostics, ref bool hasErrors)
         {
             while (true)
             {
-                switch (e)
+                switch (e.Kind())
                 {
-                    case ParenthesizedExpressionSyntax p:
-                        e = p.Expression;
-                        break;
-                    case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression } p:
-                        e = p.Operand;
-                        break;
+                    case SyntaxKind.DefaultLiteralExpression:
+                        diagnostics.Add(ErrorCode.ERR_DefaultPattern, e.Location);
+                        hasErrors = true;
+                        return e;
+                    case SyntaxKind.ParenthesizedExpression:
+                        e = ((ParenthesizedExpressionSyntax)e).Expression;
+                        continue;
+                    case SyntaxKind.SuppressNullableWarningExpression:
+                        diagnostics.Add(ErrorCode.ERR_IllegalSuppression, e.Location);
+                        hasErrors = true;
+                        e = ((PostfixUnaryExpressionSyntax)e).Operand;
+                        continue;
                     default:
                         return e;
                 }
@@ -1348,12 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             BoundExpression value = BindExpressionForPattern(inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _);
-            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression);
-            if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
-            {
-                diagnostics.Add(ErrorCode.ERR_DefaultPattern, innerExpression.Location);
-                hasErrors = true;
-            }
+            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression, diagnostics, ref hasErrors);
             RoslynDebug.Assert(value.Type is { });
             BinaryOperatorKind operation = tokenKindToBinaryOperatorKind(node.OperatorToken.Kind());
             if (operation == BinaryOperatorKind.Equal)

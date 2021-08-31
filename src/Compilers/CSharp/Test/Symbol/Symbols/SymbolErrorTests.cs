@@ -12558,13 +12558,14 @@ class A<T, S>
         public void CS0698ERR_GenericDerivingFromAttribute01()
         {
             var text =
-@"class C<T> : System.Attribute  // CS0698
+@"class C<T> : System.Attribute
 {
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (1,14): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute").WithLocation(1, 14));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // class C<T> : System.Attribute
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(1, 14));
         }
 
         [Fact]
@@ -12577,11 +12578,13 @@ class C<T>
 {
     class B : A { }
 }";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (2,14): error CS0698: A generic type cannot derive from 'A' because it is an attribute class
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "A").WithArguments("A").WithLocation(2, 14),
-                // (5,15): error CS0698: A generic type cannot derive from 'A' because it is an attribute class
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "A").WithArguments("A").WithLocation(5, 15));
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // class B<T> : A { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("generic attributes").WithLocation(2, 14),
+                // (5,15): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     class B : A { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("generic attributes").WithLocation(5, 15));
         }
 
         [Fact]

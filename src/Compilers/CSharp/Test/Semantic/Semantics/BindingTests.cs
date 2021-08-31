@@ -2152,13 +2152,19 @@ namespace System.ServiceModel
             var source =
 @"class C<T> { }
 class C<T> : System.Attribute { }";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
+                // class C<T> : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 7),
+                // (2,14): error CS8652: The feature 'generic attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // class C<T> : System.Attribute { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.Attribute").WithArguments("generic attributes").WithLocation(2, 14)
+                );
+
             CreateCompilation(source).VerifyDiagnostics(
                 // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
                 // class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>"),
-                // (2,14): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
-                // class C<T> : System.Attribute { }
-                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute")
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 7)
                 );
         }
 
@@ -3552,6 +3558,9 @@ public class Class1
                 // (18,31): error CS8389: Omitting the type argument is not allowed in the current context
                 //         var omittedArgFunc1 = "string literal".ExtensionMethod1<>;
                 Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod1<>").WithLocation(18, 31),
+                // (18,31): error CS7003: Unexpected use of an unbound generic name
+                //         var omittedArgFunc1 = "string literal".ExtensionMethod1<>;
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, @"""string literal"".ExtensionMethod1<>").WithLocation(18, 31),
                 // (19,31): error CS8389: Omitting the type argument is not allowed in the current context
                 //         var omittedArgFunc2 = "string literal".ExtensionMethod2<>;
                 Diagnostic(ErrorCode.ERR_OmittedTypeArgument, @"""string literal"".ExtensionMethod2<>").WithLocation(19, 31),

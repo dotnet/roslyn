@@ -19,15 +19,16 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     [Shared]
+    [Export(typeof(IEditAndContinueSolutionProvider))]
     [Export(typeof(IManagedHotReloadLanguageService))]
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
-    internal sealed class ManagedHotReloadLanguageService : IManagedHotReloadLanguageService
+    internal sealed class ManagedHotReloadLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
         private sealed class DebuggerService : IManagedEditAndContinueDebuggerService
         {
-            private readonly IManagedHotReloadService _hotReloadService;
+            private readonly Lazy<IManagedHotReloadService> _hotReloadService;
 
-            public DebuggerService(IManagedHotReloadService hotReloadService)
+            public DebuggerService(Lazy<IManagedHotReloadService> hotReloadService)
             {
                 _hotReloadService = hotReloadService;
             }
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 => Task.FromResult(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available));
 
             public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-                => _hotReloadService.GetCapabilitiesAsync(cancellationToken).AsTask();
+                => _hotReloadService.Value.GetCapabilitiesAsync(cancellationToken).AsTask();
 
             public Task PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
                 => Task.CompletedTask;
@@ -54,13 +55,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private readonly DebuggerService _debuggerService;
 
         private RemoteDebuggingSessionProxy? _debuggingSession;
+
+        private Solution? _pendingUpdatedSolution;
+        public event Action<Solution>? SolutionCommitted;
+
         private bool _disabled;
 
+        /// <summary>
+        /// Import <see cref="IHostWorkspaceProvider"/> and <see cref="IManagedHotReloadService"/> lazily so that the host does not need to implement them
+        /// unless it implements debugger components.
+        /// </summary>
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ManagedHotReloadLanguageService(
             Lazy<IHostWorkspaceProvider> workspaceProvider,
-            IManagedHotReloadService hotReloadService,
+            Lazy<IManagedHotReloadService> hotReloadService,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {
@@ -129,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta));
 
                 var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, cancellationToken).ConfigureAwait(false);
-
+                _pendingUpdatedSolution = solution;
                 return new ManagedHotReloadUpdates(updates, diagnostics);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -157,6 +166,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             try
             {
+                var committedSolution = Interlocked.Exchange(ref _pendingUpdatedSolution, null);
+                Contract.ThrowIfNull(committedSolution);
+                SolutionCommitted?.Invoke(committedSolution);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            {
+            }
+
+            try
+            {
+
                 await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
@@ -171,6 +191,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 return;
             }
+
+            _pendingUpdatedSolution = null;
 
             try
             {

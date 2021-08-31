@@ -14,7 +14,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(LSP.Methods.TextDocumentCompletionName)]
     [ProvidesMethod(LSP.Methods.TextDocumentCompletionResolveName)]
     internal class CompletionHandlerProvider : AbstractRequestHandlerProvider

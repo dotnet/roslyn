@@ -160,14 +160,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             Contract.ThrowIfNull(sessionProxy);
 
-            // BreakStateEntered
+            // BreakStateChanged
 
-            mockEncService.BreakStateEnteredImpl = (out ImmutableArray<DocumentId> documentsToReanalyze) =>
+            mockEncService.BreakStateChangesImpl = (bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze) =>
             {
+                Assert.True(inBreakState);
                 documentsToReanalyze = ImmutableArray.Create(document.Id);
             };
 
-            await sessionProxy.BreakStateEnteredAsync(mockDiagnosticService, CancellationToken.None).ConfigureAwait(false);
+            await sessionProxy.BreakStateChangedAsync(mockDiagnosticService, inBreakState: true, CancellationToken.None).ConfigureAwait(false);
             VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
 
             var activeStatement = (await remoteDebuggeeModuleMetadataProvider!.GetActiveStatementsAsync(CancellationToken.None).ConfigureAwait(false)).Single();

@@ -86,5 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                 PostfixUnaryExpressionSyntax(SyntaxKind.SuppressNullableWarningExpression) postfix => GetKind(postfix.Operand),
                 _ => HintKind.Other,
             };
+
+        protected override bool IsIndexer(SyntaxNode node, IParameterSymbol parameter)
+        {
+            return node is BracketedArgumentListSyntax;
+        }
     }
 }

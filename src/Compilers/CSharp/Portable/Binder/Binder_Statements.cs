@@ -1853,6 +1853,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
+                if (anonymousFunction.FunctionType is { } functionType &&
+                    functionType.GetValue() is null)
+                {
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    if (Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, syntax);
+                        var lambda = anonymousFunction.BindForErrorRecovery();
+                        diagnostics.AddRange(lambda.Diagnostics);
+                        return;
+                    }
+                }
+
                 // Cannot convert {0} to type '{1}' because it is not a delegate type
                 Error(diagnostics, ErrorCode.ERR_AnonMethToNonDel, syntax, id, targetType);
                 return;
@@ -2272,11 +2285,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             errorCode = ErrorCode.ERR_MethDelegateMismatch;
                             break;
                         default:
+                            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                             if (fromAddressOf)
                             {
                                 errorCode = ErrorCode.ERR_AddressOfToNonFunctionPointer;
                             }
-                            else if (targetType.SpecialType == SpecialType.System_Delegate &&
+                            else if (Conversions.IsValidFunctionTypeConversionTarget(targetType, ref discardedUseSiteInfo) &&
+                                !targetType.IsNonGenericExpressionType() &&
                                 syntax.IsFeatureEnabled(MessageID.IDS_FeatureInferredDelegateType))
                             {
                                 Error(diagnostics, ErrorCode.ERR_CannotInferDelegateType, location);

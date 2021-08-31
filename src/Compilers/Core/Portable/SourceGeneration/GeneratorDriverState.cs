@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis
                                       ImmutableArray<AdditionalText> additionalTexts,
                                       ImmutableArray<GeneratorState> generatorStates,
                                       DriverStateTable stateTable,
-                                      bool enableIncremental,
                                       IncrementalGeneratorOutputKind disabledOutputs)
         {
             Generators = sourceGenerators;
@@ -27,7 +26,6 @@ namespace Microsoft.CodeAnalysis
             ParseOptions = parseOptions;
             OptionsProvider = optionsProvider;
             StateTable = stateTable;
-            EnableIncremental = enableIncremental;
             DisabledOutputs = disabledOutputs;
             Debug.Assert(Generators.Length == GeneratorStates.Length);
             Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
@@ -78,14 +76,6 @@ namespace Microsoft.CodeAnalysis
         internal readonly DriverStateTable StateTable;
 
         /// <summary>
-        /// Should this driver run incremental generators or not
-        /// </summary>
-        /// <remarks>
-        /// Only used during preview period when incremental generators are enabled/disabled by preview flag
-        /// </remarks>
-        internal readonly bool EnableIncremental;
-
-        /// <summary>
         /// A bit field containing the output kinds that should not be produced by this generator driver.
         /// </summary>
         internal readonly IncrementalGeneratorOutputKind DisabledOutputs;
@@ -108,7 +98,6 @@ namespace Microsoft.CodeAnalysis
                 additionalTexts ?? this.AdditionalTexts,
                 generatorStates ?? this.GeneratorStates,
                 stateTable ?? this.StateTable,
-                this.EnableIncremental,
                 disabledOutputs ?? this.DisabledOutputs
                 );
         }

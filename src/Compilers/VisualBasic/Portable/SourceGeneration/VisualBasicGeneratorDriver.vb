@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Sub New(parseOptions As VisualBasicParseOptions, generators As ImmutableArray(Of ISourceGenerator), optionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText), driverOptions As GeneratorDriverOptions)
-            MyBase.New(parseOptions, generators, optionsProvider, additionalTexts, enableIncremental:=False, driverOptions)
+            MyBase.New(parseOptions, generators, optionsProvider, additionalTexts, driverOptions)
         End Sub
 
         Friend Overrides ReadOnly Property MessageProvider As CommonMessageProvider

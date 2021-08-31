@@ -186,24 +186,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return model.AnalyzeDataFlow(memberBody).Captured;
         }
 
-        protected override bool AreFixedSizeBufferSizesEqual(IFieldSymbol oldField, IFieldSymbol newField, CancellationToken cancellationToken)
-        {
-            // TODO: replace with symbolic API once available (https://github.com/dotnet/roslyn/issues/54799)
-
-            Debug.Assert(oldField.IsFixedSizeBuffer);
-            Debug.Assert(oldField.DeclaringSyntaxReferences.Length == 1);
-            Debug.Assert(newField.IsFixedSizeBuffer);
-            Debug.Assert(newField.DeclaringSyntaxReferences.Length == 1);
-
-            var oldSyntax = (VariableDeclaratorSyntax)oldField.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
-            var newSyntax = (VariableDeclaratorSyntax)newField.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken);
-
-            Debug.Assert(oldSyntax.ArgumentList != null);
-            Debug.Assert(newSyntax.ArgumentList != null);
-
-            return AreEquivalent(oldSyntax.ArgumentList, newSyntax.ArgumentList);
-        }
-
         protected override bool AreHandledEventsEqual(IMethodSymbol oldMethod, IMethodSymbol newMethod)
             => true;
 
@@ -673,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol, CancellationToken cancellationToken)
+        internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol, EditAndContinueCapabilities capabilities, CancellationToken cancellationToken)
         {
             // Global statements have a declaring syntax reference to the compilation unit itself, which we can just ignore
             // for the purposes of declaration rude edits
@@ -693,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // declaration kind has changed. If it hasn't changed, then our standard code will handle it.
             if (oldNode.RawKind == newNode.RawKind)
             {
-                base.ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol, cancellationToken);
+                base.ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol, capabilities, cancellationToken);
                 return;
             }
 
@@ -727,11 +709,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
             else if (oldNode is RecordDeclarationSyntax &&
                      newNode is MethodDeclarationSyntax &&
+                     !capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters) &&
                      !oldSymbol.GetParameters().Select(p => p.Name).SequenceEqual(newSymbol.GetParameters().Select(p => p.Name)))
             {
-                // TODO: Remove this requirement with https://github.com/dotnet/roslyn/issues/52563
                 // Explicitly implemented methods must have parameter names that match the compiler generated versions
-                // exactly otherwise symbol matching won't work for them.
+                // exactly if the runtime doesn't support updating parameters, otherwise the debugger would show incorrect
+                // parameter names.
                 // We don't need to worry about parameter types, because if they were different then we wouldn't get here
                 // as this wouldn't be the explicit implementation of a known method.
                 // We don't need to worry about access modifiers because the symbol matching still works, and most of the
@@ -1373,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SemanticModel model,
             CancellationToken cancellationToken)
         {
-            if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration))
+            if (node.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration))
             {
                 return null;
             }
@@ -1915,6 +1898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return CSharpFeaturesResources.using_directive;
 
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     return FeaturesResources.namespace_;
 
                 case SyntaxKind.ClassDeclaration:

@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../ServicesVSResources.resx">
     <body>
-      <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
-        <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="translated">솔루션 루트에서 새 .editorconfig 파일이 검색되었습니다. 이 파일을 솔루션 항목으로 설정하시겠습니까?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">새 네임스페이스가 만들어집니다.</target>
@@ -75,6 +70,11 @@
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">명확하게 하기 위해 항상</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_Defaults">
+        <source>Analyzer Defaults</source>
+        <target state="new">Analyzer Defaults</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzers">
@@ -222,9 +222,19 @@
         <target state="translated">정규식 색 지정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Combine_inheritance_margin_with_indicator_margin">
+        <source>Combine inheritance margin with indicator margin</source>
+        <target state="new">Combine inheritance margin with indicator margin</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
         <target state="translated">설명</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="new">Compute Quick Actions asynchronously (experimental, requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -246,6 +256,21 @@
         <source>Current parameter</source>
         <target state="translated">현재 매개 변수</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Default_Current_Document">
+        <source>Default (Current Document)</source>
+        <target state="new">Default (Current Document)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Entire_Solution">
+        <source>Default (Entire Solution)</source>
+        <target state="new">Default (Entire Solution)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Open_Documents">
+        <source>Default (Open Documents)</source>
+        <target state="new">Default (Open Documents)</target>
+        <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Derived_types">
         <source>Derived types</source>
@@ -367,11 +392,6 @@
         <target state="translated">문서 서식</target>
         <note />
       </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="translated">서식</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">설정에서 .editorconfig 파일 생성</target>
@@ -432,9 +452,9 @@
         <target state="translated">리포지토리에서 인덱싱됨</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inheritance_Margin_experimental">
-        <source>Inheritance Margin (experimental)</source>
-        <target state="translated">상속 여백(실험용)</target>
+      <trans-unit id="Inheritance_Margin">
+        <source>Inheritance Margin</source>
+        <target state="new">Inheritance Margin</target>
         <note />
       </trans-unit>
       <trans-unit id="Inherited_interfaces">
@@ -442,9 +462,9 @@
         <target state="new">Inherited interfaces</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Hints_experimental">
-        <source>Inline Hints (experimental)</source>
-        <target state="translated">인라인 힌트(실험적)</target>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="new">Inline Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -487,6 +507,11 @@
         <target state="translated">종류</target>
         <note />
       </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
+      </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
         <target state="translated">실시간 분석(VSIX 확장)</target>
@@ -510,6 +535,11 @@
       <trans-unit id="Local_metadata">
         <source>Local metadata</source>
         <target state="translated">로컬 메타데이터</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Location">
+        <source>Location</source>
+        <target state="new">Location</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -571,6 +601,11 @@
         <source>Namespace declarations</source>
         <target state="new">Namespace declarations</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Namespaces_have_been_updated">
+        <source>Namespaces have been updated.</source>
+        <target state="new">Namespaces have been updated.</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -742,6 +777,11 @@
         <target state="translated">줄 바꿈(\\n)</target>
         <note />
       </trans-unit>
+      <trans-unit id="No_namespaces_needed_updating">
+        <source>No namespaces needed updating.</source>
+        <target state="new">No namespaces needed updating.</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="No_unused_references_were_found">
         <source>No unused references were found.</source>
         <target state="translated">사용되지 않는 참조가 없습니다.</target>
@@ -790,6 +830,16 @@
       <trans-unit id="Overriding_members">
         <source>Overriding members</source>
         <target state="translated">구성원 재정의</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_install_canceled">
+        <source>Package install canceled</source>
+        <target state="new">Package install canceled</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_uninstall_canceled">
+        <source>Package uninstall canceled</source>
+        <target state="new">Package uninstall canceled</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
@@ -897,6 +947,11 @@
         <target state="translated">멤버 풀하기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="new">Quick Actions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">리팩터링만</target>
@@ -965,6 +1020,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">{0}에서 코드 분석 실행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="new">Run code analysis in separate process (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1052,6 +1112,11 @@
         <target state="translated">암시적 개체 만들기에 대한 힌트 표시</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="new">Show hints for indexers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">람다 매개 변수 형식에 대한 힌트 표시</target>
@@ -1101,6 +1166,11 @@
         <source>Symbols without references</source>
         <target state="translated">참조 없는 기호</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Sync_Namespaces">
+        <source>Sync Namespaces</source>
+        <target state="new">Sync Namespaces</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
@@ -1177,6 +1247,11 @@
         <target state="translated">사용되지 않는 값이 무시 항목에 명시적으로 할당됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_namspaces">
+        <source>Updating namespaces...</source>
+        <target state="new">Updating namespaces...</target>
+        <note>"namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="Updating_project_references">
         <source>Updating project references...</source>
         <target state="translated">프로젝트 참조를 업데이트하는 중...</target>
@@ -1185,11 +1260,6 @@
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
         <target state="translated">심각도를 업데이트하는 중</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">코드 분석에 64비트 프로세스 사용(다시 시작 필요)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -1247,6 +1317,11 @@
         <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Studio_Settings">
+        <source>Visual Studio Settings</source>
+        <target state="new">Visual Studio Settings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">경고</target>
@@ -1270,6 +1345,11 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">이 작업 영역은 Visual Basic 컴파일 옵션 업데이트를 지원하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Whitespace">
+        <source>Whitespace</source>
+        <target state="new">Whitespace</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">

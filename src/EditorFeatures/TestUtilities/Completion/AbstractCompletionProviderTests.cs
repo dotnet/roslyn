@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected void SetExperimentOption(string experimentName, bool enabled)
         {
             var mockExperimentService = ExportProvider.GetExportedValue<TestExperimentationService>();
-            mockExperimentService.SetExperimentOption(experimentName, enabled);
+            mockExperimentService.EnableExperiment(experimentName, enabled);
         }
 
         private static bool FiltersMatch(List<CompletionFilter> expectedMatchingFilters, RoslynCompletion.CompletionItem item)
@@ -506,7 +506,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected virtual OptionSet WithChangedOptions(OptionSet options) => options;
+        protected virtual OptionSet WithChangedOptions(OptionSet options)
+            => options;
+
         private Document WithChangedOptions(Document document)
         {
             var workspace = document.Project.Solution.Workspace;
