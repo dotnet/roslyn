@@ -201,7 +201,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _operationExecutor,
                 tag,
                 _textView,
-                _listener) { Height = _heightAndWidthOfTheGlyph, Width = _heightAndWidthOfTheGlyph };
+                _listener)
+            { Height = _heightAndWidthOfTheGlyph, Width = _heightAndWidthOfTheGlyph };
 
         private void FormatMappingChanged(object sender, FormatItemsEventArgs e)
             => UpdateBackgroundColor();
