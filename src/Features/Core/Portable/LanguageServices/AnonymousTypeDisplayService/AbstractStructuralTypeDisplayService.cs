@@ -57,27 +57,27 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             typeParts = this.InlineDelegateAnonymousTypes(typeParts, semanticModel, position);
 
             // Finally, assign a name to all the anonymous types.
-            var anonymousTypeToName = GenerateAnonymousTypeNames(transitiveStructuralTypeReferences);
+            var anonymousTypeToName = GenerateStructuralTypeNames(transitiveStructuralTypeReferences);
             typeParts = StructuralTypeDisplayInfo.ReplaceStructuralTypes(typeParts, anonymousTypeToName);
 
             return new StructuralTypeDisplayInfo(anonymousTypeToName, typeParts);
         }
 
-        private static Dictionary<INamedTypeSymbol, string> GenerateAnonymousTypeNames(
+        private static Dictionary<INamedTypeSymbol, string> GenerateStructuralTypeNames(
             IList<INamedTypeSymbol> anonymousTypes)
         {
             var current = 0;
             var anonymousTypeToName = new Dictionary<INamedTypeSymbol, string>();
             foreach (var type in anonymousTypes)
             {
-                anonymousTypeToName[type] = GenerateAnonymousTypeName(current);
+                anonymousTypeToName[type] = GenerateStructuralTypeName(current);
                 current++;
             }
 
             return anonymousTypeToName;
         }
 
-        private static string GenerateAnonymousTypeName(int current)
+        private static string GenerateStructuralTypeName(int current)
         {
             var c = (char)('a' + current);
             if (c is >= 'a' and <= 'z')
@@ -89,12 +89,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         private static IList<INamedTypeSymbol> OrderStructuralTypes(
-            IList<INamedTypeSymbol> transitiveAnonymousTypeReferences,
+            IList<INamedTypeSymbol> structuralTypes,
             ISymbol symbol)
         {
             if (symbol is IMethodSymbol method)
             {
-                return transitiveAnonymousTypeReferences.OrderBy(
+                return structuralTypes.OrderBy(
                     (n1, n2) =>
                     {
                         var index1 = method.TypeArguments.IndexOf(n1);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
             else if (symbol is IPropertySymbol property)
             {
-                return transitiveAnonymousTypeReferences.OrderBy(
+                return structuralTypes.OrderBy(
                     (n1, n2) =>
                     {
                         if (n1.Equals(property.ContainingType) && !n2.Equals(property.ContainingType))
@@ -125,16 +125,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     }).ToList();
             }
 
-            return transitiveAnonymousTypeReferences;
+            return structuralTypes;
         }
 
         private static IList<INamedTypeSymbol> GetTransitiveStructuralTypeReferences(
-            ISet<INamedTypeSymbol> anonymousTypeReferences)
+            ISet<INamedTypeSymbol> structuralTypes)
         {
             var transitiveReferences = new List<INamedTypeSymbol>();
             var visitor = new NormalAnonymousTypeCollectorVisitor(transitiveReferences);
 
-            foreach (var type in anonymousTypeReferences)
+            foreach (var type in structuralTypes)
             {
                 type.Accept(visitor);
             }
