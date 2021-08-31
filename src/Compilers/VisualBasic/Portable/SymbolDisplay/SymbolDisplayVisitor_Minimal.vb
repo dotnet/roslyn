@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim visitedParents As Boolean = False
 
-            If Not symbol.IsAnonymousType AndAlso Not symbol.IsTupleType Then
+            If Not (symbol.IsAnonymousType OrElse symbol.IsTupleType) Then
                 If Not NameBoundSuccessfullyToSameSymbol(symbol) Then
                     If IncludeNamedType(symbol.ContainingType) Then
                         symbol.ContainingType.Accept(NotFirstVisitor)

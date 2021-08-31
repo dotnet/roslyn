@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis
         ReverseArrayRankSpecifiers = 1 << 5,
 
         /// <summary>
+        /// Display `System.ValueTuple` instead of tuple syntax `(...)`.
+        /// </summary>
+        UseValueTuple = 1 << 6,
+
+        /// <summary>
         /// Display `System.[U]IntPtr` instead of `n[u]int`.
         /// </summary>
         UseNativeIntegerUnderlyingType = 1 << 7,
