@@ -7723,7 +7723,7 @@ TResult {FeaturesResources.is_} string"));
                 NoTypeParameterMap,
                 AnonymousTypes($@"
 {FeaturesResources.Structural_Types_colon}
-    'a {FeaturesResources.is_} new {{ (int a, string b) x, (int a, string b) y }}
+    'a {FeaturesResources.is_} new {{ 'b x, 'b y }}
     'b {FeaturesResources.is_} (int a, string b)"));
         }
     }

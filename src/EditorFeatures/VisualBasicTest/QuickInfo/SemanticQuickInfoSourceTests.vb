@@ -2703,5 +2703,38 @@ End Class",
 {FeaturesResources.Structural_Types_colon}
     'a {FeaturesResources.is_} (a As Integer, b As String)"))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestAnonymousTypeWithTupleTypesInference1() As Task
+            Await TestInClassAsync(
+"function M(of T)(t as T) as T
+ end function
+  sub N()
+    dim x as new with { key .x = directcast(nothing, (a As Integer, b As String)) }
+    $$M(x)
+  end sub",
+                MainDescription("Function C.M(Of 'a)(t As 'a) As 'a"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Structural_Types_colon}
+    'a {FeaturesResources.is_} New With {{ Key .x As (a As Integer, b As String) }}"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestAnonymousTypeWithTupleTypesInference2() As Task
+            Await TestInClassAsync(
+"function M(of T)(t as T) as T
+ end function
+  sub N()
+    dim x as new with { key .x = directcast(nothing, (a As Integer, b As String),  key .y = directcast(nothing, (a As Integer, b As String)) }
+    $$M(x)
+  end sub",
+                MainDescription("Function C.M(Of 'a)(t As 'a) As 'a"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Structural_Types_colon}
+    'a {FeaturesResources.is_} New With {{ Key .x As 'b, Key .y As 'b }}
+    'b {FeaturesResources.is_} (a As Integer, b As String)"))
+        End Function
     End Class
 End Namespace
