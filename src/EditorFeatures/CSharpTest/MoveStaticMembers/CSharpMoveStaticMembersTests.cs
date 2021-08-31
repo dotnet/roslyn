@@ -244,6 +244,43 @@ namespace TestNs1
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveNothing()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int Test[||]Method()
+        {
+            return 0;
+        }
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var newFileName = "Class1Helpers.cs";
+            var selectedMembers = ImmutableArray<string>.Empty;
+            var expectedResult1 = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int Test[||]Method()
+        {
+            return 0;
+        }
+    }
+}";
+            var expectedResult2 = @"namespace TestNs1
+{
+    internal static class Class1Helpers
+    {
+    }
+}";
+            await TestMovementNewFileAsync(initialMarkup, expectedResult1, expectedResult2, newFileName, selectedMembers, selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
         public async Task TestMoveMethodWithTrivia()
         {
             var initialMarkup = @"

@@ -118,7 +118,8 @@
                     Click="OK_Click" 
                     IsDefault="True"
                     MinWidth="73"
-                    MinHeight="21"/>
+                    MinHeight="21"
+                    IsEnabled="{Binding CanSubmit}"/>
             <Button x:Uid="CancelButton" 
                     Name="CancelButton"
                     Content="{Binding ElementName=dialog, Path=Cancel}"
