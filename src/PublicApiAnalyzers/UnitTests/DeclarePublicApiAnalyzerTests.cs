@@ -1799,6 +1799,39 @@ C.NewField -> string";
         }
 
         [Fact]
+        public async Task TestSimpleMissingMember_Fix_WithoutNullability_MultipleFiles()
+        {
+            var source = @"
+#nullable enable
+public class C
+{
+    public string? {|RS0037:{|RS0016:NewField|}|}; // Newly added field, not in current public API.
+}
+";
+
+            var shippedText = @"";
+            var unshippedText1 = @"C
+C.C() -> void";
+            var unshippedText2 = @"";
+            var fixedUnshippedText1 = @"C
+C.C() -> void
+C.NewField -> string";
+
+            var test = new CSharpCodeFixTest<DeclarePublicApiAnalyzer, DeclarePublicApiFix, XUnitVerifier>();
+
+            test.TestState.Sources.Add(source);
+            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedText));
+            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, unshippedText1));
+            test.TestState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, unshippedText2));
+
+            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.ShippedFileName, shippedText));
+            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileName, fixedUnshippedText1));
+            test.FixedState.AdditionalFiles.Add((DeclarePublicApiAnalyzer.UnshippedFileNamePrefix + "test" + DeclarePublicApiAnalyzer.Extension, unshippedText2));
+
+            await test.RunAsync();
+        }
+
+        [Fact]
         public async Task TestSimpleMissingMember_Fix_WithNullability()
         {
             var source = @"

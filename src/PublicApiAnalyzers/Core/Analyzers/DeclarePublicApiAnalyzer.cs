@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             compilationContext.RegisterCompilationEndAction(impl.OnCompilationEnd);
         }
 
-        private static ApiData ReadApiData(IEnumerable<(string path, SourceText sourceText)> data, bool isShippedApi)
+        private static ApiData ReadApiData(List<(string path, SourceText sourceText)> data, bool isShippedApi)
         {
             var apiBuilder = ImmutableArray.CreateBuilder<ApiLine>();
             var removedBuilder = ImmutableArray.CreateBuilder<RemovedApiLine>();
