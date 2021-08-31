@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -29,6 +30,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SyntaxProviderFactory SyntaxProviderFactory => new SyntaxProviderFactory(_syntaxInputBuilder, RegisterOutput, _syntaxHelper);
+
+        [Obsolete("SyntaxProvider is obsolete and will be removed in an upcoming release. Use SyntaxProviderFactory instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public SyntaxProviderFactory SyntaxProvider => new SyntaxProviderFactory(_syntaxInputBuilder, RegisterOutput, _syntaxHelper);
 
         public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput));
 

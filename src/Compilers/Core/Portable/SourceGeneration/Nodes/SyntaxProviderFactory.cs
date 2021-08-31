@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -38,6 +39,10 @@ namespace Microsoft.CodeAnalysis
             // registration of the input is deferred until we know the node is used
             return new IncrementalValuesProvider<TResult>(new SyntaxInputNode<TResult>(predicate.WrapUserFunction(), transform.WrapUserFunction(), RegisterOutputAndDeferredInput));
         }
+
+        [Obsolete("CreateSyntaxReceiver is obsolete and will be removed in an upcoming version. Use FromPredicate instead")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public IncrementalValuesProvider<TResult> CreateSyntaxReceiver<TResult>(Func<SyntaxNode, CancellationToken, bool> predicate, Func<GeneratorSyntaxContext, CancellationToken, TResult> transform) => FromPredicate(predicate, transform);
 
         public IncrementalValuesProvider<TResult> FromAttribute<TResult>(string attributeFQN, Func<GeneratorSyntaxAttributeContext, CancellationToken, TResult> transform)
         {
