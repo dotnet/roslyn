@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Insert a tuple into the display parts as a single part instead of multiple parts (similar
-        /// to how anonymous types are inserted0.
+        /// to how anonymous types are inserted).
         /// </summary>
-        DoNotExpandTupleType = 1 << 9,
+        CollapseTupleTypes = 1 << 9,
     }
 }

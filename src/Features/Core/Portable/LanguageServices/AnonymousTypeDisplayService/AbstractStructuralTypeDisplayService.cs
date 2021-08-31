@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal abstract partial class AbstractStructuralTypeDisplayService : IStructuralTypeDisplayService
     {
         protected static readonly SymbolDisplayFormat s_minimalWithoutExpandedTuples = SymbolDisplayFormat.MinimallyQualifiedFormat.AddMiscellaneousOptions(
-            SymbolDisplayMiscellaneousOptions.DoNotExpandTupleType);
+            SymbolDisplayMiscellaneousOptions.CollapseTupleTypes);
 
         public abstract ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
             INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);

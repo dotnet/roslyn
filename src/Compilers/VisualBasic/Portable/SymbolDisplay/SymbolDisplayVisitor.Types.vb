@@ -361,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub AddTupleTypeName(symbol As INamedTypeSymbol)
             Debug.Assert(symbol.IsTupleType)
 
-            If Me.format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.DoNotExpandTupleType) Then
+            If Me.format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.CollapseTupleTypes) Then
                 builder.Add(CreatePart(SymbolDisplayPartKind.StructName, symbol, "<tuple>", noEscaping:=True))
                 Return
             End If

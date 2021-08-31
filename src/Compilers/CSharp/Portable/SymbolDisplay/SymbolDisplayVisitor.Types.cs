@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol.IsTupleType);
 
-            if (this.format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.DoNotExpandTupleType))
+            if (this.format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.CollapseTupleTypes))
             {
                 builder.Add(CreatePart(SymbolDisplayPartKind.StructName, symbol, "<tuple>"));
                 return;
