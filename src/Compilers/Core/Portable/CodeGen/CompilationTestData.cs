@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         private static readonly SymbolDisplayFormat _testDataKeyFormat = new SymbolDisplayFormat(
-            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames | SymbolDisplayCompilerInternalOptions.UseValueTuple,
+            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames,
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                 SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
-                SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
+                SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                SymbolDisplayMiscellaneousOptions.UseValueTuple);
 
         private static readonly SymbolDisplayFormat _testDataOperatorKeyFormat = new SymbolDisplayFormat(
              _testDataKeyFormat.CompilerInternalOptions,

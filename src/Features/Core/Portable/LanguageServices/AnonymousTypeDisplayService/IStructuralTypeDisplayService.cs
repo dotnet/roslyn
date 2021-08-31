@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         StructuralTypeDisplayInfo GetTypeDisplayInfo(
             ISymbol orderSymbol,
-            IEnumerable<INamedTypeSymbol> structuralTypes,
+            ImmutableArray<INamedTypeSymbol> structuralTypes,
             SemanticModel semanticModel,
             int position);
 

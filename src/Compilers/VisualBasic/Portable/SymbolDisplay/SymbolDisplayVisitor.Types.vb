@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If Me.IsMinimizing OrElse symbol.IsTupleType Then
+            If Me.IsMinimizing OrElse (symbol.IsTupleType AndAlso Not ShouldDisplayAsValueTuple(symbol)) Then
                 MinimallyQualify(symbol)
                 Return
             End If

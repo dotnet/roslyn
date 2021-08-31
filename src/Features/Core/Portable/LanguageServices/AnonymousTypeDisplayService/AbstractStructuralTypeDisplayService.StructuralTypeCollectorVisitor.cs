@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private class StructuralTypeCollectorVisitor : SymbolVisitor
         {
             private readonly ISet<INamedTypeSymbol> _seenTypes = new HashSet<INamedTypeSymbol>();
-            private readonly ICollection<INamedTypeSymbol> _namedTypes;
+            private readonly Dictionary<INamedTypeSymbol, (int order, int count)> _namedTypes;
 
-            public StructuralTypeCollectorVisitor(ICollection<INamedTypeSymbol> namedTypes)
+            public StructuralTypeCollectorVisitor(Dictionary<INamedTypeSymbol, (int order, int count)> namedTypes)
                 => _namedTypes = namedTypes;
 
             public override void DefaultVisit(ISymbol node)
@@ -69,18 +69,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             public override void VisitNamedType(INamedTypeSymbol symbol)
             {
+                if (_namedTypes.TryGetValue(symbol, out var orderAndCount))
+                {
+                    orderAndCount.count++;
+                    _namedTypes[symbol] = orderAndCount;
+                    return;
+                }
+
                 if (_seenTypes.Add(symbol))
                 {
                     if (symbol.IsNormalAnonymousType())
                     {
-                        _namedTypes.Add(symbol);
+                        _namedTypes.Add(symbol, (order: _namedTypes.Count, count: 1));
 
                         foreach (var property in symbol.GetValidAnonymousTypeProperties())
                             property.Accept(this);
                     }
                     else if (symbol.IsTupleType)
                     {
-                        _namedTypes.Add(symbol);
+                        _namedTypes.Add(symbol, (order: _namedTypes.Count, count: 1));
 
                         foreach (var field in symbol.TupleElements)
                             field.Accept(this);

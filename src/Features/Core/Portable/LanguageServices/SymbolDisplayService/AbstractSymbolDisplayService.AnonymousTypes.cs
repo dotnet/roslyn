@@ -48,7 +48,7 @@ restart:
                     select (INamedTypeSymbol)part.Symbol;
 
                 var info = _structuralTypeDisplayService.GetTypeDisplayInfo(
-                    firstSymbol, directStructuralTypes, _semanticModel, _position);
+                    firstSymbol, directStructuralTypes.ToImmutableArrayOrEmpty(), _semanticModel, _position);
 
                 if (info.TypesParts.Count > 0)
                 {
@@ -57,7 +57,7 @@ restart:
 restart:
                     foreach (var (group, parts) in _groupMap)
                     {
-                        var updatedParts = info.ReplaceStructuralTypes(parts);
+                        var updatedParts = info.ReplaceStructuralTypes(parts, _semanticModel, _position);
                         if (parts != updatedParts)
                         {
                             _groupMap[group] = updatedParts;

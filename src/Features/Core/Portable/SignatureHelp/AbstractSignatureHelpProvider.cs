@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 select (INamedTypeSymbol)part.Symbol!;
 
             var info = structuralTypeDisplayService.GetTypeDisplayInfo(
-                orderSymbol, structuralTypes, semanticModel, position);
+                orderSymbol, structuralTypes.ToImmutableArray(), semanticModel, position);
 
             if (info.TypesParts.Count > 0)
             {
@@ -206,10 +206,10 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     orderSymbol,
                     isVariadic,
                     documentationFactory,
-                    info.ReplaceStructuralTypes(prefixParts).ToTaggedText(),
-                    info.ReplaceStructuralTypes(separatorParts).ToTaggedText(),
-                    info.ReplaceStructuralTypes(suffixParts).ToTaggedText(),
-                    parameters.Select(p => ReplaceStructuralTypes(p, info)).Select(p => (SignatureHelpParameter)p),
+                    info.ReplaceStructuralTypes(prefixParts, semanticModel, position).ToTaggedText(),
+                    info.ReplaceStructuralTypes(separatorParts, semanticModel, position).ToTaggedText(),
+                    info.ReplaceStructuralTypes(suffixParts, semanticModel, position).ToTaggedText(),
+                    parameters.Select(p => ReplaceStructuralTypes(p, info, semanticModel, position)).Select(p => (SignatureHelpParameter)p),
                     anonymousTypeParts.ToTaggedText());
             }
 
@@ -226,14 +226,16 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         private static SignatureHelpSymbolParameter ReplaceStructuralTypes(
             SignatureHelpSymbolParameter parameter,
-            StructuralTypeDisplayInfo info)
+            StructuralTypeDisplayInfo info,
+            SemanticModel semanticModel,
+            int position)
         {
             return new SignatureHelpSymbolParameter(
                 parameter.Name,
                 parameter.IsOptional,
                 parameter.DocumentationFactory,
-                info.ReplaceStructuralTypes(parameter.DisplayParts),
-                info.ReplaceStructuralTypes(parameter.SelectedDisplayParts));
+                info.ReplaceStructuralTypes(parameter.DisplayParts, semanticModel, position),
+                info.ReplaceStructuralTypes(parameter.SelectedDisplayParts, semanticModel, position));
         }
 
         private static SignatureHelpSymbolParameter InlineDelegateAnonymousTypes(

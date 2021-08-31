@@ -72,5 +72,10 @@ namespace Microsoft.CodeAnalysis
         /// Append '!' to non-nullable reference types.
         /// </summary>
         IncludeNotNullableReferenceTypeModifier = 1 << 8,
+
+        /// <summary>
+        /// Display `System.ValueTuple` instead of tuple syntax `(...)`.
+        /// </summary>
+        UseValueTuple = 1 << 9,
     }
 }

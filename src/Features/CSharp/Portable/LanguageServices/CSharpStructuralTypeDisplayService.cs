@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
         }
 
         public override ImmutableArray<SymbolDisplayPart> GetTypeParts(
-            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
+            INamedTypeSymbol structuralType, SemanticModel semanticModel, int position)
         {
             using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var members);
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
             members.AddRange(Space());
 
             var first = true;
-            foreach (var property in anonymousType.GetValidAnonymousTypeProperties())
+            foreach (var property in structuralType.GetValidAnonymousTypeProperties())
             {
                 if (!first)
                 {

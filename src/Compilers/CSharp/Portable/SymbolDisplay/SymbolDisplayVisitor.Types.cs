@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbol.IsTupleType);
 
-            if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseValueTuple))
+            if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseValueTuple))
             {
                 return true;
             }
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (element.IsExplicitlyNamedTupleElement)
                 {
                     AddSpace();
-                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name));
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, element, element.Name));
                 }
             }
 

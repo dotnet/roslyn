@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected abstract partial class AbstractSymbolDescriptionBuilder
         {
             private static readonly SymbolDisplayFormat s_typeParameterOwnerFormat =
-                new(
-                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                     typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                     genericsOptions:
                         SymbolDisplayGenericsOptions.IncludeTypeParameters |
@@ -39,8 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
 
             private static readonly SymbolDisplayFormat s_memberSignatureDisplayFormat =
-                new(
-                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+                new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
                     memberOptions:
                         SymbolDisplayMemberOptions.IncludeRef |
@@ -66,20 +64,19 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                         SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
                         SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
-                        SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
+                        SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral |
+                        SymbolDisplayMiscellaneousOptions.UseValueTuple);
 
             private static readonly SymbolDisplayFormat s_descriptionStyle =
-                new(
-                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                new(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                     delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
                     genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
                     parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
-                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseValueTuple,
                     kindOptions: SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword);
 
             private static readonly SymbolDisplayFormat s_globalNamespaceStyle =
-                new(
-                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included);
+                new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included);
 
             private readonly SemanticModel _semanticModel;
             private readonly int _position;

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -17,25 +18,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public StructuralTypeDisplayInfo GetTypeDisplayInfo(
             ISymbol orderSymbol,
-            IEnumerable<INamedTypeSymbol> directStructuralTypeReferences,
+            ImmutableArray<INamedTypeSymbol> directStructuralTypeReferences,
             SemanticModel semanticModel,
             int position)
         {
-            if (!directStructuralTypeReferences.Any())
+            if (directStructuralTypeReferences.Length == 0)
             {
                 return new StructuralTypeDisplayInfo(
                     SpecializedCollections.EmptyDictionary<INamedTypeSymbol, string>(),
                     SpecializedCollections.EmptyList<SymbolDisplayPart>());
             }
 
-            var transitiveStructuralTypeReferences = GetTransitiveStructuralTypeReferences(directStructuralTypeReferences.ToSet());
+            var transitiveStructuralTypeReferences = GetTransitiveStructuralTypeReferences(directStructuralTypeReferences);
             transitiveStructuralTypeReferences = OrderStructuralTypes(transitiveStructuralTypeReferences, orderSymbol);
 
             IList<SymbolDisplayPart> typeParts = new List<SymbolDisplayPart>();
             typeParts.Add(PlainText(FeaturesResources.Structural_Types_colon));
             typeParts.AddRange(LineBreak());
 
-            for (var i = 0; i < transitiveStructuralTypeReferences.Count; i++)
+            for (var i = 0; i < transitiveStructuralTypeReferences.Length; i++)
             {
                 if (i != 0)
                 {
@@ -50,17 +51,26 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 typeParts.AddRange(Space());
                 typeParts.Add(PlainText(FeaturesResources.is_));
                 typeParts.AddRange(Space());
-                typeParts.AddRange(GetTypeParts(structuralType, semanticModel, position));
+
+                if (structuralType.IsValueType)
+                {
+                    typeParts.AddRange(structuralType.ToMinimalDisplayParts(semanticModel, position));
+                }
+                else
+                {
+                    typeParts.AddRange(GetTypeParts(structuralType, semanticModel, position));
+                }
             }
 
             // Now, inline any delegate anonymous types we've got.
             typeParts = this.InlineDelegateAnonymousTypes(typeParts, semanticModel, position);
 
             // Finally, assign a name to all the anonymous types.
-            var anonymousTypeToName = GenerateStructuralTypeNames(transitiveStructuralTypeReferences);
-            typeParts = StructuralTypeDisplayInfo.ReplaceStructuralTypes(typeParts, anonymousTypeToName);
+            var structuralTypeToName = GenerateStructuralTypeNames(transitiveStructuralTypeReferences);
+            typeParts = StructuralTypeDisplayInfo.ReplaceStructuralTypes(
+                typeParts, structuralTypeToName, semanticModel, position);
 
-            return new StructuralTypeDisplayInfo(anonymousTypeToName, typeParts);
+            return new StructuralTypeDisplayInfo(structuralTypeToName, typeParts);
         }
 
         private static Dictionary<INamedTypeSymbol, string> GenerateStructuralTypeNames(
@@ -88,8 +98,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return "'" + current.ToString();
         }
 
-        private static IList<INamedTypeSymbol> OrderStructuralTypes(
-            IList<INamedTypeSymbol> structuralTypes,
+        private static ImmutableArray<INamedTypeSymbol> OrderStructuralTypes(
+            ImmutableArray<INamedTypeSymbol> structuralTypes,
             ISymbol symbol)
         {
             if (symbol is IMethodSymbol method)
@@ -103,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         index2 = index2 < 0 ? int.MaxValue : index2;
 
                         return index1 - index2;
-                    }).ToList();
+                    }).ToImmutableArray();
             }
             else if (symbol is IPropertySymbol property)
             {
@@ -122,22 +132,36 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         {
                             return 0;
                         }
-                    }).ToList();
+                    }).ToImmutableArray();
             }
 
             return structuralTypes;
         }
 
-        private static IList<INamedTypeSymbol> GetTransitiveStructuralTypeReferences(
-            ISet<INamedTypeSymbol> structuralTypes)
+        private static ImmutableArray<INamedTypeSymbol> GetTransitiveStructuralTypeReferences(
+            ImmutableArray<INamedTypeSymbol> structuralTypes)
         {
-            var transitiveReferences = new List<INamedTypeSymbol>();
+            var transitiveReferences = new Dictionary<INamedTypeSymbol, (int order, int count)>();
             var visitor = new StructuralTypeCollectorVisitor(transitiveReferences);
 
             foreach (var type in structuralTypes)
                 type.Accept(visitor);
 
-            return transitiveReferences;
+            using var _ = ArrayBuilder<INamedTypeSymbol>.GetInstance(out var result);
+
+            foreach (var (namedType, (order, count)) in transitiveReferences.OrderBy(kvp => kvp.Value.order))
+            {
+                if (namedType.IsTupleType && count == 1)
+                {
+                    // Ignore tuples only referenced once.  We'll keep them inline.  If the tuple shows up multiple times,
+                    // then we'll extract it out to the 'Structural Types' section to prevent lots of duplications.
+                    continue;
+                }
+
+                result.Add(namedType);
+            }
+
+            return result.ToImmutable();
         }
 
         protected static IEnumerable<SymbolDisplayPart> LineBreak(int count = 1)

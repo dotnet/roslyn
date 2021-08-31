@@ -20,22 +20,37 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             TypesParts = typesParts;
         }
 
-        public IList<SymbolDisplayPart> ReplaceStructuralTypes(IList<SymbolDisplayPart> parts)
-            => ReplaceStructuralTypes(parts, StructuralTypeToName);
+        public IList<SymbolDisplayPart> ReplaceStructuralTypes(IList<SymbolDisplayPart> parts, SemanticModel semanticModel, int position)
+            => ReplaceStructuralTypes(parts, StructuralTypeToName, semanticModel, position);
 
         public static IList<SymbolDisplayPart> ReplaceStructuralTypes(
             IList<SymbolDisplayPart> parts,
-            IDictionary<INamedTypeSymbol, string> structuralTypeToName)
+            IDictionary<INamedTypeSymbol, string> structuralTypeToName,
+            SemanticModel semanticModel,
+            int position)
         {
-            var result = parts;
-            for (var i = 0; i < result.Count; i++)
+            var result = new List<SymbolDisplayPart>();
+            for (var i = 0; i < parts.Count; i++)
             {
-                var part = result[i];
-                if (part.Symbol is INamedTypeSymbol type && structuralTypeToName.TryGetValue(type, out var name) && part.ToString() != name)
+                var part = parts[i];
+                if (part.Symbol is INamedTypeSymbol type)
                 {
-                    result = result == parts ? new List<SymbolDisplayPart>(parts) : result;
-                    result[i] = new SymbolDisplayPart(part.Kind, part.Symbol, name);
+                    if (structuralTypeToName.TryGetValue(type, out var name) &&
+                        part.ToString() != name)
+                    {
+                        result.Add(new SymbolDisplayPart(part.Kind, part.Symbol, name));
+                        continue;
+                    }
+
+                    // Expand out any tuples we're not placing in the Structural Type section.
+                    if (type.IsTupleType)
+                    {
+                        result.AddRange(type.ToMinimalDisplayParts(semanticModel, position));
+                        continue;
+                    }
                 }
+
+                result.Add(part);
             }
 
             return result;
