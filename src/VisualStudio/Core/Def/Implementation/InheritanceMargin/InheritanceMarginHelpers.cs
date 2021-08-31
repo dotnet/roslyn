@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// Note: The order of headers are sorted based on the value of <see cref="InheritanceRelationship"/> to matches the
         /// localized tooltip.
         /// </summary>
-        public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemViewModelsForSingleMember(ImmutableArray<InheritanceTargetItem> targets)
+        public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForSingleMember(ImmutableArray<InheritanceTargetItem> targets)
             => targets.OrderBy(target => target.DisplayTaggedTexts.JoinText())
                 .GroupBy(target => target.RelationToMember)
                 .OrderBy(grouping => grouping.Key)
@@ -109,17 +109,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         ///                     HeaderViewModel
         ///                     Target5ViewModel
         /// </summary>
-        public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemViewModelsForMultipleMembers(ImmutableArray<InheritanceMarginItem> members)
+        public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForMultipleMembers(ImmutableArray<InheritanceMarginItem> members)
         {
             Contract.ThrowIfTrue(members.Length <= 1);
-            return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeaderInTargets).CastArray<InheritanceMenuItemViewModel>();
+            return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeaderInTargets).CastArray<MenuItemViewModel>();
         }
 
-        public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemsWithHeader(
+        public static ImmutableArray<MenuItemViewModel> CreateMenuItemsWithHeader(
             InheritanceRelationship relationship,
             IEnumerable<InheritanceTargetItem> targets)
         {
-            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<InheritanceMenuItemViewModel>.GetInstance(out var builder);
+            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
             var displayContent = relationship switch
             {
                 InheritanceRelationship.ImplementedInterface => ServicesVSResources.Implemented_interfaces,

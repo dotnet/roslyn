@@ -1,4 +1,4 @@
-﻿<Button x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph.InheritanceMargin"
+﻿<Button x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph.InheritanceMarginGlyph"
         x:ClassModifier="internal"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

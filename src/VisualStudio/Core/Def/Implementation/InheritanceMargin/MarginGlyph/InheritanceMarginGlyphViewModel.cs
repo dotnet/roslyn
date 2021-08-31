@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
-    internal class InheritanceMarginViewModel
+    internal class InheritanceMarginGlyphViewModel
     {
         /// <summary>
         /// ImageMoniker used for the margin.
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// <summary>
         /// ViewModels for the context menu items.
         /// </summary>
-        public ImmutableArray<InheritanceMenuItemViewModel> MenuItemViewModels { get; }
+        public ImmutableArray<MenuItemViewModel> MenuItemViewModels { get; }
 
         /// <summary>
         /// Scale factor for the margin.
@@ -43,12 +43,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public double ScaleFactor { get; }
 
         // Internal for testing purpose
-        internal InheritanceMarginViewModel(
+        internal InheritanceMarginGlyphViewModel(
             ImageMoniker imageMoniker,
             TextBlock toolTipTextBlock,
             string automationName,
             double scaleFactor,
-            ImmutableArray<InheritanceMenuItemViewModel> menuItemViewModels)
+            ImmutableArray<MenuItemViewModel> menuItemViewModels)
         {
             ImageMoniker = imageMoniker;
             ToolTipTextBlock = toolTipTextBlock;
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             ScaleFactor = scaleFactor;
         }
 
-        public static InheritanceMarginViewModel Create(
+        public static InheritanceMarginGlyphViewModel Create(
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMap classificationFormatMap,
             InheritanceMarginTag tag,
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 var member = tag.MembersOnLine[0];
                 var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForSingleMember(member.TargetItems);
                 var (tooltipTextBlock, automationName) = InheritanceMarginHelpers.CreateToolTipForSingleMember(classificationTypeMap, classificationFormatMap, member);
-                return new InheritanceMarginViewModel(tag.Moniker, tooltipTextBlock, automationName, scaleFactor, menuItemViewModels);
+                return new InheritanceMarginGlyphViewModel(tag.Moniker, tooltipTextBlock, automationName, scaleFactor, menuItemViewModels);
             }
             else
             {
@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // Same automation name can't be set for control for accessibility purpose. So add the line number info.
                 var automationName = string.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
                 var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForMultipleMembers(tag.MembersOnLine);
-                return new InheritanceMarginViewModel(tag.Moniker, textBlock, automationName, scaleFactor, menuItemViewModels);
+                return new InheritanceMarginGlyphViewModel(tag.Moniker, textBlock, automationName, scaleFactor, menuItemViewModels);
             }
         }
     }

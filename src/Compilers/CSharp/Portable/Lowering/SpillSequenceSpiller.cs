@@ -963,7 +963,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitMakeRefOperator(BoundMakeRefOperator node)
         {
-            throw ExceptionUtilities.Unreachable;
+            BoundSpillSequenceBuilder builder = null;
+            var operand = VisitExpression(ref builder, node.Operand);
+            return UpdateExpression(builder, node.Update(operand, node.Type));
         }
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
