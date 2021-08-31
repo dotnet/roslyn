@@ -253,7 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 var target = targets[0];
                 var contentTemplate = GetToolTipTemplateForSingleTarget(target.RelationToMember);
                 var tooltipTextBlock = FormatTaggedText(classificationTypeMap, classificationFormatMap, contentTemplate, member.DisplayTaggedTexts, target.DisplayTaggedTexts);
-                var automationName = string.Format(contentTemplate, member.DisplayTaggedTexts.JoinText(), target.DefinitionItem.DisplayParts.JoinText());
+                var automationName = string.Format(contentTemplate, member.DisplayTaggedTexts.JoinText(), target.DisplayTaggedTexts.JoinText());
                 return (tooltipTextBlock, automationName);
             }
 
