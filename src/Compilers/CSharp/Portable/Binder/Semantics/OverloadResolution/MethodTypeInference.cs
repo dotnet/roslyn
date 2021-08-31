@@ -141,8 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // exact bounds or any of the lower bounds are nullable value types, nullable reference
         // types, null or default, then ? is added to the resulting candidate, making it a nullable
         // value type or reference type.
+        //
+        // This set of bounds effectively tracks whether a typeless null expression (i.e. null
+        // literal) was used as an argument to a parameter whose type is one of this method's type
+        // parameters. Because such expressions only occur as by-value inputs, we only need to track
+        // the lower bounds, not the exact or upper bounds.
         private readonly NullableAnnotation[] _nullableAnnotationLowerBounds;
-        private readonly NullableAnnotation[] _nullableAnnotationExactBounds;
 
         private Dependency[,] _dependencies; // Initialized lazily
         private bool _dependenciesDirty;
@@ -321,18 +325,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             _extensions = extensions ?? Extensions.Default;
             _fixedResults = new TypeWithAnnotations[methodTypeParameters.Length];
             _exactBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
-            _nullableAnnotationExactBounds = new NullableAnnotation[methodTypeParameters.Length];
-            for (int i = 0; i < methodTypeParameters.Length; i++)
-            {
-                _nullableAnnotationExactBounds[i] = NullableAnnotation.Ignored;
-            }
             _upperBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _lowerBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _nullableAnnotationLowerBounds = new NullableAnnotation[methodTypeParameters.Length];
-            for (int i = 0; i < methodTypeParameters.Length; i++)
-            {
-                _nullableAnnotationLowerBounds[i] = NullableAnnotation.Ignored;
-            }
+            Debug.Assert(_nullableAnnotationLowerBounds.All(annotation => annotation.IsNotAnnotated()));
             _dependencies = null;
             _dependenciesDirty = false;
         }
@@ -448,9 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!_fixedResults[i].Type.IsErrorType())
                     {
-                        var exactNullableAnnotation = _nullableAnnotationExactBounds[i];
-                        var lowerNullableAnnotation = _nullableAnnotationLowerBounds[i];
-                        if (_conversions.IncludeNullability && (exactNullableAnnotation.IsAnnotated() || lowerNullableAnnotation.IsAnnotated()))
+                        if (_conversions.IncludeNullability && _nullableAnnotationLowerBounds[i].IsAnnotated())
                         {
                             _fixedResults[i] = _fixedResults[i].AsAnnotated();
                         }
@@ -617,24 +611,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ExactOrBoundsInference(kind, _extensions.GetTypeWithAnnotations(argument), target, ref useSiteInfo);
                 }
-                else if (IsUnfixedTypeParameter(target))
+                else if (IsUnfixedTypeParameter(target) && kind is ExactOrBoundsKind.LowerBound)
                 {
                     var ordinal = ((TypeParameterSymbol)target.Type).Ordinal;
                     var typeWithAnnotations = _extensions.GetTypeWithAnnotations(argument);
-                    if (kind is ExactOrBoundsKind.Exact)
-                    {
-                        _nullableAnnotationExactBounds[ordinal] =
-                            _nullableAnnotationExactBounds[ordinal] == NullableAnnotation.Ignored
-                                ? typeWithAnnotations.NullableAnnotation
-                                : _nullableAnnotationExactBounds[ordinal].Meet(typeWithAnnotations.NullableAnnotation);
-                    }
-                    else if (kind is ExactOrBoundsKind.LowerBound)
-                    {
-                        _nullableAnnotationLowerBounds[ordinal] =
-                            _nullableAnnotationLowerBounds[ordinal] == NullableAnnotation.Ignored
-                                ? typeWithAnnotations.NullableAnnotation
-                                : _nullableAnnotationLowerBounds[ordinal].Join(typeWithAnnotations.NullableAnnotation);
-                    }
+                    _nullableAnnotationLowerBounds[ordinal] = _nullableAnnotationLowerBounds[ordinal].Join(typeWithAnnotations.NullableAnnotation);
                 }
             }
         }
