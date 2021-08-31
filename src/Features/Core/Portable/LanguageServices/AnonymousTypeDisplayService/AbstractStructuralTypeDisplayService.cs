@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -13,8 +12,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract partial class AbstractStructuralTypeDisplayService : IStructuralTypeDisplayService
     {
-        public abstract ImmutableArray<SymbolDisplayPart> GetTypeParts(
-            INamedTypeSymbol structuralType, SemanticModel semanticModel, int position);
+        public abstract ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
+            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position);
 
         public StructuralTypeDisplayInfo GetTypeDisplayInfo(
             ISymbol orderSymbol,
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 }
                 else
                 {
-                    typeParts.AddRange(GetTypeParts(structuralType, semanticModel, position));
+                    typeParts.AddRange(GetAnonymousTypeParts(structuralType, semanticModel, position));
                 }
             }
 

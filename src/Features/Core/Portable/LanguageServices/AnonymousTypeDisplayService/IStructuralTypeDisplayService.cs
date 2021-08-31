@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             SemanticModel semanticModel,
             int position);
 
-        ImmutableArray<SymbolDisplayPart> GetTypeParts(
-            INamedTypeSymbol structuralType,
+        ImmutableArray<SymbolDisplayPart> GetAnonymousTypeParts(
+            INamedTypeSymbol anonymousType,
             SemanticModel semanticModel,
             int position);
     }

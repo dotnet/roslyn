@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
         Public Sub New()
         End Sub
 
-        Public Overrides Function GetTypeParts(anonymousType As INamedTypeSymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SymbolDisplayPart)
+        Public Overrides Function GetAnonymousTypeParts(anonymousType As INamedTypeSymbol, semanticModel As SemanticModel, position As Integer) As ImmutableArray(Of SymbolDisplayPart)
             If anonymousType.IsAnonymousDelegateType() Then
                 Return GetDelegateAnonymousType(anonymousType, semanticModel, position)
             Else

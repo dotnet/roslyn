@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 result = result == parts ? new List<SymbolDisplayPart>(parts) : result;
                 ReplaceAnonymousType(result, delegateAnonymousType,
-                    service.GetTypeParts(delegateAnonymousType, semanticModel, position));
+                    service.GetAnonymousTypeParts(delegateAnonymousType, semanticModel, position));
             }
 
             return result;
