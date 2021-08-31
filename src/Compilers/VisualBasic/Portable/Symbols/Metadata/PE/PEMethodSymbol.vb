@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End If
             End If
 
-            If Not IsShared AndAlso String.Equals(name, WellKnownMemberNames.DelegateInvokeName, StringComparison.Ordinal) AndAlso _containingType.TypeKind = TypeKind.Delegate Then
+            If Not IsShared AndAlso String.Equals(name, WellKnownMemberNames.DelegateInvokeName, StringComparison.Ordinal) AndAlso _containingType.TypeKind = TYPEKIND.Delegate Then
                 Return MethodKind.DelegateInvoke
             End If
 
@@ -949,7 +949,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' false if the method is already associated with a property or event.
         ''' </summary>
         Friend Function SetAssociatedProperty(propertySymbol As PEPropertySymbol, methodKind As MethodKind) As Boolean
-            Debug.Assert((methodKind = MethodKind.PropertyGet) OrElse (methodKind = MethodKind.PropertySet))
+            Debug.Assert((methodKind = methodKind.PropertyGet) OrElse (methodKind = methodKind.PropertySet))
             Return Me.SetAssociatedPropertyOrEvent(propertySymbol, methodKind)
         End Function
 
@@ -958,7 +958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' false if the method is already associated with a property or event.
         ''' </summary>
         Friend Function SetAssociatedEvent(eventSymbol As PEEventSymbol, methodKind As MethodKind) As Boolean
-            Debug.Assert((methodKind = MethodKind.EventAdd) OrElse (methodKind = MethodKind.EventRemove) OrElse (methodKind = MethodKind.EventRaise))
+            Debug.Assert((methodKind = methodKind.EventAdd) OrElse (methodKind = methodKind.EventRemove) OrElse (methodKind = methodKind.EventRaise))
             Return Me.SetAssociatedPropertyOrEvent(eventSymbol, methodKind)
         End Function
 
