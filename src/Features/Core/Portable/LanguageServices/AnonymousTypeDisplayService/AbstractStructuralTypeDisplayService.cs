@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     SpecializedCollections.EmptyList<SymbolDisplayPart>());
             }
 
-            var transitiveStructuralTypeReferences = GetTransitiveNormalAnonymousTypeReferences(directStructuralTypeReferences.ToSet());
-            transitiveStructuralTypeReferences = OrderAnonymousTypes(transitiveStructuralTypeReferences, orderSymbol);
+            var transitiveStructuralTypeReferences = GetTransitiveStructuralTypeReferences(directStructuralTypeReferences.ToSet());
+            transitiveStructuralTypeReferences = OrderStructuralTypes(transitiveStructuralTypeReferences, orderSymbol);
 
             IList<SymbolDisplayPart> typeParts = new List<SymbolDisplayPart>();
             typeParts.Add(PlainText(FeaturesResources.Structural_Types_colon));
@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 var structuralType = transitiveStructuralTypeReferences[i];
                 typeParts.AddRange(Space(count: 4));
-                typeParts.Add(Part(SymbolDisplayPartKind.ClassName, structuralType, structuralType.Name));
+                typeParts.Add(Part(
+                    structuralType.IsValueType ? SymbolDisplayPartKind.StructName : SymbolDisplayPartKind.ClassName,
+                    structuralType, structuralType.Name));
                 typeParts.AddRange(Space());
                 typeParts.Add(PlainText(FeaturesResources.is_));
                 typeParts.AddRange(Space());
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return "'" + current.ToString();
         }
 
-        private static IList<INamedTypeSymbol> OrderAnonymousTypes(
+        private static IList<INamedTypeSymbol> OrderStructuralTypes(
             IList<INamedTypeSymbol> transitiveAnonymousTypeReferences,
             ISymbol symbol)
         {
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return transitiveAnonymousTypeReferences;
         }
 
-        private static IList<INamedTypeSymbol> GetTransitiveNormalAnonymousTypeReferences(
+        private static IList<INamedTypeSymbol> GetTransitiveStructuralTypeReferences(
             ISet<INamedTypeSymbol> anonymousTypeReferences)
         {
             var transitiveReferences = new List<INamedTypeSymbol>();
