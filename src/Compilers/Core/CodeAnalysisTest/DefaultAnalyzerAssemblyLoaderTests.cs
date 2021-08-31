@@ -359,7 +359,23 @@ Delta: Epsilon: Test E
             loader.AddDependencyLocation(deltaCopy.Path);
             Assembly delta = loader.LoadFromPath(deltaCopy.Path);
 
-            Assert.Throws<UnauthorizedAccessException>(() => File.Delete(deltaCopy.Path));
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                Assert.Throws<UnauthorizedAccessException>(() => File.Delete(deltaCopy.Path));
+            }
+            else
+            {
+                File.Delete(deltaCopy.Path);
+
+                var d = delta.CreateInstance("Delta.D");
+                d!.GetType().GetMethod("Write")!.Invoke(d, new object[] { sb, "Test D" });
+
+                var actual = sb.ToString();
+                Assert.Equal(
+@"Delta: Test D
+",
+                    actual);
+            }
         }
 
 #if NETCOREAPP
