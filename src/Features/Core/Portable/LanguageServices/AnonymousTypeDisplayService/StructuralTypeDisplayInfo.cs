@@ -29,39 +29,49 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             SemanticModel semanticModel,
             int position)
         {
-            bool changed;
-            do
-            {
-                changed = false;
-
-                for (var i = 0; i < parts.Count; i++)
-                {
-                    var part = parts[i];
-                    if (part.Symbol is INamedTypeSymbol type)
-                    {
-                        if (structuralTypeToName.TryGetValue(type, out var name) &&
-                            part.ToString() != name)
-                        {
-                            parts[i] = new SymbolDisplayPart(part.Kind, part.Symbol, name);
-                            changed = true;
-                            continue;
-                        }
-
-                        // Expand out any tuples we're not placing in the Structural Type section.
-                        if (type.IsTupleType && part.ToString() == "<tuple>")
-                        {
-                            parts.RemoveAt(i);
-                            var displayParts = type.ToMinimalDisplayParts(semanticModel, position);
-                            for (var n = displayParts.Length - 1; n >= 0; n--)
-                                parts.Insert(i, displayParts[n]);
-                            changed = true;
-                            break;
-                        }
-                    }
-                }
-            } while (changed);
+            // Keep replacing parts until no more changes happen. 
+            while (ReplaceStructuralTypes(parts, structuralTypeToName, semanticModel, position, out var newParts))
+                parts = newParts;
 
             return parts;
+        }
+
+        public static bool ReplaceStructuralTypes(
+            IList<SymbolDisplayPart> parts,
+            IDictionary<INamedTypeSymbol, string> structuralTypeToName,
+            SemanticModel semanticModel,
+            int position,
+            out List<SymbolDisplayPart> newParts)
+        {
+            var changed = false;
+            newParts = new List<SymbolDisplayPart>();
+
+            foreach (var part in parts)
+            {
+                if (part.Symbol is INamedTypeSymbol type)
+                {
+                    if (structuralTypeToName.TryGetValue(type, out var name) &&
+                        part.ToString() != name)
+                    {
+                        newParts.Add(new SymbolDisplayPart(part.Kind, part.Symbol, name));
+                        changed = true;
+                        continue;
+                    }
+
+                    // Expand out any tuples we're not placing in the Structural Type section.
+                    if (type.IsTupleType && part.ToString() == "<tuple>")
+                    {
+                        var displayParts = type.ToMinimalDisplayParts(semanticModel, position);
+                        newParts.AddRange(displayParts);
+                        changed = true;
+                        continue;
+                    }
+                }
+
+                newParts.Add(part);
+            }
+
+            return changed;
         }
     }
 }
