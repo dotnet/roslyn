@@ -185,13 +185,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                                       .Concat(parameters.SelectMany(p => p.GetAllParts()))
                                       .Concat(descriptionParts);
 
-            var directAnonymousTypeReferences =
+            var structuralTypes =
                 from part in allParts
-                where part.Symbol.IsNormalAnonymousType()
+                where part.Symbol.IsNormalAnonymousType() || part.Symbol.IsTupleType()
                 select (INamedTypeSymbol)part.Symbol!;
 
             var info = structuralTypeDisplayService.GetTypeDisplayInfo(
-                orderSymbol, directAnonymousTypeReferences, semanticModel, position);
+                orderSymbol, structuralTypes, semanticModel, position);
 
             if (info.TypesParts.Count > 0)
             {
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     info.ReplaceStructuralTypes(prefixParts).ToTaggedText(),
                     info.ReplaceStructuralTypes(separatorParts).ToTaggedText(),
                     info.ReplaceStructuralTypes(suffixParts).ToTaggedText(),
-                    parameters.Select(p => ReplaceAnonymousTypes(p, info)).Select(p => (SignatureHelpParameter)p),
+                    parameters.Select(p => ReplaceStructuralTypes(p, info)).Select(p => (SignatureHelpParameter)p),
                     anonymousTypeParts.ToTaggedText());
             }
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 descriptionParts.ToTaggedText());
         }
 
-        private static SignatureHelpSymbolParameter ReplaceAnonymousTypes(
+        private static SignatureHelpSymbolParameter ReplaceStructuralTypes(
             SignatureHelpSymbolParameter parameter,
             StructuralTypeDisplayInfo info)
         {
