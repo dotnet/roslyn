@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Private Shared Function GetTypeSymbolOfExpression(semanticModel As SemanticModel, potentialAwaitableExpression As ExpressionSyntax, cancellationToken As CancellationToken) As ITypeSymbol
             Dim memberAccessExpression = TryCast(potentialAwaitableExpression, MemberAccessExpressionSyntax)?.Expression
             If memberAccessExpression IsNot Nothing Then
-                Dim symbolInfo = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken)
+                Dim symbolInfo = semanticModel.GetSymbolInfo(memberAccessExpression.WalkDownParentheses(), cancellationToken)
                 Dim symbol = symbolInfo.Symbol
                 If TypeOf symbol Is ITypeSymbol Then ' e.g. Task.$$
                     Return Nothing
