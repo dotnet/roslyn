@@ -51,8 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                     OnDestinationUpdated();
                     break;
                 case nameof(SelectedIndex):
-                    OnSearchTextOrIndexUpdated();
-                    break;
                 case nameof(SearchText):
                     OnSearchTextOrIndexUpdated();
                     break;
@@ -62,15 +60,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         private void OnSearchTextOrIndexUpdated()
         {
             // we either typed something or changed the selection
-            if (SelectedIndex != -1 && SearchText == ShownTypes[SelectedIndex].TypeName)
-            {
-                // The user has selected a destination
-                DestinationName = ShownTypes[SelectedIndex];
-            }
-            else
+            if (SelectedIndex != -1 && SearchText == AvailableTypes[SelectedIndex].TypeName)
             {
                 // Search text is not selecting anything, create a destination for the
                 // contents of the text.
+                DestinationName = AvailableTypes[SelectedIndex];
+            }
+            else
+            {
                 DestinationName = new TypeNameItem(SearchText);
             }
         }
@@ -96,15 +93,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             {
                 ShowMessage = false;
             }
-
-            var shownTypes = AvailableTypes.WhereAsArray(t => t.TypeName.Contains(SearchText));
-            // always show option to make new type if valid
-            if (isNewType)
-            {
-                shownTypes = shownTypes.Insert(0, DestinationName);
-            }
-
-            ShownTypes = shownTypes;
         }
 
         private bool IsValidType(string typeName)
@@ -155,16 +143,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         {
             get => _searchText;
             set => SetProperty(ref _searchText, value);
-        }
-
-        private ImmutableArray<TypeNameItem> _shownTypes;
-        public ImmutableArray<TypeNameItem> ShownTypes
-        {
-            get => _shownTypes;
-            private set
-            {
-                SetProperty(ref _shownTypes, value);
-            }
         }
 
         public ImmutableArray<TypeNameItem> AvailableTypes { get; }

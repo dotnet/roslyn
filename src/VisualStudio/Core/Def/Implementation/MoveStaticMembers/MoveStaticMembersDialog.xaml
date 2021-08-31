@@ -51,7 +51,7 @@
                 AutomationProperties.LabeledBy="{Binding ElementName=DestinationLabel}"
                 Text="{Binding SearchText, Mode=TwoWay}"
                 SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
-                ItemsSource="{Binding ShownTypes, Mode=OneWay}"
+                ItemsSource="{Binding AvailableTypes, Mode=OneTime}"
                 BorderThickness="1" 
                 Margin="0 0 20 0"
                 MaxDropDownHeight="150">
@@ -74,11 +74,6 @@
                                 Visibility="{Binding IsFromHistory, Converter={StaticResource BooleanToVisibilityConverter}}" 
                                 Margin="0 0 5 0" 
                                 Moniker="{x:Static imagecatalog:KnownMonikers.History}" />
-                            <imaging:CrispImage
-                                Grid.Column="1"
-                                Visibility="{Binding IsNew, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                Margin="0 0 5 0"
-                                Moniker="{x:Static imagecatalog:KnownMonikers.Add}"/>
                             <TextBlock
                                 Grid.Column="3"
                                 HorizontalAlignment="Left"
@@ -94,7 +89,8 @@
             </ComboBox>
 
 
-            <GroupBox>
+            <GroupBox
+                BorderThickness="0">
                 <GroupBox.Header>
                     <StackPanel 
                     Orientation="Horizontal"  
