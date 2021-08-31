@@ -902,8 +902,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   switch on whenNodeIdentifierLocal with dispatches to whenFalse labels
 
                 // Prepared maps for `when` nodes and expressions
-                var whenExpressionMap = new Dictionary<BoundExpression, (LabelSymbol LabelToWhenExpression, List<BoundWhenDecisionDagNode> WhenNodes)>();
-                var whenNodeMap = new Dictionary<BoundWhenDecisionDagNode, (LabelSymbol LabelToWhenExpression, int WhenNodeIdentifier)>();
+                var whenExpressionMap = PooledDictionary<BoundExpression, (LabelSymbol LabelToWhenExpression, ArrayBuilder<BoundWhenDecisionDagNode> WhenNodes)>.GetInstance();
+                var whenNodeMap = PooledDictionary<BoundWhenDecisionDagNode, (LabelSymbol LabelToWhenExpression, int WhenNodeIdentifier)>.GetInstance();
                 foreach (BoundDecisionDagNode node in sortedNodes)
                 {
                     if (node is BoundWhenDecisionDagNode whenNode)
@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 labelToWhenExpression = _factory.GenerateLabel("sharedWhenExpression");
-                                var list = new List<BoundWhenDecisionDagNode>();
+                                var list = ArrayBuilder<BoundWhenDecisionDagNode>.GetInstance();
                                 list.Add(whenNode);
                                 whenExpressionMap.Add(whenExpression, (labelToWhenExpression, list));
                             }
@@ -946,7 +946,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var (whenExpression, (labelToWhenExpression, whenNodes)) in whenExpressionMap)
                 {
                     lowerWhenExpressionIfShared(whenExpression, labelToWhenExpression, whenNodes);
+                    whenNodes.Free();
                 }
+
+                whenExpressionMap.Free();
+                whenNodeMap.Free();
 
                 return;
 
@@ -975,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                void lowerWhenExpressionIfShared(BoundExpression whenExpression, LabelSymbol labelToWhenExpression, List<BoundWhenDecisionDagNode> whenNodes)
+                void lowerWhenExpressionIfShared(BoundExpression whenExpression, LabelSymbol labelToWhenExpression, ArrayBuilder<BoundWhenDecisionDagNode> whenNodes)
                 {
                     if (!isSharedWhenExpression(whenExpression))
                     {
@@ -984,6 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var whenClauseSyntax = whenNodes[0].Syntax;
                     var whenTrueLabel = GetDagNodeLabel(whenNodes[0].WhenTrue);
+                    Debug.Assert(whenNodes.Count > 1);
                     Debug.Assert(whenNodes.All(n => n.Syntax == whenClauseSyntax));
                     Debug.Assert(whenNodes.All(n => n.WhenExpression == whenExpression));
                     Debug.Assert(whenNodes.All(n => n.Bindings == whenNodes[0].Bindings));
