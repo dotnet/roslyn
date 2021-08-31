@@ -3351,7 +3351,7 @@ namespace N {
 ",
             MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<'a> IEnumerable<int>.Select<int, 'a>(Func<int, 'a> selector)"),
             AnonymousTypes($@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Structural_Types_colon}
     'a {FeaturesResources.is_} new {{ int i, bool j }}"));
         }
 
@@ -3925,7 +3925,7 @@ class C
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Structural_Types_colon}
     'a {FeaturesResources.is_} new {{  }}"));
         }
 
@@ -3943,7 +3943,7 @@ x[0].$$Address",
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Structural_Types_colon}
     'a {FeaturesResources.is_} new {{ string Name, 'b Address }}
     'b {FeaturesResources.is_} new {{ string Street, string Zip }}"));
 
@@ -3956,7 +3956,7 @@ x[0].$$Name",
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Structural_Types_colon}
     'a {FeaturesResources.is_} new {{ string Name, 'b Address }}
     'b {FeaturesResources.is_} new {{ string Street, string Zip }}"));
         }
@@ -3985,7 +3985,7 @@ $@"
                 NoTypeParameterMap,
                 AnonymousTypes(
 $@"
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Structural_Types_colon}
     'a {FeaturesResources.is_} new {{ int N }}"));
         }
 

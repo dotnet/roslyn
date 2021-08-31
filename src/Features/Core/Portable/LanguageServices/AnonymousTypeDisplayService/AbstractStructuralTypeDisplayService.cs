@@ -31,34 +31,34 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             var transitiveStructuralTypeReferences = GetTransitiveNormalAnonymousTypeReferences(directStructuralTypeReferences.ToSet());
             transitiveStructuralTypeReferences = OrderAnonymousTypes(transitiveStructuralTypeReferences, orderSymbol);
 
-            IList<SymbolDisplayPart> anonymousTypeParts = new List<SymbolDisplayPart>();
-            anonymousTypeParts.Add(PlainText(FeaturesResources.Structural_Types_colon));
-            anonymousTypeParts.AddRange(LineBreak());
+            IList<SymbolDisplayPart> typeParts = new List<SymbolDisplayPart>();
+            typeParts.Add(PlainText(FeaturesResources.Structural_Types_colon));
+            typeParts.AddRange(LineBreak());
 
             for (var i = 0; i < transitiveStructuralTypeReferences.Count; i++)
             {
                 if (i != 0)
                 {
-                    anonymousTypeParts.AddRange(LineBreak());
+                    typeParts.AddRange(LineBreak());
                 }
 
-                var anonymousType = transitiveStructuralTypeReferences[i];
-                anonymousTypeParts.AddRange(Space(count: 4));
-                anonymousTypeParts.Add(Part(SymbolDisplayPartKind.ClassName, anonymousType, anonymousType.Name));
-                anonymousTypeParts.AddRange(Space());
-                anonymousTypeParts.Add(PlainText(FeaturesResources.is_));
-                anonymousTypeParts.AddRange(Space());
-                anonymousTypeParts.AddRange(GetTypeParts(anonymousType, semanticModel, position));
+                var structuralType = transitiveStructuralTypeReferences[i];
+                typeParts.AddRange(Space(count: 4));
+                typeParts.Add(Part(SymbolDisplayPartKind.ClassName, structuralType, structuralType.Name));
+                typeParts.AddRange(Space());
+                typeParts.Add(PlainText(FeaturesResources.is_));
+                typeParts.AddRange(Space());
+                typeParts.AddRange(GetTypeParts(structuralType, semanticModel, position));
             }
 
             // Now, inline any delegate anonymous types we've got.
-            anonymousTypeParts = this.InlineDelegateAnonymousTypes(anonymousTypeParts, semanticModel, position);
+            typeParts = this.InlineDelegateAnonymousTypes(typeParts, semanticModel, position);
 
             // Finally, assign a name to all the anonymous types.
             var anonymousTypeToName = GenerateAnonymousTypeNames(transitiveStructuralTypeReferences);
-            anonymousTypeParts = StructuralTypeDisplayInfo.ReplaceStructuralTypes(anonymousTypeParts, anonymousTypeToName);
+            typeParts = StructuralTypeDisplayInfo.ReplaceStructuralTypes(typeParts, anonymousTypeToName);
 
-            return new StructuralTypeDisplayInfo(anonymousTypeToName, anonymousTypeParts);
+            return new StructuralTypeDisplayInfo(anonymousTypeToName, typeParts);
         }
 
         private static Dictionary<INamedTypeSymbol, string> GenerateAnonymousTypeNames(
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private static SymbolDisplayPart Part(SymbolDisplayPartKind kind, string text)
             => Part(kind, null, text);
 
-        private static SymbolDisplayPart Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
+        private static SymbolDisplayPart Part(SymbolDisplayPartKind kind, ISymbol? symbol, string text)
             => new(kind, symbol, text);
 
         protected static IEnumerable<SymbolDisplayPart> Space(int count = 1)

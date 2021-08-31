@@ -2497,7 +2497,7 @@ End Class
                 Await state.AssertSelectedCompletionItem(description:=
 $"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As 'a()
 
-{ FeaturesResources.Anonymous_Types_colon }
+{ FeaturesResources.Structural_Types_colon }
     'a { FeaturesResources.is_ } New With {{ .x As Integer }}")
             End Using
         End Function
@@ -2519,7 +2519,7 @@ End Class
                 Await state.AssertSelectedCompletionItem(description:=
 $"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As 'a()
 
-{ FeaturesResources.Anonymous_Types_colon }
+{ FeaturesResources.Structural_Types_colon }
     'a { FeaturesResources.is_ } New With {{ Key .x As Integer }}")
             End Using
         End Function

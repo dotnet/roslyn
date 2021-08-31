@@ -887,7 +887,7 @@ Class C
 End Class]]></Text>.NormalizedValue,
             MainDescription("AnonymousType 'a"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Structural_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
         End Function
 
         <WorkItem(543226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543226")>
@@ -905,7 +905,7 @@ Module Program
 End Module]]></Text>.NormalizedValue,
             MainDescription("ReadOnly Property 'a.Name As String"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Structural_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
         End Function
 
         <WorkItem(543223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543223")>
@@ -920,7 +920,7 @@ End Class
 ]]></Text>.NormalizedValue,
             MainDescription("AnonymousType 'a"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Goo As ? }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Structural_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Goo As ? }}"))
         End Function
 
         <WorkItem(543242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543242")>
@@ -982,7 +982,7 @@ Module Program
 End Module
 ]]></Text>.NormalizedValue,
             MainDescription($"({FeaturesResources.local_variable}) a As <Function() As 'a>"),
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf &
+            AnonymousTypes(vbCrLf & FeaturesResources.Structural_Types_colon & vbCrLf &
                            $"    'a {FeaturesResources.is_} New With {{ .Goo As String }}"))
         End Function
 
@@ -1000,7 +1000,7 @@ Module Program
 End Module
 ]]></Text>.NormalizedValue,
             MainDescription($"({FeaturesResources.local_variable}) a As <Function(i As Integer) As 'a>"),
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf &
+            AnonymousTypes(vbCrLf & FeaturesResources.Structural_Types_colon & vbCrLf &
                            $"    'a {FeaturesResources.is_} New With {{ .Sq As Integer, .M As <Function(j As Integer) As Integer> }}"))
         End Function
 

@@ -4706,7 +4706,7 @@ class Program
                 Await state.AssertSelectedCompletionItem(description:=
 $"({ CSharpFeaturesResources.extension }) 'a[] System.Collections.Generic.IEnumerable<'a>.ToArray<'a>()
 
-{ FeaturesResources.Anonymous_Types_colon }
+{ FeaturesResources.Structural_Types_colon }
     'a { FeaturesResources.is_ } new {{ int x }}")
             End Using
         End Function

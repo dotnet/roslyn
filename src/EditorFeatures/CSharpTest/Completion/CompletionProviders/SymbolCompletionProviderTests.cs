@@ -3430,7 +3430,7 @@ class C
             var expectedDescription =
 $@"({FeaturesResources.local_variable}) 'a a
 
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Structural_Types_colon}
     'a {FeaturesResources.is_} new {{  }}";
 
             await VerifyItemExistsAsync(markup, "a", expectedDescription);
