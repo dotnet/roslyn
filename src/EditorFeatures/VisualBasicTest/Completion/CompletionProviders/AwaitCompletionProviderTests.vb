@@ -126,7 +126,6 @@ End Class
 ")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function DotAwaitInAsyncSub() As Task
             Await VerifyAwaitKeyword("
@@ -137,6 +136,194 @@ Class C
         Task.CompletedTask.$$
     End Sub
 End Class
+", includeConfigureAwait:=True)
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitSuggestAfterDotOnTaskOfT() As Task
+            Await VerifyAwaitKeyword("
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F(ByVal someTask As Task(Of Integer)) As Task
+        someTask.$$
+    End Function
+End Class
+", includeConfigureAwait:=True)
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitSuggestAfterDotOnValueTask() As Task
+            Dim valueTaskAssembly = GetType(ValueTask).Assembly.Location
+
+            Await VerifyAwaitKeyword($"
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <MetadataReference>{valueTaskAssembly}</MetadataReference>
+        <Document FilePath=""Test2.cs"">
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F(ByVal someTask As ValueTask) As Task
+        someTask.$$
+    End Function
+End Class
+        </Document>
+    </Project>
+</Workspace>
+")
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitSuggestAfterDotOnCustomAwaitable() As Task
+            Await VerifyAwaitKeyword("
+Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Threading.Tasks
+
+Public Class DummyAwaiter
+    Implements INotifyCompletion
+
+    Public ReadOnly Property IsCompleted As Boolean
+        Get
+            Return True
+        End Get
+    End Property
+
+    Public Sub OnCompleted(ByVal continuation As Action)
+        Return continuation()
+    End Sub
+
+    Public Sub GetResult()
+    End Sub
+End Class
+
+Public Class CustomAwaitable
+    Public Function GetAwaiter() As DummyAwaiter
+        Return New DummyAwaiter()
+    End Function
+End Class
+
+Module Program
+    Private Async Function Main() As Task
+        Dim awaitable = New CustomAwaitable()
+        awaitable.$$
+    End Function
+End Module
+")
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitSuggestAfterDotBeforeType() As Task
+            Await VerifyAwaitKeyword("
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Main(ByVal someTask As Task) As Task
+        someTask.$$
+        Dim i As Int32 = 0
+    End Function
+End Module
+", includeConfigureAwait:=True)
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitSuggestAfterDotBeforeAnotherAwait() As Task
+            Await VerifyAwaitKeyword("
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Private Async Function Main(ByVal someTask As Task) As Task
+        someTask.$$
+        Await Test()
+    End Function
+
+    Private Async Function Test() As Task
+    End Function
+End Module
+", includeConfigureAwait:=True)
+        End Function
+
+
+        <Theory>
+        <InlineData("StaticField.$$")>
+        <InlineData("StaticProperty.$$")>
+        <InlineData("StaticMethod().$$")>
+        <InlineData("local.$$")>
+        <InlineData("parameter.$$")>
+        <InlineData("c.Field.$$")>
+        <InlineData("c.Property.$$")>
+        <InlineData("c.Method().$$")>
+        <InlineData("c.Self.Field.$$")>
+        <InlineData("c.Self.Property.$$")>
+        <InlineData("c.Self.Method().$$")>
+        <InlineData("c.Func()().$$")>
+        <InlineData("c(0).$$")>
+        <InlineData("Dim t = (CType(c, Task)).$$")>
+        <InlineData("Dim t = (TryCast(c, Task)).$$")>
+        <InlineData("Dim t = (parameter).$$")>
+        <InlineData("Dim t = ((parameter)).$$")>
+        <InlineData("Dim t = if(true, parameter, parameter).$$")>
+        <InlineData("Dim t = if(null, Task.CompletedTask).$$")>
+        Public Async Function DotAwaitSuggestAfterDifferentExpressions(ByVal expression As String) As Task
+            Dim t = If(True, expression, expression).Length
+            Await VerifyAwaitKeyword($"
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Public ReadOnly Property Self As C
+        Get
+            Return Me
+        End Get
+    End Property
+
+    Public Field As Task = Task.CompletedTask
+
+    Public Function Method() As Task
+        Return Task.CompletedTask
+    End Function
+
+    Public ReadOnly Property [Property] As Task
+        Get
+            Return Task.CompletedTask
+        End Get
+    End Property
+
+    Default Public ReadOnly Property Item(ByVal i As Integer) As Task
+        Get
+            Return Task.CompletedTask
+        End Get
+    End Property
+
+    Public Function Func() As Func(Of Task)
+        Return Function() Task.CompletedTask
+    End Function
+End Class
+
+Module Program
+    Shared StaticField As Task = Task.CompletedTask
+
+    Private Shared ReadOnly Property StaticProperty As Task
+        Get
+            Return Task.CompletedTask
+        End Get
+    End Property
+
+    Private Function StaticMethod() As Task
+        Return Task.CompletedTask
+    End Function
+
+    Private Async Function Main(ByVal parameter As Task) As Task
+        Dim local As Task = Task.CompletedTask
+        Dim c = New C()
+
+        {expression}
+
+    End Function
+End Module
 ", includeConfigureAwait:=True)
         End Function
     End Class
