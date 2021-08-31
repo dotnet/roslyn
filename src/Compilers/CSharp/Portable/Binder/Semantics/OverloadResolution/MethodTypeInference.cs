@@ -135,6 +135,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<TypeWithAnnotations>[] _exactBounds;
         private readonly HashSet<TypeWithAnnotations>[] _upperBounds;
         private readonly HashSet<TypeWithAnnotations>[] _lowerBounds;
+
+        // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/nullable-reference-types-specification.md#fixing
+        // If the resulting candidate is a reference type or a nonnullable value type and all of the
+        // exact bounds or any of the lower bounds are nullable value types, nullable reference
+        // types, null or default, then ? is added to the resulting candidate, making it a nullable
+        // value type or reference type.
+        private readonly NullableAnnotation[] _nullableAnnotationLowerBounds;
+        private readonly NullableAnnotation[] _nullableAnnotationExactBounds;
+
         private Dependency[,] _dependencies; // Initialized lazily
         private bool _dependenciesDirty;
 
@@ -312,8 +321,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             _extensions = extensions ?? Extensions.Default;
             _fixedResults = new TypeWithAnnotations[methodTypeParameters.Length];
             _exactBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
+            _nullableAnnotationExactBounds = new NullableAnnotation[methodTypeParameters.Length];
+            for (int i = 0; i < methodTypeParameters.Length; i++)
+            {
+                _nullableAnnotationExactBounds[i] = NullableAnnotation.Ignored;
+            }
             _upperBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _lowerBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
+            _nullableAnnotationLowerBounds = new NullableAnnotation[methodTypeParameters.Length];
+            for (int i = 0; i < methodTypeParameters.Length; i++)
+            {
+                _nullableAnnotationLowerBounds[i] = NullableAnnotation.Ignored;
+            }
             _dependencies = null;
             _dependenciesDirty = false;
         }
@@ -429,6 +448,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!_fixedResults[i].Type.IsErrorType())
                     {
+                        var exactNullableAnnotation = _nullableAnnotationExactBounds[i];
+                        var lowerNullableAnnotation = _nullableAnnotationLowerBounds[i];
+                        if (_conversions.IncludeNullability && (exactNullableAnnotation.IsAnnotated() || lowerNullableAnnotation.IsAnnotated()))
+                        {
+                            _fixedResults[i] = _fixedResults[i].AsAnnotated();
+                        }
                         continue;
                     }
 
@@ -591,6 +616,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IsReallyAType(argument.GetTypeOrFunctionType()))
                 {
                     ExactOrBoundsInference(kind, _extensions.GetTypeWithAnnotations(argument), target, ref useSiteInfo);
+                }
+                else if (IsUnfixedTypeParameter(target))
+                {
+                    var ordinal = ((TypeParameterSymbol)target.Type).Ordinal;
+                    var typeWithAnnotations = _extensions.GetTypeWithAnnotations(argument);
+                    if (kind is ExactOrBoundsKind.Exact)
+                    {
+                        _nullableAnnotationExactBounds[ordinal] =
+                            _nullableAnnotationExactBounds[ordinal] == NullableAnnotation.Ignored
+                                ? typeWithAnnotations.NullableAnnotation
+                                : _nullableAnnotationExactBounds[ordinal].Meet(typeWithAnnotations.NullableAnnotation);
+                    }
+                    else if (kind is ExactOrBoundsKind.LowerBound)
+                    {
+                        _nullableAnnotationLowerBounds[ordinal] =
+                            _nullableAnnotationLowerBounds[ordinal] == NullableAnnotation.Ignored
+                                ? typeWithAnnotations.NullableAnnotation
+                                : _nullableAnnotationLowerBounds[ordinal].Join(typeWithAnnotations.NullableAnnotation);
+                    }
                 }
             }
         }
@@ -2613,7 +2657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (upper != null)
                 {
-                    // Lower bounds represent contra-variance.
+                    // Upper bounds represent contra-variance.
                     AddAllCandidates(candidates, upper, VarianceKind.In, conversions);
                 }
             }

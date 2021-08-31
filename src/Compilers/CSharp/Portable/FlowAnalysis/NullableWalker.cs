@@ -6005,7 +6005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (refKind == RefKind.None)
                     {
                         var before = argument;
-                        (argument, conversion) = RemoveConversion(argument, includeExplicitConversions: false, includePredefinedNullLiteralConversions: false);
+                        (argument, conversion) = RemoveConversion(argument, includeExplicitConversions: false);
                         if (argument != before)
                         {
                             SnapshotWalkerThroughConversionGroup(before, argument);
@@ -6143,7 +6143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.DefaultLiteral:
                     case BoundKind.DefaultExpression:
                     case BoundKind.Literal:
-                        return (expr.ConstantValue?.IsNull != false) ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
+                        return expr.ConstantValue == ConstantValue.NotAvailable || !expr.ConstantValue.IsNull ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
                     case BoundKind.ExpressionWithNullability:
                         return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                     case BoundKind.MethodGroup:
@@ -6256,7 +6256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// (Currently, the only visit method that passes `includeExplicitConversions: true`
         /// is VisitConversion. All other callers are handling implicit conversions only.)
         /// </summary>
-        private static (BoundExpression expression, Conversion conversion) RemoveConversion(BoundExpression expr, bool includeExplicitConversions, bool includePredefinedNullLiteralConversions = true)
+        private static (BoundExpression expression, Conversion conversion) RemoveConversion(BoundExpression expr, bool includeExplicitConversions)
         {
             ConversionGroup? group = null;
             while (true)
@@ -6273,12 +6273,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 group = conversion.ConversionGroupOpt;
                 Debug.Assert(group != null || !conversion.ExplicitCastInCode); // Explicit conversions should include a group.
-                Debug.Assert(conversion.Operand.ConstantValue != ConstantValue.Null
-                    || conversion.Operand is BoundLiteral { Type: null } or (not BoundLiteral and { Type: not null }));
-                if ((!includeExplicitConversions && group?.IsExplicitConversion == true)
-                    || (!includePredefinedNullLiteralConversions && group?.Conversion.IsUserDefined != true && conversion.Operand is BoundLiteral { ConstantValue.IsNull: true }))
+                if (!includeExplicitConversions && group?.IsExplicitConversion == true)
                 {
-                    Debug.Assert(expr.Type is not null);
                     return (expr, Conversion.Identity);
                 }
                 expr = conversion.Operand;
