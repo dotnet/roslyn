@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         StructuralTypeDisplayInfo GetTypeDisplayInfo(
             ISymbol orderSymbol,
-            IEnumerable<INamedTypeSymbol> directNormalAnonymousTypeReferences,
+            IEnumerable<INamedTypeSymbol> structuralTypes,
             SemanticModel semanticModel,
             int position);
 
         ImmutableArray<SymbolDisplayPart> GetTypeParts(
-            INamedTypeSymbol anonymousType,
+            INamedTypeSymbol structuralType,
             SemanticModel semanticModel,
             int position);
     }
