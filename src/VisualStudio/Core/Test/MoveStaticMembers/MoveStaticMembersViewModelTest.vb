@@ -309,22 +309,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             DeselectMember("Dependent", selectionVm)
 
             Assert.True(selectionVm.CheckedMembers.IsEmpty)
-            Assert.False(viewModel.CanSubmit)
 
             selectionVm.SelectAll()
             ' If constructor and operators are able to be selected, this would be a higher number
             Assert.Equal(7, selectionVm.CheckedMembers.Length)
-            Assert.True(viewModel.CanSubmit)
 
             selectionVm.DeselectAll()
             Assert.True(selectionVm.CheckedMembers.IsEmpty)
-            Assert.False(viewModel.CanSubmit)
 
             SelectMember("Dependent", selectionVm)
             selectionVm.SelectDependents()
             Assert.True(FindMemberByName("Barbar", selectionVm.Members).IsChecked)
             Assert.Equal(2, selectionVm.CheckedMembers.Length)
-            Assert.True(viewModel.CanSubmit)
         End Function
 #End Region
 
@@ -584,22 +580,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             DeselectMember("Dependent", selectionVm)
 
             Assert.True(selectionVm.CheckedMembers.IsEmpty)
-            Assert.False(viewModel.CanSubmit)
 
             selectionVm.SelectAll()
             ' If constructor and operators are able to be selected, this would be a higher number
             Assert.Equal(7, selectionVm.CheckedMembers.Length)
-            Assert.True(viewModel.CanSubmit)
 
             selectionVm.DeselectAll()
             Assert.True(selectionVm.CheckedMembers.IsEmpty)
-            Assert.False(viewModel.CanSubmit)
 
             SelectMember("Dependent", selectionVm)
             selectionVm.SelectDependents()
             Assert.True(FindMemberByName("Barbar", selectionVm.Members).IsChecked)
             Assert.Equal(2, selectionVm.CheckedMembers.Length)
-            Assert.True(viewModel.CanSubmit)
         End Function
 #End Region
     End Class

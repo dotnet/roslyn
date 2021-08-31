@@ -94,13 +94,7 @@
             </ComboBox>
 
 
-            <GroupBox
-                BorderThickness="0">
-                <GroupBox.Style>
-                    <Style TargetType="GroupBox">
-                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vs:EnvironmentColors.ToolWindowTextBrushKey}}"/>
-                    </Style>
-                </GroupBox.Style>
+            <GroupBox>
                 <GroupBox.Header>
                     <StackPanel 
                     Orientation="Horizontal"  
@@ -165,7 +159,8 @@
                     Click="OK_Click" 
                     IsDefault="True"
                     MinWidth="73"
-                    MinHeight="21"/>
+                    MinHeight="21"
+                    IsEnabled="{Binding CanSubmit}"/>
             <Button x:Uid="CancelButton" 
                     Name="CancelButton"
                     Content="{Binding ElementName=dialog, Path=Cancel}"
