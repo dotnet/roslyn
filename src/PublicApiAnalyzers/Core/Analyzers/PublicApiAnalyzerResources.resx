@@ -160,7 +160,8 @@
     <value>Symbol '{0}' is part of the declared API, but is either not public or could not be found</value>
   </data>
   <data name="RemoveDeletedApiDescription" xml:space="preserve">
-    <value>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+    <value>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+    <comment>{Locked="*REMOVED*"}</comment>
   </data>
   <data name="ExposedNoninstantiableTypeMessage" xml:space="preserve">
     <value>Constructor makes its noninheritable base class inheritable, thereby exposing its protected members</value>
