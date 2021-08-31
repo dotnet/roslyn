@@ -85,6 +85,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             throw ExceptionUtilities.UnexpectedValue(inheritanceRelationship);
         }
 
+        /// <summary>
+        /// Create the MenuItemViewModel for the <paramref name="targets"/>.
+        /// Note: The order of headers are sorted based on the value of <see cref="InheritanceRelationship"/> to matches the
+        /// localized tooltip.
+        /// </summary>
         public static ImmutableArray<InheritanceMenuItemViewModel> CreateMenuItemViewModelsForSingleMember(ImmutableArray<InheritanceTargetItem> targets)
             => targets.OrderBy(target => target.DisplayTaggedTexts.JoinText())
                 .GroupBy(target => target.RelationToMember)
