@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
 Imports CompilationCreationTestHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
@@ -53,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
             Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetCoreApp.SystemRuntime})
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences({MetadataReference.CreateFromImage(Net50.Resources.SystemRuntime)})
             msCorLibRef = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
             Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
 

@@ -1213,7 +1213,7 @@ namespace System
             int positionInC = someMemberInC.SpanStart;
 
             var namesInC = model.LookupNames(positionInC, namespacesAndTypesOnly: true);
-            Assert.Equal(5, namesInC.Count);  // A, B, C, System, Microsoft
+            Assert.Equal(6, namesInC.Count);  // A, B, C, System, Microsoft
             Assert.Contains("A", namesInC);
             Assert.Contains("B", namesInC);
             Assert.Contains("C", namesInC);
@@ -1222,7 +1222,7 @@ namespace System
 
             var methodM = (MethodDeclarationSyntax)typeDeclC.Members[1];
             var namesInM = model.LookupNames(methodM.Body.SpanStart);
-            Assert.Equal(16, namesInM.Count);
+            Assert.Equal(17, namesInM.Count);
         }
 
         [Fact]
@@ -1248,7 +1248,7 @@ namespace System
             var someMemberInA = (MemberDeclarationSyntax)typeDeclA.Members[0];
 
             var namesInA = model.LookupNames(someMemberInA.SpanStart);
-            Assert.Equal(13, namesInA.Count);
+            Assert.Equal(14, namesInA.Count);
             Assert.Contains("X", namesInA);
             Assert.Contains("Y", namesInA);
             Assert.Contains("ToString", namesInA);
@@ -1282,7 +1282,7 @@ namespace System
             var someMemberInC = (MemberDeclarationSyntax)typeDeclC.Members[0];
 
             var namesInC = model.LookupNames(someMemberInC.SpanStart);
-            Assert.Equal(13, namesInC.Count); // everything with exception of protected members in System.Object is included, with an uncertain count
+            Assert.Equal(14, namesInC.Count); // everything with exception of protected members in System.Object is included, with an uncertain count
             Assert.Contains("A", namesInC);
             Assert.Contains("B", namesInC);
             Assert.Contains("C", namesInC);
@@ -1384,7 +1384,7 @@ class D<T>
 
             var symbolsInC = model.LookupSymbols(positionInC);
             var test = symbolsInC.Where(s => s.ContainingAssembly == null).ToList();
-            Assert.Equal(9, symbolsInC.Where(s => s.ContainingType == null || s.ContainingType.SpecialType != SpecialType.System_Object).Count());
+            Assert.Equal(10, symbolsInC.Where(s => s.ContainingType == null || s.ContainingType.SpecialType != SpecialType.System_Object).Count());
             Assert.True(symbolsInC.Any(s => s.Name == "A" && s.Kind == SymbolKind.NamedType));
             Assert.True(symbolsInC.Any(s => s.Name == "B" && s.Kind == SymbolKind.NamedType));
             Assert.True(symbolsInC.Any(s => s.Name == "C" && s.Kind == SymbolKind.NamedType));
@@ -1596,7 +1596,7 @@ interface IB<T3, T4>
 
             // specify (name = null) returns symbols for all names in scope
             var symbols = model.LookupNamespacesAndTypes(someMemberInC.SpanStart);
-            Assert.Equal(5, symbols.Length);  // A, B, C, System, Microsoft
+            Assert.Equal(6, symbols.Length);  // A, B, C, System, Microsoft
         }
 
         [Fact]
