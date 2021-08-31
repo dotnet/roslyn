@@ -8,12 +8,13 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal readonly struct AnonymousTypeDisplayInfo
+    internal readonly struct StructuralTypeDisplayInfo
+
     {
         public IDictionary<INamedTypeSymbol, string> AnonymousTypeToName { get; }
         public IList<SymbolDisplayPart> AnonymousTypesParts { get; }
 
-        public AnonymousTypeDisplayInfo(
+        public StructuralTypeDisplayInfo(
             IDictionary<INamedTypeSymbol, string> anonymousTypeToName,
             IList<SymbolDisplayPart> anonymousTypesParts)
             : this()

@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         private static SignatureHelpSymbolParameter ReplaceAnonymousTypes(
             SignatureHelpSymbolParameter parameter,
-            AnonymousTypeDisplayInfo info)
+            StructuralTypeDisplayInfo info)
         {
             return new SignatureHelpSymbolParameter(
                 parameter.Name,
