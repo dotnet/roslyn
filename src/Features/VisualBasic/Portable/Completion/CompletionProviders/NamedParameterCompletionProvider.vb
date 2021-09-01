@@ -230,6 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Else
                 change = New TextChange(symbolItem.Span, insertionText)
             End If
+
             Return Task.FromResult(Of TextChange?)(change)
         End Function
     End Class

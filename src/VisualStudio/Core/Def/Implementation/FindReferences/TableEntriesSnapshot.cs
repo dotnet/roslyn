@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public override bool TryCreateColumnContent(
                 int index, string columnName, bool singleColumnView, [NotNullWhen(true)] out FrameworkElement? content)
             {
-                return this._entries[index].TryCreateColumnContent(columnName, out content);
+                return _entries[index].TryCreateColumnContent(columnName, out content);
             }
         }
     }

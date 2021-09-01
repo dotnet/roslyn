@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

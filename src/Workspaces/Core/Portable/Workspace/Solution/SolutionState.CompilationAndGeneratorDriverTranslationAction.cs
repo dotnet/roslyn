@@ -9,6 +9,10 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SolutionState
     {
+        /// <summary>
+        /// Represents a change that needs to be made to a <see cref="Compilation"/>, <see cref="GeneratorDriver"/>, or both in response to
+        /// some user edit.
+        /// </summary>
         private abstract partial class CompilationAndGeneratorDriverTranslationAction
         {
             public virtual Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
@@ -27,6 +31,8 @@ namespace Microsoft.CodeAnalysis
             /// side effects. This opts those out of operating on ones with generated documents where there would be side effects.
             /// </remarks>
             public abstract bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput { get; }
+
+            public virtual GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver) => generatorDriver;
 
             /// <summary>
             /// When changes are made to a solution, we make a list of translation actions. If multiple similar changes happen in rapid

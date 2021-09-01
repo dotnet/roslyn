@@ -53,27 +53,23 @@ namespace Microsoft.CodeAnalysis
                     && c != '{'
                     && c != '}')
                 {
-                    throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameInvalidChar, c, i), nameof(hintName));
+                    throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameInvalidChar, hintName, c, i), nameof(hintName));
                 }
             }
 
             hintName = AppendExtensionIfRequired(hintName);
             if (this.Contains(hintName))
             {
-                throw new ArgumentException(CodeAnalysisResources.HintNameUniquePerGenerator, nameof(hintName));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.HintNameUniquePerGenerator, hintName), nameof(hintName));
             }
 
             if (source.Encoding is null)
             {
-                throw new ArgumentException(CodeAnalysisResources.SourceTextRequiresEncoding, nameof(source));
+                throw new ArgumentException(string.Format(CodeAnalysisResources.SourceTextRequiresEncoding, hintName), nameof(source));
             }
 
             _sourcesAdded.Add(new GeneratedSourceText(hintName, source));
         }
-
-        public void AddRange(ImmutableArray<GeneratedSourceText> texts) => _sourcesAdded.AddRange(texts);
-
-        public void AddRange(ImmutableArray<GeneratedSyntaxTree> trees) => _sourcesAdded.AddRange(trees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)));
 
         public void RemoveSource(string hintName)
         {
@@ -102,6 +98,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal ImmutableArray<GeneratedSourceText> ToImmutableAndFree() => _sourcesAdded.ToImmutableAndFree();
+
+        internal ImmutableArray<GeneratedSourceText> ToImmutable() => _sourcesAdded.ToImmutable();
+
+        internal void Free() => _sourcesAdded.Free();
 
         private string AppendExtensionIfRequired(string hintName)
         {

@@ -48,9 +48,9 @@ record Derived(int I) // The positional member 'Base.I' found corresponding to t
 }
 ```
 
-4. In C# 10, method groups are implicitly convertible to `System.Delegate`, and lambda expressions are implicitly convertible to `System.Delegate` and `System.Linq.Expressions.Expression`.
+4. In C# 10, lambda expressions and method groups are implicitly convertible to `System.MulticastDelegate`, or any base classes or interfaces of `System.MulticastDelegate` including `object`, and lambda expressions are implicitly convertible to `System.Linq.Expressions.Expression`.
 
-    This is a breaking change to overload resolution if there exists an overload with a `System.Delegate` or `System.Linq.Expressions.Expression` parameter that is applicable and the closest applicable overload with a strongly-typed delegate parameter is in an enclosing namespace.
+    This is a breaking change to overload resolution if there exists an applicable overload with a parameter of type `System.MulticastDelegate`, or a parameter of a type in the base types or interfaces of `System.MulticastDelegate`, or a parameter of type `System.Linq.Expressions.Expression`, and the closest applicable extension method overload with a strongly-typed delegate parameter is in an enclosing namespace.
 
     ```C#
     class C
@@ -70,3 +70,31 @@ record Derived(int I) // The positional member 'Base.I' found corresponding to t
         public static void M(this object x, System.Action y) { }
     }
     ```
+
+5. In .NET 5 and Visual Studio 16.9 (and earlier), top-level statements could be used in a program containing a type named `Program`. In .NET 6 and Visual Studio 17.0, top-level statements generate a partial declaration of a `Program` class, so any user-defined `Program` type must also be a partial class.
+
+```csharp
+System.Console.Write("top-level");
+Method();
+
+partial class Program
+{
+    static void Method()
+    {
+    }
+}
+```
+
+6. https://github.com/dotnet/roslyn/issues/53021 C# will now report an error for a misplaced ```::``` token in explicit interface implementation. In this example code:
+
+    ``` C#
+    void N::I::M()
+    {
+    }
+    ```
+
+    Previous versions of Roslyn wouldn't report any errors.
+
+    We now report an error for a ```::``` token before M.
+
+

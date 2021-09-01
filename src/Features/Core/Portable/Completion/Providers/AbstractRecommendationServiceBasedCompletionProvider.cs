@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private static bool IsArgumentListTriggerCharacter(char character)
-            => character == ' ' || character == '(' || character == '[';
+            => character is ' ' or '(' or '[';
 
         private static int ComputeSymbolMatchPriority(ISymbol symbol)
         {

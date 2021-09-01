@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
@@ -44,19 +45,20 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableMessageFormat = Descriptor.MessageFormat;
         }
 
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected static DiagnosticDescriptor CreateDescriptorWithId(
             string id,
             EnforceOnBuild enforceOnBuild,
             LocalizableString title,
-            LocalizableString messageFormat,
+            LocalizableString? messageFormat = null,
             bool isUnnecessary = false,
             bool isConfigurable = true,
             LocalizableString? description = null)
 #pragma warning disable RS0030 // Do not used banned APIs
             => new(
-                    id, title, messageFormat,
+                    id, title, messageFormat ?? title,
                     DiagnosticCategory.Style,
                     DiagnosticSeverity.Hidden,
                     isEnabledByDefault: true,

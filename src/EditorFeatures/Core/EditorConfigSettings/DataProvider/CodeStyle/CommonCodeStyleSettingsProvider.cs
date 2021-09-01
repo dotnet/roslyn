@@ -49,100 +49,100 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
             // TODO(jmarolf): set as stable
         }
 
-        private static IEnumerable<CodeStyleSetting> GetQualifyCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
+        private IEnumerable<CodeStyleSetting> GetQualifyCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.QualifyFieldAccess,
                 description: EditorFeaturesResources.Qualify_field_access_with_this_or_Me,
                 trueValueDescription: EditorFeaturesResources.Prefer_this_or_Me,
                 falseValueDescription: EditorFeaturesResources.Do_not_prefer_this_or_Me,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.QualifyPropertyAccess,
                 description: EditorFeaturesResources.Qualify_property_access_with_this_or_Me,
                 trueValueDescription: EditorFeaturesResources.Prefer_this_or_Me,
                 falseValueDescription: EditorFeaturesResources.Do_not_prefer_this_or_Me,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.QualifyMethodAccess,
                 description: EditorFeaturesResources.Qualify_method_access_with_this_or_Me,
                 trueValueDescription: EditorFeaturesResources.Prefer_this_or_Me,
                 falseValueDescription: EditorFeaturesResources.Do_not_prefer_this_or_Me,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.QualifyEventAccess,
                 description: EditorFeaturesResources.Qualify_event_access_with_this_or_Me,
                 trueValueDescription: EditorFeaturesResources.Prefer_this_or_Me,
                 falseValueDescription: EditorFeaturesResources.Do_not_prefer_this_or_Me,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }
 
-        private static IEnumerable<CodeStyleSetting> GetPredefinedTypesCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
+        private IEnumerable<CodeStyleSetting> GetPredefinedTypesCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
                 description: EditorFeaturesResources.For_locals_parameters_and_members,
                 trueValueDescription: EditorFeaturesResources.Prefer_predefined_type,
                 falseValueDescription: EditorFeaturesResources.Prefer_framework_type,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
                 description: EditorFeaturesResources.For_member_access_expressions,
                 trueValueDescription: EditorFeaturesResources.Prefer_predefined_type,
                 falseValueDescription: EditorFeaturesResources.Prefer_framework_type,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }
 
-        private static IEnumerable<CodeStyleSetting> GetNullCheckingCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
+        private IEnumerable<CodeStyleSetting> GetNullCheckingCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferCoalesceExpression,
                 description: EditorFeaturesResources.Prefer_coalesce_expression,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferNullPropagation,
                 description: EditorFeaturesResources.Prefer_null_propagation,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod,
                 description: EditorFeaturesResources.Prefer_is_null_for_reference_equality_checks,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }
 
-        private static IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
+        private IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferReadonly,
                 description: EditorFeaturesResources.Prefer_readonly_fields,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }
 
-        private static IEnumerable<CodeStyleSetting> GetCodeBlockCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
+        private IEnumerable<CodeStyleSetting> GetCodeBlockCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferAutoProperties,
                 description: EditorFeaturesResources.analyzer_Prefer_auto_properties,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferSystemHashCode,
                 description: EditorFeaturesResources.Prefer_System_HashCode_in_GetHashCode,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }
 
-        private static IEnumerable<CodeStyleSetting> GetExpressionCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
+        private IEnumerable<CodeStyleSetting> GetExpressionCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferObjectInitializer, description: EditorFeaturesResources.Prefer_object_initializer, options, visualStudioOptions, updater);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCollectionInitializer, description: EditorFeaturesResources.Prefer_collection_initializer, options, visualStudioOptions, updater);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, description: EditorFeaturesResources.Prefer_simplified_boolean_expressions, options, visualStudioOptions, updater);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, description: EditorFeaturesResources.Prefer_conditional_expression_over_if_with_assignments, options, visualStudioOptions, updater);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferConditionalExpressionOverReturn, description: EditorFeaturesResources.Prefer_conditional_expression_over_if_with_returns, options, visualStudioOptions, updater);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferExplicitTupleNames, description: EditorFeaturesResources.Prefer_explicit_tuple_name, options, visualStudioOptions, updater);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferInferredTupleNames, description: EditorFeaturesResources.Prefer_inferred_tuple_names, options, visualStudioOptions, updater);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, description: EditorFeaturesResources.Prefer_inferred_anonymous_type_member_names, options, visualStudioOptions, updater);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCompoundAssignment, description: EditorFeaturesResources.Prefer_compound_assignments, options, visualStudioOptions, updater);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferObjectInitializer, description: EditorFeaturesResources.Prefer_object_initializer, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCollectionInitializer, description: EditorFeaturesResources.Prefer_collection_initializer, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, description: EditorFeaturesResources.Prefer_simplified_boolean_expressions, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, description: EditorFeaturesResources.Prefer_conditional_expression_over_if_with_assignments, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferConditionalExpressionOverReturn, description: EditorFeaturesResources.Prefer_conditional_expression_over_if_with_returns, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferExplicitTupleNames, description: EditorFeaturesResources.Prefer_explicit_tuple_name, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferInferredTupleNames, description: EditorFeaturesResources.Prefer_inferred_tuple_names, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, description: EditorFeaturesResources.Prefer_inferred_anonymous_type_member_names, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCompoundAssignment, description: EditorFeaturesResources.Prefer_compound_assignments, options, visualStudioOptions, updater, FileName);
         }
 
-        private static IEnumerable<CodeStyleSetting> GetParenthesesCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
+        private IEnumerable<CodeStyleSetting> GetParenthesesCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             var enumValues = new[] { ParenthesesPreference.AlwaysForClarity, ParenthesesPreference.NeverIfUnnecessary };
             var valueDescriptions = new[] { EditorFeaturesResources.Always_for_clarity, EditorFeaturesResources.Never_if_unnecessary };
@@ -151,32 +151,32 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
                 enumValues: enumValues,
                 valueDescriptions: valueDescriptions,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
 
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.OtherBinaryParentheses,
                 description: EditorFeaturesResources.In_other_binary_operators,
                 enumValues: enumValues,
                 valueDescriptions: valueDescriptions,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
 
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.RelationalBinaryParentheses,
                 description: EditorFeaturesResources.In_relational_binary_operators,
                 enumValues: enumValues,
                 valueDescriptions: valueDescriptions,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
 
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.OtherParentheses,
                 description: EditorFeaturesResources.In_other_operators,
                 enumValues: enumValues,
                 valueDescriptions: valueDescriptions,
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
 
         }
 
-        private static IEnumerable<CodeStyleSetting> GetParameterCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
+        private IEnumerable<CodeStyleSetting> GetParameterCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(
                 option: CodeStyleOptions2.UnusedParameters,
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
                 enumValues: new[] { UnusedParametersPreference.NonPublicMethods, UnusedParametersPreference.AllMethods },
                 new[] { EditorFeaturesResources.Non_public_methods, EditorFeaturesResources.All_methods },
                 editorConfigOptions: options,
-                visualStudioOptions: visualStudioOptions, updater: updater);
+                visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }
     }
 }

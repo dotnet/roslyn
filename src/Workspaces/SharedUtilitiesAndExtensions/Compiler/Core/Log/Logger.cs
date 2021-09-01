@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// <summary>
         /// simplest way to log a start and end pair
         /// </summary>
-        public static IDisposable LogBlock(FunctionId functionId, CancellationToken token)
-            => LogBlock(functionId, string.Empty, token);
+        public static IDisposable LogBlock(FunctionId functionId, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
+            => LogBlock(functionId, string.Empty, token, logLevel);
 
         /// <summary>
         /// simplest way to log a start and end pair with a simple context message which should be very cheap to create

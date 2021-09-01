@@ -120,9 +120,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private RegexEscapeNode FindReferenceNode(RegexNode node, VirtualChar virtualChar)
         {
-            if (node.Kind == RegexKind.BackreferenceEscape ||
-                node.Kind == RegexKind.CaptureEscape ||
-                node.Kind == RegexKind.KCaptureEscape)
+            if (node.Kind is RegexKind.BackreferenceEscape or
+                RegexKind.CaptureEscape or
+                RegexKind.KCaptureEscape)
             {
                 if (node.Contains(virtualChar))
                 {

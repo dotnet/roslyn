@@ -37,6 +37,15 @@
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs">
       <Link>CSharp\Compiler\SyntaxKindFacts.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameKind.cs">
+      <Link>CSharp\Compiler\GeneratedNameKind.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameParser.cs">
+      <Link>CSharp\Compiler\GeneratedNameParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameConstants.cs">
+      <Link>CSharp\Compiler\GeneratedNameConstants.cs</Link>
+    </Compile>
     <Compile Include="..\ExpressionCompiler\DkmExceptionUtilities.cs">
       <Link>ExpressionCompiler\DkmExceptionUtilities.cs</Link>
     </Compile>
@@ -54,6 +63,8 @@
       <Version>$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)</Version>
       <ExcludeAssets>compile</ExcludeAssets>
     </PackageReference>
+    <!-- Remove once https://github.com/dotnet/sdk/issues/19506 is resolved -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNETFrameworkReferenceAssembliesVersion)" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>

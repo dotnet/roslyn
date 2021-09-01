@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         Friend Const BC30516 As String = NameOf(BC30516) ' error BC30516: Overload resolution failed because no accessible 'Blah' accepts this number of arguments.
         Friend Const BC36625 As String = NameOf(BC36625) ' error BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
 
-        Friend Shared ReadOnly AllDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057, IDEDiagnosticIds.UnboundConstructorId, BC30272, BC30274, BC30389, BC30455, BC32006, BC30512, BC30387, BC30516)
+        Friend Shared ReadOnly AllDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057, BC30272, BC30274, BC30389, BC30455, BC32006, BC30512, BC30387, BC30516)
         Friend Shared ReadOnly TooManyArgumentsDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057)
         Friend Shared ReadOnly CannotConvertDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30512, BC32006, BC30311, BC36625)
     End Class
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return GenerateConstructorDiagnosticIds.AllDiagnosticIds
+                Return GenerateConstructorDiagnosticIds.AllDiagnosticIds.Concat(GenerateConstructorDiagnosticIds.TooManyArgumentsDiagnosticIds)
             End Get
         End Property
 

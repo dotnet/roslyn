@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             _tokensCache = tokensCache;
         }
 
-        public string Method => LSP.SemanticTokensMethods.TextDocumentSemanticTokensName;
+        public string Method => LSP.Methods.TextDocumentSemanticTokensFullName;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -49,12 +49,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Contract.ThrowIfNull(context.Document, "Document is null.");
 
             var resultId = _tokensCache.GetNextResultId();
-            var tokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+            var (tokensData, isFinalized) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 context.Document, SemanticTokensCache.TokenTypeToIndex,
                 range: null, cancellationToken).ConfigureAwait(false);
 
-            var tokens = new LSP.SemanticTokens { ResultId = resultId, Data = tokensData };
-            await _tokensCache.UpdateCacheAsync(request.TextDocument.Uri, tokens, cancellationToken).ConfigureAwait(false);
+            var tokens = new RoslynSemanticTokens { ResultId = resultId, Data = tokensData, IsFinalized = isFinalized };
+            if (tokensData.Length > 0)
+            {
+                await _tokensCache.UpdateCacheAsync(request.TextDocument.Uri, tokens, cancellationToken).ConfigureAwait(false);
+            }
+
             return tokens;
         }
     }

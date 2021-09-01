@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Const GenerateFileNameForDocComment As String = "USE-OUTPUT-NAME"
 
             Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
-            Dim flattenedArgs As List(Of String) = New List(Of String)()
+            Dim flattenedArgs = ArrayBuilder(Of String).GetInstance()
             Dim scriptArgs As List(Of String) = If(IsScriptCommandLineParser, New List(Of String)(), Nothing)
 
             ' normalized paths to directories containing response files:
@@ -193,9 +193,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim name As String = Nothing
                 Dim value As String = Nothing
                 If Not TryParseOption(arg, name, value) Then
-                    For Each path In ParseFileArgument(arg, baseDirectory, diagnostics)
+                    Dim builder = ArrayBuilder(Of String).GetInstance()
+                    ParseFileArgument(arg.AsMemory(), baseDirectory, builder, diagnostics)
+                    For Each path In builder
                         sourceFiles.Add(ToCommandLineSourceFile(path))
                     Next
+                    builder.Free()
                     hasSourceFiles = True
                     Continue For
                 End If
@@ -574,7 +577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ErrorLogOptionFormat)
                             Else
                                 Dim diagnosticAlreadyReported As Boolean
-                                errorLogOptions = ParseErrorLogOptions(unquoted, diagnostics, baseDirectory, diagnosticAlreadyReported)
+                                errorLogOptions = ParseErrorLogOptions(unquoted.AsMemory(), diagnostics, baseDirectory, diagnosticAlreadyReported)
                                 If errorLogOptions Is Nothing And Not diagnosticAlreadyReported Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_BadSwitchValue, unquoted, "errorlog", ErrorLogOptionFormat)
                                     Continue For
@@ -1377,6 +1380,8 @@ lVbRuntimePlus:
                 AddDiagnostic(diagnostics, ERRID.ERR_NoSourcesOut)
             End If
 
+            flattenedArgs.Free()
+
             Dim parseOptions = New VisualBasicParseOptions(
                 languageVersion:=languageVersion,
                 documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
@@ -1682,7 +1687,7 @@ lVbRuntimePlus:
             Dim accessibility As String = Nothing
 
             ParseResourceDescription(
-                resourceDescriptor,
+                resourceDescriptor.AsMemory(),
                 baseDirectory,
                 True,
                 filePath,

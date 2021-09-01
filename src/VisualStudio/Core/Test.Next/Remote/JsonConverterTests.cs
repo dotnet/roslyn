@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestChecksum()
         {
-            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            var checksum = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             VerifyJsonSerialization(checksum);
         }
 
@@ -138,8 +138,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestPinnedSolutionInfo()
         {
-            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
-            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, workspaceVersion: 100, solutionChecksum: checksum), (x, y) =>
+            var checksum = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, workspaceVersion: 100, solutionChecksum: checksum, projectId: null), (x, y) =>
             {
                 return (x.ScopeId == y.ScopeId &&
                         x.FromPrimaryBranch == y.FromPrimaryBranch &&

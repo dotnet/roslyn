@@ -2130,5 +2130,72 @@ class [|C|]
                 Await VerifyTagsAreCorrect(workspace, "BarGoo")
             End Using
         End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameExtendedProperty(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                            <Document>
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        _ = this is { Other.[|Goo|]: not null, Other.Other.[|Goo|]: not null, [|Goo|]: null } ;
+                                    }
+
+                                    public C [|$$Goo|] { get; set; }
+                                    public C Other { get; set; }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Bar")
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace, "BarGoo")
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameInComment(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                            <Document>
+                                class [|$$MyClass|]
+                                {
+                                    /// <summary>
+                                    /// Initializes <see cref="MyClass"/>;
+                                    /// </summary>
+                                    MyClass() 
+                                    {
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                session.ApplyReplacementText("Example", True)
+                session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameInComments, True)
+
+                session.Commit()
+
+                Await VerifyTagsAreCorrect(workspace, "Example")
+            End Using
+        End Function
+
     End Class
 End Namespace

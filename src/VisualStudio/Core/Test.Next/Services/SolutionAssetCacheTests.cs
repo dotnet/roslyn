@@ -24,7 +24,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var storage = new SolutionAssetCache();
 
-            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            var checksum = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
 
             Assert.True(storage.TryAddAsset(checksum, data));
@@ -37,7 +37,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var storage = new SolutionAssetCache(cleanupInterval: TimeSpan.FromMilliseconds(1), purgeAfter: TimeSpan.FromMilliseconds(2), gcAfter: TimeSpan.FromMilliseconds(5));
 
-            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            var checksum = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             var data = new object();
 
             Assert.True(storage.TryAddAsset(checksum, data));

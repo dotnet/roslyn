@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -27,6 +28,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSLangProj140;
 using Workspace = Microsoft.CodeAnalysis.Workspace;
@@ -321,7 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void UpdateSeverityMenuItemsEnabled()
         {
-            var configurable = !_tracker.SelectedDiagnosticItems.Any(item => item.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable));
+            var configurable = !_tracker.SelectedDiagnosticItems.Any(item => item.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable));
 
             _setSeverityDefaultMenuItem.Enabled = configurable;
             _setSeverityErrorMenuItem.Enabled = configurable;
@@ -425,7 +427,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 }
 
                 var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
-                var waitIndicator = componentModel.GetService<IWaitIndicator>();
+                var uiThreadOperationExecutor = componentModel.GetService<IUIThreadOperationExecutor>();
                 var editHandlerService = componentModel.GetService<ICodeActionEditHandlerService>();
 
                 try
@@ -437,21 +439,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         // If project is using the default built-in ruleset or no ruleset, then prefer .editorconfig for severity configuration.
                         if (pathToAnalyzerConfigDoc != null)
                         {
-                            waitIndicator.Wait(
+                            uiThreadOperationExecutor.Execute(
                                 title: ServicesVSResources.Updating_severity,
-                                message: ServicesVSResources.Updating_severity,
-                                allowCancel: true,
-                                action: waitContext =>
+                                defaultDescription: "",
+                                allowCancellation: true,
+                                showProgress: true,
+                                action: context =>
                                 {
-                                    var newSolution = selectedDiagnostic.GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(selectedAction.Value, project, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+                                    var scope = context.AddScope(allowCancellation: true, ServicesVSResources.Updating_severity);
+                                    var newSolution = selectedDiagnostic.GetSolutionWithUpdatedAnalyzerConfigSeverityAsync(selectedAction.Value, project, context.UserCancellationToken).WaitAndGetResult(context.UserCancellationToken);
                                     var operations = ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
                                     editHandlerService.Apply(
                                         _workspace,
                                         fromDocument: null,
                                         operations: operations,
                                         title: ServicesVSResources.Updating_severity,
-                                        progressTracker: waitContext.ProgressTracker,
-                                        cancellationToken: waitContext.CancellationToken);
+                                        progressTracker: new UIThreadOperationContextProgressTracker(scope),
+                                        cancellationToken: context.UserCancellationToken);
                                 });
                             continue;
                         }
@@ -474,10 +478,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         fileInfo.IsReadOnly = false;
                     }
 
-                    waitIndicator.Wait(
+                    uiThreadOperationExecutor.Execute(
                         title: SolutionExplorerShim.Rule_Set,
-                        message: string.Format(SolutionExplorerShim.Checking_out_0_for_editing, Path.GetFileName(pathToRuleSet)),
-                        allowCancel: false,
+                        defaultDescription: string.Format(SolutionExplorerShim.Checking_out_0_for_editing, Path.GetFileName(pathToRuleSet)),
+                        allowCancellation: false,
+                        showProgress: false,
                         action: c =>
                         {
                             if (envDteProject.DTE.SourceControl.IsItemUnderSCC(pathToRuleSet))

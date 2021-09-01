@@ -9,6 +9,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -58,6 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _runningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _threadingContext = threadingContext;
             _sourceGeneratedFileManager = sourceGeneratedFileManager;
+        }
+
+        public async Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return CanNavigateToSpan(workspace, documentId, textSpan, cancellationToken);
         }
 
         public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
@@ -139,6 +146,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var vsTextSpan = text.GetVsTextSpanForPosition(position, virtualSpace);
 
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
+        }
+
+        public async Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return TryNavigateToSpan(workspace, documentId, textSpan, options, allowInvalidSpan, cancellationToken);
         }
 
         public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken)
@@ -251,9 +264,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 if (workspace.CurrentSolution.GetDocument(documentId) == null)
                 {
-                    var generatedDocument = workspace.CurrentSolution.GetProject(documentId.ProjectId)
+                    var project = workspace.CurrentSolution.GetProject(documentId.ProjectId);
+                    if (project is null)
+                    {
+                        // This is a source generated document shown in Solution Explorer, but is no longer valid since
+                        // the configuration and/or platform changed since the last generation completed.
+                        return false;
+                    }
+
+                    var generatedDocument = project
                                                                      .GetSourceGeneratedDocumentAsync(documentId, cancellationToken)
-                                                                     .GetAwaiter().GetResult();
+                                                                     .AsTask().GetAwaiter().GetResult();
 
                     if (generatedDocument != null)
                     {

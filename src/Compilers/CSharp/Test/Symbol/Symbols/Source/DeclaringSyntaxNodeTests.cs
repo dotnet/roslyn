@@ -167,12 +167,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             }
         }
 
-        [Fact]
-        public void SourceNamedTypeDeclaringSyntax()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void SourceNamedTypeDeclaringSyntax(string ob, string cb)
         {
             var text =
 @"
-namespace N1 {
+namespace N1 " + ob + @"
     class C1<T> {
         class Nested<U> {}
         delegate int NestedDel(string s);
@@ -183,7 +183,7 @@ namespace N1 {
     internal interface I1 {}
     enum E1 { Red }
     delegate void D1(int i);
-}
+" + cb + @"
 ";
             var comp = (Compilation)CreateCompilation(text);
             var global = comp.GlobalNamespace;
@@ -420,15 +420,15 @@ namespace System {}
             CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(comp, global, 1, SyntaxKind.CompilationUnit);
         }
 
-        [Fact]
-        public void TypeParameterDeclaringSyntax()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void TypeParameterDeclaringSyntax(string ob, string cb)
         {
             var text =
 @"
 using System;
 using System.Collections.Generic;
 
-namespace N1 {
+namespace N1 " + ob + @"
     class C1<T, U> {
         class C2<W> {
             public C1<int, string>.C2<W> f1;
@@ -442,7 +442,7 @@ namespace N1 {
 
     class M {
     }
-}
+" + cb + @"
 ";
             var comp = (Compilation)CreateCompilation(text);
             var global = comp.GlobalNamespace;

@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             {
                 return;
             }
+
             context.ReportDiagnostic(CreateDiagnostic(resultOpt.Value));
         }
 

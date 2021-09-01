@@ -52,13 +52,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // For Method Declaration
             if (currentToken.IsOpenParenInParameterList() && previousKind == SyntaxKind.IdentifierToken)
             {
+                // Parenthesized lambda with explicit return type.
+                if (currentToken.IsOpenParenInParameterListOfParenthesizedLambdaExpression())
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
                 return AdjustSpacesOperationZeroOrOne(_options.SpacingAfterMethodDeclarationName);
             }
 
             // For Generic Method Declaration
-            if (currentToken.IsOpenParenInParameterList() && previousKind == SyntaxKind.GreaterThanToken && previousParentKind == SyntaxKind.TypeParameterList)
+            if (currentToken.IsOpenParenInParameterList() && previousKind == SyntaxKind.GreaterThanToken)
             {
-                return AdjustSpacesOperationZeroOrOne(_options.SpacingAfterMethodDeclarationName);
+                // Parenthesized lambda with explicit generic return type.
+                if (currentToken.IsOpenParenInParameterListOfParenthesizedLambdaExpression() && previousParentKind == SyntaxKind.TypeArgumentList)
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
+                if (previousParentKind == SyntaxKind.TypeParameterList)
+                {
+                    return AdjustSpacesOperationZeroOrOne(_options.SpacingAfterMethodDeclarationName);
+                }
             }
 
             // Case: public static implicit operator string(Program p) { return null; }

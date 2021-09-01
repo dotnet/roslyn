@@ -91,8 +91,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.FullyQualify
                 If simpleName IsNot Nothing Then
                     Return simpleName
                 End If
+
                 qn = TryCast(left, QualifiedNameSyntax)
             End While
+
             Return Nothing
         End Function
 

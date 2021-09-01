@@ -2267,7 +2267,7 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestDefineInIfExclusionAfterFirstToken()
         {
-            // bad defines after first token in exlusion zone should not be errors
+            // bad defines after first token in exclusion zone should not be errors
             var text = @"
 class A { }
 #if false
@@ -2547,7 +2547,7 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestUndefInIfExclusionAfterFirstToken()
         {
-            // bad defines after first token in exlusion zone should not be errors
+            // bad defines after first token in exclusion zone should not be errors
             var text = @"
 class A { }
 #if false
@@ -3037,9 +3037,9 @@ class A { }
         [Theory]
         [InlineData(LanguageVersion.CSharp4, "4")]
         [InlineData(LanguageVersion.CSharp9, "9.0")]
-        [InlineData(LanguageVersion.Latest, "latest (9.0)")]
-        [InlineData(LanguageVersion.LatestMajor, "latestmajor (9.0)")]
-        [InlineData(LanguageVersion.Default, "default (9.0)")]
+        [InlineData(LanguageVersion.Latest, "latest (10.0)")]
+        [InlineData(LanguageVersion.LatestMajor, "latestmajor (10.0)")]
+        [InlineData(LanguageVersion.Default, "default (10.0)")]
         [InlineData(LanguageVersion.Preview, "preview")]
         public void TestErrorWithVersion(LanguageVersion version, string expectedLanguageVersion)
         {

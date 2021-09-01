@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         {
             public readonly List<DefinitionItem> Result = new List<DefinitionItem>();
 
-            public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition)
+            public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
                 lock (Result)
                 {
@@ -49,15 +49,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             public MockStreamingFindUsagesPresenter(FindUsagesContext context)
                 => _context = context;
 
-            public FindUsagesContext StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken)
-                => _context;
+            public (FindUsagesContext, CancellationToken) StartSearch(string title, bool supportsReferences)
+                => (_context, CancellationToken.None);
 
             public void ClearAll()
             {
             }
 
-            public FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
-                => _context;
+            public (FindUsagesContext, CancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+                => (_context, CancellationToken.None);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]

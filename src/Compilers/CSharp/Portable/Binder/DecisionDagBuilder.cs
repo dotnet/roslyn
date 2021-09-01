@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -527,29 +528,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!recursive.Properties.IsDefault)
             {
                 // we have a "property" form
-                for (int i = 0; i < recursive.Properties.Length; i++)
+                foreach (var subpattern in recursive.Properties)
                 {
-                    var subPattern = recursive.Properties[i];
-                    Symbol? symbol = subPattern.Symbol;
-                    BoundPattern pattern = subPattern.Pattern;
-                    BoundDagEvaluation evaluation;
-                    switch (symbol)
+                    BoundPattern pattern = subpattern.Pattern;
+                    BoundDagTemp currentInput = input;
+                    if (!tryMakeSubpatternMemberTests(subpattern.Member, ref currentInput))
                     {
-                        case PropertySymbol property:
-                            evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(input, property));
-                            break;
-                        case FieldSymbol field:
-                            evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, OriginalInput(input, field));
-                            break;
-                        default:
-                            RoslynDebug.Assert(recursive.HasAnyErrors);
-                            tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
-                            continue;
+                        Debug.Assert(recursive.HasAnyErrors);
+                        tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
                     }
-
-                    tests.Add(new Tests.One(evaluation));
-                    var element = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType().Type, evaluation);
-                    tests.Add(MakeTestsAndBindings(element, pattern, bindings));
+                    else
+                    {
+                        tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
+                    }
                 }
             }
 
@@ -560,6 +551,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Tests.AndSequence.Create(tests);
+
+            bool tryMakeSubpatternMemberTests([NotNullWhen(true)] BoundPropertySubpatternMember? member, ref BoundDagTemp input)
+            {
+                if (member is null)
+                    return false;
+
+                if (tryMakeSubpatternMemberTests(member.Receiver, ref input))
+                {
+                    // If this is not the first member, add null test, unwrap nullables, and continue.
+                    input = MakeConvertToType(input, member.Syntax, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests);
+                }
+
+                BoundDagEvaluation evaluation;
+                switch (member.Symbol)
+                {
+                    case PropertySymbol property:
+                        evaluation = new BoundDagPropertyEvaluation(member.Syntax, property, OriginalInput(input, property));
+                        break;
+                    case FieldSymbol field:
+                        evaluation = new BoundDagFieldEvaluation(member.Syntax, field, OriginalInput(input, field));
+                        break;
+                    default:
+                        return false;
+                }
+
+                tests.Add(new Tests.One(evaluation));
+                input = new BoundDagTemp(member.Syntax, member.Type, evaluation);
+                return true;
+            }
         }
 
         private Tests MakeTestsAndBindingsForNegatedPattern(BoundDagTemp input, BoundNegatedPattern neg, ArrayBuilder<BoundPatternBinding> bindings)
@@ -651,7 +671,47 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rootDecisionDagNode = decisionDag.RootNode.Dag;
             RoslynDebug.Assert(rootDecisionDagNode != null);
-            return new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
+            var boundDecisionDag = new BoundDecisionDag(rootDecisionDagNode.Syntax, rootDecisionDagNode);
+#if DEBUG
+            // Note that this uses the custom equality in `BoundDagEvaluation`
+            // to make "equivalent" evaluation nodes share the same ID.
+            var nextTempNumber = 0;
+            var tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
+
+            var sortedBoundDagNodes = boundDecisionDag.TopologicallySortedNodes;
+            for (int i = 0; i < sortedBoundDagNodes.Length; i++)
+            {
+                var node = sortedBoundDagNodes[i];
+                node.Id = i;
+                switch (node)
+                {
+                    case BoundEvaluationDecisionDagNode { Evaluation: { Id: -1 } evaluation }:
+                        evaluation.Id = tempIdentifier(evaluation);
+                        // Note that "equivalent" evaluations may be different object instances.
+                        // Therefore we have to dig into the Input.Source of evaluations and tests to set their IDs.
+                        if (evaluation.Input.Source is { Id: -1 } source)
+                        {
+                            source.Id = tempIdentifier(source);
+                        }
+                        break;
+                    case BoundTestDecisionDagNode { Test: var test }:
+                        if (test.Input.Source is { Id: -1 } testSource)
+                        {
+                            testSource.Id = tempIdentifier(testSource);
+                        }
+                        break;
+                }
+            }
+            tempIdentifierMap.Free();
+
+            int tempIdentifier(BoundDagEvaluation e)
+            {
+                return tempIdentifierMap.TryGetValue(e, out int value)
+                    ? value
+                    : tempIdentifierMap[e] = ++nextTempNumber;
+            }
+#endif
+            return boundDecisionDag;
         }
 
         /// <summary>
@@ -855,6 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundDecisionDagNode whenTrue = finalState(first.Syntax, first.CaseLabel, default);
                         BoundDecisionDagNode? whenFalse = state.FalseBranch.Dag;
                         RoslynDebug.Assert(whenFalse is { });
+                        // Note: we may share `when` clauses between multiple DAG nodes, but we deal with that safely during lowering
                         state.Dag = uniqifyDagNode(new BoundWhenDecisionDagNode(first.Syntax, first.Bindings, first.WhenClause, whenTrue, whenFalse));
                     }
 

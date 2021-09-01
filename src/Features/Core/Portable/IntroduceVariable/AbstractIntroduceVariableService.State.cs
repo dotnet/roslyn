@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -63,22 +64,19 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return false;
-                }
+                cancellationToken.ThrowIfCancellationRequested();
 
                 Expression = await document.Document.TryGetRelevantNodeAsync<TExpressionSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
                 if (Expression == null || CodeRefactoringHelpers.IsNodeUnderselected(Expression, textSpan))
-                {
                     return false;
-                }
+
+                // Don't introduce constant for another constant. Doesn't apply to sub-expression of constant.
+                if (IsInitializerOfConstant(document, Expression))
+                    return false;
 
                 var expressionType = Document.SemanticModel.GetTypeInfo(Expression, cancellationToken).Type;
                 if (expressionType is IErrorTypeSymbol)
-                {
                     return false;
-                }
 
                 var containingType = Expression.AncestorsAndSelf()
                     .Select(n => Document.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
@@ -88,19 +86,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 containingType ??= Document.SemanticModel.Compilation.ScriptClass;
 
                 if (containingType == null || containingType.TypeKind == TypeKind.Interface)
-                {
                     return false;
-                }
 
                 if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
-                {
                     return false;
-                }
 
                 IsConstant = IsExpressionConstant(Document, Expression, _service, cancellationToken);
 
-                // Note: the ordering of these clauses are important.  They go, generally, from 
-                // innermost to outermost order.  
+                // Note: the ordering of these clauses are important.  They go, generally, from
+                // innermost to outermost order.
                 if (IsInQueryContext(cancellationToken))
                 {
                     if (CanGenerateInto<TQueryExpressionSyntax>(cancellationToken))
@@ -139,7 +133,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                /* NOTE: All checks from this point forward are intentionally ordered to be AFTER the check for Block Context. */
+                // NOTE: All checks from this point forward are intentionally ordered to be AFTER the check for Block Context.
 
                 // If we are inside a block within an Expression bodied member we should generate inside the block, 
                 // instead of rewriting a concise expression bodied member to its equivalent that has a body with a block.
@@ -186,6 +180,29 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                 return false;
 
+                static bool IsInitializerOfConstant(SemanticDocument document, TExpressionSyntax expression)
+                {
+                    var syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+                    var current = expression;
+                    while (syntaxFacts.IsParenthesizedExpression(current.Parent))
+                        current = (TExpressionSyntax)current.Parent;
+
+                    if (!syntaxFacts.IsEqualsValueClause(current.Parent))
+                        return false;
+
+                    var equalsValue = current.Parent;
+                    if (!syntaxFacts.IsVariableDeclarator(equalsValue.Parent))
+                        return false;
+
+                    var declaration = equalsValue.AncestorsAndSelf().FirstOrDefault(n => syntaxFacts.IsLocalDeclarationStatement(n) || syntaxFacts.IsFieldDeclaration(n));
+                    if (declaration == null)
+                        return false;
+
+                    var generator = SyntaxGenerator.GetGenerator(document.Document);
+                    return generator.GetModifiers(declaration).IsConst;
+                }
+
                 static bool IsExpressionConstant(SemanticDocument document, TExpressionSyntax expression, TService service, CancellationToken cancellationToken)
                 {
                     if (document.SemanticModel.GetConstantValue(expression, cancellationToken) is { HasValue: true, Value: var value })
@@ -231,7 +248,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                if (Expression is TTypeSyntax && !(Expression is TNameSyntax))
+                if (Expression is TTypeSyntax and not TNameSyntax)
                 {
                     // name syntax can introduce variables, but not other type syntaxes
                     return false;

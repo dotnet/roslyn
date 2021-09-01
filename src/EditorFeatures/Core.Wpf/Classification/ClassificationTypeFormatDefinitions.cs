@@ -127,6 +127,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
+        #region Reassigned Variable
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ReassignedVariable)]
+        [Name(ClassificationTypeNames.ReassignedVariable)]
+        [Order(After = Priority.High)]
+        [UserVisible(false)]
+        [ExcludeFromCodeCoverage]
+        private class ReassignedVariableFormatDefinition : ClassificationFormatDefinition
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public ReassignedVariableFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Reassigned_variable;
+                this.TextDecorations = System.Windows.TextDecorations.Underline;
+            }
+        }
+        #endregion
+
         #region Symbol - Static
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]

@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
             Inherits CodeAction.DocumentChangeAction
 
             Public Sub New(title As String, newDocument As Document)
-                MyBase.New(title, Function(c) Task.FromResult(newDocument))
+                MyBase.New(title, Function(c) Task.FromResult(newDocument), title)
             End Sub
         End Class
     End Class

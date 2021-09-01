@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
+                    Debug.Assert(conversion.ConstrainedToTypeOpt is null);
                     return new Conversion(conversion.Kind, VisitMethodSymbol(conversion.Method), conversion.IsExtensionMethod);
                 case ConversionKind.MethodGroup:
                     throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
@@ -512,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
         {
-            return node.Update(VisitMethodSymbol(node.TargetMethod), VisitType(node.Type));
+            return node.Update(VisitMethodSymbol(node.TargetMethod), VisitType(node.ConstrainedToTypeOpt), VisitType(node.Type));
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
