@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild NamingRule = /*IDE1006*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild MatchFolderAndNamespace = /*IDE0130*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild SimplifyObjectCreation = /*IDE0140*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild SimplifyPropertyPattern = /*IDE0170*/ EnforceOnBuild.Recommended;
 
         /* EnforceOnBuild.WhenExplicitlyEnabled */
         public const EnforceOnBuild RemoveUnnecessaryCast = /*IDE0004*/ EnforceOnBuild.WhenExplicitlyEnabled; // TODO: Move to 'Recommended' OR 'HighlyRecommended' bucket once performance problems are addressed: https://github.com/dotnet/roslyn/issues/43304
