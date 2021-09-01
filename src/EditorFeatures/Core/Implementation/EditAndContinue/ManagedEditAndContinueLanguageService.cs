@@ -23,8 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     [Shared]
     [Export(typeof(IManagedEditAndContinueLanguageService))]
+    [Export(typeof(IEditAndContinueSolutionProvider))]
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
-    internal sealed class ManagedEditAndContinueLanguageService : IManagedEditAndContinueLanguageService
+    internal sealed class ManagedEditAndContinueLanguageService : IManagedEditAndContinueLanguageService, IEditAndContinueSolutionProvider
     {
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
@@ -32,6 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private readonly Lazy<IHostWorkspaceProvider> _workspaceProvider;
 
         private RemoteDebuggingSessionProxy? _debuggingSession;
+
+        private Solution? _pendingUpdatedSolution;
+        public event Action<Solution>? SolutionCommitted;
 
         private bool _disabled;
 
@@ -160,9 +164,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         public async Task CommitUpdatesAsync(CancellationToken cancellationToken)
         {
+            if (_disabled)
+            {
+                return;
+            }
+
             try
             {
-                Contract.ThrowIfTrue(_disabled);
+                var committedSolution = Interlocked.Exchange(ref _pendingUpdatedSolution, null);
+                Contract.ThrowIfNull(committedSolution);
+                SolutionCommitted?.Invoke(committedSolution);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            {
+            }
+
+            try
+            {
                 await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
@@ -176,6 +194,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 return;
             }
+
+            _pendingUpdatedSolution = null;
 
             try
             {
@@ -243,6 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 var solution = GetCurrentCompileTimeSolution();
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
                 var (updates, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+                _pendingUpdatedSolution = solution;
                 return updates;
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))

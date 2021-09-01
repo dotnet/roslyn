@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -91,11 +90,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]>(CommitCharacterArrayComparer.Instance);
 
             // Feature flag to enable the return of TextEdits instead of InsertTexts (will increase payload size).
-            // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
-            // We also check against the CompletionOption for test purposes only.
+            // We check against the CompletionOption for test purposes only.
             Contract.ThrowIfNull(context.Solution);
-            var featureFlagService = context.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-            var returnTextEdits = featureFlagService.IsExperimentEnabled(WellKnownExperimentNames.LSPCompletion) ||
+            var returnTextEdits = completionOptions.GetOption(LspOptions.LspCompletionFeatureFlag) ||
                 completionOptions.GetOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, document.Project.Language);
 
             TextSpan? defaultSpan = null;

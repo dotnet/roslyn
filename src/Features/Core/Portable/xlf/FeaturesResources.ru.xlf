@@ -320,6 +320,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Изменения, внесенные в проект "{0}", не будут применены во время выполнения приложения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesRequiredSynthesizedType">
+        <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
+        <target state="new">One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application">
         <source>Changing {0} from asynchronous to synchronous requires restarting the application.</source>
         <target state="new">Changing {0} from asynchronous to synchronous requires restarting the application.</target>
@@ -343,6 +348,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
         <source>Changing parameter types of {0} requires restarting the application.</source>
         <target state="new">Changing parameter types of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
+        <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
+        <target state="new">Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">

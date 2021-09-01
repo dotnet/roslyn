@@ -8,11 +8,18 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
+
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImports
 {
@@ -24,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpAddImportsService()
         {
+        }
+
+        protected override bool PlaceImportsInsideNamespaces(OptionSet options)
+        {
+            return options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement).Value == AddImportPlacement.InsideNamespace;
         }
 
         // C# doesn't have global imports.

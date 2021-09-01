@@ -37,8 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_run_code_analysis_in_separate_process
             => ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart;
 
-        public static string Option_Inline_Hints_experimental
-            => ServicesVSResources.Inline_Hints_experimental;
+        public static string Option_Inline_Hints
+            => ServicesVSResources.Inline_Hints;
 
         public static string Option_Display_all_hints_while_pressing_Alt_F1
             => ServicesVSResources.Display_all_hints_while_pressing_Alt_F1;
@@ -291,7 +291,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Show_inheritance_margin
             => ServicesVSResources.Show_inheritance_margin;
 
-        public static string Inheritance_Margin_experimental
-            => ServicesVSResources.Inheritance_Margin_experimental;
+        public static string Combine_inheritance_margin_with_indicator_margin
+            => ServicesVSResources.Combine_inheritance_margin_with_indicator_margin;
+
+        public static string Inheritance_Margin
+            => ServicesVSResources.Inheritance_Margin;
     }
 }
