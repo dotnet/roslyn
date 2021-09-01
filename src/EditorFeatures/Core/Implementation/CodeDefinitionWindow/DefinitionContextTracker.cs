@@ -13,15 +13,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 {
@@ -33,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
         private readonly HashSet<ITextView> _subscribedViews = new HashSet<ITextView>();
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly ICodeDefinitionWindowService _codeDefinitionWindowService;
+        private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         private CancellationTokenSource _currentUpdateCancellationToken;
 
@@ -41,10 +46,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 #pragma warning restore RS0033 // Importing constructor should be marked with 'ObsoleteAttribute'
         public DefinitionContextTracker(
             IMetadataAsSourceFileService metadataAsSourceFileService,
-            ICodeDefinitionWindowService codeDefinitionWindowService)
+            ICodeDefinitionWindowService codeDefinitionWindowService,
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _codeDefinitionWindowService = codeDefinitionWindowService;
+            _threadingContext = threadingContext;
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.CodeDefinitionWindow);
         }
 
         void ITextViewConnectionListener.SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
@@ -53,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             {
                 _subscribedViews.Add(textView);
                 textView.Caret.PositionChanged += OnTextViewCaretPositionChanged;
-                _ = UpdateDefinitionContextAsync(textView.Caret.Position);
+                QueueUpdateForCaretPosition(textView.Caret.Position);
             }
         }
 
@@ -72,11 +81,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 
         private void OnTextViewCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
         {
-            _ = UpdateDefinitionContextAsync(e.NewPosition);
+            QueueUpdateForCaretPosition(e.NewPosition);
         }
 
-        private async Task UpdateDefinitionContextAsync(CaretPosition caretPosition)
+        private void QueueUpdateForCaretPosition(CaretPosition caretPosition)
         {
+            Contract.ThrowIfFalse(_threadingContext.JoinableTaskContext.IsOnMainThread);
+
             // Cancel any pending update for this view
             _currentUpdateCancellationToken?.Cancel();
 
@@ -87,23 +98,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
                 return;
             }
 
-            // After a delay in case the caret moves again, find the symbol under the caret and update the context
             _currentUpdateCancellationToken = new CancellationTokenSource();
 
-            var foregroundTaskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            var cancellationToken = _currentUpdateCancellationToken.Token;
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(DefinitionContextTracker) + "." + nameof(QueueUpdateForCaretPosition));
+            UpdateForCaretPositionAsync(pointInRoslynSnapshot.Value, cancellationToken).CompletesAsyncOperation(asyncToken);
+        }
 
-            var locations = await Task.Run(
-                () => GetContextFromPointAfterDelayAsync(pointInRoslynSnapshot.Value, foregroundTaskScheduler, _currentUpdateCancellationToken.Token),
-                _currentUpdateCancellationToken.Token).ConfigureAwait(true);
+        private async Task UpdateForCaretPositionAsync(SnapshotPoint pointInRoslynSnapshot, CancellationToken cancellationToken)
+        {
+            var locations = await GetContextFromPointAfterDelayAsync(pointInRoslynSnapshot, cancellationToken).ConfigureAwait(true);
 
-            if (!_currentUpdateCancellationToken.Token.IsCancellationRequested)
-            {
-                _codeDefinitionWindowService.SetContext(locations);
-            }
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            _codeDefinitionWindowService.SetContext(locations);
         }
 
         private async Task<ImmutableArray<CodeDefinitionWindowLocation>> GetContextFromPointAfterDelayAsync(
-            SnapshotPoint pointInRoslynSnapshot, TaskScheduler foregroundTaskScheduler, CancellationToken cancellationToken)
+            SnapshotPoint pointInRoslynSnapshot, CancellationToken cancellationToken)
         {
             // TODO: Does this allocate too many tasks - should we switch to a queue like the classifier uses?
             await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
@@ -114,14 +126,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
                 return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
             }
 
-            return await GetContextFromPointAsync(document, pointInRoslynSnapshot.Position, foregroundTaskScheduler, cancellationToken).ConfigureAwait(false);
+            return await GetContextFromPointAsync(document, pointInRoslynSnapshot.Position, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Internal for testing purposes.
         /// </summary>
         internal async Task<ImmutableArray<CodeDefinitionWindowLocation>> GetContextFromPointAsync(
-            Document document, int position, TaskScheduler foregroundTaskScheduler, CancellationToken cancellationToken)
+            Document document, int position, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
             if (!document.SupportsSemanticModel)
@@ -171,12 +183,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
                 return mappingResult == null
                     ? ImmutableArray<CodeDefinitionWindowLocation>.Empty
                     : await GetLocationsOfSymbolAsync(
-                        mappingResult.Symbol, mappingResult.Project, foregroundTaskScheduler, cancellationToken).ConfigureAwait(false);
+                        mappingResult.Symbol, mappingResult.Project, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task<ImmutableArray<CodeDefinitionWindowLocation>> GetLocationsOfSymbolAsync(
-            ISymbol symbol, Project project, TaskScheduler foregroundTaskScheduler, CancellationToken cancellationToken)
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
@@ -190,30 +202,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             // 1. Another language (like XAML) will take over via ISymbolNavigationService
             // 2. There are locations in source, so we'll use those
             // 3. There are no locations from source, so we'll try to generate a metadata as source file and use that
-            string filePath = null;
-            var lineNumber = 0;
-            var charOffset = 0;
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-            var wouldNavigate = false;
-            await Task.Factory.StartNew(
-                async () =>
-                {
-                    var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: false);
-                    var result = await symbolNavigationService.WouldNavigateToSymbolAsync(definitionItem, cancellationToken).ConfigureAwait(false);
-                    if (result != null)
-                    {
-                        wouldNavigate = true;
-                        (filePath, lineNumber, charOffset) = result.Value;
-                    }
-                },
-                cancellationToken,
-                TaskCreationOptions.None,
-                foregroundTaskScheduler).ConfigureAwait(false);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: false);
+            var result = await symbolNavigationService.WouldNavigateToSymbolAsync(definitionItem, cancellationToken).ConfigureAwait(false);
 
             var results = new ArrayBuilder<CodeDefinitionWindowLocation>();
-            if (wouldNavigate)
+            if (result != null)
             {
-                results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), filePath, lineNumber, charOffset));
+                results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), result.Value.filePath, result.Value.lineNumber, result.Value.charOffset));
             }
             else
             {
