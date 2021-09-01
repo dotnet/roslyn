@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -17,7 +14,8 @@ using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal static class RemoteHostOptions
+    [ExportOptionProvider, Shared]
+    internal sealed class RemoteHostOptions : IOptionProvider
     {
         private const string LocalRegistryPath = StorageOptions.LocalRegistryPath;
         private const string FeatureName = "InternalFeatureOnOffOptions";
@@ -42,15 +40,37 @@ namespace Microsoft.CodeAnalysis.Remote
             FeatureName, nameof(OOPServerGC), defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOPServerGC)));
 
+        public static readonly Option<bool> OOPServerGCFeatureFlag = new(
+            FeatureName, nameof(OOPServerGCFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.OOPServerGC"));
+
         // use coreclr host for OOP
         public static readonly Option2<bool> OOPCoreClr = new(
             FeatureName, nameof(OOPCoreClr), defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOPCoreClr)));
 
+        public static readonly Option<bool> OOPCoreClrFeatureFlag = new(
+            FeatureName, nameof(OOPCoreClr), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.OOPCoreClr"));
+
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            SolutionChecksumMonitorBackOffTimeSpanInMS,
+            OOP64Bit,
+            OOPServerGC,
+            OOPServerGCFeatureFlag,
+            OOPCoreClr,
+            OOPCoreClrFeatureFlag);
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RemoteHostOptions()
+        {
+        }
+
         public static bool IsServiceHubProcessServerGC(HostWorkspaceServices services)
         {
-            return services.GetRequiredService<IOptionService>().GetOption(OOPServerGC)
-                || services.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.OOPServerGC) == true;
+            var optionService = services.GetRequiredService<IOptionService>();
+            return optionService.GetOption(OOPServerGC) || optionService.GetOption(OOPServerGCFeatureFlag);
         }
 
         /// <summary>
@@ -70,8 +90,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static bool IsServiceHubProcessCoreClr(HostWorkspaceServices services)
         {
-            return services.GetRequiredService<IOptionService>().GetOption(OOPCoreClr)
-                || services.GetService<IExperimentationService>()?.IsExperimentEnabled(WellKnownExperimentNames.OOPCoreClr) == true;
+            var optionService = services.GetRequiredService<IOptionService>();
+            return optionService.GetOption(OOPCoreClr) || optionService.GetOption(OOPCoreClrFeatureFlag);
         }
 
         public static bool IsCurrentProcessRunningOnCoreClr()
@@ -79,21 +99,5 @@ namespace Microsoft.CodeAnalysis.Remote
             return !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework")
                 && !RuntimeInformation.FrameworkDescription.StartsWith(".NET Native");
         }
-    }
-
-    [ExportOptionProvider, Shared]
-    internal class RemoteHostOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteHostOptionsProvider()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS,
-            RemoteHostOptions.OOP64Bit,
-            RemoteHostOptions.OOPServerGC,
-            RemoteHostOptions.OOPCoreClr);
     }
 }

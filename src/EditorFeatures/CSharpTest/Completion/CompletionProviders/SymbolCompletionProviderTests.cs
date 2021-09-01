@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
@@ -26,9 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
     {
         internal override Type GetCompletionProviderType()
             => typeof(SymbolCompletionProvider);
-
-        protected override TestComposition GetComposition()
-            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(SourceCodeKind.Regular)]
@@ -10785,7 +10781,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilterWithExperimentEnabled()
         {
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            TargetTypedCompletionFilterFeatureFlag = true;
 
             var markup =
 @"public class C
@@ -10804,7 +10800,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestNoTargetTypeFilterWithExperimentDisabled()
         {
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, false);
+            TargetTypedCompletionFilterFeatureFlag = false;
 
             var markup =
 @"public class C
@@ -10823,7 +10819,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotOnObjectMembers()
         {
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            TargetTypedCompletionFilterFeatureFlag = true;
 
             var markup =
 @"public class C
@@ -10841,7 +10837,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotNamedTypes()
         {
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            TargetTypedCompletionFilterFeatureFlag = true;
 
             var markup =
 @"public class C
@@ -11384,7 +11380,7 @@ public class C
         public async Task TestTargetTypeCompletionDescription(string targetType, string expectedParameterList)
         {
             // Check the description displayed is based on symbol matches targeted type
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            TargetTypedCompletionFilterFeatureFlag = true;
 
             var markup =
 $@"public class C

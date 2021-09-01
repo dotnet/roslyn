@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
@@ -109,8 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // Escape hatch feature flag to let us disable this feature remotely if we run into any issues with it, 
             var workspace = document.Project.Solution.Workspace;
-            var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
-            var disabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.UnnamedSymbolCompletionDisabled);
+            var disabled = context.Options.GetOption(CompletionOptions.UnnamedSymbolCompletionDisabledFeatureFlag);
             if (disabled)
                 return;
 

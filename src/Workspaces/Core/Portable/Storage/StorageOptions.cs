@@ -11,15 +11,20 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Storage
 {
-    internal static class StorageOptions
+    [ExportOptionProvider, Shared]
+    internal sealed class StorageOptions : IOptionProvider
     {
         internal const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
 
-        public const string OptionName = "FeatureManager/Storage";
+        private const string FeatureName = "FeatureManager/Storage";
 
         public static readonly Option<StorageDatabase> Database = new(
-            OptionName, nameof(Database), defaultValue: StorageDatabase.SQLite,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Database)));
+            FeatureName, nameof(Database), defaultValue: StorageDatabase.SQLite,
+            new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Database)));
+
+        public static readonly Option<bool> CloudCacheFeatureFlag = new(
+            FeatureName, nameof(CloudCacheFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.CloudCache"));
 
         /// <summary>
         /// Option that can be set in certain scenarios (like tests) to indicate that the client expects the DB to
@@ -27,20 +32,17 @@ namespace Microsoft.CodeAnalysis.Storage
         /// environments, where it is completely reasonable for things to fail (for example, if a client asks for a key
         /// that hasn't been stored yet).
         /// </summary>
-        public static readonly Option<bool> DatabaseMustSucceed = new(OptionName, nameof(DatabaseMustSucceed), defaultValue: false);
-    }
+        public static readonly Option<bool> DatabaseMustSucceed = new(FeatureName, nameof(DatabaseMustSucceed), defaultValue: false);
 
-    [ExportOptionProvider, Shared]
-    internal class RemoteHostOptionsProvider : IOptionProvider
-    {
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            Database,
+            CloudCacheFeatureFlag,
+            DatabaseMustSucceed);
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteHostOptionsProvider()
+        public StorageOptions()
         {
         }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            StorageOptions.Database,
-            StorageOptions.DatabaseMustSucceed);
     }
 }

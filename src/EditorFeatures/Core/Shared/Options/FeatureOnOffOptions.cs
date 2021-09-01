@@ -78,6 +78,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
 
+        public static readonly Option<bool> OfferRemoveUnusedReferencesFeatureFlag = new(
+            nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferencesFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.RemoveUnusedReferences"));
+
         public static readonly PerLanguageOption2<bool?> ShowInheritanceMargin =
             new(nameof(FeatureOnOffOptions),
                 nameof(ShowInheritanceMargin),
@@ -125,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.UseEnhancedColors,
             FeatureOnOffOptions.AddImportsOnPaste,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
+            FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag,
             FeatureOnOffOptions.ShowInheritanceMargin,
             FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin,
             FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon,

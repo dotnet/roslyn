@@ -13,7 +13,6 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 Imports Microsoft.CodeAnalysis.Editor.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
-Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Fading
 Imports Microsoft.CodeAnalysis.ImplementType
@@ -33,7 +32,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
         Private ReadOnly _colorSchemeApplier As ColorSchemeApplier
 
-        Public Sub New(optionStore As OptionStore, componentModel As IComponentModel, experimentationService As IExperimentationService)
+        Public Sub New(optionStore As OptionStore, componentModel As IComponentModel)
             MyBase.New(optionStore)
 
             _colorSchemeApplier = componentModel.GetService(Of ColorSchemeApplier)()
@@ -52,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences,
                          Function()
                              ' If the option has Not been set by the user, check if the option is enabled from experimentation.
-                             Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.RemoveUnusedReferences), False)
+                             Return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag)
                          End Function)
 
             ' Import directives
@@ -72,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous,
                          Function()
                              ' If the option has Not been set by the user, check if the option is enabled from experimentation.
-                             Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.AsynchronousQuickActions), False)
+                             Return optionStore.GetOption(SuggestionsOptions.AsynchronousFeatureFlag)
                          End Function)
 
             ' Highlighting
@@ -109,10 +108,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Go To Definition
             BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic)
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.EnableOpeningInWorkspace,
+            BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.Options.EnableOpeningInWorkspace,
                          Function()
                              ' If the option has Not been set by the user, check if the option is enabled from experimentation.
-                             Return If(experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SourceGeneratorsEnableOpeningInWorkspace), False)
+                             Return optionStore.GetOption(SourceGeneratedFileManager.Options.EnableOpeningInWorkspaceFeatureFlag)
                          End Function)
 
             ' Regular expressions

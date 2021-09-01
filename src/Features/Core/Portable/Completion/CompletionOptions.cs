@@ -9,6 +9,17 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CompletionOptions
     {
+        // feature flags
+
+        public static readonly Option2<bool> TypeImportCompletionFeatureFlag = new(nameof(CompletionOptions), nameof(TypeImportCompletionFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.TypeImportCompletion"));
+
+        public static readonly Option2<bool> TargetTypedCompletionFilterFeatureFlag = new(nameof(CompletionOptions), nameof(TargetTypedCompletionFilterFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.TargetTypedCompletionFilter"));
+
+        public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new(nameof(CompletionOptions), nameof(UnnamedSymbolCompletionDisabledFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.UnnamedSymbolCompletionDisabled"));
+
         // This is serialized by the Visual Studio-specific LanguageSettingsPersister
         public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(nameof(CompletionOptions), nameof(HideAdvancedMembers), defaultValue: false);
 
