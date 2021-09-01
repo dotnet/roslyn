@@ -2715,7 +2715,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources</source>
-        <target state="needs-review-translation">디컴파일된 소스에 탐색을 사용하도록 설정(실험적)</target>
+        <target state="new">Enable navigation to decompiled sources</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

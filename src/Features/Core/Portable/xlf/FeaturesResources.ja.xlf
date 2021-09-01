@@ -512,7 +512,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
-        <target state="needs-review-translation">プロジェクト '{0}' で変更を行うと、デバッグ セッションは続行されません。{1}</target>
+        <target state="new">Changes made in project '{0}' require restarting the application: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
@@ -2753,11 +2753,11 @@ Although it's possible to display the ten thousandths of a second component of a
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
+        <target state="translated">"f" カスタム書式指定子は、秒の小数部分の有効数字最上位桁を表します。つまり、日時値の秒の小数部分を 10 分の 1 秒単位で表します。
 
-If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
+"f" 書式指定子を他の書式指定子なしで使用すると、"f" 標準日時書式指定子として解釈されます。
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
+"f" 書式指定子を、ParseExact、または TryParseExact メソッドに指定する書式文字列の一部として使用した場合、"f" 書式指定子の数は、文字列を正常に解析するために必要な秒の小数点以下の有効桁数を示します。</target>
         <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">

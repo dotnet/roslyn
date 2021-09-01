@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../CSharpResources.resx">
     <body>
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributesRequireParenthesizedLambdaExpression">
         <source>Attributes on lambda expressions require a parenthesized parameter list.</source>
-        <target state="new">Attributes on lambda expressions require a parenthesized parameter list.</target>
+        <target state="translated">Los atributos de expresiones de un paréntesis requieren una lista de parámetros entre paréntesis.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
@@ -209,7 +209,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
-        <target state="needs-review-translation">El miembro de registro "{0}" debe ser una propiedad de instancia legible de tipo "{1}" para que coincida con el parámetro de posición "{2}".</target>
+        <target state="translated">El miembro de registro '{0}' debe ser una propiedad de instancia legible o un campo de tipo '{1}' para coincidir con el parámetro posicional '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotClone">
         <source>The receiver type '{0}' is not a valid record type and is not a struct type.</source>
-        <target state="new">The receiver type '{0}' is not a valid record type and is not a struct type.</target>
+        <target state="translated">El tipo de destinatario '{0}' no es un tipo de registro válido y no es un tipo de registro.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
-        <target state="new">The delegate type could not be inferred.</target>
+        <target state="translated">El tipo de delegado no se puede deducir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -544,7 +544,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
         <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
-        <target state="needs-review-translation">No se admite el uso de un tipo de puntero de función como valor "typeof" de un atributo.</target>
+        <target state="translated">No se admite el uso de un tipo de puntero de función como valor "typeof" de un atributo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
@@ -559,12 +559,12 @@
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
         <source>A global using directive cannot be used in a namespace declaration.</source>
-        <target state="new">A global using directive cannot be used in a namespace declaration.</target>
+        <target state="translated">No se puede usar una directiva global mediante una declaración de espacio de nombres.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
-        <target state="new">A global using directive must precede all non-global using directives.</target>
+        <target state="translated">Una directiva de uso global debe ser anterior a todas las directivas no globales que no son de uso.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
@@ -1249,7 +1249,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureGlobalUsing">
         <source>global using directive</source>
-        <target state="new">global using directive</target>
+        <target state="translated">directiva global de uso</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -1264,12 +1264,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
-        <target state="new">inferred delegate type</target>
+        <target state="translated">tipo de delegado inferido</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
         <source>lambda attributes</source>
-        <target state="new">lambda attributes</target>
+        <target state="translated">atributos de lambda</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaReturnType">
@@ -1289,12 +1289,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
-        <target state="new">positional fields in records</target>
+        <target state="translated">campos posicionales en registros</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">
         <source>record structs</source>
-        <target state="new">record structs</target>
+        <target state="translated">registros</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
@@ -1319,7 +1319,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnStructs">
         <source>with on structs</source>
-        <target state="new">with on structs</target>
+        <target state="translated">con estrcutras</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1534,7 +1534,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
         <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
-        <target state="needs-review-translation">"UnmanagedCallersOnly" solo se puede aplicar a las funciones locales estáticas o los métodos estáticos ordinarios.</target>
+        <target state="new">'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -3903,7 +3903,7 @@
       </trans-unit>
       <trans-unit id="ERR_StaticNotVirtual">
         <source>A static member cannot be marked as '{0}'</source>
-        <target state="needs-review-translation">Un miembro estático '{0}' no se puede marcar como invalidación, virtual o abstracto</target>
+        <target state="new">A static member cannot be marked as '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNew">
@@ -3928,7 +3928,7 @@
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
         <source>A namespace cannot directly contain members such as fields, methods or statements</source>
-        <target state="needs-review-translation">Un espacio de nombres no puede contener directamente miembros como campos o métodos.</target>
+        <target state="new">A namespace cannot directly contain members such as fields, methods or statements</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">
@@ -4603,7 +4603,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
         <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="needs-review-translation">Las declaraciones parciales de "{0}" deben ser todas clases, todos registros, todas estructuras o todas interfaces</target>
+        <target state="translated">Las declaraciones parciales de '{0}' deben ser todas las clases, todas las clases de registro, todos los registros, todos los registros o todas las interfaces</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">
@@ -5442,7 +5442,7 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       </trans-unit>
       <trans-unit id="ERR_IdentityConversion">
         <source>User-defined operator cannot convert a type to itself</source>
-        <target state="needs-review-translation">Un operador definido por el usuario no puede adquirir un objeto de tipo envolvente ni convertirlo en un objeto de tipo envolvente</target>
+        <target state="new">User-defined operator cannot convert a type to itself</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConversionNotInvolvingContainedType">
@@ -5527,7 +5527,7 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       </trans-unit>
       <trans-unit id="ERR_ConditionalOnSpecialMethod">
         <source>The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation</source>
-        <target state="needs-review-translation">El atributo Conditional no es válido en '{0}' porque es un constructor, destructor, operador o la implementación de interfaz explícita</target>
+        <target state="translated">El atributo condicional no es válido en '{0}' porque es un constructor, destructor, operador, expresión lambda o implementación de interfaz explícita</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionalMustReturnVoid">
@@ -6197,7 +6197,7 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberStatic">
         <source>'{0}' does not implement instance interface member '{1}'. '{2}' cannot implement the interface member because it is static.</source>
-        <target state="needs-review-translation">'{0}' no implementa el miembro de interfaz '{1}'. '{2}' no puede implementar un miembro de interfaz porque es estático.</target>
+        <target state="new">'{0}' does not implement instance interface member '{1}'. '{2}' cannot implement the interface member because it is static.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotPublic">
@@ -7291,7 +7291,7 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
       </trans-unit>
       <trans-unit id="ERR_AmbiguousAttribute">
         <source>'{0}' is ambiguous between '{1}' and '{2}'. Either use '@{0}' or explicitly include the 'Attribute' suffix.</source>
-        <target state="needs-review-translation">'{0}' es ambiguo entre '{1}' y '{2}'; use '@{0}' o '{0}Attribute'</target>
+        <target state="new">'{0}' is ambiguous between '{1}' and '{2}'. Either use '@{0}' or explicitly include the 'Attribute' suffix.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRef">
@@ -11229,7 +11229,7 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
         <source>Conversion, equality, or inequality operators declared in interfaces must be abstract</source>
-        <target state="needs-review-translation">Las interfaces no pueden contener operadores de conversión, igualdad o desigualdad</target>
+        <target state="new">Conversion, equality, or inequality operators declared in interfaces must be abstract</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
