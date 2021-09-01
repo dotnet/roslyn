@@ -323,7 +323,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private void UpdateSeverityMenuItemsEnabled()
         {
-            var configurable = !_tracker.SelectedDiagnosticItems.Any(item => item.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable));
+            var configurable = !_tracker.SelectedDiagnosticItems.Any(item => item.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.NotConfigurable));
 
             _setSeverityDefaultMenuItem.Enabled = configurable;
             _setSeverityErrorMenuItem.Enabled = configurable;

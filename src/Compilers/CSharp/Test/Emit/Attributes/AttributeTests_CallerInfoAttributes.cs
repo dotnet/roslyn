@@ -790,7 +790,7 @@ class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, expectedOutput: "Main").VerifyDiagnostics(
-                // (12,29): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overriden by the MemberNameAttribute.
+                // (12,29): warning CS8962: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerMemberNameAttribute.
                 //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
                 );
@@ -819,7 +819,7 @@ class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular10);
             CompileAndVerify(compilation, expectedOutput: "Main").VerifyDiagnostics(
-                // (12,29): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overriden by the MemberNameAttribute.
+                // (12,29): warning CS8962: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerMemberNameAttribute.
                 //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
                 );
@@ -1642,7 +1642,7 @@ public class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             CompileAndVerify(compilation, expectedOutput: "<default>").VerifyDiagnostics(
-                // (9,32): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overriden by the CallerMemberNameAttribute.
+                // (9,32): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overridden by the CallerMemberNameAttribute.
                 //     public MyAttribute(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(9, 32)
                 );
@@ -1813,7 +1813,7 @@ public class Program
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionIsReferingToItself_AttributeConstructor()
+        public void TestArgumentExpressionIsReferringToItself_AttributeConstructor()
         {
             string source = @"
 using System;
@@ -1851,7 +1851,7 @@ value").VerifyDiagnostics(
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void TestArgumentExpressionIsReferingToItself_AttributeConstructor_Metadata()
+        public void TestArgumentExpressionIsReferringToItself_AttributeConstructor_Metadata()
         {
             string il = @"
 .class private auto ansi '<Module>'

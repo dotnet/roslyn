@@ -5714,7 +5714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundMethodGroup : BoundMethodOrPropertyGroup
     {
-        public BoundMethodGroup(SyntaxNode syntax, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol? lookupSymbolOpt, DiagnosticInfo? lookupError, BoundMethodGroupFlags? flags, BoundExpression? receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
+        public BoundMethodGroup(SyntaxNode syntax, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol? lookupSymbolOpt, DiagnosticInfo? lookupError, BoundMethodGroupFlags? flags, FunctionTypeSymbol.Lazy? functionType, BoundExpression? receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
             : base(BoundKind.MethodGroup, syntax, receiverOpt, resultKind, hasErrors || receiverOpt.HasErrors())
         {
 
@@ -5727,6 +5727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LookupSymbolOpt = lookupSymbolOpt;
             this.LookupError = lookupError;
             this.Flags = flags;
+            this.FunctionType = functionType;
         }
 
 
@@ -5741,14 +5742,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public DiagnosticInfo? LookupError { get; }
 
         public BoundMethodGroupFlags? Flags { get; }
+
+        public FunctionTypeSymbol.Lazy? FunctionType { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitMethodGroup(this);
 
-        public BoundMethodGroup Update(ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol? lookupSymbolOpt, DiagnosticInfo? lookupError, BoundMethodGroupFlags? flags, BoundExpression? receiverOpt, LookupResultKind resultKind)
+        public BoundMethodGroup Update(ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol? lookupSymbolOpt, DiagnosticInfo? lookupError, BoundMethodGroupFlags? flags, FunctionTypeSymbol.Lazy? functionType, BoundExpression? receiverOpt, LookupResultKind resultKind)
         {
-            if (typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || methods != this.Methods || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(lookupSymbolOpt, this.LookupSymbolOpt) || lookupError != this.LookupError || flags != this.Flags || receiverOpt != this.ReceiverOpt || resultKind != this.ResultKind)
+            if (typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || methods != this.Methods || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(lookupSymbolOpt, this.LookupSymbolOpt) || lookupError != this.LookupError || flags != this.Flags || functionType != this.FunctionType || receiverOpt != this.ReceiverOpt || resultKind != this.ResultKind)
             {
-                var result = new BoundMethodGroup(this.Syntax, typeArgumentsOpt, name, methods, lookupSymbolOpt, lookupError, flags, receiverOpt, resultKind, this.HasErrors);
+                var result = new BoundMethodGroup(this.Syntax, typeArgumentsOpt, name, methods, lookupSymbolOpt, lookupError, flags, functionType, receiverOpt, resultKind, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7155,23 +7158,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class UnboundLambda : BoundExpression
     {
-        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, Boolean withDependencies, bool hasErrors)
+        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, FunctionTypeSymbol.Lazy? functionType, Boolean withDependencies, bool hasErrors)
             : base(BoundKind.UnboundLambda, syntax, null, hasErrors)
         {
 
             RoslynDebug.Assert(data is object, "Field 'data' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Data = data;
+            this.FunctionType = functionType;
             this.WithDependencies = withDependencies;
         }
 
-        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, Boolean withDependencies)
+        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, FunctionTypeSymbol.Lazy? functionType, Boolean withDependencies)
             : base(BoundKind.UnboundLambda, syntax, null)
         {
 
             RoslynDebug.Assert(data is object, "Field 'data' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Data = data;
+            this.FunctionType = functionType;
             this.WithDependencies = withDependencies;
         }
 
@@ -7180,15 +7185,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public UnboundLambdaState Data { get; }
 
+        public FunctionTypeSymbol.Lazy? FunctionType { get; }
+
         public Boolean WithDependencies { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnboundLambda(this);
 
-        public UnboundLambda Update(UnboundLambdaState data, Boolean withDependencies)
+        public UnboundLambda Update(UnboundLambdaState data, FunctionTypeSymbol.Lazy? functionType, Boolean withDependencies)
         {
-            if (data != this.Data || withDependencies != this.WithDependencies)
+            if (data != this.Data || functionType != this.FunctionType || withDependencies != this.WithDependencies)
             {
-                var result = new UnboundLambda(this.Syntax, data, withDependencies, this.HasErrors);
+                var result = new UnboundLambda(this.Syntax, data, functionType, withDependencies, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11037,7 +11044,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.TypeArgumentsOpt, node.Name, node.Methods, node.LookupSymbolOpt, node.LookupError, node.Flags, receiverOpt, node.ResultKind);
+            return node.Update(node.TypeArgumentsOpt, node.Name, node.Methods, node.LookupSymbolOpt, node.LookupError, node.Flags, node.FunctionType, receiverOpt, node.ResultKind);
         }
         public override BoundNode? VisitPropertyGroup(BoundPropertyGroup node)
         {
@@ -11258,7 +11265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitUnboundLambda(UnboundLambda node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Data, node.WithDependencies);
+            return node.Update(node.Data, node.FunctionType, node.WithDependencies);
         }
         public override BoundNode? VisitQueryClause(BoundQueryClause node)
         {
@@ -12952,12 +12959,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(node.TypeArgumentsOpt, node.Name, methods, lookupSymbolOpt, node.LookupError, node.Flags, receiverOpt, node.ResultKind);
+                updatedNode = node.Update(node.TypeArgumentsOpt, node.Name, methods, lookupSymbolOpt, node.LookupError, node.Flags, node.FunctionType, receiverOpt, node.ResultKind);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(node.TypeArgumentsOpt, node.Name, methods, lookupSymbolOpt, node.LookupError, node.Flags, receiverOpt, node.ResultKind);
+                updatedNode = node.Update(node.TypeArgumentsOpt, node.Name, methods, lookupSymbolOpt, node.LookupError, node.Flags, node.FunctionType, receiverOpt, node.ResultKind);
             }
             return updatedNode;
         }
@@ -13568,7 +13575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            UnboundLambda updatedNode = node.Update(node.Data, node.WithDependencies);
+            UnboundLambda updatedNode = node.Update(node.Data, node.FunctionType, node.WithDependencies);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -15218,6 +15225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("lookupSymbolOpt", node.LookupSymbolOpt, null),
             new TreeDumperNode("lookupError", node.LookupError, null),
             new TreeDumperNode("flags", node.Flags, null),
+            new TreeDumperNode("functionType", node.FunctionType, null),
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
@@ -15597,6 +15605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitUnboundLambda(UnboundLambda node, object? arg) => new TreeDumperNode("unboundLambda", null, new TreeDumperNode[]
         {
             new TreeDumperNode("data", node.Data, null),
+            new TreeDumperNode("functionType", node.FunctionType, null),
             new TreeDumperNode("withDependencies", node.WithDependencies, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),

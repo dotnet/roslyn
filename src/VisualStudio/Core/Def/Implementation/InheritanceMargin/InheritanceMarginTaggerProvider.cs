@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -47,19 +46,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
 
-        private bool? _experimentEnabled = null;
-
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
             // Because we use frozen-partial documents for semantic classification, we may end up with incomplete
             // semantics (esp. during solution load).  Because of this, we also register to hear when the full
             // compilation is available so that reclassify and bring ourselves up to date.
+            // Note: Also generate tags when FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin is changed,
+            // because we want to refresh the glyphs in indicator margin.
             => new CompilationAvailableTaggerEventSource(
                 subjectBuffer,
                 AsyncListener,
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ShowInheritanceMargin));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ShowInheritanceMargin),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin));
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
         {
@@ -87,17 +87,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
             var cancellationToken = context.CancellationToken;
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var optionIsChecked = options.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
-            if (_experimentEnabled is null)
-            {
-                var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-                _experimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.InheritanceMargin);
-            }
+            var optionValue = optionSet.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
 
-            var shouldEnableFeature = optionIsChecked == true || (_experimentEnabled == true && optionIsChecked == null);
-            if (!shouldEnableFeature)
+            var shouldDisableFeature = optionValue == false;
+            if (shouldDisableFeature)
             {
                 return;
             }
@@ -105,7 +100,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
             // response. (Since the full load might take a long time)
             // We also subscribe to CompilationAvailableTaggerEventSource, so this will finally reach the correct state.
-            var inheritanceMarginInfoService = document.WithFrozenPartialSemantics(cancellationToken).GetLanguageService<IInheritanceMarginService>();
+            document = document.WithFrozenPartialSemantics(cancellationToken);
+            var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
             if (inheritanceMarginInfoService == null)
             {
                 return;

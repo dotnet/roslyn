@@ -540,7 +540,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(recursive.HasAnyErrors);
                         tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
                     }
-                    tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
+                    else
+                    {
+                        tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
+                    }
                 }
             }
 
@@ -915,6 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundDecisionDagNode whenTrue = finalState(first.Syntax, first.CaseLabel, default);
                         BoundDecisionDagNode? whenFalse = state.FalseBranch.Dag;
                         RoslynDebug.Assert(whenFalse is { });
+                        // Note: we may share `when` clauses between multiple DAG nodes, but we deal with that safely during lowering
                         state.Dag = uniqifyDagNode(new BoundWhenDecisionDagNode(first.Syntax, first.Bindings, first.WhenClause, whenTrue, whenFalse));
                     }
 

@@ -8,6 +8,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
+using Roslyn.Test.Utilities.TestGenerators;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
@@ -320,12 +322,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             Assert.Equal(2, callCount);
         }
 
+        [Fact]
+        public void Batch_Node_Is_Cached_If_All_Inputs_Are_Cached()
+        {
+            var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1, 2, 3));
+            BatchNode<int> batchNode = new BatchNode<int>(inputNode);
+
+            // first time through will always be added (because it's not been run before)
+            DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty);
+            _ = dstBuilder.GetLatestStateTableForNode(batchNode);
+
+            // second time through should show as cached
+            dstBuilder = GetBuilder(dstBuilder.ToImmutable());
+            var table = dstBuilder.GetLatestStateTableForNode(batchNode);
+
+            AssertTableEntries(table, new[] { (ImmutableArray.Create(1, 2, 3), EntryState.Cached) });
+        }
+
+        [Fact]
+        public void Batch_Node_Is_Not_Cached_When_Inputs_Are_Changed()
+        {
+            int third = 3;
+
+            var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1, 2, third++));
+            BatchNode<int> batchNode = new BatchNode<int>(inputNode);
+
+            // first time through will always be added (because it's not been run before)
+            DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty);
+            _ = dstBuilder.GetLatestStateTableForNode(batchNode);
+
+            // second time through should show as modified
+            dstBuilder = GetBuilder(dstBuilder.ToImmutable());
+            var table = dstBuilder.GetLatestStateTableForNode(batchNode);
+
+            AssertTableEntries(table, new[] { (ImmutableArray.Create(1, 2, 4), EntryState.Modified) });
+        }
+
+        [Fact]
+        public void User_Comparer_Is_Not_Used_To_Determine_Inputs()
+        {
+            var inputNode = new InputNode<int>((_) => ImmutableArray.Create(1, 2, 3))
+                                .WithComparer(new LambdaComparer<int>((a, b) => false));
+
+            // first time through will always be added (because it's not been run before)
+            DriverStateTable.Builder dstBuilder = GetBuilder(DriverStateTable.Empty);
+            _ = dstBuilder.GetLatestStateTableForNode(inputNode);
+
+            // second time through should show as cached, even though we supplied a comparer (comparer should only used to turn modified => cached)
+            dstBuilder = GetBuilder(dstBuilder.ToImmutable());
+            var table = dstBuilder.GetLatestStateTableForNode(inputNode);
+
+            AssertTableEntries(table, new[] { (1, EntryState.Cached), (2, EntryState.Cached), (3, EntryState.Cached) });
+        }
+
         private void AssertTableEntries<T>(NodeStateTable<T> table, IList<(T item, EntryState state)> expected)
         {
             int index = 0;
             foreach (var entry in table)
             {
                 Assert.Equal(expected[index].item, entry.item);
+                Assert.Equal(expected[index].state, entry.state);
+                index++;
+            }
+        }
+
+        private void AssertTableEntries<T>(NodeStateTable<ImmutableArray<T>> table, IList<(ImmutableArray<T> item, EntryState state)> expected)
+        {
+            int index = 0;
+            foreach (var entry in table)
+            {
+                AssertEx.Equal(expected[index].item, entry.item);
                 Assert.Equal(expected[index].state, entry.state);
                 index++;
             }
@@ -342,7 +408,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     ImmutableArray<AdditionalText>.Empty,
                     ImmutableArray<GeneratorState>.Empty,
                     previous,
-                    enableIncremental: true,
                     disabledOutputs: IncrementalGeneratorOutputKind.None);
 
             return new DriverStateTable.Builder(c, state, ImmutableArray<ISyntaxInputNode>.Empty);

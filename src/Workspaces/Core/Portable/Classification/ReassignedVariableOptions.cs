@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Classification
     {
         public static PerLanguageOption2<bool> ClassifyReassignedVariables =
            new PerLanguageOption2<bool>(nameof(ClassificationOptions), nameof(ClassifyReassignedVariables), defaultValue: false,
-               storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(ClassificationOptions)}.{nameof(ClassifyReassignedVariables)}"));
+               storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(ClassificationOptions)}.{nameof(ClassifyReassignedVariables)}"));
     }
 
     [ExportOptionProvider, Shared]

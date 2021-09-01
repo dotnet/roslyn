@@ -13,7 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class DocumentationCommentStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of DocumentationCommentTriviaSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(documentationComment As DocumentationCommentTriviaSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  documentationComment As DocumentationCommentTriviaSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)

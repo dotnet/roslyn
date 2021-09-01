@@ -149,21 +149,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken).ConfigureAwait(false);
         }
 
-        // TODO: remove (https://github.com/dotnet/roslyn/issues/43477)
-        async ValueTask<bool> IAssetSource.IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-        {
-            return await RunServiceAsync(() =>
-            {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_IsExperimentEnabledAsync, experimentName, cancellationToken))
-                {
-                    return EndPoint.InvokeAsync<bool>(
-                        nameof(IRemoteHostServiceCallback.IsExperimentEnabledAsync),
-                        new object[] { experimentName },
-                        cancellationToken);
-                }
-            }, cancellationToken).ConfigureAwait(false);
-        }
-
         /// <summary>
         /// Remote API.
         /// </summary>

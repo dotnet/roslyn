@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.Options
         {
         }
 
+        public ImmutableHashSet<string> Languages => _languages;
+
         /// <summary>
         /// Returns an option set with all the serializable option values prefetched for given <paramref name="languages"/>,
         /// while also retaining all the explicitly changed option values in this option set for any language.
@@ -310,8 +312,7 @@ namespace Microsoft.CodeAnalysis.Options
             var builder = ImmutableDictionary.CreateBuilder<OptionKey, object?>();
             for (var i = 0; i < count; i++)
             {
-                if (!TryDeserializeOptionKey(reader, lookup, out var optionKey))
-                    continue;
+                var optionKeyOpt = TryDeserializeOptionKey(reader, lookup);
 
                 var kind = (OptionValueKind)reader.ReadInt32();
                 var readValue = kind switch
@@ -322,6 +323,10 @@ namespace Microsoft.CodeAnalysis.Options
                     _ => reader.ReadValue(),
                 };
 
+                if (optionKeyOpt == null)
+                    continue;
+
+                var optionKey = optionKeyOpt.Value;
                 if (!serializableOptions.Contains(optionKey.Option))
                     continue;
 
@@ -347,7 +352,13 @@ namespace Microsoft.CodeAnalysis.Options
                         break;
 
                     case OptionValueKind.Enum:
-                        optionValue = Enum.ToObject(optionKey.Option.Type, readValue);
+                        var enumType = optionKey.Option.Type;
+                        if (enumType.IsGenericType && enumType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        {
+                            enumType = enumType.GetGenericArguments()[0];
+                        }
+
+                        optionValue = Enum.ToObject(enumType, readValue);
                         break;
 
                     default:
@@ -362,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Options
             var changedKeysBuilder = ImmutableHashSet.CreateBuilder<OptionKey>();
             for (var i = 0; i < count; i++)
             {
-                if (TryDeserializeOptionKey(reader, lookup, out var optionKey))
+                if (TryDeserializeOptionKey(reader, lookup) is { } optionKey)
                     changedKeysBuilder.Add(optionKey);
             }
 
@@ -374,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Options
                 languages, workspaceOptionSet, serializableOptions, serializableOptionValues,
                 changedOptionKeysSerializable, changedOptionKeysNonSerializable: ImmutableHashSet<OptionKey>.Empty);
 
-            static bool TryDeserializeOptionKey(ObjectReader reader, ILookup<string, IOption> lookup, out OptionKey deserializedOptionKey)
+            static OptionKey? TryDeserializeOptionKey(ObjectReader reader, ILookup<string, IOption> lookup)
             {
                 var name = reader.ReadString();
                 var feature = reader.ReadString();
@@ -386,13 +397,12 @@ namespace Microsoft.CodeAnalysis.Options
                     if (option.Feature == feature &&
                         option.IsPerLanguage == isPerLanguage)
                     {
-                        deserializedOptionKey = new OptionKey(option, language);
-                        return true;
+                        return new OptionKey(option, language);
                     }
                 }
 
-                deserializedOptionKey = default;
-                return false;
+                Debug.Fail($"Failed to deserialize: {name}-{feature}-{isPerLanguage}-{language}");
+                return null;
             }
         }
 

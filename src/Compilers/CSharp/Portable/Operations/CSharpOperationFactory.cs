@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 // https://github.com/dotnet/roslyn/issues/54505 Support interpolation handlers in conversions
                 Debug.Assert(!forceOperandImplicitLiteral);
-                Debug.Assert(boundOperand is BoundInterpolatedString);
+                Debug.Assert(boundOperand is BoundInterpolatedString { InterpolationData: not null } or BoundBinaryOperator { InterpolatedStringHandlerData: not null });
                 var interpolatedString = Create(boundOperand);
                 return new NoneOperation(ImmutableArray.Create(interpolatedString), _semanticModel, boundConversion.Syntax, boundConversion.GetPublicTypeSymbol(), boundConversion.ConstantValue, isImplicit);
             }
@@ -1305,20 +1305,24 @@ namespace Microsoft.CodeAnalysis.Operations
             // To solve this, we use a manual stack for the left side.
             var stack = ArrayBuilder<BoundBinaryOperatorBase>.GetInstance();
             BoundBinaryOperatorBase? currentBinary = boundBinaryOperatorBase;
+            InterpolatedStringHandlerData? interpolatedData = (boundBinaryOperatorBase as BoundBinaryOperator)?.InterpolatedStringHandlerData;
 
             do
             {
                 stack.Push(currentBinary);
                 currentBinary = currentBinary.Left as BoundBinaryOperatorBase;
-            } while (currentBinary is not null);
+            } while (currentBinary is not null and not BoundBinaryOperator { InterpolatedStringHandlerData: not null });
+
+            Debug.Assert(interpolatedData == null || interpolatedData.GetValueOrDefault().PositionInfo.Length == stack.Count + 1);
 
             Debug.Assert(stack.Count > 0);
             IOperation? left = null;
+            int positionInfoIndex = 0;
 
             while (stack.TryPop(out currentBinary))
             {
-                left = left ?? Create(currentBinary.Left);
-                IOperation right = Create(currentBinary.Right);
+                left ??= visitOperand(currentBinary.Left);
+                IOperation right = visitOperand(currentBinary.Right);
                 left = currentBinary switch
                 {
                     BoundBinaryOperator binaryOp => createBoundBinaryOperatorOperation(binaryOp, left, right),
@@ -1330,6 +1334,11 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(left is not null && stack.Count == 0);
             stack.Free();
             return left;
+
+            IOperation visitOperand(BoundExpression operand)
+                => interpolatedData is { } data
+                    ? CreateBoundInterpolatedStringExpressionOperation((BoundInterpolatedString)operand, data.PositionInfo[positionInfoIndex++])
+                    : Create(operand);
 
             IBinaryOperation createBoundBinaryOperatorOperation(BoundBinaryOperator boundBinaryOperator, IOperation left, IOperation right)
             {
@@ -1990,9 +1999,10 @@ namespace Microsoft.CodeAnalysis.Operations
             return new TupleOperation(elements, naturalType.GetPublicSymbol(), _semanticModel, syntax, type, isImplicit);
         }
 
-        private IInterpolatedStringOperation CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString)
+        private IInterpolatedStringOperation CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>? positionInfo = null)
         {
-            ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts, boundInterpolatedString.InterpolationData);
+            Debug.Assert(positionInfo == null || boundInterpolatedString.InterpolationData == null);
+            ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts, positionInfo ?? boundInterpolatedString.InterpolationData?.PositionInfo[0]);
             SyntaxNode syntax = boundInterpolatedString.Syntax;
             ITypeSymbol? type = boundInterpolatedString.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundInterpolatedString.ConstantValue;
@@ -2000,9 +2010,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InterpolatedStringOperation(parts, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        internal ImmutableArray<IInterpolatedStringContentOperation> CreateBoundInterpolatedStringContentOperation(ImmutableArray<BoundExpression> parts, InterpolatedStringHandlerData? data)
+        internal ImmutableArray<IInterpolatedStringContentOperation> CreateBoundInterpolatedStringContentOperation(ImmutableArray<BoundExpression> parts, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>? positionInfo)
         {
-            return data is { PositionInfo: var positionInfo } ? createHandlerInterpolatedStringContent(positionInfo) : createNonHandlerInterpolatedStringContent();
+            return positionInfo is { } info ? createHandlerInterpolatedStringContent(info) : createNonHandlerInterpolatedStringContent();
 
             ImmutableArray<IInterpolatedStringContentOperation> createNonHandlerInterpolatedStringContent()
             {

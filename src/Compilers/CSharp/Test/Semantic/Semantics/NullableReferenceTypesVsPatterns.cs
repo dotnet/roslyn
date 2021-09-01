@@ -2482,7 +2482,8 @@ class C
         [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
         public void TargetTypedSwitch_05()
         {
-            var comp = CreateCompilation(@"
+            var source =
+@"#nullable enable
 class C
 {
     static void M(bool b)
@@ -2494,9 +2495,9 @@ class C
             false => () => s?.ToString()
         };
     }
-}
-", options: WithNullableEnable());
+}";
 
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (9,21): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //             true => () => s.ToString(),
@@ -2506,8 +2507,13 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 27),
                 // (10,22): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
                 //             false => () => s?.ToString()
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => s?.ToString()").WithArguments("lambda expression", "object").WithLocation(10, 22)
-            );
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => s?.ToString()").WithArguments("lambda expression", "object").WithLocation(10, 22));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,27): warning CS8602: Dereference of a possibly null reference.
+                //             true => () => s.ToString(),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 27));
         }
 
         [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]

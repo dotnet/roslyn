@@ -342,6 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     methodGroup.LookupSymbolOpt,
                                     methodGroup.LookupError,
                                     methodGroup.Flags & ~BoundMethodGroupFlags.HasImplicitReceiver,
+                                    methodGroup.FunctionType,
                                     receiverOpt: new BoundTypeExpression(node, null, this.ContainingType).MakeCompilerGenerated(),
                                     resultKind: methodGroup.ResultKind);
                             }
@@ -366,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     methodGroup.LookupSymbolOpt,
                                     methodGroup.LookupError,
                                     methodGroup.Flags,
+                                    methodGroup.FunctionType,
                                     finalReceiver,
                                     methodGroup.ResultKind);
                             break;
@@ -1671,7 +1673,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (parameterType?.Kind == SymbolKind.NamedType &&
                                     (object)parameterType.GetDelegateType() != null)
                                 {
-                                    var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType);
+                                    // Just assume we're not in an expression tree for the purposes of error recovery.
+                                    var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType, isExpressionTree: false);
                                 }
                             }
 

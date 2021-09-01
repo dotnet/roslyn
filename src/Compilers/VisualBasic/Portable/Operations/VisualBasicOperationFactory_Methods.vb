@@ -394,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             '
             ' This is an error scenario, but if we just use the BoundLocalDeclaration.Syntax.Parent directly, without deduplicating,
             ' we'll end up with two IVariableDeclarators that have the same syntax node. So, we group by VariableDeclaratorSyntax
-            ' to put x and y in the same IMutliVariableDeclaration
+            ' to put x and y in the same IMultiVariableDeclaration
             Dim groupedDeclarations = declarations.GroupBy(Function(declaration)
                                                                If declaration.Kind = BoundKind.LocalDeclaration AndAlso
                                                                   declaration.Syntax.IsKind(SyntaxKind.ModifiedIdentifier) Then

@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../ServicesVSResources.resx">
     <body>
-      <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
-        <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="translated">Çözümünüzün kökünde yeni bir .editorconfig dosyası algılandı. Bunu bir çözüm öğesi yapmak istiyor musunuz?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">Yeni bir ad alanı oluşturulacak</target>
@@ -75,6 +70,11 @@
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Açıklık sağlamak için her zaman</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzer_Defaults">
+        <source>Analyzer Defaults</source>
+        <target state="new">Analyzer Defaults</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzers">
@@ -222,9 +222,19 @@
         <target state="translated">Normal ifadeleri renklendir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Combine_inheritance_margin_with_indicator_margin">
+        <source>Combine inheritance margin with indicator margin</source>
+        <target state="new">Combine inheritance margin with indicator margin</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
         <target state="translated">Açıklamalar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="new">Compute Quick Actions asynchronously (experimental, requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -246,6 +256,21 @@
         <source>Current parameter</source>
         <target state="translated">Geçerli parametre</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Default_Current_Document">
+        <source>Default (Current Document)</source>
+        <target state="new">Default (Current Document)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Entire_Solution">
+        <source>Default (Entire Solution)</source>
+        <target state="new">Default (Entire Solution)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Open_Documents">
+        <source>Default (Open Documents)</source>
+        <target state="new">Default (Open Documents)</target>
+        <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Derived_types">
         <source>Derived types</source>
@@ -367,11 +392,6 @@
         <target state="translated">Belgeyi biçimlendir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Formatting">
-        <source>Formatting</source>
-        <target state="translated">Biçimlendirme</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Ayarlardan .editorconfig dosyası oluştur</target>
@@ -432,9 +452,9 @@
         <target state="translated">Depo içinde dizini oluşturulmuş</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inheritance_Margin_experimental">
-        <source>Inheritance Margin (experimental)</source>
-        <target state="translated">Devralma Marjı (deneysel)</target>
+      <trans-unit id="Inheritance_Margin">
+        <source>Inheritance Margin</source>
+        <target state="new">Inheritance Margin</target>
         <note />
       </trans-unit>
       <trans-unit id="Inherited_interfaces">
@@ -442,9 +462,9 @@
         <target state="new">Inherited interfaces</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Hints_experimental">
-        <source>Inline Hints (experimental)</source>
-        <target state="translated">Satır İçi İpuçları (deneysel)</target>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="new">Inline Hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -487,6 +507,11 @@
         <target state="translated">Tür</target>
         <note />
       </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
+      </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
         <target state="translated">Canlı analiz (VSIX uzantısı)</target>
@@ -510,6 +535,11 @@
       <trans-unit id="Local_metadata">
         <source>Local metadata</source>
         <target state="translated">Yerel meta veriler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Location">
+        <source>Location</source>
+        <target state="new">Location</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -566,6 +596,16 @@
         <source>Namespace: '{0}'</source>
         <target state="translated">Ad alanı: '{0}'</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Namespace_declarations">
+        <source>Namespace declarations</source>
+        <target state="new">Namespace declarations</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespaces_have_been_updated">
+        <source>Namespaces have been updated.</source>
+        <target state="new">Namespaces have been updated.</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -737,6 +777,11 @@
         <target state="translated">Yeni Satır (\\n)</target>
         <note />
       </trans-unit>
+      <trans-unit id="No_namespaces_needed_updating">
+        <source>No namespaces needed updating.</source>
+        <target state="new">No namespaces needed updating.</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="No_unused_references_were_found">
         <source>No unused references were found.</source>
         <target state="translated">Kullanılmayan başvuru bulunamadı.</target>
@@ -785,6 +830,16 @@
       <trans-unit id="Overriding_members">
         <source>Overriding members</source>
         <target state="translated">Üyeleri geçersiz kılma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_install_canceled">
+        <source>Package install canceled</source>
+        <target state="new">Package install canceled</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_uninstall_canceled">
+        <source>Package uninstall canceled</source>
+        <target state="new">Package uninstall canceled</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
@@ -892,6 +947,11 @@
         <target state="translated">Üyeleri Yukarı Çek</target>
         <note />
       </trans-unit>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="new">Quick Actions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Refactoring_Only">
         <source>Refactoring Only</source>
         <target state="translated">Sadece Yeniden Düzenlenme</target>
@@ -960,6 +1020,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">{0} Öğesinde Code Analysis Çalıştır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="new">Run code analysis in separate process (requires restart)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1047,6 +1112,11 @@
         <target state="translated">Örtük nesne oluşturma ipuçlarını göster</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="new">Show hints for indexers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
         <source>Show hints for lambda parameter types</source>
         <target state="translated">Lambda parametre türleri için ipuçlarını göster</target>
@@ -1096,6 +1166,11 @@
         <source>Symbols without references</source>
         <target state="translated">Başvuruları olmayan semboller</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Sync_Namespaces">
+        <source>Sync Namespaces</source>
+        <target state="new">Sync Namespaces</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
         <source>Tab twice to insert arguments (experimental)</source>
@@ -1172,6 +1247,11 @@
         <target state="translated">Kullanılmayan değer açıkça atılmak üzere atandı</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_namspaces">
+        <source>Updating namespaces...</source>
+        <target state="new">Updating namespaces...</target>
+        <note>"namespaces" is the programming language concept</note>
+      </trans-unit>
       <trans-unit id="Updating_project_references">
         <source>Updating project references...</source>
         <target state="translated">Proje başvuruları güncelleştiriliyor...</target>
@@ -1180,11 +1260,6 @@
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
         <target state="translated">Önem derecesi güncelleştiriliyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_64_bit_process_for_code_analysis_requires_restart">
-        <source>Use 64-bit process for code analysis (requires restart)</source>
-        <target state="translated">Kod analizi için 64 bit işlemi kullanın (yeniden başlatma gerekir)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -1242,6 +1317,11 @@
         <target state="translated">Visual Studio 2019</target>
         <note />
       </trans-unit>
+      <trans-unit id="Visual_Studio_Settings">
+        <source>Visual Studio Settings</source>
+        <target state="new">Visual Studio Settings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
         <target state="translated">Uyarı</target>
@@ -1265,6 +1345,11 @@
       <trans-unit id="This_workspace_does_not_support_updating_Visual_Basic_compilation_options">
         <source>This workspace does not support updating Visual Basic compilation options.</source>
         <target state="translated">Bu çalışma alanı Visual Basic derleme seçeneklerinin güncelleştirilmesini desteklemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Whitespace">
+        <source>Whitespace</source>
+        <target state="new">Whitespace</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">
@@ -2629,34 +2714,8 @@ Ek bilgiler: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Derlemesi ayrılan kaynaklar için gezintiyi etkinleştirme (deneysel)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
-
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
-
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">ÖNEMLİ: Visual Studio ikili koddan kaynak kodu yeniden üretmeyi sağlayan kaynak koda dönüştürme (“Kaynak Koda Dönüştürücü”) işlevini içerir. Kaynak Koda Dönüştürücü’ye erişerek ve kullanarak, Visual Studio lisans koşullarını ve aşağıdaki Kaynak Koda Dönüştürücü koşullarını kabul etmiş olursunuz. Bu birleşik koşulları kabul etmiyorsanız, Kaynak Koda Dönüştürücü’ye erişmeyin veya kullanmayın.
-
-İkili kodun ve kaynak kodun telif hakkı ve ticari marka yasaları tarafından korunuyor olabileceğini kabul etmiş olursunuz. Kaynak Koda Dönüştürücü’yü herhangi bir ikili kod üzerinde kullanmadan önce:
-(i) ikili kodu kullanımınızı yöneten yasaların yazılımı kaynak koda dönüştürmeyi yasaklayan bir madde içermediğinden emin olmanız; veya
-(ii) yazılım sahibinden ikili kodu kaynak koda dönüştürmek için izin almanız gerekir.
-
-Kaynak Koda Dönüştürücü’yü kullanmak isteğe bağlıdır. Microsoft, yazılımın kaynak koda dönüştürülmesini yasaklayan herhangi bir yasayı veya yazılım lisansı koşulunu ihlal eden kullanımlardan sorumlu değildir ve tüm sorumluluğu reddeder.
-
-Aşağıdakilerin tümünü onaylıyorum:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">Derleme Ayırıcı Yasal Bildirim</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="needs-review-translation">Derlemesi ayrılan kaynaklar için gezintiyi etkinleştirme (deneysel)</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

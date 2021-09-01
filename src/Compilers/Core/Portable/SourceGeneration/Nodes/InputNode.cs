@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             var inputItems = _getInput(graphState);
 
             // create a mutable hashset of the new items we can check against
-            HashSet<T> itemsSet = new HashSet<T>(_comparer);
+            HashSet<T> itemsSet = new HashSet<T>();
             foreach (var item in inputItems)
             {
                 var added = itemsSet.Add(item);

@@ -2,16 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.PooledObjects;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -32,8 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // Normal string & char constants can have escapes. Strings in directives cannot.
                 if (ch == '\\' && !inDirective)
                 {
-                    char c2;
-                    ch = this.ScanEscapeSequence(out c2);
+                    ch = this.ScanEscapeSequence(out var c2);
                     _builder.Append(ch);
                     if (c2 != SlidingTextWindow.InvalidCharacter)
                     {
@@ -62,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            info.Text = TextWindow.GetText(true);
+            info.Text = TextWindow.GetText(intern: true);
             if (quoteCharacter == '\'')
             {
                 info.Kind = SyntaxKind.CharacterLiteralToken;
@@ -152,71 +143,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
-        private void ScanVerbatimStringLiteral(ref TokenInfo info, bool allowNewlines = true)
+        /// <summary>
+        /// Returns an appropriate error code if scanning this verbatim literal ran into an error.
+        /// </summary>
+        private ErrorCode? ScanVerbatimStringLiteral(ref TokenInfo info, bool allowNewlines)
         {
             _builder.Length = 0;
 
-            if (TextWindow.PeekChar() == '@' && TextWindow.PeekChar(1) == '"')
+            Debug.Assert(TextWindow.PeekChar() == '@' && TextWindow.PeekChar(1) == '"');
+            TextWindow.AdvanceChar(2);
+
+            ErrorCode? error = null;
+            while (true)
             {
-                TextWindow.AdvanceChar(2);
-                bool done = false;
-                char ch;
-                _builder.Length = 0;
-                while (!done)
+                var ch = TextWindow.PeekChar();
+                if (ch == '"')
                 {
-                    switch (ch = TextWindow.PeekChar())
+                    TextWindow.AdvanceChar();
+                    if (TextWindow.PeekChar() == '"')
                     {
-                        case '"':
-                            TextWindow.AdvanceChar();
-                            if (TextWindow.PeekChar() == '"')
-                            {
-                                // Doubled quote -- skip & put the single quote in the string
-                                TextWindow.AdvanceChar();
-                                _builder.Append(ch);
-                            }
-                            else
-                            {
-                                done = true;
-                            }
-
-                            break;
-
-                        case SlidingTextWindow.InvalidCharacter:
-                            if (!TextWindow.IsReallyAtEnd())
-                            {
-                                goto default;
-                            }
-
-                            // Reached the end of the source without finding the end-quote.  Give
-                            // an error back at the starting point.
-                            this.AddError(ErrorCode.ERR_UnterminatedStringLit);
-                            done = true;
-                            break;
-
-                        default:
-                            if (!allowNewlines && SyntaxFacts.IsNewLine(ch))
-                            {
-                                this.AddError(ErrorCode.ERR_UnterminatedStringLit);
-                                done = true;
-                                break;
-                            }
-
-                            TextWindow.AdvanceChar();
-                            _builder.Append(ch);
-                            break;
+                        // Doubled quote -- skip & put the single quote in the string and keep going.
+                        TextWindow.AdvanceChar();
+                        _builder.Append(ch);
+                        continue;
                     }
+
+                    // otherwise, the string is finished.
+                    break;
                 }
 
-                info.Kind = SyntaxKind.StringLiteralToken;
-                info.Text = TextWindow.GetText(false);
-                info.StringValue = _builder.ToString();
+                if (ch == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd())
+                {
+                    // Reached the end of the source without finding the end-quote.  Give an error back at the
+                    // starting point. And finish lexing this string.
+                    error ??= ErrorCode.ERR_UnterminatedStringLit;
+                    break;
+                }
+
+                // If we hit a new line when it's not allowed.  Give an error at that new line, but keep on consuming
+                // the verbatim literal to the end to avoid the contents of the string being lexed as C# (which will
+                // cause a ton of cascaded errors).  Only need to do this on the first newline we hit.
+                if (!allowNewlines && SyntaxFacts.IsNewLine(ch))
+                {
+                    error ??= ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString;
+                }
+
+                TextWindow.AdvanceChar();
+                _builder.Append(ch);
             }
-            else
-            {
-                info.Kind = SyntaxKind.None;
-                info.Text = null;
-                info.StringValue = null;
-            }
+
+            info.Kind = SyntaxKind.StringLiteralToken;
+            info.Text = TextWindow.GetText(intern: false);
+            info.StringValue = _builder.ToString();
+
+            return error;
         }
 
         private void ScanInterpolatedStringLiteral(bool isVerbatim, ref TokenInfo info)
@@ -237,18 +217,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // /**/ comments, ' characters quotes, () parens
             // [] brackets, and "" strings, including interpolated holes in the latter.
 
-            SyntaxDiagnosticInfo error = null;
-            bool closeQuoteMissing;
-            ScanInterpolatedStringLiteralTop(null, isVerbatim, ref info, ref error, out closeQuoteMissing);
+            SyntaxDiagnosticInfo? error = null;
+            ScanInterpolatedStringLiteralTop(interpolations: null, isVerbatim, ref info, ref error, closeQuoteMissing: out _);
             this.AddError(error);
         }
 
-        internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation> interpolations, bool isVerbatim, ref TokenInfo info, ref SyntaxDiagnosticInfo error, out bool closeQuoteMissing)
+        internal void ScanInterpolatedStringLiteralTop(
+            ArrayBuilder<Interpolation>? interpolations, bool isVerbatim, ref TokenInfo info, ref SyntaxDiagnosticInfo? error, out bool closeQuoteMissing)
         {
             var subScanner = new InterpolatedStringScanner(this, isVerbatim);
             subScanner.ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
-            error = subScanner.error;
-            info.Text = TextWindow.GetText(false);
+            error = subScanner.Error;
+            info.Text = TextWindow.GetText(intern: false);
         }
 
         internal struct Interpolation
@@ -293,15 +273,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             private readonly Lexer _lexer;
             private bool _isVerbatim;
             private bool _allowNewlines;
-            public SyntaxDiagnosticInfo error;
+
+            /// <summary>
+            /// There are two types of errors we can encounter when trying to scan out an interpolated string (and its
+            /// interpolations).  The first are true syntax errors where we do not know what it is going on and have no
+            /// good strategy to get back on track.  This happens when we see things in the interpolation we truly do
+            /// not know what to do with, or when we find we've gotten into an unbalanced state with the bracket pairs
+            /// we're consuming.  In this case, we will often choose to bail out rather than go on and potentially make
+            /// things worse.
+            /// </summary>
+            public SyntaxDiagnosticInfo? Error;
+            private bool EncounteredUnrecoverableError;
 
             public InterpolatedStringScanner(
                 Lexer lexer,
                 bool isVerbatim)
             {
-                this._lexer = lexer;
-                this._isVerbatim = isVerbatim;
-                this._allowNewlines = isVerbatim;
+                _lexer = lexer;
+                _isVerbatim = isVerbatim;
+                _allowNewlines = isVerbatim;
             }
 
             private bool IsAtEnd()
@@ -313,11 +303,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 char ch = _lexer.TextWindow.PeekChar();
                 return
-                    !allowNewline && SyntaxFacts.IsNewLine(ch) ||
+                    (!allowNewline && SyntaxFacts.IsNewLine(ch)) ||
                     (ch == SlidingTextWindow.InvalidCharacter && _lexer.TextWindow.IsReallyAtEnd());
             }
 
-            internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation> interpolations, ref TokenInfo info, out bool closeQuoteMissing)
+            private void TrySetUnrecoverableError(SyntaxDiagnosticInfo error)
+            {
+                // only need to record the first error we hit
+                Error ??= error;
+
+                // No matter what, ensure that we know we hit an error we can't recover from.
+                EncounteredUnrecoverableError = true;
+            }
+
+            private void TrySetRecoverableError(SyntaxDiagnosticInfo error)
+            {
+                // only need to record the first error we hit
+                Error ??= error;
+
+                // Do not touch 'EncounteredUnrecoverableError'.  If we already encountered something unrecoverable,
+                // that doesn't change.  And if we haven't hit something unrecoverable then we stay in that mode as this
+                // is a recoverable error.
+            }
+
+            internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation>? interpolations, ref TokenInfo info, out bool closeQuoteMissing)
             {
                 if (_isVerbatim)
                 {
@@ -341,11 +350,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 if (_lexer.TextWindow.PeekChar() != '"')
                 {
                     Debug.Assert(IsAtEnd());
-                    if (error == null)
-                    {
-                        int position = IsAtEnd(true) ? _lexer.TextWindow.Position - 1 : _lexer.TextWindow.Position;
-                        error = _lexer.MakeError(position, 1, _isVerbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst);
-                    }
+                    int position = IsAtEnd(allowNewline: true) ? _lexer.TextWindow.Position - 1 : _lexer.TextWindow.Position;
+                    TrySetUnrecoverableError(_lexer.MakeError(position, 1, _isVerbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst));
 
                     closeQuoteMissing = true;
                 }
@@ -359,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 info.Kind = SyntaxKind.InterpolatedStringToken;
             }
 
-            private void ScanInterpolatedStringLiteralContents(ArrayBuilder<Interpolation> interpolations)
+            private void ScanInterpolatedStringLiteralContents(ArrayBuilder<Interpolation>? interpolations)
             {
                 while (true)
                 {
@@ -394,9 +400,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 _lexer.TextWindow.AdvanceChar(); // }
                             }
-                            else if (error == null)
+                            else
                             {
-                                error = _lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "}");
+                                TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "}"));
                             }
                             continue;
                         case '{':
@@ -410,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 int openBracePosition = _lexer.TextWindow.Position;
                                 _lexer.TextWindow.AdvanceChar();
                                 int colonPosition = 0;
-                                ScanInterpolatedStringLiteralHoleBalancedText('}', true, ref colonPosition);
+                                ScanInterpolatedStringLiteralHoleBalancedText('}', isHole: true, ref colonPosition);
                                 int closeBracePosition = _lexer.TextWindow.Position;
                                 bool closeBraceMissing = false;
                                 if (_lexer.TextWindow.PeekChar() == '}')
@@ -420,10 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 else
                                 {
                                     closeBraceMissing = true;
-                                    if (error == null)
-                                    {
-                                        error = _lexer.MakeError(openBracePosition - 1, 2, ErrorCode.ERR_UnclosedExpressionHole);
-                                    }
+                                    TrySetUnrecoverableError(_lexer.MakeError(openBracePosition - 1, 2, ErrorCode.ERR_UnclosedExpressionHole));
                                 }
 
                                 interpolations?.Add(new Interpolation(openBracePosition, colonPosition, closeBracePosition, closeBraceMissing));
@@ -436,11 +439,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             }
 
                             var escapeStart = _lexer.TextWindow.Position;
-                            char c2;
-                            char ch = _lexer.ScanEscapeSequence(out c2);
-                            if ((ch == '{' || ch == '}') && error == null)
+                            char ch = _lexer.ScanEscapeSequence(surrogateCharacter: out _);
+                            if (ch == '{' || ch == '}')
                             {
-                                error = _lexer.MakeError(escapeStart, _lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch);
+                                TrySetUnrecoverableError(_lexer.MakeError(escapeStart, _lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch));
                             }
 
                             continue;
@@ -463,11 +465,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         // normal string & char constants can have escapes
                         var pos = _lexer.TextWindow.Position;
-                        char c2;
-                        ch = _lexer.ScanEscapeSequence(out c2);
-                        if ((ch == '{' || ch == '}') && error == null)
+                        ch = _lexer.ScanEscapeSequence(surrogateCharacter: out _);
+                        if (ch == '{' || ch == '}')
                         {
-                            error = _lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch);
+                            TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch));
                         }
                     }
                     else if (ch == '"')
@@ -491,9 +492,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         {
                             _lexer.TextWindow.AdvanceChar(); // {
                         }
-                        else if (error == null)
+                        else
                         {
-                            error = _lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "{");
+                            TrySetUnrecoverableError(_lexer.MakeError(pos, 1, ErrorCode.ERR_UnescapedCurly, "{"));
                         }
                     }
                     else if (ch == '}')
@@ -526,43 +527,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 while (true)
                 {
-                    if (IsAtEnd())
+                    char ch = _lexer.TextWindow.PeekChar();
+
+                    // See if we ran into a disallowed new line.  If so, this is recoverable, so just skip past it but
+                    // give a good message about the issue.  This will prevent a lot of cascading issues with the
+                    // remainder of the interpolated string that comes on the following lines.
+                    var allowNewLines = _isVerbatim && _allowNewlines;
+                    if (!allowNewLines && SyntaxFacts.IsNewLine(ch))
+                    {
+                        TrySetRecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString));
+                    }
+
+                    if (IsAtEnd(allowNewline: true))
                     {
                         // the caller will complain
                         return;
                     }
 
-                    char ch = _lexer.TextWindow.PeekChar();
                     switch (ch)
                     {
                         case '#':
                             // preprocessor directives not allowed.
-                            if (error == null)
-                            {
-                                error = _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
-                            }
-
+                            TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString()));
                             _lexer.TextWindow.AdvanceChar();
                             continue;
                         case '$':
                             if (_lexer.TextWindow.PeekChar(1) == '"' || _lexer.TextWindow.PeekChar(1) == '@' && _lexer.TextWindow.PeekChar(2) == '"')
                             {
                                 bool isVerbatimSubstring = _lexer.TextWindow.PeekChar(1) == '@';
-                                var interpolations = (ArrayBuilder<Interpolation>)null;
+                                var interpolations = (ArrayBuilder<Interpolation>?)null;
                                 var info = default(TokenInfo);
-                                bool wasVerbatim = this._isVerbatim;
-                                bool wasAllowNewlines = this._allowNewlines;
+                                bool wasVerbatim = _isVerbatim;
+                                bool wasAllowNewlines = _allowNewlines;
                                 try
                                 {
-                                    this._isVerbatim = isVerbatimSubstring;
-                                    this._allowNewlines &= _isVerbatim;
-                                    bool closeQuoteMissing;
-                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
+                                    _isVerbatim = isVerbatimSubstring;
+                                    _allowNewlines &= _isVerbatim;
+                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, closeQuoteMissing: out _);
                                 }
                                 finally
                                 {
-                                    this._isVerbatim = wasVerbatim;
-                                    this._allowNewlines = wasAllowNewlines;
+                                    _isVerbatim = wasVerbatim;
+                                    _allowNewlines = wasAllowNewlines;
                                 }
                                 continue;
                             }
@@ -587,11 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 return;
                             }
 
-                            if (error == null)
-                            {
-                                error = _lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString());
-                            }
-
+                            TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_SyntaxError, endingChar.ToString()));
                             goto default;
                         case '"' when RecoveringFromRunawayLexing():
                             // When recovering from mismatched delimiters, we consume the next
@@ -608,27 +610,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             if (_lexer.TextWindow.PeekChar(1) == '"' && !RecoveringFromRunawayLexing())
                             {
                                 // check for verbatim string inside an expression hole.
-                                ScanInterpolatedStringLiteralNestedVerbatimString();
+                                var nestedStringPosition = _lexer.TextWindow.Position;
+
+                                // Note that this verbatim string may encounter an error (for example if it contains a
+                                // new line and we don't allow that).  This should be reported to the user, but should
+                                // not put us into an unrecoverable position.  We can clearly see that this was intended
+                                // to be a normal verbatim string, so we can continue on an attempt to understand the
+                                // outer interpolated string properly.
+                                var discarded = default(TokenInfo);
+                                var errorCode = _lexer.ScanVerbatimStringLiteral(ref discarded, _allowNewlines);
+                                if (errorCode is ErrorCode code)
+                                {
+                                    TrySetRecoverableError(_lexer.MakeError(nestedStringPosition, width: 2, code));
+                                }
+
                                 continue;
                             }
                             else if (_lexer.TextWindow.PeekChar(1) == '$' && _lexer.TextWindow.PeekChar(2) == '"')
                             {
                                 _lexer.CheckFeatureAvailability(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
-                                var interpolations = (ArrayBuilder<Interpolation>)null;
+                                var interpolations = (ArrayBuilder<Interpolation>?)null;
                                 var info = default(TokenInfo);
-                                bool wasVerbatim = this._isVerbatim;
-                                bool wasAllowNewlines = this._allowNewlines;
+                                bool wasVerbatim = _isVerbatim;
+                                bool wasAllowNewlines = _allowNewlines;
                                 try
                                 {
-                                    this._isVerbatim = true;
-                                    this._allowNewlines = true;
-                                    bool closeQuoteMissing;
-                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
+                                    _isVerbatim = true;
+                                    _allowNewlines = true;
+                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, closeQuoteMissing: out _);
                                 }
                                 finally
                                 {
-                                    this._isVerbatim = wasVerbatim;
-                                    this._allowNewlines = wasAllowNewlines;
+                                    _isVerbatim = wasVerbatim;
+                                    _allowNewlines = wasAllowNewlines;
                                 }
                                 continue;
                             }
@@ -638,26 +652,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             switch (_lexer.TextWindow.PeekChar(1))
                             {
                                 case '/':
-                                    if (_isVerbatim && _allowNewlines)
+                                    if (!_isVerbatim || !_allowNewlines)
                                     {
-                                        _lexer.TextWindow.AdvanceChar(); // skip /
-                                        _lexer.TextWindow.AdvanceChar(); // skip /
-                                        while (!IsAtEnd(false))
-                                        {
-                                            _lexer.TextWindow.AdvanceChar(); // skip // comment character
-                                        }
+                                        // error: single-line comment not allowed in an interpolated string.
+                                        // report the error but keep going for good error recovery.
+                                        TrySetRecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 2, ErrorCode.ERR_SingleLineCommentInExpressionHole));
                                     }
-                                    else
-                                    {
-                                        // error: single-line comment not allowed in an interpolated string
-                                        if (error == null)
-                                        {
-                                            error = _lexer.MakeError(_lexer.TextWindow.Position, 2, ErrorCode.ERR_SingleLineCommentInExpressionHole);
-                                        }
 
-                                        _lexer.TextWindow.AdvanceChar();
-                                        _lexer.TextWindow.AdvanceChar();
+                                    _lexer.TextWindow.AdvanceChar(); // skip /
+                                    _lexer.TextWindow.AdvanceChar(); // skip /
+                                    while (!IsAtEnd(allowNewline: false))
+                                    {
+                                        _lexer.TextWindow.AdvanceChar(); // skip // comment character
                                     }
+
                                     continue;
                                 case '*':
                                     // check for and scan /* comment */
@@ -688,10 +696,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             /// <summary>
-            /// The lexer can run away consuming the rest of the input when delimiters are mismatched.
-            /// This is a test for when we are attempting to recover from that situation.
+            /// The lexer can run away consuming the rest of the input when delimiters are mismatched. This is a test
+            /// for when we are attempting to recover from that situation.  Note that just running into new lines will
+            /// not make us think we're in runaway lexing.
             /// </summary>
-            private bool RecoveringFromRunawayLexing() => this.error != null;
+            private bool RecoveringFromRunawayLexing() => this.EncounteredUnrecoverableError;
 
             private void ScanInterpolatedStringLiteralNestedComment()
             {
@@ -701,12 +710,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _lexer.TextWindow.AdvanceChar();
                 while (true)
                 {
-                    if (IsAtEnd())
+                    var ch = _lexer.TextWindow.PeekChar();
+
+                    // See if we ran into a disallowed new line.  If so, this is recoverable, so just skip past it but
+                    // give a good message about the issue.  This will prevent a lot of cascading issues with the remainder
+                    // of the interpolated string that comes on the following lines.
+                    var allowNewLines = _isVerbatim && _allowNewlines;
+                    if (!allowNewLines && SyntaxFacts.IsNewLine(ch))
+                    {
+                        TrySetRecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, width: 0, ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString));
+                    }
+
+                    if (IsAtEnd(allowNewline: true))
                     {
                         return; // let the caller complain about the unterminated quote
                     }
 
-                    var ch = _lexer.TextWindow.PeekChar();
                     _lexer.TextWindow.AdvanceChar();
                     if (ch == '*' && _lexer.TextWindow.PeekChar() == '/')
                     {
@@ -722,18 +741,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _lexer.ScanStringLiteral(ref discarded, inDirective: false);
             }
 
-            private void ScanInterpolatedStringLiteralNestedVerbatimString()
-            {
-                var discarded = default(TokenInfo);
-                _lexer.ScanVerbatimStringLiteral(ref discarded, _allowNewlines);
-            }
-
             private void ScanInterpolatedStringLiteralHoleBracketed(char start, char end)
             {
                 Debug.Assert(start == _lexer.TextWindow.PeekChar());
                 _lexer.TextWindow.AdvanceChar();
                 int colon = 0;
-                ScanInterpolatedStringLiteralHoleBalancedText(end, false, ref colon);
+                ScanInterpolatedStringLiteralHoleBalancedText(end, isHole: false, ref colon);
                 if (_lexer.TextWindow.PeekChar() == end)
                 {
                     _lexer.TextWindow.AdvanceChar();
