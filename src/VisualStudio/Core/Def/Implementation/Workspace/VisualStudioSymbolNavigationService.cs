@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
@@ -167,17 +168,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             AssertIsForeground();
 
-            var solution = project.Solution;
-
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project.Solution, includeHiddenLocations: true);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
 
-            if (!TryGetNavigationAPIRequiredArguments(
-                    definitionItem, rqName, cancellationToken,
-                    out var hierarchy, out var itemID, out var navigationNotify))
-            {
+            var result = await TryGetNavigationAPIRequiredArgumentsAsync(definitionItem, rqName, cancellationToken).ConfigureAwait(true);
+            if (result is not var (hierarchy, itemID, navigationNotify))
                 return false;
-            }
 
             var returnCode = navigationNotify.OnBeforeNavigateToSymbol(
                 hierarchy,
@@ -188,48 +184,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return returnCode == VSConstants.S_OK && navigationHandled == 1;
         }
 
-        public bool WouldNavigateToSymbol(
-            DefinitionItem definitionItem, Solution solution, CancellationToken cancellationToken,
-            [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset)
+        public async Task<(string filePath, int lineNumber, int charOffset)?> WouldNavigateToSymbolAsync(
+            DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName1);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey2, out var rqName2);
 
-            if (WouldNotifyToSpecificSymbol(definitionItem, rqName1, cancellationToken, out filePath, out lineNumber, out charOffset) ||
-                WouldNotifyToSpecificSymbol(definitionItem, rqName2, cancellationToken, out filePath, out lineNumber, out charOffset))
-            {
-                return true;
-            }
-
-            filePath = null;
-            lineNumber = 0;
-            charOffset = 0;
-            return false;
+            return await WouldNotifyToSpecificSymbolAsync(definitionItem, rqName1, cancellationToken).ConfigureAwait(false) ??
+                   await WouldNotifyToSpecificSymbolAsync(definitionItem, rqName2, cancellationToken).ConfigureAwait(false);
         }
 
-        public bool WouldNotifyToSpecificSymbol(
-            DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken,
-            [NotNullWhen(true)] out string? filePath, out int lineNumber, out int charOffset)
+        public async Task<(string filePath, int lineNumber, int charOffset)?> WouldNotifyToSpecificSymbolAsync(
+            DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken)
         {
-            AssertIsForeground();
-
-            filePath = null;
-            lineNumber = 0;
-            charOffset = 0;
-
             if (rqName == null)
-            {
-                return false;
-            }
+                return null;
 
-            if (!TryGetNavigationAPIRequiredArguments(
-                    definitionItem, rqName, cancellationToken,
-                    out var hierarchy, out var itemID, out var navigationNotify))
-            {
-                return false;
-            }
+            var values = await TryGetNavigationAPIRequiredArgumentsAsync(
+                definitionItem, rqName, cancellationToken).ConfigureAwait(false);
+            if (values is not var (hierarchy, itemID, navigationNotify))
+                return null;
 
             var navigateToTextSpan = new Microsoft.VisualStudio.TextManager.Interop.TextSpan[1];
+
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var queryNavigateStatusCode = navigationNotify.QueryNavigateToSymbol(
                 hierarchy,
@@ -240,43 +218,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 navigateToTextSpan,
                 out var wouldNavigate);
 
-            if (queryNavigateStatusCode == VSConstants.S_OK && wouldNavigate == 1)
-            {
-                navigateToHierarchy.GetCanonicalName(navigateToItem, out filePath);
-                lineNumber = navigateToTextSpan[0].iStartLine;
-                charOffset = navigateToTextSpan[0].iStartIndex;
-                return true;
-            }
+            if (queryNavigateStatusCode != VSConstants.S_OK || wouldNavigate != 1)
+                return null;
 
-            return false;
+            navigateToHierarchy.GetCanonicalName(navigateToItem, out var filePath);
+            var lineNumber = navigateToTextSpan[0].iStartLine;
+            var charOffset = navigateToTextSpan[0].iStartIndex;
+
+            return (filePath, lineNumber, charOffset);
         }
 
-        private bool TryGetNavigationAPIRequiredArguments(
+        private async Task<(IVsHierarchy hierarchy, uint itemId, IVsSymbolicNavigationNotify navigationNotify)?> TryGetNavigationAPIRequiredArgumentsAsync(
             DefinitionItem definitionItem,
             string? rqName,
-            CancellationToken cancellationToken,
-            [NotNullWhen(true)] out IVsHierarchy? hierarchy,
-            out uint itemID,
-            [NotNullWhen(true)] out IVsSymbolicNavigationNotify? navigationNotify)
+            CancellationToken cancellationToken)
         {
-            AssertIsForeground();
-
-            hierarchy = null;
-            navigationNotify = null;
-            itemID = (uint)VSConstants.VSITEMID.Nil;
-
             if (rqName == null)
-            {
-                return false;
-            }
+                return null;
 
             var sourceLocations = definitionItem.SourceSpans;
             if (!sourceLocations.Any())
-            {
-                return false;
-            }
+                return null;
 
-            var documents = sourceLocations.SelectAsArray(loc => loc.Document);
+            using var _ = ArrayBuilder<Document>.GetInstance(out var documentsBuilder);
+            foreach (var loc in sourceLocations)
+                documentsBuilder.AddIfNotNull(loc.Document);
+
+            var documents = documentsBuilder.ToImmutable();
 
             // We can only pass one itemid to IVsSymbolicNavigationNotify, so prefer itemids from
             // documents we consider to be "generated" to give external language services the best
@@ -285,18 +253,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var generatedDocuments = documents.WhereAsArray(d => d.IsGeneratedCode(cancellationToken));
 
             var documentToUse = generatedDocuments.FirstOrDefault() ?? documents.First();
-            if (!TryGetVsHierarchyAndItemId(documentToUse, out hierarchy, out itemID))
-            {
-                return false;
-            }
 
-            navigationNotify = hierarchy as IVsSymbolicNavigationNotify;
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (!TryGetVsHierarchyAndItemId(documentToUse, out var hierarchy, out var itemID))
+                return null;
+
+            var navigationNotify = hierarchy as IVsSymbolicNavigationNotify;
             if (navigationNotify == null)
-            {
-                return false;
-            }
+                return null;
 
-            return true;
+            return (hierarchy, itemID, navigationNotify);
         }
 
         private bool TryGetVsHierarchyAndItemId(Document document, [NotNullWhen(true)] out IVsHierarchy? hierarchy, out uint itemID)

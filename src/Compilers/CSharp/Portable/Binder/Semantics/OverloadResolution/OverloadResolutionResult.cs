@@ -251,12 +251,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // there also can't be a single one.  Therefore, there are none.
             AssertNone(MemberResolutionKind.Worse);
 
-            // If there's a less-derived candidate, it must be less derived than some applicable or
-            // "worse" candidate.  Since there are none of those, there must not be any less-derived
-            // candidates either.
-            AssertNone(MemberResolutionKind.LessDerived);
-
-
             //// PHASE 2: Applicability failures ////
 
             // Overload resolution performed these checks just before weeding out less-derived and worse candidates.
@@ -304,6 +298,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Since we didn't return...
             AssertNone(MemberResolutionKind.ConstraintFailure);
+
+            // If there's a less-derived candidate, it must be less derived than some applicable or
+            // "worse" candidate.  Since there are none of those, there must not be any less-derived
+            // candidates either.
+            AssertNone(MemberResolutionKind.LessDerived);
 
             // Otherwise, if there is any such method that has a bad argument conversion or out/ref mismatch
             // then the first such method found is the best bad method.
