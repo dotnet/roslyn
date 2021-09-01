@@ -9,19 +9,24 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
     [ExportOptionProvider, Shared]
-    internal sealed class SuggestionsOptionsProvider : IOptionProvider
+    internal sealed class DiagnosticOptions : IOptionProvider
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SuggestionsOptionsProvider()
-        {
-        }
+        private const string FeatureName = "DiagnosticOptions";
+
+        public static readonly Option2<bool> LspPullDiagnosticsFeatureFlag = new(
+            FeatureName, nameof(LspPullDiagnosticsFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Lsp.PullDiagnostics"));
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            SuggestionsOptions.Asynchronous,
-            SuggestionsOptions.AsynchronousFeatureFlag);
+            LspPullDiagnosticsFeatureFlag);
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DiagnosticOptions()
+        {
+        }
     }
 }
