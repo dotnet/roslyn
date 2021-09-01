@@ -512,7 +512,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
-        <target state="needs-review-translation">'{0}' 프로젝트에서 수행한 변경으로 디버그 세션을 계속할 수 없습니다. {1}</target>
+        <target state="new">Changes made in project '{0}' require restarting the application: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
@@ -2753,11 +2753,11 @@ Although it's possible to display the ten thousandths of a second component of a
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
+        <target state="translated">"f" 사용자 지정 형식 지정자는 초 부분의 가장 유효한 숫자를 나타냅니다. 즉, 날짜 및 시간 값에서 10분의 1초를 나타냅니다.
 
-If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
+다른 형식 지정자 없이 "f" 형식 지정자를 사용하면 "f" 표준 날짜 및 시간 형식 지정자로 해석됩니다.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
+ParseExact 또는 TryParseExact 메서드로 제공되는 형식 문자열의 일부로 "f" 형식 지정자를 사용할 경우 "f" 형식 지정자의 개수는 초 부분에서 문자열을 성공적으로 구문 분석하려면 존재해야 하는 가장 유효한 숫자의 개수를 나타냅니다.</target>
         <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
