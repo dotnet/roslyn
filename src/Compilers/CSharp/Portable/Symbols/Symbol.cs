@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <para>
         /// Note that for namespace symbol, the declaring syntax might be declaring a nested
         /// namespace. For example, the declaring syntax node for N1 in "namespace N1.N2 {...}" is
-        /// the entire <see cref="NamespaceDeclarationSyntax"/> for N1.N2. For the global namespace, the declaring
+        /// the entire <see cref="BaseNamespaceDeclarationSyntax"/> for N1.N2. For the global namespace, the declaring
         /// syntax will be the <see cref="CompilationUnitSyntax"/>.
         /// </para>
         /// </summary>
@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns diagnostic info that should be reported at the use site of the symbol, or null if there is none.
+        /// Returns diagnostic info that should be reported at the use site of the symbol, or default if there is none.
         /// </summary>
         internal virtual UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {

@@ -44,6 +44,9 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             => ToProjectKey(project.Solution.State, project.State);
 
         public static ProjectKey ToProjectKey(SolutionState solutionState, ProjectState projectState)
-            => new(SolutionKey.ToSolutionKey(solutionState), projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum());
+            => ToProjectKey(SolutionKey.ToSolutionKey(solutionState), projectState);
+
+        public static ProjectKey ToProjectKey(SolutionKey solutionKey, ProjectState projectState)
+            => new(solutionKey, projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum());
     }
 }

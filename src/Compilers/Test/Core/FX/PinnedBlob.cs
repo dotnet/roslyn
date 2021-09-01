@@ -5,34 +5,38 @@
 #nullable disable
 
 using System;
+using System.Buffers;
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
 
 namespace Roslyn.Test.Utilities
 {
     internal class PinnedBlob : IDisposable
     {
-        private GCHandle _bytes; // non-readonly as Free() mutates to prevent double-free.
-        public readonly IntPtr Pointer;
-        public readonly int Size;
+        // non-readonly as Dispose() mutates
+        private MemoryHandle _handle;
+        public IntPtr Pointer;
+        public int Size;
 
         public PinnedBlob(ImmutableArray<byte> blob)
-            : this(blob.DangerousGetUnderlyingArray())
+            : this(blob.AsMemory())
+        { }
+
+        public PinnedBlob(byte[] blob)
+            : this(blob.AsMemory())
+        { }
+
+        public unsafe PinnedBlob(ReadOnlyMemory<byte> blob)
         {
+            _handle = blob.Pin();
+            this.Size = blob.Length;
+            this.Pointer = (IntPtr)_handle.Pointer;
         }
 
-        public unsafe PinnedBlob(byte[] blob)
+        public virtual void Dispose()
         {
-            _bytes = GCHandle.Alloc(blob, GCHandleType.Pinned);
-            Pointer = _bytes.AddrOfPinnedObject();
-            Size = blob.Length;
-        }
-
-        public void Dispose()
-        {
-            _bytes.Free();
+            _handle.Dispose();
+            Pointer = IntPtr.Zero;
+            Size = 0;
         }
     }
 }

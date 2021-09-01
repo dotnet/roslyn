@@ -19,12 +19,12 @@
       </trans-unit>
       <trans-unit id="Place_colon_on_following_line">
         <source>Place colon on following line</source>
-        <target state="new">Place colon on following line</target>
+        <target state="translated">将冒号另起一行</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_statement_on_following_line">
         <source>Place statement on following line</source>
-        <target state="new">Place statement on following line</target>
+        <target state="translated">将语句另起一行</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Remove_blank_lines_between_braces">
         <source>Remove blank line between braces</source>
-        <target state="new">Remove blank line between braces</target>
+        <target state="translated">删除括号之间的空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">

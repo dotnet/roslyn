@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Composition;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -17,30 +14,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal interface IDiagnosticModeService : IWorkspaceService
     {
         DiagnosticMode GetDiagnosticMode(Option2<DiagnosticMode> diagnosticMode);
-    }
-
-    [ExportWorkspaceServiceFactory(typeof(IDiagnosticModeService)), Shared]
-    internal class DefaultDiagnosticModeServiceFactory : IWorkspaceServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultDiagnosticModeServiceFactory()
-        {
-        }
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new DefaultDiagnosticModeService(workspaceServices.Workspace);
-
-        private class DefaultDiagnosticModeService : IDiagnosticModeService
-        {
-            private readonly Workspace _workspace;
-
-            public DefaultDiagnosticModeService(Workspace workspace)
-                => _workspace = workspace;
-
-            public DiagnosticMode GetDiagnosticMode(Option2<DiagnosticMode> diagnosticMode)
-                => _workspace.Options.GetOption(diagnosticMode);
-        }
     }
 
     internal static class DiagnosticModeExtensions

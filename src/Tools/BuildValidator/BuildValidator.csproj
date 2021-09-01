@@ -27,5 +27,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="BuildValidatorResources.resx" GenerateSource="true" />
+  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILDAsm.targets" />
 </Project>

@@ -8,15 +8,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -128,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project).ToList();
+                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project);
                 var options = project.Solution.Options;
 
                 // PERF: get analyzers that are not suppressed and marked as open file only
@@ -158,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var state = stateSet.GetOrCreateProjectState(project.Id);
 
-                    await state.SaveAsync(PersistentStorageService, project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
+                    await state.SaveToInMemoryStorageAsync(project, result.GetResult(stateSet.Analyzer)).ConfigureAwait(false);
                 }
 
                 RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.OldResult, result.Result);
@@ -183,7 +180,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other component knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                await _stateManager.OnDocumentOpenedAsync(stateSets, document).ConfigureAwait(false);
+
+                // can not be canceled
+                foreach (var stateSet in stateSets)
+                    await stateSet.OnDocumentOpenedAsync(document).ConfigureAwait(false);
             }
         }
 
@@ -201,7 +201,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var documentHadDiagnostics = await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
+
+                // can not be canceled
+                var documentHadDiagnostics = false;
+                foreach (var stateSet in stateSets)
+                    documentHadDiagnostics |= await stateSet.OnDocumentClosedAsync(document).ConfigureAwait(false);
+
                 RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
         }
@@ -220,7 +225,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var documentHadDiagnostics = StateManager.OnDocumentReset(stateSets, document);
+                // can not be canceled
+                var documentHadDiagnostics = false;
+                foreach (var stateSet in stateSets)
+                    documentHadDiagnostics |= stateSet.OnDocumentReset(document);
+
                 RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
             }
 
@@ -255,14 +264,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 ClearCompilationsWithAnalyzersCache();
-                var changed = StateManager.OnDocumentRemoved(stateSets, documentId);
+
+                var changed = false;
+                foreach (var stateSet in stateSets)
+                    changed |= stateSet.OnDocumentRemoved(documentId);
 
                 // if there was no diagnostic reported for this document, nothing to clean up
                 // this is Perf to reduce raising events unnecessarily.
                 if (changed)
-                {
                     RaiseDiagnosticsRemovedForDocument(documentId, stateSets);
-                }
             }
 
             return Task.CompletedTask;
@@ -348,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Return list of <see cref="StateSet"/> to be used for full solution analysis.
         /// </summary>
-        private IEnumerable<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)
+        private IReadOnlyList<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)
         {
             // If full analysis is off, remove state that is created from build.
             // this will make sure diagnostics from build (converted from build to live) will never be cleared
@@ -361,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // include all analyzers if option is on
             if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.ProcessHiddenDiagnostics))
             {
-                return stateSets;
+                return stateSets.ToList();
             }
 
             // Compute analyzer config options for computing effective severity.
@@ -370,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // Include only analyzers we want to run for full solution analysis.
             // Analyzers not included here will never be saved because result is unknown.
-            return stateSets.Where(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project, analyzerConfigOptions));
+            return stateSets.Where(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project, analyzerConfigOptions)).ToList();
         }
 
         private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project, AnalyzerConfigOptionsResult? analyzerConfigOptions)

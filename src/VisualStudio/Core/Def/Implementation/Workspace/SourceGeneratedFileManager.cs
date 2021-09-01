@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -69,14 +70,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         /// <remarks>All accesses should be on the UI thread.</remarks>
         private readonly Dictionary<Guid, SourceGeneratedDocumentIdentity> _directoryInfoOnDiskByContainingDirectoryId = new();
-
-        /// <summary>
-        /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
-        /// surprised by this and we want some time to work through those issues.
-        /// </summary>
-        internal static readonly Option2<bool?> EnableOpeningInWorkspace =
-            new(nameof(SourceGeneratedFileManager), nameof(EnableOpeningInWorkspace), defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -191,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, documentIdentity, _threadingContext);
                     _openFiles.Add(moniker, openFile);
 
-                    _threadingContext.JoinableTaskFactory.Run(() => openFile.RefreshFileAsync(CancellationToken.None));
+                    _threadingContext.JoinableTaskFactory.Run(() => openFile.RefreshFileAsync(CancellationToken.None).AsTask());
 
                     // Update the RDT flags to ensure the file can't be saved or appears in any MRUs as it's a temporary generated file name.
                     var cookie = ((IVsRunningDocumentTable4)_runningDocumentTable).GetDocumentCookie(moniker);
@@ -247,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             /// <summary>
             /// A queue used to batch updates to the file.
             /// </summary>
-            private readonly AsyncBatchingDelay _batchingWorkQueue;
+            private readonly AsyncBatchingWorkQueue _batchingWorkQueue;
 
             /// <summary>
             /// The <see cref="IVsWindowFrame"/> of the active window. This may be null if we're in the middle of construction and
@@ -284,7 +277,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
-                _batchingWorkQueue = new AsyncBatchingDelay(
+                _batchingWorkQueue = new AsyncBatchingWorkQueue(
                     TimeSpan.FromSeconds(1),
                     RefreshFileAsync,
                     asyncListener: _fileManager._listener,
@@ -321,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             private string GeneratorDisplayName => _documentIdentity.GeneratorTypeName;
 
-            public async Task RefreshFileAsync(CancellationToken cancellationToken)
+            public async ValueTask RefreshFileAsync(CancellationToken cancellationToken)
             {
                 SourceText? generatedSource = null;
                 var project = _workspace.CurrentSolution.GetProject(_documentIdentity.DocumentId.ProjectId);
@@ -396,7 +389,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         // If the file isn't already open, open it now. We may transition between opening and closing
                         // if the file is repeatedly appearing and disappearing.
-                        var connectToWorkspace = _workspace.Options.GetOption(EnableOpeningInWorkspace) ?? false;
+                        var connectToWorkspace = _workspace.Options.GetOption(Options.EnableOpeningInWorkspace) ?? false;
 
                         if (connectToWorkspace && !_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
                         {
@@ -436,7 +429,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         if (await oldProject.GetDependentVersionAsync(_cancellationTokenSource.Token).ConfigureAwait(false) !=
                             await newProject.GetDependentVersionAsync(_cancellationTokenSource.Token).ConfigureAwait(false))
                         {
-                            _batchingWorkQueue.RequeueWork();
+                            _batchingWorkQueue.AddWork();
                         }
                     }, _cancellationTokenSource.Token).CompletesAsyncOperation(asyncToken);
                 }
@@ -508,15 +501,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         [Export(typeof(IOptionProvider))]
-        private class OptionProvider : IOptionProvider
+        internal sealed class Options : IOptionProvider
         {
+            private const string FeatureName = "SourceGeneratedFileManager";
+
+            /// <summary>
+            /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
+            /// surprised by this and we want some time to work through those issues.
+            /// </summary>
+            internal static readonly Option2<bool?> EnableOpeningInWorkspace = new(FeatureName, nameof(EnableOpeningInWorkspace), defaultValue: null,
+                new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
+
+            internal static readonly Option2<bool> EnableOpeningInWorkspaceFeatureFlag = new(FeatureName, nameof(EnableOpeningInWorkspaceFeatureFlag), defaultValue: false,
+                new FeatureFlagStorageLocation("Roslyn.SourceGeneratorsEnableOpeningInWorkspace"));
+
+            ImmutableArray<IOption> IOptionProvider.Options => ImmutableArray.Create<IOption>(
+                EnableOpeningInWorkspace,
+                EnableOpeningInWorkspaceFeatureFlag);
+
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public OptionProvider()
+            public Options()
             {
             }
-
-            public ImmutableArray<IOption> Options => ImmutableArray.Create<IOption>(EnableOpeningInWorkspace);
         }
     }
 }

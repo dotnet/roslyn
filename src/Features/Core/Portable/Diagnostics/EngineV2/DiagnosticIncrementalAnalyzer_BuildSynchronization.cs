@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task SynchronizeWithBuildAsync(
+        public async ValueTask SynchronizeWithBuildAsync(
             ImmutableDictionary<ProjectId,
             ImmutableArray<DiagnosticData>> buildDiagnostics,
             TaskQueue postBuildAndErrorListRefreshTaskQueue,
@@ -65,14 +66,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var state = stateSet.GetOrCreateProjectState(project.Id);
                         var result = GetResultOrEmpty(newResult, stateSet.Analyzer, project.Id, VersionStamp.Default);
 
-                        // Save into in-memory cache.
-                        await state.SaveInMemoryCacheAsync(project, result).ConfigureAwait(false);
-
-                        // Save into persistent storage on a separate post-build and post error list refresh task queue.
-                        _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(
-                                nameof(SynchronizeWithBuildAsync),
-                                () => state.SaveAsync(PersistentStorageService, project, result),
-                                cancellationToken);
+                        await state.SaveToInMemoryStorageAsync(project, result).ConfigureAwait(false);
                     }
 
                     // Raise diagnostic updated events after the new diagnostics have been stored into the in-memory cache.
@@ -199,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 descriptor.DefaultSeverity,
                 descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
-                descriptor.CustomTags.ToImmutableArray(),
+                descriptor.ImmutableCustomTags(),
                 diagnostic.Properties,
                 diagnostic.ProjectId,
                 diagnostic.DataLocation,

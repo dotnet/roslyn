@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal abstract class ChecksumWithChildren : IChecksummedObject
     {
-        public ChecksumWithChildren(WellKnownSynchronizationKind kind, params object[] children)
+        public ChecksumWithChildren(object[] children)
         {
-            Checksum = CreateChecksum(kind, children);
+            Checksum = CreateChecksum(children);
             Children = children;
         }
 
@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public IReadOnlyList<object> Children { get; }
 
-        private static Checksum CreateChecksum(WellKnownSynchronizationKind kind, object[] children)
+        private static Checksum CreateChecksum(object[] children)
         {
             // given children must be either Checksum or Checksums (collection of a checksum)
-            return Checksum.Create(kind, children.Select(c => c as Checksum ?? ((ChecksumCollection)c).Checksum));
+            return Checksum.Create(children.Select(c => c as Checksum ?? ((ChecksumCollection)c).Checksum));
         }
     }
 }

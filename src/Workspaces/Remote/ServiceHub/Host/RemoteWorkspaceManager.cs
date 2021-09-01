@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var assetSource = new SolutionAssetSource(client);
             var workspace = GetWorkspace();
             var assetProvider = workspace.CreateAssetProvider(solutionInfo, SolutionAssetCache, assetSource);
-            return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, cancellationToken);
+            return workspace.GetSolutionAsync(assetProvider, solutionInfo.SolutionChecksum, solutionInfo.FromPrimaryBranch, solutionInfo.WorkspaceVersion, solutionInfo.ProjectId, cancellationToken);
         }
 
         private sealed class SimpleAssemblyLoader : IAssemblyLoader

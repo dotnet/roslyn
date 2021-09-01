@@ -173,7 +173,8 @@
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "rel/d16.10",
-      "vsMajorVersion": 16
+      "vsMajorVersion": 16,
+      "insertionTitlePrefix": "[d16.10]"
     },
     "release/dev16.11-vs-deps": {
       "nugetKind": [
@@ -184,7 +185,20 @@
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "rel/d16.11",
-      "vsMajorVersion": 16
+      "vsMajorVersion": 16,
+      "insertionTitlePrefix": "[d16.11]"
+    },
+    "release/dev17.0-vs-deps": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "version": "4.0.*",
+      "packageFeeds": "default",
+      "channels": [],
+      "vsBranch": "rel/d17.0",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17p3]"
     },
     "main-vs-deps": {
       "nugetKind": [
@@ -195,40 +209,8 @@
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "main",
-      "vsMajorVersion": 17
-    },
-    "release/dev17.0-preview1-nopia-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.0.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "feature/d17initial",
-      "vsMajorVersion": 17
-    },
-    "release/dev17.0-preview1-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.0.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "feature/d17initial",
-      "vsMajorVersion": 17
-    },
-    "release/dev17.0-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.0.*",
-      "packageFeeds": "default",
-      "channels": [],
-      "vsBranch": "main",
-      "vsMajorVersion": 17
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": false
     },
     "main": {
       "nugetKind": [
@@ -239,7 +221,8 @@
       "packageFeeds": "arcade",
       "channels": [],
       "vsBranch": "main",
-      "vsMajorVersion": 17
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[Validation]"
     },
     "features/NullableReferenceTypes": {
       "nugetKind": "PerBuildPreRelease",

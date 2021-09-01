@@ -954,6 +954,9 @@ Do you want to proceed?</value>
   <data name="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load" xml:space="preserve">
     <value>Gathering Suggestions - Waiting for the solution to fully load</value>
   </data>
+  <data name="Reassigned_variable" xml:space="preserve">
+    <value>Reassigned variable</value>
+  </data>
   <data name="No" xml:space="preserve">
     <value>No</value>
   </data>

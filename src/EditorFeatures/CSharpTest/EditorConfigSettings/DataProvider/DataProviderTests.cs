@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-        public void TestGettingFormattingSettingsProvider()
+        public void TestGettingWhitespaceSettingsProvider()
         {
-            TestGettingSettingsProviderFromWorkspace<FormattingSetting>();
-            TestGettingSettingsProviderFromLanguageService<FormattingSetting>();
+            TestGettingSettingsProviderFromWorkspace<WhitespaceSetting>();
+            TestGettingSettingsProviderFromLanguageService<WhitespaceSetting>();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
@@ -108,13 +108,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            Assert.Equal(29, dataSnapShot.Length);
+            Assert.Equal(30, dataSnapShot.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-        public void TestGettingFormattingSettingProviderWorkspaceServiceAsync()
+        public void TestGettingWhitespaceSettingProviderWorkspaceServiceAsync()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<FormattingSetting>();
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<WhitespaceSetting>();
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
@@ -123,9 +123,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-        public void TestGettingFormattingSettingProviderLanguageServiceAsync()
+        public void TestGettingWhitespaceSettingProviderLanguageServiceAsync()
         {
-            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageService<FormattingSetting>(LanguageNames.CSharp);
+            var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageService<WhitespaceSetting>(LanguageNames.CSharp);
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);

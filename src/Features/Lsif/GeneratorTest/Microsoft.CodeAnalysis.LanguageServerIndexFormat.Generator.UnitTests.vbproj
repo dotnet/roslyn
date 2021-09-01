@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities" />
+    <Import Include="System.Threading.Tasks" />
     <Import Include="Xunit" />
   </ItemGroup>
 </Project>

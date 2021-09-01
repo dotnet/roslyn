@@ -3,20 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Editor.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     [Obsolete("This is just a wrapper around the public Visual Studio API IUIThreadOperationContext, please use it directly.")]
     internal readonly struct VSTypeScriptWaitIndicatorWrapper
     {
-        private readonly IUIThreadOperationExecutor _underlyingObject;
+        private readonly IWaitIndicator _underlyingObject;
 
-        public VSTypeScriptWaitIndicatorWrapper(IUIThreadOperationExecutor underlyingObject)
+        public VSTypeScriptWaitIndicatorWrapper(IWaitIndicator underlyingObject)
             => _underlyingObject = underlyingObject;
 
         public VSTypeScriptWaitIndicatorResult Wait(string title, string message, bool allowCancel, Action<VSTypeScriptWaitContextWrapper> action)
-            => (VSTypeScriptWaitIndicatorResult)_underlyingObject.Execute(title, message, allowCancel, showProgress: false, context => action(new VSTypeScriptWaitContextWrapper(context)));
+            => (VSTypeScriptWaitIndicatorResult)_underlyingObject.Wait(title, message, allowCancel, context => action(new VSTypeScriptWaitContextWrapper(context)));
 
     }
 }

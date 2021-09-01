@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PullMemberUp
@@ -47,6 +46,10 @@ class MyClass : Level1BaseClass, Level1Interface
             Assert.Equal("Level2Interface", baseTypeTree(1).BaseTypeNodes(0).SymbolName)
             Assert.Empty(baseTypeTree(0).BaseTypeNodes(0).BaseTypeNodes)
             Assert.Empty(baseTypeTree(1).BaseTypeNodes(0).BaseTypeNodes)
+
+            Assert.False(viewModel.OkButtonEnabled)
+            viewModel.SelectedDestination = baseTypeTree(0)
+            Assert.True(viewModel.OkButtonEnabled)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)>
@@ -227,6 +230,7 @@ class MyClass : Level1BaseClass, Level1Interface
             If (member Is Nothing) Then
                 Assert.True(False, $"No member called {name} found")
             End If
+
             Return member
         End Function
 

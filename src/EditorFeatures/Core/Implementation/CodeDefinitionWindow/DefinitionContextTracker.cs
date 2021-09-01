@@ -196,10 +196,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
             var wouldNavigate = false;
             await Task.Factory.StartNew(
-                () =>
+                async () =>
                 {
                     var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: false);
-                    wouldNavigate = symbolNavigationService.WouldNavigateToSymbol(definitionItem, solution, cancellationToken, out filePath, out lineNumber, out charOffset);
+                    var result = await symbolNavigationService.WouldNavigateToSymbolAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+                    if (result != null)
+                    {
+                        wouldNavigate = true;
+                        (filePath, lineNumber, charOffset) = result.Value;
+                    }
                 },
                 cancellationToken,
                 TaskCreationOptions.None,

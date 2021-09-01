@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// hosts that expect the value to be a boolean.  Specifically, if the enum value is 0 or 1
     /// then those values will write back as false/true.
     /// </summary>
-    internal partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
+    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
     {
         static CodeStyleOption2()
         {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private const int SerializationVersion = 1;
 
-        private NotificationOption2 _notification;
+        private readonly NotificationOption2 _notification;
 
         public CodeStyleOption2(T value, NotificationOption2 notification)
         {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _notification = notification ?? throw new ArgumentNullException(nameof(notification));
         }
 
-        public T Value { get; set; }
+        public T Value { get; }
 
         object? ICodeStyleOption.Value => this.Value;
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption2<T>((T)value, Notification);
@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public NotificationOption2 Notification
         {
             get => _notification;
-            set => _notification = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         public XElement ToXElement() =>

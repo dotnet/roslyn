@@ -914,6 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     case 2: return unchecked((ulong)(ushort)recursive);
                     case 4: return unchecked((ulong)(uint)recursive);
                 }
+
                 Debug.Assert(false, "How did we get here?");
                 return recursive;
             }

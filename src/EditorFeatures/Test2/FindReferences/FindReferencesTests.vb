@@ -169,6 +169,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     propertyValues = New HashSet(Of String)()
                     additionalPropertiesMap.Add(propertyName, propertyValues)
                 End If
+
                 propertyValues.Add(propertyValue)
             Next
 
@@ -438,6 +439,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 builder.Append(suffix)
                 position = span.End
             Next
+
             builder.Append(text.GetSubText(New TextSpan(position, text.Length - position)))
 
             Return instance.ToStringAndFree()

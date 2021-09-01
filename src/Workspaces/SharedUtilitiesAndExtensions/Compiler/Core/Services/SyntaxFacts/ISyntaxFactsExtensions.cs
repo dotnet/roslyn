@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsReturnStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ReturnStatement;
 
-        public static bool IsUsingStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
+        public static bool IsUsingStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.UsingStatement;
 
         #endregion

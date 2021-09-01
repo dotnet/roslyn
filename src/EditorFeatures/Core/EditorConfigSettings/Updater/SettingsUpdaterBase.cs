@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -15,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
     {
         private readonly List<(TOption option, TValue value)> _queue = new();
         private readonly SemaphoreSlim _guard = new(1);
+        private readonly IAsynchronousOperationListener _listener;
         protected readonly Workspace Workspace;
         protected readonly string EditorconfigPath;
 
@@ -23,17 +26,25 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
         protected SettingsUpdaterBase(Workspace workspace, string editorconfigPath)
         {
             Workspace = workspace;
+            _listener = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
             EditorconfigPath = editorconfigPath;
         }
 
-        public async Task<bool> QueueUpdateAsync(TOption setting, TValue value)
+        public void QueueUpdate(TOption setting, TValue value)
         {
-            using (await _guard.DisposableWaitAsync().ConfigureAwait(false))
-            {
-                _queue.Add((setting, value));
-            }
+            var token = _listener.BeginAsyncOperation(nameof(QueueUpdate));
+            _ = QueueUpdateAsync().CompletesAsyncOperation(token);
 
-            return true;
+            return;
+
+            // local function
+            async Task QueueUpdateAsync()
+            {
+                using (await _guard.DisposableWaitAsync().ConfigureAwait(false))
+                {
+                    _queue.Add((setting, value));
+                }
+            }
         }
 
         public async Task<SourceText?> GetChangedEditorConfigAsync(AnalyzerConfigDocument analyzerConfigDocument, CancellationToken token)

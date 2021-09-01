@@ -788,14 +788,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var expectedDocumentSyntaxEvents = 1;
             var expectedDocumentSemanticEvents = 5;
 
+            var listenerProvider = GetListenerProvider(workspace.ExportProvider);
+
+            // start an operation that allows an expedited wait to cover the remainder of the delayed operations in the test
+            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler).BeginAsyncOperation("Test operation");
+            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+
             workspace.ChangeDocument(document.Id, SourceText.From("//"));
             if (expectedDocumentSyntaxEvents > 0 || expectedDocumentSemanticEvents > 0)
             {
                 analyzer.RunningEvent.Wait();
             }
 
+            token.Dispose();
+
             workspace.ChangeDocument(document.Id, SourceText.From("// "));
             await WaitAsync(service, workspace);
+            await expeditedWait;
 
             service.Unregister(workspace);
 
@@ -833,6 +842,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
 
             service.Register(workspace);
 
+            var listenerProvider = GetListenerProvider(workspace.ExportProvider);
+
+            // start an operation that allows an expedited wait to cover the remainder of the delayed operations in the test
+            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler).BeginAsyncOperation("Test operation");
+            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+
             workspace.ChangeDocument(document.Id, SourceText.From("//"));
             if (expectedDocumentSyntaxEvents > 0 || expectedDocumentSemanticEvents > 0)
             {
@@ -846,8 +861,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
                 analyzer.RunningEvent.Wait();
             }
 
+            token.Dispose();
+
             workspace.ChangeDocument(document.Id, SourceText.From("//  "));
             await WaitAsync(service, workspace);
+            await expeditedWait;
 
             service.Unregister(workspace);
 
@@ -1273,6 +1291,12 @@ class C
 
             await WaitWaiterAsync(workspace.ExportProvider);
 
+            var listenerProvider = GetListenerProvider(workspace.ExportProvider);
+
+            // start an operation that allows an expedited wait to cover the remainder of the delayed operations in the test
+            var token = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler).BeginAsyncOperation("Test operation");
+            var expeditedWait = listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+
             // we want to test order items processed by solution crawler.
             // but since everything async, lazy and cancellable, order is not 100% deterministic. an item might 
             // start to be processed, and get cancelled due to newly enqueued item requiring current work to be re-processed 
@@ -1319,8 +1343,11 @@ class C
                 operation.Done();
             }
 
+            token.Dispose();
+
             // wait analyzers to finish process
             await WaitAsync(service, workspace);
+            await expeditedWait;
 
             Assert.Equal(1, worker.DocumentIds.Take(5).Select(d => d.ProjectId).Distinct().Count());
             Assert.Equal(1, worker.DocumentIds.Skip(5).Take(5).Select(d => d.ProjectId).Distinct().Count());
@@ -1339,7 +1366,6 @@ class C
                 composition: EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(IIncrementalAnalyzerProvider)).AddParts(typeof(AnalyzerProviderNoWaitNoBlock)),
                 workspaceKind: SolutionCrawlerWorkspaceKind);
 
-            SetOptions(workspace);
             var testDocument = workspace.Documents.First();
             var textBuffer = testDocument.GetTextBuffer();
 
@@ -1476,18 +1502,6 @@ class C
         private static AsynchronousOperationListenerProvider GetListenerProvider(ExportProvider provider)
             => provider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
-        private static void SetOptions(Workspace workspace)
-        {
-            // override default timespan to make test run faster
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS, 0)
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS, 0)
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.PreviewBackOffTimeSpanInMS, 0)
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS, 0)
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS, 0)
-                                                 .WithChangedOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS, 100)));
-        }
-
         private static void MakeFirstDocumentActive(Project project)
             => MakeDocumentActive(project.Documents.First());
 
@@ -1518,8 +1532,6 @@ class C
 
                 Assert.False(_workspaceWaiter.HasPendingWork);
                 Assert.False(_solutionCrawlerWaiter.HasPendingWork);
-
-                WorkCoordinatorTests.SetOptions(this);
             }
 
             public static WorkCoordinatorWorkspace CreateWithAnalysisScope(BackgroundAnalysisScope analysisScope, string workspaceKind = null, bool disablePartialSolutions = true, Type incrementalAnalyzer = null)
@@ -1702,7 +1714,11 @@ class C
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-                => e.Option == TestOption;
+            {
+                return e.Option == TestOption
+                    || e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption
+                    || e.Option == SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption;
+            }
 
             #region unused 
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)

@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
-                        int backOffTimeSpanInMs,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
-                        : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
                         _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
@@ -581,8 +581,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     public override void Shutdown()
                     {
                         base.Shutdown();
-
-                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(Processor._registration.CorrelationId, Processor._registration.GetSolutionToAnalyze(), Processor._logAggregator, Analyzers);
 
                         _workItemQueue.Dispose();
 

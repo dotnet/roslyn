@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(Methods.WorkspaceSymbolName)]
     internal class WorkspaceSymbolsHandler : AbstractStatelessRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
     {
@@ -105,7 +105,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             private async Task ReportSymbolInformationAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
             {
-                var location = await ProtocolConversions.TextSpanToLocationAsync(result.NavigableItem.Document, result.NavigableItem.SourceSpan, cancellationToken).ConfigureAwait(false);
+                var location = await ProtocolConversions.TextSpanToLocationAsync(
+                    result.NavigableItem.Document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(location);
                 _progress.Report(new VSSymbolInformation
                 {
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     ContainerName = result.AdditionalInformation,
                     Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
                     Location = location,
-                    Icon = new ImageElement(result.NavigableItem.Glyph.GetImageId())
+                    Icon = ProtocolConversions.GetImageIdFromGlyph(result.NavigableItem.Glyph)
                 });
             }
         }
