@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 {
     internal interface ICodeDefinitionWindowService
     {
-        void SetContext(ImmutableArray<CodeDefinitionWindowLocation> locations);
+        Task SetContextAsync(ImmutableArray<CodeDefinitionWindowLocation> locations, CancellationToken cancellationToken);
     }
 }

@@ -7,33 +7,42 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-
-using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeDefinitionWindow
 {
     [Export(typeof(ICodeDefinitionWindowService)), Shared]
     internal sealed class VisualStudioCodeDefinitionWindowService : ICodeDefinitionWindowService
     {
-        private readonly IVsCodeDefView _vsCodeDefView;
+        private readonly IAsyncServiceProvider _asyncServiceProvider;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioCodeDefinitionWindowService(SVsServiceProvider serviceProvider)
+        public VisualStudioCodeDefinitionWindowService(SVsServiceProvider asyncServiceProvider, IThreadingContext threadingContext)
         {
-            _vsCodeDefView = (IVsCodeDefView)serviceProvider.GetService(typeof(SVsCodeDefView));
+            _asyncServiceProvider = (IAsyncServiceProvider)asyncServiceProvider;
+            _threadingContext = threadingContext;
         }
 
-        public void SetContext(ImmutableArray<CodeDefinitionWindowLocation> locations)
+        public async Task SetContextAsync(ImmutableArray<CodeDefinitionWindowLocation> locations, CancellationToken cancellationToken)
         {
+            var vsCodeDefView = await _asyncServiceProvider.GetServiceAsync<SVsCodeDefView, IVsCodeDefView>().ConfigureAwait(false);
+
+            // Switch to the UI thread before using the IVsCodeDefView service
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             // If the new context has no location, then just don't update, instead of showing the
             // "No definition selected" page.
             if (locations.Any())
             {
-                Marshal.ThrowExceptionForHR(_vsCodeDefView.SetContext(new Context(locations)));
+                Marshal.ThrowExceptionForHR(vsCodeDefView.SetContext(new Context(locations)));
             }
         }
 

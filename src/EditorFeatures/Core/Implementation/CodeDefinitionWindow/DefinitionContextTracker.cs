@@ -107,9 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
         {
             var locations = await GetContextFromPointAfterDelayAsync(pointInRoslynSnapshot, cancellationToken).ConfigureAwait(true);
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            _codeDefinitionWindowService.SetContext(locations);
+            await _codeDefinitionWindowService.SetContextAsync(locations, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<CodeDefinitionWindowLocation>> GetContextFromPointAfterDelayAsync(
