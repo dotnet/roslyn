@@ -322,6 +322,113 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.True(FindMemberByName("Barbar", selectionVm.Members).IsChecked)
             Assert.Equal(2, selectionVm.CheckedMembers.Length)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function CSTestTypeSelection() As Task
+            Dim markUp = <Text><![CDATA[
+<Workspace>
+    <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+        <Document>
+            namespace TestNs
+            {
+                public class TestClass
+                {
+                    public static int Bar$$bar()
+                    {
+                        return 12345;
+                    }
+                }
+            }
+        </Document>
+        <Document>
+            public class NoNsClass
+            {
+            }
+        </Document>
+        <Document>
+            namespace TestNs
+            {
+                public interface ITestInterface
+                {
+                }
+            }
+        </Document>
+        <Document FilePath="TestFile.cs">
+            namespace TestNs 
+            {
+                public class ConflictingClassName
+                {
+                }
+            }
+        </Document>
+        <Document>
+            namespace TestNs2 
+            {
+                public class ConflictingClassName2
+                {
+                }
+            }
+        </Document>
+        <Document>
+            namespace TestNs.ExtraNs
+            {
+                public class ConflictingNsClassName
+                {
+                }
+            }
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="CSAssembly2" CommonReferences="true">
+        <Document>
+            namespace TestNs 
+            {
+                public class ConflictingClassName3
+                {
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>]]></Text>
+            Dim viewModel = Await GetViewModelAsync(markUp)
+
+            Assert.Equal(viewModel.SearchText, "TestClassHelpers")
+
+            Assert.True(viewModel.ShowMessage)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
+
+            Assert.False(viewModel.MemberSelectionViewModel.CheckedMembers.IsEmpty)
+            Assert.True(viewModel.CanSubmit)
+
+            ' there should only be 2 available types that are
+            ' a) the same kind
+            ' b) in the same or nested namespace
+            ' c) in the same project
+            Assert.Equal(2, viewModel.AvailableTypes.Length)
+            Assert.Equal(-1, viewModel.SelectedIndex)
+
+            ' We can't really test searchtext or selected index behavior because it is
+            ' handled by the combobox, and doesn't update in the same way
+            viewModel.DestinationName = viewModel.AvailableTypes.ElementAt(1)
+            Assert.Equal("TestNs.ExtraNs.ConflictingNsClassName", viewModel.DestinationName.TypeName)
+            Assert.NotNull(viewModel.DestinationName.NamedType)
+            Assert.False(viewModel.DestinationName.IsNew)
+            Assert.False(viewModel.ShowMessage)
+            Assert.True(viewModel.CanSubmit)
+
+            viewModel.DestinationName = viewModel.AvailableTypes.ElementAt(0)
+            Assert.Equal("TestNs.ConflictingClassName", viewModel.DestinationName.TypeName)
+            Assert.NotNull(viewModel.DestinationName.NamedType)
+            Assert.False(viewModel.DestinationName.IsNew)
+            Assert.False(viewModel.ShowMessage)
+            Assert.True(viewModel.CanSubmit)
+
+            Dim options = Submit(viewModel, cSharp:=True)
+            Assert.False(options.IsNewType)
+            Assert.False(options.IsCancelled)
+            Assert.NotNull(options.Destination)
+            Assert.Equal("TestNs.ConflictingClassName", options.Destination.ToDisplayString())
+            Assert.Equal("TestFile.cs", options.FileName)
+        End Function
 #End Region
 
 #Region "VB"
@@ -592,6 +699,99 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             selectionVm.SelectDependents()
             Assert.True(FindMemberByName("Barbar", selectionVm.Members).IsChecked)
             Assert.Equal(2, selectionVm.CheckedMembers.Length)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
+        Public Async Function VBTestTypeSelection() As Task
+            Dim markUp = <Text><![CDATA[
+<Workspace>
+    <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+        <Document>
+            Namespace TestNs
+                Public Class TestClass
+                    Public Shared Function Bar$$bar() As Integer
+                        Return 12345;
+                    End Function
+                End Class
+            End Namespace
+        </Document>
+        <Document>
+            Public Class NoNsClass
+            End Class
+        </Document>
+        <Document>
+            Namespace TestNs
+                Public Interface ITestInterface
+                End Interface
+            End Namespace
+        </Document>
+        <Document FilePath="TestFile.vb">
+            Namespace TestNs
+                Public Class ConflictingClassName
+                End Class
+            End Namespace
+        </Document>
+        <Document>
+            Namespace TestNs2
+                Public Class ConflictingClassName2
+                End Class
+            End Namespace
+        </Document>
+        <Document>
+            Namespace TestNs.ExtraNs
+                Public Class ConflictingNsClassName
+                End Class
+            End Namespace
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="CSAssembly2" CommonReferences="true">
+        <Document>
+            Namespace TestNs
+                Public Class ConflictingClassName3
+                End Class
+            End Namespace
+        </Document>
+    </Project>
+</Workspace>]]></Text>
+            Dim viewModel = Await GetViewModelAsync(markUp)
+
+            Assert.Equal(viewModel.SearchText, "TestClassHelpers")
+
+            Assert.True(viewModel.ShowMessage)
+            Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
+
+            Assert.False(viewModel.MemberSelectionViewModel.CheckedMembers.IsEmpty)
+            Assert.True(viewModel.CanSubmit)
+
+            ' there should only be 2 available types that are
+            ' a) the same kind
+            ' b) in the same or nested namespace
+            ' c) in the same project
+            Assert.Equal(2, viewModel.AvailableTypes.Length)
+            Assert.Equal(-1, viewModel.SelectedIndex)
+
+            ' We can't really test searchtext or selected index behavior because it is
+            ' handled by the combobox, and doesn't update in the same way
+            viewModel.DestinationName = viewModel.AvailableTypes.ElementAt(1)
+            Assert.Equal("TestNs.ExtraNs.ConflictingNsClassName", viewModel.DestinationName.TypeName)
+            Assert.NotNull(viewModel.DestinationName.NamedType)
+            Assert.False(viewModel.DestinationName.IsNew)
+            Assert.False(viewModel.ShowMessage)
+            Assert.True(viewModel.CanSubmit)
+
+            viewModel.DestinationName = viewModel.AvailableTypes.ElementAt(0)
+            Assert.Equal("TestNs.ConflictingClassName", viewModel.DestinationName.TypeName)
+            Assert.NotNull(viewModel.DestinationName.NamedType)
+            Assert.False(viewModel.DestinationName.IsNew)
+            Assert.False(viewModel.ShowMessage)
+            Assert.True(viewModel.CanSubmit)
+
+            Dim options = Submit(viewModel, cSharp:=False)
+            Assert.False(options.IsNewType)
+            Assert.False(options.IsCancelled)
+            Assert.NotNull(options.Destination)
+            Assert.Equal("TestNs.ConflictingClassName", options.Destination.ToDisplayString())
+            Assert.Equal("TestFile.vb", options.FileName)
         End Function
 #End Region
     End Class

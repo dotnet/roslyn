@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             IsNew = true;
             TypeName = @typeName;
             NamedType = null;
-            DeclarationFile = ServicesVSResources.Create_new_file;
+            DeclarationFile = string.Empty;
         }
 
         public override string ToString() => TypeName;

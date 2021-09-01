@@ -122,15 +122,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             using var cancellationTokenSource = new CancellationTokenSource();
             var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
 
-            var existingTypeNames = MakeTypeNameItems(
+            var availableTypeNames = MakeTypeNameItems(
                 selectedType.ContainingNamespace,
                 selectedType,
                 document,
                 history,
                 cancellationTokenSource.Token);
 
+            // there can be type names that conflict but we can't move to (like interface type names or ourself)
+            var conflictingTypeNames = selectedType.ContainingNamespace.GetAllTypes(cancellationTokenSource.Token);
+
             var candidateName = selectedType.Name + "Helpers";
-            var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !existingTypeNames.Contains(tName => tName.TypeName == name));
+            var defaultTypeName = NameGenerator.GenerateUniqueName(candidateName, name => !conflictingTypeNames.Any(t => t.Name == name));
 
             var containingNamespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
                 ? string.Empty
@@ -143,7 +146,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
             return new MoveStaticMembersDialogViewModel(selectMembersViewModel,
                 defaultTypeName,
-                existingTypeNames,
+                availableTypeNames,
+                conflictingTypeNames.ToImmutableArray(),
                 selectedType.Name,
                 containingNamespaceDisplay,
                 document.GetRequiredLanguageService<ISyntaxFactsService>());
@@ -161,7 +165,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             LinkedList<INamedTypeSymbol> history,
             CancellationToken cancellationToken)
         {
-            return currentNamespace.GetAllTypes(cancellationToken).SelectMany(t =>
+            return currentNamespace.GetAllTypes(cancellationToken)
+                // only take symbols that are the same kind of type (class, module)
+                .Where(t => t.TypeKind == currentType.TypeKind)
+                .SelectMany(t =>
             {
                 // for partially declared classes, we may want multiple entries for a single type.
                 // filter to those actually in a real file, and that is not our current location.

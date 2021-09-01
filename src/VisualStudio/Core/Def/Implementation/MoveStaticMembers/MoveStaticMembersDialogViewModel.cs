@@ -20,12 +20,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
         private readonly ISyntaxFacts _syntaxFacts;
 
-        private readonly string _sourceTypeName;
+        private readonly ImmutableArray<INamedTypeSymbol> _conflictingTypeNames;
 
         public MoveStaticMembersDialogViewModel(
             StaticMemberSelectionViewModel memberSelectionViewModel,
             string defaultType,
             ImmutableArray<TypeNameItem> availableTypes,
+            ImmutableArray<INamedTypeSymbol> conflictingTypeNames,
             string sourceTypeName,
             string containingNamespace,
             ISyntaxFacts syntaxFacts)
@@ -34,8 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
             _searchText = defaultType;
             AvailableTypes = availableTypes;
+            _conflictingTypeNames = conflictingTypeNames;
             _destinationName = new TypeNameItem(defaultType);
-            _sourceTypeName = sourceTypeName;
             _prependedNamespace = containingNamespace + ".";
 
             PropertyChanged += MoveMembersToTypeDialogViewModel_PropertyChanged;
@@ -98,8 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         private bool IsValidType(string typeName)
         {
             if (string.IsNullOrEmpty(typeName) ||
-                typeName == _sourceTypeName ||
-                AvailableTypes.Any(t => t.TypeName == (PrependedNamespace + typeName)))
+                _conflictingTypeNames.Any(t => t.ToDisplayString() == PrependedNamespace + typeName))
             {
                 return false;
             }
