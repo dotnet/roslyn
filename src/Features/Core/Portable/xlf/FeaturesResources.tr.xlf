@@ -512,7 +512,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
-        <target state="needs-review-translation">'{0}' projesinde yapılan değişiklikler hata ayıklama oturumunun devam etmesini engelleyecek: {1}</target>
+        <target state="new">Changes made in project '{0}' require restarting the application: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
@@ -2753,11 +2753,11 @@ Bir saat değerinin saniyenin on binde birlik bileşenini görüntülemek mümk�
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
+        <target state="translated">"f" özel biçim tanımlayıcı, saniye kesrinin en anlamlı basamağını; yani bir tarih ve saat değerinde saniyenin onda birini temsil eder.
 
-If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
+"f" biçim tanımlayıcı başka biçim tanımlayıcılar olmadan kullanılırsa, "f" standart tarih ve saat biçim tanımlayıcı olarak yorumlanır.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
+"f" biçim tanımlayıcı ParseExact veya TryParseExact yöntemine sağlanan bir biçim dizesinde kullanıldığında, "f" biçim tanımlayıcıların sayısı, dizenin başarıyla ayrıştırılması için saniye kesirinde bulunması gereken en anlamlı basamak sayısını gösterir.</target>
         <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
