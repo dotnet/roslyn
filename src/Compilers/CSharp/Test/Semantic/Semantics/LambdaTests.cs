@@ -5193,7 +5193,7 @@ class Program
 
         [Fact]
         [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
-        public void Issue53910_01()
+        public void WithAttributesToExpressionTree_01()
         {
             var source =
 @"
@@ -5214,7 +5214,7 @@ class A : Attribute { }
 
         [Fact]
         [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
-        public void Issue53910_02()
+        public void WithAttributesToExpressionTree_02()
         {
             var source =
 @"
@@ -5236,7 +5236,7 @@ class A : Attribute { }
 
         [Fact]
         [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
-        public void Issue53910_03()
+        public void WithAttributesToExpressionTree_03()
         {
             var source =
 @"
@@ -5257,7 +5257,7 @@ class A : Attribute { }
 
         [Fact]
         [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
-        public void Issue53910_04()
+        public void WithAttributesToExpressionTree_04()
         {
             var source =
 @"
@@ -5279,7 +5279,7 @@ class A : Attribute { }
 
         [Fact]
         [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
-        public void Issue53910_05()
+        public void WithAttributesToExpressionTree_05()
         {
             var source =
 @"
@@ -5300,7 +5300,7 @@ class A : Attribute { }
 
         [Fact]
         [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
-        public void Issue53910_06()
+        public void WithAttributesToExpressionTree_06()
         {
             var source =
 @"
@@ -5321,7 +5321,7 @@ class A : Attribute { }
 
         [Fact]
         [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
-        public void Issue53910_07()
+        public void WithAttributesToExpressionTree_07()
         {
             var source =
 @"
@@ -5343,7 +5343,7 @@ class A : Attribute { }
 
         [Fact]
         [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
-        public void Issue53910_08()
+        public void WithAttributesToExpressionTree_08()
         {
             var source =
 @"
@@ -5364,7 +5364,7 @@ class A : Attribute { }
 
         [Fact]
         [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
-        public void Issue53910_09()
+        public void WithAttributesToExpressionTree_09()
         {
             var source =
 @"
@@ -5385,7 +5385,7 @@ class A : Attribute { }
 
         [Fact]
         [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
-        public void Issue53910_10()
+        public void WithAttributesToExpressionTree_10()
         {
             var source =
 @"
