@@ -1038,6 +1038,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
             public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
             {
                 Fail(node);

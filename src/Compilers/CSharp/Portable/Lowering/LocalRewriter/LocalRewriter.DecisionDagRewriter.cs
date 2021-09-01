@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// The label in the code for the beginning of code for each node of the dag.
             /// </summary>
-            protected readonly PooledDictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = PooledDictionary<BoundDecisionDagNode, LabelSymbol>.GetInstance();
+            private readonly PooledDictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = PooledDictionary<BoundDecisionDagNode, LabelSymbol>.GetInstance();
 
 #nullable enable
             // When different branches of the DAG share `when` expressions, the

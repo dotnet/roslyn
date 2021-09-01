@@ -555,9 +555,11 @@ pattern
   | constant_pattern
   | declaration_pattern
   | discard_pattern
+  | list_pattern
   | parenthesized_pattern
   | recursive_pattern
   | relational_pattern
+  | slice_pattern
   | type_pattern
   | unary_pattern
   | var_pattern
@@ -597,6 +599,10 @@ discard_pattern
   : '_'
   ;
 
+list_pattern
+  : '[' (pattern (',' pattern)* ','?)? ']' variable_designation?
+  ;
+
 parenthesized_pattern
   : '(' pattern ')'
   ;
@@ -633,6 +639,10 @@ relational_pattern
   | '==' expression
   | '>' expression
   | '>=' expression
+  ;
+
+slice_pattern
+  : '..' pattern?
   ;
 
 type_pattern

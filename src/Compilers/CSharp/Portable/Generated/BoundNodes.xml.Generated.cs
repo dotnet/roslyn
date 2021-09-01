@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         AwaitableValuePlaceholder,
         DisposableValuePlaceholder,
         ObjectOrCollectionValuePlaceholder,
+        IndexOrRangeIndexerPatternValuePlaceholder,
         Dup,
         PassByCopy,
         BadExpression,
@@ -150,6 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         DagFieldEvaluation,
         DagPropertyEvaluation,
         DagIndexEvaluation,
+        DagIndexerEvaluation,
+        DagSliceEvaluation,
         SwitchSection,
         SwitchLabel,
         SequencePointExpression,
@@ -209,6 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         DiscardPattern,
         DeclarationPattern,
         RecursivePattern,
+        ListPattern,
+        SlicePattern,
         ITuplePattern,
         PositionalSubpattern,
         PropertySubpattern,
@@ -599,6 +604,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isNewInstance != this.IsNewInstance || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundObjectOrCollectionValuePlaceholder(this.Syntax, isNewInstance, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundIndexOrRangeIndexerPatternValuePlaceholder : BoundValuePlaceholderBase
+    {
+        public BoundIndexOrRangeIndexerPatternValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.IndexOrRangeIndexerPatternValuePlaceholder, syntax, type, hasErrors)
+        {
+
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+        public BoundIndexOrRangeIndexerPatternValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.IndexOrRangeIndexerPatternValuePlaceholder, syntax, type)
+        {
+
+            RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+
+        public new TypeSymbol Type => base.Type!;
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitIndexOrRangeIndexerPatternValuePlaceholder(this);
+
+        public BoundIndexOrRangeIndexerPatternValuePlaceholder Update(TypeSymbol type)
+        {
+            if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundIndexOrRangeIndexerPatternValuePlaceholder(this.Syntax, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5138,6 +5178,93 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundDagIndexerEvaluation : BoundDagEvaluation
+    {
+        public BoundDagIndexerEvaluation(SyntaxNode syntax, TypeSymbol indexerType, BoundDagTemp lengthTemp, int index, BoundIndexerAccess? indexerAccess, PropertySymbol? indexerSymbol, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagIndexerEvaluation, syntax, input, hasErrors || lengthTemp.HasErrors() || indexerAccess.HasErrors() || input.HasErrors())
+        {
+
+            RoslynDebug.Assert(indexerType is object, "Field 'indexerType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(lengthTemp is object, "Field 'lengthTemp' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.IndexerType = indexerType;
+            this.LengthTemp = lengthTemp;
+            this.Index = index;
+            this.IndexerAccess = indexerAccess;
+            this.IndexerSymbol = indexerSymbol;
+        }
+
+
+        public TypeSymbol IndexerType { get; }
+
+        public BoundDagTemp LengthTemp { get; }
+
+        public int Index { get; }
+
+        public BoundIndexerAccess? IndexerAccess { get; }
+
+        public PropertySymbol? IndexerSymbol { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagIndexerEvaluation(this);
+
+        public BoundDagIndexerEvaluation Update(TypeSymbol indexerType, BoundDagTemp lengthTemp, int index, BoundIndexerAccess? indexerAccess, PropertySymbol? indexerSymbol, BoundDagTemp input)
+        {
+            if (!TypeSymbol.Equals(indexerType, this.IndexerType, TypeCompareKind.ConsiderEverything) || lengthTemp != this.LengthTemp || index != this.Index || indexerAccess != this.IndexerAccess || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(indexerSymbol, this.IndexerSymbol) || input != this.Input)
+            {
+                var result = new BoundDagIndexerEvaluation(this.Syntax, indexerType, lengthTemp, index, indexerAccess, indexerSymbol, input, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundDagSliceEvaluation : BoundDagEvaluation
+    {
+        public BoundDagSliceEvaluation(SyntaxNode syntax, TypeSymbol sliceType, BoundDagTemp lengthTemp, int startIndex, int endIndex, BoundIndexerAccess? indexerAccess, MethodSymbol? sliceMethod, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagSliceEvaluation, syntax, input, hasErrors || lengthTemp.HasErrors() || indexerAccess.HasErrors() || input.HasErrors())
+        {
+
+            RoslynDebug.Assert(sliceType is object, "Field 'sliceType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(lengthTemp is object, "Field 'lengthTemp' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.SliceType = sliceType;
+            this.LengthTemp = lengthTemp;
+            this.StartIndex = startIndex;
+            this.EndIndex = endIndex;
+            this.IndexerAccess = indexerAccess;
+            this.SliceMethod = sliceMethod;
+        }
+
+
+        public TypeSymbol SliceType { get; }
+
+        public BoundDagTemp LengthTemp { get; }
+
+        public int StartIndex { get; }
+
+        public int EndIndex { get; }
+
+        public BoundIndexerAccess? IndexerAccess { get; }
+
+        public MethodSymbol? SliceMethod { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagSliceEvaluation(this);
+
+        public BoundDagSliceEvaluation Update(TypeSymbol sliceType, BoundDagTemp lengthTemp, int startIndex, int endIndex, BoundIndexerAccess? indexerAccess, MethodSymbol? sliceMethod, BoundDagTemp input)
+        {
+            if (!TypeSymbol.Equals(sliceType, this.SliceType, TypeCompareKind.ConsiderEverything) || lengthTemp != this.LengthTemp || startIndex != this.StartIndex || endIndex != this.EndIndex || indexerAccess != this.IndexerAccess || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(sliceMethod, this.SliceMethod) || input != this.Input)
+            {
+                var result = new BoundDagSliceEvaluation(this.Syntax, sliceType, lengthTemp, startIndex, endIndex, indexerAccess, sliceMethod, input, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundSwitchSection : BoundStatementList
     {
         public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
@@ -7509,6 +7636,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal abstract partial class BoundObjectPattern : BoundPattern
+    {
+        protected BoundObjectPattern(BoundKind kind, SyntaxNode syntax, Symbol? variable, BoundExpression? variableAccess, TypeSymbol inputType, TypeSymbol narrowedType, bool hasErrors = false)
+            : base(kind, syntax, inputType, narrowedType, hasErrors)
+        {
+
+            RoslynDebug.Assert(inputType is object, "Field 'inputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(narrowedType is object, "Field 'narrowedType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Variable = variable;
+            this.VariableAccess = variableAccess;
+        }
+
+
+        public Symbol? Variable { get; }
+
+        public BoundExpression? VariableAccess { get; }
+    }
+
     internal sealed partial class BoundDeclarationPattern : BoundPattern
     {
         public BoundDeclarationPattern(SyntaxNode syntax, Symbol? variable, BoundExpression? variableAccess, BoundTypeExpression declaredType, bool isVar, TypeSymbol inputType, TypeSymbol narrowedType, bool hasErrors = false)
@@ -7588,6 +7734,83 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (declaredType != this.DeclaredType || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(deconstructMethod, this.DeconstructMethod) || deconstruction != this.Deconstruction || properties != this.Properties || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || isExplicitNotNullTest != this.IsExplicitNotNullTest || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(narrowedType, this.NarrowedType, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundRecursivePattern(this.Syntax, declaredType, deconstructMethod, deconstruction, properties, variable, variableAccess, isExplicitNotNullTest, inputType, narrowedType, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundListPattern : BoundObjectPattern
+    {
+        public BoundListPattern(SyntaxNode syntax, ImmutableArray<BoundPattern> subpatterns, bool hasSlice, PropertySymbol? lengthProperty, BoundIndexerAccess? indexerAccess, PropertySymbol? indexerSymbol, Symbol? variable, BoundExpression? variableAccess, TypeSymbol inputType, TypeSymbol narrowedType, bool hasErrors = false)
+            : base(BoundKind.ListPattern, syntax, variable, variableAccess, inputType, narrowedType, hasErrors || subpatterns.HasErrors() || indexerAccess.HasErrors() || variableAccess.HasErrors())
+        {
+
+            RoslynDebug.Assert(!subpatterns.IsDefault, "Field 'subpatterns' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(inputType is object, "Field 'inputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(narrowedType is object, "Field 'narrowedType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Subpatterns = subpatterns;
+            this.HasSlice = hasSlice;
+            this.LengthProperty = lengthProperty;
+            this.IndexerAccess = indexerAccess;
+            this.IndexerSymbol = indexerSymbol;
+        }
+
+
+        public ImmutableArray<BoundPattern> Subpatterns { get; }
+
+        public bool HasSlice { get; }
+
+        public PropertySymbol? LengthProperty { get; }
+
+        public BoundIndexerAccess? IndexerAccess { get; }
+
+        public PropertySymbol? IndexerSymbol { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitListPattern(this);
+
+        public BoundListPattern Update(ImmutableArray<BoundPattern> subpatterns, bool hasSlice, PropertySymbol? lengthProperty, BoundIndexerAccess? indexerAccess, PropertySymbol? indexerSymbol, Symbol? variable, BoundExpression? variableAccess, TypeSymbol inputType, TypeSymbol narrowedType)
+        {
+            if (subpatterns != this.Subpatterns || hasSlice != this.HasSlice || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(lengthProperty, this.LengthProperty) || indexerAccess != this.IndexerAccess || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(indexerSymbol, this.IndexerSymbol) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variable, this.Variable) || variableAccess != this.VariableAccess || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(narrowedType, this.NarrowedType, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundListPattern(this.Syntax, subpatterns, hasSlice, lengthProperty, indexerAccess, indexerSymbol, variable, variableAccess, inputType, narrowedType, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundSlicePattern : BoundPattern
+    {
+        public BoundSlicePattern(SyntaxNode syntax, BoundPattern? pattern, BoundIndexerAccess? indexerAccess, MethodSymbol? sliceMethod, TypeSymbol inputType, TypeSymbol narrowedType, bool hasErrors = false)
+            : base(BoundKind.SlicePattern, syntax, inputType, narrowedType, hasErrors || pattern.HasErrors() || indexerAccess.HasErrors())
+        {
+
+            RoslynDebug.Assert(inputType is object, "Field 'inputType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(narrowedType is object, "Field 'narrowedType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Pattern = pattern;
+            this.IndexerAccess = indexerAccess;
+            this.SliceMethod = sliceMethod;
+        }
+
+
+        public BoundPattern? Pattern { get; }
+
+        public BoundIndexerAccess? IndexerAccess { get; }
+
+        public MethodSymbol? SliceMethod { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSlicePattern(this);
+
+        public BoundSlicePattern Update(BoundPattern? pattern, BoundIndexerAccess? indexerAccess, MethodSymbol? sliceMethod, TypeSymbol inputType, TypeSymbol narrowedType)
+        {
+            if (pattern != this.Pattern || indexerAccess != this.IndexerAccess || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(sliceMethod, this.SliceMethod) || !TypeSymbol.Equals(inputType, this.InputType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(narrowedType, this.NarrowedType, TypeCompareKind.ConsiderEverything))
+            {
+                var result = new BoundSlicePattern(this.Syntax, pattern, indexerAccess, sliceMethod, inputType, narrowedType, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8190,6 +8413,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDisposableValuePlaceholder((BoundDisposableValuePlaceholder)node, arg);
                 case BoundKind.ObjectOrCollectionValuePlaceholder:
                     return VisitObjectOrCollectionValuePlaceholder((BoundObjectOrCollectionValuePlaceholder)node, arg);
+                case BoundKind.IndexOrRangeIndexerPatternValuePlaceholder:
+                    return VisitIndexOrRangeIndexerPatternValuePlaceholder((BoundIndexOrRangeIndexerPatternValuePlaceholder)node, arg);
                 case BoundKind.Dup:
                     return VisitDup((BoundDup)node, arg);
                 case BoundKind.PassByCopy:
@@ -8432,6 +8657,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDagPropertyEvaluation((BoundDagPropertyEvaluation)node, arg);
                 case BoundKind.DagIndexEvaluation:
                     return VisitDagIndexEvaluation((BoundDagIndexEvaluation)node, arg);
+                case BoundKind.DagIndexerEvaluation:
+                    return VisitDagIndexerEvaluation((BoundDagIndexerEvaluation)node, arg);
+                case BoundKind.DagSliceEvaluation:
+                    return VisitDagSliceEvaluation((BoundDagSliceEvaluation)node, arg);
                 case BoundKind.SwitchSection:
                     return VisitSwitchSection((BoundSwitchSection)node, arg);
                 case BoundKind.SwitchLabel:
@@ -8550,6 +8779,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDeclarationPattern((BoundDeclarationPattern)node, arg);
                 case BoundKind.RecursivePattern:
                     return VisitRecursivePattern((BoundRecursivePattern)node, arg);
+                case BoundKind.ListPattern:
+                    return VisitListPattern((BoundListPattern)node, arg);
+                case BoundKind.SlicePattern:
+                    return VisitSlicePattern((BoundSlicePattern)node, arg);
                 case BoundKind.ITuplePattern:
                     return VisitITuplePattern((BoundITuplePattern)node, arg);
                 case BoundKind.PositionalSubpattern:
@@ -8601,6 +8834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDup(BoundDup node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPassByCopy(BoundPassByCopy node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitBadExpression(BoundBadExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -8722,6 +8956,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitDagFieldEvaluation(BoundDagFieldEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagPropertyEvaluation(BoundDagPropertyEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagIndexEvaluation(BoundDagIndexEvaluation node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitDagSliceEvaluation(BoundDagSliceEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchSection(BoundSwitchSection node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchLabel(BoundSwitchLabel node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSequencePointExpression(BoundSequencePointExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -8781,6 +9017,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitDiscardPattern(BoundDiscardPattern node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDeclarationPattern(BoundDeclarationPattern node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitRecursivePattern(BoundRecursivePattern node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitListPattern(BoundListPattern node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitSlicePattern(BoundSlicePattern node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitITuplePattern(BoundITuplePattern node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPositionalSubpattern(BoundPositionalSubpattern node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitPropertySubpattern(BoundPropertySubpattern node, A arg) => this.DefaultVisit(node, arg);
@@ -8811,6 +9049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDup(BoundDup node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPassByCopy(BoundPassByCopy node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitBadExpression(BoundBadExpression node) => this.DefaultVisit(node);
@@ -8932,6 +9171,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitDagFieldEvaluation(BoundDagFieldEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagPropertyEvaluation(BoundDagPropertyEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagIndexEvaluation(BoundDagIndexEvaluation node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitDagSliceEvaluation(BoundDagSliceEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchSection(BoundSwitchSection node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchLabel(BoundSwitchLabel node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSequencePointExpression(BoundSequencePointExpression node) => this.DefaultVisit(node);
@@ -8991,6 +9232,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitDiscardPattern(BoundDiscardPattern node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDeclarationPattern(BoundDeclarationPattern node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitRecursivePattern(BoundRecursivePattern node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitListPattern(BoundListPattern node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitSlicePattern(BoundSlicePattern node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitITuplePattern(BoundITuplePattern node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPositionalSubpattern(BoundPositionalSubpattern node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitPropertySubpattern(BoundPropertySubpattern node) => this.DefaultVisit(node);
@@ -9037,6 +9280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node) => null;
         public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node) => null;
         public override BoundNode? VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node) => null;
+        public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node) => null;
         public override BoundNode? VisitDup(BoundDup node) => null;
         public override BoundNode? VisitPassByCopy(BoundPassByCopy node)
         {
@@ -9570,6 +9814,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Input);
             return null;
         }
+        public override BoundNode? VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node)
+        {
+            this.Visit(node.LengthTemp);
+            this.Visit(node.IndexerAccess);
+            this.Visit(node.Input);
+            return null;
+        }
+        public override BoundNode? VisitDagSliceEvaluation(BoundDagSliceEvaluation node)
+        {
+            this.Visit(node.LengthTemp);
+            this.Visit(node.IndexerAccess);
+            this.Visit(node.Input);
+            return null;
+        }
         public override BoundNode? VisitSwitchSection(BoundSwitchSection node)
         {
             this.VisitList(node.SwitchLabels);
@@ -9861,6 +10119,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.VariableAccess);
             return null;
         }
+        public override BoundNode? VisitListPattern(BoundListPattern node)
+        {
+            this.VisitList(node.Subpatterns);
+            this.Visit(node.IndexerAccess);
+            this.Visit(node.VariableAccess);
+            return null;
+        }
+        public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
+        {
+            this.Visit(node.Pattern);
+            this.Visit(node.IndexerAccess);
+            return null;
+        }
         public override BoundNode? VisitITuplePattern(BoundITuplePattern node)
         {
             this.VisitList(node.Subpatterns);
@@ -9992,6 +10263,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(node.IsNewInstance, type);
+        }
+        public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
+        {
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(type);
         }
         public override BoundNode? VisitDup(BoundDup node)
         {
@@ -10676,6 +10952,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             return node.Update(node.Property, node.Index, input);
         }
+        public override BoundNode? VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node)
+        {
+            BoundDagTemp lengthTemp = (BoundDagTemp)this.Visit(node.LengthTemp);
+            BoundIndexerAccess? indexerAccess = (BoundIndexerAccess?)this.Visit(node.IndexerAccess);
+            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
+            TypeSymbol? indexerType = this.VisitType(node.IndexerType);
+            return node.Update(indexerType, lengthTemp, node.Index, indexerAccess, node.IndexerSymbol, input);
+        }
+        public override BoundNode? VisitDagSliceEvaluation(BoundDagSliceEvaluation node)
+        {
+            BoundDagTemp lengthTemp = (BoundDagTemp)this.Visit(node.LengthTemp);
+            BoundIndexerAccess? indexerAccess = (BoundIndexerAccess?)this.Visit(node.IndexerAccess);
+            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
+            TypeSymbol? sliceType = this.VisitType(node.SliceType);
+            return node.Update(sliceType, lengthTemp, node.StartIndex, node.EndIndex, indexerAccess, node.SliceMethod, input);
+        }
         public override BoundNode? VisitSwitchSection(BoundSwitchSection node)
         {
             ImmutableArray<BoundSwitchLabel> switchLabels = this.VisitList(node.SwitchLabels);
@@ -11064,6 +11356,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? narrowedType = this.VisitType(node.NarrowedType);
             return node.Update(declaredType, node.DeconstructMethod, deconstruction, properties, node.Variable, variableAccess, node.IsExplicitNotNullTest, inputType, narrowedType);
         }
+        public override BoundNode? VisitListPattern(BoundListPattern node)
+        {
+            ImmutableArray<BoundPattern> subpatterns = this.VisitList(node.Subpatterns);
+            BoundIndexerAccess? indexerAccess = (BoundIndexerAccess?)this.Visit(node.IndexerAccess);
+            BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
+            TypeSymbol? inputType = this.VisitType(node.InputType);
+            TypeSymbol? narrowedType = this.VisitType(node.NarrowedType);
+            return node.Update(subpatterns, node.HasSlice, node.LengthProperty, indexerAccess, node.IndexerSymbol, node.Variable, variableAccess, inputType, narrowedType);
+        }
+        public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
+        {
+            BoundPattern? pattern = (BoundPattern?)this.Visit(node.Pattern);
+            BoundIndexerAccess? indexerAccess = (BoundIndexerAccess?)this.Visit(node.IndexerAccess);
+            TypeSymbol? inputType = this.VisitType(node.InputType);
+            TypeSymbol? narrowedType = this.VisitType(node.NarrowedType);
+            return node.Update(pattern, indexerAccess, node.SliceMethod, inputType, narrowedType);
+        }
         public override BoundNode? VisitITuplePattern(BoundITuplePattern node)
         {
             ImmutableArray<BoundPositionalSubpattern> subpatterns = this.VisitList(node.Subpatterns);
@@ -11266,6 +11575,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundObjectOrCollectionValuePlaceholder updatedNode = node.Update(node.IsNewInstance, infoAndType.Type!);
+            updatedNode.TopLevelNullability = infoAndType.Info;
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node)
+        {
+            if (!_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                return node;
+            }
+
+            BoundIndexOrRangeIndexerPatternValuePlaceholder updatedNode = node.Update(infoAndType.Type!);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -12442,6 +12763,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Update(property, node.Index, input);
         }
 
+        public override BoundNode? VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node)
+        {
+            TypeSymbol indexerType = GetUpdatedSymbol(node, node.IndexerType);
+            PropertySymbol? indexerSymbol = GetUpdatedSymbol(node, node.IndexerSymbol);
+            BoundDagTemp lengthTemp = (BoundDagTemp)this.Visit(node.LengthTemp);
+            BoundIndexerAccess? indexerAccess = (BoundIndexerAccess?)this.Visit(node.IndexerAccess);
+            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
+            return node.Update(indexerType, lengthTemp, node.Index, indexerAccess, indexerSymbol, input);
+        }
+
+        public override BoundNode? VisitDagSliceEvaluation(BoundDagSliceEvaluation node)
+        {
+            TypeSymbol sliceType = GetUpdatedSymbol(node, node.SliceType);
+            MethodSymbol? sliceMethod = GetUpdatedSymbol(node, node.SliceMethod);
+            BoundDagTemp lengthTemp = (BoundDagTemp)this.Visit(node.LengthTemp);
+            BoundIndexerAccess? indexerAccess = (BoundIndexerAccess?)this.Visit(node.IndexerAccess);
+            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
+            return node.Update(sliceType, lengthTemp, node.StartIndex, node.EndIndex, indexerAccess, sliceMethod, input);
+        }
+
         public override BoundNode? VisitSwitchSection(BoundSwitchSection node)
         {
             ImmutableArray<LocalSymbol> locals = GetUpdatedArray(node, node.Locals);
@@ -13411,6 +13752,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Update(declaredType, deconstructMethod, deconstruction, properties, variable, variableAccess, node.IsExplicitNotNullTest, inputType, narrowedType);
         }
 
+        public override BoundNode? VisitListPattern(BoundListPattern node)
+        {
+            PropertySymbol? lengthProperty = GetUpdatedSymbol(node, node.LengthProperty);
+            PropertySymbol? indexerSymbol = GetUpdatedSymbol(node, node.IndexerSymbol);
+            Symbol? variable = GetUpdatedSymbol(node, node.Variable);
+            TypeSymbol inputType = GetUpdatedSymbol(node, node.InputType);
+            TypeSymbol narrowedType = GetUpdatedSymbol(node, node.NarrowedType);
+            ImmutableArray<BoundPattern> subpatterns = this.VisitList(node.Subpatterns);
+            BoundIndexerAccess? indexerAccess = (BoundIndexerAccess?)this.Visit(node.IndexerAccess);
+            BoundExpression? variableAccess = (BoundExpression?)this.Visit(node.VariableAccess);
+            return node.Update(subpatterns, node.HasSlice, lengthProperty, indexerAccess, indexerSymbol, variable, variableAccess, inputType, narrowedType);
+        }
+
+        public override BoundNode? VisitSlicePattern(BoundSlicePattern node)
+        {
+            MethodSymbol? sliceMethod = GetUpdatedSymbol(node, node.SliceMethod);
+            TypeSymbol inputType = GetUpdatedSymbol(node, node.InputType);
+            TypeSymbol narrowedType = GetUpdatedSymbol(node, node.NarrowedType);
+            BoundPattern? pattern = (BoundPattern?)this.Visit(node.Pattern);
+            BoundIndexerAccess? indexerAccess = (BoundIndexerAccess?)this.Visit(node.IndexerAccess);
+            return node.Update(pattern, indexerAccess, sliceMethod, inputType, narrowedType);
+        }
+
         public override BoundNode? VisitITuplePattern(BoundITuplePattern node)
         {
             MethodSymbol getLengthMethod = GetUpdatedSymbol(node, node.GetLengthMethod);
@@ -13660,6 +14024,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitObjectOrCollectionValuePlaceholder(BoundObjectOrCollectionValuePlaceholder node, object? arg) => new TreeDumperNode("objectOrCollectionValuePlaceholder", null, new TreeDumperNode[]
         {
             new TreeDumperNode("isNewInstance", node.IsNewInstance, null),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitIndexOrRangeIndexerPatternValuePlaceholder(BoundIndexOrRangeIndexerPatternValuePlaceholder node, object? arg) => new TreeDumperNode("indexOrRangeIndexerPatternValuePlaceholder", null, new TreeDumperNode[]
+        {
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -14717,6 +15088,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
+        public override TreeDumperNode VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node, object? arg) => new TreeDumperNode("dagIndexerEvaluation", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("indexerType", node.IndexerType, null),
+            new TreeDumperNode("lengthTemp", null, new TreeDumperNode[] { Visit(node.LengthTemp, null) }),
+            new TreeDumperNode("index", node.Index, null),
+            new TreeDumperNode("indexerAccess", null, new TreeDumperNode[] { Visit(node.IndexerAccess, null) }),
+            new TreeDumperNode("indexerSymbol", node.IndexerSymbol, null),
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitDagSliceEvaluation(BoundDagSliceEvaluation node, object? arg) => new TreeDumperNode("dagSliceEvaluation", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("sliceType", node.SliceType, null),
+            new TreeDumperNode("lengthTemp", null, new TreeDumperNode[] { Visit(node.LengthTemp, null) }),
+            new TreeDumperNode("startIndex", node.StartIndex, null),
+            new TreeDumperNode("endIndex", node.EndIndex, null),
+            new TreeDumperNode("indexerAccess", null, new TreeDumperNode[] { Visit(node.IndexerAccess, null) }),
+            new TreeDumperNode("sliceMethod", node.SliceMethod, null),
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
         public override TreeDumperNode VisitSwitchSection(BoundSwitchSection node, object? arg) => new TreeDumperNode("switchSection", null, new TreeDumperNode[]
         {
             new TreeDumperNode("locals", node.Locals, null),
@@ -15341,6 +15735,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("variable", node.Variable, null),
             new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
             new TreeDumperNode("isExplicitNotNullTest", node.IsExplicitNotNullTest, null),
+            new TreeDumperNode("inputType", node.InputType, null),
+            new TreeDumperNode("narrowedType", node.NarrowedType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitListPattern(BoundListPattern node, object? arg) => new TreeDumperNode("listPattern", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("subpatterns", null, from x in node.Subpatterns select Visit(x, null)),
+            new TreeDumperNode("hasSlice", node.HasSlice, null),
+            new TreeDumperNode("lengthProperty", node.LengthProperty, null),
+            new TreeDumperNode("indexerAccess", null, new TreeDumperNode[] { Visit(node.IndexerAccess, null) }),
+            new TreeDumperNode("indexerSymbol", node.IndexerSymbol, null),
+            new TreeDumperNode("variable", node.Variable, null),
+            new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
+            new TreeDumperNode("inputType", node.InputType, null),
+            new TreeDumperNode("narrowedType", node.NarrowedType, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitSlicePattern(BoundSlicePattern node, object? arg) => new TreeDumperNode("slicePattern", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
+            new TreeDumperNode("indexerAccess", null, new TreeDumperNode[] { Visit(node.IndexerAccess, null) }),
+            new TreeDumperNode("sliceMethod", node.SliceMethod, null),
             new TreeDumperNode("inputType", node.InputType, null),
             new TreeDumperNode("narrowedType", node.NarrowedType, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
