@@ -280,11 +280,14 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
-            <GroupBox x:Uid="InheritanceMarginGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Inheritance_Margin_experimental}">
+            <GroupBox x:Uid="InheritanceMarginGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Inheritance_Margin}">
                 <StackPanel>
                     <CheckBox x:Uid="ShowInheritanceMargin"
                               x:Name="ShowInheritanceMargin"
                               Content="{x:Static local:AdvancedOptionPageStrings.Show_inheritance_margin}"/>
+                    <CheckBox x:Uid="InheritanceMarginCombinedWithIndicatorMargin"
+                              x:Name="InheritanceMarginCombinedWithIndicatorMargin"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Combine_inheritance_margin_with_indicator_margin}"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

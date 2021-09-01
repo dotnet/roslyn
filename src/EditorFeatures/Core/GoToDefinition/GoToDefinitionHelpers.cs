@@ -108,17 +108,25 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {
+            return threadingContext.JoinableTaskFactory.Run(
+                () => TryGoToDefinitionAsync(symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed));
+        }
+
+        public static async Task<bool> TryGoToDefinitionAsync(
+            ISymbol symbol,
+            Solution solution,
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter,
+            CancellationToken cancellationToken,
+            bool thirdPartyNavigationAllowed = true)
+        {
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return threadingContext.JoinableTaskFactory.Run(
-                async () =>
-                {
-                    var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
+            var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
 
-                    return await streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                        threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
-                });
+            return await streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

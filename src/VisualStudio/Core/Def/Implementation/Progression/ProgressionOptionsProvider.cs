@@ -21,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            ProgressionOptions.SearchUsingNavigateToEngine);
+            ProgressionOptions.SearchUsingNavigateToEngine,
+            ProgressionOptions.LegacySearchFeatureFlag);
     }
 }

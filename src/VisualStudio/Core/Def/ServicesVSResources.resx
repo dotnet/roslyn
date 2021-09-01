@@ -1645,8 +1645,8 @@ Additional information: {1}</value>
   <data name="Show_inheritance_margin" xml:space="preserve">
     <value>Show inheritance margin</value>
   </data>
-  <data name="Inheritance_Margin_experimental" xml:space="preserve">
-    <value>Inheritance Margin (experimental)</value>
+  <data name="Inheritance_Margin" xml:space="preserve">
+    <value>Inheritance Margin</value>
   </data>
   <data name="Analyzers" xml:space="preserve">
     <value>Analyzers</value>
@@ -1796,6 +1796,9 @@ Additional information: {1}</value>
   <data name="Language_client_initialization_failed" xml:space="preserve">
     <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
     <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
+  </data>
+  <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
+    <value>Combine inheritance margin with indicator margin</value>
   </data>
   <data name="Package_install_canceled" xml:space="preserve">
     <value>Package install canceled</value>

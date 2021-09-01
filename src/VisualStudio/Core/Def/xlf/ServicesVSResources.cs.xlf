@@ -222,6 +222,11 @@
         <target state="translated">Obarvit regulární výrazy</target>
         <note />
       </trans-unit>
+      <trans-unit id="Combine_inheritance_margin_with_indicator_margin">
+        <source>Combine inheritance margin with indicator margin</source>
+        <target state="new">Combine inheritance margin with indicator margin</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Comments">
         <source>Comments</source>
         <target state="translated">Komentáře</target>
@@ -447,9 +452,9 @@
         <target state="translated">Indexováno v úložišti</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inheritance_Margin_experimental">
-        <source>Inheritance Margin (experimental)</source>
-        <target state="translated">Míra dědičnosti (experimentální)</target>
+      <trans-unit id="Inheritance_Margin">
+        <source>Inheritance Margin</source>
+        <target state="new">Inheritance Margin</target>
         <note />
       </trans-unit>
       <trans-unit id="Inherited_interfaces">

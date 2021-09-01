@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var analyzerDependencyFile = _testFixture.AnalyzerDependency;
             var analyzerMainFile = _testFixture.AnalyzerWithDependency;
-            var loader = new DefaultAnalyzerAssemblyLoader();
+            var loader = new ShadowCopyAnalyzerAssemblyLoader();
             loader.AddDependencyLocation(analyzerDependencyFile.Path);
 
             var analyzerMainReference = new AnalyzerFileReference(analyzerMainFile.Path, loader);
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             StringBuilder sb = new StringBuilder();
 
-            var loader = new DefaultAnalyzerAssemblyLoader();
+            var loader = new ShadowCopyAnalyzerAssemblyLoader();
             loader.AddDependencyLocation(_testFixture.Gamma.Path);
             loader.AddDependencyLocation(_testFixture.Delta1.Path);
             loader.AddDependencyLocation(_testFixture.Epsilon.Path);
@@ -82,6 +82,33 @@ Delta: Epsilon: Test E
 ",
                     actual);
             }
+        }
+
+        [Fact]
+        public void AssemblyLoading_Delete()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var loader = new ShadowCopyAnalyzerAssemblyLoader();
+
+            var tempDir = Temp.CreateDirectory();
+            var gammaCopy = tempDir.CreateFile("Gamma.dll").CopyContentFrom(_testFixture.Gamma.Path);
+            var deltaCopy = tempDir.CreateFile("Delta.dll").CopyContentFrom(_testFixture.Delta1.Path);
+            loader.AddDependencyLocation(deltaCopy.Path);
+            loader.AddDependencyLocation(gammaCopy.Path);
+
+            Assembly gamma = loader.LoadFromPath(gammaCopy.Path);
+            var g = gamma.CreateInstance("Gamma.G");
+            g!.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
+
+            File.Delete(gammaCopy.Path);
+            File.Delete(deltaCopy.Path);
+
+            var actual = sb.ToString();
+            Assert.Equal(
+@"Delta: Gamma: Test G
+",
+                actual);
         }
     }
 }

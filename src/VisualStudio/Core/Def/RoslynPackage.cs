@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
@@ -159,7 +158,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             LoadOptionPersistersAsync(_componentModel, cancellationToken).Forget();
 
             _workspace = _componentModel.GetService<VisualStudioWorkspace>();
-            _workspace.Services.GetService<IExperimentationService>();
 
             // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
             // the background thread then we will experience hangs like we see in this bug:

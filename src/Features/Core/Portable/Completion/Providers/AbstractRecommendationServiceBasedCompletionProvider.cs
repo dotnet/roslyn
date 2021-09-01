@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     if (bestSymbols.Any())
                     {
-                        if (IsTargetTypeCompletionFilterExperimentEnabled(document.Project.Solution.Workspace) &&
+                        if (IsTargetTypeCompletionFilterExperimentEnabled(document.Project.Solution.Options) &&
                             TryFindFirstSymbolMatchesTargetTypes(_ => context, bestSymbols, typeConvertibilityCache, out var index) && index > 0)
                         {
                             // Since the first symbol is used to get the item description by default,
