@@ -3,7 +3,7 @@
     x:ClassModifier="Friend"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options;assembly=Microsoft.VisualStudio.LanguageServices.Implementation"
     xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.VisualBasic.Options"
@@ -27,6 +27,18 @@
                         <RadioButton  GroupName="Background_analysis_scope"
                                               x:Name="Background_analysis_scope_full_solution"
                                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <CheckBox x:Name="DisplayDiagnosticsInline"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline_experimental}"/>
+                        <StackPanel Margin="15, 0, 0, 0">
+                            <RadioButton GroupName="Inline_diagnostic_location"
+                                     x:Name="at_the_end_of_the_line_of_code"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_at_the_end_of_the_line_of_code}"/>
+                            <RadioButton GroupName="Inline_diagnostic_location"
+                                     x:Name="on_the_right_edge_of_the_editor_window"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_on_the_right_edge_of_the_editor_window}"/>
+                        </StackPanel>
                     </StackPanel>
                     <CheckBox x:Name="Run_code_analysis_in_separate_process"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
@@ -139,7 +151,7 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
                 </StackPanel>
             </GroupBox>
-            
+
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_GoToDefinition}">
                 <StackPanel>
@@ -161,7 +173,7 @@
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
                 </StackPanel>
             </GroupBox>
-            
+
             <GroupBox x:Uid="EditorColorSchemeGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Editor_Color_Scheme}">
                 <StackPanel>
@@ -244,7 +256,7 @@
                         <CheckBox x:Uid="ShowHintsForIndexers"
                                   x:Name="ShowHintsForIndexers"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_indexers}" />
-                        
+
                         <CheckBox x:Uid="SuppressHintsWhenParameterNameMatchesTheMethodsIntent"
                                   x:Name="SuppressHintsWhenParameterNameMatchesTheMethodsIntent"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_name_matches_the_method_s_intent}" />
