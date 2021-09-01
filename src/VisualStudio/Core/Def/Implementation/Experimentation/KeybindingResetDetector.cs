@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experimentation;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
@@ -46,9 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
     [Export(typeof(IExperiment))]
     internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObject, IExperiment, IOleCommandTarget
     {
-        // Flight info
-        private const string InternalFlightName = "keybindgoldbarint";
-        private const string ExternalFlightName = "keybindgoldbarext";
         private const string KeybindingsFwLink = "https://go.microsoft.com/fwlink/?linkid=864209";
         private const string ReSharperExtensionName = "ReSharper Ultimate";
         private const string ReSharperKeyboardMappingName = "ReSharper (Visual Studio)";
@@ -66,7 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         // All mutable fields are UI-thread affinitized
 
-        private IExperimentationService _experimentationService;
         private IVsUIShell _uiShell;
         private IOleCommandTarget _oleCommandTarget;
         private OleComponent _oleComponent;
@@ -110,8 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             AssertIsForeground();
 
             // Ensure one of the flights is enabled, otherwise bail
-            _experimentationService = _workspace.Services.GetRequiredService<IExperimentationService>();
-            if (!_experimentationService.IsExperimentEnabled(ExternalFlightName) && !_experimentationService.IsExperimentEnabled(InternalFlightName))
+            if (!_workspace.Options.GetOption(KeybindingResetOptions.EnabledFeatureFlag))
             {
                 return;
             }
@@ -234,9 +228,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             }
 
             _infoBarOpen = true;
-
-            Debug.Assert(_experimentationService.IsExperimentEnabled(InternalFlightName) ||
-                         _experimentationService.IsExperimentEnabled(ExternalFlightName));
 
             var message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
             KeybindingsResetLogger.Log("InfoBarShown");

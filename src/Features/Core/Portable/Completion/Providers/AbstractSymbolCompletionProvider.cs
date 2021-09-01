@@ -11,12 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -46,14 +44,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected virtual CompletionItemRules GetCompletionItemRules(ImmutableArray<(ISymbol symbol, bool preselect)> symbols)
             => CompletionItemRules.Default;
 
-        protected bool IsTargetTypeCompletionFilterExperimentEnabled(Workspace workspace)
+        protected bool IsTargetTypeCompletionFilterExperimentEnabled(OptionSet options)
         {
-            if (!_isTargetTypeCompletionFilterExperimentEnabled.HasValue)
-            {
-                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
-                _isTargetTypeCompletionFilterExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
-            }
-
+            _isTargetTypeCompletionFilterExperimentEnabled ??= options.GetOption(CompletionOptions.TargetTypedCompletionFilterFeatureFlag);
             return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
@@ -134,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var arbitraryFirstContext = contextLookup(symbolGroup.First());
                 var symbolList = symbolGroup.ToImmutableArray();
 
-                if (IsTargetTypeCompletionFilterExperimentEnabled(arbitraryFirstContext.Workspace))
+                if (IsTargetTypeCompletionFilterExperimentEnabled(completionContext.Options))
                 {
                     var tick = Environment.TickCount;
 
@@ -274,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 completionContext.IsExclusive = IsExclusive();
 
                 using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
-                using (var telemetryCounter = new TelemetryCounter(ShouldCollectTelemetryForTargetTypeCompletion && IsTargetTypeCompletionFilterExperimentEnabled(document.Project.Solution.Workspace)))
+                using (var telemetryCounter = new TelemetryCounter(ShouldCollectTelemetryForTargetTypeCompletion && IsTargetTypeCompletionFilterExperimentEnabled(options)))
                 {
                     var syntaxContext = await GetOrCreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);
                     var regularItems = await GetItemsAsync(completionContext, syntaxContext, document, position, options, telemetryCounter, cancellationToken).ConfigureAwait(false);

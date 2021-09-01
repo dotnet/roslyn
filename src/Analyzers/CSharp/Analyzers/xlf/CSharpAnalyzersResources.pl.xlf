@@ -257,6 +257,11 @@
         <target state="translated">Użyj dopasowywania wzorców</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="new">Use pattern matching (may change code meaning)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">Użyj operatora zakresu</target>
@@ -304,7 +309,7 @@
       </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
         <source>'default' expression can be simplified</source>
-        <target state="translated">'Wyrażenie „default” można uprościć</target>
+        <target state="translated">Wyrażenie „default” można uprościć</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">

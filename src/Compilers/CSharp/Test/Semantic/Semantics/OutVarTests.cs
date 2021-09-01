@@ -35071,7 +35071,7 @@ class C
             var decl = GetOutVarDeclaration(tree, name);
             var refs = GetReferences(tree, name).ToArray();
             Assert.Equal(2, refs.Length);
-            VerifyModelForOutVar(model, decl, refs[0]);
+            VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: false, isShadowed: false, references: refs[0]);
             VerifyNotInScope(model, refs[1]);
             var symbol = (ILocalSymbol)model.GetDeclaredSymbol(decl.Designation);
             Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());

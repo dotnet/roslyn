@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly DiagnosticBag _diagnostics;
 
-        private readonly ArrayBuilder<GeneratedSourceText> _additionalSources;
+        private readonly AdditionalSourcesCollection _additionalSources;
 
-        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxContextReceiver? syntaxReceiver, CancellationToken cancellationToken = default)
+        internal GeneratorExecutionContext(Compilation compilation, ParseOptions parseOptions, ImmutableArray<AdditionalText> additionalTexts, AnalyzerConfigOptionsProvider optionsProvider, ISyntaxContextReceiver? syntaxReceiver, string sourceExtension, CancellationToken cancellationToken = default)
         {
             Compilation = compilation;
             ParseOptions = parseOptions;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
             SyntaxReceiver = (syntaxReceiver as SyntaxContextReceiverAdaptor)?.Receiver;
             SyntaxContextReceiver = (syntaxReceiver is SyntaxContextReceiverAdaptor) ? null : syntaxReceiver;
             CancellationToken = cancellationToken;
-            _additionalSources = ArrayBuilder<GeneratedSourceText>.GetInstance();
+            _additionalSources = new AdditionalSourcesCollection(sourceExtension);
             _diagnostics = new DiagnosticBag();
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
-        public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(new GeneratedSourceText(hintName, sourceText));
+        public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, sourceText);
 
         /// <summary>
         /// Adds a <see cref="Diagnostic"/> to the users compilation 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
 
         internal void CopyToProductionContext(SourceProductionContext ctx)
         {
-            ctx.Sources.AddRange(_additionalSources);
+            _additionalSources.CopyTo(ctx.Sources);
             ctx.Diagnostics.AddRange(_diagnostics);
         }
     }

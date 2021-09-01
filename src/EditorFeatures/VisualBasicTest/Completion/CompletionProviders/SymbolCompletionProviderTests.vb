@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 
@@ -17,10 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(SymbolCompletionProvider)
-        End Function
-
-        Protected Overrides Function GetComposition() As TestComposition
-            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
         End Function
 
 #Region "StandaloneNamespaceAndTypeSourceTests"
@@ -8457,7 +8452,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilterWithExperimentEnabled() As Task
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, True)
+            TargetTypedCompletionFilterFeatureFlag = True
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8472,7 +8467,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestNoTargetTypeFilterWithExperimentDisabled() As Task
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, False)
+            TargetTypedCompletionFilterFeatureFlag = False
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8487,7 +8482,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilter_NotOnObjectMembers() As Task
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, True)
+            TargetTypedCompletionFilterFeatureFlag = True
             Dim markup =
 "Class C
     Dim intField As Integer

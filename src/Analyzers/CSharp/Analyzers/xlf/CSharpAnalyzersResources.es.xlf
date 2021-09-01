@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
-        <target state="translated">La indexación de direcciones puede ser simplificado</target>
+        <target state="translated">La indexación de direcciones se puede simplificar</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_variable_declaration">
@@ -255,6 +255,11 @@
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Usar coincidencia de patrones</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="new">Use pattern matching (may change code meaning)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">
