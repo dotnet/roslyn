@@ -456,7 +456,7 @@ class C { }
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54185: the addition happens later so the exceptions don't occur directly at add-time. we should decide if this subtle behavior change is acceptable")]
+        [Fact]
         public void Generator_HintName_MustBe_Unique()
         {
             var source = @"
@@ -483,6 +483,47 @@ class C { }
             outputCompilation.VerifyDiagnostics();
             generatorDiagnostics.Verify();
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
+        }
+
+        [ConditionalFact(typeof(MonoOrCoreClrOnly), Reason = "Desktop CLR displays argument exceptions differently")]
+        public void Generator_HintName_MustBe_Unique_Across_Outputs()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Preview);
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) =>
+                {
+                    spc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8));
+
+                    // throws immediately, because we're within the same output node
+                    Assert.Throws<ArgumentException>("hintName", () => spc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8)));
+
+                    // throws for .cs too
+                    Assert.Throws<ArgumentException>("hintName", () => spc.AddSource("test.cs", SourceText.From("public class D{}", Encoding.UTF8)));
+                });
+
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) =>
+                {
+                    // will not throw at this point, because we have no way of knowing what the other outputs added
+                    // we *will* throw later in the driver when we combine them however (this is a change for V2, but not visible from V1)
+                    spc.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8));
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, parseOptions: parseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+            outputCompilation.VerifyDiagnostics();
+            generatorDiagnostics.Verify(
+                Diagnostic("CS8785").WithArguments("PipelineCallbackGenerator", "ArgumentException", "The hintName 'test.cs' of the added source file must be unique within a generator. (Parameter 'hintName')").WithLocation(1, 1)
+                );
+            Assert.Equal(1, outputCompilation.SyntaxTrees.Count());
         }
 
         [Fact]
