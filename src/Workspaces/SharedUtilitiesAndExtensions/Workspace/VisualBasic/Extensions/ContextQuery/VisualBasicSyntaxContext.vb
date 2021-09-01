@@ -294,12 +294,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return SyntaxTree.IsFollowingCompleteExpression(Of JoinClauseSyntax)(
                 Position, TargetToken, Function(joinOperator) joinOperator.JoinedVariables.LastCollectionExpression(), cancellationToken)
         End Function
-
-        Friend Structure TestAccessor
-            Public Shared Function CreateContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As VisualBasicSyntaxContext
-                Return VisualBasicSyntaxContext.CreateContext(Nothing, semanticModel, position, cancellationToken)
-            End Function
-        End Structure
     End Class
 End Namespace
 

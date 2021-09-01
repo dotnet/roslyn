@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Recommendations
 {
     public static class Recommender
     {
-        [Obsolete]
         public static IEnumerable<ISymbol> GetRecommendedSymbolsAtPosition(
             SemanticModel semanticModel,
             int position,
