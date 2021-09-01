@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis
             bool HasCompilation { get; }
             ProjectState ProjectState { get; }
 
-            ICompilationTracker Clone();
-
             /// <summary>
             /// Returns <see langword="true"/> if this <see cref="Project"/>/<see cref="Compilation"/> could produce the
             /// given <paramref name="symbol"/>.  The symbol must be a <see cref="IAssemblySymbol"/>, <see
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary);
             bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken);
             bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(string name, SymbolFilter filter, CancellationToken cancellationToken);
-            ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, bool clone = false, CancellationToken cancellationToken = default);
+            ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, CancellationToken cancellationToken = default);
             ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken);
             Task<Compilation> GetCompilationAsync(SolutionState solution, CancellationToken cancellationToken);
             Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken);

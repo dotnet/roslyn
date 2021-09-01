@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis
             public ICompilationTracker Fork(
                 ProjectState newProject,
                 CompilationAndGeneratorDriverTranslationAction? translate = null,
-                bool clone = false,
                 CancellationToken cancellationToken = default)
             {
                 var state = ReadState();
@@ -122,11 +121,6 @@ namespace Microsoft.CodeAnalysis
                 var baseCompilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
                 if (baseCompilation != null)
                 {
-                    // We have some pre-calculated state to incrementally update
-                    var newInProgressCompilation = clone
-                        ? baseCompilation.Clone()
-                        : baseCompilation;
-
                     var intermediateProjects = state is InProgressState inProgressState
                         ? inProgressState.IntermediateProjects
                         : ImmutableArray.Create<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)>();
@@ -155,7 +149,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    var newState = State.Create(newInProgressCompilation, state.GeneratedDocuments, state.GeneratorDriver, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
+                    var newState = State.Create(baseCompilation, state.GeneratedDocuments, state.GeneratorDriver, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
 
                     return new CompilationTracker(newProject, newState);
                 }
@@ -176,12 +170,6 @@ namespace Microsoft.CodeAnalysis
                 // to rebuild its compilation from scratch if anyone asks for it.
                 return new CompilationTracker(newProject);
             }
-
-            /// <summary>
-            /// Creates a fork with the same final project.
-            /// </summary>
-            public ICompilationTracker Clone()
-                => this.Fork(this.ProjectState, clone: true);
 
             public ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
