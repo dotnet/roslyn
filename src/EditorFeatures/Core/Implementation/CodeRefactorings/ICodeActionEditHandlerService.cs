@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         ITextBufferAssociatedViewService AssociatedViewService { get; }
 
-        SolutionPreviewResult GetPreviews(
+        Task<SolutionPreviewResult> GetPreviewsAsync(
             Workspace workspace, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken);
 
         bool Apply(
