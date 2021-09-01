@@ -838,6 +838,50 @@ class C
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.struct_));
         }
 
+        [Theory]
+        [InlineData("[System.CLSCompliantAttribute]", "CLSCompliantAttribute")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.AllowNullAttribute]", "AllowNullAttribute")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.DisallowNullAttribute]", "DisallowNullAttribute")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.MaybeNullAttribute]", "MaybeNullAttribute")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.NotNullAttribute]", "NotNullAttribute")]
+        [InlineData("[System.NonSerializedAttribute]", "NonSerializedAttribute")]
+        [InlineData("[System.Reflection.AssemblyAlgorithmIdAttribute]", "AssemblyAlgorithmIdAttribute")]
+        [InlineData("[System.Reflection.AssemblyCultureAttribute]", "AssemblyCultureAttribute")]
+        [InlineData("[System.Reflection.AssemblyFlagsAttribute]", "AssemblyFlagsAttribute")]
+        [InlineData("[System.Reflection.AssemblyVersionAttribute]", "AssemblyVersionAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.DllImportAttribute]", "DllImportAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.IndexerNameAttribute]", "IndexerNameAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.MethodImplAttribute]", "MethodImplAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.SpecialNameAttribute]", "SpecialNameAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.TypeForwardedToAttribute]", "TypeForwardedToAttribute")]
+        [InlineData("[System.Runtime.InteropServices.ComImportAttribute]", "ComImportAttribute")]
+        [InlineData("[System.Runtime.InteropServices.DefaultParameterValueAttribute]", "DefaultParameterValueAttribute")]
+        [InlineData("[System.Runtime.InteropServices.FieldOffsetAttribute]", "FieldOffsetAttribute")]
+        [InlineData("[System.Runtime.InteropServices.InAttribute]", "InAttribute")]
+        [InlineData("[System.Runtime.InteropServices.MarshalAsAttribute]", "MarshalAsAttribute")]
+        [InlineData("[System.Runtime.InteropServices.OptionalAttribute]", "OptionalAttribute")]
+        [InlineData("[System.Runtime.InteropServices.OutAttribute]", "OutAttribute")]
+        [InlineData("[System.Runtime.InteropServices.PreserveSigAttribute]", "PreserveSigAttribute")]
+        [InlineData("[System.Runtime.InteropServices.StructLayoutAttribute]", "StructLayoutAttribute")]
+        [InlineData("[System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeImportAttribute]", "WindowsRuntimeImportAttribute")]
+        [InlineData("[System.Security.DynamicSecurityMethodAttribute]", "DynamicSecurityMethodAttribute")]
+        [InlineData("[System.SerializableAttribute]", "SerializableAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.AsyncMethodBuilderAttribute]", "AsyncMethodBuilderAttribute")]
+        public void Type_Attribute_Insert_SupportedByRuntime_NonCustomAttribute(string attributeType, string attributeName)
+        {
+            var src1 = @"class C { public void M(int a) {} }";
+            var src2 = attributeType + @"class C { public void M(int a) {} } ";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [class C { public void M(int a) {} }]@0 -> [" + attributeType + "class C { public void M(int a) {} }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
+                Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "class C", attributeName, FeaturesResources.class_));
+        }
+
         [Fact]
         public void Type_Attribute_Update_NotSupportedByRuntime1()
         {
@@ -7256,7 +7300,7 @@ using System;
 
 class Test
 {
-    [Obsolete, Serializable]
+    [Obsolete, STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7288,7 +7332,7 @@ using System;
 class Test
 {
     [Obsolete]
-    [Serializable]
+    [STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7318,7 +7362,7 @@ using System;
 
 class Test
 {
-    [Obsolete, Serializable]
+    [Obsolete, STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7400,7 +7444,7 @@ using System;
 
 class Test
 {
-    [Obsolete, Serializable]
+    [Obsolete, STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7432,7 +7476,7 @@ using System;
 class Test
 {
     [Obsolete]
-    [Serializable]
+    [STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -15189,22 +15233,6 @@ class C { static void M(string a) { } }
         }
 
         [Fact]
-        public void Parameter_Attribute_Insert_SupportedByRuntime_NonCustomAttribute()
-        {
-            var src1 = @"class C { public void M(int a) {} }";
-            var src2 = @"class C { public void M([System.Runtime.InteropServices.InAttribute]int a) {} } ";
-
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits(
-                "Update [int a]@24 -> [[System.Runtime.InteropServices.InAttribute]int a]@24");
-
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
-        }
-
-        [Fact]
         public void Parameter_Attribute_Insert_SupportedByRuntime_SecurityAttribute1()
         {
             var attribute = "public class AAttribute : System.Security.Permissions.SecurityAttribute { }\n\n";
@@ -15219,7 +15247,7 @@ class C { static void M(string a) { } }
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "int a", "AAttribute", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -15238,7 +15266,7 @@ class C { static void M(string a) { } }
 
             edits.VerifyRudeDiagnostics(
                 capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "int a", "AAttribute", FeaturesResources.parameter));
         }
 
         [Fact]

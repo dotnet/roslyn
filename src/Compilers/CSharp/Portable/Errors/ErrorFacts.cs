@@ -205,7 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (code)
             {
                 case ErrorCode.WRN_PartialMethodTypeDifference:
-                case ErrorCode.WRN_AttrDependentTypeNotAllowed:
                     // Warning level 6 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 6 (C# 10) and that can be reported for pre-existing code.
                     return 6;

@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
         End Function
 
         Private Shared Function HasComment(elseBlock As ElseBlockSyntax) As Boolean
-            Return elseBlock.GetLeadingTrivia().Any(Function(trivia) trivia.IsKind(SyntaxKind.CommentTrivia))
+            Return elseBlock IsNot Nothing AndAlso elseBlock.GetLeadingTrivia().Any(Function(trivia) trivia.IsKind(SyntaxKind.CommentTrivia))
         End Function
     End Class
 End Namespace

@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         public InlineHintsDataTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints))
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.InlineHints))
         {
-            _listener = listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints);
+            _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;

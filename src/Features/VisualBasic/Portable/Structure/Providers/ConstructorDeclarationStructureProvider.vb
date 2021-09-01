@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
                                                   optionProvider As BlockStructureOptionProvider,
                                                   cancellationToken As CancellationToken)
-            Dim regions As New List(Of BlockSpan)
 
             CollectCommentsRegions(constructorDeclaration, spans, optionProvider)
 

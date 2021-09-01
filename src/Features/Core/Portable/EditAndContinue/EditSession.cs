@@ -114,6 +114,33 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         /// <summary>
+        /// The compiler has various scenarios that will cause it to synthesize things that might not be covered
+        /// by existing rude edits, but we still need to ensure the runtime supports them before we proceed.
+        /// </summary>
+        private async Task<Diagnostic?> GetUnsupportedChangesDiagnosticAsync(EmitDifferenceResult emitResult, CancellationToken cancellationToken)
+        {
+            Debug.Assert(emitResult.Success);
+            Debug.Assert(emitResult.Baseline is not null);
+
+            var capabilities = await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (!capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition))
+            {
+                // If the runtime doesn't support adding new types then we expect every row number for any type that is
+                // emitted will be less than or equal to the number of rows in the original metadata.
+                var highestEmittedTypeDefRow = emitResult.ChangedTypes.Max(t => MetadataTokens.GetRowNumber(t));
+                var highestExistingTypeDefRow = emitResult.Baseline.OriginalMetadata.GetMetadataReader().GetTableRowCount(TableIndex.TypeDef);
+
+                if (highestEmittedTypeDefRow > highestExistingTypeDefRow)
+                {
+                    var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.AddingTypeRuntimeCapabilityRequired);
+                    return Diagnostic.Create(descriptor, Location.None);
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Errors to be reported when a project is updated but the corresponding module does not support EnC.
         /// </summary>
         /// <returns><see langword="default"/> if the module is not loaded.</returns>
@@ -139,16 +166,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 var capabilities = await DebuggingSession.DebuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
-                var result = EditAndContinueCapabilitiesParser.Parse(capabilities);
-
-                // For now, runtimes aren't returning capabilities, we just fall back to a known set.
-                // https://github.com/dotnet/roslyn/issues/54386
-                if (result == EditAndContinueCapabilities.None)
-                {
-                    result = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition;
-                }
-
-                return result;
+                return EditAndContinueCapabilitiesParser.Parse(capabilities);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -838,33 +856,42 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     {
                         Contract.ThrowIfNull(emitResult.Baseline);
 
-                        var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
-                        var changedTypeTokens = emitResult.ChangedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
+                        var unsupportedChangesDiagnostic = await GetUnsupportedChangesDiagnosticAsync(emitResult, cancellationToken).ConfigureAwait(false);
+                        if (unsupportedChangesDiagnostic is not null)
+                        {
+                            diagnostics.Add((newProject.Id, ImmutableArray.Create(unsupportedChangesDiagnostic)));
+                            isBlocked = true;
+                        }
+                        else
+                        {
+                            var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
+                            var changedTypeTokens = emitResult.ChangedTypes.SelectAsArray(h => MetadataTokens.GetToken(h));
 
-                        // Determine all active statements whose span changed and exception region span deltas.
-                        GetActiveStatementAndExceptionRegionSpans(
-                            mvid,
-                            oldActiveStatementsMap,
-                            updatedMethodTokens,
-                            NonRemappableRegions,
-                            projectChanges.ActiveStatementChanges,
-                            out var activeStatementsInUpdatedMethods,
-                            out var moduleNonRemappableRegions,
-                            out var exceptionRegionUpdates);
+                            // Determine all active statements whose span changed and exception region span deltas.
+                            GetActiveStatementAndExceptionRegionSpans(
+                                mvid,
+                                oldActiveStatementsMap,
+                                updatedMethodTokens,
+                                NonRemappableRegions,
+                                projectChanges.ActiveStatementChanges,
+                                out var activeStatementsInUpdatedMethods,
+                                out var moduleNonRemappableRegions,
+                                out var exceptionRegionUpdates);
 
-                        deltas.Add(new ManagedModuleUpdate(
-                            mvid,
-                            ilStream.ToImmutableArray(),
-                            metadataStream.ToImmutableArray(),
-                            pdbStream.ToImmutableArray(),
-                            projectChanges.LineChanges,
-                            updatedMethodTokens,
-                            changedTypeTokens,
-                            activeStatementsInUpdatedMethods,
-                            exceptionRegionUpdates));
+                            deltas.Add(new ManagedModuleUpdate(
+                                mvid,
+                                ilStream.ToImmutableArray(),
+                                metadataStream.ToImmutableArray(),
+                                pdbStream.ToImmutableArray(),
+                                projectChanges.LineChanges,
+                                updatedMethodTokens,
+                                changedTypeTokens,
+                                activeStatementsInUpdatedMethods,
+                                exceptionRegionUpdates));
 
-                        nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
-                        emitBaselines.Add((newProject.Id, emitResult.Baseline));
+                            nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
+                            emitBaselines.Add((newProject.Id, emitResult.Baseline));
+                        }
                     }
                     else
                     {
@@ -885,6 +912,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics, InBreakState);
+                }
+
+                // log capabilities for edit sessions with changes or reported errors:
+                if (isBlocked || deltas.Count > 0)
+                {
+                    Telemetry.LogRuntimeCapabilities(await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
                 }
 
                 var update = isBlocked ?
@@ -942,13 +975,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         activeStatementsInUpdatedMethodsBuilder.Add(new ManagedActiveStatementUpdate(methodId, instructionId.ILOffset, newActiveStatement.Span.ToSourceSpan()));
                     }
 
+                    Debug.Assert(!oldActiveStatement.IsStale);
+
                     // Adds a region with specified PDB spans.
                     void AddNonRemappableRegion(SourceFileSpan oldSpan, SourceFileSpan newSpan, bool isExceptionRegion)
                     {
                         // it is a rude edit to change the path of the region span:
                         Debug.Assert(oldSpan.Path == newSpan.Path);
 
-                        if (newActiveStatement.IsMethodUpToDate)
+                        // The up-to-date flag is copied when new active statement is created from the corresponding old one.
+                        Debug.Assert(oldActiveStatement.IsMethodUpToDate == newActiveStatement.IsMethodUpToDate);
+
+                        if (oldActiveStatement.IsMethodUpToDate)
                         {
                             // Start tracking non-remappable regions for active statements in methods that were up-to-date 
                             // when break state was entered and now being updated (regardless of whether the active span changed or not).
@@ -957,15 +995,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                 var lineDelta = oldSpan.Span.GetLineDelta(newSpan: newSpan.Span);
                                 nonRemappableRegionsBuilder.Add((methodId, new NonRemappableRegion(oldSpan, lineDelta, isExceptionRegion)));
                             }
-
-                            // If the method has been up-to-date and it is not updated now then either the active statement span has not changed,
-                            // or the entire method containing it moved. In neither case do we need to start tracking non-remapable region
-                            // for the active statement since movement of whole method bodies (if any) is handled only on PDB level without 
-                            // triggering any remapping on the IL level.
+                            else if (!isExceptionRegion)
+                            {
+                                // If the method has been up-to-date and it is not updated now then either the active statement span has not changed,
+                                // or the entire method containing it moved. In neither case do we need to start tracking non-remapable region
+                                // for the active statement since movement of whole method bodies (if any) is handled only on PDB level without 
+                                // triggering any remapping on the IL level.
+                                //
+                                // That said, we still add a non-remappable region for this active statement, so that we know in future sessions
+                                // that this active statement existed and its span has not changed. We don't report these regions to the debugger,
+                                // but we use them to map active statement spans to the baseline snapshots of following edit sessions.
+                                nonRemappableRegionsBuilder.Add((methodId, new NonRemappableRegion(oldSpan, lineDelta: 0, isExceptionRegion: false)));
+                            }
                         }
                         else if (oldSpan.Span != newSpan.Span)
                         {
-                            // The method is not up-to-date hence we maintain non-remapable span map for it that needs to be updated.
+                            // The method is not up-to-date hence we might have a previous non-remappable span mapping that needs to be brought forward to the new snapshot.
                             changedNonRemappableSpans[(methodId, oldSpan)] = newSpan;
                         }
                     }
@@ -994,17 +1039,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
+            // Update previously calculated non-remappable region mappings.
+            // These map to the old snapshot and we need them to map to the new snapshot, which will be the baseline for the next session.
             if (unremappedActiveMethods.Count > 0)
             {
                 foreach (var (methodInstance, regionsInMethod) in previousNonRemappableRegions)
                 {
+                    // Skip non-remappable regions that belong to method instances that are from a different module.
                     if (methodInstance.Module != moduleId)
                     {
                         continue;
                     }
 
-                    // Skip non-remappable regions that belong to method instances that are from a different module 
-                    // or no longer active (all active statements in these method instances have been remapped to newer versions).
+                    // Skip no longer active methods - all active statements in these method instances have been remapped to newer versions.
+                    // New active statement can't appear in a stale method instance since such instance can't be invoked.
                     if (!unremappedActiveMethods.Contains(methodInstance.Method))
                     {
                         continue;
