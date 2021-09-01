@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _asyncListener;
 
-        private CancellationTokenSource _currentUpdateCancellationToken;
+        private CancellationTokenSource? _currentUpdateCancellationToken;
 
 #pragma warning disable RS0033 // Importing constructor should be marked with 'ObsoleteAttribute'
         [ImportingConstructor]
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             }
         }
 
-        private void OnTextViewCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
+        private void OnTextViewCaretPositionChanged(object? sender, CaretPositionChangedEventArgs e)
         {
             QueueUpdateForCaretPosition(e.NewPosition);
         }
@@ -138,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             var workspace = document.Project.Solution.Workspace;
             if (!document.SupportsSemanticModel)
             {
-                var goToDefinitionService = document.GetLanguageService<IGoToDefinitionService>();
+                var goToDefinitionService = document.GetRequiredLanguageService<IGoToDefinitionService>();
                 var navigableItems = await goToDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
                 if (navigableItems != null)
                 {
@@ -151,7 +149,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
                         {
                             var text = await item.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                             var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
-                            builder.Add(new CodeDefinitionWindowLocation(item.DisplayTaggedParts.JoinText(), item.Document.FilePath, linePositionSpan));
+
+                            if (item.Document.FilePath != null)
+                            {
+                                builder.Add(new CodeDefinitionWindowLocation(item.DisplayTaggedParts.JoinText(), item.Document.FilePath, linePositionSpan));
+                            }
                         }
                     }
 
@@ -162,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             }
             else
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                     semanticModel,
                     position,
@@ -177,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
                 symbol = symbol.GetOriginalUnreducedDefinition();
 
                 // Get the symbol back from the originating workspace
-                var symbolMappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
+                var symbolMappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
                 var mappingResult = await symbolMappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
 
                 return mappingResult == null
@@ -202,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             // 1. Another language (like XAML) will take over via ISymbolNavigationService
             // 2. There are locations in source, so we'll use those
             // 3. There are no locations from source, so we'll try to generate a metadata as source file and use that
-            var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
+            var symbolNavigationService = solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
             var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: false);
             var result = await symbolNavigationService.WouldNavigateToSymbolAsync(definitionItem, cancellationToken).ConfigureAwait(false);
 
