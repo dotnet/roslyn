@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var recommender = document.GetRequiredLanguageService<IRecommendationService>();
-            var recommendations = recommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, options: null, cancellationToken).NamedSymbols;
+            var recommendations = recommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, document.Project.Solution.Options, cancellationToken).NamedSymbols;
 
             var sourceSymbols = recommendations.Where(r => r.IsNonImplicitAndFromSource());
 
