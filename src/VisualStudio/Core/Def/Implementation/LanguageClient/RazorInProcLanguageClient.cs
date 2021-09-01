@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 
             if (capabilities is VSInternalServerCapabilities vsServerCapabilities)
             {
-                vsServerCapabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
+                vsServerCapabilities.SupportsDiagnosticRequests = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
                 return vsServerCapabilities;
             }
 

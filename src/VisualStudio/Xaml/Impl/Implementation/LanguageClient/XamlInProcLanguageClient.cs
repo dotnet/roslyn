@@ -64,6 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         public override bool ShowNotificationOnInitializeFailed => IsXamlLspIntelliSenseEnabled();
 
         private bool IsXamlLspIntelliSenseEnabled()
-            => Workspace.Options.GetOption(XamlOptions.EnableLspIntelliSenseFeatureFlag);
+            => GlobalOptions.GetOption(XamlOptions.EnableLspIntelliSenseFeatureFlag);
     }
 }

@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
+        private readonly IGlobalOptionService _globalOptions;
         private readonly ImmutableHashSet<char> _csharpTriggerCharacters;
         private readonly ImmutableHashSet<char> _vbTriggerCharacters;
 
@@ -40,9 +41,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool RequiresLSPSolution => true;
 
         public CompletionHandler(
+            IGlobalOptionService globalOptions,
             IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
             CompletionListCache completionListCache)
         {
+            _globalOptions = globalOptions;
+
             _csharpTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).SelectMany(
                 lz => GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
             _vbTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.VisualBasic).SelectMany(
@@ -92,8 +96,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Feature flag to enable the return of TextEdits instead of InsertTexts (will increase payload size).
             // We check against the CompletionOption for test purposes only.
             Contract.ThrowIfNull(context.Solution);
-            var returnTextEdits = completionOptions.GetOption(LspOptions.LspCompletionFeatureFlag) ||
-                completionOptions.GetOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, document.Project.Language);
+            var returnTextEdits = _globalOptions.GetOption(LspOptions.LspCompletionFeatureFlag) ||
+                _globalOptions.GetOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, document.Project.Language);
 
             TextSpan? defaultSpan = null;
             LSP.Range? defaultRange = null;
