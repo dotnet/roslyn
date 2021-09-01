@@ -156,8 +156,6 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriverState RunGeneratorsCore(Compilation compilation, DiagnosticBag? diagnosticsBag, CancellationToken cancellationToken = default)
         {
-            using var timer = CodeAnalysisEventSource.Log.CreateGeneratorDriverRunTimer();
-
             // with no generators, there is no work to do
             if (_state.Generators.IsEmpty)
             {
@@ -165,6 +163,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // run the actual generation
+            using var timer = CodeAnalysisEventSource.Log.CreateGeneratorDriverRunTimer();
             var state = _state;
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();

@@ -16,23 +16,24 @@ namespace Microsoft.CodeAnalysis
         public static RunTimer CreateGeneratorDriverRunTimer(this CodeAnalysisEventSource eventSource)
         {
             var id = Guid.NewGuid().ToString();
-            if (eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance))
+            var enabled = eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance);
+            if (enabled)
             {
                 eventSource.StartGeneratorDriverRunTime(id);
             }
-            return new RunTimer(t => eventSource.StopGeneratorDriverRunTime(t.Ticks, id), eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance));
+            return new RunTimer(t => eventSource.StopGeneratorDriverRunTime(t.Ticks, id), enabled);
         }
 
         public static RunTimer CreateSingleGeneratorRunTimer(this CodeAnalysisEventSource eventSource, ISourceGenerator generator)
         {
             var id = Guid.NewGuid().ToString();
             var type = generator.GetGeneratorType();
-
-            if (eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance))
+            var enabled = eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance);
+            if (enabled)
             {
                 eventSource.StartSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, id);
             }
-            return new RunTimer(t => eventSource.StopSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, t.Ticks, id), eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance));
+            return new RunTimer(t => eventSource.StopSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, t.Ticks, id), enabled);
         }
 
         internal readonly struct RunTimer : IDisposable

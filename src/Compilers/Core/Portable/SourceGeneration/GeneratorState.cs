@@ -39,16 +39,16 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new generator state that contains an exception and the associated diagnostic
         /// </summary>
-        public GeneratorState(GeneratorInfo info, Exception e, Diagnostic error, TimeSpan runTime)
-            : this(info, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<ISyntaxInputNode>.Empty, ImmutableArray<IIncrementalGeneratorOutputNode>.Empty, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray.Create(error), exception: e, runTime)
+        public GeneratorState(GeneratorInfo info, Exception e, Diagnostic error, TimeSpan elapsedTime)
+            : this(info, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<ISyntaxInputNode>.Empty, ImmutableArray<IIncrementalGeneratorOutputNode>.Empty, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray.Create(error), exception: e, elapsedTime)
         {
         }
 
         /// <summary>
         /// Creates a generator state that contains results
         /// </summary>
-        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, TimeSpan runTime)
-            : this(info, postInitTrees, inputNodes, outputNodes, generatedTrees, diagnostics, exception: null, runTime)
+        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, TimeSpan elapsedTime)
+            : this(info, postInitTrees, inputNodes, outputNodes, generatedTrees, diagnostics, exception: null, elapsedTime)
         {
         }
 
