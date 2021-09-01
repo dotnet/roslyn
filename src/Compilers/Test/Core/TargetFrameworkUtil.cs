@@ -80,7 +80,7 @@ namespace Roslyn.Test.Utilities
     /// <summary>
     /// This type holds the reference information for the latest .NET Core platform. Tests
     /// targeting .NET core specifically should use the references here. As the platform moves
-    /// forward these will be moved to target the latset .NET Core supported by the compiler
+    /// forward these will be moved to target the latest .NET Core supported by the compiler
     /// </summary>
     public static class NetCoreApp
     {
@@ -101,18 +101,18 @@ namespace Roslyn.Test.Utilities
             Net50.SystemThreadingTasks,
             Net50.SystemCollections);
 
-        public static PortableExecutableReference netstandard = Net50.netstandard;
-        public static PortableExecutableReference mscorlib = Net50.mscorlib;
-        public static PortableExecutableReference SystemRuntime = Net50.SystemRuntime;
-        public static PortableExecutableReference SystemCore = Net50.SystemCore;
-        public static PortableExecutableReference SystemConsole = Net50.SystemConsole;
-        public static PortableExecutableReference SystemLinq = Net50.SystemLinq;
-        public static PortableExecutableReference SystemLinqExpressions = Net50.SystemLinqExpressions;
-        public static PortableExecutableReference SystemThreadingTasks = Net50.SystemThreadingTasks;
-        public static PortableExecutableReference SystemCollections = Net50.SystemCollections;
-        public static PortableExecutableReference SystemRuntimeInteropServices = Net50.SystemRuntimeInteropServices;
-        public static PortableExecutableReference MicrosoftCSharp = Net50.MicrosoftCSharp;
-        public static PortableExecutableReference MicrosoftVisualBasic = Net50.MicrosoftVisualBasic;
+        public static PortableExecutableReference netstandard { get; } = Net50.netstandard;
+        public static PortableExecutableReference mscorlib { get; } = Net50.mscorlib;
+        public static PortableExecutableReference SystemRuntime { get; } = Net50.SystemRuntime;
+        public static PortableExecutableReference SystemCore { get; } = Net50.SystemCore;
+        public static PortableExecutableReference SystemConsole { get; } = Net50.SystemConsole;
+        public static PortableExecutableReference SystemLinq { get; } = Net50.SystemLinq;
+        public static PortableExecutableReference SystemLinqExpressions { get; } = Net50.SystemLinqExpressions;
+        public static PortableExecutableReference SystemThreadingTasks { get; } = Net50.SystemThreadingTasks;
+        public static PortableExecutableReference SystemCollections { get; } = Net50.SystemCollections;
+        public static PortableExecutableReference SystemRuntimeInteropServices { get; } = Net50.SystemRuntimeInteropServices;
+        public static PortableExecutableReference MicrosoftCSharp { get; } = Net50.MicrosoftCSharp;
+        public static PortableExecutableReference MicrosoftVisualBasic { get; } = Net50.MicrosoftVisualBasic;
     }
 
     /// <summary>
@@ -129,13 +129,13 @@ namespace Roslyn.Test.Utilities
             NetFx.ValueTuple.tuplelib,
             Net461.SystemRuntime);
 
-        public static PortableExecutableReference mscorlib = Net461.mscorlib;
-        public static PortableExecutableReference System = Net461.System;
-        public static PortableExecutableReference SystemRuntime = Net461.SystemRuntime;
-        public static PortableExecutableReference SystemCore = Net461.SystemCore;
-        public static PortableExecutableReference SystemThreadingTasks = Net461.SystemThreadingTasks;
-        public static PortableExecutableReference MicrosoftCSharp = Net461.MicrosoftCSharp;
-        public static PortableExecutableReference MicrosoftVisualBasic = Net461.MicrosoftVisualBasic;
+        public static PortableExecutableReference mscorlib { get; } = Net461.mscorlib;
+        public static PortableExecutableReference System { get; } = Net461.System;
+        public static PortableExecutableReference SystemRuntime { get; } = Net461.SystemRuntime;
+        public static PortableExecutableReference SystemCore { get; } = Net461.SystemCore;
+        public static PortableExecutableReference SystemThreadingTasks { get; } = Net461.SystemThreadingTasks;
+        public static PortableExecutableReference MicrosoftCSharp { get; } = Net461.MicrosoftCSharp;
+        public static PortableExecutableReference MicrosoftVisualBasic { get; } = Net461.MicrosoftVisualBasic;
     }
 
     public static class TargetFrameworkUtil
