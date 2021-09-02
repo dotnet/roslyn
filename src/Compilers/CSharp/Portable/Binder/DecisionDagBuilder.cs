@@ -1823,6 +1823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : new StateForCase(Index, Syntax, newRemainingTests, Bindings, WhenClause, CaseLabel);
             }
 
+            /// <inheritdoc cref="Tests.RewriteNestedLengthTests"/>
             public StateForCase RewriteNestedLengthTests()
             {
                 return this.WithRemainingTests(RemainingTests.RewriteNestedLengthTests());
@@ -1851,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable;
             public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
             /// <summary>
-            ///  Rewrite nested length tests in slice subpatterns to check the top-level length property instead.
+            /// Rewrite nested length tests in slice subpatterns to check the top-level length property instead.
             /// </summary>
             public virtual Tests RewriteNestedLengthTests() => this;
             public abstract string Dump(Func<BoundDagTest, string> dump);
