@@ -22,7 +22,7 @@ namespace Roslyn.Diagnostics.Analyzers
     [Shared]
     public class ExportedPartsShouldHaveImportingConstructorCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ExportedPartsShouldHaveImportingConstructor.Rule.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(ExportedPartsShouldHaveImportingConstructor.Rule.Id);
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;
