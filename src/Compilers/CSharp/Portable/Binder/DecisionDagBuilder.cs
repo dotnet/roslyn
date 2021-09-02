@@ -2033,7 +2033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return True.Instance;
                         return null;
                     }
-                    
+
                     static ConstantValue safeAdd(ConstantValue constant, int offset)
                     {
                         int value = constant.Int32Value;
