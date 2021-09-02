@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     Dim parentOfAwaitable = potentialAwaitableExpression.Parent
 
                     If Not (TypeOf parentOfAwaitable Is AwaitExpressionSyntax) Then
-                        Dim syntaxContextAtInsertationPosition = syntaxContext.GetLanguageService(Of ISyntaxContextService)().CreateContext(syntaxContext.Workspace, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken)
+                        Dim syntaxContextAtInsertationPosition = syntaxContext.GetLanguageService(Of ISyntaxContextService)().CreateContext(syntaxContext.Document, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken)
 
                         If syntaxContextAtInsertationPosition.IsAwaitKeywordContext() Then
                             Return If(IsConfigureAwaitable(syntaxContext.SemanticModel.Compilation, symbol), DotAwaitContext.AwaitAndConfigureAwait, DotAwaitContext.AwaitOnly)

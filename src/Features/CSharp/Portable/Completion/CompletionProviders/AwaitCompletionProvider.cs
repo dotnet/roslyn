@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         // We have a awaitable type left of the dot, that is not yet awaited.
                         // We need to check if await is valid at the insertion position.
                         var syntaxContextAtInsertationPosition = syntaxContext.GetLanguageService<ISyntaxContextService>().CreateContext(
-                            syntaxContext.Workspace, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken);
+                            syntaxContext.Document, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken);
                         if (syntaxContextAtInsertationPosition.IsAwaitKeywordContext())
                         {
                             return IsConfigureAwaitable(syntaxContext.SemanticModel.Compilation, symbol)
