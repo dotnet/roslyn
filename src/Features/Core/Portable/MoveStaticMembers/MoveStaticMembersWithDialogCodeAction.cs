@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             }
 
             // Find the original doc root
-            var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // add annotations to the symbols that we selected so we can find them later to pull up
@@ -72,13 +71,29 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             root = root.TrackNodes(memberNodes);
             var sourceDoc = _document.WithSyntaxRoot(root);
 
+            if (!moveOptions.IsNewType)
+            {
+                // we already have our destination type
+                var fixedSolution = await RefactorAndMoveAsync(
+                    moveOptions.SelectedMembers,
+                    memberNodes,
+                    sourceDoc.Project.Solution,
+                    moveOptions.Destination!,
+                    // TODO: Find a way to merge/change generic type args for classes, or change PullMembersUp to handle instead
+                    typeArgIndices: ImmutableArray<int>.Empty,
+                    sourceDoc.Id,
+                    cancellationToken).ConfigureAwait(false);
+                return new CodeActionOperation[] { new ApplyChangesOperation(fixedSolution) };
+            }
+
+            // otherwise, we need to create a destination ourselves
             var typeParameters = ExtractTypeHelpers.GetRequiredTypeParametersForMembers(_selectedType, moveOptions.SelectedMembers);
             // which indices of the old type params should we keep for a new class reference, used for refactoring usages
             var typeArgIndices = Enumerable.Range(0, _selectedType.TypeParameters.Length)
                 .Where(i => typeParameters.Contains(_selectedType.TypeParameters[i]))
                 .ToImmutableArrayOrEmpty();
 
-            // even though we can move members here, we will move them by calling PullMembersUp
+            // even though we can move members here, we will move them later because of refactoring
             var newType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 ImmutableArray.Create<AttributeData>(),
                 Accessibility.NotApplicable,
@@ -102,23 +117,14 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var destSemanticModel = await newDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             newType = destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken) as INamedTypeSymbol;
 
-            // refactor references across the entire solution
-            var memberReferenceLocations = await FindMemberReferencesAsync(moveOptions.SelectedMembers, newDoc.Project.Solution, cancellationToken).ConfigureAwait(false);
-            var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
-            var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, newDoc.Project.Solution, newType!, typeArgIndices, cancellationToken).ConfigureAwait(false);
-
-            sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDoc.Id);
-
-            // get back nodes from our changes
-            root = await sourceDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var members = memberNodes
-                .Select(node => root.GetCurrentNode(node))
-                .WhereNotNull()
-                .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node!, cancellationToken), false));
-
-            var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType!, members);
-            var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
+            var movedSolution = await RefactorAndMoveAsync(
+                moveOptions.SelectedMembers,
+                memberNodes,
+                newDoc.Project.Solution,
+                newType!,
+                typeArgIndices,
+                sourceDoc.Id,
+                cancellationToken).ConfigureAwait(false);
 
             return new CodeActionOperation[] { new ApplyChangesOperation(movedSolution) };
         }
@@ -131,6 +137,45 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         private static TypeKind GetNewTypeKind(INamedTypeSymbol oldType)
         {
             return oldType.TypeKind;
+        }
+
+        /// <summary>
+        /// Finds references, refactors them, then moves the selected members to the destination.
+        /// Used when the destination type/file already exists.
+        /// </summary>
+        /// <param name="selectedMembers">selected member symbols</param>
+        /// <param name="oldMemberNodes">nodes corresponding to those symbols in the old solution, should have been annotated</param>
+        /// <param name="oldSolution">solution without any members moved/refactored</param>
+        /// <param name="newType">the type to move to, should be inserted into a document already</param>
+        /// <param name="typeArgIndices">generic type arg indices to keep when refactoring generic class access to the new type. Empty if not relevant</param>
+        /// <param name="sourceDocId">Id of the document where the mebers are being moved from</param>
+        /// <returns>The solution with references refactored and members moved to the newType</returns>
+        private static async Task<Solution> RefactorAndMoveAsync(
+            ImmutableArray<ISymbol> selectedMembers,
+            ImmutableArray<SyntaxNode> oldMemberNodes,
+            Solution oldSolution,
+            INamedTypeSymbol newType,
+            ImmutableArray<int> typeArgIndices,
+            DocumentId sourceDocId,
+            CancellationToken cancellationToken)
+        {
+            // refactor references across the entire solution
+            var memberReferenceLocations = await FindMemberReferencesAsync(selectedMembers, oldSolution, cancellationToken).ConfigureAwait(false);
+            var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
+            var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, oldSolution, newType!, typeArgIndices, cancellationToken).ConfigureAwait(false);
+
+            var sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDocId);
+
+            // get back nodes from our changes
+            var root = await sourceDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var members = oldMemberNodes
+                .Select(node => root.GetCurrentNode(node))
+                .WhereNotNull()
+                .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node!, cancellationToken), false));
+
+            var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType!, members);
+            return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<Solution> RefactorReferencesAsync(

@@ -2250,7 +2250,7 @@ End Namespace"
 
                 Dim workspace = New AdhocWorkspace(hostServices)
                 Dim optionsService = DirectCast(workspace.Services.GetRequiredService(Of IMoveStaticMembersOptionsService)(), TestMoveStaticMembersService)
-                optionsService.DestinationType = _destinationType
+                optionsService.DestinationName = _destinationType
                 optionsService.Filename = _newFileName
                 optionsService.SelectedMembers = _members
 
