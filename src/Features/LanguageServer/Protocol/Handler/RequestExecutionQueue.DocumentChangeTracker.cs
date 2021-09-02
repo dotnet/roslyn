@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             void StopTracking(Uri documentUri);
             bool IsTracking(Uri documentUri);
             IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments();
+            SourceText GetTrackedDocumentSourceText(Uri documentUri);
         }
 
         private class NonMutatingDocumentChangeTracker : IDocumentChangeTracker
@@ -35,6 +36,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public IEnumerable<(Uri DocumentUri, SourceText Text)> GetTrackedDocuments()
                 => _tracker.GetTrackedDocuments();
+
+            public SourceText GetTrackedDocumentSourceText(Uri documentUri)
+            {
+                Contract.Fail("Mutating documents not allowed in a non-mutating request handler");
+                throw new NotImplementedException();
+            }
 
             public bool IsTracking(Uri documentUri)
                 => _tracker.IsTracking(documentUri);
@@ -71,21 +78,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public void StartTracking(Uri documentUri, SourceText initialText)
             {
-                Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(documentUri), "didOpen received for an already open document.");
+                Contract.ThrowIfTrue(_trackedDocuments.ContainsKey(documentUri), $"didOpen received for {documentUri} which is already open.");
 
                 _trackedDocuments.Add(documentUri, initialText);
             }
 
             public void UpdateTrackedDocument(Uri documentUri, SourceText text)
             {
-                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), "didChange received for a document that isn't open.");
+                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), $"didChange received for {documentUri} which is not open.");
 
                 _trackedDocuments[documentUri] = text;
             }
 
+            public SourceText GetTrackedDocumentSourceText(Uri documentUri)
+            {
+                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), "didChange received for a document that isn't open.");
+
+                return _trackedDocuments[documentUri];
+            }
+
             public void StopTracking(Uri documentUri)
             {
-                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), "didClose received for a document that isn't open.");
+                Contract.ThrowIfFalse(_trackedDocuments.ContainsKey(documentUri), $"didClose received for {documentUri} which is not open.");
 
                 _trackedDocuments.Remove(documentUri);
             }
@@ -106,6 +120,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public List<SourceText> GetTrackedTexts()
                 => _queue._documentChangeTracker.GetTrackedDocuments().Select(i => i.Text).ToList();
+
+            public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
         }
     }
 }

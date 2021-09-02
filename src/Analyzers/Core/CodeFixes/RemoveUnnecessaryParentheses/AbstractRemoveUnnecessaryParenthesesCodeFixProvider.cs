@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
-        protected abstract bool CanRemoveParentheses(TParenthesizedExpressionSyntax current, SemanticModel semanticModel);
+        protected abstract bool CanRemoveParentheses(
+            TParenthesizedExpressionSyntax current, SemanticModel semanticModel, CancellationToken cancellationToken);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 
             return editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, originalNodes,
-                (semanticModel, current) => current != null && CanRemoveParentheses(current, semanticModel),
+                (semanticModel, current) => current != null && CanRemoveParentheses(current, semanticModel, cancellationToken),
                 (_, currentRoot, current) => currentRoot.ReplaceNode(current, syntaxFacts.Unparenthesize(current)),
                 cancellationToken);
         }

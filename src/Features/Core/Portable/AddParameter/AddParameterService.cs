@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -93,13 +91,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
             // Indexing Locations[0] is valid because IMethodSymbols have one location at most
             // and IsFromSource() tests if there is at least one location.
             var locationsByDocument = locationsInSource.ToLookup(declarationLocation
-                => solution.GetDocument(declarationLocation.Locations[0].SourceTree));
+                => solution.GetRequiredDocument(declarationLocation.Locations[0].SourceTree!));
 
             foreach (var documentLookup in locationsByDocument)
             {
                 var document = documentLookup.Key;
-                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var editor = new SyntaxEditor(syntaxRoot, solution.Workspace);
                 var generator = editor.Generator;
                 foreach (var methodDeclaration in documentLookup)

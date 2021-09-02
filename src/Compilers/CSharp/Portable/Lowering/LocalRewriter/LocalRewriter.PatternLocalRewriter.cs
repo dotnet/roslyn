@@ -207,9 +207,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             TypeSymbol type = t.Type;
                             var outputTemp = new BoundDagTemp(t.Syntax, type, t);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                            Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, ref useSiteDiagnostics);
-                            _localRewriter._diagnostics.Add(t.Syntax, useSiteDiagnostics);
+                            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = _localRewriter.GetNewCompoundUseSiteInfo();
+                            Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, ref useSiteInfo);
+                            _localRewriter._diagnostics.Add(t.Syntax, useSiteInfo);
                             BoundExpression evaluated;
                             if (conversion.Exists)
                             {
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Convert(operandType, rewrittenExpr),
                         _factory.Convert(operandType, new BoundLiteral(syntax, ConstantValue.Null, objectType)),
                         _factory.SpecialType(SpecialType.System_Boolean),
-                        null);
+                        method: null, constrainedToTypeOpt: null);
                 }
 
                 return _localRewriter.MakeNullCheck(syntax, rewrittenExpr, operatorKind);
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     literal = _factory.Convert(comparisonType, literal);
                 }
 
-                return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null);
+                return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null, constrainedToTypeOpt: null);
             }
 
             /// <summary>
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 [NotNullWhen(true)] out BoundExpression sideEffect,
                 [NotNullWhen(true)] out BoundExpression testExpression)
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = _localRewriter.GetNewCompoundUseSiteInfo();
 
                 // case 1: type test followed by cast to that type
                 if (test is BoundDagTypeTest typeDecision &&
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // case 2: null check followed by cast to a base type
                 if (test is BoundDagNonNullTest nonNullTest &&
                     evaluation is BoundDagTypeEvaluation typeEvaluation2 &&
-                    _factory.Compilation.Conversions.ClassifyBuiltInConversion(test.Input.Type, typeEvaluation2.Type, ref useSiteDiagnostics) is Conversion conv &&
+                    _factory.Compilation.Conversions.ClassifyBuiltInConversion(test.Input.Type, typeEvaluation2.Type, ref useSiteInfo) is Conversion conv &&
                     (conv.IsIdentity || conv.Kind == ConversionKind.ImplicitReference || conv.IsBoxing) &&
                     typeEvaluation2.Input == nonNullTest.Input)
                 {
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, baseType, evaluation));
                     sideEffect = _factory.AssignmentExpression(output, _factory.Convert(baseType, input));
                     testExpression = _factory.ObjectNotEqual(output, _factory.Null(baseType));
-                    _localRewriter._diagnostics.Add(test.Syntax, useSiteDiagnostics);
+                    _localRewriter._diagnostics.Add(test.Syntax, useSiteInfo);
                     return true;
                 }
 

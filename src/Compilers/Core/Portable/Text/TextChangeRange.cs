@@ -133,5 +133,10 @@ namespace Microsoft.CodeAnalysis.Text
         {
             return $"new TextChangeRange(new TextSpan({Span.Start}, {Span.Length}), {NewLength})";
         }
+
+        public override string ToString()
+        {
+            return $"TextChangeRange(Span={Span}, NewLength={NewLength})";
+        }
     }
 }

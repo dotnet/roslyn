@@ -3,7 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
@@ -23,7 +25,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C"), GraphContextDirection.Custom)
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, False))
+                Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(
+                    New Graph(), New SearchGraphQuery(searchPattern:="C", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -55,7 +60,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="F"), GraphContextDirection.Custom)
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, False))
+                Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(
+                    New Graph(), New SearchGraphQuery(searchPattern:="F", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -89,7 +97,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="M"), GraphContextDirection.Custom)
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, False))
+                Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(
+                    New Graph(), New SearchGraphQuery(searchPattern:="M", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -136,7 +147,10 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C"), GraphContextDirection.Custom)
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, False))
+                Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(
+                    New Graph(), New SearchGraphQuery(searchPattern:="C", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -184,7 +198,10 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Goo"), GraphContextDirection.Custom)
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, False))
+                Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(
+                    New Graph(), New SearchGraphQuery(searchPattern:="Goo", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -231,7 +248,10 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="Z"), GraphContextDirection.Custom)
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, False))
+                Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(
+                    New Graph(), New SearchGraphQuery(searchPattern:="Z", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -270,7 +290,10 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="D.B"), GraphContextDirection.Custom)
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, False))
+                Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(
+                    New Graph(), New SearchGraphQuery(searchPattern:="D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -304,7 +327,10 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="C.B"), GraphContextDirection.Custom)
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, False))
+                Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(
+                    New Graph(), New SearchGraphQuery(searchPattern:="C.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -326,7 +352,10 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="D.B"), GraphContextDirection.Custom)
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, False))
+                Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(
+                    New Graph(), New SearchGraphQuery(searchPattern:="D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -360,7 +389,10 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="A.D.B"), GraphContextDirection.Custom)
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, False))
+                Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(
+                    New Graph(), New SearchGraphQuery(searchPattern:="A.D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -394,7 +426,10 @@ End Namespace
                         </Project>
                     </Workspace>)
 
-                Dim outputContext = Await testState.GetGraphContextAfterQuery(New Graph(), New SearchGraphQuery(searchPattern:="A.D.B"), GraphContextDirection.Custom)
+                testState.Workspace.SetOptions(testState.Workspace.Options.WithChangedOption(ProgressionOptions.SearchUsingNavigateToEngine, False))
+                Dim threadingContext = testState.Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(
+                    New Graph(), New SearchGraphQuery(searchPattern:="A.D.B", threadingContext, AsynchronousOperationListenerProvider.NullListener), GraphContextDirection.Custom)
 
                 ' When searching, don't descend into projects with a null FilePath because they are artifacts and not
                 ' representable in the Solution Explorer, e.g., Venus projects create sub-projects with a null file

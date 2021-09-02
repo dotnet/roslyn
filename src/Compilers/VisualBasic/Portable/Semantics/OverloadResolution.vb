@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -512,10 +513,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Structure OptionalArgument
             Public ReadOnly DefaultValue As BoundExpression
             Public ReadOnly Conversion As KeyValuePair(Of ConversionKind, MethodSymbol)
+            Public ReadOnly Dependencies As ImmutableArray(Of AssemblySymbol)
 
-            Public Sub New(value As BoundExpression, conversion As KeyValuePair(Of ConversionKind, MethodSymbol))
+            Public Sub New(value As BoundExpression, conversion As KeyValuePair(Of ConversionKind, MethodSymbol), dependencies As ImmutableArray(Of AssemblySymbol))
                 Me.DefaultValue = value
                 Me.Conversion = conversion
+                Me.Dependencies = dependencies.NullToEmpty()
             End Sub
         End Structure
 
@@ -704,7 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public NotInferredTypeArguments As BitVector
 
-            Public TypeArgumentInferenceDiagnosticsOpt As DiagnosticBag
+            Public TypeArgumentInferenceDiagnosticsOpt As BindingDiagnosticBag
 
             Public Sub New(candidate As Candidate, state As CandidateAnalysisResultState)
                 Me.Candidate = candidate
@@ -802,7 +805,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             argumentNames As ImmutableArray(Of String),
             binder As Binder,
             callerInfoOpt As SyntaxNode,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
             Optional includeEliminatedCandidates As Boolean = False,
             Optional forceExpandedForm As Boolean = False
         ) As OverloadResolutionResult
@@ -815,7 +818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     argumentNames,
                     binder,
                     callerInfoOpt,
-                    useSiteDiagnostics,
+                    useSiteInfo,
                     includeEliminatedCandidates,
                     forceExpandedForm:=forceExpandedForm)
             Else
@@ -826,7 +829,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     argumentNames,
                     binder,
                     callerInfoOpt,
-                    useSiteDiagnostics,
+                    useSiteInfo,
                     includeEliminatedCandidates)
             End If
 
@@ -839,7 +842,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             methodGroup As BoundMethodGroup,
             arguments As ImmutableArray(Of BoundExpression),
             binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
             Optional includeEliminatedCandidates As Boolean = False
         ) As OverloadResolutionResult
             Return MethodInvocationOverloadResolution(
@@ -848,7 +851,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Nothing,
                         binder,
                         callerInfoOpt:=Nothing,
-                        useSiteDiagnostics:=useSiteDiagnostics,
+                        useSiteInfo:=useSiteInfo,
                         includeEliminatedCandidates:=includeEliminatedCandidates,
                         lateBindingIsAllowed:=False,
                         isQueryOperatorInvocation:=True)
@@ -865,7 +868,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             argumentNames As ImmutableArray(Of String),
             binder As Binder,
             callerInfoOpt As SyntaxNode,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
             Optional includeEliminatedCandidates As Boolean = False,
             Optional delegateReturnType As TypeSymbol = Nothing,
             Optional delegateReturnTypeReferenceBoundNode As BoundNode = Nothing,
@@ -917,13 +920,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     binder, candidates, instanceCandidates, typeArguments,
                     arguments, argumentNames, delegateReturnType, delegateReturnTypeReferenceBoundNode,
                     includeEliminatedCandidates, isQueryOperatorInvocation, forceExpandedForm, asyncLambdaSubToFunctionMismatch,
-                    useSiteDiagnostics)
+                    useSiteInfo)
 
                 applicableInstanceCandidateCount = EliminateNotApplicableToArguments(methodGroup, candidates, arguments, argumentNames, binder,
                                                                                      applicableNarrowingCandidateCount, asyncLambdaSubToFunctionMismatch,
                                                                                      callerInfoOpt,
                                                                                      forceExpandedForm,
-                                                                                     useSiteDiagnostics)
+                                                                                     useSiteInfo)
             End If
 
             instanceCandidates.Free()
@@ -935,7 +938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If ShouldConsiderExtensionMethods(candidates) Then
                 ' Request additional extension methods, if any available.
                 If methodGroup.ResultKind = LookupResultKind.Good Then
-                    methods = methodGroup.AdditionalExtensionMethods(useSiteDiagnostics)
+                    methods = methodGroup.AdditionalExtensionMethods(useSiteInfo)
 
                     For Each method As MethodSymbol In methods
                         curriedCandidates.Add(New ExtensionMethodCandidate(method))
@@ -949,7 +952,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         binder, candidates, curriedCandidates, typeArguments,
                         arguments, argumentNames, delegateReturnType, delegateReturnTypeReferenceBoundNode,
                         includeEliminatedCandidates, isQueryOperatorInvocation, forceExpandedForm, asyncLambdaSubToFunctionMismatch,
-                        useSiteDiagnostics)
+                        useSiteInfo)
                 End If
             End If
 
@@ -960,7 +963,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 result = ReportOverloadResolutionFailedOrLateBound(candidates, applicableInstanceCandidateCount, lateBindingIsAllowed AndAlso binder.OptionStrict <> OptionStrict.On, asyncLambdaSubToFunctionMismatch)
             Else
                 result = ResolveOverloading(methodGroup, candidates, arguments, argumentNames, delegateReturnType, lateBindingIsAllowed, binder, asyncLambdaSubToFunctionMismatch, callerInfoOpt, forceExpandedForm,
-                                            useSiteDiagnostics)
+                                            useSiteInfo)
             End If
 
             candidates.Free()
@@ -996,7 +999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             argumentNames As ImmutableArray(Of String),
             binder As Binder,
             callerInfoOpt As SyntaxNode,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
             Optional includeEliminatedCandidates As Boolean = False
         ) As OverloadResolutionResult
             Debug.Assert(propertyGroup.ResultKind = LookupResultKind.Good OrElse propertyGroup.ResultKind = LookupResultKind.Inaccessible)
@@ -1019,13 +1022,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             CollectOverloadedCandidates(binder, results, candidates, ImmutableArray(Of TypeSymbol).Empty,
                                         arguments, argumentNames, Nothing, Nothing, includeEliminatedCandidates,
                                         isQueryOperatorInvocation:=False, forceExpandedForm:=False, asyncLambdaSubToFunctionMismatch:=asyncLambdaSubToFunctionMismatch,
-                                        useSiteDiagnostics:=useSiteDiagnostics)
+                                        useSiteInfo:=useSiteInfo)
             Debug.Assert(asyncLambdaSubToFunctionMismatch Is Nothing)
             candidates.Free()
 
             Dim result = ResolveOverloading(propertyGroup, results, arguments, argumentNames, delegateReturnType:=Nothing, lateBindingIsAllowed:=True, binder:=binder,
                                             asyncLambdaSubToFunctionMismatch:=asyncLambdaSubToFunctionMismatch, callerInfoOpt:=callerInfoOpt, forceExpandedForm:=False,
-                                            useSiteDiagnostics:=useSiteDiagnostics)
+                                            useSiteInfo:=useSiteInfo)
             results.Free()
 
             Return result
@@ -1064,7 +1067,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             callerInfoOpt As SyntaxNode,
             forceExpandedForm As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As OverloadResolutionResult
 
             Debug.Assert(argumentNames.IsDefault OrElse argumentNames.Length = arguments.Length)
@@ -1089,7 +1092,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      applicableNarrowingCandidates, asyncLambdaSubToFunctionMismatch,
                                                                      callerInfoOpt,
                                                                      forceExpandedForm,
-                                                                     useSiteDiagnostics)
+                                                                     useSiteInfo)
             If applicableCandidates < 2 Then
                 narrowingCandidatesRemainInTheSet = (applicableNarrowingCandidates > 0)
                 GoTo ResolutionComplete
@@ -1121,7 +1124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' level, however it needs other tie breaking rules applied to equally applicable candidates prior
             ' to figuring out the minimal inference level to use as the filter.
             ShadowBasedOnInferenceLevel(candidates, arguments, Not argumentNames.IsDefault, delegateReturnType, binder,
-                                        applicableCandidates, applicableNarrowingCandidates, useSiteDiagnostics)
+                                        applicableCandidates, applicableNarrowingCandidates, useSiteInfo)
             If applicableCandidates < 2 Then
                 narrowingCandidatesRemainInTheSet = (applicableNarrowingCandidates > 0)
                 GoTo ResolutionComplete
@@ -1143,7 +1146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 applicableCandidates = AnalyzeNarrowingCandidates(candidates, arguments, delegateReturnType,
                                                                   lateBindingIsAllowed AndAlso binder.OptionStrict <> OptionStrict.On, binder,
                                                                   resolutionIsLateBound,
-                                                                  useSiteDiagnostics)
+                                                                  useSiteInfo)
             Else
                 If applicableNarrowingCandidates > 0 Then
                     Debug.Assert(applicableNarrowingCandidates < applicableCandidates)
@@ -1171,7 +1174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '7.	Otherwise, given any two members of the set, M and N, apply the following tie-breaking rules, in order.
                 applicableCandidates = EliminateLessApplicableToTheArguments(candidates, arguments, delegateReturnType,
                                                                              False, ' appliedTieBreakingRules
-                                                                             binder, useSiteDiagnostics)
+                                                                             binder, useSiteInfo)
             End If
 
 ResolutionComplete:
@@ -1225,14 +1228,14 @@ ResolutionComplete:
             delegateReturnType As TypeSymbol,
             appliedTieBreakingRules As Boolean,
             binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
             Optional mostApplicableMustNarrowOnlyFromNumericConstants As Boolean = False
         ) As Integer
             Dim applicableCandidates As Integer
 
             Dim indexesOfEqualMostApplicableCandidates As ArrayBuilder(Of Integer) = ArrayBuilder(Of Integer).GetInstance()
 
-            If FastFindMostApplicableCandidates(candidates, arguments, indexesOfEqualMostApplicableCandidates, binder, useSiteDiagnostics) AndAlso
+            If FastFindMostApplicableCandidates(candidates, arguments, indexesOfEqualMostApplicableCandidates, binder, useSiteInfo) AndAlso
                (mostApplicableMustNarrowOnlyFromNumericConstants = False OrElse
                 candidates(indexesOfEqualMostApplicableCandidates(0)).RequiresNarrowingNotFromNumericConstant = False OrElse
                 indexesOfEqualMostApplicableCandidates.Count = CountApplicableCandidates(candidates)) Then
@@ -1273,7 +1276,7 @@ ResolutionComplete:
 
                 ' Apply tie-breaking rules 
                 If Not appliedTieBreakingRules Then
-                    applicableCandidates = ApplyTieBreakingRules(candidates, indexesOfEqualMostApplicableCandidates, arguments, delegateReturnType, binder, useSiteDiagnostics)
+                    applicableCandidates = ApplyTieBreakingRules(candidates, indexesOfEqualMostApplicableCandidates, arguments, delegateReturnType, binder, useSiteInfo)
                 Else
                     applicableCandidates = indexesOfEqualMostApplicableCandidates.Count
                 End If
@@ -1284,7 +1287,7 @@ ResolutionComplete:
                 ' this will provide better error reporting experience. As we are doing this, we will redo
                 ' applicability comparisons that we've done earlier in FastFindMostApplicableCandidates, but we are willing to 
                 ' pay the price for erroneous code.
-                applicableCandidates = ApplyTieBreakingRulesToEquallyApplicableCandidates(candidates, arguments, delegateReturnType, binder, useSiteDiagnostics)
+                applicableCandidates = ApplyTieBreakingRulesToEquallyApplicableCandidates(candidates, arguments, delegateReturnType, binder, useSiteInfo)
 
             Else
                 applicableCandidates = CountApplicableCandidates(candidates)
@@ -1316,7 +1319,7 @@ ResolutionComplete:
             arguments As ImmutableArray(Of BoundExpression),
             delegateReturnType As TypeSymbol,
             binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Integer
 
             ' First, let's break all remaining candidates into buckets of equally applicable candidates
@@ -1328,7 +1331,7 @@ ResolutionComplete:
 
             ' Apply tie-breaking rules
             For i As Integer = 0 To buckets.Count - 1 Step 1
-                applicableCandidates += ApplyTieBreakingRules(candidates, buckets(i), arguments, delegateReturnType, binder, useSiteDiagnostics)
+                applicableCandidates += ApplyTieBreakingRules(candidates, buckets(i), arguments, delegateReturnType, binder, useSiteInfo)
             Next
 
             ' Release memory we no longer need.
@@ -1352,7 +1355,7 @@ ResolutionComplete:
             arguments As ImmutableArray(Of BoundExpression),
             indexesOfMostApplicableCandidates As ArrayBuilder(Of Integer),
             binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
             Dim mightBeTheMostApplicableIndex As Integer = -1
             Dim mightBeTheMostApplicable As CandidateAnalysisResult = Nothing
@@ -1375,7 +1378,7 @@ ResolutionComplete:
                     mightBeTheMostApplicable = contender
                     indexesOfMostApplicableCandidates.Add(i)
                 Else
-                    Dim cmp As ApplicabilityComparisonResult = CompareApplicabilityToTheArguments(mightBeTheMostApplicable, contender, arguments, binder, useSiteDiagnostics)
+                    Dim cmp As ApplicabilityComparisonResult = CompareApplicabilityToTheArguments(mightBeTheMostApplicable, contender, arguments, binder, useSiteInfo)
 
                     If cmp = ApplicabilityComparisonResult.RightIsMoreApplicable Then
                         mightBeTheMostApplicableIndex = i
@@ -1402,7 +1405,7 @@ ResolutionComplete:
                     Continue For
                 End If
 
-                Dim cmp As ApplicabilityComparisonResult = CompareApplicabilityToTheArguments(mightBeTheMostApplicable, contender, arguments, binder, useSiteDiagnostics)
+                Dim cmp As ApplicabilityComparisonResult = CompareApplicabilityToTheArguments(mightBeTheMostApplicable, contender, arguments, binder, useSiteInfo)
 
                 If cmp = ApplicabilityComparisonResult.RightIsMoreApplicable OrElse
                    cmp = ApplicabilityComparisonResult.Undefined OrElse
@@ -1429,7 +1432,7 @@ ResolutionComplete:
             arguments As ImmutableArray(Of BoundExpression),
             delegateReturnType As TypeSymbol,
             binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Integer
             Dim leftWins As Boolean
             Dim rightWins As Boolean
@@ -1449,7 +1452,7 @@ ResolutionComplete:
                         Continue For
                     End If
 
-                    If ShadowBasedOnTieBreakingRules(left, right, arguments, delegateReturnType, leftWins, rightWins, binder, useSiteDiagnostics) Then
+                    If ShadowBasedOnTieBreakingRules(left, right, arguments, delegateReturnType, leftWins, rightWins, binder, useSiteInfo) Then
                         Debug.Assert(Not (leftWins AndAlso rightWins))
 
                         If leftWins Then
@@ -1483,7 +1486,7 @@ ResolutionComplete:
             ByRef leftWins As Boolean,
             ByRef rightWins As Boolean,
             binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
 
             ' Let's apply various shadowing and tie-breaking rules 
@@ -1501,7 +1504,7 @@ ResolutionComplete:
             '       This rule also applies to the types that extension methods are defined on. 
             '7.2.	If M and N are extension methods and the target type of M is a class or 
             '       structure and the target type of N is an interface, eliminate N from the set.
-            If ShadowBasedOnReceiverType(left, right, leftWins, rightWins, useSiteDiagnostics) Then
+            If ShadowBasedOnReceiverType(left, right, leftWins, rightWins, useSiteInfo) Then
                 Return True  ' I believe we can get here only in presence of named arguments and optional parameters. Otherwise, CombineCandidates takes care of this shadowing.
             End If
 
@@ -1709,7 +1712,7 @@ ResolutionComplete:
             binder As Binder,
             ByRef applicableCandidates As Integer,
             ByRef applicableNarrowingCandidates As Integer,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
             Debug.Assert(Not haveNamedArguments OrElse Not candidates(0).Candidate.IsOperator)
 
@@ -1827,7 +1830,7 @@ ResolutionComplete:
                         Dim rightWins As Boolean = False
 
                         If (Not signatureMatch AndAlso ShadowBasedOnParamArrayUsage(left, right, leftWins, rightWins)) OrElse
-                           ShadowBasedOnReceiverType(left, right, leftWins, rightWins, useSiteDiagnostics) OrElse
+                           ShadowBasedOnReceiverType(left, right, leftWins, rightWins, useSiteInfo) OrElse
                            ShadowBasedOnExtensionMethodTargetTypeGenericity(left, right, leftWins, rightWins) Then
                             Debug.Assert(leftWins Xor rightWins)
                             If leftWins Then
@@ -1915,7 +1918,7 @@ ResolutionComplete:
             ByRef right As CandidateAnalysisResult,
             arguments As ImmutableArray(Of BoundExpression),
             binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ApplicabilityComparisonResult
 
             ' §11.8.1.1 Applicability
@@ -1957,7 +1960,7 @@ ResolutionComplete:
                     Continue For
                 End If
 
-                Dim cmp = CompareParameterTypeApplicability(leftParamType, rightParamType, arguments(i), binder, useSiteDiagnostics)
+                Dim cmp = CompareParameterTypeApplicability(leftParamType, rightParamType, arguments(i), binder, useSiteInfo)
 
                 If cmp = ApplicabilityComparisonResult.LeftIsMoreApplicable Then
                     leftHasMoreApplicableParameterType = True
@@ -2013,7 +2016,7 @@ ResolutionComplete:
             right As TypeSymbol,
             argument As BoundExpression,
             binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As ApplicabilityComparisonResult
             Debug.Assert(argument Is Nothing OrElse argument.Kind <> BoundKind.OmittedArgument)
 
@@ -2021,7 +2024,7 @@ ResolutionComplete:
             'Given a pair of parameters Mj and Nj that matches an argument Aj, 
             'the type of Mj is considered more applicable than the type of Nj if one of the following conditions is true:
 
-            Dim leftToRightConversion = Conversions.ClassifyConversion(left, right, useSiteDiagnostics)
+            Dim leftToRightConversion = Conversions.ClassifyConversion(left, right, useSiteInfo)
 
             '1.	Mj and Nj have identical types, or
             ' !!! Does this rule make sense? Not implementing it for now.  
@@ -2035,7 +2038,7 @@ ResolutionComplete:
                 ' !!! For user defined conversions that widen in both directions there is a tie-breaking rule
                 ' !!! not mentioned in the spec. The type that matches argument's type is more applicable.
                 ' !!! Otherwise neither is more applicable.
-                If Conversions.IsWideningConversion(Conversions.ClassifyConversion(right, left, useSiteDiagnostics).Key) Then
+                If Conversions.IsWideningConversion(Conversions.ClassifyConversion(right, left, useSiteInfo).Key) Then
                     GoTo BreakTheTie
                 End If
 
@@ -2053,7 +2056,7 @@ ResolutionComplete:
                 Return ApplicabilityComparisonResult.LeftIsMoreApplicable
             End If
 
-            If Conversions.IsWideningConversion(Conversions.ClassifyConversion(right, left, useSiteDiagnostics).Key) Then
+            If Conversions.IsWideningConversion(Conversions.ClassifyConversion(right, left, useSiteInfo).Key) Then
 
                 ' !!! Spec makes it look like rule #3 is a separate rule applied after the second, but this isn't the case
                 ' !!! because enumerated type widens to its underlying type, however, if argument is a zero literal,
@@ -2135,7 +2138,7 @@ ResolutionComplete:
                             newArgument = DirectCast(argument, BoundQueryLambda).Expression
                         End If
 
-                        Return CompareParameterTypeApplicability(leftInvoke.ReturnType, rightInvoke.ReturnType, newArgument, binder, useSiteDiagnostics)
+                        Return CompareParameterTypeApplicability(leftInvoke.ReturnType, rightInvoke.ReturnType, newArgument, binder, useSiteInfo)
                     End If
                 End If
             End If
@@ -2330,7 +2333,7 @@ BreakTheTie:
             lateBindingIsAllowed As Boolean,
             binder As Binder,
             ByRef resolutionIsLateBound As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Integer
             Dim applicableCandidates As Integer = 0
             Dim appliedTieBreakingRules As Boolean = False
@@ -2371,7 +2374,7 @@ BreakTheTie:
 
                     If Not appliedTieBreakingRules Then
                         ' Apply shadowing rules, Dev10 compiler does that for narrowing candidates too.
-                        applicableCandidates = ApplyTieBreakingRulesToEquallyApplicableCandidates(candidates, arguments, delegateReturnType, binder, useSiteDiagnostics)
+                        applicableCandidates = ApplyTieBreakingRulesToEquallyApplicableCandidates(candidates, arguments, delegateReturnType, binder, useSiteInfo)
                         appliedTieBreakingRules = True
                         Debug.Assert(applicableCandidates > 1) ' source and lifted operators are not equally applicable.
                     End If
@@ -2407,9 +2410,9 @@ BreakTheTie:
                                         Else
                                             ' Lifted user-defined conversions don't unwrap nullables, they are marked with Nullable bit.
                                             If (conv.Key And ConversionKind.Nullable) = 0 Then
-                                                If IsUnwrappingNullable(arguments(j).Type, conv.Value.Parameters(0).Type, useSiteDiagnostics) Then
+                                                If IsUnwrappingNullable(arguments(j).Type, conv.Value.Parameters(0).Type, useSiteInfo) Then
                                                     lost = True
-                                                ElseIf IsUnwrappingNullable(conv.Value.ReturnType, current.Candidate.Parameters(j).Type, useSiteDiagnostics) Then
+                                                ElseIf IsUnwrappingNullable(conv.Value.ReturnType, current.Candidate.Parameters(j).Type, useSiteInfo) Then
                                                     lost = True
                                                 End If
                                             End If
@@ -2444,7 +2447,7 @@ Next_i:
 
                 If haveAllNarrowingFromObject AndAlso Not appliedTieBreakingRules Then
                     ' Apply shadowing rules, Dev10 compiler does that for narrowing candidates too.
-                    applicableCandidates = ApplyTieBreakingRulesToEquallyApplicableCandidates(candidates, arguments, delegateReturnType, binder, useSiteDiagnostics)
+                    applicableCandidates = ApplyTieBreakingRulesToEquallyApplicableCandidates(candidates, arguments, delegateReturnType, binder, useSiteInfo)
                     appliedTieBreakingRules = True
 
                     If applicableCandidates < 2 Then
@@ -2485,7 +2488,7 @@ Next_i:
             ' Although all candidates narrow, there may be a best choice when factoring in narrowing of numeric constants.  
             ' Note that EliminateLessApplicableToTheArguments applies shadowing rules, Dev10 compiler does that for narrowing candidates too.
             applicableCandidates = EliminateLessApplicableToTheArguments(candidates, arguments, delegateReturnType, appliedTieBreakingRules, binder,
-                                                                         mostApplicableMustNarrowOnlyFromNumericConstants:=True, useSiteDiagnostics:=useSiteDiagnostics)
+                                                                         mostApplicableMustNarrowOnlyFromNumericConstants:=True, useSiteInfo:=useSiteInfo)
 
             ' If we ended up with 2 applicable candidates, make sure it is not the same method in
             ' ParamArray expanded and non-expanded form. The non-expanded form should win in this case.
@@ -2545,10 +2548,10 @@ Done:
         Private Shared Function IsUnwrappingNullable(
             sourceType As TypeSymbol,
             targetType As TypeSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
             Return sourceType IsNot Nothing AndAlso
-                   IsUnwrappingNullable(Conversions.ClassifyPredefinedConversion(sourceType, targetType, useSiteDiagnostics), sourceType, targetType)
+                   IsUnwrappingNullable(Conversions.ClassifyPredefinedConversion(sourceType, targetType, useSiteInfo), sourceType, targetType)
         End Function
 
         Private Shared Function HaveNarrowingOnlyFromObjectCandidates(
@@ -2591,7 +2594,7 @@ Done:
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             callerInfoOpt As SyntaxNode,
             forceExpandedForm As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Integer
             Dim applicableCandidates As Integer = 0
             Dim illegalInAttribute As Integer = 0
@@ -2607,7 +2610,7 @@ Done:
                 End If
 
                 If Not current.ArgumentMatchingDone Then
-                    MatchArguments(methodOrPropertyGroup, current, arguments, argumentNames, binder, asyncLambdaSubToFunctionMismatch, callerInfoOpt, forceExpandedForm, useSiteDiagnostics)
+                    MatchArguments(methodOrPropertyGroup, current, arguments, argumentNames, binder, asyncLambdaSubToFunctionMismatch, callerInfoOpt, forceExpandedForm, useSiteInfo)
                     current.SetArgumentMatchingDone()
                     candidates(i) = current
                 End If
@@ -2858,19 +2861,20 @@ Bailout:
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             callerInfoOpt As SyntaxNode,
             forceExpandedForm As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
             Debug.Assert(Not arguments.IsDefault)
             Debug.Assert(argumentNames.IsDefault OrElse (argumentNames.Length > 0 AndAlso argumentNames.Length = arguments.Length))
             Debug.Assert(Not candidate.ArgumentMatchingDone)
             Debug.Assert(candidate.State = CandidateAnalysisResultState.Applicable)
+            Debug.Assert(Not candidate.Candidate.UnderlyingSymbol.IsReducedExtensionMethod() OrElse methodOrPropertyGroup.ReceiverOpt IsNot Nothing OrElse TypeOf methodOrPropertyGroup.SyntaxTree Is DummySyntaxTree)
 
             Dim parameterToArgumentMap As ArrayBuilder(Of Integer) = Nothing
             Dim paramArrayItems As ArrayBuilder(Of Integer) = Nothing
             Dim conversionKinds As KeyValuePair(Of ConversionKind, MethodSymbol)() = Nothing
             Dim conversionBackKinds As KeyValuePair(Of ConversionKind, MethodSymbol)() = Nothing
             Dim optionalArguments As OptionalArgument() = Nothing
-            Dim diagnostics As DiagnosticBag = Nothing
+            Dim defaultValueDiagnostics As BindingDiagnosticBag = Nothing
 
             BuildParameterToArgumentMap(candidate, arguments, argumentNames, parameterToArgumentMap, paramArrayItems)
 
@@ -2894,16 +2898,12 @@ Bailout:
                 If method.IsGenericMethod Then
                     Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                     Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                    Dim satisfiedConstraints = method.CheckConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder)
+                    Dim satisfiedConstraints = method.CheckConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=useSiteInfo)
                     diagnosticsBuilder.Free()
 
                     If useSiteDiagnosticsBuilder IsNot Nothing AndAlso useSiteDiagnosticsBuilder.Count > 0 Then
-                        If useSiteDiagnostics Is Nothing Then
-                            useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
-                        End If
-
                         For Each diag In useSiteDiagnosticsBuilder
-                            useSiteDiagnostics.Add(diag.DiagnosticInfo)
+                            useSiteInfo.Add(diag.UseSiteInfo)
                         Next
                     End If
 
@@ -2956,7 +2956,7 @@ Bailout:
                         Dim arrayConversion As KeyValuePair(Of ConversionKind, MethodSymbol) = Nothing
 
                         If Not (paramArrayArgument IsNot Nothing AndAlso
-                                Not paramArrayArgument.HasErrors AndAlso CanPassToParamArray(paramArrayArgument, targetType, arrayConversion, binder, useSiteDiagnostics)) Then
+                                Not paramArrayArgument.HasErrors AndAlso CanPassToParamArray(paramArrayArgument, targetType, arrayConversion, binder, useSiteInfo)) Then
                             ' It doesn't look like native compiler reports any errors in this case.
                             ' Probably due to assumption that either errors were already reported for bad argument expression or
                             ' we will report errors for expanded version of the same candidate.
@@ -3040,7 +3040,7 @@ Bailout:
                                 'Continue For
                             End If
 
-                            If Not MatchArgumentToByValParameter(methodOrPropertyGroup, candidate, arguments(paramArrayItems(j)), targetType, binder, conv, asyncLambdaSubToFunctionMismatch, useSiteDiagnostics) Then
+                            If Not MatchArgumentToByValParameter(methodOrPropertyGroup, candidate, arguments(paramArrayItems(j)), targetType, binder, conv, asyncLambdaSubToFunctionMismatch, useSiteInfo) Then
                                 ' Note, IgnoreExtensionMethods is not cleared here, MatchArgumentToByValParameter makes required changes.
                                 Continue For
                             End If
@@ -3069,15 +3069,21 @@ Bailout:
                 If argument Is Nothing OrElse argument.Kind = BoundKind.OmittedArgument Then
 
                     ' Deal with Optional arguments.
-                    If diagnostics Is Nothing Then
-                        diagnostics = DiagnosticBag.GetInstance()
+                    If defaultValueDiagnostics Is Nothing Then
+                        defaultValueDiagnostics = BindingDiagnosticBag.GetInstance()
+                    Else
+                        defaultValueDiagnostics.Clear()
                     End If
 
-                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, If(argument, methodOrPropertyGroup).Syntax, diagnostics, callerInfoOpt)
+                    Dim receiverOpt As BoundExpression = Nothing
+                    If candidateSymbol.IsReducedExtensionMethod() Then
+                        receiverOpt = methodOrPropertyGroup.ReceiverOpt
+                    End If
 
-                    If defaultArgument IsNot Nothing AndAlso Not diagnostics.HasAnyErrors Then
-                        Debug.Assert(Not diagnostics.AsEnumerable().Any())
+                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, If(argument, methodOrPropertyGroup).Syntax, defaultValueDiagnostics, callerInfoOpt, parameterToArgumentMap, arguments, receiverOpt)
 
+                    If defaultArgument IsNot Nothing AndAlso Not defaultValueDiagnostics.HasAnyErrors Then
+                        Debug.Assert(Not defaultValueDiagnostics.DiagnosticBag.AsEnumerable().Any())
                         ' Mark these as compiler generated so they are ignored by later phases. For example,
                         ' these bound nodes will mess up the incremental binder cache, because they use the 
                         ' the same syntax node as the method identifier from the invocation / AddressOf if they
@@ -3117,10 +3123,10 @@ Bailout:
                 ' are passed through a temp without copy-back.
                 If isByRef AndAlso Not candidateIsAProperty AndAlso defaultArgument Is Nothing AndAlso
                    (param.IsExplicitByRef OrElse (argument.Type IsNot Nothing AndAlso argument.Type.IsStringType())) Then
-                    MatchArgumentToByRefParameter(methodOrPropertyGroup, candidate, argument, targetType, binder, conversion, conversionBack, asyncLambdaSubToFunctionMismatch, useSiteDiagnostics)
+                    MatchArgumentToByRefParameter(methodOrPropertyGroup, candidate, argument, targetType, binder, conversion, conversionBack, asyncLambdaSubToFunctionMismatch, useSiteInfo)
                 Else
                     conversionBack = Conversions.Identity
-                    MatchArgumentToByValParameter(methodOrPropertyGroup, candidate, argument, targetType, binder, conversion, asyncLambdaSubToFunctionMismatch, useSiteDiagnostics, defaultArgument IsNot Nothing)
+                    MatchArgumentToByValParameter(methodOrPropertyGroup, candidate, argument, targetType, binder, conversion, asyncLambdaSubToFunctionMismatch, useSiteInfo, defaultArgument IsNot Nothing)
                 End If
 
                 ' typically all conversions in otherwise acceptable candidate are identity conversions
@@ -3146,7 +3152,7 @@ Bailout:
                     If optionalArguments Is Nothing Then
                         optionalArguments = New OptionalArgument(candidate.Candidate.ParameterCount - 1) {}
                     End If
-                    optionalArguments(paramIndex) = New OptionalArgument(defaultArgument, conversion)
+                    optionalArguments(paramIndex) = New OptionalArgument(defaultArgument, conversion, defaultValueDiagnostics.DependenciesBag.ToImmutableArray())
                 End If
 
                 If Not Conversions.IsIdentityConversion(conversionBack.Key) Then
@@ -3164,8 +3170,8 @@ Bailout:
             Next
 
 Bailout:
-            If diagnostics IsNot Nothing Then
-                diagnostics.Free()
+            If defaultValueDiagnostics IsNot Nothing Then
+                defaultValueDiagnostics.Free()
             End If
 
             If paramArrayItems IsNot Nothing Then
@@ -3203,7 +3209,7 @@ Bailout:
             <Out()> ByRef outConversionKind As KeyValuePair(Of ConversionKind, MethodSymbol),
             <Out()> ByRef outConversionBackKind As KeyValuePair(Of ConversionKind, MethodSymbol),
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
 
             If argument.IsSupportingAssignment() Then
@@ -3215,11 +3221,11 @@ Bailout:
                 Else
                     outConversionBackKind = Conversions.Identity
 
-                    If MatchArgumentToByValParameter(methodOrPropertyGroup, candidate, argument, targetType, binder, outConversionKind, asyncLambdaSubToFunctionMismatch, useSiteDiagnostics) Then
+                    If MatchArgumentToByValParameter(methodOrPropertyGroup, candidate, argument, targetType, binder, outConversionKind, asyncLambdaSubToFunctionMismatch, useSiteInfo) Then
 
                         ' Check copy back conversion
                         Dim copyBackType = argument.GetTypeOfAssignmentTarget()
-                        Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(targetType, copyBackType, useSiteDiagnostics)
+                        Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(targetType, copyBackType, useSiteInfo)
                         outConversionBackKind = conv
 
                         If Conversions.NoConversion(conv.Key) Then
@@ -3265,7 +3271,7 @@ Bailout:
                 End If
 
                 outConversionBackKind = Conversions.Identity
-                MatchArgumentToByValParameter(methodOrPropertyGroup, candidate, argument, targetType, binder, outConversionKind, asyncLambdaSubToFunctionMismatch, useSiteDiagnostics)
+                MatchArgumentToByValParameter(methodOrPropertyGroup, candidate, argument, targetType, binder, outConversionKind, asyncLambdaSubToFunctionMismatch, useSiteInfo)
             End If
 
         End Sub
@@ -3282,7 +3288,7 @@ Bailout:
             binder As Binder,
             <Out()> ByRef outConversionKind As KeyValuePair(Of ConversionKind, MethodSymbol),
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
             Optional isDefaultValueArgument As Boolean = False
         ) As Boolean
 
@@ -3296,7 +3302,7 @@ Bailout:
                 Return False
             End If
 
-            Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(argument, targetType, binder, useSiteDiagnostics)
+            Dim conv As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(argument, targetType, binder, useSiteInfo)
 
             outConversionKind = conv
 
@@ -3325,7 +3331,7 @@ Bailout:
                             Debug.Assert(bound IsNot Nothing)
 
                             If bound IsNot Nothing AndAlso (bound.MethodConversionKind And MethodConversionKind.AllErrorReasons) = MethodConversionKind.Error_SubToFunction AndAlso
-                               (Not bound.Diagnostics.HasAnyErrors) Then
+                               (Not bound.Diagnostics.Diagnostics.HasAnyErrors) Then
                                 If asyncLambdaSubToFunctionMismatch Is Nothing Then
                                     asyncLambdaSubToFunctionMismatch = New HashSet(Of BoundExpression)(ReferenceEqualityComparer.Instance)
                                 End If
@@ -3392,22 +3398,19 @@ Bailout:
                methodOrPropertyGroup.Kind = BoundKind.MethodGroup AndAlso
                IsWithinAppliedAttributeName(methodOrPropertyGroup.Syntax) AndAlso
                DirectCast(candidate.Candidate.UnderlyingSymbol, MethodSymbol).MethodKind = MethodKind.Constructor AndAlso
-               binder.Compilation.GetWellKnownType(WellKnownType.System_Attribute).IsBaseTypeOf(candidate.Candidate.UnderlyingSymbol.ContainingType, useSiteDiagnostics) Then
+               binder.Compilation.GetWellKnownType(WellKnownType.System_Attribute).IsBaseTypeOf(candidate.Candidate.UnderlyingSymbol.ContainingType, useSiteInfo) Then
 
                 Debug.Assert(Not argument.HasErrors)
-                Dim diagnostics = DiagnosticBag.GetInstance()
-                Dim passedExpression As BoundExpression = binder.PassArgumentByVal(argument, conv, targetType, diagnostics)
+                Dim passedExpression As BoundExpression = binder.PassArgumentByVal(argument, conv, targetType, BindingDiagnosticBag.Discarded)
 
                 If Not passedExpression.IsConstant Then ' Trying to match native compiler behavior in Semantics::IsValidAttributeConstant
                     Dim visitor As New Binder.AttributeExpressionVisitor(binder, passedExpression.HasErrors)
-                    visitor.VisitExpression(passedExpression, diagnostics)
+                    visitor.VisitExpression(passedExpression, BindingDiagnosticBag.Discarded)
 
                     If visitor.HasErrors Then
                         candidate.SetIllegalInAttribute()
                     End If
                 End If
-
-                diagnostics.Free()
             End If
 
             Return True
@@ -3434,12 +3437,12 @@ Bailout:
             targetType As TypeSymbol,
             <Out()> ByRef outConvKind As KeyValuePair(Of ConversionKind, MethodSymbol),
             binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
             '§11.8.2 Applicable Methods
             'If the conversion from the type of the argument expression to the paramarray type is narrowing, 
             'then the method is only applicable in its expanded form.
-            outConvKind = Conversions.ClassifyConversion(expression, targetType, binder, useSiteDiagnostics)
+            outConvKind = Conversions.ClassifyConversion(expression, targetType, binder, useSiteInfo)
 
             ' Note, user-defined conversions are acceptable here.
             If Conversions.IsWideningConversion(outConvKind.Key) Then
@@ -3498,7 +3501,7 @@ Bailout:
             isQueryOperatorInvocation As Boolean,
             forceExpandedForm As Boolean,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
             Debug.Assert(results IsNot Nothing)
             Debug.Assert(argumentNames.IsDefault OrElse (argumentNames.Length > 0 AndAlso argumentNames.Length = arguments.Length))
@@ -3512,7 +3515,7 @@ Bailout:
                     Continue For
                 End If
 
-                Dim info As QuickApplicabilityInfo = DoQuickApplicabilityCheck(group(i), typeArguments, arguments, isQueryOperatorInvocation, forceExpandedForm, useSiteDiagnostics)
+                Dim info As QuickApplicabilityInfo = DoQuickApplicabilityCheck(group(i), typeArguments, arguments, isQueryOperatorInvocation, forceExpandedForm, useSiteInfo)
 
                 If info.Candidate Is Nothing Then
                     Continue For
@@ -3523,7 +3526,7 @@ Bailout:
                     CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
                                                delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
-                                               useSiteDiagnostics)
+                                               useSiteInfo)
                     Continue For
                 End If
 
@@ -3547,7 +3550,7 @@ Bailout:
                     End If
 
                     If container = group(j).UnderlyingSymbol.ContainingSymbol Then
-                        info = DoQuickApplicabilityCheck(group(j), typeArguments, arguments, isQueryOperatorInvocation, forceExpandedForm, useSiteDiagnostics)
+                        info = DoQuickApplicabilityCheck(group(j), typeArguments, arguments, isQueryOperatorInvocation, forceExpandedForm, useSiteInfo)
                         group(j) = Nothing
 
                         If info.Candidate Is Nothing Then
@@ -3639,12 +3642,12 @@ Bailout:
                         CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
                                                    delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                    includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
-                                                   useSiteDiagnostics)
+                                                   useSiteInfo)
                     ElseIf includeEliminatedCandidates Then
                         CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
                                                    delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                    includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
-                                                   useSiteDiagnostics)
+                                                   useSiteInfo)
 
                         For l As Integer = k + 1 To quickInfo.Count - 1
                             Dim info2 As QuickApplicabilityInfo = quickInfo(l)
@@ -3654,7 +3657,7 @@ Bailout:
                                 CollectOverloadedCandidate(results, info2, typeArguments, arguments, argumentNames,
                                                            delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                            includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
-                                                           useSiteDiagnostics)
+                                                           useSiteInfo)
                             End If
                         Next
                     End If
@@ -3695,7 +3698,7 @@ Bailout:
             arguments As ImmutableArray(Of BoundExpression),
             isQueryOperatorInvocation As Boolean,
             forceExpandedForm As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As QuickApplicabilityInfo
             If isQueryOperatorInvocation AndAlso DirectCast(candidate.UnderlyingSymbol, MethodSymbol).IsSub Then
                 ' Subs are never considered as candidates for Query Operators, but method group might have subs in it. 
@@ -3744,14 +3747,10 @@ Bailout:
                 Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.ArgumentCountMismatch, Not hasParamArray, hasParamArray)
             End If
 
-            Dim useSiteErrorInfo As DiagnosticInfo = candidate.UnderlyingSymbol.GetUseSiteErrorInfo()
+            Dim candidateUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = candidate.UnderlyingSymbol.GetUseSiteInfo()
 
-            If useSiteErrorInfo IsNot Nothing Then
-                If useSiteDiagnostics Is Nothing Then
-                    useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
-                End If
-
-                useSiteDiagnostics.Add(useSiteErrorInfo)
+            useSiteInfo.Add(candidateUseSiteInfo)
+            If candidateUseSiteInfo.DiagnosticInfo IsNot Nothing Then
                 Return New QuickApplicabilityInfo(candidate, CandidateAnalysisResultState.HasUseSiteError)
             End If
 
@@ -3791,7 +3790,7 @@ Bailout:
             includeEliminatedCandidates As Boolean,
             binder As Binder,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
             Select Case candidate.State
                 Case CandidateAnalysisResultState.HasUnsupportedMetadata
@@ -3844,7 +3843,7 @@ Bailout:
                                                                                    arguments, argumentNames,
                                                                                    delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                                                    binder, asyncLambdaSubToFunctionMismatch,
-                                                                                   useSiteDiagnostics)
+                                                                                   useSiteInfo)
                     End If
 
                     ' How about it's expanded form? It always applies if there's a paramarray.
@@ -3860,7 +3859,7 @@ Bailout:
                                                                                    arguments, argumentNames,
                                                                                    delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                                                    binder, asyncLambdaSubToFunctionMismatch,
-                                                                                   useSiteDiagnostics)
+                                                                                   useSiteInfo)
                     End If
 
 #If DEBUG Then
@@ -3888,7 +3887,7 @@ Bailout:
             delegateReturnTypeReferenceBoundNode As BoundNode,
             binder As Binder,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
 
             If typeArguments.Length = 0 AndAlso newCandidate.Candidate.Arity > 0 Then
@@ -3900,14 +3899,14 @@ Bailout:
                 'in the place of the type parameters in the signature.
 
                 If Not InferTypeArguments(newCandidate, arguments, argumentNames, delegateReturnType, delegateReturnTypeReferenceBoundNode,
-                                          asyncLambdaSubToFunctionMismatch, binder, useSiteDiagnostics) Then
+                                          asyncLambdaSubToFunctionMismatch, binder, useSiteInfo) Then
                     Debug.Assert(newCandidate.State <> CandidateAnalysisResultState.Applicable)
                     results.Add(newCandidate)
                     Return
                 End If
             End If
 
-            CombineCandidates(results, newCandidate, arguments.Length, argumentNames, useSiteDiagnostics)
+            CombineCandidates(results, newCandidate, arguments.Length, argumentNames, useSiteInfo)
         End Sub
 
         ''' <summary>
@@ -3920,7 +3919,7 @@ Bailout:
             newCandidate As CandidateAnalysisResult,
             argumentCount As Integer,
             argumentNames As ImmutableArray(Of String),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
             Debug.Assert(newCandidate.State = CandidateAnalysisResultState.Applicable)
 
@@ -4087,7 +4086,7 @@ Bailout:
                     '       This rule also applies to the types that extension methods are defined on. 
                     '7.2.	If M and N are extension methods and the target type of M is a class or 
                     '       structure and the target type of N is an interface, eliminate N from the set.
-                    If ShadowBasedOnReceiverType(existingCandidate, newCandidate, existingWins, newWins, useSiteDiagnostics) Then
+                    If ShadowBasedOnReceiverType(existingCandidate, newCandidate, existingWins, newWins, useSiteInfo) Then
                         GoTo DeterminedTheWinner
                     End If
 
@@ -4742,17 +4741,17 @@ ContinueCandidatesLoop:
         Private Shared Function ShadowBasedOnReceiverType(
             left As CandidateAnalysisResult, right As CandidateAnalysisResult,
             ByRef leftWins As Boolean, ByRef rightWins As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
 
             Dim leftType = left.Candidate.ReceiverType
             Dim rightType = right.Candidate.ReceiverType
 
             If Not leftType.IsSameTypeIgnoringAll(rightType) Then
-                If DoesReceiverMatchInstance(leftType, rightType, useSiteDiagnostics) Then
+                If DoesReceiverMatchInstance(leftType, rightType, useSiteInfo) Then
                     leftWins = True
                     Return True
-                ElseIf DoesReceiverMatchInstance(rightType, leftType, useSiteDiagnostics) Then
+                ElseIf DoesReceiverMatchInstance(rightType, leftType, useSiteInfo) Then
                     rightWins = True
                     Return True
                 End If
@@ -4768,8 +4767,8 @@ ContinueCandidatesLoop:
         ''' Actually, we don't include the reference-convertibilities that seem nonsensical, e.g. enum() to underlyingtype()
         ''' We do include inheritance, implements and variance conversions amongst others.
         ''' </summary>
-        Public Shared Function DoesReceiverMatchInstance(instanceType As TypeSymbol, receiverType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
-            Return Conversions.HasWideningDirectCastConversionButNotEnumTypeConversion(instanceType, receiverType, useSiteDiagnostics)
+        Public Shared Function DoesReceiverMatchInstance(instanceType As TypeSymbol, receiverType As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
+            Return Conversions.HasWideningDirectCastConversionButNotEnumTypeConversion(instanceType, receiverType, useSiteInfo)
         End Function
 
         ''' <summary>
@@ -4865,7 +4864,7 @@ ContinueCandidatesLoop:
             delegateReturnTypeReferenceBoundNode As BoundNode,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
 
             Dim parameterToArgumentMap As ArrayBuilder(Of Integer) = Nothing
@@ -4895,7 +4894,7 @@ ContinueCandidatesLoop:
                                                inferredTypeByAssumption:=inferredTypeByAssumption,
                                                typeArgumentsLocation:=typeArgumentsLocation,
                                                asyncLambdaSubToFunctionMismatch:=asyncLambdaSubToFunctionMismatch,
-                                               useSiteDiagnostics:=useSiteDiagnostics,
+                                               useSiteInfo:=useSiteInfo,
                                                diagnostic:=candidate.TypeArgumentInferenceDiagnosticsOpt) Then
                     candidate.SetInferenceLevel(inferenceLevel)
                     candidate.Candidate = candidate.Candidate.Construct(typeArguments)
@@ -4909,7 +4908,7 @@ ContinueCandidatesLoop:
                                 Dim diagnostics = candidate.TypeArgumentInferenceDiagnosticsOpt
 
                                 If diagnostics Is Nothing Then
-                                    diagnostics = New DiagnosticBag()
+                                    diagnostics = BindingDiagnosticBag.Create(withDiagnostics:=True, useSiteInfo.AccumulatesDependencies)
                                     candidate.TypeArgumentInferenceDiagnosticsOpt = diagnostics
                                 End If
 

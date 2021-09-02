@@ -152,61 +152,61 @@
           <LogicalName>net461.Microsoft.VisualBasic.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\net461\Microsoft.VisualBasic.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\mscorlib.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\mscorlib.dll">
           <LogicalName>netcoreapp.mscorlib.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\mscorlib.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\System.dll">
           <LogicalName>netcoreapp.System.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\System.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Core.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\System.Core.dll">
           <LogicalName>netcoreapp.System.Core.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\System.Core.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Collections.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\System.Collections.dll">
           <LogicalName>netcoreapp.System.Collections.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\System.Collections.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Console.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\System.Console.dll">
           <LogicalName>netcoreapp.System.Console.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\System.Console.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Linq.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\System.Linq.dll">
           <LogicalName>netcoreapp.System.Linq.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\System.Linq.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Linq.Expressions.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\System.Linq.Expressions.dll">
           <LogicalName>netcoreapp.System.Linq.Expressions.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\System.Linq.Expressions.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Runtime.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\System.Runtime.dll">
           <LogicalName>netcoreapp.System.Runtime.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\System.Runtime.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Runtime.InteropServices.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\System.Runtime.InteropServices.dll">
           <LogicalName>netcoreapp.System.Runtime.InteropServices.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\System.Runtime.InteropServices.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Runtime.InteropServices.WindowsRuntime.dll">
-          <LogicalName>netcoreapp.System.Runtime.InteropServices.WindowsRuntime.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\System.Runtime.InteropServices.WindowsRuntime.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Threading.Tasks.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\System.Threading.Tasks.dll">
           <LogicalName>netcoreapp.System.Threading.Tasks.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\System.Threading.Tasks.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\netstandard.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\netstandard.dll">
           <LogicalName>netcoreapp.netstandard.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\netstandard.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\Microsoft.CSharp.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\Microsoft.CSharp.dll">
           <LogicalName>netcoreapp.Microsoft.CSharp.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\Microsoft.CSharp.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\Microsoft.VisualBasic.dll">
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\Microsoft.VisualBasic.dll">
           <LogicalName>netcoreapp.Microsoft.VisualBasic.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\netcoreapp\Microsoft.VisualBasic.dll</Link>
+        </EmbeddedResource>
+        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0\Microsoft.VisualBasic.Core.dll">
+          <LogicalName>netcoreapp.Microsoft.VisualBasic.Core.dll</LogicalName>
+          <Link>Resources\ReferenceAssemblies\netcoreapp\Microsoft.VisualBasic.Core.dll</Link>
         </EmbeddedResource>
         <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\mscorlib.dll">
           <LogicalName>netstandard20.mscorlib.dll</LogicalName>

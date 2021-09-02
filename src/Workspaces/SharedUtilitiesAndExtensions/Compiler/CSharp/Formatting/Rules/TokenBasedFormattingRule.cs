@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => node switch
             {
                 CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
-                NamespaceDeclarationSyntax namespaceDecl => namespaceDecl.Usings,
+                BaseNamespaceDeclarationSyntax namespaceDecl => namespaceDecl.Usings,
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
 
@@ -387,6 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // case * :
             // default:
             // <label> :
+            // { Property1.Property2: ... }
             if (currentToken.IsKind(SyntaxKind.ColonToken))
             {
                 if (currentToken.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
@@ -395,6 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
                                                SyntaxKind.NameColon,
+                                               SyntaxKind.ExpressionColon,
                                                SyntaxKind.SwitchExpressionArm))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
@@ -472,6 +474,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
+            // pointer case for regular pointers
+            if (currentToken.Kind() == SyntaxKind.AsteriskToken && currentToken.Parent is PointerTypeSyntax)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
+            // unary asterisk operator (PointerIndirectionExpression)
+            if (previousToken.Kind() == SyntaxKind.AsteriskToken && previousToken.Parent is PrefixUnaryExpressionSyntax)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
+
             // ( * or ) * or [ * or ] * or . * or -> *
             switch (previousToken.Kind())
             {
@@ -503,13 +517,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ! *, except where ! is the suppress nullable warning operator
             if (previousToken.Kind() == SyntaxKind.ExclamationToken
                 && !previousToken.Parent.IsKind(SyntaxKind.SuppressNullableWarningExpression))
-            {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-            }
-
-            // pointer case for regular pointers
-            if ((currentToken.Kind() == SyntaxKind.AsteriskToken && currentToken.Parent is PointerTypeSyntax) ||
-                (previousToken.Kind() == SyntaxKind.AsteriskToken && previousToken.Parent is PrefixUnaryExpressionSyntax))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

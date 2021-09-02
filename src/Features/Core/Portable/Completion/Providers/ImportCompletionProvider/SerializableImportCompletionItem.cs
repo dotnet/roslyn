@@ -27,7 +27,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         [DataMember(Order = 5)]
         public readonly int AdditionalOverloadCount;
 
-        public SerializableImportCompletionItem(string symbolKeyData, string name, int arity, Glyph glyph, string containingNamespace, int additionalOverloadCount)
+        [DataMember(Order = 6)]
+        public readonly bool IncludedInTargetTypeCompletion;
+
+        public SerializableImportCompletionItem(string symbolKeyData, string name, int arity, Glyph glyph, string containingNamespace, int additionalOverloadCount, bool includedInTargetTypeCompletion)
         {
             SymbolKeyData = symbolKeyData;
             Arity = arity;
@@ -35,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Glyph = glyph;
             ContainingNamespace = containingNamespace;
             AdditionalOverloadCount = additionalOverloadCount;
+            IncludedInTargetTypeCompletion = includedInTargetTypeCompletion;
         }
     }
 }

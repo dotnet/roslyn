@@ -164,6 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _compilation.GetSpecialType(SpecialType.System_IDisposable) :
                     _compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable);
 
+                _diagnostics.ReportUseSite(iDisposableType, usingSyntax);
+
                 BoundExpression tempInit = MakeConversionNode(
                     expressionSyntax,
                     rewrittenExpression,
@@ -238,6 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol iDisposableType = awaitOpt is null ?
                     _compilation.GetSpecialType(SpecialType.System_IDisposable) :
                     _compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable);
+
+                _diagnostics.ReportUseSite(iDisposableType, usingSyntax);
 
                 BoundExpression tempInit = MakeConversionNode(
                     declarationSyntax,
@@ -471,7 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Synthesize a call `expression.Method()`, but with some extra smarts to handle extension methods, and to fill-in optional and params parameters.
+        /// Synthesize a call `expression.Method()`, but with some extra smarts to handle extension methods, and to fill-in optional and params parameters. This call expects that the
+        /// receiver parameter has already been visited.
         /// </summary>
         private BoundExpression MakeCallWithNoExplicitArgument(MethodArgumentInfo methodArgumentInfo, SyntaxNode syntax, BoundExpression? expression, bool assertParametersAreOptional = true)
         {
@@ -489,9 +494,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!assertParametersAreOptional || method.Parameters.All(p => p.IsOptional || p.IsParams));
                 Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty);
             }
+
+            Debug.Assert(methodArgumentInfo.Arguments.All(arg => arg is not BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler }));
 #endif
 
-            return MakeCall(
+            return MakeArgumentsAndCall(
                 syntax,
                 expression,
                 method,
@@ -501,7 +508,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 invokedAsExtensionMethod: method.IsExtensionMethod,
                 methodArgumentInfo.ArgsToParamsOpt,
                 resultKind: LookupResultKind.Viable,
-                type: method.ReturnType);
+                type: method.ReturnType,
+                temps: null);
         }
     }
 }

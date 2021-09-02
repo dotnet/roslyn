@@ -5,15 +5,11 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -25,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntheticBoundNodeFactory _F;
         private readonly PooledDictionary<LocalSymbol, LocalSymbol> _tempSubstitution;
 
-        private SpillSequenceSpiller(MethodSymbol method, SyntaxNode syntaxNode, TypeCompilationState compilationState, PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution, DiagnosticBag diagnostics)
+        private SpillSequenceSpiller(MethodSymbol method, SyntaxNode syntaxNode, TypeCompilationState compilationState, PooledDictionary<LocalSymbol, LocalSymbol> tempSubstitution, BindingDiagnosticBag diagnostics)
         {
             _F = new SyntheticBoundNodeFactory(method, syntaxNode, compilationState, diagnostics);
             _F.CurrentFunction = method;
@@ -212,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static BoundStatement Rewrite(BoundStatement body, MethodSymbol method, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal static BoundStatement Rewrite(BoundStatement body, MethodSymbol method, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var tempSubstitution = PooledDictionary<LocalSymbol, LocalSymbol>.GetInstance();
             var spiller = new SpillSequenceSpiller(method, body.Syntax, compilationState, tempSubstitution, diagnostics);
@@ -274,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddStatement(statement);
             }
 
-            var result = _F.Block(builder.GetLocals(), builder.GetStatements());
+            var result = new BoundBlock(statement.Syntax, builder.GetLocals(), builder.GetStatements()) { WasCompilerGenerated = true };
 
             builder.Free();
             return result;
@@ -830,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValue, node.MethodOpt, node.ResultKind, left, right, node.Type));
+            return UpdateExpression(builder, node.Update(node.OperatorKind, node.ConstantValue, node.Method, node.ConstrainedToType, node.ResultKind, left, right, node.Type));
         }
 
         public override BoundNode VisitCall(BoundCall node)
@@ -839,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
 
             BoundExpression receiver = null;
-            if (builder == null)
+            if (builder == null || node.ReceiverOpt is BoundTypeExpression)
             {
                 receiver = VisitExpression(ref builder, node.ReceiverOpt);
             }
@@ -967,7 +963,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitMakeRefOperator(BoundMakeRefOperator node)
         {
-            throw ExceptionUtilities.Unreachable;
+            BoundSpillSequenceBuilder builder = null;
+            var operand = VisitExpression(ref builder, node.Operand);
+            return UpdateExpression(builder, node.Update(operand, node.Type));
         }
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
@@ -1249,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             BoundExpression operand = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type));
+            return UpdateExpression(builder, node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ConstrainedToTypeOpt, node.ResultKind, node.Type));
         }
 
         public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)

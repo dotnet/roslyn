@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // A Slice method can either be paired with an Range-taking indexer on the type, or
                 // an Range-taking overload, or an explicit method called .Slice that takes two ints:
                 //
-                // https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#implicit-range-support
+                // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#implicit-range-support
                 if (sliceLikeMethod.ReturnType.Equals(containingType))
                 {
                     // it's a method like:  MyType MyType.Get(int start, int length).  Look for an

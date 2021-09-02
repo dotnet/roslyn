@@ -4,27 +4,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime;
-using System.Runtime.Remoting;
-using System.Text;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using StreamJsonRpc;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
@@ -97,12 +91,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                     writer, _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage, _workspaceServices.GetRequiredService<ISerializerService>(), data.scopeId, data.checksums, cancellationToken),
                 cancellationToken);
 
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => _workspaceServices.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName) ? SpecializedTasks.True : SpecializedTasks.False;
-
         public RemoteHostTestData TestData => _inprocServices.TestData;
 
         public void RegisterService(RemoteServiceName serviceName, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceCreator)
@@ -110,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget) where T : class
         {
-            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC);
+            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), isRemoteHostServerGC: GCSettings.IsServerGC, isRemoteHostCoreClr: RemoteHostOptions.IsCurrentProcessRunningOnCoreClr());
             var callbackDispatcher = (descriptor.ClientInterface != null) ? _callbackDispatchers.GetDispatcher(typeof(T)) : null;
 
             return new BrokeredServiceConnection<T>(
@@ -269,11 +257,16 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());
                 RegisterRemoteBrokeredService(new RemoteSymbolFinderService.Factory());
                 RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
+                RegisterRemoteBrokeredService(new RemoteNavigationBarItemService.Factory());
                 RegisterRemoteBrokeredService(new RemoteMissingImportDiscoveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteExtensionMethodImportCompletionService.Factory());
                 RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());
                 RegisterRemoteBrokeredService(new RemoteGlobalNotificationDeliveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
+                RegisterRemoteBrokeredService(new RemoteEditAndContinueService.Factory());
+                RegisterRemoteBrokeredService(new RemoteValueTrackingService.Factory());
+                RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
+                RegisterRemoteBrokeredService(new RemoteUnusedReferenceAnalysisService.Factory());
             }
 
             public void Dispose()
@@ -284,7 +277,8 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             public void RegisterService(RemoteServiceName name, Func<Stream, IServiceProvider, ServiceActivationOptions, ServiceBase> serviceFactory)
             {
                 _factoryMap.Add(name, serviceFactory);
-                _serviceNameMap.Add(name.ToString(isRemoteHost64Bit: IntPtr.Size == 8, isRemoteHostServerGC: GCSettings.IsServerGC), name.WellKnownService);
+                _serviceNameMap.Add(name.ToString(isRemoteHostServerGC: GCSettings.IsServerGC,
+                                                  isRemoteHostCoreClr: RemoteHostOptions.IsCurrentProcessRunningOnCoreClr()), name.WellKnownService);
             }
 
             public Task<Stream> RequestServiceAsync(RemoteServiceName serviceName)

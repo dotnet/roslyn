@@ -1,23 +1,23 @@
 
 
 ## General information
-* [Compiler and language feature status](https://github.com/dotnet/roslyn/blob/master/docs/Language%20Feature%20Status.md)
-* [Log of breaking changes](https://github.com/dotnet/roslyn/blob/master/docs/compilers/CSharp/Compiler%20Breaking%20Changes%20-%20post%20VS2017.md)
-* [NuGet packages](https://github.com/dotnet/roslyn/blob/master/docs/wiki/NuGet-packages.md)
-* [C# language version history](https://github.com/dotnet/csharplang/blob/master/Language-Version-History.md)
+* [Compiler and language feature status](https://github.com/dotnet/roslyn/blob/main/docs/Language%20Feature%20Status.md)
+* [Log of breaking changes](https://github.com/dotnet/roslyn/blob/main/docs/compilers/CSharp/Compiler%20Breaking%20Changes%20-%20post%20VS2017.md)
+* [NuGet packages](https://github.com/dotnet/roslyn/blob/main/docs/wiki/NuGet-packages.md)
+* [C# language version history](https://github.com/dotnet/csharplang/blob/main/Language-Version-History.md)
 
 ## Visual Studio 2017 Version 15.7
 
 The C# compiler now supports the 7.3 set of language features including:
-- `System.Enum`, `System.Delegate` and [`unmanaged`](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/blittable.md) constraints.
-- [Ref local re-assignment](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/ref-local-reassignment.md): Ref locals and ref parameters can now be reassigned with the ref assignment operator (`= ref`).
-- [Stackalloc initializers](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/stackalloc-array-initializers.md): Stack-allocated arrays can now be initialized, e.g. `Span<int> x = stackalloc[] { 1, 2, 3 };`.
-- [Indexing movable fixed buffers](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/indexing-movable-fixed-fields.md): Fixed buffers can be indexed into without first being pinned.
-- [Custom `fixed` statement](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/pattern-based-fixed.md): Types that implement a suitable `GetPinnableReference` can be used in a `fixed` statement.
-- [Improved overload candidates](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/improved-overload-candidates.md): Some overload resolution candidates can be ruled out early, thus reducing ambiguities.
-- [Expression variables in initializers and queries](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/expression-variables-in-initializers.md): Expression variables like `out var` and pattern variables are allowed in field initializers, constructor initializers and LINQ queries.
--	[Tuple comparison](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/tuple-equality.md): Tuples can now be compared with `==` and `!=`.
--	[Attributes on backing fields](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/auto-prop-field-attrs.md): Allows `[field: …]` attributes on an auto-implemented property to target its backing field.
+- `System.Enum`, `System.Delegate` and [`unmanaged`](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.3/blittable.md) constraints.
+- [Ref local re-assignment](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.3/ref-local-reassignment.md): Ref locals and ref parameters can now be reassigned with the ref assignment operator (`= ref`).
+- [Stackalloc initializers](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.3/stackalloc-array-initializers.md): Stack-allocated arrays can now be initialized, e.g. `Span<int> x = stackalloc[] { 1, 2, 3 };`.
+- [Indexing movable fixed buffers](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.3/indexing-movable-fixed-fields.md): Fixed buffers can be indexed into without first being pinned.
+- [Custom `fixed` statement](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.3/pattern-based-fixed.md): Types that implement a suitable `GetPinnableReference` can be used in a `fixed` statement.
+- [Improved overload candidates](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.3/improved-overload-candidates.md): Some overload resolution candidates can be ruled out early, thus reducing ambiguities.
+- [Expression variables in initializers and queries](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.3/expression-variables-in-initializers.md): Expression variables like `out var` and pattern variables are allowed in field initializers, constructor initializers and LINQ queries.
+-	[Tuple comparison](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.3/tuple-equality.md): Tuples can now be compared with `==` and `!=`.
+-	[Attributes on backing fields](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.3/auto-prop-field-attrs.md): Allows `[field: …]` attributes on an auto-implemented property to target its backing field.
 
 
 ## Visual Studio 2017 Version 15.6
@@ -47,12 +47,12 @@ The C# compiler now supports the 7.2 set of language features including:
 ## [Visual Studio 2017 Version 15.3](https://github.com/dotnet/roslyn/releases/tag/Visual-Studio-2017-Version-15.3)
 
 The C# compiler now supports the 7.1 set of language features, including:
-- [Async Main methods](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/async-main.md)
-- ["default" literals](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/target-typed-default.md)
-- [Inferred tuple element names](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/infer-tuple-names.md)
-- [Pattern-matching with generics](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.1/generics-pattern-match.md)
+- [Async Main methods](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.1/async-main.md)
+- ["default" literals](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.1/target-typed-default.md)
+- [Inferred tuple element names](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.1/infer-tuple-names.md)
+- [Pattern-matching with generics](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.1/generics-pattern-match.md)
 
-The C# and VB compilers now can produce [reference assemblies](https://github.com/dotnet/roslyn/blob/master/docs/features/refout.md).
+The C# and VB compilers now can produce [reference assemblies](https://github.com/dotnet/roslyn/blob/main/docs/features/refout.md).
 
 When you use C# 7.1 features in your project, lightbulb offers to upgrade your project’s language version, to “C# 7.1” or “latest”.
 
@@ -60,15 +60,15 @@ When you use C# 7.1 features in your project, lightbulb offers to upgrade your p
  
  ## [Visual Studio 2017 Version 15.0](https://github.com/dotnet/roslyn/releases/tag/Visual-Studio-2017)
  The C# compiler now supports the [7.0](https://blogs.msdn.microsoft.com/dotnet/2017/03/09/new-features-in-c-7-0/) set of language features, including:
-- [Out variables](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.0/out-var.md)
-- [Pattern matching](https://github.com/dotnet/csharplang/blob/master/proposals/patterns.md)
-- [Tuples](https://github.com/dotnet/roslyn/blob/master/docs/features/tuples.md)
-- [Deconstruction](https://github.com/dotnet/roslyn/blob/master/docs/features/deconstruction.md)
-- [Discards](https://github.com/dotnet/roslyn/blob/master/docs/features/discards.md)
-- [Local Functions](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.0/local-functions.md)
-- [Binary Literals](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.0/binary-literals.md)
-- [Digit Separators](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.0/digit-separators.md)
+- [Out variables](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.0/out-var.md)
+- [Pattern matching](https://github.com/dotnet/csharplang/blob/main/proposals/patterns.md)
+- [Tuples](https://github.com/dotnet/roslyn/blob/main/docs/features/tuples.md)
+- [Deconstruction](https://github.com/dotnet/roslyn/blob/main/docs/features/deconstruction.md)
+- [Discards](https://github.com/dotnet/roslyn/blob/main/docs/features/discards.md)
+- [Local Functions](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.0/local-functions.md)
+- [Binary Literals](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.0/binary-literals.md)
+- [Digit Separators](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.0/digit-separators.md)
 - Ref returns and locals
-- [Generalized async return types](https://github.com/dotnet/roslyn/blob/master/docs/features/task-types.md)
+- [Generalized async return types](https://github.com/dotnet/roslyn/blob/main/docs/features/task-types.md)
 - More expression-bodied members
-- [Throw expressions](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.0/throw-expression.md)
+- [Throw expressions](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.0/throw-expression.md)

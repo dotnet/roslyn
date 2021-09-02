@@ -53,6 +53,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterStackAlloc()
         {
             await VerifyAbsenceAsync(
@@ -760,6 +767,29 @@ class C
 class C
 {
     delegate*$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInDeclarationDeconstruction()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"var (x, $$) = (0, 0);"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMixedDeclarationAndAssignmentInDeconstruction()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"(x, $$) = (0, 0);"));
+        }
+
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunction))]
+        public async Task TestAfterKeywordIndicatingLocalFunction(string keyword)
+        {
+            await VerifyKeywordAsync(AddInsideMethod($@"
+{keyword} $$"));
         }
     }
 }

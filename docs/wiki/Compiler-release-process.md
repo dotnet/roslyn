@@ -8,18 +8,18 @@ For each release, some steps to check:
 - preview/RTM: notify documentation team of first preview and RTM timeline (to publish docs)
 - preview/RTM: update Visual Studio release notes
 - RTM: announce the new features on the team blog and in the Visual Studio Preview release notes
-- RTM: record the [language history](https://github.com/dotnet/csharplang/blob/master/Language-Version-History.md) and move the [language proposals](https://github.com/dotnet/csharplang/tree/master/proposals) to the appropriate folder
+- RTM: record the [language history](https://github.com/dotnet/csharplang/blob/main/Language-Version-History.md) and move the [language proposals](https://github.com/dotnet/csharplang/tree/main/proposals) to the appropriate folder
 - update the package description(s)
 
 For each language feature:
 
 - work with LDM to identify a champion and define the feature
-- update the [Language Feature Status](https://github.com/dotnet/roslyn/blob/master/docs/Language%20Feature%20Status.md) page as we start working on features
+- update the [Language Feature Status](https://github.com/dotnet/roslyn/blob/main/docs/Language%20Feature%20Status.md) page as we start working on features
 - identify a designated reviewer
 - notify Jared and Neal on PRs with public API changes
-- breaking changes need to be approved by the compat council and [documented](https://github.com/dotnet/roslyn/tree/master/docs/compilers/CSharp)
+- breaking changes need to be approved by the compat council and [documented](https://github.com/dotnet/roslyn/tree/main/docs/compilers/CSharp)
 - designated reviewer should document and validate a test plan
-- blocking issues should be identified and resolved before merging feature back to `master` (that includes resolving `PROTOTYPE` comments)
+- blocking issues should be identified and resolved before merging feature back to `main` (that includes resolving `PROTOTYPE` comments)
 - update the feature status when the feature is complete
 
 To add a language version:

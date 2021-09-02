@@ -15,12 +15,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
 {
     internal class NewTypeDestinationSelectionViewModel : AbstractNotifyPropertyChanged
     {
+        public static NewTypeDestinationSelectionViewModel Default = new(
+            string.Empty,
+            LanguageNames.CSharp,
+            string.Empty,
+            string.Empty,
+            ImmutableArray<string>.Empty,
+            null
+        );
+
         private readonly string _fileExtension;
         private readonly string _defaultNamespace;
         private readonly string _generatedNameTypeParameterSuffix;
         private readonly ImmutableArray<string> _conflictingNames;
         private readonly string _defaultName;
-        private readonly ISyntaxFactsService _syntaxFactsService;
+        private readonly ISyntaxFactsService? _syntaxFactsService;
         private readonly string _languageName;
 
         public NewTypeDestinationSelectionViewModel(
@@ -29,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
             ImmutableArray<string> conflictingNames,
-            ISyntaxFactsService syntaxFactsService)
+            ISyntaxFactsService? syntaxFactsService)
         {
             _defaultName = defaultName;
             _fileExtension = languageName == LanguageNames.CSharp ? ".cs" : ".vb";
@@ -95,6 +104,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
         internal bool TrySubmit([NotNullWhen(returnValue: false)] out string? message)
         {
             message = null;
+
+            if (_syntaxFactsService is null)
+            {
+                throw new InvalidOperationException();
+            }
 
             var trimmedName = TypeName.Trim();
             if (_conflictingNames.Contains(trimmedName))

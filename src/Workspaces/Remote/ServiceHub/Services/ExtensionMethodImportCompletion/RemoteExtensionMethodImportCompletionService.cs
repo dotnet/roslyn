@@ -5,11 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -32,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
             int position,
             string receiverTypeSymbolKeyData,
             ImmutableArray<string> namespaceInScope,
+            ImmutableArray<string> targetTypesSymbolKeyData,
             bool forceIndexCreation,
             CancellationToken cancellationToken)
         {
@@ -46,12 +50,25 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                     var namespaceInScopeSet = new HashSet<string>(namespaceInScope, syntaxFacts.StringComparer);
+                    var targetTypes = targetTypesSymbolKeyData
+                            .Select(symbolKey => SymbolKey.ResolveString(symbolKey, compilation, cancellationToken: cancellationToken).GetAnySymbol() as ITypeSymbol)
+                            .WhereNotNull().ToImmutableArray();
 
                     return await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                        document, position, receiverTypeSymbol, namespaceInScopeSet, forceIndexCreation, cancellationToken).ConfigureAwait(false);
+                        document, position, receiverTypeSymbol, namespaceInScopeSet, targetTypes, forceIndexCreation, cancellationToken).ConfigureAwait(false);
                 }
 
                 return new SerializableUnimportedExtensionMethods(ImmutableArray<SerializableImportCompletionItem>.Empty, isPartialResult: false, getSymbolsTicks: 0, createItemsTicks: 0);
+            }, cancellationToken);
+        }
+
+        public ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
+            {
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var document = solution.GetRequiredDocument(documentId);
+                await ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

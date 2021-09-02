@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                (method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.Ordinary) &&
                IsPublicInstance(method) &&
                method.Parameters.Length == 1 &&
-               // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+               // From: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
                //
                // When looking for the pattern members, we look for original definitions, not
                // constructed members
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// </summary>
         public static bool IsTwoArgumentSliceLikeMethod(IMethodSymbol method)
         {
-            // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+            // From: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
             //
             // When looking for the pattern members, we look for original definitions, not
             // constructed members
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// </summary>
         public static bool IsOneArgumentSliceLikeMethod(IMethodSymbol method)
         {
-            // From: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
+            // From: https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#decisions-made-during-implementation
             //
             // When looking for the pattern members, we look for original definitions, not
             // constructed members

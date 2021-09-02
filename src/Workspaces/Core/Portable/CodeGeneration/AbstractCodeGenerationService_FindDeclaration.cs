@@ -71,7 +71,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 return false;
             }
 
-            // check for generated files if needed.
+            // We can never generate into a document from a source generator, because those are immutable
+            if (document is SourceGeneratedDocument)
+            {
+                return false;
+            }
+
+            // If we are avoiding generating into files marked as generated (but are still regular files)
+            // then check accordingly. This is distinct from the prior check in that we as a fallback
+            // will generate into these files is we have no alternative.
             if (checkGeneratedCode && document.IsGeneratedCode(cancellationToken))
             {
                 return false;

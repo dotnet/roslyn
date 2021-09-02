@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private sealed partial class AnonymousTypeConstructorSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 //  Method body:
                 //
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed partial class AnonymousTypePropertyGetAccessorSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 //  Method body:
                 //
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed partial class AnonymousTypeEqualsMethodSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 AnonymousTypeManager manager = ((AnonymousTypeTemplateSymbol)this.ContainingType).Manager;
                 SyntheticBoundNodeFactory F = this.CreateBoundNodeFactory(compilationState, diagnostics);
@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 //  {
                 //      $anonymous$ local = value as $anonymous$;
-                //      return local != null 
+                //      return (object)local == this || (local != null 
                 //             && System.Collections.Generic.EqualityComparer<T_1>.Default.Equals(this.backingFld_1, local.backingFld_1)
                 //             ...
-                //             && System.Collections.Generic.EqualityComparer<T_N>.Default.Equals(this.backingFld_N, local.backingFld_N);
+                //             && System.Collections.Generic.EqualityComparer<T_N>.Default.Equals(this.backingFld_N, local.backingFld_N));
                 //  }
 
                 // Type and type expression
@@ -137,6 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     fields.Free();
                 }
 
+                // Compare references
+                retExpression = F.LogicalOr(F.ObjectEqual(F.This(), boundLocal), retExpression);
+
                 // Final return statement
                 BoundStatement retStatement = F.Return(retExpression);
 
@@ -152,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed partial class AnonymousTypeGetHashCodeMethodSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 AnonymousTypeManager manager = ((AnonymousTypeTemplateSymbol)this.ContainingType).Manager;
                 SyntheticBoundNodeFactory F = this.CreateBoundNodeFactory(compilationState, diagnostics);
@@ -215,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed partial class AnonymousTypeToStringMethodSymbol : SynthesizedMethodBase
         {
-            internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+            internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
             {
                 AnonymousTypeManager manager = ((AnonymousTypeTemplateSymbol)this.ContainingType).Manager;
                 SyntheticBoundNodeFactory F = this.CreateBoundNodeFactory(compilationState, diagnostics);

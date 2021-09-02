@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                      shouldCheckConstraints As Boolean,
                                      errorPositions As ImmutableArray(Of Boolean),
                                      Optional syntax As SyntaxNode = Nothing,
-                                     Optional diagnostics As DiagnosticBag = Nothing) As TupleTypeSymbol
+                                     Optional diagnostics As BindingDiagnosticBag = Nothing) As TupleTypeSymbol
             Debug.Assert(Not shouldCheckConstraints OrElse syntax IsNot Nothing)
             Debug.Assert(elementNames.IsDefault OrElse elementTypes.Length = elementNames.Length)
             Dim length As Integer = elementTypes.Length
@@ -373,14 +373,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim tupleUnderlyingType As NamedTypeSymbol = TupleTypeSymbol.GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics)
-            If diagnostics IsNot Nothing AndAlso DirectCast(compilation.SourceModule, SourceModuleSymbol).AnyReferencedAssembliesAreLinked Then
+            If diagnostics?.DiagnosticBag IsNot Nothing AndAlso DirectCast(compilation.SourceModule, SourceModuleSymbol).AnyReferencedAssembliesAreLinked Then
                 ' Complain about unembeddable types from linked assemblies.
-                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(tupleUnderlyingType, syntax, diagnostics)
+                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(tupleUnderlyingType, syntax, diagnostics.DiagnosticBag)
             End If
 
             Dim constructedType = TupleTypeSymbol.Create(locationOpt, tupleUnderlyingType, elementLocations, elementNames, errorPositions)
             If shouldCheckConstraints Then
-                constructedType.CheckConstraints(syntax, elementLocations, diagnostics)
+                constructedType.CheckConstraints(syntax, elementLocations, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, compilation.Assembly))
             End If
 
             Return constructedType
@@ -542,7 +542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return (numElements - 1) \ (RestPosition - 1) + 1
         End Function
 
-        Private Shared Function GetTupleUnderlyingType(elementTypes As ImmutableArray(Of TypeSymbol), syntax As SyntaxNode, compilation As VisualBasicCompilation, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Private Shared Function GetTupleUnderlyingType(elementTypes As ImmutableArray(Of TypeSymbol), syntax As SyntaxNode, compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Dim numElements As Integer = elementTypes.Length
             Dim remainder As Integer
             Dim chainLength As Integer = TupleTypeSymbol.NumberOfValueTuples(numElements, remainder)
@@ -550,7 +550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim wellKnownType As NamedTypeSymbol = compilation.GetWellKnownType(TupleTypeSymbol.GetTupleType(remainder))
 
             If diagnostics IsNot Nothing AndAlso syntax IsNot Nothing Then
-                Binder.ReportUseSiteError(diagnostics, syntax, wellKnownType)
+                Binder.ReportUseSite(diagnostics, syntax, wellKnownType)
             End If
 
             Dim namedTypeSymbol As NamedTypeSymbol = wellKnownType.Construct(ImmutableArray.Create(Of TypeSymbol)(elementTypes, (chainLength - 1) * (TupleTypeSymbol.RestPosition - 1), remainder))
@@ -559,7 +559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim wellKnownType2 As NamedTypeSymbol = compilation.GetWellKnownType(TupleTypeSymbol.GetTupleType(TupleTypeSymbol.RestPosition))
 
                 If diagnostics IsNot Nothing AndAlso syntax IsNot Nothing Then
-                    Binder.ReportUseSiteError(diagnostics, syntax, wellKnownType2)
+                    Binder.ReportUseSite(diagnostics, syntax, wellKnownType2)
                 End If
                 Do
                     Dim typeArguments As ImmutableArray(Of TypeSymbol) = ImmutableArray.Create(Of TypeSymbol)(elementTypes, ([loop] - 1) * (TupleTypeSymbol.RestPosition - 1), TupleTypeSymbol.RestPosition - 1).Add(namedTypeSymbol)
@@ -570,16 +570,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return namedTypeSymbol
         End Function
 
-        Friend Shared Sub VerifyTupleTypePresent(cardinality As Integer, syntax As VisualBasicSyntaxNode, compilation As VisualBasicCompilation, diagnostics As DiagnosticBag)
+        Friend Shared Sub VerifyTupleTypePresent(cardinality As Integer, syntax As VisualBasicSyntaxNode, compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag)
             Debug.Assert(diagnostics IsNot Nothing AndAlso syntax IsNot Nothing)
             Dim arity As Integer
             Dim num As Integer = TupleTypeSymbol.NumberOfValueTuples(cardinality, arity)
             Dim wellKnownType As NamedTypeSymbol = compilation.GetWellKnownType(TupleTypeSymbol.GetTupleType(arity))
-            Binder.ReportUseSiteError(diagnostics, syntax, wellKnownType)
+            Binder.ReportUseSite(diagnostics, syntax, wellKnownType)
 
             If num > 1 Then
                 Dim wellKnownType2 As NamedTypeSymbol = compilation.GetWellKnownType(TupleTypeSymbol.GetTupleType(TupleTypeSymbol.RestPosition))
-                Binder.ReportUseSiteError(diagnostics, syntax, wellKnownType2)
+                Binder.ReportUseSite(diagnostics, syntax, wellKnownType2)
             End If
         End Sub
 
@@ -643,17 +643,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return VisualBasicCompilation.GetRuntimeMember(type, descriptor, VisualBasicCompilation.SpecialMembersSignatureComparer.Instance, Nothing)
         End Function
 
-        Friend Shared Function GetWellKnownMemberInType(type As NamedTypeSymbol, relativeMember As WellKnownMember, diagnostics As DiagnosticBag, syntax As SyntaxNode) As Symbol
+        Friend Shared Function GetWellKnownMemberInType(type As NamedTypeSymbol, relativeMember As WellKnownMember, diagnostics As BindingDiagnosticBag, syntax As SyntaxNode) As Symbol
             Dim wellKnownMemberInType As Symbol = TupleTypeSymbol.GetWellKnownMemberInType(type, relativeMember)
 
             If wellKnownMemberInType Is Nothing Then
                 Dim descriptor As MemberDescriptor = WellKnownMembers.GetDescriptor(relativeMember)
                 Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_MissingRuntimeHelper, type.Name & "."c & descriptor.Name)
             Else
-                Dim useSiteDiagnostic As DiagnosticInfo = wellKnownMemberInType.GetUseSiteErrorInfo
-                If useSiteDiagnostic IsNot Nothing AndAlso useSiteDiagnostic.Severity = DiagnosticSeverity.[Error] Then
-                    diagnostics.Add(useSiteDiagnostic, syntax.GetLocation())
-                End If
+                Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = wellKnownMemberInType.GetUseSiteInfo
+                diagnostics.Add(useSiteInfo, syntax.GetLocation())
             End If
             Return wellKnownMemberInType
         End Function
@@ -1018,8 +1016,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Me._underlyingType.GetHashCode()
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            Return Me._underlyingType.GetUseSiteErrorInfo()
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Return Me._underlyingType.GetUseSiteInfo()
         End Function
 
         Friend Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
@@ -1080,19 +1078,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New TypeWithModifiers(tupleType, Nothing)
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return Me._underlyingType.MakeDeclaredBase(basesBeingResolved, diagnostics)
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return Me._underlyingType.MakeDeclaredInterfaces(basesBeingResolved, diagnostics)
         End Function
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return Me._underlyingType.MakeAcyclicBaseType(diagnostics)
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return Me._underlyingType.MakeAcyclicInterfaces(diagnostics)
         End Function
 
@@ -1106,7 +1104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function
 
-        Friend Shared Sub ReportNamesMismatchesIfAny(destination As TypeSymbol, literal As BoundTupleLiteral, diagnostics As DiagnosticBag)
+        Friend Shared Sub ReportNamesMismatchesIfAny(destination As TypeSymbol, literal As BoundTupleLiteral, diagnostics As BindingDiagnosticBag)
             Dim sourceNames = literal.ArgumentNamesOpt
 
             If sourceNames.IsDefault Then

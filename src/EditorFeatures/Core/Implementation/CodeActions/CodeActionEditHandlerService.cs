@@ -10,9 +10,11 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
@@ -46,13 +48,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
         public ITextBufferAssociatedViewService AssociatedViewService => _associatedViewService;
 
-        public SolutionPreviewResult GetPreviews(
+        public async Task<SolutionPreviewResult> GetPreviewsAsync(
             Workspace workspace, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken)
         {
             if (operations.IsDefaultOrEmpty)
-            {
                 return null;
-            }
 
             SolutionPreviewResult currentResult = null;
 
@@ -63,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 if (op is ApplyChangesOperation applyChanges)
                 {
                     var oldSolution = workspace.CurrentSolution;
-                    var newSolution = applyChanges.ChangedSolution.WithMergedLinkedFileChangesAsync(oldSolution, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                    var newSolution = await applyChanges.ChangedSolution.WithMergedLinkedFileChangesAsync(
+                        oldSolution, cancellationToken: cancellationToken).ConfigureAwait(false);
                     var preview = _previewService.GetSolutionPreviews(
                         oldSolution, newSolution, cancellationToken);
 
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
             var oldSolution = workspace.CurrentSolution;
 
-            bool applied;
+            var applied = false;
 
             // Determine if we're making a simple text edit to a single file or not.
             // If we're not, then we need to make a linked global undo to wrap the 
@@ -152,7 +153,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                 using (workspace.Services.GetService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
                 {
-                    applied = operations.Single().TryApply(workspace, progressTracker, cancellationToken);
+                    try
+                    {
+                        applied = operations.Single().TryApply(workspace, progressTracker, cancellationToken);
+                    }
+                    catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
                 }
             }
             else
@@ -169,9 +177,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     transaction.AddDocument(fromDocument.Id);
                 }
 
-                applied = ProcessOperations(
-                    workspace, operations, progressTracker,
-                    cancellationToken);
+                try
+                {
+                    applied = ProcessOperations(
+                        workspace, operations, progressTracker,
+                        cancellationToken);
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
 
                 transaction.Commit();
             }
@@ -302,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 if (navigationTokenOpt.HasValue)
                 {
                     var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                    navigationService.TryNavigateToPosition(workspace, documentId, navigationTokenOpt.Value.SpanStart);
+                    navigationService.TryNavigateToPosition(workspace, documentId, navigationTokenOpt.Value.SpanStart, cancellationToken);
                     return;
                 }
 
@@ -325,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     {
                         var editorWorkspace = workspace;
                         var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
-                        if (navigationService.TryNavigateToSpan(editorWorkspace, documentId, resolvedRenameToken.Span))
+                        if (navigationService.TryNavigateToSpan(editorWorkspace, documentId, resolvedRenameToken.Span, cancellationToken))
                         {
                             var openDocument = workspace.CurrentSolution.GetDocument(documentId);
                             var openRoot = openDocument.GetSyntaxRootSynchronously(cancellationToken);

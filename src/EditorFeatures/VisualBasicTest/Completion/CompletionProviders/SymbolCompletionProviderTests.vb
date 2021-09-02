@@ -4,7 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 
@@ -17,10 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(SymbolCompletionProvider)
-        End Function
-
-        Protected Overrides Function GetComposition() As TestComposition
-            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
         End Function
 
 #Region "StandaloneNamespaceAndTypeSourceTests"
@@ -1352,7 +1347,7 @@ Class C
                 expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
                 sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
                 glyph:=Nothing, matchPriority:=Nothing, hasSuggestionItem:=Nothing,
-                displayTextSuffix:=Nothing, matchingFilters:=Nothing)
+                displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, matchingFilters:=Nothing)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
@@ -5754,7 +5749,7 @@ Class C
                              </Project>
                          </Workspace>.ToString().NormalizeLineEndings()
 
-            Dim expectedDescription = $"({FeaturesResources.field}) C.x As Integer" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_context
+            Dim expectedDescription = $"({FeaturesResources.field}) C.x As Integer" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts
             Await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription)
         End Function
 
@@ -6338,6 +6333,34 @@ Class [Class]
 End Class]]></code>.Value
 
             Await VerifyItemExistsAsync(text, "ToString")
+        End Function
+
+        <WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestConditionalOperatorCompletionForNullableParameterSymbols_1() As Task
+            Dim text =
+<code><![CDATA[
+Class [Class]
+    Sub Goo(dt As System.DateTime?)
+        dt?.$$
+    End Sub
+End Class]]></code>.Value
+            Await VerifyItemExistsAsync(text, "Day")
+            Await VerifyItemIsAbsentAsync(text, "Value")
+        End Function
+
+        <WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestConditionalOperatorCompletionForNullableParameterSymbols_2() As Task
+            Dim text =
+<code><![CDATA[
+Class [Class]
+    Sub Goo(dt As System.DateTime?)
+        dt.$$
+    End Sub
+End Class]]></code>.Value
+            Await VerifyItemExistsAsync(text, "Value")
+            Await VerifyItemIsAbsentAsync(text, "Day")
         End Function
 
         <WorkItem(1041269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041269")>
@@ -7750,6 +7773,7 @@ End Namespace
             For index = 2 To 8
                 Await VerifyItemExistsAsync(text, "Item" + index.ToString())
             Next
+
             Await VerifyItemExistsAsync(text, "ToString")
 
             Await VerifyItemIsAbsentAsync(text, "Item1")
@@ -7814,11 +7838,11 @@ End Namespace
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
-                                        matchingFilters:=Nothing, flags:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
+                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing)
                 Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
-                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, inlineDescription:=Nothing,
-                                        matchingFilters:=Nothing, flags:=Nothing)
+                                        glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
+                                        isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing)
             End Using
 
         End Function
@@ -8428,7 +8452,7 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilterWithExperimentEnabled() As Task
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, True)
+            TargetTypedCompletionFilterFeatureFlag = True
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8443,7 +8467,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestNoTargetTypeFilterWithExperimentDisabled() As Task
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, False)
+            TargetTypedCompletionFilterFeatureFlag = False
             Dim markup =
 "Class C
     Dim intField As Integer
@@ -8458,7 +8482,7 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
         Public Async Function TestTargetTypeFilter_NotOnObjectMembers() As Task
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, True)
+            TargetTypedCompletionFilterFeatureFlag = True
             Dim markup =
 "Class C
     Dim intField As Integer

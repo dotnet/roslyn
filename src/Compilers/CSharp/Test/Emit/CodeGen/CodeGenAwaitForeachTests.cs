@@ -4464,10 +4464,9 @@ namespace System
 ";
             var comp = CreateCompilationWithTasksExtensions(source);
             comp.VerifyEmitDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/50182 tracks erroring here
                 // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in c)
-                //Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "c").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "c").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
                 );
         }
 
@@ -4511,10 +4510,9 @@ namespace System
 ";
             var comp = CreateCompilationWithTasksExtensions(source);
             comp.VerifyEmitDiagnostics(
-                // https://github.com/dotnet/roslyn/issues/50182 tracks erroring here
                 // (8,33): error CS8411: Asynchronous foreach statement cannot operate on variables of type 'C' because 'C' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
                 //         await foreach (var i in c)
-                //Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "c").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMember, "c").WithArguments("C", "GetAsyncEnumerator").WithLocation(8, 33)
                 );
         }
 

@@ -78,5 +78,38 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             return null;
         }
+
+        internal async Task<QuickInfoItem?> GetQuickInfoAsync(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        {
+            var extensionManager = _workspace.Services.GetRequiredService<IExtensionManager>();
+
+            // returns the first non-empty quick info found (based on provider order)
+            foreach (var provider in GetProviders().OfType<CommonQuickInfoProvider>())
+            {
+                try
+                {
+                    if (!extensionManager.IsDisabled(provider))
+                    {
+                        var context = new CommonQuickInfoContext(workspace, semanticModel, position, cancellationToken);
+
+                        var info = await provider.GetQuickInfoAsync(context).ConfigureAwait(false);
+                        if (info != null)
+                        {
+                            return info;
+                        }
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception e) when (extensionManager.CanHandleException(provider, e))
+                {
+                    extensionManager.HandleException(provider, e);
+                }
+            }
+
+            return null;
+        }
     }
 }

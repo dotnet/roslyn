@@ -65,19 +65,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride ReadOnly Property TypeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
 
-        Friend Function TypeArgumentsWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of TypeSymbol)
+        Friend Function TypeArgumentsWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of TypeSymbol)
             Dim result = TypeArgumentsNoUseSiteDiagnostics
 
             For Each typeArgument In result
-                typeArgument.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+                typeArgument.OriginalDefinition.AddUseSiteInfo(useSiteInfo)
             Next
 
             Return result
         End Function
 
-        Friend Function TypeArgumentWithDefinitionUseSiteDiagnostics(index As Integer, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol
+        Friend Function TypeArgumentWithDefinitionUseSiteDiagnostics(index As Integer, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As TypeSymbol
             Dim result = TypeArgumentsNoUseSiteDiagnostics(index)
-            result.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+            result.OriginalDefinition.AddUseSiteInfo(useSiteInfo)
             Return result
         End Function
 
@@ -719,7 +719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' basesBeingResolved are passed if there are any types already have their bases resolved
         ''' so that the derived implementation could avoid infinite recursion
         ''' </summary>
-        Friend MustOverride Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend MustOverride Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
 
         ''' <summary>
         ''' NamedTypeSymbol calls derived implementations of this method when declared interfaces
@@ -728,7 +728,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' basesBeingResolved are passed if there are any types already have their bases resolved
         ''' so that the derived implementation could avoid infinite recursion
         ''' </summary>
-        Friend MustOverride Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend MustOverride Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
 
         ''' <summary>
         ''' Base type as "declared".
@@ -739,7 +739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Overridable Function GetDeclaredBase(basesBeingResolved As BasesBeingResolved) As NamedTypeSymbol
             If _lazyDeclaredBase Is ErrorTypeSymbol.UnknownResultType Then
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 AtomicStoreReferenceAndDiagnostics(_lazyDeclaredBase, MakeDeclaredBase(basesBeingResolved, diagnostics), diagnostics, ErrorTypeSymbol.UnknownResultType)
                 diagnostics.Free()
             End If
@@ -753,31 +753,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub AtomicStoreReferenceAndDiagnostics(Of T As Class)(ByRef variable As T,
                                                                      value As T,
-                                                                     diagBag As DiagnosticBag,
+                                                                     diagBag As BindingDiagnosticBag,
                                                                      Optional comparand As T = Nothing)
             Debug.Assert(value IsNot comparand)
 
-            If diagBag Is Nothing OrElse diagBag.IsEmptyWithoutResolution Then
+            If diagBag Is Nothing OrElse diagBag.IsEmpty Then
                 Interlocked.CompareExchange(variable, value, comparand)
             Else
                 Dim sourceModule = TryCast(Me.ContainingModule, SourceModuleSymbol)
                 If sourceModule IsNot Nothing Then
-                    sourceModule.AtomicStoreReferenceAndDiagnostics(variable, value, diagBag, CompilationStage.Declare, comparand)
+                    sourceModule.AtomicStoreReferenceAndDiagnostics(variable, value, diagBag, comparand)
                 End If
             End If
         End Sub
 
         Friend Sub AtomicStoreArrayAndDiagnostics(Of T)(ByRef variable As ImmutableArray(Of T),
                                                              value As ImmutableArray(Of T),
-                                                             diagBag As DiagnosticBag)
+                                                             diagBag As BindingDiagnosticBag)
             Debug.Assert(Not value.IsDefault)
 
-            If diagBag Is Nothing OrElse diagBag.IsEmptyWithoutResolution Then
+            If diagBag Is Nothing OrElse diagBag.IsEmpty Then
                 ImmutableInterlocked.InterlockedCompareExchange(variable, value, Nothing)
             Else
                 Dim sourceModule = TryCast(Me.ContainingModule, SourceModuleSymbol)
                 If sourceModule IsNot Nothing Then
-                    sourceModule.AtomicStoreArrayAndDiagnostics(variable, value, diagBag, CompilationStage.Declare)
+                    sourceModule.AtomicStoreArrayAndDiagnostics(variable, value, diagBag)
                 End If
             End If
         End Sub
@@ -791,7 +791,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Overridable Function GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved) As ImmutableArray(Of NamedTypeSymbol)
             If _lazyDeclaredInterfaces.IsDefault Then
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 AtomicStoreArrayAndDiagnostics(_lazyDeclaredInterfaces, MakeDeclaredInterfaces(basesBeingResolved, diagnostics), diagnostics)
                 diagnostics.Free()
             End If
@@ -799,11 +799,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return _lazyDeclaredInterfaces
         End Function
 
-        Friend Function GetDeclaredInterfacesWithDefinitionUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Function GetDeclaredInterfacesWithDefinitionUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of NamedTypeSymbol)
             Dim result = GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved)
 
             For Each iface In result
-                iface.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
+                iface.OriginalDefinition.AddUseSiteInfo(useSiteInfo)
             Next
 
             Return result
@@ -837,7 +837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' This method typically calls GetDeclaredBase, filters for 
         ''' illegal cycles and other conditions before returning result as acyclic.
         ''' </summary>
-        Friend MustOverride Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend MustOverride Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
 
         ''' <summary>
         ''' NamedTypeSymbol calls derived implementations of this method when acyclic base interfaces
@@ -845,7 +845,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' This method typically calls GetDeclaredInterfaces, filters for 
         ''' illegal cycles and other conditions before returning result as acyclic.
         ''' </summary>
-        Friend MustOverride Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend MustOverride Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
 
         Private _lazyBaseType As NamedTypeSymbol = ErrorTypeSymbol.UnknownResultType
         Private _lazyInterfaces As ImmutableArray(Of NamedTypeSymbol)
@@ -863,7 +863,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim tmp = ContainingType.BaseTypeNoUseSiteDiagnostics
                     End If
 
-                    Dim diagnostics = DiagnosticBag.GetInstance
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance
                     Dim acyclicBase = Me.MakeAcyclicBaseType(diagnostics)
 
                     AtomicStoreReferenceAndDiagnostics(Me._lazyBaseType, acyclicBase, diagnostics, ErrorTypeSymbol.UnknownResultType)
@@ -880,7 +880,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
                 If Me._lazyInterfaces.IsDefault Then
-                    Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance
                     Dim acyclicInterfaces As ImmutableArray(Of NamedTypeSymbol) = Me.MakeAcyclicInterfaces(diagnostics)
 
                     AtomicStoreArrayAndDiagnostics(Me._lazyInterfaces, acyclicInterfaces, diagnostics)
@@ -927,7 +927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' True iff this type or some containing type has type parameters.
+        ''' True if and only if this type or some containing type has type parameters.
         ''' </summary>
         Public ReadOnly Property IsGenericType As Boolean Implements INamedTypeSymbol.IsGenericType
             Get
@@ -984,68 +984,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return True
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Me.IsDefinition Then
-                Return MyBase.GetUseSiteErrorInfo()
+                Return New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
             End If
 
             ' Doing check for constructed types here in order to share implementation across
             ' constructed non-error and error type symbols.
 
             ' Check definition.
-            Dim definitionErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.OriginalDefinition)
+            Dim definitionUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromType(Me.OriginalDefinition)
 
-            If definitionErrorInfo IsNot Nothing AndAlso definitionErrorInfo.Code = ERRID.ERR_UnsupportedType1 Then
-                Return definitionErrorInfo
+            If definitionUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedType1 Then
+                Return definitionUseSiteInfo
             End If
 
             ' Check type arguments.
-            Dim argsErrorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromTypeArguments()
+            Dim argsUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromTypeArguments()
 
-            Return MergeUseSiteErrorInfo(definitionErrorInfo, argsErrorInfo)
+            Return MergeUseSiteInfo(definitionUseSiteInfo, argsUseSiteInfo)
         End Function
 
-        Private Function DeriveUseSiteErrorInfoFromTypeArguments() As DiagnosticInfo
-            Dim argsErrorInfo As DiagnosticInfo = Nothing
+        Private Function DeriveUseSiteInfoFromTypeArguments() As UseSiteInfo(Of AssemblySymbol)
+            Dim argsUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
             Dim currentType As NamedTypeSymbol = Me
 
             Do
                 For Each arg As TypeSymbol In currentType.TypeArgumentsNoUseSiteDiagnostics
-                    Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(arg)
-
-                    If errorInfo IsNot Nothing Then
-                        If errorInfo.Code = ERRID.ERR_UnsupportedType1 Then
-                            Return errorInfo
-                        End If
-
-                        If argsErrorInfo Is Nothing Then
-                            argsErrorInfo = errorInfo
-                        End If
+                    If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromType(arg), ERRID.ERR_UnsupportedType1) Then
+                        Return argsUseSiteInfo
                     End If
                 Next
 
                 If currentType.HasTypeArgumentsCustomModifiers Then
-                    Dim modifiersErrorInfo As DiagnosticInfo = Nothing
-
-                    For i As Integer = 0 To currentType.Arity - 1
-                        modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(currentType.GetTypeArgumentCustomModifiers(i)))
+                    For i As Integer = 0 To Me.Arity - 1
+                        If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)), ERRID.ERR_UnsupportedType1) Then
+                            Return argsUseSiteInfo
+                        End If
                     Next
-
-                    If modifiersErrorInfo IsNot Nothing Then
-                        If modifiersErrorInfo.Code = ERRID.ERR_UnsupportedType1 Then
-                            Return modifiersErrorInfo
-                        End If
-
-                        If argsErrorInfo Is Nothing Then
-                            argsErrorInfo = modifiersErrorInfo
-                        End If
-                    End If
                 End If
 
                 currentType = currentType.ContainingType
             Loop While currentType IsNot Nothing AndAlso Not currentType.IsDefinition
 
-            Return argsErrorInfo
+            Return argsUseSiteInfo
         End Function
 
         ''' <summary>

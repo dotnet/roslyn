@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -198,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab, bool activate) => false;
+                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken) => false;
 
                 public override bool TryGetValue(int index, string columnName, out object content)
                 {

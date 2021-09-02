@@ -34,15 +34,5 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// recompute tags.
         /// </summary>
         event EventHandler<TaggerEventArgs> Changed;
-
-        /// <summary>
-        /// The tagger should stop updating the UI with the tags it's produced.
-        /// </summary>
-        event EventHandler UIUpdatesPaused;
-
-        /// <summary>
-        /// The tagger can start notifying the UI about its tags again.
-        /// </summary>
-        event EventHandler UIUpdatesResumed;
     }
 }

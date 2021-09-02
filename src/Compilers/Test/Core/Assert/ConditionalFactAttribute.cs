@@ -222,9 +222,21 @@ namespace Roslyn.Test.Utilities
 
     public class IsEnglishLocal : ExecutionCondition
     {
-        public override bool ShouldSkip =>
-            !CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase) ||
-            !CultureInfo.CurrentCulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+        public override bool ShouldSkip
+        {
+            get
+            {
+                // WSL environments can have this value as empty string
+                if (string.IsNullOrEmpty(CultureInfo.CurrentCulture.Name))
+                {
+                    return false;
+                }
+
+                return
+                    !CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase) ||
+                    !CultureInfo.CurrentCulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+            }
+        }
 
         public override string SkipReason => "Current culture is not en";
     }
@@ -314,7 +326,13 @@ namespace Roslyn.Test.Utilities
     public class NoIOperationValidation : ExecutionCondition
     {
         public override bool ShouldSkip => CompilationExtensions.EnableVerifyIOperation;
-        public override string SkipReason => "Test not supported in TEST_IOPERATION_INTERFACE";
+        public override string SkipReason => "Test not supported in ROSLYN_TEST_IOPERATION";
+    }
+
+    public class NoUsedAssembliesValidation : ExecutionCondition
+    {
+        public override bool ShouldSkip => CompilationExtensions.EnableVerifyUsedAssemblies;
+        public override string SkipReason => "Test not supported in ROSLYN_TEST_USEDASSEMBLIES";
     }
 
     public class OSVersionWin8 : ExecutionCondition

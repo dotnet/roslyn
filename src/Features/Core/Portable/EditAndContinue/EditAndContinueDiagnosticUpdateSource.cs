@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -50,10 +51,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => DiagnosticsCleared?.Invoke(this, EventArgs.Empty);
 
         /// <summary>
-        /// Reports given set of diagnostics. 
-        /// Categorizes diagnostic into two groups - diagnostics associated with a document and diagnostics associated with a project or solution.
+        /// Reports given set of project or solution level diagnostics. 
         /// </summary>
-        public void ReportDiagnostics(Workspace workspace, Solution solution, ProjectId? projectId, IEnumerable<Diagnostic> diagnostics)
+        public void ReportDiagnostics(Workspace workspace, Solution solution, ImmutableArray<DiagnosticData> diagnostics)
         {
             RoslynDebug.Assert(solution != null);
 
@@ -63,56 +63,53 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return;
             }
 
-            using var _1 = ArrayBuilder<DiagnosticData>.GetInstance(out var documentDiagnosticData);
-            using var _2 = ArrayBuilder<DiagnosticData>.GetInstance(out var nonDocumentDiagnosticData);
-            var options = solution.Options;
-            var project = (projectId != null) ? solution.GetProject(projectId) : null;
+            var documentDiagnostics = diagnostics.WhereAsArray(d => d.DocumentId != null);
+            var projectDiagnostics = diagnostics.WhereAsArray(d => d.DocumentId == null && d.ProjectId != null);
+            var solutionDiagnostics = diagnostics.WhereAsArray(d => d.DocumentId == null && d.ProjectId == null);
 
-            foreach (var diagnostic in diagnostics)
+            if (documentDiagnostics.Length > 0)
             {
-                var document = solution.GetDocument(diagnostic.Location.SourceTree);
+                foreach (var (documentId, diagnosticData) in documentDiagnostics.ToDictionary(data => data.DocumentId!))
+                {
+                    var diagnosticGroupId = (this, documentId);
 
-                if (document != null)
-                {
-                    documentDiagnosticData.Add(DiagnosticData.Create(diagnostic, document));
-                }
-                else if (project != null)
-                {
-                    nonDocumentDiagnosticData.Add(DiagnosticData.Create(diagnostic, project));
-                }
-                else
-                {
-                    nonDocumentDiagnosticData.Add(DiagnosticData.Create(diagnostic, options));
+                    updateEvent(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                        diagnosticGroupId,
+                        workspace,
+                        solution,
+                        documentId.ProjectId,
+                        documentId: documentId,
+                        diagnostics: diagnosticData));
                 }
             }
 
-            if (documentDiagnosticData.Count > 0)
+            if (projectDiagnostics.Length > 0)
             {
-                foreach (var (documentId, diagnosticData) in documentDiagnosticData.ToDictionary(data => data.DocumentId!))
+                foreach (var (projectId, diagnosticData) in projectDiagnostics.ToDictionary(data => data.ProjectId!))
                 {
-                    var diagnosticGroupId = (this, documentId, projectId);
+                    var diagnosticGroupId = (this, projectId);
 
                     updateEvent(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         diagnosticGroupId,
                         workspace,
                         solution,
                         projectId,
-                        documentId: documentId,
+                        documentId: null,
                         diagnostics: diagnosticData));
                 }
             }
 
-            if (nonDocumentDiagnosticData.Count > 0)
+            if (solutionDiagnostics.Length > 0)
             {
-                var diagnosticGroupId = (this, projectId);
+                var diagnosticGroupId = this;
 
                 updateEvent(this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
                     diagnosticGroupId,
                     workspace,
                     solution,
-                    projectId,
+                    projectId: null,
                     documentId: null,
-                    diagnostics: nonDocumentDiagnosticData.ToImmutable()));
+                    diagnostics: solutionDiagnostics));
             }
         }
     }

@@ -56,7 +56,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+        //var[||] i = 1;
     }
 }";
 
@@ -81,7 +81,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+[||]        //var i = 1;
     }
 }";
 
@@ -106,7 +106,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+        [|//var i = 1;|]
     }
 }";
 
@@ -131,7 +131,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+        //var [|i = 1;|]
     }
 }";
 
@@ -185,7 +185,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1; // A comment.|]
+        //var i = 1; // A [|comment|].
     }
 }";
 
@@ -210,7 +210,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1; // A comment.|]
+        //var i = 1; [|// A comment.|]
     }
 }";
 
@@ -235,7 +235,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1; // A comment.|]
+        [|//var i = 1; // A comment.|]
     }
 }";
 
@@ -260,7 +260,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1; // A comment.|]
+        //var [||]i = 1; // A comment.
     }
 }";
 
@@ -285,7 +285,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1; // A comment.|]
+        //var i = 1; // A [||]comment.
     }
 }";
 
@@ -310,7 +310,7 @@ class C
 {
     void M()
     {
-[|        //string s = '\\';|]
+        [|//string s = '\\';|]
     }
 }";
 
@@ -336,7 +336,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;
+        [|//var i = 1;
         //var j = 2;|]
     }
 }";
@@ -396,7 +396,7 @@ class C
 {
     void M()
     {
-[|        ////var i = 1;
+        [|////var i = 1;
         //var j = 2;|]
     }
 }";
@@ -423,7 +423,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1; // A comment.
+        [|//var i = 1; // A comment.
         //var j = 2;|]
     }
 }";
@@ -479,8 +479,8 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
-[|        //var j = 2;|]
+        //var [||]i = 1;
+        //var [||]j = 2;
     }
 }";
 
@@ -506,8 +506,8 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
-[|        //var j = 2;|]
+        [|//var i = 1;|]
+        [|//var j = 2;|]
     }
 }";
 
@@ -523,7 +523,7 @@ class C
 {
     void M()
     {
-        [|//var i = 1;|]
+        [|//var i = |]1;
         [|var j = 2;|]
     }
 }";
@@ -533,8 +533,8 @@ class C
 {
     void M()
     {
-[|        ////var i = 1;|]
-[|        //var j = 2;|]
+        [|////var i = |]1;
+        [|//var j = 2;|]
     }
 }";
 
@@ -559,7 +559,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+        [|//var i = 1;|]
     }
 }";
 
@@ -584,7 +584,7 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+        var[||] i = 1;
     }
 }";
 
@@ -609,7 +609,7 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+    [||]    var i = 1;
     }
 }";
 
@@ -634,7 +634,7 @@ class C
 {
     void M()
     {
-[|        var i = 1; // A comment.|]
+        var i = 1; // A [||]comment.
     }
 }";
 
@@ -659,7 +659,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+        //var[||] i = 1;
     }
 }";
 
@@ -684,7 +684,7 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+        [|var i = 1;|]
     }
 }";
 
@@ -709,7 +709,7 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+        var [|i = 1;|]
     }
 }";
 
@@ -763,7 +763,7 @@ class C
 {
     void M()
     {
-[|        string s = '\\';|]
+        [|string s = '\\';|]
     }
 }";
 
@@ -789,7 +789,7 @@ class C
 {
     void M()
     {
-[|        var i = 1;
+        [|var i = 1;
         var j = 2;|]
     }
 }";
@@ -849,7 +849,7 @@ class C
 {
     void M()
     {
-[|        var i = 1; // A comment.
+        [|var i = 1; // A comment.
         var j = 2;|]
     }
 }";
@@ -906,9 +906,9 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+        var [||]i = 1;
 [||]
-[|        var j = 2;|]
+        var [||]j = 2;
     }
 }";
 
@@ -935,9 +935,9 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+        [|var i = 1;|]
 [||]
-[|        var j = 2;|]
+        [|var j = 2;|]
     }
 }";
 
@@ -962,7 +962,7 @@ class C
 {
     void M()
     {
-[|        var i = 1;|]
+        [|var i = 1;|]
     }
 }";
 
@@ -990,7 +990,7 @@ class C
 {
     void M()
     {
-[|        ////var i = 1;
+        [|////var i = 1;
 
         //var j = 2;|]
     }
@@ -1000,7 +1000,7 @@ class C
 {
     void M()
     {
-[|        //var i = 1;
+        [|//var i = 1;
 
         var j = 2;|]
     }
@@ -1019,7 +1019,7 @@ class C
 {
     void M()
     {
-        [|//var i = 1;|]
+        [|//var i = |]1;
 [||]
         [|var j = 2;|]
     }
@@ -1031,9 +1031,9 @@ class C
 {
     void M()
     {
-[|        ////var i = 1;|]
+        [|////var i = |]1;
 [||]
-[|        //var j = 2;|]
+        [|//var j = 2;|]
     }
 }",
 @"
@@ -1041,9 +1041,9 @@ class C
 {
     void M()
     {
-[|        //var i = 1;|]
+        [|//var i = |]1;
 [||]
-[|        var j = 2;|]
+        [|var j = 2;|]
     }
 }"
         };

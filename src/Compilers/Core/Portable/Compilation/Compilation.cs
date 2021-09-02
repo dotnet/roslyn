@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the syntax trees (parsed from source code) that this compilation was created with.
         /// </summary>
         public IEnumerable<SyntaxTree> SyntaxTrees { get { return CommonSyntaxTrees; } }
-        protected abstract IEnumerable<SyntaxTree> CommonSyntaxTrees { get; }
+        protected abstract ImmutableArray<SyntaxTree> CommonSyntaxTrees { get; }
 
         /// <summary>
         /// Creates a new compilation with additional syntax trees.
@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis
         [Conditional("DEBUG")]
         private void AssertNoScriptTrees()
         {
-            foreach (var tree in this.SyntaxTrees)
+            foreach (var tree in this.CommonSyntaxTrees)
             {
                 Debug.Assert(tree.Options.Kind != SourceCodeKind.Script);
             }
@@ -972,7 +972,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected abstract IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType);
-
 
         /// <summary>
         /// Returns a new IFunctionPointerTypeSymbol representing a function pointer type tied to types in this
@@ -1497,6 +1496,15 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Unique metadata assembly references that are considered to be used by this compilation.
+        /// For example, if a type declared in a referenced assembly is referenced in source code 
+        /// within this compilation, the reference is considered to be used. Etc.
+        /// The returned set is a subset of references returned by <see cref="References"/> API.
+        /// The result is undefined if the compilation contains errors.
+        /// </summary>
+        public abstract ImmutableArray<MetadataReference> GetUsedAssemblyReferences(CancellationToken cancellationToken = default(CancellationToken));
+
         internal void EnsureCompilationEventQueueCompleted()
         {
             RoslynDebug.Assert(EventQueue != null);
@@ -1744,10 +1752,16 @@ namespace Microsoft.CodeAnalysis
             return resourceList;
         }
 
-        internal void SetupWin32Resources(CommonPEModuleBuilder moduleBeingBuilt, Stream? win32Resources, DiagnosticBag diagnostics)
+        internal void SetupWin32Resources(CommonPEModuleBuilder moduleBeingBuilt, Stream? win32Resources, bool useRawWin32Resources, DiagnosticBag diagnostics)
         {
             if (win32Resources == null)
                 return;
+
+            if (useRawWin32Resources)
+            {
+                moduleBeingBuilt.RawWin32Resources = win32Resources;
+                return;
+            }
 
             Win32ResourceForm resourceForm;
 
@@ -2152,7 +2166,7 @@ namespace Microsoft.CodeAnalysis
         {
             // Check that all syntax trees are debuggable:
             bool allTreesDebuggable = true;
-            foreach (var tree in SyntaxTrees)
+            foreach (var tree in CommonSyntaxTrees)
             {
                 if (!string.IsNullOrEmpty(tree.FilePath) && tree.GetText().Encoding == null)
                 {
@@ -2188,7 +2202,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Add debug documents for all trees with distinct paths.
-            foreach (var tree in SyntaxTrees)
+            foreach (var tree in CommonSyntaxTrees)
             {
                 if (!string.IsNullOrEmpty(tree.FilePath))
                 {
@@ -2210,7 +2224,7 @@ namespace Microsoft.CodeAnalysis
             // If there are clashes with already processed directives, report warnings.
             // If there are clashes with debug documents that came from actual trees, ignore the pragma.
             // Therefore we need to add these in a separate pass after documents for syntax trees were added.
-            foreach (var tree in SyntaxTrees)
+            foreach (var tree in CommonSyntaxTrees)
             {
                 AddDebugSourceDocumentsForChecksumDirectives(documentsBuilder, tree, diagnostics);
             }
@@ -2230,6 +2244,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBeingBuilt,
             Stream? xmlDocumentationStream,
             Stream? win32ResourcesStream,
+            bool useRawWin32Resources,
             string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
@@ -2238,9 +2253,13 @@ namespace Microsoft.CodeAnalysis
         /// Reports all unused imports/usings so far (and thus it must be called as a last step of Emit)
         /// </summary>
         internal abstract void ReportUnusedImports(
-            SyntaxTree? filterTree,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
+
+        internal static bool ReportUnusedImportsInTree(SyntaxTree tree)
+        {
+            return tree.Options.DocumentationMode != DocumentationMode.None;
+        }
 
         /// <summary>
         /// Signals the event queue, if any, that we are done compiling.
@@ -2402,7 +2421,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="pdbStream">Stream to which the compilation's debug info will be written.  Null to forego PDB generation.</param>
         /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
         /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).
-        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
+        /// Null to indicate that there are none. The RES format begins with a null resource entry.
+        /// Note that the caller is responsible for disposing this stream, if provided.</param>
         /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
         /// <param name="options">Emit options.</param>
         /// <param name="debugEntryPoint">
@@ -2440,6 +2460,35 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<EmbeddedText>? embeddedTexts = null,
             Stream? metadataPEStream = null,
             CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return Emit(
+                peStream,
+                pdbStream,
+                xmlDocumentationStream,
+                win32Resources,
+                manifestResources,
+                options,
+                debugEntryPoint,
+                sourceLinkStream,
+                embeddedTexts,
+                metadataPEStream,
+                rebuildData: null,
+                cancellationToken);
+        }
+
+        internal EmitResult Emit(
+            Stream peStream,
+            Stream? pdbStream,
+            Stream? xmlDocumentationStream,
+            Stream? win32Resources,
+            IEnumerable<ResourceDescription>? manifestResources,
+            EmitOptions? options,
+            IMethodSymbol? debugEntryPoint,
+            Stream? sourceLinkStream,
+            IEnumerable<EmbeddedText>? embeddedTexts,
+            Stream? metadataPEStream,
+            RebuildData? rebuildData,
+            CancellationToken cancellationToken)
         {
             if (peStream == null)
             {
@@ -2535,6 +2584,7 @@ namespace Microsoft.CodeAnalysis
                 debugEntryPoint,
                 sourceLinkStream,
                 embeddedTexts,
+                rebuildData,
                 testData: null,
                 cancellationToken: cancellationToken);
         }
@@ -2554,6 +2604,7 @@ namespace Microsoft.CodeAnalysis
             IMethodSymbol? debugEntryPoint,
             Stream? sourceLinkStream,
             IEnumerable<EmbeddedText>? embeddedTexts,
+            RebuildData? rebuildData,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -2598,6 +2649,7 @@ namespace Microsoft.CodeAnalysis
                             moduleBeingBuilt,
                             xmlDocumentationStream,
                             win32Resources,
+                            useRawWin32Resources: rebuildData is object,
                             options.OutputNameOverride,
                             diagnostics,
                             cancellationToken))
@@ -2607,7 +2659,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (success)
                         {
-                            ReportUnusedImports(null, diagnostics, cancellationToken);
+                            ReportUnusedImports(diagnostics, cancellationToken);
                         }
                     }
                 }
@@ -2634,6 +2686,7 @@ namespace Microsoft.CodeAnalysis
                         new SimpleEmitStreamProvider(peStream),
                         (metadataPEStream != null) ? new SimpleEmitStreamProvider(metadataPEStream) : null,
                         (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
+                        rebuildData,
                         testData?.SymWriterFactory,
                         diagnostics,
                         emitOptions: options,
@@ -2645,6 +2698,7 @@ namespace Microsoft.CodeAnalysis
             return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Emit the differences between the compilation and the previous generation
         /// for Edit and Continue. The differences are expressed as added and changed
@@ -2652,6 +2706,7 @@ namespace Microsoft.CodeAnalysis
         /// of the current compilation is returned as an EmitBaseline for use in a
         /// subsequent Edit and Continue.
         /// </summary>
+        [Obsolete("UpdatedMethods is now part of EmitDifferenceResult, so you should use an overload that doesn't take it.")]
         public EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
@@ -2671,6 +2726,7 @@ namespace Microsoft.CodeAnalysis
         /// of the current compilation is returned as an EmitBaseline for use in a
         /// subsequent Edit and Continue.
         /// </summary>
+        [Obsolete("UpdatedMethods is now part of EmitDifferenceResult, so you should use an overload that doesn't take it.")]
         public EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
@@ -2679,6 +2735,32 @@ namespace Microsoft.CodeAnalysis
             Stream ilStream,
             Stream pdbStream,
             ICollection<MethodDefinitionHandle> updatedMethods,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var diff = EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, cancellationToken);
+
+            foreach (var token in diff.UpdatedMethods)
+            {
+                updatedMethods.Add(token);
+            }
+
+            return diff;
+        }
+
+        /// <summary>
+        /// Emit the differences between the compilation and the previous generation
+        /// for Edit and Continue. The differences are expressed as added and changed
+        /// symbols, and are emitted as metadata, IL, and PDB deltas. A representation
+        /// of the current compilation is returned as an EmitBaseline for use in a
+        /// subsequent Edit and Continue.
+        /// </summary>
+        public EmitDifferenceResult EmitDifference(
+            EmitBaseline baseline,
+            IEnumerable<SemanticEdit> edits,
+            Func<ISymbol, bool> isAddedSymbol,
+            Stream metadataStream,
+            Stream ilStream,
+            Stream pdbStream,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (baseline == null)
@@ -2714,8 +2796,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(pdbStream));
             }
 
-            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, updatedMethods, testData: null, cancellationToken);
+            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, testData: null, cancellationToken);
         }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         internal abstract EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
@@ -2724,7 +2807,6 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethodHandles,
             CompilationTestData? testData,
             CancellationToken cancellationToken);
 
@@ -2795,6 +2877,7 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider peStreamProvider,
             EmitStreamProvider? metadataPEStreamProvider,
             EmitStreamProvider? pdbStreamProvider,
+            RebuildData? rebuildData,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             DiagnosticBag diagnostics,
             EmitOptions emitOptions,
@@ -2868,6 +2951,7 @@ namespace Microsoft.CodeAnalysis
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
+                        rebuildData,
                         emitOptions.EmitMetadataOnly,
                         emitOptions.IncludePrivateMembers,
                         deterministic,
@@ -2949,6 +3033,7 @@ namespace Microsoft.CodeAnalysis
             Func<Stream?>? getPortablePdbStreamOpt,
             Cci.PdbWriter? nativePdbWriterOpt,
             string? pdbPathOpt,
+            RebuildData? rebuildData,
             bool metadataOnly,
             bool includePrivateMembers,
             bool isDeterministic,
@@ -2961,7 +3046,7 @@ namespace Microsoft.CodeAnalysis
             bool includePrivateMembersOnPrimaryOutput = metadataOnly ? includePrivateMembers : true;
             bool deterministicPrimaryOutput = (metadataOnly && !includePrivateMembers) || isDeterministic;
             if (!Cci.PeWriter.WritePeToStream(
-                new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly, includePrivateMembersOnPrimaryOutput),
+                new EmitContext(moduleBeingBuilt, metadataDiagnostics, metadataOnly, includePrivateMembersOnPrimaryOutput, rebuildData: rebuildData),
                 messageProvider,
                 getPeStream,
                 getPortablePdbStreamOpt,
@@ -2983,7 +3068,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(!includePrivateMembers);
 
                 if (!Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBeingBuilt, null, metadataDiagnostics, metadataOnly: true, includePrivateMembers: false),
+                    new EmitContext(moduleBeingBuilt, syntaxNode: null, metadataDiagnostics, metadataOnly: true, includePrivateMembers: false),
                     messageProvider,
                     getMetadataPeStreamOpt,
                     getPortablePdbStreamOpt: null,
@@ -3010,21 +3095,22 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethods,
+            ArrayBuilder<MethodDefinitionHandle> updatedMethods,
+            ArrayBuilder<TypeDefinitionHandle> changedTypes,
             DiagnosticBag diagnostics,
-            Func<ISymWriterMetadataProvider, SymUnmanagedWriter> testSymWriterFactory,
-            string pdbFilePath,
+            Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
+            string? pdbFilePath,
             CancellationToken cancellationToken)
         {
-            var nativePdbWriterOpt = (moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Pdb) ? null :
+            var nativePdbWriter = (moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Pdb) ? null :
                 new Cci.PdbWriter(
                     pdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
                     testSymWriterFactory,
                     hashAlgorithmNameOpt: default);
 
-            using (nativePdbWriterOpt)
+            using (nativePdbWriter)
             {
-                var context = new EmitContext(moduleBeingBuilt, null, diagnostics, metadataOnly: false, includePrivateMembers: true);
+                var context = new EmitContext(moduleBeingBuilt, diagnostics, metadataOnly: false, includePrivateMembers: true);
                 var encId = Guid.NewGuid();
 
                 try
@@ -3039,17 +3125,18 @@ namespace Microsoft.CodeAnalysis
                         cancellationToken);
 
                     writer.WriteMetadataAndIL(
-                        nativePdbWriterOpt,
+                        nativePdbWriter,
                         metadataStream,
                         ilStream,
-                        (nativePdbWriterOpt == null) ? pdbStream : null,
+                        (nativePdbWriter == null) ? pdbStream : null,
                         out MetadataSizes metadataSizes);
 
-                    writer.GetMethodTokens(updatedMethods);
+                    writer.GetUpdatedMethodTokens(updatedMethods);
+                    writer.GetChangedTypeTokens(changedTypes);
 
-                    nativePdbWriterOpt?.WriteTo(pdbStream);
+                    nativePdbWriter?.WriteTo(pdbStream);
 
-                    return diagnostics.HasAnyErrors() ? null : writer.GetDelta(baseline, this, encId, metadataSizes);
+                    return diagnostics.HasAnyErrors() ? null : writer.GetDelta(this, encId, metadataSizes);
                 }
                 catch (SymUnmanagedWriterException e)
                 {
@@ -3088,7 +3175,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal void MarkImportDirectiveAsUsed(SyntaxNode node)
+        internal void MarkImportDirectiveAsUsed(SyntaxReference node)
         {
             MarkImportDirectiveAsUsed(node.SyntaxTree, node.Span.Start);
         }

@@ -183,11 +183,11 @@ end class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)>
-        Public Async Function TestFixAllAcrossMethods() As Task
+        Public Async Function TestFixNotAcrossMethods() As Task
             Dim text = "
 class Test
     sub Method()
-        dim t1 = {|FixAllInDocument:|}new with { .a = 1, .b = 2 }
+        dim t1 = [||]new with { .a = 1, .b = 2 }
         dim t2 = new with { .a = 3, .b = 4 }
     end sub
 
@@ -205,8 +205,8 @@ class Test
     end sub
 
     sub Method2()
-        dim t1 = (a:=1, b:=2)
-        dim t2 = (a:=3, b:=4)
+        dim t1 = new with { .a = 1, .b = 2 }
+        dim t2 = new with { .a = 3, .b = 4 }
     end sub
 end class
 "

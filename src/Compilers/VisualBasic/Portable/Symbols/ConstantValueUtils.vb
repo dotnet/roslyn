@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     End Class
 
     Friend Module ConstantValueUtils
-        Public Function EvaluateFieldConstant(field As SourceFieldSymbol, equalsValueOrAsNewNodeRef As SyntaxReference, dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
+        Public Function EvaluateFieldConstant(field As SourceFieldSymbol, equalsValueOrAsNewNodeRef As SyntaxReference, dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As BindingDiagnosticBag) As EvaluatedConstant
 #If DEBUG Then
             Debug.Assert(dependencies IsNot Nothing)
             Debug.Assert(equalsValueOrAsNewNodeRef IsNot Nothing)
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function BindFieldOrEnumInitializer(binder As Binder,
                                                     fieldOrEnumSymbol As FieldSymbol,
                                                     equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
-                                                    diagnostics As DiagnosticBag,
+                                                    diagnostics As BindingDiagnosticBag,
                                                     <Out> ByRef constValue As ConstantValue) As BoundExpression
 
             Debug.Assert(TypeOf fieldOrEnumSymbol Is SourceEnumConstantSymbol OrElse TypeOf fieldOrEnumSymbol Is SourceFieldSymbol)

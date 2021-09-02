@@ -75,10 +75,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         }
 
         public ReferenceCountedDisposable<SQLiteConnectionPool>? TryOpenDatabase(
-            Solution? bulkLoadSnapshot,
             string databaseFilePath,
             IPersistentStorageFaultInjector? faultInjector,
-            Action<Solution?, SqlConnection, CancellationToken> initializer,
+            Action<SqlConnection, CancellationToken> initializer,
             CancellationToken cancellationToken)
         {
             lock (_gate)
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     pool = new ReferenceCountedDisposable<SQLiteConnectionPool>(
                         new SQLiteConnectionPool(this, faultInjector, databaseFilePath, ownershipLock));
 
-                    pool.Target.Initialize(bulkLoadSnapshot, initializer, cancellationToken);
+                    pool.Target.Initialize(initializer, cancellationToken);
 
                     // Place the initial ownership reference in _connectionPools, and return another
                     _connectionPools.Add(databaseFilePath, pool);
@@ -148,6 +147,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private static void EnsureDirectory(string databaseFilePath)
         {
             var directory = Path.GetDirectoryName(databaseFilePath);
+            Contract.ThrowIfNull(directory);
+
             if (Directory.Exists(directory))
             {
                 return;

@@ -13,15 +13,26 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct GeneratorState
     {
         /// <summary>
-        /// Gets an uninitialized generator state
-        /// </summary>
-        internal static GeneratorState Uninitialized;
-
-        /// <summary>
         /// Creates a new generator state that just contains information
         /// </summary>
         public GeneratorState(GeneratorInfo info)
-            : this(info, ImmutableArray<GeneratedSourceText>.Empty, ImmutableArray<SyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, syntaxReceiver: null, exception: null)
+            : this(info, ImmutableArray<GeneratedSyntaxTree>.Empty)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new generator state that contains information and constant trees
+        /// </summary>
+        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees)
+            : this(info, postInitTrees, ImmutableArray<ISyntaxInputNode>.Empty, ImmutableArray<IIncrementalGeneratorOutputNode>.Empty)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new generator state that contains information, constant trees and an execution pipeline
+        /// </summary>
+        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes)
+            : this(info, postInitTrees, inputNodes, outputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, exception: null)
         {
         }
 
@@ -29,52 +40,44 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new generator state that contains an exception and the associated diagnostic
         /// </summary>
         public GeneratorState(GeneratorInfo info, Exception e, Diagnostic error)
-            : this(info, ImmutableArray<GeneratedSourceText>.Empty, ImmutableArray<SyntaxTree>.Empty, ImmutableArray.Create(error), syntaxReceiver: null, exception: e)
+            : this(info, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<ISyntaxInputNode>.Empty, ImmutableArray<IIncrementalGeneratorOutputNode>.Empty, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray.Create(error), exception: e)
         {
         }
 
         /// <summary>
         /// Creates a generator state that contains results
         /// </summary>
-        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSourceText> sourceTexts, ImmutableArray<SyntaxTree> trees, ImmutableArray<Diagnostic> diagnostics)
-            : this(info, sourceTexts, trees, diagnostics, syntaxReceiver: null, exception: null)
+        public GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics)
+            : this(info, postInitTrees, inputNodes, outputNodes, generatedTrees, diagnostics, exception: null)
         {
         }
 
-        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSourceText> sourceTexts, ImmutableArray<SyntaxTree> trees, ImmutableArray<Diagnostic> diagnostics, ISyntaxReceiver? syntaxReceiver, Exception? exception)
+        private GeneratorState(GeneratorInfo info, ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<ISyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, Exception? exception)
         {
-            this.SourceTexts = sourceTexts;
-            this.Trees = trees;
+            this.Initialized = true;
+            this.PostInitTrees = postInitTrees;
+            this.InputNodes = inputNodes;
+            this.OutputNodes = outputNodes;
+            this.GeneratedTrees = generatedTrees;
             this.Info = info;
             this.Diagnostics = diagnostics;
-            this.SyntaxReceiver = syntaxReceiver;
             this.Exception = exception;
         }
 
-        internal ImmutableArray<GeneratedSourceText> SourceTexts { get; }
+        internal bool Initialized { get; }
 
-        internal ImmutableArray<SyntaxTree> Trees { get; }
+        internal ImmutableArray<GeneratedSyntaxTree> PostInitTrees { get; }
+
+        internal ImmutableArray<ISyntaxInputNode> InputNodes { get; }
+
+        internal ImmutableArray<IIncrementalGeneratorOutputNode> OutputNodes { get; }
+
+        internal ImmutableArray<GeneratedSyntaxTree> GeneratedTrees { get; }
 
         internal GeneratorInfo Info { get; }
-
-        internal ISyntaxReceiver? SyntaxReceiver { get; }
 
         internal Exception? Exception { get; }
 
         internal ImmutableArray<Diagnostic> Diagnostics { get; }
-
-        /// <summary>
-        /// Adds an <see cref="ISyntaxReceiver"/> to this generator state
-        /// </summary>
-        internal GeneratorState WithReceiver(ISyntaxReceiver syntaxReceiver)
-        {
-            Debug.Assert(this.Exception is null);
-            return new GeneratorState(this.Info,
-                                      sourceTexts: this.SourceTexts,
-                                      trees: this.Trees,
-                                      diagnostics: this.Diagnostics,
-                                      syntaxReceiver: syntaxReceiver,
-                                      exception: null);
-        }
     }
 }

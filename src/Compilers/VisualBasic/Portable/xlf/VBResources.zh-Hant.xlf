@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">只有物件成員初始設定式，或在執行個體建構函式中的 'Me'、'MyClass' 或 'MyBase'，才可指派僅限初始化的屬性 '{0}'。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">命令列語法錯誤: '{0}' 對 '{1}' 選項而言不是有效的值。此值的格式必須是 '{2}'。</target>
@@ -22,6 +27,16 @@
         <target state="translated">多個分析器組態檔無法處於相同目錄 ('{0}') 中。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">'{0}' 無法覆寫僅限初始化的 '{1}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">無法實作僅限初始化的 '{0}'。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">因為類型 '{0}' 有重新抽象成員 (來自基底介面)，所以無法內嵌。請考慮將 [內嵌 Interop 類型] 屬性設為 false。</target>
@@ -37,9 +52,29 @@
         <target state="translated">目標執行階段不支援對介面成員的 'Protected'、'Protected Friend' 或 'Private Protected' 存取範圍。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">無法使用其他類型的方法，處理共用 WithEvents 變數的事件。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">不支援 'UnmanagedCallersOnly' 屬性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="new">caller argument expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">行接續符號後註解</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">使用僅限初始化的 setter，指派或傳遞 'ByRef' 屬性</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -471,6 +506,26 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">載入的組件參考了 .NET Framework，此情形不受支援。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

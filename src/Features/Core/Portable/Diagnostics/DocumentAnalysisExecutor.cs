@@ -293,12 +293,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // make sure what we got from range is same as what we got from whole diagnostics
                 var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var rangeDeclaractionDiagnostics = model.GetDeclarationDiagnostics(span.Value).ToArray();
-                var rangeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics(span.Value).ToArray();
+                var rangeDeclaractionDiagnostics = model.GetDeclarationDiagnostics(span.Value, cancellationToken).ToArray();
+                var rangeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics(span.Value, cancellationToken).ToArray();
                 var rangeDiagnostics = rangeDeclaractionDiagnostics.Concat(rangeMethodBodyDiagnostics).Where(shouldInclude).ToArray();
 
-                var wholeDeclarationDiagnostics = model.GetDeclarationDiagnostics().ToArray();
-                var wholeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics().ToArray();
+                var wholeDeclarationDiagnostics = model.GetDeclarationDiagnostics(cancellationToken: cancellationToken).ToArray();
+                var wholeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics(cancellationToken: cancellationToken).ToArray();
                 var wholeDiagnostics = wholeDeclarationDiagnostics.Concat(wholeMethodBodyDiagnostics).Where(shouldInclude).ToArray();
 
                 if (!AnalyzerHelper.AreEquivalent(rangeDiagnostics, wholeDiagnostics))

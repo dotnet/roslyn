@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public string? TryGetStorageLocation(Solution solution)
-            => TryGetStorageLocation(solution.Workspace, (SolutionKey)solution);
+            => TryGetStorageLocation(solution.Workspace, SolutionKey.ToSolutionKey(solution));
 
         public string? TryGetStorageLocation(Workspace workspace, SolutionKey solutionKey)
         {

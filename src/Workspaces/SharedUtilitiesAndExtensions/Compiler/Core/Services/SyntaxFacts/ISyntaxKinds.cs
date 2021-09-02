@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region keywords
 
         int AwaitKeyword { get; }
+        int AsyncKeyword { get; }
         int GlobalKeyword { get; }
         int IfKeyword { get; }
         int? GlobalStatement { get; }
@@ -127,10 +128,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }
+        int FieldDeclaration { get; }
 
         int IncompleteMember { get; }
         int TypeArgumentList { get; }
         int ParameterList { get; }
+
+        #endregion
+
+        #region clauses
+
+        int EqualsValueClause { get; }
+
         #endregion
 
         #region other

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,40 +27,33 @@ namespace RunTests
             Options = options;
         }
 
-        public string GetCommandLineArguments(AssemblyInfo assemblyInfo)
+        public string GetCommandLineArguments(AssemblyInfo assemblyInfo, bool useSingleQuotes)
         {
-            var assemblyName = Path.GetFileName(assemblyInfo.AssemblyPath);
+            // http://www.gnu.org/software/bash/manual/html_node/Single-Quotes.html
+            // Single quotes are needed in bash to avoid the need to escape characters such as backtick (`) which are found in metadata names.
+            // Batch scripts don't need to worry about escaping backticks, but they don't support single quoted strings, so we have to use double quotes.
+            // We also need double quotes when building an arguments string for Process.Start in .NET Core so that splitting/unquoting works as expected.
+            var sep = useSingleQuotes ? "'" : @"""";
 
             var builder = new StringBuilder();
             builder.Append($@"test");
-            builder.Append($@" ""{assemblyInfo.AssemblyPath}""");
+            builder.Append($@" {sep}{assemblyInfo.AssemblyName}{sep}");
             var typeInfoList = assemblyInfo.PartitionInfo.TypeInfoList;
-            if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.Trait) || !string.IsNullOrWhiteSpace(Options.NoTrait))
+            if (typeInfoList.Length > 0 || !string.IsNullOrWhiteSpace(Options.TestFilter))
             {
-                builder.Append(" --filter ");
+                builder.Append($@" --filter {sep}");
                 var any = false;
                 foreach (var typeInfo in typeInfoList)
                 {
                     MaybeAddSeparator();
                     builder.Append(typeInfo.FullName);
                 }
+                builder.Append(sep);
 
-                if (Options.Trait is object)
+                if (Options.TestFilter is object)
                 {
-                    foreach (var trait in Options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        MaybeAddSeparator();
-                        builder.Append($"Trait={trait}");
-                    }
-                }
-
-                if (Options.NoTrait is object)
-                {
-                    foreach (var trait in Options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        MaybeAddSeparator('&');
-                        builder.Append($"Trait!~{trait}");
-                    }
+                    MaybeAddSeparator();
+                    builder.Append(Options.TestFilter);
                 }
 
                 void MaybeAddSeparator(char separator = '|')
@@ -74,11 +68,11 @@ namespace RunTests
             }
 
             builder.Append($@" --framework {assemblyInfo.TargetFramework}");
-            builder.Append($@" --logger ""xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}""");
+            builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}{sep}");
 
             if (Options.IncludeHtml)
             {
-                builder.AppendFormat($@" --logger ""html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}""");
+                builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
             }
 
             return builder.ToString();
@@ -86,7 +80,7 @@ namespace RunTests
 
         private string GetResultsFilePath(AssemblyInfo assemblyInfo, string suffix = "xml")
         {
-            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}.{suffix}";
+            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}_test_results.{suffix}";
             return Path.Combine(Options.TestResultsDirectory, fileName);
         }
 
@@ -107,7 +101,7 @@ namespace RunTests
         {
             try
             {
-                var commandLineArguments = GetCommandLineArguments(assemblyInfo);
+                var commandLineArguments = GetCommandLineArguments(assemblyInfo, useSingleQuotes: false);
                 var resultsFilePath = GetResultsFilePath(assemblyInfo);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
                 var htmlResultsFilePath = Options.IncludeHtml ? GetResultsFilePath(assemblyInfo, "html") : null;
@@ -155,6 +149,7 @@ namespace RunTests
                     ProcessRunner.CreateProcessStartInfo(
                         Options.DotnetFilePath,
                         commandLineArguments,
+                        workingDirectory: Path.GetDirectoryName(assemblyInfo.AssemblyPath),
                         displayWindow: false,
                         captureOutput: true,
                         environmentVariables: environmentVariables),

@@ -236,6 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 modifiers,
                 GetTypeSymbol(toType)(context.SemanticModel),
                 fromType(context.SemanticModel),
+                containingType: null,
                 isImplicit,
                 parsedStatements);
 

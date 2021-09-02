@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.InlineTemporary
             TVariableDeclaratorSyntax variableDeclarator,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var local = semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
 
             if (local != null)
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.InlineTemporary
                 // Do not cascade when finding references to this local.  Cascading can cause us to find linked
                 // references as well which can throw things off for us.  For inline variable, we only care about the
                 // direct real references in this project context.
-                var options = FindReferencesSearchOptions.Default.WithCascade(cascade: false);
+                var options = FindReferencesSearchOptions.Default.With(cascade: false);
 
                 var findReferencesResult = await SymbolFinder.FindReferencesAsync(
                     local, document.Project.Solution, options, cancellationToken).ConfigureAwait(false);

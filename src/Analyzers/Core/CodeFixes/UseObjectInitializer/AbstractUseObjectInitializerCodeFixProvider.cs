@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+            => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Object_initialization_can_be_simplified, createChangedDocument)
+                : base(AnalyzersResources.Object_initialization_can_be_simplified, createChangedDocument, nameof(AnalyzersResources.Object_initialization_can_be_simplified))
             {
             }
         }

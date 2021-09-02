@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            throw new InvalidOperationException(message + Environment.NewLine + detailMessage);
+            throw new InvalidOperationException(
+                (string.IsNullOrEmpty(message) ? "Assertion failed" : message) +
+                (string.IsNullOrEmpty(detailMessage) ? "" : Environment.NewLine + detailMessage));
         }
 
         public override void Write(object o)

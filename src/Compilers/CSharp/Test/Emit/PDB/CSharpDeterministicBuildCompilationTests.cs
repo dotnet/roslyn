@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             Compilation compilation,
             EmitOptions emitOptions,
             BlobReader compilationOptionsBlobReader,
-            string langVersion)
+            string langVersion,
+            int sourceFileCount)
         {
             var pdbOptions = DeterministicBuildCompilationTestHelpers.ParseCompilationOptions(compilationOptionsBlobReader);
 
@@ -43,20 +44,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             pdbOptions.VerifyPdbOption("unsafe", originalOptions.AllowUnsafe);
 
             Assert.Equal(langVersion, pdbOptions["language-version"]);
+            Assert.Equal(sourceFileCount.ToString(), pdbOptions["source-file-count"]);
 
             var firstSyntaxTree = (CSharpSyntaxTree)compilation.SyntaxTrees.FirstOrDefault();
             pdbOptions.VerifyPdbOption("define", firstSyntaxTree.Options.PreprocessorSymbolNames, isDefault: v => v.IsEmpty(), toString: v => string.Join(",", v));
         }
 
-        private static void TestDeterministicCompilationCSharp(string langVersion, SyntaxTree[] syntaxTrees, CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, params TestMetadataReferenceInfo[] metadataReferences)
+        private static void TestDeterministicCompilationCSharp(
+            string langVersion,
+            SyntaxTree[] syntaxTrees,
+            CSharpCompilationOptions compilationOptions,
+            EmitOptions emitOptions,
+            TestMetadataReferenceInfo[] metadataReferences,
+            int? debugDocumentsCount = null)
         {
+            var targetFramework = TargetFramework.NetCoreApp;
             var originalCompilation = CreateCompilation(
                 syntaxTrees,
                 references: metadataReferences.SelectAsArray(r => r.MetadataReference),
                 options: compilationOptions,
-                // TFM needs to specified so the references are always the same, and not
-                // dependent on the testrun environment
-                targetFramework: TargetFramework.NetCoreApp);
+                targetFramework: targetFramework);
 
             var peBlob = originalCompilation.EmitToArray(options: emitOptions);
 
@@ -74,12 +81,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 using (var embeddedPdb = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(embedded))
                 {
                     var pdbReader = embeddedPdb.GetMetadataReader();
-
                     var metadataReferenceReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationMetadataReferences, pdbReader);
                     var compilationOptionsReader = DeterministicBuildCompilationTestHelpers.GetSingleBlob(PortableCustomDebugInfoKinds.CompilationOptions, pdbReader);
 
-                    VerifyCompilationOptions(compilationOptions, originalCompilation, emitOptions, compilationOptionsReader, langVersion);
-                    DeterministicBuildCompilationTestHelpers.VerifyReferenceInfo(metadataReferences, metadataReferenceReader);
+                    Assert.Equal(debugDocumentsCount ?? syntaxTrees.Length, pdbReader.Documents.Count);
+
+                    VerifyCompilationOptions(compilationOptions, originalCompilation, emitOptions, compilationOptionsReader, langVersion, syntaxTrees.Length);
+                    DeterministicBuildCompilationTestHelpers.VerifyReferenceInfo(metadataReferences, targetFramework, metadataReferenceReader);
                 }
             }
         }
@@ -98,17 +106,17 @@ class MainType
         Console.WriteLine();
     }
 }
-", options: parseOptions, encoding: Encoding.UTF8);
+", filename: "a.cs", options: parseOptions, encoding: Encoding.UTF8);
 
             var sourceTwo = Parse(@"
 class TypeTwo
 {
-}", options: parseOptions, encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+}", filename: "b.cs", options: parseOptions, encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
 
             var sourceThree = Parse(@"
 class TypeThree
 {
-}", options: parseOptions, encoding: Encoding.Unicode);
+}", filename: "c.cs", options: parseOptions, encoding: Encoding.Unicode);
 
             var referenceOneCompilation = CreateCompilation(
 @"public struct StructWithReference
@@ -136,7 +144,76 @@ public struct StructWithValue
                 emitOptions: emitOptions);
 
             var testSource = new[] { sourceOne, sourceTwo, sourceThree };
-            TestDeterministicCompilationCSharp(parseOptions.LanguageVersion.MapSpecifiedToEffectiveVersion().ToDisplayString(), testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
+            TestDeterministicCompilationCSharp(
+                parseOptions.LanguageVersion.MapSpecifiedToEffectiveVersion().ToDisplayString(),
+                testSource,
+                compilationOptions,
+                emitOptions,
+                new[] { referenceOne, referenceTwo });
+        }
+
+        [Theory]
+        [ClassData(typeof(CSharpDeterministicBuildCompilationTests))]
+        public void PortablePdb_DeterministicCompilation_DuplicateFilePaths(CSharpCompilationOptions compilationOptions, EmitOptions emitOptions, CSharpParseOptions parseOptions)
+        {
+            var sourceOne = Parse(@"
+using System;
+
+class MainType
+{
+    public static void Main()
+    {
+        Console.WriteLine();
+    }
+}
+", filename: "a.cs", options: parseOptions, encoding: Encoding.UTF8);
+
+            var sourceTwo = Parse(@"
+class TypeTwo
+{
+}", filename: "b.cs", options: parseOptions, encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+
+            var sourceThree = Parse(@"
+class TypeThree
+{
+}", filename: "a.cs", options: parseOptions, encoding: Encoding.Unicode);
+
+            var referenceOneCompilation = CreateCompilation(
+@"public struct StructWithReference
+{
+    string PrivateData;
+}
+public struct StructWithValue
+{
+    int PrivateData;
+}", options: TestOptions.DebugDll);
+
+            var referenceTwoCompilation = CreateCompilation(
+@"public class ReferenceTwo
+{
+}", options: TestOptions.DebugDll);
+
+            using var referenceOne = TestMetadataReferenceInfo.Create(
+                referenceOneCompilation,
+                fullPath: "abcd.dll",
+                emitOptions: emitOptions);
+
+            using var referenceTwo = TestMetadataReferenceInfo.Create(
+                referenceTwoCompilation,
+                fullPath: "efgh.dll",
+                emitOptions: emitOptions);
+
+            var testSource = new[] { sourceOne, sourceTwo, sourceThree };
+
+            // Note that only one debug document can be present for each distinct source path.
+            // So if more than one syntax tree has the same file path, it won't be possible to do a rebuild from the DLL+PDB.
+            TestDeterministicCompilationCSharp(
+                parseOptions.LanguageVersion.MapSpecifiedToEffectiveVersion().ToDisplayString(),
+                testSource,
+                compilationOptions,
+                emitOptions,
+                new[] { referenceOne, referenceTwo },
+                debugDocumentsCount: 2);
         }
 
         [ConditionalTheory(typeof(DesktopOnly))]
@@ -153,17 +230,17 @@ class MainType
         Console.WriteLine();
     }
 }
-", options: parseOptions, encoding: Encoding.UTF8);
+", filename: "a.cs", options: parseOptions, encoding: Encoding.UTF8);
 
             var sourceTwo = Parse(@"
 class TypeTwo
 {
-}", options: parseOptions, encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+}", filename: "b.cs", options: parseOptions, encoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
 
             var sourceThree = Parse(@"
 class TypeThree
 {
-}", options: parseOptions, encoding: Encoding.GetEncoding(932)); // SJIS encoding
+}", filename: "c.cs", options: parseOptions, encoding: Encoding.GetEncoding(932)); // SJIS encoding
 
             var referenceOneCompilation = CreateCompilation(
 @"public struct StructWithReference
@@ -191,7 +268,12 @@ public struct StructWithValue
                 emitOptions: emitOptions);
 
             var testSource = new[] { sourceOne, sourceTwo, sourceThree };
-            TestDeterministicCompilationCSharp(parseOptions.LanguageVersion.MapSpecifiedToEffectiveVersion().ToDisplayString(), testSource, compilationOptions, emitOptions, referenceOne, referenceTwo);
+            TestDeterministicCompilationCSharp(
+                parseOptions.LanguageVersion.MapSpecifiedToEffectiveVersion().ToDisplayString(),
+                testSource,
+                compilationOptions,
+                emitOptions,
+                new[] { referenceOne, referenceTwo });
         }
 
         public IEnumerator<object[]> GetEnumerator() => GetTestParameters().GetEnumerator();
@@ -259,8 +341,6 @@ public struct StructWithValue
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Disable);
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Warnings);
             yield return defaultOptions.WithOptimizationLevel(OptimizationLevel.Release);
-            yield return defaultOptions.WithDebugPlusMode(true);
-            yield return defaultOptions.WithOptimizationLevel(OptimizationLevel.Release).WithDebugPlusMode(true);
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: false, suppressSilverlightPlatformAssembliesPortability: false)));
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: true, suppressSilverlightPlatformAssembliesPortability: false)));
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: false, suppressSilverlightPlatformAssembliesPortability: true)));

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
-    internal abstract class PythiaCompletionProviderBase : CommonCompletionProvider
+    internal abstract class PythiaCompletionProviderBase : CommonCompletionProvider, INotifyCommittingItemCompletionProvider
     {
         public static PerLanguageOption2<bool> HideAdvancedMembersOption => CompletionOptions.HideAdvancedMembers;
 
@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
             SupportedPlatformData? supportedPlatforms = null,
             ImmutableDictionary<string, string>? properties = null,
             ImmutableArray<string> tags = default)
-            => SymbolCompletionItem.CreateWithSymbolId(displayText, displayTextSuffix: null, symbols, rules, contextPosition, sortText, insertionText, filterText, supportedPlatforms, properties, tags);
+            => SymbolCompletionItem.CreateWithSymbolId(displayText, displayTextSuffix: null, symbols, rules, contextPosition, sortText, insertionText,
+                filterText, displayTextPrefix: null, inlineDescription: null, glyph: null, supportedPlatforms, properties, tags);
 
         public static ImmutableArray<SymbolDisplayPart> CreateRecommendedKeywordDisplayParts(string keyword, string toolTip)
             => RecommendedKeyword.CreateDisplayParts(keyword, toolTip);
@@ -55,5 +56,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
             => base.GetChangeAsync(document, item, commitKey, cancellationToken);
+
+        public virtual Task NotifyCommittingItemAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+            => Task.CompletedTask;
     }
 }

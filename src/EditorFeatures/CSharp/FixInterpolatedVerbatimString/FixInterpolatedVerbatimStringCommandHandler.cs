@@ -6,6 +6,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -39,6 +40,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
             // We need to check for the token *after* the opening quote is typed, so defer to the editor first
             nextCommandHandler();
 
+            var cancellationToken = executionContext.OperationContext.UserCancellationToken;
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            try
+            {
+                ExecuteCommandWorker(args, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // According to Editor command handler API guidelines, it's best if we return early if cancellation
+                // is requested instead of throwing. Otherwise, we could end up in an invalid state due to already
+                // calling nextCommandHandler().
+            }
+        }
+
+        private static void ExecuteCommandWorker(TypeCharCommandArgs args, CancellationToken cancellationToken)
+        {
             if (args.TypedChar == '"')
             {
                 var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
@@ -55,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.FixInterpolatedVerbatimString
                         var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                         if (document != null)
                         {
-                            var root = document.GetSyntaxRootSynchronously(executionContext.OperationContext.UserCancellationToken);
+                            var root = document.GetSyntaxRootSynchronously(cancellationToken);
                             var token = root.FindToken(position - 3);
                             if (token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken))
                             {

@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -32,10 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     /// but only for code cases where the user has provided an appropriate variable name in
     /// code that can be used).
     /// </summary>
-    [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
+        private const string CS0103 = nameof(CS0103); // Name of the variable doesn't live in context
         private static readonly SyntaxAnnotation s_referenceAnnotation = new SyntaxAnnotation();
 
         public static readonly CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer();
@@ -69,22 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
-            var isExpression = (BinaryExpressionSyntax)context.Node;
-
-            var options = context.Options as WorkspaceAnalyzerOptions;
-            var workspace = options?.Services.Workspace;
-            if (workspace == null)
-            {
-                return;
-            }
-
-            var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
-            var styleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
+            var styleOption = context.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck);
             if (!styleOption.Value)
             {
                 // User has disabled this feature.
                 return;
             }
+
+            var isExpression = (BinaryExpressionSyntax)context.Node;
 
             // See if this is an 'is' expression that would be handled by the analyzer.  If so
             // we don't need to do anything.
@@ -179,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var currentNode = root.GetAnnotatedNodes(s_referenceAnnotation).Single();
             var diagnostics = updatedSemanticModel.GetDiagnostics(currentNode.Span, cancellationToken);
 
-            return diagnostics.Any(d => d.Id == CS0165);
+            return diagnostics.Any(d => d.Id == CS0165 || d.Id == CS0103);
         }
 
         public static SemanticModel ReplaceMatches(

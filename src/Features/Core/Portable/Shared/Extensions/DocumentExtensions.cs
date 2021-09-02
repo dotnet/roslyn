@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -62,31 +61,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return document.WithSyntaxRoot(newRoot);
         }
 
-        public static async Task<IEnumerable<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
+        public static async Task<ImmutableArray<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
             this Document document,
             IEqualityComparer<T> comparer,
-            Func<Document, CancellationToken, Task<IEnumerable<T>>> getItemsWorker,
-            CancellationToken cancellationToken)
+            Func<Document, Task<ImmutableArray<T>>> getItemsWorker)
         {
-            var linkedDocumentIds = document.GetLinkedDocumentIds();
-            var itemsForCurrentContext = await getItemsWorker(document, cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<T>();
-            if (!linkedDocumentIds.Any())
+            var totalItems = new HashSet<T>(comparer);
+
+            var values = await getItemsWorker(document).ConfigureAwait(false);
+            totalItems.AddRange(values.NullToEmpty());
+
+            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
-                return itemsForCurrentContext;
+                values = await getItemsWorker(document.Project.Solution.GetRequiredDocument(linkedDocumentId)).ConfigureAwait(false);
+                totalItems.AddRange(values.NullToEmpty());
             }
 
-            var totalItems = itemsForCurrentContext.ToSet(comparer);
-            foreach (var linkedDocumentId in linkedDocumentIds)
-            {
-                var linkedDocument = document.Project.Solution.GetRequiredDocument(linkedDocumentId);
-                var items = await getItemsWorker(linkedDocument, cancellationToken).ConfigureAwait(false);
-                if (items != null)
-                {
-                    totalItems.AddRange(items);
-                }
-            }
-
-            return totalItems;
+            return totalItems.ToImmutableArray();
         }
 
         public static async Task<bool> IsValidContextForDocumentOrLinkedDocumentsAsync(

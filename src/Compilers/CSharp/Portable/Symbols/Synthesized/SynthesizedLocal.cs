@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A synthesized local variable.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal sealed class SynthesizedLocal : LocalSymbol
+    internal class SynthesizedLocal : LocalSymbol
     {
         private readonly MethodSymbol _containingMethodOpt;
         private readonly TypeWithAnnotations _type;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _syntaxOpt; }
         }
 
-        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
         {
             return new SynthesizedLocal(
                 _containingMethodOpt,
@@ -78,78 +78,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _refKind);
         }
 
-        public override RefKind RefKind
+        public sealed override RefKind RefKind
         {
             get { return _refKind; }
         }
 
-        internal override bool IsImportedFromMetadata
+        internal sealed override bool IsImportedFromMetadata
         {
             get { return false; }
         }
 
-        internal override LocalDeclarationKind DeclarationKind
+        internal sealed override LocalDeclarationKind DeclarationKind
         {
             get { return LocalDeclarationKind.None; }
         }
 
-        internal override SynthesizedLocalKind SynthesizedKind
+        internal sealed override SynthesizedLocalKind SynthesizedKind
         {
             get { return _kind; }
         }
 
-        internal override SyntaxNode ScopeDesignatorOpt
+        internal sealed override SyntaxNode ScopeDesignatorOpt
         {
             get { return null; }
         }
 
-        internal override SyntaxToken IdentifierToken
+        internal sealed override SyntaxToken IdentifierToken
         {
             get { return default(SyntaxToken); }
         }
 
-        public override Symbol ContainingSymbol
+        public sealed override Symbol ContainingSymbol
         {
             get { return _containingMethodOpt; }
         }
 
-        public override string Name
+        public sealed override string Name
         {
             get { return null; }
         }
 
-        public override TypeWithAnnotations TypeWithAnnotations
+        public sealed override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }
 
-        public override ImmutableArray<Location> Locations
+        public sealed override ImmutableArray<Location> Locations
         {
             get { return (_syntaxOpt == null) ? ImmutableArray<Location>.Empty : ImmutableArray.Create(_syntaxOpt.GetLocation()); }
         }
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get { return (_syntaxOpt == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create(_syntaxOpt.GetReference()); }
         }
 
-        internal override SyntaxNode GetDeclaratorSyntax()
+        internal sealed override SyntaxNode GetDeclaratorSyntax()
         {
             Debug.Assert(_syntaxOpt != null);
             return _syntaxOpt;
         }
 
-        public override bool IsImplicitlyDeclared
+        public sealed override bool IsImplicitlyDeclared
         {
             get { return true; }
         }
 
-        internal override bool IsPinned
+        internal sealed override bool IsPinned
         {
             get { return _isPinned; }
         }
 
-        internal override bool IsCompilerGenerated
+        internal sealed override bool IsCompilerGenerated
         {
             get { return true; }
         }
@@ -164,16 +164,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Compiler should always be synthesizing locals with correct escape semantics.
         /// Checking escape scopes is not valid here.
         /// </summary>
-        internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
+        internal sealed override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
+        internal sealed override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
         {
             return null;
         }
 
-        internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal sealed override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
-            return ImmutableArray<Diagnostic>.Empty;
+            return ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
         }
 
 #if DEBUG
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #endif
 
-        internal override string GetDebuggerDisplay()
+        internal sealed override string GetDebuggerDisplay()
         {
             var builder = new StringBuilder();
             builder.Append('<');

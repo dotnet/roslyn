@@ -97,6 +97,11 @@
         <target state="translated">Style nazewnictwa</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Preferencje nowego wiersza</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_Field_Members">
         <source>Non-Field Members</source>
         <target state="translated">Składowe inne niż pola</target>

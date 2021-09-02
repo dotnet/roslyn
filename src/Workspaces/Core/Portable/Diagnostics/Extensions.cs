@@ -48,25 +48,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return result.ToImmutableAndFree();
         }
 
-        public static async Task<IList<Location>> ConvertLocationsAsync(
-            this IReadOnlyCollection<DiagnosticDataLocation> locations, Project project, CancellationToken cancellationToken)
-        {
-            if (locations.Count == 0)
-            {
-                return SpecializedCollections.EmptyList<Location>();
-            }
+        public static ValueTask<ImmutableArray<Location>> ConvertLocationsAsync(this IReadOnlyCollection<DiagnosticDataLocation> locations, Project project, CancellationToken cancellationToken)
+            => locations.SelectAsArrayAsync((location, project, cancellationToken) => location.ConvertLocationAsync(project, cancellationToken), project, cancellationToken);
 
-            var result = new List<Location>();
-            foreach (var data in locations)
-            {
-                var location = await data.ConvertLocationAsync(project, cancellationToken).ConfigureAwait(false);
-                result.Add(location);
-            }
-
-            return result;
-        }
-
-        public static async Task<Location> ConvertLocationAsync(
+        public static async ValueTask<Location> ConvertLocationAsync(
             this DiagnosticDataLocation? dataLocation, Project project, CancellationToken cancellationToken)
         {
             if (dataLocation?.DocumentId == null)

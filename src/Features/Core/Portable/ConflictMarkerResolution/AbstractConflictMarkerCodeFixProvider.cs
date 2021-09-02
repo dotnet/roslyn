@@ -291,9 +291,9 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
             string? equivalenceKey, CancellationToken cancellationToken)
         {
             Debug.Assert(
-                equivalenceKey == TakeTopEquivalenceKey ||
-                equivalenceKey == TakeBottomEquivalenceKey ||
-                equivalenceKey == TakeBothEquivalenceKey);
+                equivalenceKey is TakeTopEquivalenceKey or
+                TakeBottomEquivalenceKey or
+                TakeBothEquivalenceKey);
 
             // Process diagnostics in order so we produce edits in the right order.
             var orderedDiagnostics = diagnostics.OrderBy(

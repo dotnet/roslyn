@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private ImmutableArray<CSharpAttributeData> _lazyReturnTypeCustomAttributes;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         private TypeWithAnnotations.Boxed _lazyReturnType;
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if (_lazyParameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, this.RetargetParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, this.RetargetParameters());
                 }
 
                 return _lazyParameters;
@@ -172,14 +172,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
             else
             {
-                ParameterSymbol[] parameters = new ParameterSymbol[count];
+                var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(count);
 
                 for (int i = 0; i < count; i++)
                 {
-                    parameters[i] = new RetargetingMethodParameterSymbol(this, list[i]);
+                    parameters.Add(new RetargetingMethodParameterSymbol(this, list[i]));
                 }
 
-                return parameters.AsImmutableOrNull();
+                return parameters.ToImmutableAndFree();
             }
         }
 
@@ -332,16 +332,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
-                DiagnosticInfo result = null;
+                AssemblySymbol primaryDependency = PrimaryDependency;
+                var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                _lazyUseSiteDiagnostic = result;
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
-            return _lazyUseSiteDiagnostic;
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
         }
 
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness

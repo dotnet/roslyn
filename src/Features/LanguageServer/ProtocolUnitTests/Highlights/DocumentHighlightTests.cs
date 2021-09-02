@@ -32,7 +32,7 @@ class A
         {|caret:|}{|write:classB|} = new B();
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
             var expected = new LSP.DocumentHighlight[]
             {
                 CreateDocumentHighlight(LSP.DocumentHighlightKind.Text, locations["text"].Single()),
@@ -40,7 +40,7 @@ class A
                 CreateDocumentHighlight(LSP.DocumentHighlightKind.Write, locations["write"].Single())
             };
 
-            var results = await RunGetDocumentHighlightAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var results = await RunGetDocumentHighlightAsync(testLspServer, locations["caret"].Single());
             AssertJsonEquals(expected, results);
         }
 
@@ -55,16 +55,15 @@ class A
         {|caret:|}
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
 
-            var results = await RunGetDocumentHighlightAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var results = await RunGetDocumentHighlightAsync(testLspServer, locations["caret"].Single());
             Assert.Empty(results);
         }
 
-        private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(Solution solution, LSP.Location caret)
+        private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(TestLspServer testLspServer, LSP.Location caret)
         {
-            var queue = CreateRequestQueue(solution);
-            var results = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(queue, LSP.Methods.TextDocumentDocumentHighlightName,
+            var results = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName,
                 CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
             Array.Sort(results, (h1, h2) =>
             {

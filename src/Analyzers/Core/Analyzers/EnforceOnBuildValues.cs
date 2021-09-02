@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild InvalidSuppressMessageAttribute = /*IDE0076*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild LegacyFormatSuppressMessageAttribute = /*IDE0077*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild RemoveConfusingSuppressionForIsExpression = /*IDE0080*/ EnforceOnBuild.HighlyRecommended;
+        public const EnforceOnBuild UseBlockScopedNamespace = /*IDE0160*/ EnforceOnBuild.HighlyRecommended;
+        public const EnforceOnBuild UseFileScopedNamespace = /*IDE0161*/ EnforceOnBuild.HighlyRecommended;
 
         /* EnforceOnBuild.Recommended */
         public const EnforceOnBuild UseThrowExpression = /*IDE0016*/ EnforceOnBuild.Recommended;
@@ -75,6 +77,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild RemoveUnnecessaryDiscardDesignation = /*IDE0110*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild InvokeDelegateWithConditionalAccess = /*IDE1005*/ EnforceOnBuild.Recommended;
         public const EnforceOnBuild NamingRule = /*IDE1006*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild MatchFolderAndNamespace = /*IDE0130*/ EnforceOnBuild.Recommended;
+        public const EnforceOnBuild SimplifyObjectCreation = /*IDE0140*/ EnforceOnBuild.Recommended;
 
         /* EnforceOnBuild.WhenExplicitlyEnabled */
         public const EnforceOnBuild RemoveUnnecessaryCast = /*IDE0004*/ EnforceOnBuild.WhenExplicitlyEnabled; // TODO: Move to 'Recommended' OR 'HighlyRecommended' bucket once performance problems are addressed: https://github.com/dotnet/roslyn/issues/43304
@@ -86,7 +90,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild MakeStructFieldsWritable = /*IDE0064*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConvertSwitchStatementToExpression = /*IDE0066*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild PopulateSwitchExpression = /*IDE0072*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild SimplifyLinqExpression = /*IDE0120*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild UseNullCheckOverTypeCheck = /*IDE0150*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild MultipleBlankLines = /*IDE2000*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild EmbeddedStatementPlacement = /*IDE2001*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild ConsecutiveBracePlacement = /*IDE2002*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild ConsecutiveStatementPlacement = /*IDE2003*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild ConstructorInitializerPlacement = /*IDE2004*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
         /* EnforceOnBuild.Never */
         // TODO: Allow enforcing simplify names and related diagnostics on build once we validate their performance charactericstics.
@@ -95,6 +106,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild RemoveQualification = /*IDE0003*/ EnforceOnBuild.Never;
         public const EnforceOnBuild AddQualification = /*IDE0009*/ EnforceOnBuild.Never;
         public const EnforceOnBuild PreferBuiltInOrFrameworkType = /*IDE0049*/ EnforceOnBuild.Never;
+        public const EnforceOnBuild ConvertAnonymousTypeToTuple = /*IDE0050*/ EnforceOnBuild.Never;
         public const EnforceOnBuild RemoveUnreachableCode = /*IDE0035*/ EnforceOnBuild.Never; // Non-configurable fading diagnostic corresponding to CS0162.
         public const EnforceOnBuild RemoveUnnecessarySuppression = /*IDE0079*/ EnforceOnBuild.Never; // IDE-only analyzer.
     }

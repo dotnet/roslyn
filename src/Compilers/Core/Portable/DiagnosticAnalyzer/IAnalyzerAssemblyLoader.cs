@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #nullable disable
+#pragma warning disable RS0041 // uses oblivious reference types
 
 using System;
 using System.Reflection;

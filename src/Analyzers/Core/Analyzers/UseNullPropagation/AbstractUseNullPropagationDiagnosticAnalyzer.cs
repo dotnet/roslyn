@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        protected abstract bool ShouldAnalyze(ParseOptions options);
+        protected abstract bool ShouldAnalyze(Compilation compilation);
 
         protected abstract ISyntaxFacts GetSyntaxFacts();
         protected abstract bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionTypeOpt, CancellationToken cancellationToken);
@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         {
             context.RegisterCompilationStartAction(startContext =>
             {
+                if (!ShouldAnalyze(startContext.Compilation))
+                {
+                    return;
+                }
+
                 var expressionTypeOpt = startContext.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
 
                 var objectType = startContext.Compilation.GetSpecialType(SpecialType.System_Object);
@@ -82,10 +87,6 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             IMethodSymbol? referenceEqualsMethodOpt)
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
-            if (!ShouldAnalyze(conditionalExpression.SyntaxTree.Options))
-            {
-                return;
-            }
 
             var option = context.GetOption(CodeStyleOptions2.PreferNullPropagation, conditionalExpression.Language);
             if (!option.Value)
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             var type = semanticModel.GetTypeInfo(conditionalExpression).Type;
             if (type?.IsValueType == true)
             {
-                if (!(type is INamedTypeSymbol namedType) || namedType.ConstructedFrom.SpecialType != SpecialType.System_Nullable_T)
+                if (type is not INamedTypeSymbol namedType || namedType.ConstructedFrom.SpecialType != SpecialType.System_Nullable_T)
                 {
                     // User has something like:  If(str is nothing, nothing, str.Length)
                     // In this case, converting to str?.Length changes the type of this from
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 conditionPartToCheck.GetLocation(),
                 whenPartToCheck.GetLocation());
 
-            var properties = ImmutableDictionary<string, string>.Empty;
+            var properties = ImmutableDictionary<string, string?>.Empty;
             var whenPartIsNullable = semanticModel.GetTypeInfo(whenPartMatch).Type?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
             if (whenPartIsNullable)
             {
@@ -315,8 +316,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                     return null;
                 }
 
-                if (current is TMemberAccessExpression ||
-                    current is TElementAccessExpression)
+                if (current is TMemberAccessExpression or
+                    TElementAccessExpression)
                 {
                     if (syntaxFacts.AreEquivalent(unwrapped, expressionToMatch))
                     {

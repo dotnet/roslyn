@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Roslyn.Test.Utilities;
 using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;
 
 namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
@@ -1517,6 +1516,85 @@ True
             verifier.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Subject").WithArguments("Teacher.Subject", "null").WithLocation(37, 40));
         }
 
+        /// <see cref="DynamicAnalysisResourceTests.TestPatternSpans_WithSharedWhenExpression"/>
+        /// for meaning of the spans
+        [Fact]
+        public void PatternsCoverage_WithSharedWhenExpression()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    public static void TestMain()
+    {
+        Method3(1, b1: false, b2: false);
+    }
+
+    static string Method3(int i, bool b1, bool b2) // Method 3
+    {
+        switch (i)
+        {
+            case not 1 when b1:
+                return ""b1"";
+            case var _ when b2:
+                return ""b2"";
+            case 1:
+                return ""1"";
+            default:
+                return ""default"";
+        }
+    }
+}
+";
+            string expectedOutput = @"Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+Method 3
+File 1
+True
+False
+True
+False
+False
+True
+False
+True
+Method 6
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
+        }
+
         [Fact]
         public void DeconstructionStatementCoverage()
         {
@@ -2590,6 +2668,42 @@ class C
         }
 
         [Fact]
+        public void ExcludeFromCodeCoverageAttribute_LambdaAttributes()
+        {
+            string source =
+@"using System;
+using System.Diagnostics.CodeAnalysis;
+class Program
+{
+    static void M1()
+    {
+        Action a1 = static () =>
+        {
+            Func<bool, int> f1 = [ExcludeFromCodeCoverage] static (bool b) => { if (b) return 0; return 1; };
+            Func<bool, int> f2 = static (bool b) => { if (b) return 0; return 1; };
+        };
+    }
+    static void M2()
+    {
+        Action a2 = [ExcludeFromCodeCoverage] static () =>
+        {
+            Func<bool, int> f3 = [ExcludeFromCodeCoverage] static (bool b) => { if (b) return 0; return 1; };
+            Func<bool, int> f4 = static (bool b) => { if (b) return 0; return 1; };
+        };
+    }
+}";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            AssertInstrumented(verifier, "Program.M1");
+            AssertInstrumented(verifier, "Program.<>c__DisplayClass0_0.<M1>b__0()");
+            AssertNotInstrumented(verifier, "Program.<>c.<M1>b__0_1(bool)");
+            AssertInstrumented(verifier, "Program.<>c__DisplayClass0_0.<M1>b__2(bool)");
+            AssertInstrumented(verifier, "Program.M2");
+            AssertNotInstrumented(verifier, "Program.<>c.<M2>b__1_0()");
+            AssertNotInstrumented(verifier, "Program.<>c.<M2>b__1_1(bool)");
+            AssertNotInstrumented(verifier, "Program.<>c.<M2>b__1_2(bool)");
+        }
+
+        [Fact]
         public void ExcludeFromCodeCoverageAttribute_Type()
         {
             string source = @"
@@ -3357,7 +3471,7 @@ static void Test()
                 .True("Test();")
                 .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();")
                 .True(@"Console.WriteLine(""Test"");");
-            checker.Method(4, 1)
+            checker.Method(5, 1)
                 .True()
                 .False()
                 .True()

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion
         protected virtual ImmutableArray<CompletionProvider> GetBuiltInProviders()
             => ImmutableArray<CompletionProvider>.Empty;
 
-        private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
+        internal IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
         {
             if (_importedProviders == null)
             {
@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 ? optionsRule
                 : GetRules().SnippetsRule;
 
-            if (snippetsRule == SnippetsRule.Default ||
-                snippetsRule == SnippetsRule.NeverInclude)
+            if (snippetsRule is SnippetsRule.Default or
+                SnippetsRule.NeverInclude)
             {
                 return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
             }
@@ -255,6 +255,23 @@ namespace Microsoft.CodeAnalysis.Completion
             return completionList;
         }
 
+        /// <summary>
+        /// Returns a document with frozen partial semantic unless we already have a complete compilation available.
+        /// Getting full semantic could be costly in certains scenarios and would cause significant delay in completion. 
+        /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
+        /// we get into this transient state.
+        /// </summary>
+        private async Task<(Document document, SemanticModel semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
+        {
+            var usePartialSemantic = _workspace.Options.GetOption(CompletionServiceOptions.UsePartialSemanticForCompletion);
+            if (usePartialSemantic)
+            {
+                return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
+        }
+
         private protected async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
             Document document,
             int caretPosition,
@@ -263,6 +280,9 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet options,
             CancellationToken cancellationToken)
         {
+            // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
+            (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
@@ -299,9 +319,9 @@ namespace Microsoft.CodeAnalysis.Completion
             // This allows a provider to be textually triggered but later decide to be an augmenting provider based on deeper syntactic analysis.
 
             var additionalAugmentingProviders = new List<CompletionProvider>();
-            foreach (var provider in triggeredProviders)
+            if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
-                if (trigger.Kind == CompletionTriggerKind.Insertion)
+                foreach (var provider in triggeredProviders)
                 {
                     if (!await provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false))
                     {
@@ -352,6 +372,8 @@ namespace Microsoft.CodeAnalysis.Completion
             var (augmentingCompletionContexts, expandItemsAvailableFromAugmentingProviders) = await ComputeNonEmptyCompletionContextsAsync(
                 document, caretPosition, trigger, options, defaultItemSpan,
                 augmentingProviders, cancellationToken).ConfigureAwait(false);
+
+            GC.KeepAlive(semanticModel);
 
             var allContexts = triggeredCompletionContexts.Concat(augmentingCompletionContexts);
             Debug.Assert(allContexts.Length > 0);
@@ -524,12 +546,17 @@ namespace Microsoft.CodeAnalysis.Completion
             return context;
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default)
+        public override async Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default)
         {
             var provider = GetProvider(item);
-            return provider != null
-                ? provider.GetDescriptionAsync(document, item, cancellationToken)
-                : Task.FromResult(CompletionDescription.Empty);
+            if (provider is null)
+                return CompletionDescription.Empty;
+
+            // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
+            (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+            var description = await provider.GetDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false);
+            GC.KeepAlive(semanticModel);
+            return description;
         }
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
@@ -568,26 +595,16 @@ namespace Microsoft.CodeAnalysis.Completion
             var provider = GetProvider(item);
             if (provider != null)
             {
-                return await provider.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+                // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
+                (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+                var change = await provider.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+                GC.KeepAlive(semanticModel);
+                return change;
             }
             else
             {
                 return CompletionChange.Create(new TextChange(item.Span, item.DisplayText));
             }
-        }
-
-        internal override async Task<CompletionChange> GetChangeAsync(
-            Document document,
-            CompletionItem item,
-            TextSpan completionListSpan,
-            char? commitKey,
-            bool disallowAddingImports,
-            CancellationToken cancellationToken)
-        {
-            var provider = GetProvider(item);
-            return provider != null
-                ? await provider.GetChangeAsync(document, item, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false)
-                : CompletionChange.Create(new TextChange(completionListSpan, item.DisplayText));
         }
 
         bool IEqualityComparer<ImmutableHashSet<string>>.Equals(ImmutableHashSet<string> x, ImmutableHashSet<string> y)

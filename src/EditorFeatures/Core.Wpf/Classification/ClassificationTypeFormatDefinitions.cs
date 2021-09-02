@@ -127,6 +127,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         }
         #endregion
 
+        #region Reassigned Variable
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ReassignedVariable)]
+        [Name(ClassificationTypeNames.ReassignedVariable)]
+        [Order(After = Priority.High)]
+        [UserVisible(false)]
+        [ExcludeFromCodeCoverage]
+        private class ReassignedVariableFormatDefinition : ClassificationFormatDefinition
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public ReassignedVariableFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.Reassigned_variable;
+                this.TextDecorations = System.Windows.TextDecorations.Underline;
+            }
+        }
+        #endregion
+
         #region Symbol - Static
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]
@@ -187,8 +206,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         #endregion
         #region User Types - Records
         [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RecordName)]
-        [Name(ClassificationTypeNames.RecordName)]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RecordClassName)]
+        [Name(ClassificationTypeNames.RecordClassName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
         [Order(Before = ClassificationTypeNames.StaticSymbol)]
@@ -201,6 +220,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public UserTypeRecordsFormatDefinition()
             {
                 this.DisplayName = EditorFeaturesResources.User_Types_Records;
+            }
+        }
+        #endregion
+        #region User Types - Record structs
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.RecordStructName)]
+        [Name(ClassificationTypeNames.RecordStructName)]
+        [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(Before = ClassificationTypeNames.StaticSymbol)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class UserTypeRecordStructsFormatDefinition : ClassificationFormatDefinition
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public UserTypeRecordStructsFormatDefinition()
+            {
+                this.DisplayName = EditorFeaturesResources.User_Types_Record_Structs;
             }
         }
         #endregion
@@ -708,7 +746,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexCommentFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Comment;
+                this.DisplayName = EditorFeaturesResources.Regex_Comment;
                 this.ForegroundColor = Color.FromRgb(0x00, 0x80, 0x00);
             }
         }
@@ -726,7 +764,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexCharacterClassFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Character_Class;
+                this.DisplayName = EditorFeaturesResources.Regex_Character_Class;
                 this.ForegroundColor = Color.FromRgb(0x00, 0x73, 0xff);
             }
         }
@@ -744,7 +782,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexAnchorFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Anchor;
+                this.DisplayName = EditorFeaturesResources.Regex_Anchor;
                 this.ForegroundColor = Color.FromRgb(0xff, 0x00, 0xc1);
             }
         }
@@ -762,7 +800,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexQuantifierFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Quantifier;
+                this.DisplayName = EditorFeaturesResources.Regex_Quantifier;
                 this.ForegroundColor = Color.FromRgb(0xff, 0x00, 0xc1);
             }
         }
@@ -780,7 +818,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexGroupingFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Grouping;
+                this.DisplayName = EditorFeaturesResources.Regex_Grouping;
                 this.ForegroundColor = Color.FromRgb(0x05, 0xc3, 0xba);
             }
         }
@@ -798,7 +836,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexAlternationFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Alternation;
+                this.DisplayName = EditorFeaturesResources.Regex_Alternation;
                 this.ForegroundColor = Color.FromRgb(0x05, 0xc3, 0xba);
             }
         }
@@ -816,7 +854,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexTextFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_Text;
+                this.DisplayName = EditorFeaturesResources.Regex_Text;
                 this.ForegroundColor = Color.FromRgb(0x80, 0x00, 0x00);
             }
         }
@@ -834,7 +872,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexSelfEscapedCharacterFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_SelfEscapedCharacter;
+                this.DisplayName = EditorFeaturesResources.Regex_SelfEscapedCharacter;
 
                 // by default, we make a self-escaped character just the bolded form of the normal
                 // text color.
@@ -856,7 +894,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public RegexOtherEscapeFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesWpfResources.Regex_OtherEscape;
+                this.DisplayName = EditorFeaturesResources.Regex_OtherEscape;
                 this.ForegroundColor = Color.FromRgb(0x9e, 0x5b, 0x71);
             }
         }

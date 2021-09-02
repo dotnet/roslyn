@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">'{0}' init-only özelliği yalnızca nesne üyesi başlatıcısı tarafından veya örnek oluşturucudaki 'Me', 'MyClass' veya 'MyBase' üzerinde atanabilir.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Komut satırı söz dizimi hatası: '{0}', '{1}' seçeneği için geçerli bir değer değil. Değer '{2}' biçiminde olmalıdır.</target>
@@ -22,6 +27,16 @@
         <target state="translated">Birden çok çözümleyici yapılandırma dosyası aynı dizinde ('{0}') olamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">'{0}', '{1}' init-only özelliğini geçersiz kılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">'{0}' init-only özelliği uygulanamaz.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">'{0}' türünün temel arabirimden yeniden soyutlanmış bir üyesi olduğundan bu tür eklenemiyor. 'Embed Interop Types' özelliğini false olarak ayarlamayı deneyin.</target>
@@ -37,9 +52,29 @@
         <target state="translated">Hedef çalışma zamanı, bir arabirimin üyesi için 'Protected', 'Protected Friend' veya 'Private Protected' erişilebilirliğini desteklemez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">Paylaşılan WithEvents değişkenlerinin olayları farklı türdeki metotlar tarafından işlenemez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">'UnmanagedCallersOnly' özniteliği desteklenmez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="new">caller argument expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">satır devamı sonrası açıklamalar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">init-only ayarlayıcıları ile 'ByRef' özelliklerine atama veya geçirme</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -471,6 +506,26 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">Yüklenen bütünleştirilmiş kod, desteklenmeyen .NET Framework'e başvuruyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

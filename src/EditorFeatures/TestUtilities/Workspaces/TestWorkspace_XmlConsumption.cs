@@ -19,6 +19,7 @@ using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             {
                 foreach (var document in project.Documents)
                 {
-                    if (openDocuments)
+                    if (openDocuments && !document.IsSourceGenerated)
                     {
                         // This implicitly opens the document in the workspace by fetching the container.
                         document.GetOpenTextContainer();
@@ -231,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 // The project
 
-                var document = new TestHostDocument(exportProvider, languageServices, code, submissionName, cursorPosition, spans, SourceCodeKind.Script);
+                var document = new TestHostDocument(exportProvider, languageServices, code, submissionName, submissionName, cursorPosition, spans, SourceCodeKind.Script);
                 var documents = new List<TestHostDocument> { document };
 
                 if (languageName == NoCompilationConstants.LanguageName)
@@ -335,6 +336,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     ref documentId);
 
                 documents.Add(document);
+            }
+
+            foreach (var sourceGeneratedDocumentElement in projectElement.Elements(DocumentFromSourceGeneratorElementName))
+            {
+                var name = GetFileName(workspace, sourceGeneratedDocumentElement, ref documentId);
+
+                var markupCode = sourceGeneratedDocumentElement.NormalizedValue();
+                MarkupTestFile.GetPositionAndSpans(markupCode,
+                    out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
+
+                var documentFilePath = typeof(SingleFileTestGenerator).Assembly.GetName().Name + '\\' + typeof(SingleFileTestGenerator).FullName + '\\' + name;
+                var document = new TestHostDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, isSourceGenerated: true);
+                documents.Add(document);
+
+                analyzers.Add(new TestGeneratorReference(new SingleFileTestGenerator(code, name)));
             }
 
             var additionalDocuments = new List<TestHostDocument>();
@@ -522,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (GetLanguage(workspace, projectElement) == LanguageNames.VisualBasic)
             {
-                // For VB tests, root namespace value must be defined in compilation options element, 
+                // For VB tests, root namespace value must be defined in compilation options element,
                 // it can't use the property in project element to avoid confusion.
                 Assert.Null(rootNamespaceAttribute);
 
@@ -693,9 +709,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             IDocumentServiceProvider documentServiceProvider,
             ref int documentId)
         {
-            string markupCode;
-            string filePath;
-
             var isLinkFileAttribute = documentElement.Attribute(IsLinkFileAttributeName);
             var isLinkFile = isLinkFileAttribute != null && ((bool?)isLinkFileAttribute).HasValue && ((bool?)isLinkFileAttribute).Value;
             if (isLinkFile)
@@ -752,8 +765,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
-            markupCode = documentElement.NormalizedValue();
-            filePath = GetFilePath(workspace, documentElement, ref documentId);
+            var markupCode = documentElement.NormalizedValue();
+            var fileName = GetFileName(workspace, documentElement, ref documentId);
 
             var folders = GetFolders(documentElement);
             var optionsElement = documentElement.Element(ParseOptionsElementName);
@@ -779,11 +792,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
             else if (testDocumentServiceProvider != null)
             {
-                AssertEx.Fail($"The document attributes on file {filePath} conflicted");
+                AssertEx.Fail($"The document attributes on file {fileName} conflicted");
             }
 
             return new TestHostDocument(
-                exportProvider, languageServiceProvider, code, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
+                exportProvider, languageServiceProvider, code, fileName, fileName, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
         }
 
         internal static TestHostDocument CreateDocument(
@@ -812,7 +825,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var documentServiceProvider = GetDocumentServiceProvider(documentElement);
 
             return new TestHostDocument(
-                exportProvider, languageServiceProvider, code, filePath: string.Empty, cursorPosition, spans, codeKind, folders, isLinkFile: false, documentServiceProvider, roles: roles);
+                exportProvider, languageServiceProvider, code, name: string.Empty, filePath: string.Empty, cursorPosition, spans, codeKind, folders, isLinkFile: false, documentServiceProvider, roles: roles);
         }
 
 #nullable enable
@@ -834,7 +847,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 #nullable disable
 
-        private static string GetFilePath(
+        private static string GetFileName(
             TestWorkspace workspace,
             XElement documentElement,
             ref int documentId)
@@ -864,10 +877,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         /// <summary>
-        /// Takes completely valid code, compiles it, and emits it to a MetadataReference without using 
+        /// Takes completely valid code, compiles it, and emits it to a MetadataReference without using
         /// the file system
         /// </summary>
-        private static MetadataReference CreateMetadataReferenceFromSource(TestWorkspace workspace, XElement referencedSource)
+        private static MetadataReference CreateMetadataReferenceFromSource(TestWorkspace workspace, XElement projectElement, XElement referencedSource)
         {
             var compilation = CreateCompilation(workspace, referencedSource);
 
@@ -883,7 +896,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 includeXmlDocComments = true;
             }
 
-            return MetadataReference.CreateFromImage(compilation.EmitToArray(), new MetadataReferenceProperties(aliases: aliases), includeXmlDocComments ? new DeferredDocumentationProvider(compilation) : null);
+            var referencesOnDisk = projectElement.Attribute(ReferencesOnDiskAttributeName) is { } onDiskAttribute
+                && ((bool?)onDiskAttribute).GetValueOrDefault();
+
+            var image = compilation.EmitToArray();
+            var metadataReference = MetadataReference.CreateFromImage(image, new MetadataReferenceProperties(aliases: aliases), includeXmlDocComments ? new DeferredDocumentationProvider(compilation) : null);
+            if (referencesOnDisk)
+            {
+                AssemblyResolver.TestAccessor.AddInMemoryImage(metadataReference, "unknown", image);
+            }
+
+            return metadataReference;
         }
 
         private static Compilation CreateCompilation(TestWorkspace workspace, XElement referencedSource)
@@ -943,13 +966,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 // objects that are no longer in use. There are no public APIs available to directly dispose of these
                 // images, so we are relying on GC running finalizers to avoid OutOfMemoryException during tests.
                 var content = File.ReadAllBytes(reference.Value);
-                var peImage = ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref content);
-                references.Add(MetadataReference.CreateFromImage(peImage, filePath: reference.Value));
+                references.Add(MetadataReference.CreateFromImage(content, filePath: reference.Value));
             }
 
             foreach (var metadataReferenceFromSource in element.Elements(MetadataReferenceFromSourceElementName))
             {
-                references.Add(CreateMetadataReferenceFromSource(workspace, metadataReferenceFromSource));
+                references.Add(CreateMetadataReferenceFromSource(workspace, element, metadataReferenceFromSource));
             }
 
             return references;
@@ -965,11 +987,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         ImmutableArray<DiagnosticAnalyzer>.Empty,
                         display: (string)analyzer.Attribute(AnalyzerDisplayAttributeName),
                         fullPath: (string)analyzer.Attribute(AnalyzerFullPathAttributeName)));
-            }
-
-            foreach (var fileToGenerate in projectElement.Elements(DocumentFromSourceGenerator))
-            {
-                analyzers.Add(new TestGeneratorReference(new SingleFileTestGenerator(fileToGenerate.Value)));
             }
 
             return analyzers;

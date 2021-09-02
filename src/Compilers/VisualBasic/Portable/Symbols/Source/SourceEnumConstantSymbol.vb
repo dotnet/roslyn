@@ -15,13 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private _constantTuple As EvaluatedConstant
 
-        Public Shared Function CreateExplicitValuedConstant(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, diagnostics As DiagnosticBag) As SourceEnumConstantSymbol
+        Public Shared Function CreateExplicitValuedConstant(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, diagnostics As BindingDiagnosticBag) As SourceEnumConstantSymbol
             Dim initializer = syntax.Initializer
             Debug.Assert(initializer IsNot Nothing)
             Return New ExplicitValuedEnumConstantSymbol(containingEnum, bodyBinder, syntax, initializer, diagnostics)
         End Function
 
-        Public Shared Function CreateImplicitValuedConstant(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, otherConstant As SourceEnumConstantSymbol, otherConstantOffset As Integer, diagnostics As DiagnosticBag) As SourceEnumConstantSymbol
+        Public Shared Function CreateImplicitValuedConstant(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, otherConstant As SourceEnumConstantSymbol, otherConstantOffset As Integer, diagnostics As BindingDiagnosticBag) As SourceEnumConstantSymbol
             If otherConstant Is Nothing Then
                 Debug.Assert(otherConstantOffset = 0)
                 Return New ZeroValuedEnumConstantSymbol(containingEnum, bodyBinder, syntax, diagnostics)
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        Protected Sub New(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, diagnostics As DiagnosticBag)
+        Protected Sub New(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, diagnostics As BindingDiagnosticBag)
             MyBase.New(containingEnum,
                        bodyBinder.GetSyntaxReference(syntax),
                        name:=syntax.Identifier.ValueText,
@@ -74,9 +74,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return GetConstantValueImpl(inProgress)
         End Function
 
-        Protected NotOverridable Overrides Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As DiagnosticBag)
+        Protected NotOverridable Overrides Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As BindingDiagnosticBag)
             Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-            sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
+            sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics)
         End Sub
 
         Friend Overrides ReadOnly Property MeParameter As ParameterSymbol
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Protected MustOverride Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
+        Protected MustOverride Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As BindingDiagnosticBag) As EvaluatedConstant
 
         ' There are implementations for:
         ' 1) enum constant that is zero
@@ -96,11 +96,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private NotInheritable Class ZeroValuedEnumConstantSymbol
             Inherits SourceEnumConstantSymbol
 
-            Public Sub New(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, diagnostics As DiagnosticBag)
+            Public Sub New(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, diagnostics As BindingDiagnosticBag)
                 MyBase.New(containingEnum, bodyBinder, syntax, diagnostics)
             End Sub
 
-            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
+            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As BindingDiagnosticBag) As EvaluatedConstant
                 Dim underlyingType = ContainingType.EnumUnderlyingType
                 Return New EvaluatedConstant(Microsoft.CodeAnalysis.ConstantValue.Default(underlyingType.SpecialType), underlyingType)
             End Function
@@ -111,12 +111,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Private ReadOnly _equalsValueNodeRef As SyntaxReference
 
-            Public Sub New(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, initializer As EqualsValueSyntax, diagnostics As DiagnosticBag)
+            Public Sub New(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, initializer As EqualsValueSyntax, diagnostics As BindingDiagnosticBag)
                 MyBase.New(containingEnum, bodyBinder, syntax, diagnostics)
                 Me._equalsValueNodeRef = bodyBinder.GetSyntaxReference(initializer)
             End Sub
 
-            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
+            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As BindingDiagnosticBag) As EvaluatedConstant
                 Return ConstantValueUtils.EvaluateFieldConstant(Me, Me._equalsValueNodeRef, dependencies, diagnostics)
             End Function
         End Class
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Private ReadOnly _otherConstant As SourceEnumConstantSymbol
             Private ReadOnly _otherConstantOffset As UInteger
 
-            Public Sub New(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, otherConstant As SourceEnumConstantSymbol, otherConstantOffset As UInteger, diagnostics As DiagnosticBag)
+            Public Sub New(containingEnum As SourceNamedTypeSymbol, bodyBinder As Binder, syntax As EnumMemberDeclarationSyntax, otherConstant As SourceEnumConstantSymbol, otherConstantOffset As UInteger, diagnostics As BindingDiagnosticBag)
                 MyBase.New(containingEnum, bodyBinder, syntax, diagnostics)
                 Debug.Assert(otherConstant IsNot Nothing)
                 Debug.Assert(otherConstantOffset > 0)
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Me._otherConstantOffset = otherConstantOffset
             End Sub
 
-            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As DiagnosticBag) As EvaluatedConstant
+            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As BindingDiagnosticBag) As EvaluatedConstant
 #If DEBUG Then
                 Debug.Assert(dependencies IsNot Nothing)
 #End If

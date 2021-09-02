@@ -14,10 +14,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -308,16 +307,18 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         ? containers.ToList()
                         : _semanticDocument.Document.Folders.ToList();
 
+                if (newDocument.Project.Language == _semanticDocument.Document.Project.Language)
+                {
+                    var formattingService = newDocument.GetLanguageService<INewDocumentFormattingService>();
+                    if (formattingService is not null)
+                    {
+                        codeGenResult = await formattingService.FormatNewDocumentAsync(codeGenResult, _semanticDocument.Document, _cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
                 // Now, take the code that would be generated and actually create an edit that would
                 // produce a document with that code in it.
                 var newRoot = await codeGenResult.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
-
-                if (newDocument.Project.Language == _semanticDocument.Document.Project.Language)
-                {
-                    var syntaxFacts = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-                    var fileBanner = syntaxFacts.GetFileBanner(_semanticDocument.Root);
-                    newRoot = newRoot.WithPrependedLeadingTrivia(fileBanner);
-                }
 
                 return await CreateAddDocumentAndUpdateUsingsOrImportsOperationsAsync(
                     projectToBeUpdated,
@@ -434,8 +435,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     enclosingNamespaceGeneratedTypeToAddAndLocation.Item1,
                     enclosingNamespaceGeneratedTypeToAddAndLocation.Item2,
                     new CodeGenerationOptions(afterThisLocation: enclosingNamespaceGeneratedTypeToAddAndLocation.Item3),
-                    _cancellationToken)
-                    .ConfigureAwait(false);
+                    _cancellationToken).ConfigureAwait(false);
                 var newRoot = await codeGenResult.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
                 var updatedSolution = solution.WithDocumentSyntaxRoot(generateTypeOptionsResult.ExistingDocument.Id, newRoot, PreservationMode.PreserveIdentity);
 

@@ -349,8 +349,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                         {
                             return typeArguments[0];
                         }
+
                         break;
                 }
+
                 return null;
             }
 
@@ -363,6 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
                 {
                     return parameterSyntax.Type;
                 }
+
                 return null;
             }
         }

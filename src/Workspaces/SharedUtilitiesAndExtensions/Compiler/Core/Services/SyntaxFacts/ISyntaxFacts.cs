@@ -28,9 +28,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ISyntaxKinds SyntaxKinds { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
-        bool SupportsNotPattern(ParseOptions options);
-        bool SupportsThrowExpression(ParseOptions options);
         bool SupportsLocalFunctionDeclaration(ParseOptions options);
+        bool SupportsNotPattern(ParseOptions options);
+        bool SupportsRecord(ParseOptions options);
+        bool SupportsRecordStruct(ParseOptions options);
+        bool SupportsThrowExpression(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -129,6 +131,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
 
+        bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node);
         void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression);
 
@@ -146,6 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         void GetPartsOfInterpolationExpression(SyntaxNode node,
             out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> contents, out SyntaxToken stringEndToken);
+
         bool IsVerbatimInterpolatedStringExpression(SyntaxNode node);
 
         SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
@@ -253,7 +257,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode? node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
+        SyntaxToken GetIdentifierOfParameter(SyntaxNode node);
+        SyntaxToken GetIdentifierOfTypeDeclaration(SyntaxNode node);
         SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
+        SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node);
         SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node);
 
         /// <summary>
@@ -272,6 +279,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode? node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode? node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode? node);
+        SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode node);
+        SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode node);
 
         bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node);
 
@@ -316,8 +325,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsBaseConstructorInitializer(SyntaxToken token);
         bool IsQueryKeyword(SyntaxToken token);
         bool IsThrowExpression(SyntaxNode node);
-        bool IsElementAccessExpression(SyntaxNode node);
-        bool IsIndexerMemberCRef(SyntaxNode node);
+        bool IsElementAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsIndexerMemberCRef([NotNullWhen(true)] SyntaxNode? node);
         bool IsIdentifierStartCharacter(char c);
         bool IsIdentifierPartCharacter(char c);
         bool IsIdentifierEscapeCharacter(char c);
@@ -391,11 +400,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsClassDeclaration([NotNullWhen(true)] SyntaxNode? node);
         bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node);
+        SyntaxNode? GetNameOfNamespaceDeclaration(SyntaxNode? node);
         List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode? root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit);
+        SyntaxList<SyntaxNode> GetImportsOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
+        SyntaxList<SyntaxNode> GetImportsOfCompilationUnit(SyntaxNode compilationUnit);
 
         bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span);
         TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);

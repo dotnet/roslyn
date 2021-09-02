@@ -7,10 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -33,38 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     public abstract class DiagnosticsUtils
     {
-        /// <summary>
-        /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
-        /// </summary>
-        public static void VerifyErrorCodes(CSharpCompilation comp, params ErrorDescription[] expectedErrors)
-        {
-            var actualErrors = comp.GetDiagnostics();
-            DiagnosticsUtils.VerifyErrorCodes(actualErrors, expectedErrors);
-        }
-
-        /// <summary>
-        /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
-        /// </summary>
-        [Obsolete("Use VerifyDiagnostics", true)]
-        public static void TestDiagnostics(string source, params string[] diagStrings)
-        {
-            var comp = CSharpTestBase.CreateCompilation(source);
-            var diagnostics = comp.GetDiagnostics();
-            CompilingTestBase.TestDiagnostics(diagnostics, diagStrings);
-        }
-
-        /// <summary>
-        /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
-        /// </summary>
-        [Obsolete("Use VerifyDiagnostics", true)]
-        public static void TestDiagnosticsExact(string source, params string[] diagStrings)
-        {
-            var comp = CSharpTestBase.CreateCompilation(source);
-            var diagnostics = comp.GetDiagnostics();
-            Assert.Equal(diagStrings.Length, diagnostics.Length);
-            CompilingTestBase.TestDiagnostics(diagnostics, diagStrings);
-        }
-
         /// <summary>
         /// OBSOLETE: Use VerifyDiagnostics from Roslyn.Compilers.CSharp.Test.Utilities instead.
         /// </summary>

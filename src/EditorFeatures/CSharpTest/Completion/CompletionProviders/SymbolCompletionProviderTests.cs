@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
@@ -26,9 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
     {
         internal override Type GetCompletionProviderType()
             => typeof(SymbolCompletionProvider);
-
-        protected override TestComposition GetComposition()
-            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(SourceCodeKind.Regular)]
@@ -397,6 +393,18 @@ namespace $$";
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Unqualified_TopLevelNoPeers_FileScopedNamespace()
+        {
+            var source = @"using System;
+
+namespace $$;";
+
+            await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "String", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NamespaceName_Unqualified_TopLevelWithPeer()
         {
             var source = @"
@@ -546,6 +554,18 @@ namespace A.B.C3 { }";
 namespace A.B { }
 
 namespace A.$$";
+
+            await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Qualified_TopLevelWithPeer_FileScopedNamespace()
+        {
+            var source = @"
+namespace A.B { }
+
+namespace A.$$;";
 
             await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
         }
@@ -2165,6 +2185,99 @@ class C
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        public async Task AfterStaticLocalFunction_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        static $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("extern")]
+        [InlineData("static extern")]
+        [InlineData("extern static")]
+        [InlineData("async")]
+        [InlineData("static async")]
+        [InlineData("async static")]
+        [InlineData("unsafe")]
+        [InlineData("static unsafe")]
+        [InlineData("unsafe static")]
+        [InlineData("async unsafe")]
+        [InlineData("unsafe async")]
+        [InlineData("unsafe extern")]
+        [InlineData("extern unsafe")]
+        [InlineData("extern unsafe async static")]
+        public async Task AfterLocalFunction_TypeOnly(string keyword)
+        {
+            var markup = $@"
+using System;
+class C
+{{
+    void M(String parameter)
+    {{
+        {keyword} $$
+    }}
+}}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        public async Task NotAfterAsyncLocalFunctionWithTwoAsyncs()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        async async $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("void")]
+        [InlineData("string")]
+        [InlineData("String")]
+        [InlineData("(int, int)")]
+        [InlineData("async void")]
+        [InlineData("async System.Threading.Tasks.Task")]
+        [InlineData("int Function")]
+        public async Task NotAfterReturnTypeInLocalFunction(string returnType)
+        {
+            var markup = @$"
+using System;
+class C
+{{
+    void M(String parameter)
+    {{
+        static {returnType} $$
+    }}
+}}
+";
+            await VerifyItemIsAbsentAsync(markup, "String");
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
@@ -7482,18 +7595,31 @@ struct C
 {
    ~$$
 }";
+            await VerifyItemIsAbsentAsync(markup, "C");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        public async Task RecordDestructor(string record)
+        {
+            var markup = $@"
+{record} C
+{{
+   ~$$
+}}";
             await VerifyItemExistsAsync(markup, "C");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task RecordDestructor()
+        public async Task RecordStructDestructor()
         {
-            var markup = @"
-record C
-{
+            var markup = $@"
+record struct C
+{{
    ~$$
-}";
-            await VerifyItemExistsAsync(markup, "C");
+}}";
+            await VerifyItemIsAbsentAsync(markup, "C");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -7544,7 +7670,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
+            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}";
 
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
@@ -7575,7 +7701,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
+            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}";
 
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
@@ -7609,7 +7735,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
+            var expectedDescription = $"({FeaturesResources.field}) int C.x\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}";
 
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
@@ -7647,7 +7773,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"void G.DoGStuff()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
+            var expectedDescription = $"void G.DoGStuff()\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}";
 
             await VerifyItemInLinkedFilesAsync(markup, "DoGStuff", expectedDescription);
         }
@@ -7702,7 +7828,7 @@ class C
         <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""CurrentDocument.cs""/>
     </Project>
 </Workspace>";
-            var expectedDescription = $"({FeaturesResources.local_variable}) int xyz\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}";
+            var expectedDescription = $"({FeaturesResources.local_variable}) int xyz\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}";
             await VerifyItemInLinkedFilesAsync(markup, "xyz", expectedDescription);
         }
 
@@ -8055,6 +8181,40 @@ class A
 }";
             await VerifyItemExistsAsync(markup, "i");
             await VerifyItemIsAbsentAsync(markup, "value");
+        }
+
+        [WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ConditionalAccessNullableIsUnwrappedOnParameter()
+        {
+            var markup = @"
+class A
+{
+    void M(System.DateTime? dt)
+    {
+        dt?.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Day");
+            await VerifyItemIsAbsentAsync(markup, "Value");
+        }
+
+        [WorkItem(54361, "https://github.com/dotnet/roslyn/issues/54361")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NullableIsNotUnwrappedOnParameter()
+        {
+            var markup = @"
+class A
+{
+    void M(System.DateTime? dt)
+    {
+        dt.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "Value");
+            await VerifyItemIsAbsentAsync(markup, "Day");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -9563,6 +9723,7 @@ class C
             {
                 await VerifyItemExistsAsync(markup, "Item" + i);
             }
+
             await VerifyItemExistsAsync(markup, "ToString");
 
             await VerifyItemIsAbsentAsync(markup, "Item1");
@@ -9585,7 +9746,7 @@ class C
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs;
 
             // should not crash
-            await VerifyItemExistsAsync(markup, "ToString");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact]
@@ -10620,7 +10781,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilterWithExperimentEnabled()
         {
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            TargetTypedCompletionFilterFeatureFlag = true;
 
             var markup =
 @"public class C
@@ -10639,7 +10800,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestNoTargetTypeFilterWithExperimentDisabled()
         {
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, false);
+            TargetTypedCompletionFilterFeatureFlag = false;
 
             var markup =
 @"public class C
@@ -10658,7 +10819,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotOnObjectMembers()
         {
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            TargetTypedCompletionFilterFeatureFlag = true;
 
             var markup =
 @"public class C
@@ -10676,7 +10837,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotNamedTypes()
         {
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            TargetTypedCompletionFilterFeatureFlag = true;
 
             var markup =
 @"public class C
@@ -10759,8 +10920,10 @@ class C
                 matchingFilters: new List<CompletionFilter> { FilterSet.LocalAndParameterFilter });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForMethod()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCommitCharForMethod(char commitChar)
         {
             var markup = @"
 class Program
@@ -10778,27 +10941,29 @@ class Program
     {
     }
 }";
-            var expected = @"
+            var expected = $@"
 class Program
-{
+{{
     private void Bar()
-    {
-        Foo();
-    }
+    {{
+        Foo(){commitChar}
+    }}
     
     private void Foo(int i)
-    {
-    }
+    {{
+    }}
 
     private void Foo(int i, int c)
-    {
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+    {{
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonInNestedMethod()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithSemicolonInNestedMethod(char commitChar)
         {
             var markup = @"
 class Program
@@ -10813,24 +10978,26 @@ class Program
         return 1;
     }
 }";
-            var expected = @"
+            var expected = $@"
 class Program
-{
+{{
     private void Bar()
-    {
-        Foo(Foo(););
-    }
+    {{
+        Foo(Foo(){commitChar});
+    }}
     
     private int Foo(int i)
-    {
+    {{
         return 1;
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForDelegateInferredType()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCommitCharForDelegateInferredType(char commitChar)
         {
             var markup = @"
 using System;
@@ -10847,26 +11014,28 @@ class Program
 
     void Bar2(Action t) { }
 }";
-            var expected = @"
+            var expected = $@"
 using System;
 class Program
-{
+{{
     private void Bar()
-    {
-        Bar2(Foo;);
-    }
+    {{
+        Bar2(Foo{commitChar});
+    }}
     
     private void Foo()
-    {
-    }
+    {{
+    }}
 
-    void Bar2(Action t) { }
-}";
-            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: ';');
+    void Bar2(Action t) {{ }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Foo", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForConstructor()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCommitCharForConstructor(char commitChar)
         {
             var markup = @"
 class Program
@@ -10876,19 +11045,21 @@ class Program
         var o = new P$$
     }
 }";
-            var expected = @"
+            var expected = $@"
 class Program
-{
+{{
     private static void Bar()
-    {
-        var o = new Program();
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: ';');
+    {{
+        var o = new Program(){commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForTypeUnderNonObjectCreationContext()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCharForTypeUnderNonObjectCreationContext(char commitChar)
         {
             var markup = @"
 class Program
@@ -10898,19 +11069,21 @@ class Program
         var o = P$$
     }
 }";
-            var expected = @"
+            var expected = $@"
 class Program
-{
+{{
     private static void Bar()
-    {
-        var o = Program;
-    }
-}";
-            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: ';');
+    {{
+        var o = Program{commitChar}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "Program", expected, commitChar: commitChar);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CompletionWithSemicolonForAliasConstructor()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData('.')]
+        [InlineData(';')]
+        public async Task CompletionWithCustomizedCommitCharForAliasConstructor(char commitChar)
         {
             var markup = @"
 using String2 = System.String;
@@ -10924,19 +11097,47 @@ namespace Bar1
         }
     }
 }";
-            var expected = @"
+            var expected = $@"
 using String2 = System.String;
+namespace Bar1
+{{
+    class Program
+    {{
+        private static void Bar()
+        {{
+            var o = new String2(){commitChar}
+        }}
+    }}
+}}";
+            await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: commitChar);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompletionWithSemicolonUnderNameofContext()
+        {
+            var markup = @"
 namespace Bar1
 {
     class Program
     {
         private static void Bar()
         {
-            var o = new String2();
+            var o = nameof(B$$)
         }
     }
 }";
-            await VerifyProviderCommitAsync(markup, "String2", expected, commitChar: ';');
+            var expected = @"
+namespace Bar1
+{
+    class Program
+    {
+        private static void Bar()
+        {
+            var o = nameof(Bar;)
+        }
+    }
+}";
+            await VerifyProviderCommitAsync(markup, "Bar", expected, commitChar: ';');
         }
 
         [WorkItem(49072, "https://github.com/dotnet/roslyn/issues/49072")]
@@ -11171,6 +11372,107 @@ public class C
 }
 ";
             await VerifyItemExistsAsync(markup, "M", expectedDescriptionOrNull: $"void C.M() (+ 1 {FeaturesResources.overload})");
+        }
+
+        [InlineData("int", "")]
+        [InlineData("int[]", "int a")]
+        [Theory, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
+        public async Task TestTargetTypeCompletionDescription(string targetType, string expectedParameterList)
+        {
+            // Check the description displayed is based on symbol matches targeted type
+            TargetTypedCompletionFilterFeatureFlag = true;
+
+            var markup =
+$@"public class C
+{{
+    bool Bar(int a, int b) => false;
+    int Bar() => 0;
+    int[] Bar(int a) => null;
+
+    bool N({targetType} x) => true;
+
+    void M(C c)
+    {{
+        N(c.$$);
+    }}
+}}";
+            await VerifyItemExistsAsync(
+                markup, "Bar",
+                expectedDescriptionOrNull: $"{targetType} C.Bar({expectedParameterList}) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})",
+                matchingFilters: new List<CompletionFilter> { FilterSet.MethodFilter, FilterSet.TargetTypedFilter });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestTypesNotSuggestedInDeclarationDeconstruction()
+        {
+            await VerifyItemIsAbsentAsync(@"
+class C
+{
+    int M()
+    {
+        var (x, $$) = (0, 0);
+    }
+}", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestTypesSuggestedInMixedDeclarationAndAssignmentInDeconstruction()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    int M()
+    {
+        (x, $$) = (0, 0);
+    }
+}", "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestLocalDeclaredBeforeDeconstructionSuggestedInMixedDeclarationAndAssignmentInDeconstruction()
+        {
+            await VerifyItemExistsAsync(@"
+class C
+{
+    int M()
+    {
+        int y;
+        (var x, $$) = (0, 0);
+    }
+}", "y");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(53930, "https://github.com/dotnet/roslyn/issues/53930")]
+        public async Task TestTypeParameterConstraintedToInterfaceWithStatics()
+        {
+            var source = @"
+interface I1
+{
+    static void M0();
+    static abstract void M1();
+    abstract static int P1 { get; set; }
+    abstract static event System.Action E1;
+}
+
+interface I2
+{
+    static abstract void M2();
+}
+
+class Test
+{
+    void M<T>(T x) where T : I1, I2
+    {
+        T.$$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(source, "M0");
+            await VerifyItemExistsAsync(source, "M1");
+            await VerifyItemExistsAsync(source, "M2");
+            await VerifyItemExistsAsync(source, "P1");
+            await VerifyItemExistsAsync(source, "E1");
         }
     }
 }

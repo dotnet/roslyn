@@ -222,9 +222,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 var globalStatement = token.GetAncestor<GlobalStatementSyntax>();
                 if (globalStatement != null && globalStatement.GetLastToken(includeZeroWidth: true) == token)
-                {
                     return true;
-                }
+
+                if (token.Parent is FileScopedNamespaceDeclarationSyntax namespaceDeclaration && namespaceDeclaration.SemicolonToken == token)
+                    return true;
 
                 var memberDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
                 if (memberDeclaration != null && memberDeclaration.GetLastToken(includeZeroWidth: true) == token &&
@@ -557,12 +558,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   int Goo { set { } |
             //   int Goo { set; |
             //   int Goo { [Bar]|
+            //   int Goo { readonly |
 
             // Consume all preceding access modifiers
             while (targetToken.Kind() == SyntaxKind.InternalKeyword ||
                 targetToken.Kind() == SyntaxKind.PublicKeyword ||
                 targetToken.Kind() == SyntaxKind.ProtectedKeyword ||
-                targetToken.Kind() == SyntaxKind.PrivateKeyword)
+                targetToken.Kind() == SyntaxKind.PrivateKeyword ||
+                targetToken.Kind() == SyntaxKind.ReadOnlyKeyword)
             {
                 targetToken = targetToken.GetPreviousToken(includeSkipped: true);
             }

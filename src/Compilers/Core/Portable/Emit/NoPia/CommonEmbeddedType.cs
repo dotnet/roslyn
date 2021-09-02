@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             Cci.ITypeReference Cci.ITypeDefinition.GetBaseClass(EmitContext context)
             {
-                return GetBaseClass((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+                return GetBaseClass((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNode, context.Diagnostics);
             }
 
             IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.GetEvents(EmitContext context)
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
+                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNode, diagnostics);
 
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {

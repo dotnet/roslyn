@@ -11,28 +11,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedRecordObjectMethod : SynthesizedRecordOrdinaryMethod
     {
-        protected SynthesizedRecordObjectMethod(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, DiagnosticBag diagnostics)
-            : base(containingType, name, hasBody: true, memberOffset, diagnostics)
+        protected SynthesizedRecordObjectMethod(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, bool isReadOnly, BindingDiagnosticBag diagnostics)
+            : base(containingType, name, isReadOnly: isReadOnly, hasBody: true, memberOffset, diagnostics)
         {
         }
 
-        protected sealed override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, DiagnosticBag diagnostics)
+        protected sealed override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             const DeclarationModifiers result = DeclarationModifiers.Public | DeclarationModifiers.Override;
             Debug.Assert((result & ~allowedModifiers) == 0);
             return result;
         }
 
-        protected sealed override void MethodChecks(DiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             base.MethodChecks(diagnostics);
-            VerifyOverridesMethodFromObject(this, ReturnType.SpecialType, diagnostics);
+            VerifyOverridesMethodFromObject(this, OverriddenSpecialMember, diagnostics);
         }
+
+        protected abstract SpecialMember OverriddenSpecialMember { get; }
 
         /// <summary>
         /// Returns true if reported an error
         /// </summary>
-        internal static bool VerifyOverridesMethodFromObject(MethodSymbol overriding, SpecialType returnSpecialType, DiagnosticBag diagnostics)
+        internal static bool VerifyOverridesMethodFromObject(MethodSymbol overriding, SpecialMember overriddenSpecialMember, BindingDiagnosticBag diagnostics)
         {
             bool reportAnError = false;
 
@@ -48,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     MethodSymbol leastOverridden = overriding.GetLeastOverriddenMethod(accessingTypeOpt: null);
 
-                    reportAnError = leastOverridden.ReturnType.Equals(overriding.ReturnType, TypeCompareKind.AllIgnoreOptions) &&
-                                    (leastOverridden.ContainingType.SpecialType != SpecialType.System_Object || returnSpecialType != leastOverridden.ReturnType.SpecialType);
+                    reportAnError = (object)leastOverridden != overriding.ContainingAssembly.GetSpecialTypeMember(overriddenSpecialMember) &&
+                                    leastOverridden.ReturnType.Equals(overriding.ReturnType, TypeCompareKind.AllIgnoreOptions);
                 }
             }
 

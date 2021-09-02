@@ -117,40 +117,40 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Regex_Comment" xml:space="preserve">
-    <value>Regex - Comment</value>
-  </data>
-  <data name="Regex_Character_Class" xml:space="preserve">
-    <value>Regex - Character Class</value>
-  </data>
-  <data name="Regex_Alternation" xml:space="preserve">
-    <value>Regex - Alternation</value>
-  </data>
-  <data name="Regex_Anchor" xml:space="preserve">
-    <value>Regex - Anchor</value>
-  </data>
-  <data name="Regex_Quantifier" xml:space="preserve">
-    <value>Regex - Quantifier</value>
-  </data>
-  <data name="Regex_SelfEscapedCharacter" xml:space="preserve">
-    <value>Regex - Self Escaped Character</value>
-  </data>
-  <data name="Regex_Grouping" xml:space="preserve">
-    <value>Regex - Grouping</value>
-  </data>
-  <data name="Regex_Text" xml:space="preserve">
-    <value>Regex - Text</value>
-  </data>
-  <data name="Regex_OtherEscape" xml:space="preserve">
-    <value>Regex - Other Escape</value>
-  </data>
-  <data name="Gathering_Suggestions_0" xml:space="preserve">
-    <value>Gathering Suggestions - '{0}'</value>
-  </data>
-  <data name="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load" xml:space="preserve">
-    <value>Gathering Suggestions - Waiting for the solution to fully load</value>
-  </data>
   <data name="Error_performing_rename_0" xml:space="preserve">
     <value>Error performing rename: '{0}'</value>
+  </data>
+  <data name="Building_Project" xml:space="preserve">
+    <value>Building Project</value>
+  </data>
+  <data name="Copying_selection_to_Interactive_Window" xml:space="preserve">
+    <value>Copying selection to Interactive Window.</value>
+  </data>
+  <data name="Executing_selection_in_Interactive_Window" xml:space="preserve">
+    <value>Executing selection in Interactive Window.</value>
+  </data>
+  <data name="Print_a_list_of_referenced_assemblies" xml:space="preserve">
+    <value>Print a list of referenced assemblies.</value>
+  </data>
+  <data name="The_references_command_is_not_supported_in_this_Interactive_Window_implementation" xml:space="preserve">
+    <value>The references command is not supported in this Interactive Window implementation.</value>
+  </data>
+  <data name="Reset_the_execution_environment_to_the_initial_state_keep_history" xml:space="preserve">
+    <value>Reset the execution environment to the initial state, keep history.</value>
+  </data>
+  <data name="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script" xml:space="preserve">
+    <value>Reset to a clean environment (only mscorlib referenced), do not run initialization script.</value>
+  </data>
+  <data name="Resetting_execution_engine" xml:space="preserve">
+    <value>Resetting execution engine.</value>
+  </data>
+  <data name="Resetting_Interactive" xml:space="preserve">
+    <value>Resetting Interactive</value>
+  </data>
+  <data name="The_CurrentWindow_property_may_only_be_assigned_once" xml:space="preserve">
+    <value>The CurrentWindow property may only be assigned once.</value>
+  </data>
+  <data name="Interactive_host_process_platform" xml:space="preserve">
+    <value>Interactive host process platform</value>
   </data>
 </root>

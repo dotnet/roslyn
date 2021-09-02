@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly Symbol _memberSymbol;
         private readonly CSharpSyntaxNode _root;
-        private readonly DiagnosticBag _ignoredDiagnostics = new DiagnosticBag();
         private readonly ReaderWriterLockSlim _nodeMapLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         // The bound nodes associated with a syntax node, from highest in the tree to lowest.
         private readonly Dictionary<SyntaxNode, ImmutableArray<BoundNode>> _guardedBoundNodeMap = new Dictionary<SyntaxNode, ImmutableArray<BoundNode>>();
@@ -154,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual NullableWalker.SnapshotManager GetSnapshotManager()
         {
             EnsureNullabilityAnalysisPerformedIfNecessary();
-            Debug.Assert(_lazySnapshotManager is object || !IsNullableAnalysisEnabled());
+            Debug.Assert(_lazySnapshotManager is object || this is AttributeSemanticModel || !IsNullableAnalysisEnabled());
             return _lazySnapshotManager;
         }
 
@@ -200,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 position = CheckAndAdjustPosition(position);
                 expression = SyntaxFactory.GetStandaloneExpression(expression);
                 binder = GetSpeculativeBinder(position, expression, bindingOption);
-                var boundRoot = binder.BindExpression(expression, _ignoredDiagnostics);
+                var boundRoot = binder.BindExpression(expression, BindingDiagnosticBag.Discarded);
                 ImmutableDictionary<Symbol, Symbol> ignored = null;
                 return (BoundExpression)NullableWalker.AnalyzeAndRewriteSpeculation(position, boundRoot, binder, snapshotManager, newSnapshots: out _, remappedSymbols: ref ignored);
             }
@@ -467,8 +466,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, csdestination, ref useSiteDiagnostics);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, csdestination, ref discardedUseSiteInfo);
         }
 
         internal override Conversion ClassifyConversionForCast(
@@ -490,8 +489,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, destination, ref useSiteDiagnostics, forCast: true);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, destination, ref discardedUseSiteInfo, forCast: true);
         }
 
         /// <summary>
@@ -576,6 +575,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override INamespaceSymbol GetDeclaredSymbol(NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // Can't defined namespace inside a member.
+            return null;
+        }
+
+        public override INamespaceSymbol GetDeclaredSymbol(FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Can't defined namespace inside a member.
             return null;
@@ -900,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException("node.Kind==" + node.Kind());
             }
 
-            var bound = GetUpperBoundNode(node);
+            var bound = GetLowerBoundNode(node);
             BoundAwaitableInfo awaitableInfo = (((bound as BoundExpressionStatement)?.Expression ?? bound) as BoundAwaitExpression)?.AwaitableInfo;
             if (awaitableInfo == null)
             {
@@ -1712,7 +1717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             using (_nodeMapLock.DisposableWrite())
             {
-                BoundNode boundOuterExpression = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
+                BoundNode boundOuterExpression = this.Bind(incrementalBinder, nodeToBind, BindingDiagnosticBag.Discarded);
 
                 // https://github.com/dotnet/roslyn/issues/35038: Rewrite the above node and add a test that hits this path with nullable
                 // enabled
@@ -1744,7 +1749,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             using (_nodeMapLock.DisposableWrite())
             {
-                BoundNode boundOuterExpression = this.Bind(incrementalBinder, lambdaOrQuery, _ignoredDiagnostics);
+                BoundNode boundOuterExpression = this.Bind(incrementalBinder, lambdaOrQuery, BindingDiagnosticBag.Discarded);
 
                 // https://github.com/dotnet/roslyn/issues/35038: We need to do a rewrite here, and create a test that can hit this.
                 if (!IsNullableAnalysisEnabled() && Compilation.IsNullableAnalysisEnabledAlways)
@@ -1960,7 +1965,7 @@ done:
             {
                 Debug.Assert(!isNullableAnalysisEnabled ||
                              _guardedBoundNodeMap.ContainsKey(bindableRoot) ||
-                             _guardedBoundNodeMap.ContainsKey(bind(bindableRoot, getDiagnosticBag(), out _).Syntax));
+                             _guardedBoundNodeMap.ContainsKey(bind(bindableRoot, out _).Syntax));
                 return;
             }
 
@@ -1969,9 +1974,8 @@ done:
             NullableWalker.SnapshotManager snapshotManager;
             var remappedSymbols = _parentRemappedSymbolsOpt;
             Binder binder;
-            DiagnosticBag diagnosticBag = getDiagnosticBag();
 
-            BoundNode boundRoot = bind(bindableRoot, diagnosticBag, out binder);
+            BoundNode boundRoot = bind(bindableRoot, out binder);
 
             if (IsSpeculativeSemanticModel)
             {
@@ -1980,7 +1984,7 @@ done:
                 // and so the SnapshotManager can be null in these cases.
                 if (_parentSnapshotManagerOpt is null || !isNullableAnalysisEnabled)
                 {
-                    rewriteAndCache(diagnosticBag);
+                    rewriteAndCache();
                     return;
                 }
 
@@ -1989,10 +1993,10 @@ done:
             }
             else
             {
-                rewriteAndCache(diagnosticBag);
+                rewriteAndCache();
             }
 
-            BoundNode bind(CSharpSyntaxNode root, DiagnosticBag diagnosticBag, out Binder binder)
+            BoundNode bind(CSharpSyntaxNode root, out Binder binder)
             {
                 if (root is CompilationUnitSyntax)
                 {
@@ -2012,31 +2016,25 @@ done:
                 {
                     binder = GetEnclosingBinder(GetAdjustedNodePosition(root));
                 }
-                return Bind(binder, root, diagnosticBag);
+                return Bind(binder, root, BindingDiagnosticBag.Discarded);
             }
 
-            void rewriteAndCache(DiagnosticBag diagnosticBag)
+            void rewriteAndCache()
             {
+                var diagnostics = DiagnosticBag.GetInstance();
+#if DEBUG
                 if (!isNullableAnalysisEnabled)
                 {
                     Debug.Assert(Compilation.IsNullableAnalysisEnabledAlways);
-                    AnalyzeBoundNodeNullability(boundRoot, binder, diagnosticBag, createSnapshots: true);
+                    AnalyzeBoundNodeNullability(boundRoot, binder, diagnostics, createSnapshots: true);
+                    diagnostics.Free();
                     return;
                 }
+#endif
 
-                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnosticBag, createSnapshots: true, out snapshotManager, ref remappedSymbols);
+                boundRoot = RewriteNullableBoundNodesWithSnapshots(boundRoot, binder, diagnostics, createSnapshots: true, out snapshotManager, ref remappedSymbols);
+                diagnostics.Free();
                 GuardedAddBoundTreeForStandaloneSyntax(bindableRoot, boundRoot, snapshotManager, remappedSymbols);
-            }
-
-            DiagnosticBag getDiagnosticBag()
-            {
-                // If nullable analysis is not enabled, we want to use a temp diagnosticbag
-                // that can't produce any observable side effects
-                if (!isNullableAnalysisEnabled)
-                {
-                    return new DiagnosticBag();
-                }
-                return _ignoredDiagnostics;
             }
         }
 
@@ -2112,7 +2110,7 @@ done:
 
             using (_nodeMapLock.DisposableWrite())
             {
-                BoundNode boundStatement = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
+                BoundNode boundStatement = this.Bind(incrementalBinder, nodeToBind, BindingDiagnosticBag.Discarded);
                 results = GuardedAddBoundTreeAndGetBoundNodeFromMap(node, boundStatement);
             }
 
@@ -2141,7 +2139,7 @@ done:
                 // https://github.com/dotnet/roslyn/issues/35038: We have to run analysis on this node in some manner
                 using (_nodeMapLock.DisposableWrite())
                 {
-                    var boundNode = this.Bind(incrementalBinder, node, _ignoredDiagnostics);
+                    var boundNode = this.Bind(incrementalBinder, node, BindingDiagnosticBag.Discarded);
                     GuardedAddBoundTreeForStandaloneSyntax(node, boundNode);
                     results = GuardedGetBoundNodesFromMap(node);
                 }
@@ -2401,7 +2399,7 @@ foundParent:;
                 return null;
             }
 
-            public override BoundStatement BindStatement(StatementSyntax node, DiagnosticBag diagnostics)
+            public override BoundStatement BindStatement(StatementSyntax node, BindingDiagnosticBag diagnostics)
             {
                 // Check the bound node cache to see if the statement was already bound.
                 if (node.SyntaxTree == _semanticModel.SyntaxTree)
@@ -2433,7 +2431,7 @@ foundParent:;
                 return statement;
             }
 
-            internal override BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
+            internal override BoundBlock BindEmbeddedBlock(BlockSyntax node, BindingDiagnosticBag diagnostics)
             {
                 BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node);
 
@@ -2464,7 +2462,7 @@ foundParent:;
                 return null;
             }
 
-            public override BoundNode BindMethodBody(CSharpSyntaxNode node, DiagnosticBag diagnostics)
+            public override BoundNode BindMethodBody(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics, bool includeInitializersInBody)
             {
                 BoundNode boundNode = TryGetBoundNodeFromMap(node);
 
@@ -2473,22 +2471,22 @@ foundParent:;
                     return boundNode;
                 }
 
-                boundNode = base.BindMethodBody(node, diagnostics);
+                boundNode = base.BindMethodBody(node, diagnostics, includeInitializersInBody);
 
                 return boundNode;
             }
 
-            internal override BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax node, DiagnosticBag diagnostics)
+            internal override BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax node, BindingDiagnosticBag diagnostics)
             {
                 return (BoundExpressionStatement)TryGetBoundNodeFromMap(node) ?? base.BindConstructorInitializer(node, diagnostics);
             }
 
-            internal override BoundExpressionStatement BindConstructorInitializer(PrimaryConstructorBaseTypeSyntax node, DiagnosticBag diagnostics)
+            internal override BoundExpressionStatement BindConstructorInitializer(PrimaryConstructorBaseTypeSyntax node, BindingDiagnosticBag diagnostics)
             {
                 return (BoundExpressionStatement)TryGetBoundNodeFromMap(node) ?? base.BindConstructorInitializer(node, diagnostics);
             }
 
-            internal override BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax node, DiagnosticBag diagnostics)
+            internal override BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax node, BindingDiagnosticBag diagnostics)
             {
                 BoundBlock block = (BoundBlock)TryGetBoundNodeFromMap(node);
 

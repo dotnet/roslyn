@@ -8,14 +8,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentFormattingName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
+    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentFormattingName)]
     internal class FormatDocumentHandler : AbstractFormatDocumentHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]>
     {
         [ImportingConstructor]
@@ -24,9 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
+        public override string Method => LSP.Methods.TextDocumentFormattingName;
+
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentFormattingParams request) => request.TextDocument;
 
         public override Task<LSP.TextEdit[]> HandleRequestAsync(LSP.DocumentFormattingParams request, RequestContext context, CancellationToken cancellationToken)
-            => GetTextEditsAsync(request.TextDocument, request.Options, context, cancellationToken);
+            => GetTextEditsAsync(request.Options, context, cancellationToken);
     }
 }

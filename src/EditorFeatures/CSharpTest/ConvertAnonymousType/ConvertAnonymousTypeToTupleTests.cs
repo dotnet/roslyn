@@ -222,14 +222,14 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
-        public async Task TestFixAllAcrossMethods()
+        public async Task TestFixNotAcrossMethods()
         {
             var text = @"
 class Test
 {
     void Method()
     {
-        var t1 = {|FixAllInDocument:|}new { a = 1, b = 2 };
+        var t1 = [||]new { a = 1, b = 2 };
         var t2 = new { a = 3, b = 4 };
     }
 
@@ -251,8 +251,8 @@ class Test
 
     void Method2()
     {
-        var t1 = (a: 1, b: 2);
-        var t2 = (a: 3, b: 4);
+        var t1 = new { a = 1, b = 2 };
+        var t2 = new { a = 3, b = 4 };
     }
 }
 ";

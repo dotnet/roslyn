@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -37,45 +36,36 @@ namespace Microsoft.CodeAnalysis.Classification
             // name), we'll do a later merging step to get the final correct list of 
             // classifications.  For tagging, normally the editor handles this.  But as
             // we're producing the list of Inlines ourselves, we have to handles this here.
-            var syntaxSpans = ListPool<ClassifiedSpan>.Allocate();
-            var semanticSpans = ListPool<ClassifiedSpan>.Allocate();
-            try
-            {
-                await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
-                await classificationService.AddSemanticClassificationsAsync(document, span, semanticSpans, cancellationToken).ConfigureAwait(false);
+            using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var syntaxSpans);
+            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticSpans);
 
-                // MergeClassifiedSpans will ultimately filter multiple classifications for the same
-                // span down to one. We know that additive classifications are there just to 
-                // provide additional information about the true classification. We will remove
-                // additive ClassifiedSpans until we have support for additive classifications
-                // in classified spans. https://github.com/dotnet/roslyn/issues/32770
-                RemoveAdditiveSpans(syntaxSpans);
-                RemoveAdditiveSpans(semanticSpans);
+            await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
+            await classificationService.AddSemanticClassificationsAsync(document, span, semanticSpans, cancellationToken).ConfigureAwait(false);
 
-                var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span);
-                return classifiedSpans;
-            }
-            finally
-            {
-                ListPool<ClassifiedSpan>.Free(syntaxSpans);
-                ListPool<ClassifiedSpan>.Free(semanticSpans);
-            }
+            // MergeClassifiedSpans will ultimately filter multiple classifications for the same
+            // span down to one. We know that additive classifications are there just to 
+            // provide additional information about the true classification. We will remove
+            // additive ClassifiedSpans until we have support for additive classifications
+            // in classified spans. https://github.com/dotnet/roslyn/issues/32770
+            RemoveAdditiveSpans(syntaxSpans);
+            RemoveAdditiveSpans(semanticSpans);
+
+            var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span);
+            return classifiedSpans;
         }
 
-        private static void RemoveAdditiveSpans(List<ClassifiedSpan> spans)
+        private static void RemoveAdditiveSpans(ArrayBuilder<ClassifiedSpan> spans)
         {
             for (var i = spans.Count - 1; i >= 0; i--)
             {
                 var span = spans[i];
                 if (ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType))
-                {
                     spans.RemoveAt(i);
-                }
             }
         }
 
         private static ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
-            List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans, TextSpan widenedSpan)
+            ArrayBuilder<ClassifiedSpan> syntaxSpans, ArrayBuilder<ClassifiedSpan> semanticSpans, TextSpan widenedSpan)
         {
             // The spans produced by the language services may not be ordered
             // (indeed, this happens with semantic classification as different
@@ -113,10 +103,10 @@ namespace Microsoft.CodeAnalysis.Classification
             return MergeParts(filledInSyntaxSpans, filledInSemanticSpans);
         }
 
-        private static void Order(List<ClassifiedSpan> syntaxSpans)
+        private static void Order(ArrayBuilder<ClassifiedSpan> syntaxSpans)
             => syntaxSpans.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 
-        private static void AdjustSpans(List<ClassifiedSpan> spans, TextSpan widenedSpan)
+        private static void AdjustSpans(ArrayBuilder<ClassifiedSpan> spans, TextSpan widenedSpan)
         {
             for (var i = 0; i < spans.Count; i++)
             {
@@ -140,14 +130,13 @@ namespace Microsoft.CodeAnalysis.Classification
                     }
                 }
 
-                var newSpan = new ClassifiedSpan(span.ClassificationType,
-                    intersection ?? new TextSpan());
+                var newSpan = new ClassifiedSpan(span.ClassificationType, intersection.GetValueOrDefault());
                 spans[i] = newSpan;
             }
         }
 
         public static void FillInClassifiedSpanGaps(
-            int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans, ArrayBuilder<ClassifiedSpan> result)
+            int startPosition, ArrayBuilder<ClassifiedSpan> classifiedSpans, ArrayBuilder<ClassifiedSpan> result)
         {
             foreach (var span in classifiedSpans)
             {

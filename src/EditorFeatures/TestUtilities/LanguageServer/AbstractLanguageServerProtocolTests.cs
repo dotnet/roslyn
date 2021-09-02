@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -103,6 +102,14 @@ namespace Roslyn.Test.Utilities
 
                 return Task.FromResult(mappedResult);
             }
+
+            public Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
+                Document oldDocument,
+                Document newDocument,
+                CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         protected class OrderLocations : Comparer<LSP.Location>
@@ -180,7 +187,7 @@ namespace Roslyn.Test.Utilities
                 Kind = kind,
                 Name = name,
                 Location = location,
-                Icon = new ImageElement(glyph.GetImageId()),
+                Icon = ProtocolConversions.GetImageIdFromGlyph(glyph)
             };
 
             if (containerName != null)
@@ -198,7 +205,7 @@ namespace Roslyn.Test.Utilities
             if (projectContext != null)
             {
                 documentIdentifier.ProjectContext =
-                    new LSP.ProjectContext { Id = ProtocolConversions.ProjectIdToProjectContextId(projectContext) };
+                    new LSP.VSProjectContext { Id = ProtocolConversions.ProjectIdToProjectContextId(projectContext) };
             }
 
             return documentIdentifier;
@@ -218,42 +225,53 @@ namespace Roslyn.Test.Utilities
                 Value = value
             };
 
-        protected static LSP.CompletionParams CreateCompletionParams(LSP.Location caret, string triggerCharacter, LSP.CompletionTriggerKind triggerKind)
+        protected static LSP.CompletionParams CreateCompletionParams(
+            LSP.Location caret,
+            LSP.VSInternalCompletionInvokeKind invokeKind,
+            string triggerCharacter,
+            LSP.CompletionTriggerKind triggerKind)
             => new LSP.CompletionParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
-                Context = new LSP.CompletionContext()
+                Context = new LSP.VSInternalCompletionContext()
                 {
+                    InvokeKind = invokeKind,
                     TriggerCharacter = triggerCharacter,
-                    TriggerKind = triggerKind
+                    TriggerKind = triggerKind,
                 }
             };
 
-        protected static LSP.VSCompletionItem CreateCompletionItem(
-            string insertText,
+        protected static async Task<LSP.VSInternalCompletionItem> CreateCompletionItemAsync(
+            string label,
             LSP.CompletionItemKind kind,
             string[] tags,
-            LSP.CompletionParams requestParameters,
+            LSP.CompletionParams request,
+            Document document,
             bool preselect = false,
             ImmutableArray<char>? commitCharacters = null,
+            LSP.TextEdit? textEdit = null,
+            string? insertText = null,
             string? sortText = null,
-            int resultId = 0)
+            string? filterText = null,
+            long resultId = 0)
         {
-            var item = new LSP.VSCompletionItem()
+            var position = await document.GetPositionFromLinePositionAsync(
+                ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
+            var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(
+                request.Context, document, position, CancellationToken.None).ConfigureAwait(false);
+
+            var item = new LSP.VSInternalCompletionItem()
             {
-                FilterText = insertText,
+                TextEdit = textEdit,
                 InsertText = insertText,
-                Label = insertText,
-                SortText = sortText ?? insertText,
+                FilterText = filterText ?? label,
+                Label = label,
+                SortText = sortText ?? label,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
                 Data = JObject.FromObject(new CompletionResolveData()
                 {
-                    DisplayText = insertText,
-                    TextDocument = requestParameters.TextDocument,
-                    Position = requestParameters.Position,
-                    CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(requestParameters.Context),
                     ResultId = resultId,
                 }),
                 Preselect = preselect
@@ -268,29 +286,36 @@ namespace Roslyn.Test.Utilities
             return item;
         }
 
-        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
-            => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));
+        protected static LSP.TextEdit GenerateTextEdit(string newText, int startLine, int startChar, int endLine, int endChar)
+            => new LSP.TextEdit
+            {
+                NewText = newText,
+                Range = new LSP.Range
+                {
+                    Start = new LSP.Position { Line = startLine, Character = startChar },
+                    End = new LSP.Position { Line = endLine, Character = endChar }
+                }
+            };
+
+        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, IEnumerable<string>? customTags = null)
+            => new CodeActionResolveData(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri));
 
         /// <summary>
-        /// Creates a solution with a document.
+        /// Creates an LSP server backed by a workspace instance with a solution containing the markup.
         /// </summary>
-        /// <returns>the solution and the annotated ranges in the document.</returns>
-        protected TestWorkspace CreateTestWorkspace(string markup, out Dictionary<string, IList<LSP.Location>> locations)
-            => CreateTestWorkspace(new string[] { markup }, out locations, LanguageNames.CSharp);
+        protected TestLspServer CreateTestLspServer(string markup, out Dictionary<string, IList<LSP.Location>> locations)
+            => CreateTestLspServer(new string[] { markup }, out locations, LanguageNames.CSharp);
 
-        protected TestWorkspace CreateVisualBasicTestWorkspace(string markup, out Dictionary<string, IList<LSP.Location>> locations)
-            => CreateTestWorkspace(new string[] { markup }, out locations, LanguageNames.VisualBasic);
+        protected TestLspServer CreateVisualBasicTestLspServer(string markup, out Dictionary<string, IList<LSP.Location>> locations)
+            => CreateTestLspServer(new string[] { markup }, out locations, LanguageNames.VisualBasic);
 
         /// <summary>
-        /// Create a solution with multiple documents.
+        /// Creates an LSP server backed by a workspace instance with a solution containing the specified documents.
         /// </summary>
-        /// <returns>
-        /// the solution with the documents plus a list for each document of all annotated ranges in the document.
-        /// </returns>
-        protected TestWorkspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations)
-            => CreateTestWorkspace(markups, out locations, LanguageNames.CSharp);
+        protected TestLspServer CreateTestLspServer(string[] markups, out Dictionary<string, IList<LSP.Location>> locations)
+            => CreateTestLspServer(markups, out locations, LanguageNames.CSharp);
 
-        private TestWorkspace CreateTestWorkspace(string[] markups, out Dictionary<string, IList<LSP.Location>> locations, string languageName)
+        private TestLspServer CreateTestLspServer(string[] markups, out Dictionary<string, IList<LSP.Location>> locations, string languageName)
         {
             var workspace = languageName switch
             {
@@ -311,15 +336,15 @@ namespace Roslyn.Test.Utilities
 
             locations = GetAnnotatedLocations(workspace, solution);
 
-            return workspace;
+            return new TestLspServer(workspace);
         }
 
-        protected TestWorkspace CreateXmlTestWorkspace(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
+        protected TestLspServer CreateXmlTestLspServer(string xmlContent, out Dictionary<string, IList<LSP.Location>> locations)
         {
             var workspace = TestWorkspace.Create(xmlContent, composition: Composition);
             RegisterWorkspaceForLsp(workspace);
             locations = GetAnnotatedLocations(workspace, workspace.CurrentSolution);
-            return workspace;
+            return new TestLspServer(workspace);
         }
 
         protected static void AddMappedDocument(Workspace workspace, string markup)
@@ -371,21 +396,130 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        // Private protected because LanguageServerProtocol is internal
-        private protected static LanguageServerProtocol GetLanguageServer(Solution solution)
+        private static RequestDispatcher CreateRequestDispatcher(TestWorkspace workspace)
         {
-            var workspace = (TestWorkspace)solution.Workspace;
-            return workspace.ExportProvider.GetExportedValue<LanguageServerProtocol>();
+            var factory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
+            return factory.CreateRequestDispatcher(ProtocolConstants.RoslynLspLanguages);
         }
 
-        private protected static RequestExecutionQueue CreateRequestQueue(Solution solution)
+        private static RequestExecutionQueue CreateRequestQueue(TestWorkspace workspace)
         {
-            var workspace = (TestWorkspace)solution.Workspace;
             var registrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
-            return new RequestExecutionQueue(registrationService, "Tests");
+            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, ProtocolConstants.RoslynLspLanguages, serverName: "Tests", "TestClient");
         }
 
         private static string GetDocumentFilePathFromName(string documentName)
             => "C:\\" + documentName;
+
+        private static LSP.DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(
+            Uri documentUri,
+            ImmutableArray<(int startLine, int startColumn, int endLine, int endColumn, string text)> changes)
+        {
+            var changeEvents = changes.Select(change => new LSP.TextDocumentContentChangeEvent
+            {
+                Text = change.text,
+                Range = new LSP.Range
+                {
+                    Start = new LSP.Position(change.startLine, change.startColumn),
+                    End = new LSP.Position(change.endLine, change.endColumn)
+                }
+            }).ToArray();
+
+            return new LSP.DidChangeTextDocumentParams()
+            {
+                TextDocument = new LSP.VersionedTextDocumentIdentifier
+                {
+                    Uri = documentUri
+                },
+                ContentChanges = changeEvents
+            };
+        }
+
+        private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(Uri uri, string source)
+            => new LSP.DidOpenTextDocumentParams
+            {
+                TextDocument = new LSP.TextDocumentItem
+                {
+                    Text = source,
+                    Uri = uri
+                }
+            };
+
+        private static LSP.DidCloseTextDocumentParams CreateDidCloseTextDocumentParams(Uri uri)
+           => new LSP.DidCloseTextDocumentParams()
+           {
+               TextDocument = new LSP.TextDocumentIdentifier
+               {
+                   Uri = uri
+               }
+           };
+
+        public sealed class TestLspServer : IDisposable
+        {
+            public readonly TestWorkspace TestWorkspace;
+            private readonly RequestDispatcher _requestDispatcher;
+            private readonly RequestExecutionQueue _executionQueue;
+
+            internal TestLspServer(TestWorkspace testWorkspace)
+            {
+                TestWorkspace = testWorkspace;
+                _requestDispatcher = CreateRequestDispatcher(testWorkspace);
+                _executionQueue = CreateRequestQueue(testWorkspace);
+            }
+
+            public Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, LSP.ClientCapabilities clientCapabilities,
+                string? clientName, CancellationToken cancellationToken) where RequestType : class
+            {
+                return _requestDispatcher.ExecuteRequestAsync<RequestType, ResponseType>(
+                    _executionQueue, methodName, request, clientCapabilities, clientName, cancellationToken);
+            }
+
+            public async Task OpenDocumentAsync(Uri documentUri)
+            {
+                // LSP open files don't care about the project context, just the file contents with the URI.
+                // So pick any of the linked documents to get the text from.
+                var text = await TestWorkspace.CurrentSolution.GetDocuments(documentUri).First().GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+                var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, text.ToString());
+                await ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(LSP.Methods.TextDocumentDidOpenName,
+                           didOpenParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            }
+
+            public Task InsertTextAsync(Uri documentUri, params (int line, int column, string text)[] changes)
+            {
+                var didChangeParams = CreateDidChangeTextDocumentParams(
+                    documentUri,
+                    changes.Select(change => (startLine: change.line, startColumn: change.column, endLine: change.line, endColumn: change.column, change.text)).ToImmutableArray());
+                return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName,
+                           didChangeParams, new LSP.ClientCapabilities(), clientName: null, CancellationToken.None);
+            }
+
+            public Task DeleteTextAsync(Uri documentUri, params (int startLine, int startColumn, int endLine, int endColumn)[] changes)
+            {
+                var didChangeParams = CreateDidChangeTextDocumentParams(
+                    documentUri,
+                    changes.Select(change => (change.startLine, change.startColumn, change.endLine, change.endColumn, text: string.Empty)).ToImmutableArray());
+                return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName,
+                           didChangeParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            }
+
+            public Task CloseDocumentAsync(Uri documentUri)
+            {
+                var didCloseParams = CreateDidCloseTextDocumentParams(documentUri);
+                return ExecuteRequestAsync<LSP.DidCloseTextDocumentParams, object>(LSP.Methods.TextDocumentDidCloseName,
+                           didCloseParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            }
+
+            public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
+
+            internal RequestExecutionQueue.TestAccessor GetQueueAccessor() => _executionQueue.GetTestAccessor();
+
+            internal RequestDispatcher.TestAccessor GetDispatcherAccessor() => _requestDispatcher.GetTestAccessor();
+
+            public void Dispose()
+            {
+                TestWorkspace.Dispose();
+                _executionQueue.Shutdown();
+            }
+        }
     }
 }

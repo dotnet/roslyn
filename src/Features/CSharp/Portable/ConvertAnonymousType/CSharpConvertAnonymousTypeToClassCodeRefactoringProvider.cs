@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -15,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType
 {
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass), Shared]
     internal class CSharpConvertAnonymousTypeToClassCodeRefactoringProvider :
         AbstractConvertAnonymousTypeToClassCodeRefactoringProvider<
             ExpressionSyntax,
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType
             IdentifierNameSyntax,
             ObjectCreationExpressionSyntax,
             AnonymousObjectCreationExpressionSyntax,
-            NamespaceDeclarationSyntax>
+            BaseNamespaceDeclarationSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -59,19 +57,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType
             return list
                 .Replace(
                     list[^2],
-                    list[^2].AsNode()
+                    list[^2].AsNode()!
                         .WithAppendedTrailingTrivia(list[^1].GetLeadingTrivia())
                         .WithAppendedTrailingTrivia(list[^1].GetTrailingTrivia()))
                 .RemoveAt(list.Count - 1);
         }
 
         private SyntaxNodeOrTokenList CreateArguments(SyntaxNodeOrTokenList list)
-            => new SyntaxNodeOrTokenList(list.Select(CreateArgumentOrComma));
+            => new(list.Select(CreateArgumentOrComma));
 
         private SyntaxNodeOrToken CreateArgumentOrComma(SyntaxNodeOrToken declOrComma)
             => declOrComma.IsToken
                 ? declOrComma
-                : CreateArgument((AnonymousObjectMemberDeclaratorSyntax)declOrComma);
+                : CreateArgument((AnonymousObjectMemberDeclaratorSyntax)declOrComma.AsNode()!);
 
         private static ArgumentSyntax CreateArgument(AnonymousObjectMemberDeclaratorSyntax decl)
             => SyntaxFactory.Argument(decl.Expression);

@@ -4,33 +4,31 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportLspMethod(MSLSPMethods.WorkspacePullDiagnosticName, mutatesSolutionState: false), Shared]
-    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport>
+    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport>
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public override string Method => VSInternalMethods.WorkspacePullDiagnosticName;
+
         public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService)
             : base(diagnosticService)
         {
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDocumentDiagnosticsParams request)
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalWorkspaceDiagnosticsParams request)
             => null;
 
-        protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new WorkspaceDiagnosticReport
+        protected override VSInternalWorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
+            => new VSInternalWorkspaceDiagnosticReport
             {
                 TextDocument = identifier,
                 Diagnostics = diagnostics,
@@ -40,10 +38,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Identifier = WorkspaceDiagnosticIdentifier,
             };
 
-        protected override IProgress<WorkspaceDiagnosticReport[]>? GetProgress(WorkspaceDocumentDiagnosticsParams diagnosticsParams)
+        protected override IProgress<VSInternalWorkspaceDiagnosticReport[]>? GetProgress(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PartialResultToken;
 
-        protected override DiagnosticParams[]? GetPreviousResults(WorkspaceDocumentDiagnosticsParams diagnosticsParams)
+        protected override VSInternalDiagnosticParams[]? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PreviousResults;
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
@@ -55,6 +53,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
             // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
             // document-diagnostics instead.
@@ -75,30 +75,40 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
 
             // Now, prioritize the projects related to the active/visible files.
-            AddDocumentsFromProject(activeDocument?.Project, isOpen: true);
+            AddDocumentsFromProject(activeDocument?.Project, context.SupportedLanguages, isOpen: true);
             foreach (var doc in visibleDocuments)
-                AddDocumentsFromProject(doc.Project, isOpen: true);
+                AddDocumentsFromProject(doc.Project, context.SupportedLanguages, isOpen: true);
 
             // finally, add the remainder of all documents.
             foreach (var project in solution.Projects)
-                AddDocumentsFromProject(project, isOpen: false);
+                AddDocumentsFromProject(project, context.SupportedLanguages, isOpen: false);
 
             // Ensure that we only process documents once.
             result.RemoveDuplicates();
             return result.ToImmutable();
 
-            void AddDocumentsFromProject(Project? project, bool isOpen)
+            void AddDocumentsFromProject(Project? project, ImmutableArray<string> supportedLanguages, bool isOpen)
             {
                 if (project == null)
                     return;
+
+                if (!supportedLanguages.Contains(project.Language))
+                {
+                    // This project is for a language not supported by the LSP server making the request.
+                    // Do not report diagnostics for these projects.
+                    return;
+                }
 
                 // if the project doesn't necessarily have an open file in it, then only include it if the user has full
                 // solution analysis on.
                 if (!isOpen)
                 {
-                    var analysisScope = solution.Workspace.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
+                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(solution.Workspace.Options, project.Language);
                     if (analysisScope != BackgroundAnalysisScope.FullSolution)
+                    {
+                        context.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");
                         return;
+                    }
                 }
 
                 // Otherwise, if the user has an open file from this project, or FSA is on, then include all the
@@ -107,8 +117,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
                     // Each handler treats those as separate worlds that they are responsible for.
-                    if (!context.IsTracking(document.GetURI()))
-                        result.Add(document);
+                    if (context.IsTracking(document.GetURI()))
+                    {
+                        context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
+                        continue;
+                    }
+
+                    result.Add(document);
                 }
             }
         }

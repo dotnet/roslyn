@@ -266,13 +266,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod); // interface-based
 
+                // This is a temporary workaround for https://github.com/dotnet/roslyn/issues/39948
+                if (disposeMethod is null)
+                {
+                    return rewrittenBody;
+                }
+
                 idisposableTypeSymbol = disposeMethod.ContainingType;
                 Debug.Assert(_factory.CurrentFunction is { });
                 var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);
 
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteDiagnostics).IsImplicit;
-                _diagnostics.Add(forEachSyntax, useSiteDiagnostics);
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
+                isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteInfo).IsImplicit;
+                _diagnostics.Add(forEachSyntax, useSiteInfo);
             }
 
             Binder.ReportDiagnosticsIfObsolete(_diagnostics, disposeMethod, forEachSyntax,
@@ -347,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 type: null),
                             constantValueOpt: null,
                             methodOpt: null,
+                            constrainedToTypeOpt: null,
                             resultKind: LookupResultKind.Viable,
                             type: _compilation.GetSpecialType(SpecialType.System_Boolean)),
                         rewrittenConsequence: disposeCallStatement,
@@ -400,6 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         right: MakeLiteral(forEachSyntax, constantValue: ConstantValue.Null, type: null),
                         constantValueOpt: null,
                         methodOpt: null,
+                        constrainedToTypeOpt: null,
                         resultKind: LookupResultKind.Viable,
                         type: _compilation.GetSpecialType(SpecialType.System_Boolean)),
                     rewrittenConsequence: disposeCallStatement,
@@ -598,6 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 right: arrayLength,
                 constantValueOpt: null,
                 methodOpt: null,
+                constrainedToTypeOpt: null,
                 resultKind: LookupResultKind.Viable,
                 type: boolType);
 
@@ -805,6 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 right: arrayLength,
                 constantValueOpt: null,
                 methodOpt: null,
+                constrainedToTypeOpt: null,
                 resultKind: LookupResultKind.Viable,
                 type: boolType);
 
@@ -985,6 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     right: boundUpperVar[dimension],
                     constantValueOpt: null,
                     methodOpt: null,
+                    constrainedToTypeOpt: null,
                     resultKind: LookupResultKind.Viable,
                     type: boolType);
 
@@ -1086,6 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 type: intType),
                             constantValueOpt: null,
                             methodOpt: null,
+                            constrainedToTypeOpt: null,
                             resultKind: LookupResultKind.Viable,
                             type: intType),
                         type: intType)));

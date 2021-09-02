@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Utilities.Internal;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
@@ -141,13 +140,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 return false;
             }
 
-            if (IsCallsiteRegularValue && CallSiteValue.IsNullOrWhiteSpace())
+            if (IsCallsiteRegularValue && string.IsNullOrWhiteSpace(CallSiteValue))
             {
                 message = ServicesVSResources.Enter_a_call_site_value_or_choose_a_different_value_injection_kind;
                 return false;
             }
 
-            if (IsOptional && DefaultValue.IsNullOrWhiteSpace())
+            if (IsOptional && string.IsNullOrWhiteSpace(DefaultValue))
             {
                 message = ServicesVSResources.Optional_parameters_must_provide_a_default_value;
                 return false;
@@ -177,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             VerbatimTypeName = typeName;
 
-            if (typeName.IsNullOrWhiteSpace())
+            if (string.IsNullOrWhiteSpace(typeName))
             {
                 TypeIsEmptyImage = Visibility.Visible;
                 TypeDoesNotParseImage = Visibility.Collapsed;

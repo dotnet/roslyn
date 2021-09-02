@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.DelegateDeclaration,
             SyntaxKind.SimpleLambdaExpression,
             SyntaxKind.ParenthesizedLambdaExpression,
-            SyntaxKind.LocalFunctionStatement);
+            SyntaxKind.LocalFunctionStatement,
+            SyntaxKind.RecordStructDeclaration,
+            SyntaxKind.RecordDeclaration);
 
         private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
             _declarationKinds.Concat(ImmutableArray.Create(
@@ -85,7 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.NameMemberCref,
             SyntaxKind.AnonymousMethodExpression,
             SyntaxKind.ParenthesizedLambdaExpression,
-            SyntaxKind.SimpleLambdaExpression);
+            SyntaxKind.SimpleLambdaExpression,
+            SyntaxKind.RecordStructDeclaration,
+            SyntaxKind.RecordDeclaration);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -270,7 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             if (updatedNode.IsKind(SyntaxKind.MethodDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.ConstructorDeclaration) ||
                 updatedNode.IsKind(SyntaxKind.IndexerDeclaration) ||
-                updatedNode.IsKind(SyntaxKind.DelegateDeclaration))
+                updatedNode.IsKind(SyntaxKind.DelegateDeclaration) ||
+                updatedNode.IsKind(SyntaxKind.RecordStructDeclaration) ||
+                updatedNode.IsKind(SyntaxKind.RecordDeclaration))
             {
                 var updatedLeadingTrivia = UpdateParamTagsInLeadingTrivia(document, updatedNode, declarationSymbol, signaturePermutation);
                 if (updatedLeadingTrivia != default && !updatedLeadingTrivia.IsEmpty)
@@ -284,6 +291,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             {
                 var updatedParameters = UpdateDeclaration(method.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
                 return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+            }
+
+            if (updatedNode is RecordDeclarationSyntax { ParameterList: not null } record)
+            {
+                var updatedParameters = UpdateDeclaration(record.ParameterList.Parameters, signaturePermutation, CreateNewParameterSyntax);
+                return record.WithParameterList(record.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.LocalFunctionStatement, out LocalFunctionStatementSyntax? localFunction))
@@ -745,13 +758,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return GetPermutedDocCommentTrivia(document, node, permutedParamNodes);
         }
 
-        private static ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
+        private ImmutableArray<SyntaxNode> VerifyAndPermuteParamNodes(IEnumerable<XmlElementSyntax> paramNodes, ISymbol declarationSymbol, SignatureChange updatedSignature)
         {
             // Only reorder if count and order match originally.
             var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
             var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
-            var declaredParameters = declarationSymbol.GetParameters();
+            var declaredParameters = GetParameters(declarationSymbol);
+
             if (paramNodes.Count() != declaredParameters.Length)
             {
                 return ImmutableArray<SyntaxNode>.Empty;
@@ -812,31 +826,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var nodes = root.DescendantNodes().ToImmutableArray();
-            var convertedMethodGroups = nodes
-                .WhereAsArray(
-                    n =>
-                    {
-                        if (!n.IsKind(SyntaxKind.IdentifierName) ||
-                            !semanticModel.GetMemberGroup(n, cancellationToken).Any())
-                        {
-                            return false;
-                        }
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var convertedMethodNodes);
 
-                        ISymbol? convertedType = semanticModel.GetTypeInfo(n, cancellationToken).ConvertedType;
+            foreach (var node in root.DescendantNodes())
+            {
+                if (!node.IsKind(SyntaxKind.IdentifierName) ||
+                    !semanticModel.GetMemberGroup(node, cancellationToken).Any())
+                {
+                    continue;
+                }
 
-                        if (convertedType != null)
-                        {
-                            convertedType = convertedType.OriginalDefinition;
-                        }
+                var convertedType = (ISymbol?)semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
+                convertedType = convertedType?.OriginalDefinition;
 
-                        if (convertedType != null)
-                        {
-                            convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken) ?? convertedType;
-                        }
+                if (convertedType != null)
+                {
+                    convertedType = await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).ConfigureAwait(false)
+                        ?? convertedType;
+                }
 
-                        return Equals(convertedType, symbol.ContainingType);
-                    })
+                if (Equals(convertedType, symbol.ContainingType))
+                    convertedMethodNodes.Add(node);
+            }
+
+            var convertedMethodGroups = convertedMethodNodes
                 .Select(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol)
                 .WhereNotNull()
                 .ToImmutableArray();
@@ -875,5 +888,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         protected override SyntaxToken CommaTokenWithElasticSpace()
             => Token(SyntaxKind.CommaToken).WithTrailingTrivia(ElasticSpace);
+
+        protected override bool TryGetRecordPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
+            => typeSymbol.TryGetRecordPrimaryConstructor(out primaryConstructor);
+
+        protected override ImmutableArray<IParameterSymbol> GetParameters(ISymbol declarationSymbol)
+        {
+            var declaredParameters = declarationSymbol.GetParameters();
+            if (declarationSymbol is INamedTypeSymbol namedTypeSymbol &&
+                namedTypeSymbol.TryGetRecordPrimaryConstructor(out var primaryConstructor))
+            {
+                declaredParameters = primaryConstructor.Parameters;
+            }
+
+            return declaredParameters;
+        }
     }
 }

@@ -271,7 +271,7 @@ namespace NA
             Assert.Equal(SymbolKind.NamedType, comp.GlobalNamespace.GetMembers()[0].Kind);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))]
         public void OnlyOneParse()
         {
             var underlyingTree = SyntaxFactory.ParseSyntaxTree(@"

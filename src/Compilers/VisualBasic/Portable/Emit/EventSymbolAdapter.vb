@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Overloads Function IEventDefinitionGetType(context As EmitContext) As Cci.ITypeReference Implements Cci.IEventDefinition.GetType
-            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(AdaptedEventSymbol.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+            Return (DirectCast(context.Module, PEModuleBuilder)).Translate(AdaptedEventSymbol.Type, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private ReadOnly Property IEventDefinitionContainingTypeDefinition As Cci.ITypeDefinition Implements Cci.IEventDefinition.ContainingTypeDefinition

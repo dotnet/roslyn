@@ -61,6 +61,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool SupportsLocalFunctionDeclaration(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
+        public bool SupportsRecord(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
+
+        public bool SupportsRecordStruct(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion.IsCSharp10OrAbove();
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -390,6 +396,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.LessThanLessThanEqualsToken:
                     return PredefinedOperator.LeftShift;
 
+                case SyntaxKind.LessThanToken:
+                    return PredefinedOperator.LessThan;
+
                 case SyntaxKind.LessThanEqualsToken:
                     return PredefinedOperator.LessThanOrEqual;
 
@@ -702,8 +711,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public bool IsElementAccessExpression(SyntaxNode node)
-            => node.Kind() == SyntaxKind.ElementAccessExpression;
+        public bool IsElementAccessExpression(SyntaxNode? node)
+            => node.IsKind(SyntaxKind.ElementAccessExpression);
 
         [return: NotNullIfNotNull("node")]
         public SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false)
@@ -718,8 +727,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             closeParen = parenthesizedExpression.CloseParenToken;
         }
 
-        public bool IsIndexerMemberCRef(SyntaxNode node)
-            => node.Kind() == SyntaxKind.IndexerMemberCref;
+        public bool IsIndexerMemberCRef(SyntaxNode? node)
+            => node.IsKind(SyntaxKind.IndexerMemberCref);
 
         public SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true)
         {
@@ -764,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node)
         {
-            return node is NamespaceDeclarationSyntax ||
+            return node is BaseNamespaceDeclarationSyntax ||
                    node is TypeDeclarationSyntax ||
                    node is EnumDeclarationSyntax;
         }
@@ -805,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             // containing namespace(s) in source (if any)
             if ((options & DisplayNameOptions.IncludeNamespaces) != 0)
             {
-                while (parent != null && parent.Kind() == SyntaxKind.NamespaceDeclaration)
+                while (parent is BaseNamespaceDeclarationSyntax)
                 {
                     names.Add(GetName(parent, options));
                     parent = parent.Parent;
@@ -848,7 +857,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.IncompleteMember:
                     return missingTokenPlaceholder;
                 case SyntaxKind.NamespaceDeclaration:
-                    return GetName(((NamespaceDeclarationSyntax)node).Name, options);
+                case SyntaxKind.FileScopedNamespaceDeclaration:
+                    return GetName(((BaseNamespaceDeclarationSyntax)node).Name, options);
                 case SyntaxKind.QualifiedName:
                     var qualified = (QualifiedNameSyntax)node;
                     return GetName(qualified.Left, options) + dotToken + GetName(qualified.Right, options);
@@ -871,6 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                         {
                             name = "~" + name;
                         }
+
                         if ((options & DisplayNameOptions.IncludeTypeParameters) != 0)
                         {
                             var pooled = PooledStringBuilder.GetInstance();
@@ -898,6 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     }
                 }
             }
+
             Debug.Assert(name != null, "Unexpected node type " + node.Kind());
             return name;
         }
@@ -913,6 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     builder.Append(", ");
                     builder.Append(typeParameterList.Parameters[i].Identifier.ValueText);
                 }
+
                 builder.Append('>');
             }
         }
@@ -935,16 +948,25 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node?.Kind() == SyntaxKind.ClassDeclaration;
 
         public bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node)
-            => node?.Kind() == SyntaxKind.NamespaceDeclaration;
+            => node is BaseNamespaceDeclarationSyntax;
+
+        public SyntaxNode? GetNameOfNamespaceDeclaration(SyntaxNode? node)
+            => (node as BaseNamespaceDeclarationSyntax)?.Name;
 
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
         public SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
-            => ((NamespaceDeclarationSyntax)namespaceDeclaration).Members;
+            => ((BaseNamespaceDeclarationSyntax)namespaceDeclaration).Members;
 
         public SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit)
             => ((CompilationUnitSyntax)compilationUnit).Members;
+
+        public SyntaxList<SyntaxNode> GetImportsOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
+            => ((BaseNamespaceDeclarationSyntax)namespaceDeclaration).Usings;
+
+        public SyntaxList<SyntaxNode> GetImportsOfCompilationUnit(SyntaxNode compilationUnit)
+            => ((CompilationUnitSyntax)compilationUnit).Usings;
 
         private void AppendMembers(SyntaxNode? node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
         {
@@ -1085,6 +1107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 node = parent;
             }
 
+            if (node is VarPatternSyntax)
+            {
+                return node;
+            }
+
             // Patterns are never bindable (though their constituent types/exprs may be).
             return node is PatternSyntax ? null : node;
         }
@@ -1111,7 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     case ConstructorDeclarationSyntax constructor:
                         constructors.Add(constructor);
                         continue;
-                    case NamespaceDeclarationSyntax @namespace:
+                    case BaseNamespaceDeclarationSyntax @namespace:
                         AppendConstructors(@namespace.Members, constructors, cancellationToken);
                         break;
                     case ClassDeclarationSyntax @class:
@@ -1255,6 +1282,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode? argumentList)
             => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default;
 
+        public SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode invocationExpression)
+            => ((InvocationExpressionSyntax)invocationExpression).ArgumentList;
+
+        public SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode objectCreationExpression)
+            => ((ObjectCreationExpressionSyntax)objectCreationExpression)!.ArgumentList;
+
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
 
@@ -1388,6 +1421,20 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Identifier;
+
+        public SyntaxToken GetIdentifierOfParameter(SyntaxNode node)
+            => ((ParameterSyntax)node).Identifier;
+
+        public SyntaxToken GetIdentifierOfTypeDeclaration(SyntaxNode node)
+            => node switch
+            {
+                BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
+                DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
+                _ => throw ExceptionUtilities.UnexpectedValue(node),
+            };
+
+        public SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node)
+            => ((IdentifierNameSyntax)node).Identifier;
 
         public bool IsLocalFunctionStatement([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
@@ -1718,6 +1765,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 return ImmutableArray<SyntaxNode>.Empty;
         }
 
+        public bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node is CastExpressionSyntax;
+
         public bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is CastExpressionSyntax;
 
@@ -1762,6 +1812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.DelegateDeclaration:
@@ -1885,6 +1936,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 AccessorDeclarationSyntax accessor => accessor.Modifiers,
                 VariableDeclarationSyntax varDecl => GetModifierTokens(varDecl.Parent),
                 VariableDeclaratorSyntax varDecl => GetModifierTokens(varDecl.Parent),
+                AnonymousFunctionExpressionSyntax anonymous => anonymous.Modifiers,
                 _ => default,
             };
 
@@ -1893,10 +1945,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
-                    return DeclarationKind.Class;
                 case SyntaxKind.RecordDeclaration:
-                    return DeclarationKind.Record;
+                    return DeclarationKind.Class;
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return DeclarationKind.Struct;
                 case SyntaxKind.InterfaceDeclaration:
                     return DeclarationKind.Interface;
@@ -1927,6 +1979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.CompilationUnit:
                     return DeclarationKind.CompilationUnit;
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     return DeclarationKind.Namespace;
                 case SyntaxKind.UsingDirective:
                     return DeclarationKind.NamespaceImport;
@@ -2007,6 +2060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                                 return DeclarationKind.Variable;
                             }
                         }
+
                         break;
                     }
 
@@ -2016,6 +2070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     {
                         return DeclarationKind.Attribute;
                     }
+
                     break;
 
                 case SyntaxKind.Attribute:
@@ -2023,11 +2078,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     {
                         return DeclarationKind.Attribute;
                     }
+
                     break;
 
                 case SyntaxKind.GetAccessorDeclaration:
                     return DeclarationKind.GetAccessor;
                 case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
                     return DeclarationKind.SetAccessor;
                 case SyntaxKind.AddAccessorDeclaration:
                     return DeclarationKind.AddAccessor;

@@ -25,6 +25,15 @@ namespace Microsoft.CodeAnalysis.ExtractClass
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
+            // For simplicity if we can't add a document the don't supply this refactoring. Not checking this results in known
+            // cases that won't work because the refactoring may try to add a document. There's non-trivial
+            // work to support a user interaction that makes sense for those cases. 
+            // See: https://github.com/dotnet/roslyn/issues/50868
+            if (!context.Document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.AddDocument))
+            {
+                return;
+            }
+
             var optionsService = _optionsService ?? context.Document.Project.Solution.Workspace.Services.GetService<IExtractClassOptionsService>();
             if (optionsService is null)
             {

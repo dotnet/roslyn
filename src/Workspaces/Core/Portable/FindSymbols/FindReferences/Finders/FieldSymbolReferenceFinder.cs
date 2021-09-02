@@ -17,38 +17,36 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IFieldSymbol symbol,
             Solution solution,
-            IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            if (symbol.AssociatedSymbol != null)
-            {
-                return Task.FromResult(ImmutableArray.Create(symbol.AssociatedSymbol));
-            }
-            else
-            {
-                return SpecializedTasks.EmptyImmutableArray<ISymbol>();
-            }
+            return symbol.AssociatedSymbol != null
+                ? Task.FromResult(ImmutableArray.Create(symbol.AssociatedSymbol))
+                : SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IFieldSymbol symbol,
             Project project,
             IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, symbol.Name);
+            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            return documentsWithName.Concat(documentsWithGlobalAttributes);
         }
 
-        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IFieldSymbol symbol,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken);
+            var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
+            return nameReferences.Concat(suppressionReferences);
         }
     }
 }

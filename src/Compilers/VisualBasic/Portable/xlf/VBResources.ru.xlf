@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">Свойство "{0}", доступное только для инициализации, можно назначать только c помощью инициализатора элемента объекта или для "Me", "MyClass" или "MyBase" в конструкторе экземпляра.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Ошибка в синтаксисе командной строки: "{0}" не является допустимым значением для параметра "{1}". Значение должно иметь форму "{2}".</target>
@@ -22,6 +27,16 @@
         <target state="translated">В одном каталоге ("{0}") не может находиться несколько файлов конфигурации анализатора.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">"{0}" не может переопределить свойство "{1}", предназначенное только для инициализации.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">Невозможно реализовать свойство "{0}", предназначенное только для инициализации.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Невозможно внедрить тип "{0}", так как он переопределяет абстракцию элемента базового интерфейса. Попробуйте задать для свойства "Внедрить типы взаимодействия" значение false (ложь).</target>
@@ -37,9 +52,29 @@
         <target state="translated">Целевая среда выполнения не поддерживает доступ "Protected", "Protected Friend" или "Private Protected" для элемента интерфейса.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">События общих переменных WithEvents не могут обрабатывать методы другого типа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">Атрибут "UnmanagedCallersOnly" не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="new">caller argument expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">комментарии после продолжения строки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">назначение свойств "ByRef" или их передача с помощью методов задания, предназначенных только для инициализации</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -471,6 +506,26 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">Загруженная сборка ссылается на платформу .NET Framework, которая не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="new">The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

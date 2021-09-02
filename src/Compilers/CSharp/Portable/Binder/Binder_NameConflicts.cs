@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        private bool ValidateLambdaParameterNameConflictsInScope(Location location, string name, DiagnosticBag diagnostics)
+        private bool ValidateLambdaParameterNameConflictsInScope(Location location, string name, BindingDiagnosticBag diagnostics)
         {
             return ValidateNameConflictsInScope(null, location, name, diagnostics);
         }
 
-        internal bool ValidateDeclarationNameConflictsInScope(Symbol symbol, DiagnosticBag diagnostics)
+        internal bool ValidateDeclarationNameConflictsInScope(Symbol symbol, BindingDiagnosticBag diagnostics)
         {
             Location location = GetLocation(symbol);
             return ValidateNameConflictsInScope(symbol, location, symbol.Name, diagnostics);
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeParameterSymbol> typeParameters,
             ImmutableArray<ParameterSymbol> parameters,
             bool allowShadowingNames,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             PooledHashSet<string>? tpNames = null;
             if (!typeParameters.IsDefaultOrEmpty)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Don't call this one directly - call one of the helpers.
         /// </remarks>
-        private bool ValidateNameConflictsInScope(Symbol? symbol, Location location, string name, DiagnosticBag diagnostics)
+        private bool ValidateNameConflictsInScope(Symbol? symbol, Location location, string name, BindingDiagnosticBag diagnostics)
         {
             if (string.IsNullOrEmpty(name))
             {

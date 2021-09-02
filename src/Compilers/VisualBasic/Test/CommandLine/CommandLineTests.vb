@@ -919,38 +919,38 @@ a.vb
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
             Dim compilation = CreateCompilationWithMscorlib40(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToReadUacManifest2, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
             args = {"/Win32icon:\bogus"}
             parsedArgs = DefaultParse(args, _baseDirectory)
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
             args = {"/Win32Resource:\bogus"}
             parsedArgs = DefaultParse(args, _baseDirectory)
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
 
             args = {"/win32manifest:goo.win32data:bar.win32data2"}
             parsedArgs = DefaultParse(args, _baseDirectory)
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToReadUacManifest2, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
             args = {"/Win32icon:goo.win32data:bar.win32data2"}
             parsedArgs = DefaultParse(args, _baseDirectory)
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
             args = {"/Win32Resource:goo.win32data:bar.win32data2"}
             parsedArgs = DefaultParse(args, _baseDirectory)
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_UnableToOpenResourceFile1, Integer), errors.First().Code)
             Assert.Equal(2, errors.First().Arguments.Count())
@@ -962,7 +962,7 @@ a.vb
             Dim parsedArgs = DefaultParse({"/win32icon:" + tmpFileName}, _baseDirectory)
             Dim compilation = CreateCompilationWithMscorlib40(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
-            CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
+            CommonCompiler.GetWin32ResourcesInternal(StandardFileSystem.Instance, MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
             Assert.Equal(DirectCast(ERRID.ERR_ErrorCreatingWin32ResourceFile, Integer), errors.First().Code)
             Assert.Equal(1, errors.First().Arguments.Count())
@@ -1500,6 +1500,10 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic16, parsedArgs.ParseOptions.LanguageVersion)
 
+            parsedArgs = DefaultParse({"/langVERSION:16.9", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic16_9, parsedArgs.ParseOptions.LanguageVersion)
+
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
 
@@ -2023,11 +2027,9 @@ End Module").Path
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
             ' - update the "UpgradeProject" codefixer (not yet supported in VB)
-            ' - update the IDE drop-down for selecting Language Version (not yet supported in VB)
-            ' - update project-system to recognize the new value and pass it through
             ' - update all the tests that call this canary
             ' - update the command-line documentation (CommandLine.md)
-            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "latest"},
+            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "latest"},
                 System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
             ' For minor versions, the format should be "x.y", such as "15.3"
         End Sub
@@ -2048,7 +2050,8 @@ End Module").Path
                 "15.0",
                 "15.3",
                 "15.5",
-                "16"
+                "16",
+                "16.9"
              }
 
             AssertEx.SetEqual(versions, errorCodes)
@@ -2068,8 +2071,7 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic15_3, LanguageVersion.VisualBasic15_3.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.VisualBasic15_5.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.VisualBasic16.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
-            Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic16_9, LanguageVersion.VisualBasic16_9.MapSpecifiedToEffectiveVersion())
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
@@ -2092,6 +2094,7 @@ End Module").Path
             InlineData("15.5", True, LanguageVersion.VisualBasic15_5),
             InlineData("16", True, LanguageVersion.VisualBasic16),
             InlineData("16.0", True, LanguageVersion.VisualBasic16),
+            InlineData("16.9", True, LanguageVersion.VisualBasic16_9),
             InlineData("DEFAULT", True, LanguageVersion.Default),
             InlineData("default", True, LanguageVersion.Default),
             InlineData("LATEST", True, LanguageVersion.Latest),
@@ -9423,13 +9426,14 @@ End Module
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe")
             Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/out:{exePath}", srcPath})
-            vbc.FileOpen = Function(filePath, mode, access, share)
-                               If filePath = exePath Then
-                                   Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
-                               End If
+            vbc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc:=
+                            Function(filePath, mode, access, share)
+                                If filePath = exePath Then
+                                    Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
+                                End If
 
-                               Return File.Open(filePath, mode, access, share)
-                           End Function
+                                Return File.Open(filePath, mode, access, share)
+                            End Function)
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Assert.Equal(1, vbc.Run(outWriter))
@@ -9442,13 +9446,14 @@ End Module
             Dim exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe")
             Dim pdbPath = Path.ChangeExtension(exePath, "pdb")
             Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug", $"/out:{exePath}", srcPath})
-            vbc.FileOpen = Function(filePath, mode, access, share)
-                               If filePath = pdbPath Then
-                                   Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
-                               End If
+            vbc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc:=
+                            Function(filePath, mode, access, share)
+                                If filePath = pdbPath Then
+                                    Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
+                                End If
 
-                               Return File.Open(filePath, mode, access, share)
-                           End Function
+                                Return File.Open(filePath, mode, access, share)
+                            End Function)
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Assert.Equal(1, vbc.Run(outWriter))
@@ -9460,13 +9465,14 @@ End Module
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim xmlPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.xml")
             Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/doc:{xmlPath}", srcPath})
-            vbc.FileOpen = Function(filePath, mode, access, share)
-                               If filePath = xmlPath Then
-                                   Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
-                               End If
+            vbc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc:=
+                            Function(filePath, mode, access, share)
+                                If filePath = xmlPath Then
+                                    Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
+                                End If
 
-                               Return File.Open(filePath, mode, access, share)
-                           End Function
+                                Return File.Open(filePath, mode, access, share)
+                            End Function)
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Assert.Equal(1, vbc.Run(outWriter))
@@ -9480,9 +9486,10 @@ End Module
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim sourceLinkPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.json")
             Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug:" & format, $"/sourcelink:{sourceLinkPath}", srcPath})
-            vbc.FileOpen = Function(filePath, mode, access, share)
-                               If filePath = sourceLinkPath Then
-                                   Return New TestStream(
+            vbc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc:=
+                            Function(filePath, mode, access, share)
+                                If filePath = sourceLinkPath Then
+                                    Return New TestStream(
                                    backingStream:=New MemoryStream(Encoding.UTF8.GetBytes("
 {
   ""documents"": {
@@ -9491,10 +9498,10 @@ End Module
 }
 ")),
                                    dispose:=Sub() Throw New IOException("Fake IOException"))
-                               End If
+                                End If
 
-                               Return File.Open(filePath, mode, access, share)
-                           End Function
+                                Return File.Open(filePath, mode, access, share)
+                            End Function)
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Assert.Equal(1, vbc.Run(outWriter))

@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -51,6 +52,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
         static RemoteHostService()
         {
+            if (GCSettings.IsServerGC)
+            {
+                // Server GC runs processor-affinitized threads with high priority. To avoid interfering with other
+                // applications while still allowing efficient out-of-process execution, slightly reduce the process
+                // priority when using server GC.
+                Process.GetCurrentProcess().TrySetPriorityClass(ProcessPriorityClass.BelowNormal);
+            }
+
             // this is the very first service which will be called from client (VS)
             // we set up logger here
             RoslynLogger.SetLogger(new EtwLogger(s_logChecker));
@@ -135,21 +144,6 @@ namespace Microsoft.CodeAnalysis.Remote
                         nameof(IRemoteHostServiceCallback.GetAssetsAsync),
                         new object[] { scopeId, checksums.ToArray() },
                         (stream, cancellationToken) => Task.FromResult(RemoteHostAssetSerialization.ReadData(stream, scopeId, checksums, serializerService, cancellationToken)),
-                        cancellationToken);
-                }
-            }, cancellationToken).ConfigureAwait(false);
-        }
-
-        // TODO: remove (https://github.com/dotnet/roslyn/issues/43477)
-        async ValueTask<bool> IAssetSource.IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-        {
-            return await RunServiceAsync(() =>
-            {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_IsExperimentEnabledAsync, experimentName, cancellationToken))
-                {
-                    return EndPoint.InvokeAsync<bool>(
-                        nameof(IRemoteHostServiceCallback.IsExperimentEnabledAsync),
-                        new object[] { experimentName },
                         cancellationToken);
                 }
             }, cancellationToken).ConfigureAwait(false);

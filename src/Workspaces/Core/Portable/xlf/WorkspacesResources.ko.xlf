@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../WorkspacesResources.resx">
     <body>
+      <trans-unit id="A_project_may_not_reference_itself">
+        <source>A project may not reference itself.</source>
+        <target state="translated">프로젝트는 자신을 참조할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
         <target state="translated">분석기 구성 문서 추가는 지원되지 않습니다.</target>
@@ -80,6 +85,11 @@
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">옵션을 지정된 솔루션에서 가져오지 않음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Predefined_conversion_from_0_to_1">
+        <source>Predefined conversion from {0} to {1}.</source>
+        <target state="translated">{0}에서 {1}(으)로의 미리 정의된 변환입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_does_not_contain_specified_reference">
@@ -312,11 +322,6 @@
         <target state="translated">프로젝트가 대상 프로젝트를 이미 참조하고 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_project_already_transitively_references_the_target_project">
-        <source>The project already transitively references the target project.</source>
-        <target state="translated">프로젝트가 대상 프로젝트를 이미 타동적으로 참조하고 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_document">
         <source>The solution already contains the specified document.</source>
         <target state="translated">솔루션에 지정한 문서가 이미 포함되어 있습니다.</target>
@@ -434,7 +439,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified.</source>
-        <target state="translated">이름을 간단하게 줄일 수 있습니다.</target>
+        <target state="translated">이름을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">

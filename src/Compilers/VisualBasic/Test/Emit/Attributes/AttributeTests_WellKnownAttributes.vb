@@ -3077,7 +3077,8 @@ BC30662: Attribute 'NonSerializedAttribute' cannot be applied to 'e2' because th
 ]]></expected>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
+        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
         <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
         Public Sub TestIsSerializableProperty()
             Dim missing =

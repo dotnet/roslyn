@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -28,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
         {
         }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateConstructorCodeFixProvider());
 
         private readonly NamingStylesTestOptionSets options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
@@ -2753,21 +2750,11 @@ class A
 }");
         }
 
-        public partial class GenerateConstructorTestsWithFindMissingIdentifiersAnalyzer : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+        [WorkItem(1241, @"https://github.com/dotnet/roslyn/issues/1241")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateConstructorInIncompleteLambda()
         {
-            public GenerateConstructorTestsWithFindMissingIdentifiersAnalyzer(ITestOutputHelper logger)
-              : base(logger)
-            {
-            }
-
-            internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-                => (new CSharpUnboundIdentifiersDiagnosticAnalyzer(), new GenerateConstructorCodeFixProvider());
-
-            [WorkItem(1241, @"https://github.com/dotnet/roslyn/issues/1241")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-            public async Task TestGenerateConstructorInIncompleteLambda()
-            {
-                await TestInRegularAndScriptAsync(
+            await TestInRegularAndScriptAsync(
 @"using System.Threading.Tasks;
 
 class C
@@ -2795,7 +2782,6 @@ class C
             new C(0) });
     }
 }");
-            }
         }
 
         [WorkItem(5274, "https://github.com/dotnet/roslyn/issues/5274")]
@@ -4686,6 +4672,87 @@ class Delta : A
         this.v = v;
     }
 }");
+        }
+
+        [WorkItem(50765, "https://github.com/dotnet/roslyn/issues/50765")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructorWithMissingType()
+        {
+            // CSharpProjectWithExtraType is added as a project reference to CSharpProjectGeneratingInto
+            // but not at the place we're actually invoking the fix.
+            await TestAsync(@"
+<Workspace>
+    <Project Language=""C#"" Name=""CSharpProjectWithExtraType"" CommonReferences=""true"">
+        <Document>
+public class ExtraType { }
+        </Document>
+    </Project>
+    <Project Language=""C#"" Name=""CSharpProjectGeneratingInto"" CommonReferences=""true"">
+        <ProjectReference>CSharpProjectWithExtraType</ProjectReference>
+        <Document>
+public class C
+{
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <ProjectReference>CSharpProjectGeneratingInto</ProjectReference>
+        <Document>
+public class InvokingConstructor
+{
+    public void M()
+    {
+        [|new C(42, 42)|];
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+public class C
+{
+    private int v1;
+    private int v2;
+
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+
+    public C(int v1, int v2)
+    {
+        this.v1 = v1;
+        this.v2 = v2;
+    }
+}
+        ", parseOptions: TestOptions.Regular);
+        }
+
+        [WorkItem(38822, "https://github.com/dotnet/roslyn/issues/38822")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestMissingInLambdaWithCallToExistingConstructor()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+public class InstanceType
+{
+    public InstanceType(object? a = null) { }
+}
+
+public static class Example
+{
+    public static void Test()
+    {
+        Action lambda = () =>
+        {
+            var _ = new [|InstanceType|]();
+            var _ = 0
+        };
+    }
+}
+");
         }
     }
 }

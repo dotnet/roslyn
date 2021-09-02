@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class SuggestionModeCompletionProviderTests
@@ -377,8 +377,7 @@ End Class</a>
                 If useDebuggerOptions Then
                     options = options.
                         WithChangedOption(CompletionControllerOptions.FilterOutOfScopeLocals, False).
-                        WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, False).
-                        WithChangedOption(CompletionServiceOptions.DisallowAddingImports, True)
+                        WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, False)
                 End If
 
                 Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
