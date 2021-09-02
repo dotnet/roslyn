@@ -1201,6 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     continue;
                                 }
+
                                 if (s1Index < 0 != s2Index < 0)
                                 {
                                     Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
@@ -1995,6 +1996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     return True.Instance;
                             }
                         }
+
                         if (TryGetTopLevelLengthTemp(e) is (BoundDagTemp lengthTemp, int offset))
                         {
                             // If this is a nested length test in a slice subpattern, update the matched
