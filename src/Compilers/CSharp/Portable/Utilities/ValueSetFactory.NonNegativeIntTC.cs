@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private struct PositiveIntTC : INumericTC<int>
+        private struct NonNegativeIntTC : INumericTC<int>
         {
             int INumericTC<int>.MinValue => 0;
 
