@@ -747,6 +747,11 @@
         <target state="translated">La méthode '{0}' avec un bloc itérateur doit être 'async' pour retourner '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
+        <source>A lambda expression with attributes cannot be converted to an expression tree</source>
+        <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
         <source>The #line directive end position must be greater than or equal to the start position</source>
         <target state="new">The #line directive end position must be greater than or equal to the start position</target>

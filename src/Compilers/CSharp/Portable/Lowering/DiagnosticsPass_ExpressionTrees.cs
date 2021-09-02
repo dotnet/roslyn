@@ -517,6 +517,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_inExpressionLambda)
             {
                 var lambda = node.Symbol;
+                bool reportedAttributes = false;
+
+                if (!lambda.GetAttributes().IsEmpty || !lambda.GetReturnTypeAttributes().IsEmpty)
+                {
+                    Error(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, node);
+                    reportedAttributes = true;
+                }
+
                 foreach (var p in lambda.Parameters)
                 {
                     if (p.RefKind != RefKind.None && p.Locations.Length != 0)
@@ -526,6 +534,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (p.TypeWithAnnotations.IsRestrictedType())
                     {
                         _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
+                    }
+
+                    if (!reportedAttributes && !p.GetAttributes().IsEmpty)
+                    {
+                        _diagnostics.Add(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, p.Locations[0]);
+                        reportedAttributes = true;
                     }
                 }
 
