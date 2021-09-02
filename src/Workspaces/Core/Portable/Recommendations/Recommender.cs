@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             return languageRecommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, options, cancellationToken).NamedSymbols;
         }
 
-        [Obsolete]
+        [Obsolete("Use GetRecommendedSymbolsAtPosition")]
         public static Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
              SemanticModel semanticModel,
              int position,
