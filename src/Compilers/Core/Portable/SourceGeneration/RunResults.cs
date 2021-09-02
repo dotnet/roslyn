@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
         public Exception? Exception { get; }
 
         /// <summary>
-        /// The wallclock time that elapsed while this generator was running.
+        /// The wall clock time that elapsed while this generator was running.
         /// </summary>
         internal TimeSpan ElapsedTime { get; }
     }

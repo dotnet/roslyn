@@ -15,54 +15,62 @@ namespace Microsoft.CodeAnalysis
     {
         public static RunTimer CreateGeneratorDriverRunTimer(this CodeAnalysisEventSource eventSource)
         {
-            var id = Guid.NewGuid().ToString();
-            var enabled = eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance);
-            if (enabled)
+            if (eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance))
             {
+                var id = Guid.NewGuid().ToString();
                 eventSource.StartGeneratorDriverRunTime(id);
+                return new RunTimer(t => eventSource.StopGeneratorDriverRunTime(t.Ticks, id));
             }
-            return new RunTimer(t => eventSource.StopGeneratorDriverRunTime(t.Ticks, id), enabled);
+            else
+            {
+                return new RunTimer();
+            }
         }
 
         public static RunTimer CreateSingleGeneratorRunTimer(this CodeAnalysisEventSource eventSource, ISourceGenerator generator)
         {
-            var id = Guid.NewGuid().ToString();
-            var type = generator.GetGeneratorType();
-            var enabled = eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance);
-            if (enabled)
+            if (eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance))
             {
+                var id = Guid.NewGuid().ToString();
+                var type = generator.GetGeneratorType();
                 eventSource.StartSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, id);
+                return new RunTimer(t => eventSource.StopSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, t.Ticks, id));
             }
-            return new RunTimer(t => eventSource.StopSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, t.Ticks, id), enabled);
+            else
+            {
+                return new RunTimer();
+            }
         }
 
         internal readonly struct RunTimer : IDisposable
         {
             private readonly SharedStopwatch _timer;
-            private readonly Action<TimeSpan> _callback;
-            private readonly bool _shouldExecuteCallback;
+            private readonly Action<TimeSpan>? _callback;
 
             public TimeSpan Elapsed => _timer.Elapsed;
 
-            public RunTimer(Action<TimeSpan> callback, bool shouldExecuteCallback)
+            public RunTimer()
             {
-                _callback = callback;
-                _shouldExecuteCallback = shouldExecuteCallback;
-
-                // start twice to improve accuracy. See AnalyzerExecutor::ExecuteAndCatchIfThrows for more details 
+                // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details 
                 _ = SharedStopwatch.StartNew();
                 _timer = SharedStopwatch.StartNew();
+                _callback = null;
+            }
+
+            public RunTimer(Action<TimeSpan> callback)
+                : this()
+            {
+                _callback = callback;
             }
 
             public void Dispose()
             {
-                if (_shouldExecuteCallback)
+                if (_callback is not null)
                 {
                     var elapsed = _timer.Elapsed;
                     _callback(elapsed);
                 }
             }
         }
-
     }
 }
