@@ -23,16 +23,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
         }
 
         private void OnPaste(object sender, DataObjectPastingEventArgs e)
-        {
-            var textObject = e.SourceDataObject.GetData(DataFormats.Text);
-
-            if (textObject is string text)
-            {
-                _viewModel.OnPaste(text);
-            }
-        }
+            => OnPaste();
 
         private void Button_Click(object sender, RoutedEventArgs e)
+            => OnPaste();
+
+        private void CommandBinding_Executed(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+            => OnPaste();
+
+        private void OnPaste()
         {
             var textObject = Clipboard.GetData(DataFormats.Text);
 

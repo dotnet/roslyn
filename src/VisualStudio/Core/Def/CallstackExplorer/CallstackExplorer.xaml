@@ -9,6 +9,9 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
+        <Grid.CommandBindings>
+            <CommandBinding Command="{x:Static ApplicationCommands.Paste}" CanExecute="True" Executed="CommandBinding_Executed"/>
+        </Grid.CommandBindings>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />

@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.CallstackExplorer;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
 {
@@ -31,6 +29,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
+
+            workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
+        }
+
+        private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        {
+            if (e.Kind == WorkspaceChangeKind.SolutionChanged)
+            {
+                // If the workspace changes we want to clear out the current stack trace
+                CallstackLines.Clear();
+            }
         }
 
         internal void OnPaste(string text)
