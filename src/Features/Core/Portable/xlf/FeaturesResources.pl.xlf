@@ -232,7 +232,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
         <source>Asynchronously waits for the task to finish.</source>
-        <target state="new">Asynchronously waits for the task to finish.</target>
+        <target state="translated">Asynchronicznie oczekuje na zakończenie zadania.</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -752,17 +752,17 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Introduce_parameter">
         <source>Introduce parameter</source>
-        <target state="new">Introduce parameter</target>
+        <target state="translated">Wprowadź parametr</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">
         <source>Introduce parameter for '{0}'</source>
-        <target state="new">Introduce parameter for '{0}'</target>
+        <target state="translated">Wprowadź parametr dla elementu "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter_for_all_occurrences_of_0">
         <source>Introduce parameter for all occurrences of '{0}'</source>
-        <target state="new">Introduce parameter for all occurrences of '{0}'</target>
+        <target state="translated">Wprowadź parametr dla wszystkich wystąpień elementu "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable">
@@ -777,7 +777,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
-        <target state="new">Invalid selection.</target>
+        <target state="translated">Nieprawidłowe zaznaczenie.</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -967,7 +967,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
-        <target state="new">No common root node for extraction.</target>
+        <target state="translated">Brak wspólnego węzła głównego do wyodrębnienia.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
@@ -977,7 +977,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
-        <target state="new">No valid selection to perform extraction.</target>
+        <target state="translated">Brak prawidłowego zaznaczenia do wyodrębnienia.</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2222,7 +2222,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
         <source>Selection does not contain a valid token.</source>
-        <target state="new">Selection does not contain a valid token.</target>
+        <target state="translated">Zaznaczenie nie zawiera prawidłowego tokenu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_not_contained_inside_a_type">
@@ -2828,7 +2828,7 @@ Jeśli specyfikator formatu „H” zostanie użyty bez innych indywidualnych sp
       </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
-        <target state="new">and update call sites directly</target>
+        <target state="translated">i aktualizowanie miejsc wywoływania bezpośrednio</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -2974,12 +2974,12 @@ Standardowy specyfikator formatu „f” reprezentuje połączenie wzorców dłu
       </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
         <source>into extracted method to invoke at call sites</source>
-        <target state="new">into extracted method to invoke at call sites</target>
+        <target state="translated">na wyodrębnioną metodę do wywołania w miejscach wywoływania</target>
         <note />
       </trans-unit>
       <trans-unit id="into_new_overload">
         <source>into new overload</source>
-        <target state="new">into new overload</target>
+        <target state="translated">na nowe przeciążenie</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
@@ -3391,7 +3391,7 @@ Jeśli specyfikator formatu „g” jest używany bez innych niestandardowych sp
       </trans-unit>
       <trans-unit id="property_accessor">
         <source>property accessor</source>
-        <target state="new">property accessor</target>
+        <target state="translated">metoda dostępu do właściwości</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
