@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -336,16 +337,34 @@ namespace Microsoft.CodeAnalysis
             return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
         }
 
-        internal async Task<bool> ContainsSymbolsWithNameAsync(string name, SymbolFilter filter, CancellationToken cancellationToken)
+        internal Task<bool> ContainsSymbolsWithNameAsync(string name, CancellationToken cancellationToken)
         {
-            return this.SupportsCompilation &&
-                   await _solution.State.ContainsSymbolsWithNameAsync(Id, name, filter, cancellationToken).ConfigureAwait(false);
+            return this.ContainsSymbolsAsync(
+                (index, cancellationToken) => index.ProbablyContainsIdentifier(name) || index.ProbablyContainsEscapedIdentifier(name),
+                cancellationToken);
         }
 
-        internal async Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        internal Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, CancellationToken cancellationToken)
         {
-            return this.SupportsCompilation &&
-                   await _solution.State.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false);
+            return this.ContainsSymbolsAsync(
+                (index, cancellationToken) => index.DeclaredSymbolInfos.Any(d => predicate(d.Name)),
+                cancellationToken);
+        }
+
+        private async Task<bool> ContainsSymbolsAsync(
+            Func<SyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
+        {
+            if (!this.SupportsCompilation)
+                return false;
+
+            var tasks = this.Documents.Select(async d =>
+            {
+                var index = await SyntaxTreeIndex.GetIndexAsync(d, cancellationToken).ConfigureAwait(false);
+                return index != null && predicate(index, cancellationToken);
+            });
+
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+            return results.Any(b => b);
         }
 
         private static readonly Func<DocumentId, Project, Document?> s_tryCreateDocumentFunction =

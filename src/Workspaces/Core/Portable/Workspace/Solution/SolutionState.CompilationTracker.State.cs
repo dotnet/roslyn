@@ -29,16 +29,9 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public static readonly State Empty = new(
                     compilationWithoutGeneratedDocuments: null,
-                    declarationOnlyCompilation: null,
                     generatedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
                     generatedDocumentsAreFinal: false,
                     generatorDriver: null);
-
-                /// <summary>
-                /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
-                /// nor does it have any references. It just holds the declaration table alive.
-                /// </summary>
-                public Compilation? DeclarationOnlyCompilation { get; }
 
                 /// <summary>
                 /// The best compilation that is available that source generators have not ran on. May be an in-progress,
@@ -84,16 +77,11 @@ namespace Microsoft.CodeAnalysis
 
                 protected State(
                     ValueSource<Optional<Compilation>>? compilationWithoutGeneratedDocuments,
-                    Compilation? declarationOnlyCompilation,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     GeneratorDriver? generatorDriver,
                     bool generatedDocumentsAreFinal)
                 {
-                    // Declaration-only compilations should never have any references
-                    Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
-
                     CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
-                    DeclarationOnlyCompilation = declarationOnlyCompilation;
                     GeneratedDocuments = generatedDocuments;
                     GeneratorDriver = generatorDriver;
                     GeneratedDocumentsAreFinal = generatedDocumentsAreFinal;
@@ -153,7 +141,6 @@ namespace Microsoft.CodeAnalysis
                     Compilation? compilationWithGeneratedDocuments,
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(compilationWithoutGeneratedDocuments: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
-                           declarationOnlyCompilation: null,
                            generatedDocuments,
                            generatorDriver,
                            generatedDocumentsAreFinal: false) // since we have a set of transformations to make, we'll always have to run generators again
@@ -163,24 +150,6 @@ namespace Microsoft.CodeAnalysis
 
                     this.IntermediateProjects = intermediateProjects;
                     this.CompilationWithGeneratedDocuments = compilationWithGeneratedDocuments;
-                }
-            }
-
-            /// <summary>
-            /// Declaration-only state that has no associated references or symbols. just declaration table only.
-            /// </summary>
-            private sealed class LightDeclarationState : State
-            {
-                public LightDeclarationState(Compilation declarationOnlyCompilation,
-                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
-                    GeneratorDriver? generatorDriver,
-                    bool generatedDocumentsAreFinal)
-                    : base(compilationWithoutGeneratedDocuments: null,
-                           declarationOnlyCompilation,
-                           generatedDocuments,
-                           generatorDriver,
-                           generatedDocumentsAreFinal)
-                {
                 }
             }
 
@@ -195,7 +164,6 @@ namespace Microsoft.CodeAnalysis
                     GeneratorDriver? generatorDriver,
                     bool generatedDocumentsAreFinal)
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
-                           declarationCompilation.Clone().RemoveAllReferences(),
                            generatedDocuments,
                            generatorDriver,
                            generatedDocumentsAreFinal)
@@ -204,8 +172,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// The final state a compilation tracker reaches. The <see cref="State.DeclarationOnlyCompilation"/> is
-            /// available, as well as the real <see cref="State.FinalCompilationWithGeneratedDocuments"/>. It is a
+            /// The final state a compilation tracker reaches. The real <see cref="State.FinalCompilationWithGeneratedDocuments"/> is available. It is a
             /// requirement that any <see cref="Compilation"/> provided to any clients of the <see cref="Solution"/>
             /// (for example, through <see cref="Project.GetCompilationAsync"/> or <see
             /// cref="Project.TryGetCompilation"/> must be from a <see cref="FinalState"/>.  This is because <see
@@ -244,7 +211,6 @@ namespace Microsoft.CodeAnalysis
                     GeneratorDriver? generatorDriver,
                     UnrootedSymbolSet unrootedSymbolSet)
                     : base(compilationWithoutGeneratedFilesSource,
-                           compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
                            generatedDocuments,
                            generatorDriver: generatorDriver,
                            generatedDocumentsAreFinal: true) // when we're in a final state, we've ran generators and should not run again

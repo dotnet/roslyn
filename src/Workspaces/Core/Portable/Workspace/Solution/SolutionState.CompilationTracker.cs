@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
                 get
                 {
                     var state = this.ReadState();
-                    return state.CompilationWithoutGeneratedDocuments != null && state.CompilationWithoutGeneratedDocuments.TryGetValue(out _) || state.DeclarationOnlyCompilation != null;
+                    return state.CompilationWithoutGeneratedDocuments != null && state.CompilationWithoutGeneratedDocuments.TryGetValue(out _);
                 }
             }
 
@@ -152,18 +152,6 @@ namespace Microsoft.CodeAnalysis
                     var newState = State.Create(baseCompilation, state.GeneratedDocuments, state.GeneratorDriver, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
 
                     return new CompilationTracker(newProject, newState);
-                }
-
-                var declarationOnlyCompilation = state.DeclarationOnlyCompilation;
-                if (declarationOnlyCompilation != null)
-                {
-                    if (translate != null)
-                    {
-                        var intermediateProjects = ImmutableArray.Create((this.ProjectState, translate));
-                        return new CompilationTracker(newProject, new InProgressState(declarationOnlyCompilation, state.GeneratedDocuments, state.GeneratorDriver, compilationWithGeneratedDocuments: state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects));
-                    }
-
-                    return new CompilationTracker(newProject, new LightDeclarationState(declarationOnlyCompilation, state.GeneratedDocuments, state.GeneratorDriver, generatedDocumentsAreFinal: false));
                 }
 
                 // We have nothing.  Just make a tracker that only points to the new project.  We'll have
@@ -414,16 +402,6 @@ namespace Microsoft.CodeAnalysis
                         compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
                         if (compilation == null)
                         {
-                            // let's see whether we have declaration only compilation
-                            if (state.DeclarationOnlyCompilation != null)
-                            {
-                                // okay, move to full declaration state. do this so that declaration only compilation never
-                                // realize symbols.
-                                var declarationOnlyCompilation = state.DeclarationOnlyCompilation.Clone();
-                                WriteState(new FullDeclarationState(declarationOnlyCompilation, state.GeneratedDocuments, state.GeneratorDriver, state.GeneratedDocumentsAreFinal), solutionServices);
-                                return declarationOnlyCompilation;
-                            }
-
                             // We've got nothing.  Build it from scratch :(
                             return await BuildDeclarationCompilationFromScratchAsync(solutionServices, cancellationToken).ConfigureAwait(false);
                         }
@@ -521,14 +499,6 @@ namespace Microsoft.CodeAnalysis
 
                 if (compilation == null)
                 {
-                    // this can happen if compilation is already kicked out from the cache.
-                    // check whether the state we have support declaration only compilation
-                    if (state.DeclarationOnlyCompilation != null)
-                    {
-                        // we have declaration only compilation. build final one from it.
-                        return FinalizeCompilationAsync(solution, state.DeclarationOnlyCompilation, authoritativeGeneratedDocuments, nonAuthoritativeGeneratedDocuments, compilationWithStaleGeneratedTrees: null, generatorDriver, cancellationToken);
-                    }
-
                     // We've got nothing.  Build it from scratch :(
                     return BuildCompilationInfoFromScratchAsync(solution, cancellationToken);
                 }
@@ -1066,31 +1036,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
-
-            /// <summary>
-            /// check whether the compilation contains any declaration symbol from syntax trees with
-            /// given name
-            /// </summary>
-            public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(string name, SymbolFilter filter, CancellationToken cancellationToken)
-            {
-                // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
-                var state = this.ReadState();
-                return state.DeclarationOnlyCompilation == null
-                    ? (bool?)null
-                    : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(name, filter, cancellationToken);
-            }
-
-            /// <summary>
-            /// check whether the compilation contains any declaration symbol from syntax trees with given name
-            /// </summary>
-            public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-            {
-                // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
-                var state = this.ReadState();
-                return state.DeclarationOnlyCompilation == null
-                    ? (bool?)null
-                    : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
             }
 
             public Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken)
