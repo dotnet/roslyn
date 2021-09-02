@@ -450,9 +450,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     broker.DismissSession(view);
                 }
 
-                action.Invoke(CancellationToken.None);
-                return !(action is SuggestedAction suggestedAction)
-                    || suggestedAction.GetTestAccessor().IsApplied;
+                if (action is not SuggestedAction suggestedAction)
+                    return true;
+
+                await suggestedAction.GetTestAccessor().InvokeAsync();
+                return true;
             };
         }
 

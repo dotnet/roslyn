@@ -107,6 +107,11 @@
         <target state="new">Prefer 'null' check over type check</target>
         <note />
       </trans-unit>
+      <trans-unit id="Property_pattern_can_be_simplified">
+        <source>Property pattern can be simplified</source>
+        <target state="new">Property pattern can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
         <source>Remove operator (preserves semantics)</source>
         <target state="translated">Удалить оператор (семантика сохраняется)</target>
@@ -130,6 +135,11 @@
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">Упростить выражение default</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_property_pattern">
+        <source>Simplify property pattern</source>
+        <target state="new">Simplify property pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
@@ -255,6 +265,11 @@
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Используйте сопоставление шаблонов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="new">Use pattern matching (may change code meaning)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">

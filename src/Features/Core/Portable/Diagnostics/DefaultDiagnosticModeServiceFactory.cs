@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -69,18 +68,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // If the workspace diagnostic mode is set to Default, defer to the feature flag service.
                 if (diagnosticModeOption == DiagnosticMode.Default)
                 {
-                    return GetDiagnosticModeFromFeatureFlag();
+                    return _workspace.Options.GetOption(DiagnosticOptions.LspPullDiagnosticsFeatureFlag) ? DiagnosticMode.Pull : DiagnosticMode.Push;
                 }
 
                 // Otherwise, defer to the workspace+option to determine what mode we're in.
                 return diagnosticModeOption;
-            }
-
-            private DiagnosticMode GetDiagnosticModeFromFeatureFlag()
-            {
-                var featureFlagService = _workspace.Services.GetRequiredService<IExperimentationService>();
-                var isPullDiagnosticExperimentEnabled = featureFlagService.IsExperimentEnabled(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag);
-                return isPullDiagnosticExperimentEnabled ? DiagnosticMode.Pull : DiagnosticMode.Push;
             }
 
             private static bool IsInCodeSpacesServer()

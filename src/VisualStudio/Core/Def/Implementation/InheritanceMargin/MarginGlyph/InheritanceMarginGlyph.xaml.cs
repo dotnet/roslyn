@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
-    internal partial class InheritanceMargin
+    internal partial class InheritanceMarginGlyph
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IWpfTextView _textView;
         private readonly IAsynchronousOperationListener _listener;
 
-        public InheritanceMargin(
+        public InheritanceMarginGlyph(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _listener = listener;
             InitializeComponent();
 
-            var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
+            var viewModel = InheritanceMarginGlyphViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
             DataContext = viewModel;
             ContextMenu.DataContext = viewModel;
             ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource("ToolTipStyle") };
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
         {
-            if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginViewModel inheritanceMarginViewModel }
+            if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginGlyphViewModel inheritanceMarginViewModel }
                 && inheritanceMarginViewModel.MenuItemViewModels.Any(vm => vm is TargetMenuItemViewModel))
             {
                 // We have two kinds of context menu. e.g.

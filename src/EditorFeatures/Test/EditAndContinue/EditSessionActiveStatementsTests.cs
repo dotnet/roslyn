@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     new ManagedInstructionId(new ManagedMethodId(module: Guid.NewGuid(), token: 0x06000005, version: 1), ilOffset: 10),
                     documentName: null,
                     sourceSpan: default,
-                    ActiveStatementFlags.IsNonLeafFrame));
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame));
 
             // add an extra active statement from project not belonging to the solution, it should be ignored:
             activeStatements = activeStatements.Add(
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     new ManagedInstructionId(new ManagedMethodId(module: module3, token: 0x06000005, version: 1), ilOffset: 10),
                     "NonRoslynDocument.mcpp",
                     new SourceSpan(1, 1, 1, 10),
-                    ActiveStatementFlags.IsNonLeafFrame));
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame));
 
             // Add an extra active statement from language that doesn't support Roslyn EnC should be ignored:
             // See https://github.com/dotnet/roslyn/issues/24408 for test scenario.
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     new ManagedInstructionId(new ManagedMethodId(module: module4, token: 0x06000005, version: 1), ilOffset: 10),
                     "a.dummy",
                     new SourceSpan(2, 1, 2, 10),
-                    ActiveStatementFlags.IsNonLeafFrame));
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame));
 
             using var workspace = new TestWorkspace(composition: s_composition);
 
@@ -193,8 +193,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 $"2: {document2.FilePath}: (21,14)-(21,24) flags=[MethodUpToDate, IsNonLeafFrame] mvid=22222222-2222-2222-2222-222222222222 0x06000003 v1 IL_0001",   // [|Test1.M1()|] in F2
                 $"3: {document2.FilePath}: (8,20)-(8,25) flags=[MethodUpToDate, IsNonLeafFrame] mvid=22222222-2222-2222-2222-222222222222 0x06000004 v1 IL_0002",     // [|F2();|] in M2
                 $"4: {document2.FilePath}: (26,20)-(26,25) flags=[MethodUpToDate, IsNonLeafFrame] mvid=22222222-2222-2222-2222-222222222222 0x06000005 v1 IL_0003",   // [|M2();|] in Main
-                $"5: NonRoslynDocument.mcpp: (1,1)-(1,10) flags=[IsNonLeafFrame] mvid={module3} 0x06000005 v1 IL_000A",
-                $"6: a.dummy: (2,1)-(2,10) flags=[IsNonLeafFrame] mvid={module4} 0x06000005 v1 IL_000A"
+                $"5: NonRoslynDocument.mcpp: (1,1)-(1,10) flags=[MethodUpToDate, IsNonLeafFrame] mvid={module3} 0x06000005 v1 IL_000A",
+                $"6: a.dummy: (2,1)-(2,10) flags=[MethodUpToDate, IsNonLeafFrame] mvid={module4} 0x06000005 v1 IL_000A"
             }, statements.Select(InspectActiveStatementAndInstruction));
 
             // Active Statements per document
@@ -216,12 +216,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             AssertEx.Equal(new[]
             {
-                $"5: NonRoslynDocument.mcpp: (1,1)-(1,10) flags=[IsNonLeafFrame]",
+                $"5: NonRoslynDocument.mcpp: (1,1)-(1,10) flags=[MethodUpToDate, IsNonLeafFrame]",
             }, baseActiveStatementsMap.DocumentPathMap["NonRoslynDocument.mcpp"].Select(InspectActiveStatement));
 
             AssertEx.Equal(new[]
             {
-                $"6: a.dummy: (2,1)-(2,10) flags=[IsNonLeafFrame]",
+                $"6: a.dummy: (2,1)-(2,10) flags=[MethodUpToDate, IsNonLeafFrame]",
             }, baseActiveStatementsMap.DocumentPathMap["a.dummy"].Select(InspectActiveStatement));
 
             // Exception Regions
@@ -275,7 +275,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             {
                 $"0x06000004 v1 | AS {document2.FilePath}: (8,20)-(8,25) δ=1",
                 $"0x06000004 v1 | ER {document2.FilePath}: (14,8)-(16,9) δ=1",
-                $"0x06000004 v1 | ER {document2.FilePath}: (10,10)-(12,11) δ=1"
+                $"0x06000004 v1 | ER {document2.FilePath}: (10,10)-(12,11) δ=1",
+                $"0x06000003 v1 | AS {document2.FilePath}: (21,14)-(21,24) δ=0",
+                $"0x06000005 v1 | AS {document2.FilePath}: (26,20)-(26,25) δ=0"
             }, nonRemappableRegions.Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
 
             AssertEx.Equal(new[]
@@ -384,11 +386,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 out var nonRemappableRegions,
                 out var exceptionRegionUpdates);
 
-            // although the span has not changed the method has, so we need to add corresponding non-remappable regions
             AssertEx.Equal(new[]
             {
                 $"0x06000001 v1 | AS {document.FilePath}: (6,18)-(6,23) δ=0",
                 $"0x06000001 v1 | ER {document.FilePath}: (8,8)-(12,9) δ=0",
+                $"0x06000002 v1 | AS {document.FilePath}: (18,14)-(18,36) δ=0",
             }, nonRemappableRegions.OrderBy(r => r.Region.Span.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
 
             AssertEx.Equal(new[]
@@ -580,6 +582,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // Note: Since no method have been remapped yet all the following spans are in their pre-remap locations: 
             AssertEx.Equal(new[]
             {
+                $"0x06000001 v2 | AS {document.FilePath}: (6,18)-(6,22) δ=0",
                 $"0x06000002 v2 | ER {document.FilePath}: (18,16)-(21,9) δ=-1",
                 $"0x06000002 v2 | AS {document.FilePath}: (20,18)-(20,22) δ=-1",
                 $"0x06000003 v1 | AS {document.FilePath}: (30,22)-(30,26) δ=-1", // AS:2 moved -1 in first edit, 0 in second

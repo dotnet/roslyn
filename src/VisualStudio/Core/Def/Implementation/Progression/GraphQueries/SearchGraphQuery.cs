@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -39,9 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
         public Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
         {
-            var experimentationService = solution.Workspace.Services.GetService<IExperimentationService>();
-            var forceLegacySearch = experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.ProgressionForceLegacySearch) == true;
-
+            var forceLegacySearch = solution.Options.GetOption(ProgressionOptions.LegacySearchFeatureFlag);
             var option = solution.Options.GetOption(ProgressionOptions.SearchUsingNavigateToEngine);
             return !forceLegacySearch && option
                 ? SearchUsingNavigateToEngineAsync(solution, context, cancellationToken)

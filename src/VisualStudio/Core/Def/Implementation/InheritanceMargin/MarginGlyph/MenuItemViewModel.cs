@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
-    internal abstract class InheritanceMenuItemViewModel
+    internal abstract class MenuItemViewModel
     {
         /// <summary>
         /// Display content for the target.
@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// </summary>
         public string AutomationName { get; }
 
-        protected InheritanceMenuItemViewModel(string displayContent, ImageMoniker imageMoniker, string automationName)
+        protected MenuItemViewModel(string displayContent, ImageMoniker imageMoniker, string automationName)
         {
             ImageMoniker = imageMoniker;
             DisplayContent = displayContent;

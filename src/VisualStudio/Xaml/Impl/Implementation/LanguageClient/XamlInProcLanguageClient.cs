@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Xaml;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -24,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
     /// <summary>
     /// Experimental XAML Language Server Client used everywhere when
-    /// <see cref="StringConstants.EnableLspIntelliSense"/> experiment is turned on.
+    /// <see cref="XamlOptions.EnableLspIntelliSenseFeatureFlag"/> is turned on.
     /// </summary>
     [ContentType(ContentTypeNames.XamlContentType)]
     [Export(typeof(ILanguageClient))]
@@ -65,9 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         public override bool ShowNotificationOnInitializeFailed => IsXamlLspIntelliSenseEnabled();
 
         private bool IsXamlLspIntelliSenseEnabled()
-        {
-            var experimentationService = Workspace.Services.GetRequiredService<CodeAnalysis.Experiments.IExperimentationService>();
-            return experimentationService.IsExperimentEnabled(StringConstants.EnableLspIntelliSense);
-        }
+            => Workspace.Options.GetOption(XamlOptions.EnableLspIntelliSenseFeatureFlag);
     }
 }

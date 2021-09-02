@@ -12,10 +12,10 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -36,18 +36,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     internal partial class AdvancedOptionPageControl : AbstractOptionPageControl
     {
         private readonly ColorSchemeApplier _colorSchemeApplier;
-        private readonly IExperimentationService _experimentationService;
 
-        public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel, IExperimentationService experimentationService) : base(optionStore)
+        public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel) : base(optionStore)
         {
             _colorSchemeApplier = componentModel.GetService<ColorSchemeApplier>();
-            _experimentationService = experimentationService;
 
             InitializeComponent();
 
             BindToOption(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.CSharp);
             BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.CSharp);
             BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.CSharp);
+            BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp);
+            BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.CSharp);
+            BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);
             BindToOption(Enable_navigation_to_decompiled_sources, FeatureOnOffOptions.NavigateToDecompiledSources);
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptions.OOP64Bit);
             BindToOption(Enable_file_logging_for_diagnostics, InternalDiagnosticsOptions.EnableFileLoggingForDiagnostics);
@@ -56,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             {
                 // If the option has not been set by the user, check if the option to remove unused references
                 // is enabled from experimentation. If so, default to that. Otherwise default to disabled
-                return experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.RemoveUnusedReferences) ?? false;
+                return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
             });
 
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp);
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation.
                 // If so, default to that. Otherwise default to disabled
-                return experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.AsynchronousQuickActions) ?? false;
+                return optionStore.GetOption(SuggestionsOptions.AsynchronousFeatureFlag);
             });
 
             // Highlighting
@@ -106,11 +107,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
             BindToOption(Underline_reassigned_variables, ClassificationOptions.ClassifyReassignedVariables, LanguageNames.CSharp);
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.EnableOpeningInWorkspace, () =>
+            BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.Options.EnableOpeningInWorkspace, () =>
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation.
                 // If so, default to that. Otherwise default to disabled
-                return experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SourceGeneratorsEnableOpeningInWorkspace) ?? false;
+                return optionStore.GetOption(SourceGeneratedFileManager.Options.EnableOpeningInWorkspaceFeatureFlag);
             });
 
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
@@ -148,6 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             // Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
             BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp, () => true);
+            BindToOption(InheritanceMarginCombinedWithIndicatorMargin, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -196,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             if (checkboxValue != null)
             {
                 // Update the actual value of the feature flag to ensure CPS is informed of the new feature flag value.
-                _experimentationService.EnableExperiment(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag, checkboxValue.Value);
+                this.OptionStore.SetOption(DiagnosticOptions.LspPullDiagnosticsFeatureFlag, checkboxValue.Value);
             }
 
             // Update the workspace option.

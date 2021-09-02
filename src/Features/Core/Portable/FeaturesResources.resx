@@ -2923,4 +2923,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Move_static_members_to_another_type" xml:space="preserve">
     <value>Move static members to another type...</value>
   </data>
+  <data name="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application" xml:space="preserve">
+    <value>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</value>
+  </data>
+  <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
+    <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
+  </data>
 </root>
