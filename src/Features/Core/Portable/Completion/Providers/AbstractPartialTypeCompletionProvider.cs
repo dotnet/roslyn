@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is INamedTypeSymbol declaredSymbol)
                     {
                         var syntaxContextService = document.GetRequiredLanguageService<ISyntaxContextService>();
-                        var syntaxContext = (TSyntaxContext)syntaxContextService.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
+                        var syntaxContext = (TSyntaxContext)syntaxContextService.CreateContext(document, semanticModel, position, cancellationToken);
                         var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
                         var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext));
 
