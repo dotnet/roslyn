@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public int FromConstantValue(ConstantValue constantValue)
             {
-                // We could have a negate value in source, but it won't get past PositiveIntValueSetFactory.Related
+                // We could have a negate value in source, but it won't get past NonNegativeIntValueSetFactory.Related
                 return constantValue.IsBad ? 0 : constantValue.Int32Value;
             }
 
