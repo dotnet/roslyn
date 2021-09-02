@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                     invalidProjects.Add(docId.ProjectId);
             }
 
-            var supportedPlatforms = new SupportedPlatformData(invalidProjects, candidateProjects, workspace);
+            var supportedPlatforms = new SupportedPlatformData(solution, invalidProjects, candidateProjects);
             return (bestBinding.tokenInformation, supportedPlatforms);
         }
 
