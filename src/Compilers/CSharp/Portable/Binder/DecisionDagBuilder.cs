@@ -1174,6 +1174,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!s1Input.Equals(s2Input))
             {
                 var preconditions = ArrayBuilder<Tests>.GetInstance();
+                // Loop through the input chain for both tests at the same time and check if there's
+                // any pair of indexers in the path that could relate depending on the length value.
                 do
                 {
                     switch (s1Input.Source, s2Input.Source)
@@ -1237,7 +1239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     preconditions.Free();
                     return;
                 }
-                while (!s1Input.Equals(s2Input));
+                while (!s1Input.Equals(s2Input)); // if we have found two identical input fragments, there's no point to continue.
 
                 precondition = Tests.AndSequence.Create(preconditions);
                 // At this point, we have determined that two non-identical inputs refer to the same element.
