@@ -100,12 +100,12 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             // get back type declaration in the newly created file
             var destRoot = await newDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var destSemanticModel = await newDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            newType = destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken) as INamedTypeSymbol;
+            newType = (INamedTypeSymbol)destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken);
 
             // refactor references across the entire solution
             var memberReferenceLocations = await FindMemberReferencesAsync(moveOptions.SelectedMembers, newDoc.Project.Solution, cancellationToken).ConfigureAwait(false);
             var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
-            var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, newDoc.Project.Solution, newType!, typeArgIndices, cancellationToken).ConfigureAwait(false);
+            var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, newDoc.Project.Solution, newType, typeArgIndices, cancellationToken).ConfigureAwait(false);
 
             sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDoc.Id);
 
@@ -115,9 +115,9 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var members = memberNodes
                 .Select(node => root.GetCurrentNode(node))
                 .WhereNotNull()
-                .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node!, cancellationToken), false));
+                .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
 
-            var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType!, members);
+            var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
             var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
 
             return new CodeActionOperation[] { new ApplyChangesOperation(movedSolution) };
