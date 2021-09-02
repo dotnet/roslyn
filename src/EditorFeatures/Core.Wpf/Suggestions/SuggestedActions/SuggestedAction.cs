@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // We use ConfigureAwait(true) to stay on the UI thread.
             var operations = await GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
 
-            return EditHandler.GetPreviews(Workspace, operations, cancellationToken);
+            return await EditHandler.GetPreviewsAsync(Workspace, operations, cancellationToken).ConfigureAwait(true);
         }
 
         public virtual bool HasPreview => false;
