@@ -2392,6 +2392,7 @@ class C
         [Fact]
         public void Subsumption_15()
         {
+            // testing the scenario where we have multiple preconditions for indexers to relate.
             var src = @"
 class C
 {
