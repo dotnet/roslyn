@@ -209,6 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 jsonRpc,
                 capabilitiesProvider,
                 workspaceRegistrationService,
+                GlobalOptions,
                 _listenerProvider,
                 logger,
                 _diagnosticService,

@@ -45,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IVsRunningDocumentTable _runningDocumentTable;
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
         private readonly VisualStudioDocumentNavigationService _visualStudioDocumentNavigationService;
+        private readonly IGlobalOptionService _globalOptions;
 
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
@@ -79,6 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             ITextDocumentFactoryService textDocumentFactoryService,
             VisualStudioWorkspace visualStudioWorkspace,
+            IGlobalOptionService globalOptions,
             VisualStudioDocumentNavigationService visualStudioDocumentNavigationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
@@ -89,6 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _temporaryDirectory = Path.Combine(Path.GetTempPath(), "VSGeneratedDocuments");
             _visualStudioWorkspace = visualStudioWorkspace;
             _visualStudioDocumentNavigationService = visualStudioDocumentNavigationService;
+            _globalOptions = globalOptions;
 
             Directory.CreateDirectory(_temporaryDirectory);
 
@@ -181,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // Attach to the text buffer if we haven't already
                 if (!_openFiles.TryGetValue(moniker, out var openFile))
                 {
-                    openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, documentIdentity, _threadingContext);
+                    openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, documentIdentity, _globalOptions, _threadingContext);
                     _openFiles.Add(moniker, openFile);
 
                     _threadingContext.JoinableTaskFactory.Run(() => openFile.RefreshFileAsync(CancellationToken.None).AsTask());
