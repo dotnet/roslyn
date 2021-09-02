@@ -48,13 +48,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
         public ITextBufferAssociatedViewService AssociatedViewService => _associatedViewService;
 
-        public SolutionPreviewResult GetPreviews(
+        public async Task<SolutionPreviewResult> GetPreviewsAsync(
             Workspace workspace, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken)
         {
             if (operations.IsDefaultOrEmpty)
-            {
                 return null;
-            }
 
             SolutionPreviewResult currentResult = null;
 
@@ -65,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 if (op is ApplyChangesOperation applyChanges)
                 {
                     var oldSolution = workspace.CurrentSolution;
-                    var newSolution = applyChanges.ChangedSolution.WithMergedLinkedFileChangesAsync(oldSolution, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                    var newSolution = await applyChanges.ChangedSolution.WithMergedLinkedFileChangesAsync(
+                        oldSolution, cancellationToken: cancellationToken).ConfigureAwait(false);
                     var preview = _previewService.GetSolutionPreviews(
                         oldSolution, newSolution, cancellationToken);
 

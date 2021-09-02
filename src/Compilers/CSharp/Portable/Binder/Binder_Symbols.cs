@@ -1186,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            CheckDisallowedAttributeDependentType(typeArgument, isError: true, node.Location, diagnostics);
+                            CheckDisallowedAttributeDependentType(typeArgument, node.Location, diagnostics);
                         }
                     }
                 }
@@ -1336,7 +1336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Keep check and error in sync with ConstructNamedTypeUnlessTypeArgumentOmitted.
         /// </remarks>
-        private static BoundMethodOrPropertyGroup ConstructBoundMemberGroupAndReportOmittedTypeArguments(
+        private BoundMethodOrPropertyGroup ConstructBoundMemberGroupAndReportOmittedTypeArguments(
             SyntaxNode syntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
             ImmutableArray<TypeWithAnnotations> typeArguments,
@@ -1369,6 +1369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         members.SelectAsArray(s_toMethodSymbolFunc),
                         lookupResult,
                         methodGroupFlags,
+                        this,
                         hasErrors);
 
                 case SymbolKind.Property:

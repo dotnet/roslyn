@@ -87,12 +87,12 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (6,18): error CS0428: Cannot convert method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
+                // (6,18): error CS0150: A constant value is expected
                 //         _ = o is M1;
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(6, 18),
-                // (9,18): error CS0428: Cannot convert method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M1").WithLocation(6, 18),
+                // (9,18): error CS0150: A constant value is expected
                 //             case M1:
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(9, 18),
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M1").WithLocation(9, 18),
                 // (15,18): error CS0150: A constant value is expected
                 //         _ = t is M2;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(15, 18),

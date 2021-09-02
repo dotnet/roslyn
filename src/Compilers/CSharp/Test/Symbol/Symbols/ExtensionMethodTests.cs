@@ -1436,10 +1436,14 @@ static class S
 {
     internal static void E(this object o) { }
 }";
-            var compilation = CreateCompilation(source);
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (5,18): error CS0428: Cannot convert method group 'E' to non-delegate type 'object'. Did you intend to invoke the method?
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "E").WithArguments("E", "object").WithLocation(5, 18));
+
+            compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]

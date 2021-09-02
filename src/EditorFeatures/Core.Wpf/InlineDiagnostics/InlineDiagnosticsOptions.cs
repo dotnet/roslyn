@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             new(nameof(InlineDiagnosticsOptions),
                 nameof(EnableInlineDiagnostics),
                 defaultValue: false,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics"));
 
         public static readonly PerLanguageOption2<InlineDiagnosticsLocations> Location =
             new(nameof(InlineDiagnosticsOptions),
                 nameof(Location),
                 defaultValue: InlineDiagnosticsLocations.PlacedAtEndOfCode,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics.LocationOption"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineDiagnostics.LocationOption"));
     }
 
     [ExportOptionProvider, Shared]
