@@ -1498,6 +1498,11 @@ class X
         _ = a is [..{ Length: <= -1 }]; // 11
         _ = a is [..{ Length: >= -1 }];
         _ = a is [..{ Length: > -1 }];
+        _ = a is [_, _, ..{ Length: int.MaxValue - 1 }]; // 12
+        _ = a is [_, _, ..{ Length: <= int.MaxValue - 1 }];
+        _ = a is [_, _, ..{ Length: >= int.MaxValue - 1 }]; // 13
+        _ = a is [_, _, ..{ Length: < int.MaxValue - 1 }];
+        _ = a is [_, _, ..{ Length: > int.MaxValue - 1 }]; // 14
     } 
 }
 ";
@@ -1535,6 +1540,15 @@ class X
                 // (23,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
                 //         _ = a is [..{ Length: <= -1 }]; // 11
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [..{ Length: <= -1 }]").WithArguments("int[]").WithLocation(23, 13)
+                // (26,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is [_, _, ..{ Length: int.MaxValue - 1 }]; // 12
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [_, _, ..{ Length: int.MaxValue - 1 }]").WithArguments("int[]").WithLocation(26, 13),
+                // (28,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is [_, _, ..{ Length: >= int.MaxValue - 1 }]; // 13
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [_, _, ..{ Length: >= int.MaxValue - 1 }]").WithArguments("int[]").WithLocation(28, 13),
+                // (30,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is [_, _, ..{ Length: > int.MaxValue - 1 }]; // 14
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [_, _, ..{ Length: > int.MaxValue - 1 }]").WithArguments("int[]").WithLocation(30, 13)
             );
         }
 

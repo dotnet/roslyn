@@ -786,10 +786,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenCases = ArrayBuilder<StateForCase>.GetInstance(casesForRootNode.Length);
             foreach (var state in casesForRootNode)
             {
-                if (state.IsImpossible)
+                var rewrittenCase = state.RewriteNestedLengthTests();
+                if (rewrittenCase.IsImpossible)
                     continue;
-                rewrittenCases.Add(state.RewriteNestedLengthTests());
-                if (state.IsFullyMatched)
+                rewrittenCases.Add(rewrittenCase);
+                if (rewrittenCase.IsFullyMatched)
                     break;
             }
 
@@ -2009,25 +2010,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 case BoundDagValueTest t when !t.Value.IsBad:
                                     Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                    return new One(new BoundDagValueTest(t.Syntax,
-                                        ConstantValue.Create(safeAdd(t.Value.Int32Value, offset)), lengthTemp));
+                                    return knownResult(BinaryOperatorKind.Equal, t.Value, offset) ??
+                                           new One(new BoundDagValueTest(t.Syntax, safeAdd(t.Value, offset), lengthTemp));
                                 case BoundDagRelationalTest t when !t.Value.IsBad:
                                     Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                    return new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind,
-                                        ConstantValue.Create(safeAdd(t.Value.Int32Value, offset)), lengthTemp));
+                                    return knownResult(t.Relation, t.Value, offset) ??
+                                           new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind, safeAdd(t.Value, offset), lengthTemp));
                             }
                         }
                     }
 
                     return this;
 
-                    static int safeAdd(int value, int offset)
+                    static Tests? knownResult(BinaryOperatorKind relation, ConstantValue constant, int offset)
                     {
+                        var fac = ValueSetFactory.ForLength;
+                        var possibleValues = fac.Related(BinaryOperatorKind.LessThanOrEqual, int.MaxValue - offset);
+                        var lengthValues = fac.Related(relation, constant).Intersect(possibleValues);
+                        if (lengthValues.IsEmpty)
+                            return False.Instance;
+                        if (lengthValues.Complement().IsEmpty)
+                            return True.Instance;
+                        return null;
+                    }
+                    
+                    static ConstantValue safeAdd(ConstantValue constant, int offset)
+                    {
+                        int value = constant.Int32Value;
                         Debug.Assert(value >= 0); // Tests with negative values should never be created.
                         Debug.Assert(offset >= 0); // The number of elements in a list is always non-negative.
                         // We don't expect offset to be very large, but the value could
                         // be anything given that it comes from a constant in the source.
-                        return offset > (int.MaxValue - value) ? int.MaxValue : value + offset;
+                        return ConstantValue.Create(offset > (int.MaxValue - value) ? int.MaxValue : value + offset);
                     }
                 }
             }
