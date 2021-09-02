@@ -261,14 +261,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         }
 
         private static bool ParameterMatchesArgumentName(string? identifierArgument, IParameterSymbol parameter, ISyntaxFactsService syntaxFacts)
-        {
-            if (identifierArgument is null)
-            {
-                return false;
-            }
-
-            return syntaxFacts.StringComparer.Compare(parameter.Name, identifierArgument) == 0;
-        }
+        => syntaxFacts.StringComparer.Compare(parameter.Name, identifierArgument) == 0;
 
         protected static string GetIdentifierNameFromArgument(SyntaxNode argument, ISyntaxFactsService syntaxFacts)
         {
