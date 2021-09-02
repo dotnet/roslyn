@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsMergeConsecutiveIfStatements = "CodeActions.MergeConsecutiveIfStatements";
             public const string CodeActionsMergeNestedIfStatements = "CodeActions.MergeNestedIfStatements";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";
+            public const string CodeActionsMoveStaticMembers = "CodeActions.MoveStaticMembers";
             public const string CodeActionsMoveToNamespace = nameof(CodeActionsMoveToNamespace);
             public const string CodeActionsMoveToTopOfFile = "CodeActions.MoveToTopOfFile";
             public const string CodeActionsMoveType = "CodeActions.MoveType";

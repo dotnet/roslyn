@@ -497,6 +497,11 @@
         <target state="translated">Wprowadź niezdefiniowane zmienne TODO</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
+      <trans-unit id="Invalid_type_name">
+        <source>Invalid type name</source>
+        <target state="new">Invalid type name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">Źródło elementu</target>
@@ -570,6 +575,11 @@
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
         <target state="translated">Preferencje modyfikatora:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type_colon">
+        <source>Move Static Members to Another Type:</source>
+        <target state="new">Move Static Members to Another Type:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
