@@ -115,13 +115,13 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             // get back type declaration in the newly created file
             var destRoot = await newDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var destSemanticModel = await newDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            newType = destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken) as INamedTypeSymbol;
+            newType = (INamedTypeSymbol)destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken);
 
             var movedSolution = await RefactorAndMoveAsync(
                 moveOptions.SelectedMembers,
                 memberNodes,
                 newDoc.Project.Solution,
-                newType!,
+                newType,
                 typeArgIndices,
                 sourceDoc.Id,
                 cancellationToken).ConfigureAwait(false);
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             // refactor references across the entire solution
             var memberReferenceLocations = await FindMemberReferencesAsync(selectedMembers, oldSolution, cancellationToken).ConfigureAwait(false);
             var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
-            var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, oldSolution, newType!, typeArgIndices, cancellationToken).ConfigureAwait(false);
+            var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, oldSolution, newType, typeArgIndices, cancellationToken).ConfigureAwait(false);
 
             var sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDocId);
 
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 .WhereNotNull()
                 .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
 
-            var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType!, members);
+            var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
             return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
         }
 
