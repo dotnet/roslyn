@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // reach outside of the span and ended up with "node not within syntax tree" error from the speculative model.
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(semanticModel);
-            return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
+            return CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
         }
     }
 }
