@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
         protected static string GetIdentifierNameFromArgument(SyntaxNode argument, ISyntaxFactsService syntaxFacts)
         {
             var identifierNameSyntax = syntaxFacts.GetExpressionOfArgument(argument);
-            if (identifierNameSyntax == null || !syntaxFacts.IsIdentifierName(identifierNameSyntax))
+            if (!syntaxFacts.IsIdentifierName(identifierNameSyntax))
             {
                 return string.Empty;
             }
