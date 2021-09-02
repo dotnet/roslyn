@@ -90,7 +90,7 @@ class C
     void M($$int i) { }
 }"
 
-            Await VerifyContextLocationInMetadataAsSource(code, "System.Int32")
+            Await VerifyContextLocationInMetadataAsSource(code, "int", "Int32.cs")
 
         End Function
 

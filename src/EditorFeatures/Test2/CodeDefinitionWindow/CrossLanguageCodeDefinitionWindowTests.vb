@@ -6,11 +6,11 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.UnitTests
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
             End Property
         End Class
 
-        <ExportLanguageService(GetType(IGoToDefinitionService), "NoCompilation"), [Shared]>
+        <ExportLanguageService(GetType(IGoToDefinitionService), NoCompilationConstants.LanguageName), [Shared]>
         Private Class FakeGoToDefinitionService
             Implements IGoToDefinitionService
 
@@ -104,21 +104,22 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                         </Document>
                     </Project>
                 </Workspace>,
-                composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(FakeGoToDefinitionService)))
+                composition:=TestComposition.AddParts(GetType(FakeGoToDefinitionService)))
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 
-                Dim definitionContextTracker As New DefinitionContextTracker(Nothing, Nothing)
+                Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
                     document,
                     hostDocument.CursorPosition.Value,
-                    TaskScheduler.Current,
                     CancellationToken.None)
 
                 Dim expectedLocation = New CodeDefinitionWindowLocation(
                     "DisplayText",
-                    New FileLinePositionSpan("document1", New LinePositionSpan(start:=New LinePosition(0, 5), [end]:=New LinePosition(0, 7))))
+                    New FileLinePositionSpan(document.Name, New LinePositionSpan(start:=New LinePosition(1, 3), [end]:=New LinePosition(1, 5))))
+
+                Assert.Equal(expectedLocation, Assert.Single(locations))
             End Using
         End Function
 
@@ -126,7 +127,8 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
         Public Async Function CSharpReferencingVisualBasic() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
-                    <Project Language="Visual Basic" ProjectReferences="ReferencedProject">
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <ProjectReference>ReferencedProject</ProjectReference>
                         <Document>
                             Module Program
                                 Sub Main()
@@ -136,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                             End Module
                         </Document>
                     </Project>
-                    <Project Language="C#" Name="ReferencedProject">
+                    <Project Language="C#" Name="ReferencedProject" CommonReferences="true">
                         <Document>
                             public class Class1
                             {
@@ -144,15 +146,16 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                             }
                         </Document>
                     </Project>
-                </Workspace>)
+                </Workspace>,
+                composition:=TestComposition)
+
                 Dim vbHostDocument = workspace.Documents.Single(Function(d) d.Project.Language = LanguageNames.VisualBasic)
                 Dim document As Document = workspace.CurrentSolution.GetDocument(vbHostDocument.Id)
 
-                Dim definitionContextTracker As New DefinitionContextTracker(Nothing, Nothing)
+                Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
                     document,
                     vbHostDocument.CursorPosition.Value,
-                    TaskScheduler.Current,
                     CancellationToken.None)
 
                 Dim csHostDocument = workspace.Documents.Single(Function(d) d.Project.Language = LanguageNames.CSharp)
@@ -160,6 +163,8 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                 Dim expectedLocation = New CodeDefinitionWindowLocation(
                     "Class1.M()",
                     tree.GetLocation(csHostDocument.SelectedSpans.Single()).GetLineSpan())
+
+                Assert.Equal(expectedLocation, Assert.Single(locations))
             End Using
         End Function
 

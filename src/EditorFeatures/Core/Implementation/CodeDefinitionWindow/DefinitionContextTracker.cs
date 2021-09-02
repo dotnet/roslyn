@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,6 +28,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 {
     [Export(typeof(ITextViewConnectionListener))]
+    [Export(typeof(DefinitionContextTracker))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     internal class DefinitionContextTracker : ITextViewConnectionListener
@@ -39,9 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 
         private CancellationTokenSource? _currentUpdateCancellationToken;
 
-#pragma warning disable RS0033 // Importing constructor should be marked with 'ObsoleteAttribute'
         [ImportingConstructor]
-#pragma warning restore RS0033 // Importing constructor should be marked with 'ObsoleteAttribute'
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefinitionContextTracker(
             IMetadataAsSourceFileService metadataAsSourceFileService,
             ICodeDefinitionWindowService codeDefinitionWindowService,
@@ -196,6 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             {
                 var originatingProject = solution.GetProject(sourceDefinition.ContainingAssembly, cancellationToken);
                 project = originatingProject ?? project;
+                symbol = sourceDefinition;
             }
 
             // Three choices here:
