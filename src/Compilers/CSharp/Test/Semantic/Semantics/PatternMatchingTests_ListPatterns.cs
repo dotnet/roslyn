@@ -2635,17 +2635,17 @@ class C
 
         _ = a switch
         {
-            [_, ..{ Length: < int.MaxValue }] or [] or { Length: int.MaxValue } => 0
+            [_, ..{ Length: < int.MaxValue - 1 }] or [] or { Length: int.MaxValue } => 0
         };
 
         _ = a switch
         {
-            [..{ Length: <= int.MaxValue }, _] or []  => 0
+            [..{ Length: <= int.MaxValue - 1 }, _] or []  => 0
         };
 
         _ = a switch
         {
-            [_, ..{ Length: <= int.MaxValue }, _] or { Length: 0 or 1 } => 0
+            [_, ..{ Length: <= int.MaxValue - 2 }, _] or { Length: 0 or 1 } => 0
         };
 
         _ = b switch
