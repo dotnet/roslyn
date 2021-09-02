@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         StaticTypeInImplicitlyTypedLambda,
         ExpressionTreeMustHaveDelegateTypeArgument,
         ExpressionTreeFromAnonymousMethod,
-        CannotInferDelegateType,
         BindingFailed
     }
 }

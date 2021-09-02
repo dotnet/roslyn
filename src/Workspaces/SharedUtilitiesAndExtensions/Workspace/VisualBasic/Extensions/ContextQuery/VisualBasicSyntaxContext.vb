@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsWithinPreprocessorContext As Boolean
 
         Private Sub New(
-            workspace As Workspace,
+            document As Document,
             semanticModel As SemanticModel,
             position As Integer,
             leftToken As SyntaxToken,
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         )
 
             MyBase.New(
-                workspace,
+                document,
                 semanticModel,
                 position,
                 leftToken,
@@ -137,13 +137,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
         End Function
 
-        Public Shared Function CreateContext(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As VisualBasicSyntaxContext
+        Public Shared Function CreateContext(document As Document, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As VisualBasicSyntaxContext
             Dim syntaxTree = semanticModel.SyntaxTree
             Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
 
             Return New VisualBasicSyntaxContext(
-                workspace,
+                document,
                 semanticModel,
                 position,
                 leftToken,
@@ -299,16 +299,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return SyntaxTree.IsFollowingCompleteExpression(Of JoinClauseSyntax)(
                 Position, TargetToken, Function(joinOperator) joinOperator.JoinedVariables.LastCollectionExpression(), cancellationToken)
         End Function
-
-        Friend Overrides Function GetTypeInferenceServiceWithoutWorkspace() As ITypeInferenceService
-            Return New VisualBasicTypeInferenceService()
-        End Function
-
-        Friend Structure TestAccessor
-            Public Shared Function CreateContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As VisualBasicSyntaxContext
-                Return VisualBasicSyntaxContext.CreateContext(Nothing, semanticModel, position, cancellationToken)
-            End Function
-        End Structure
     End Class
 End Namespace
 

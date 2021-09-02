@@ -28131,33 +28131,39 @@ class C
         [Fact]
         public void TupleWithElementNamedWithDefaultName()
         {
-            string source = @"
+            // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+            for (int i = 0; i < 1000; i++)
+            {
+                string source = @"
 class C
 {
     (int Item1, int Item2) M() => throw null;
 }
 ";
-            var comp = CreateCompilation(source);
-            var m = (MethodSymbol)comp.GetMember("C.M");
-            var tuple = m.ReturnType;
-            Assert.Equal("(System.Int32 Item1, System.Int32 Item2)", tuple.ToTestDisplayString());
-            Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
+                var comp = CreateCompilation(source);
+                var m = (MethodSymbol)comp.GetMember("C.M");
+                var tuple = m.ReturnType;
+                Assert.Equal("(System.Int32 Item1, System.Int32 Item2)", tuple.ToTestDisplayString());
+                Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
 
-            var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
-            Assert.Equal(0, item1.TupleElementIndex);
+                var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
+                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+                RoslynDebug.AssertOrFailFast(0 == item1.TupleElementIndex);
 
-            var item1Underlying = item1.TupleUnderlyingField;
-            Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
-            Assert.Equal("System.Int32 (System.Int32 Item1, System.Int32 Item2).Item1", item1Underlying.ToTestDisplayString());
-            Assert.Equal(0, item1Underlying.TupleElementIndex);
-            Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
+                var item1Underlying = item1.TupleUnderlyingField;
+                Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
+                Assert.Equal("System.Int32 (System.Int32 Item1, System.Int32 Item2).Item1", item1Underlying.ToTestDisplayString());
+                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+                RoslynDebug.AssertOrFailFast(0 == item1Underlying.TupleElementIndex);
+                Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
 
-            var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
-            Assert.Equal(1, item2.TupleElementIndex);
-            var item2Underlying = item2.TupleUnderlyingField;
-            Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
-            Assert.Equal(1, item2Underlying.TupleElementIndex);
-            Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
+                var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
+                Assert.Equal(1, item2.TupleElementIndex);
+                var item2Underlying = item2.TupleUnderlyingField;
+                Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
+                Assert.Equal(1, item2Underlying.TupleElementIndex);
+                Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
+            }
         }
 
         [Fact]

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
@@ -37,7 +36,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TaskStatusCenter;
@@ -160,7 +158,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             LoadOptionPersistersAsync(_componentModel, cancellationToken).Forget();
 
             _workspace = _componentModel.GetService<VisualStudioWorkspace>();
-            _workspace.Services.GetService<IExperimentationService>();
 
             // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
             // the background thread then we will experience hangs like we see in this bug:
@@ -204,14 +201,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         private void InitializeColors()
         {
-            // Use VS color keys in order to support theming.
-            CodeAnalysisColors.SystemCaptionTextColorKey = EnvironmentColors.SystemWindowTextColorKey;
-            CodeAnalysisColors.SystemCaptionTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            CodeAnalysisColors.CheckBoxTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            CodeAnalysisColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
-            CodeAnalysisColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
-            CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
-
             // Initialize ColorScheme support
             _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
             _colorSchemeApplier.Initialize();

@@ -10,8 +10,5 @@ namespace Microsoft.CodeAnalysis.Remote
     internal interface IRemoteHostServiceCallback
     {
         Task GetAssetsAsync(int scopeId, Checksum[] checksums, string pipeName, CancellationToken cancellationToken);
-
-        // TODO: remove (https://github.com/dotnet/roslyn/issues/43477)
-        Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken);
     }
 }

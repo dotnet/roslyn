@@ -782,23 +782,37 @@ $@"class C
         [Fact]
         public async Task TestCSharp7_1_InIsPattern_Lambda()
         {
+            await TestMissingWithLanguageVersionsAsync(
+@"class C
+{
+    void M()
+    { 
+        var value = () => { };
+        if (value is [||]default) { }
+    }
+}", ImmutableArray.Create(LanguageVersion.CSharp7_1));
+        }
+
+        [Fact]
+        public async Task TestCSharpLatest_InIsPattern_Lambda()
+        {
             await TestWithLanguageVersionsAsync(
-$@"class C
-{{
+@"class C
+{
     void M()
-    {{ 
-        var value = () => {{ }};
-        if (value is [||]default) {{ }}
-    }}
-}}",
-$@"class C
-{{
+    { 
+        var value = () => { };
+        if (value is [||]default) { }
+    }
+}",
+@"class C
+{
     void M()
-    {{ 
-        var value = () => {{ }};
-        if (value is null) {{ }}
-    }}
-}}", s_csharp7_1above);
+    { 
+        var value = () => { };
+        if (value is null) { }
+    }
+}", ImmutableArray.Create(LanguageVersion.Latest));
         }
 
         [Fact]

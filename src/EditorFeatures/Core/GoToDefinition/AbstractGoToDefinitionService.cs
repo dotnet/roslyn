@@ -11,9 +11,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -112,16 +114,25 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (interfaceImpls.Length == 0)
                 return false;
 
-            var definitions = interfaceImpls.SelectMany(
-                i => GoToDefinitionHelpers.GetDefinitions(
-                    i, solution, thirdPartyNavigationAllowed: false, cancellationToken)).ToImmutableArray();
-
             var title = string.Format(EditorFeaturesResources._0_implemented_members,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return _threadingContext.JoinableTaskFactory.Run(() =>
-                _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    _threadingContext, solution.Workspace, title, definitions, cancellationToken));
+            return _threadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
+                foreach (var impl in interfaceImpls)
+                {
+                    // Use ConfigureAwait(true) here.  Not for a correctness requirements, but because we're
+                    // already blocking the UI thread by being in a JTF.Run call.  So we might as well try to
+                    // continue to use the blocking UI thread to do as much work as possible instead of making
+                    // it wait for threadpool threads to be available to process the work.
+                    definitions.AddRange(await GoToDefinitionHelpers.GetDefinitionsAsync(
+                        impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(true));
+                }
+
+                return await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                    _threadingContext, solution.Workspace, title, definitions.ToImmutable(), cancellationToken).ConfigureAwait(true);
+            });
         }
 
         private static bool IsThirdPartyNavigationAllowed(ISymbol symbolToNavigateTo, int caretPosition, Document document, CancellationToken cancellationToken)

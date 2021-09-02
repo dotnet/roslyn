@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -773,6 +774,52 @@ public interface IClass
 }";
 
             await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task ExtractInterface_CodeGen_ImportsInsideNamespace()
+        {
+            var markup = @"
+namespace N
+{
+    public class Class
+    {
+        $$public System.Diagnostics.BooleanSwitch M1(System.Globalization.Calendar x) { return null; }
+        public void M2(System.Collections.Generic.List<System.IO.BinaryWriter> x) { }
+        public void M3<T>() where T : System.Net.WebProxy { }
+    }
+}";
+
+            var expectedInterfaceCode = @"namespace N
+{
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.IO;
+    using System.Net;
+
+    public interface IClass
+    {
+        BooleanSwitch M1(Calendar x);
+        void M2(List<BinaryWriter> x);
+        void M3<T>() where T : WebProxy;
+    }
+}";
+
+            using var testState = ExtractInterfaceTestState.Create(
+                markup, LanguageNames.CSharp,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10),
+                options: new OptionsCollection(LanguageNames.CSharp)
+                {
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace }
+                });
+
+            var result = await testState.ExtractViaCommandAsync();
+
+            var interfaceDocument = result.UpdatedSolution.GetRequiredDocument(result.NavigationDocumentId);
+            var interfaceCode = (await interfaceDocument.GetTextAsync()).ToString();
+
+            Assert.Equal(expectedInterfaceCode, interfaceCode);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]

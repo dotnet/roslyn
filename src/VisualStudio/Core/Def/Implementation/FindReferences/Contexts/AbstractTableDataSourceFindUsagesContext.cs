@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -305,7 +306,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public sealed override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
             {
                 await OnCompletedAsyncWorkerAsync(cancellationToken).ConfigureAwait(false);
-
                 _tableDataSink.IsStable = true;
             }
 
@@ -331,7 +331,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 ImmutableDictionary<string, string> additionalProperties,
                 CancellationToken cancellationToken)
             {
-                var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var document = documentSpan.Document;
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, cancellationToken).ConfigureAwait(false);
 
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
@@ -341,10 +342,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     return null;
                 }
 
+                var (guid, projectName, projectFlavor) = GetGuidAndProjectInfo(document);
+
                 return DocumentSpanEntry.TryCreate(
                     this,
                     definitionBucket,
-                    documentSpan,
+                    guid,
+                    projectName,
+                    projectFlavor,
+                    document.FilePath,
+                    documentSpan.SourceSpan,
                     spanKind,
                     mappedDocumentSpan.Value,
                     excerptResult,

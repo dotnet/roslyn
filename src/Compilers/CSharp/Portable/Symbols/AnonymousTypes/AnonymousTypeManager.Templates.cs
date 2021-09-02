@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public string MakeTypeName()
             {
-                return GeneratedNames.MakeDynamicCallSiteDelegateName(_byRefs, _returnsVoid, _generation);
+                return GeneratedNames.MakeSynthesizedDelegateName(_byRefs, _returnsVoid, _generation);
             }
 
             public override bool Equals(object obj)
@@ -235,6 +235,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new AnonymousTypeTemplateSymbol(this, typeDescr);
         }
 
+        private SynthesizedDelegateValue CreatePlaceholderSynthesizedDelegateValue(string name, RefKindVector refKinds, bool returnsVoid, int parameterCount)
+        {
+            var symbol = new SynthesizedDelegateSymbol(
+               this.Compilation.Assembly.GlobalNamespace,
+               MetadataHelpers.InferTypeArityAndUnmangleMetadataName(name, out _),
+               this.System_Object,
+               Compilation.GetSpecialType(SpecialType.System_IntPtr),
+               returnsVoid ? Compilation.GetSpecialType(SpecialType.System_Void) : null,
+               parameterCount,
+               refKinds);
+            return new SynthesizedDelegateValue(this, symbol);
+        }
+
         /// <summary>
         /// Resets numbering in anonymous type names and compiles the
         /// anonymous type methods. Also seals the collection of templates.
@@ -314,6 +327,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             builder.Free();
 
+            // Ensure all previous synthesized delegates are included so the
+            // types are available for subsequent edit and continue generations.
+            foreach (var key in moduleBeingBuilt.GetPreviousSynthesizedDelegates())
+            {
+                if (GeneratedNames.TryParseSynthesizedDelegateName(key.Name, out var refKinds, out var returnsVoid, out var generation, out var parameterCount))
+                {
+                    var delegateKey = new SynthesizedDelegateKey(parameterCount, refKinds, returnsVoid, generation);
+                    this.SynthesizedDelegates.GetOrAdd(delegateKey, (k, args) => CreatePlaceholderSynthesizedDelegateValue(key.Name, args.refKinds, args.returnsVoid, args.parameterCount), (refKinds, returnsVoid, parameterCount));
+                }
+            }
+
             var synthesizedDelegates = ArrayBuilder<SynthesizedDelegateSymbol>.GetInstance();
             GetCreatedSynthesizedDelegates(synthesizedDelegates);
             foreach (var synthesizedDelegate in synthesizedDelegates)
@@ -374,6 +398,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return x.MetadataName.CompareTo(y.MetadataName);
             }
+        }
+
+        internal IReadOnlyDictionary<CodeAnalysis.Emit.SynthesizedDelegateKey, CodeAnalysis.Emit.SynthesizedDelegateValue> GetSynthesizedDelegates()
+        {
+            var result = new Dictionary<CodeAnalysis.Emit.SynthesizedDelegateKey, CodeAnalysis.Emit.SynthesizedDelegateValue>();
+            var synthesizedDelegates = ArrayBuilder<SynthesizedDelegateSymbol>.GetInstance();
+            GetCreatedSynthesizedDelegates(synthesizedDelegates);
+            foreach (var delegateSymbol in synthesizedDelegates)
+            {
+                var key = new CodeAnalysis.Emit.SynthesizedDelegateKey(delegateSymbol.MetadataName);
+                var value = new CodeAnalysis.Emit.SynthesizedDelegateValue(delegateSymbol.GetCciAdapter());
+                result.Add(key, value);
+            }
+            synthesizedDelegates.Free();
+            return result;
         }
 
         internal IReadOnlyDictionary<Microsoft.CodeAnalysis.Emit.AnonymousTypeKey, Microsoft.CodeAnalysis.Emit.AnonymousTypeValue> GetAnonymousTypeMap()

@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     internal static class ExtractMethodOptions
     {
         public static readonly PerLanguageOption2<bool> AllowBestEffort = new(nameof(ExtractMethodOptions), nameof(AllowBestEffort), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Allow Best Effort"));
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Allow Best Effort"));
 
         public static readonly PerLanguageOption2<bool> DontPutOutOrRefOnStruct = new(nameof(ExtractMethodOptions), nameof(DontPutOutOrRefOnStruct), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Don't Put Out Or Ref On Strcut")); // NOTE: the spelling error is what we've shipped and thus should not change
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Don't Put Out Or Ref On Strcut")); // NOTE: the spelling error is what we've shipped and thus should not change
     }
 }

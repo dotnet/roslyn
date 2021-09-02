@@ -252,7 +252,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 textView = _editorFactory.GetWpfTextView(adapter);
             }
 
+            UpdateTextViewOptions(textView);
+
             return textView;
+        }
+
+        private static void UpdateTextViewOptions(IWpfTextView textView)
+        {
+            // Do not show the IndentationCharacterMargin, which controls spaces vs. tabs etc.
+            textView.Options.SetOptionValue(DefaultTextViewHostOptions.IndentationCharacterMarginOptionId, false);
+
+            // Do not show LineEndingMargin, which determines EOL and EOF settings.
+            textView.Options.SetOptionValue(DefaultTextViewHostOptions.LineEndingMarginOptionId, false);
+
+            // Do not show the "no issues found" health indicator for previews. 
+            textView.Options.SetOptionValue(DefaultTextViewHostOptions.EnableFileHealthIndicatorOptionId, false);
         }
 
         // When the dialog is first instantiated, the IVsTextView it contains may 
