@@ -1539,7 +1539,7 @@ class X
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [..{ Length: < -1 }]").WithArguments("int[]").WithLocation(22, 13),
                 // (23,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
                 //         _ = a is [..{ Length: <= -1 }]; // 11
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [..{ Length: <= -1 }]").WithArguments("int[]").WithLocation(23, 13)
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [..{ Length: <= -1 }]").WithArguments("int[]").WithLocation(23, 13),
                 // (26,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
                 //         _ = a is [_, _, ..{ Length: int.MaxValue - 1 }]; // 12
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [_, _, ..{ Length: int.MaxValue - 1 }]").WithArguments("int[]").WithLocation(26, 13),
