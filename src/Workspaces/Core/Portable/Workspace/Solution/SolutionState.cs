@@ -1976,24 +1976,6 @@ namespace Microsoft.CodeAnalysis
             return compilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
         }
 
-        private ImmutableArray<DocumentState> ConvertTreesToDocuments(ProjectId id, IEnumerable<SyntaxTree> trees)
-        {
-            var result = ArrayBuilder<DocumentState>.GetInstance();
-            foreach (var tree in trees)
-            {
-                var document = GetDocumentState(tree, id);
-                if (document == null)
-                {
-                    // ignore trees that are not known to solution such as VB synthesized trees made by compilation.
-                    continue;
-                }
-
-                result.Add(document);
-            }
-
-            return result.ToImmutableAndFree();
-        }
-
         /// <summary>
         /// Gets a <see cref="ProjectDependencyGraph"/> that details the dependencies between projects for this solution.
         /// </summary>
