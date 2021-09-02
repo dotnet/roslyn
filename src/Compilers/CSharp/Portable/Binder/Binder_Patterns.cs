@@ -1476,12 +1476,11 @@ done:
                     memberType = member.Type;
                     // If we're dealing with the member that makes the type countable, and the type is also indexable, then it will be assumed to always return a non-negative value
                     isLengthOrCount = memberType.SpecialType == SpecialType.System_Int32 &&
-                                      member.Symbol is { Name: WellKnownMemberNames.LengthPropertyName or WellKnownMemberNames.CountPropertyName, ContainingType: TypeSymbol containingType } memberSymbol &&
+                                      member.Symbol is { Name: WellKnownMemberNames.LengthPropertyName or WellKnownMemberNames.CountPropertyName } memberSymbol &&
                                       (memberSymbol.Equals(((MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Array__get_Length, BindingDiagnosticBag.Discarded, syntax: node))?.AssociatedSymbol) ||
-                                       TryPerformPatternIndexerLookup(node, containingType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, out PropertySymbol? lengthProperty, BindingDiagnosticBag.Discarded) &&
-                                       memberSymbol.Equals(lengthProperty)); // If both Count and Length are present we want the one that makes this type countable.
+                                       TryPerformPatternIndexerLookup(node, inputType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, out PropertySymbol? lengthProperty, BindingDiagnosticBag.Discarded) &&
+                                       memberSymbol == (object)lengthProperty); // If both Count and Length are present we want the one that makes this type countable.
                 }
-
                 BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);
                 builder.Add(new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern));
             }

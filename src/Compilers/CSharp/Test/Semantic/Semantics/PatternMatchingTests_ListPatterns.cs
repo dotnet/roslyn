@@ -1471,7 +1471,7 @@ class X
         }
 
         [Fact]
-        public void ImpossiblePattern()
+        public void ImpossiblePattern_01()
         {
             var source = @"
 using System;
@@ -1536,6 +1536,60 @@ class X
                 //         _ = a is [..{ Length: <= -1 }]; // 11
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [..{ Length: <= -1 }]").WithArguments("int[]").WithLocation(23, 13)
             );
+        }
+
+        [Fact]
+        public void ImpossiblePattern_02()
+        {
+            var source = @"
+interface IIndexable
+{
+    int this[int i] { get; }
+}
+interface ICountableViaCount
+{
+    int Count { get; }
+}
+interface ICountableViaLength
+{
+    int Length { get; }
+}
+class X
+{
+    public static void Test1<T>(T t) where T : ICountableViaCount
+    {
+        _ = t is { Count: -1 }; // ok
+    }
+    public static void Test2<T>(T t) where T : ICountableViaLength
+    {
+        _ = t is { Length: -1 }; // ok
+    }
+    public static void Test3<T>(T t) where T : IIndexable, ICountableViaCount
+    {
+        _ = t is { Count: -1 }; // 1
+    }
+    public static void Test4<T>(T t) where T : IIndexable, ICountableViaLength
+    {
+        _ = t is { Length: -1 }; // 2
+    }
+    public static void Test5<T>(T t) where T : IIndexable, ICountableViaLength, ICountableViaCount
+    {
+        _ = t is { Length: -1 }; // 3
+        _ = t is { Count: -1 }; // ok
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (26,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                //         _ = t is { Count: -1 }; // 1
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Count: -1 }").WithArguments("T").WithLocation(26, 13),
+                // (30,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                //         _ = t is { Length: -1 }; // 2
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(30, 13),
+                // (34,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                //         _ = t is { Length: -1 }; // 3
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(34, 13));
         }
 
         [Fact]
