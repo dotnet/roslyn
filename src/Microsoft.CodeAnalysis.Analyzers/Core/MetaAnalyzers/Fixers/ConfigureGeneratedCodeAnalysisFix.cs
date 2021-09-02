@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
     public abstract class ConfigureGeneratedCodeAnalysisFix : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ConfigureGeneratedCodeAnalysisAnalyzer.Rule.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(ConfigureGeneratedCodeAnalysisAnalyzer.Rule.Id);
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;

@@ -14,22 +14,24 @@ using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
+    using static BannedApiAnalyzerResources;
+
     public abstract class RestrictedInternalsVisibleToAnalyzer<TNameSyntax, TSyntaxKind> : DiagnosticAnalyzer
         where TNameSyntax : SyntaxNode
         where TSyntaxKind : struct
     {
         public static readonly DiagnosticDescriptor Rule = new(
             id: DiagnosticIds.RestrictedInternalsVisibleToRuleId,
-            title: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.RestrictedInternalsVisibleToTitle), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
-            messageFormat: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.RestrictedInternalsVisibleToMessage), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            title: CreateLocalizableResourceString(nameof(RestrictedInternalsVisibleToTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(RestrictedInternalsVisibleToMessage)),
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Error,  // Force build break on invalid external access.
             isEnabledByDefault: true,
-            description: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.RestrictedInternalsVisibleToDescription), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            description: CreateLocalizableResourceString(nameof(RestrictedInternalsVisibleToDescription)),
             helpLinkUri: null, // TODO: Add help link
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Rule);
 
         protected abstract ImmutableArray<TSyntaxKind> NameSyntaxKinds { get; }
 

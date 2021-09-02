@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class NamedTypeFullNameNotNullSuppressor : DiagnosticSuppressor
     {
@@ -22,7 +24,7 @@ namespace Roslyn.Diagnostics.Analyzers
         // CS8604: Possible null reference argument for parameter 'name' in 'method'
         private const string CS8604 = nameof(CS8604);
 
-        private static readonly LocalizableString s_localizableJustification = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.NamedTypeFullNameNotNullSuppressorJustification), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+        private static readonly LocalizableString s_localizableJustification = CreateLocalizableResourceString(nameof(NamedTypeFullNameNotNullSuppressorJustification));
 
         internal static readonly SuppressionDescriptor CS8600Rule = new(Id, CS8600, s_localizableJustification);
         internal static readonly SuppressionDescriptor CS8603Rule = new(Id, CS8603, s_localizableJustification);

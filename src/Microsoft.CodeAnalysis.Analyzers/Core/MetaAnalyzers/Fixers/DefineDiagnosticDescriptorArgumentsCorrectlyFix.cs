@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
         private const string SourceDocumentEquivalenceKeySuffix = nameof(SourceDocumentEquivalenceKeySuffix);
         private const string AdditionalDocumentEquivalenceKeySuffix = nameof(AdditionalDocumentEquivalenceKeySuffix);
 
-        public override ImmutableArray<string> FixableDiagnosticIds =>
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId,
                                   DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId,
                                   DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId);
