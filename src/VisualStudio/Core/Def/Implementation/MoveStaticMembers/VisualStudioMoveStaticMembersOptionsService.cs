@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         private static string GetFile(Location loc) => PathUtilities.GetFileName(loc.SourceTree!.FilePath);
 
         /// <summary>
-        /// Construct all the type names declared in the project, 
+        /// Construct all the type names declared in the project,
         /// </summary>
         private static ImmutableArray<TypeNameItem> MakeTypeNameItems(
             INamespaceSymbol currentNamespace,
@@ -167,7 +167,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         {
             return currentNamespace.GetAllTypes(cancellationToken)
                 // only take symbols that are the same kind of type (class, module)
-                .Where(t => t.TypeKind == currentType.TypeKind)
+                // and remove non-static types only when the current type is static
+                .Where(t => t.TypeKind == currentType.TypeKind && (t.IsStaticType() || !currentType.IsStaticType()))
                 .SelectMany(t =>
             {
                 // for partially declared classes, we may want multiple entries for a single type.

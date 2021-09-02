@@ -331,7 +331,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
         <Document>
             namespace TestNs
             {
-                public class TestClass
+                public static class TestClass
                 {
                     public static int Bar$$bar()
                     {
@@ -356,7 +356,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
         <Document FilePath="TestFile.cs">
             namespace TestNs 
             {
-                public class ConflictingClassName
+                public static class ConflictingClassName
                 {
                 }
             }
@@ -372,7 +372,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
         <Document>
             namespace TestNs.ExtraNs
             {
-                public class ConflictingNsClassName
+                public static class ConflictingNsClassName
+                {
+                }
+            }
+        </Document>
+        <Document>
+            namespace TestNs
+            {
+                public class NonStaticConflictingName
                 {
                 }
             }
@@ -401,6 +409,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
 
             ' there should only be 2 available types that are
             ' a) the same kind
+            ' b) static (if the current type is static)
             ' b) in the same or nested namespace
             ' c) in the same project
             Assert.Equal(2, viewModel.AvailableTypes.Length)
