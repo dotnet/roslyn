@@ -180,11 +180,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public IEnumerable<SyntaxTree>? GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-            {
-                return _underlyingTracker.GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(predicate, filter, cancellationToken);
-            }
-
             public Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken)
             {
                 return _underlyingTracker.HasSuccessfullyLoadedAsync(solution, cancellationToken);
