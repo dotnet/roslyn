@@ -1481,6 +1481,7 @@ done:
                                        TryPerformPatternIndexerLookup(node, inputType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, out PropertySymbol? lengthProperty, BindingDiagnosticBag.Discarded) &&
                                        memberSymbol == (object)lengthProperty); // If both Count and Length are present we want the one that makes this type countable.
                 }
+
                 BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);
                 builder.Add(new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern));
             }
