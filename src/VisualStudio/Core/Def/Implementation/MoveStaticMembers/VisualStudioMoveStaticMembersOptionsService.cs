@@ -148,7 +148,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 defaultTypeName,
                 availableTypeNames,
                 conflictingTypeNames.ToImmutableArray(),
-                selectedType.Name,
                 containingNamespaceDisplay,
                 document.GetRequiredLanguageService<ISyntaxFactsService>());
         }

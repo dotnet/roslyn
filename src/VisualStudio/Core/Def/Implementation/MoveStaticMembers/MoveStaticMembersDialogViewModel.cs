@@ -27,7 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             string defaultType,
             ImmutableArray<TypeNameItem> availableTypes,
             ImmutableArray<INamedTypeSymbol> conflictingTypeNames,
-            string sourceTypeName,
             string containingNamespace,
             ISyntaxFacts syntaxFacts)
         {
@@ -37,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             AvailableTypes = availableTypes;
             _conflictingTypeNames = conflictingTypeNames;
             _destinationName = new TypeNameItem(defaultType);
-            _prependedNamespace = containingNamespace + ".";
+            _prependedNamespace = string.IsNullOrEmpty(containingNamespace) ? string.Empty : containingNamespace + ".";
 
             PropertyChanged += MoveMembersToTypeDialogViewModel_PropertyChanged;
             // Set message and icon + shownTypes

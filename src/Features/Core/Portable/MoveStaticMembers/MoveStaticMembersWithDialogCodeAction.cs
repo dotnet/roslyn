@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var members = oldMemberNodes
                 .Select(node => root.GetCurrentNode(node))
                 .WhereNotNull()
-                .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node!, cancellationToken), false));
+                .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
 
             var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType!, members);
             return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);

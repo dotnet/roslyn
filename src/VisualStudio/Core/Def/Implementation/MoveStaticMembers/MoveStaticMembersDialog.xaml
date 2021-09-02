@@ -15,7 +15,7 @@
     x:ClassModifier="internal"
     mc:Ignorable="d"
     WindowStartupLocation="CenterOwner"
-    Height="398"
+    Height="498"
     Width="500"
     MinHeight="298"
     MinWidth="210"
@@ -33,11 +33,13 @@
     </vs:DialogWindow.Resources>
     <Grid Margin="11,6,11,11">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="160"/>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Vertical" Grid.Row="0">
+        <StackPanel
+            Orientation="Vertical"
+            Grid.Row="0">
             <Label x:Uid="DestinationLabel" 
                        x:Name="DestinationLabel"
                        Margin="{StaticResource verticalLabelMargin}"
@@ -54,7 +56,7 @@
                 ItemsSource="{Binding AvailableTypes, Mode=OneTime}"
                 BorderThickness="1" 
                 Margin="0 0 20 0"
-                MaxDropDownHeight="150">
+                MaxDropDownHeight="120">
                 <ComboBox.ItemContainerStyle>
                     <Style TargetType="{x:Type ComboBoxItem}">
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
