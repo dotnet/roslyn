@@ -1934,15 +1934,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         falseTestImpliesTrueOther: out bool falseDecisionImpliesTrueOther,
                         foundExplicitNullTest: ref foundExplicitNullTest);
                     Debug.Assert(sideeffect is True or One(BoundDagAssignmentEvaluation));
-                    // Given T0 as a test that has already occurred, T1 as a subsequent test, P as a pre-condition, and S as a side-effect (expected to always evaluate to True), we proceed as follow:
-                    //  - If T0=True implies T1, we rewrite T1 as (P ? S : T1) because we have determined that given T0=True, T1 would always succeed if P evaluates to True.
-                    //    Note: If there is no pre-condition, i.e. P is True, the above will be further simplified as True which means T1 is insignificant.
-                    //  - If T0=True disallows T1, we rewrite T1 as (P ? !S : T1) because we have determined that given T0=True, T1 would never succeed if P evaluates to True.
-                    //    Note: If there is no pre-condition, i.e. P is True, the above will be further simplified as False which means T1 is impossible.
-                    //  - Otherwise, we rewrite T1 as ((!P || S) && T1) to preserve the side-effect if the pre-condition holds.
-                    //    Note: If there is no pre-condition, i.e. P is True, T1 is not rewritten -- the two are considered independent or there is no implication from one to the other.
+
+                    // Given:
+                    //
+                    //  - "test" as a test that has already occurred,
+                    //  - "other" as a subsequent test,
+                    //  - S as a possible side-effect (expected to always evaluate to True),
+                    //  - and P as a pre-condition under which we need to evaluate S,
+                    //
+                    // we proceed as follows:
+                    //
+                    //  - If "test" being true proves "other" to be also true, we rewrite "other" as ((P && S) || other),
+                    //    Because we have determined that on this branch, "other" would always succeed if the pre-condition is met.
+                    //    Note: If there is no pre-condition, i.e. P is True, the above will be reduced to True which means "other" is insignificant.
+                    //
+                    //  - If "test" being true proves "other" to be false, we rewrite "other" as (!(P && S) && other),
+                    //    Because we have determined that on this branch, "other" would never succeed if the pre-condition is met.
+                    //    Note: If there is no pre-condition, i.e. P is True, the above will be reduced to False which means "other" is impossible.
+                    //
+                    //  - Otherwise, we rewrite "other" as ((!P || S) && other) to preserve the side-effect if the pre-condition is met.
+                    //    Because we have determined that there were no logical implications from one to the other on this branch.
+                    //    Note: If there is no pre-condition, i.e. P is True, "other" is not rewritten which means the two are considered independent.
+                    //
                     whenTrue = rewrite(trueDecisionImpliesTrueOther, trueDecisionPermitsTrueOther, precondition, sideeffect, this);
-                    // Similarly for the opposite branch where T0=False
+
+                    // Similarly for the opposite branch when "test" is false.
                     whenFalse = rewrite(falseDecisionImpliesTrueOther, falseDecisionPermitsTrueOther, precondition, sideeffect, this);
 
                     static Tests rewrite(bool decisionImpliesTrueOther, bool decisionPermitsTrueOther, Tests precondition, Tests sideeffect, Tests other)
