@@ -2426,6 +2426,198 @@ public class Class1Helpers
                 selectedMembers,
                 selectedDestinationName).ConfigureAwait(false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodToExistingTypeWithNamespace()
+        {
+            var initialSourceMarkup = @"
+namespace TestNs
+{
+    public class Class1
+    {
+        public static int Test[||]Method()
+        {
+            return 0;
+        }
+    }
+}";
+            var initialDestinationMarkup = @"
+namespace TestNs
+{
+    public class Class1Helpers
+    {
+    }
+}";
+            var selectedDestinationName = "TestNs.Class1Helpers";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var fixedSourceMarkup = @"
+namespace TestNs
+{
+    public class Class1
+    {
+    }
+}";
+            var fixedDestinationMarkup = @"
+namespace TestNs
+{
+    public class Class1Helpers
+    {
+        public static int TestMethod()
+        {
+            return 0;
+        }
+    }
+}";
+
+            await TestMovementExistingFileAsync(
+                initialSourceMarkup,
+                initialDestinationMarkup,
+                fixedSourceMarkup,
+                fixedDestinationMarkup,
+                selectedMembers,
+                selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodToExistingTypeWithNewNamespace()
+        {
+            var initialSourceMarkup = @"
+public class Class1
+{
+    public static int Test[||]Method()
+    {
+        return 0;
+    }
+}";
+            var initialDestinationMarkup = @"
+namespace TestNs
+{
+    public class Class1Helpers
+    {
+    }
+}";
+            var selectedDestinationName = "TestNs.Class1Helpers";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var fixedSourceMarkup = @"
+public class Class1
+{
+}";
+            var fixedDestinationMarkup = @"
+namespace TestNs
+{
+    public class Class1Helpers
+    {
+        public static int TestMethod()
+        {
+            return 0;
+        }
+    }
+}";
+
+            await TestMovementExistingFileAsync(
+                initialSourceMarkup,
+                initialDestinationMarkup,
+                fixedSourceMarkup,
+                fixedDestinationMarkup,
+                selectedMembers,
+                selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodToExistingTypeRefactorSourceUsage()
+        {
+            var initialSourceMarkup = @"
+public class Class1
+{
+    public static int Test[||]Method()
+    {
+        return 0;
+    }
+
+    public static int TestMethod2()
+    {
+        return TestMethod();
+    }
+}";
+            var initialDestinationMarkup = @"
+public class Class1Helpers
+{
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var fixedSourceMarkup = @"
+public class Class1
+{
+    public static int TestMethod2()
+    {
+        return Class1Helpers.TestMethod();
+    }
+}";
+            var fixedDestinationMarkup = @"
+public class Class1Helpers
+{
+    public static int TestMethod()
+    {
+        return 0;
+    }
+}";
+
+            await TestMovementExistingFileAsync(
+                initialSourceMarkup,
+                initialDestinationMarkup,
+                fixedSourceMarkup,
+                fixedDestinationMarkup,
+                selectedMembers,
+                selectedDestinationName).ConfigureAwait(false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task TestMoveMethodToExistingTypeRefactorDestinationUsage()
+        {
+            var initialSourceMarkup = @"
+public class Class1
+{
+    public static int Test[||]Method()
+    {
+        return 0;
+    }
+}";
+            var initialDestinationMarkup = @"
+public class Class1Helpers
+{
+    public static int TestMethod2()
+    {
+        return Class1.TestMethod();
+    }
+}";
+            var selectedDestinationName = "Class1Helpers";
+            var selectedMembers = ImmutableArray.Create("TestMethod");
+            var fixedSourceMarkup = @"
+public class Class1
+{
+}";
+            var fixedDestinationMarkup = @"
+public class Class1Helpers
+{
+    public static int TestMethod()
+    {
+        return 0;
+    }
+
+    public static int TestMethod2()
+    {
+        return TestMethod();
+    }
+}";
+
+            await TestMovementExistingFileAsync(
+                initialSourceMarkup,
+                initialDestinationMarkup,
+                fixedSourceMarkup,
+                fixedDestinationMarkup,
+                selectedMembers,
+                selectedDestinationName).ConfigureAwait(false);
+        }
         #endregion
 
         #region Selections and caret position
