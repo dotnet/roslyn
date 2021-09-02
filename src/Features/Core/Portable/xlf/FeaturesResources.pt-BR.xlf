@@ -512,7 +512,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
-        <target state="needs-review-translation">As alterações feitas no projeto '{0}' impedirão que a sessão de depuração continue: {1}</target>
+        <target state="new">Changes made in project '{0}' require restarting the application: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
@@ -2753,11 +2753,11 @@ Embora seja possível exibir os dez milésimos de um componente de segundo de um
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
+        <target state="translated">O especificador de formato personalizado "f" representa o dígito mais significativo da fração de segundos; ou seja, ele representa os décimos de segundo em um valor de data e hora.
 
-If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
+Se o especificador de formato "f" for usado sem outros especificadores de formato, ele será interpretado como o especificador de formato padrão de data e hora "f".
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
+Quando você usa especificadores de formato "f" como parte de uma cadeia de caracteres de formato fornecida ao método ParseExact ou TryParseExact, o número de especificadores de formato "f" indica o número de dígitos mais significativos da fração de segundos que devem estar presentes para analisar a cadeia de caracteres com sucesso.</target>
         <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">

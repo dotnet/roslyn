@@ -289,7 +289,7 @@
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|ButtonText">
         <source>Remove Unused References...</source>
-        <target state="translated">&amp;Kullanılmayan Başvuruları Kaldır...</target>
+        <target state="new">Remove Unused References...</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|CommandName">

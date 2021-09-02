@@ -2715,7 +2715,7 @@ Ek bilgiler: {1}</target>
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources</source>
-        <target state="needs-review-translation">Derlemesi ayrılan kaynaklar için gezintiyi etkinleştirme (deneysel)</target>
+        <target state="new">Enable navigation to decompiled sources</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
