@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
     // TODO: This should be updated to follow the flow of array creation expressions
     // that are eventually converted to and leave a given method as IEnumerable<T> once we have
     // the ability to do more thorough data-flow analysis in diagnostic analyzers.
@@ -22,31 +24,25 @@ namespace Roslyn.Diagnostics.Analyzers
         internal const string LinqEnumerableMetadataName = "System.Linq.Enumerable";
         internal const string EmptyMethodName = "Empty";
 
-        private static readonly LocalizableString s_localizableTitleUseEmptyEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.UseSpecializedCollectionsEmptyEnumerableTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableMessageUseEmptyEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.UseSpecializedCollectionsEmptyEnumerableMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
         internal static readonly DiagnosticDescriptor UseEmptyEnumerableRule = new(
             RoslynDiagnosticIds.UseEmptyEnumerableRuleId,
-            s_localizableTitleUseEmptyEnumerable,
-            s_localizableMessageUseEmptyEnumerable,
+            CreateLocalizableResourceString(nameof(UseSpecializedCollectionsEmptyEnumerableTitle)),
+            CreateLocalizableResourceString(nameof(UseSpecializedCollectionsEmptyEnumerableMessage)),
             DiagnosticCategory.RoslynDiagnosticsPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
-
-        private static readonly LocalizableString s_localizableTitleUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.UseSpecializedCollectionsSingletonEnumerableTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-        private static readonly LocalizableString s_localizableMessageUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.UseSpecializedCollectionsSingletonEnumerableMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         internal static readonly DiagnosticDescriptor UseSingletonEnumerableRule = new(
             RoslynDiagnosticIds.UseSingletonEnumerableRuleId,
-            s_localizableTitleUseSingletonEnumerable,
-            s_localizableMessageUseSingletonEnumerable,
+            CreateLocalizableResourceString(nameof(UseSpecializedCollectionsSingletonEnumerableTitle)),
+            CreateLocalizableResourceString(nameof(UseSpecializedCollectionsSingletonEnumerableMessage)),
             DiagnosticCategory.RoslynDiagnosticsPerformance,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -125,7 +121,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 _genericEmptyEnumerableSymbol = genericEmptyEnumerableSymbol;
             }
 
-            public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
+            public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
 
             protected bool ShouldAnalyzeArrayCreationExpression(SyntaxNode expression, SemanticModel semanticModel, CancellationToken cancellationToken)
             {

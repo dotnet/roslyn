@@ -17,7 +17,7 @@ namespace Roslyn.Diagnostics.Analyzers
     public abstract class PartsExportedWithMEFv2MustBeMarkedAsSharedFixer<TTypeSyntax> : CodeFixProvider
         where TTypeSyntax : SyntaxNode
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RoslynDiagnosticIds.MissingSharedAttributeRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(RoslynDiagnosticIds.MissingSharedAttributeRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
