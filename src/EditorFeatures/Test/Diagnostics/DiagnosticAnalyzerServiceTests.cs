@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
@@ -645,9 +646,15 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
-            var expectedCount = !testMultiple
-                ? 1
-                : analysisScope == BackgroundAnalysisScope.FullSolution ? 4 : 2;
+            var expectedCount = (analysisScope, testMultiple) switch
+            {
+                (BackgroundAnalysisScope.ActiveFile, _) => 0,
+                (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, false) => 1,
+                (BackgroundAnalysisScope.OpenFilesAndProjects, true) => 2,
+                (BackgroundAnalysisScope.FullSolution, true) => 4,
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+
             Assert.Equal(expectedCount, diagnostics.Count);
 
             for (var i = 0; i < analyzers.Length; i++)
@@ -658,7 +665,11 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     var applicableDiagnostics = diagnostics.Where(
                         d => d.Id == analyzer.Descriptor.Id && d.DataLocation.OriginalFilePath == additionalDoc.FilePath);
 
-                    if (analysisScope != BackgroundAnalysisScope.FullSolution &&
+                    if (analysisScope == BackgroundAnalysisScope.ActiveFile)
+                    {
+                        Assert.Empty(applicableDiagnostics);
+                    }
+                    else if (analysisScope == BackgroundAnalysisScope.OpenFilesAndProjects &&
                         firstAdditionalDocument != additionalDoc)
                     {
                         Assert.Empty(applicableDiagnostics);
@@ -1215,6 +1226,8 @@ class A
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
                 => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+
+            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
             public bool OpenFileOnly(CodeAnalysis.Options.OptionSet options)
                 => true;

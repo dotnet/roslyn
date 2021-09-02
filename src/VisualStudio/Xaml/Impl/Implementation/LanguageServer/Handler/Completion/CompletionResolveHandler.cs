@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
             Contract.ThrowIfNull(context.Solution);
 
-            if (completionItem is not VSCompletionItem vsCompletionItem)
+            if (completionItem is not VSInternalCompletionItem vsCompletionItem)
             {
                 return completionItem;
             }

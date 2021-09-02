@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 SyntaxNode node,
                 CancellationToken cancellationToken)
             {
-                if (!(node is TSimpleNameSyntax))
+                if (node is not TSimpleNameSyntax)
                 {
                     return false;
                 }
@@ -148,9 +148,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return false;
                 }
 
-                if (info.CandidateReason == CandidateReason.Inaccessible ||
-                    info.CandidateReason == CandidateReason.NotReferencable ||
-                    info.CandidateReason == CandidateReason.OverloadResolutionFailure)
+                if (info.CandidateReason is CandidateReason.Inaccessible or
+                    CandidateReason.NotReferencable or
+                    CandidateReason.OverloadResolutionFailure)
                 {
                     // We bound to something inaccessible, or overload resolution on a 
                     // constructor call failed.  Don't want to offer GenerateType here.
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 if (baseType.IsSealed || baseType.IsStatic || baseType.SpecialType == SpecialType.System_Object)
                     return;
 
-                if (baseType.TypeKind != TypeKind.Class && baseType.TypeKind != TypeKind.Interface)
+                if (baseType.TypeKind is not TypeKind.Class and not TypeKind.Interface)
                     return;
 
                 // Strip off top-level nullability since we can't put top-level nullability into the base list. We will still include nested nullability
@@ -273,8 +273,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // Can only generate into a type if it's a class and it's from source.
                 if (TypeToGenerateInOpt != null)
                 {
-                    if (TypeToGenerateInOpt.TypeKind != TypeKind.Class &&
-                        TypeToGenerateInOpt.TypeKind != TypeKind.Module)
+                    if (TypeToGenerateInOpt.TypeKind is not TypeKind.Class and
+                        not TypeKind.Module)
                     {
                         TypeToGenerateInOpt = null;
                     }

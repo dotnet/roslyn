@@ -7,6 +7,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <NoStdLib>true</NoStdLib>
     <IsShipping>false</IsShipping>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

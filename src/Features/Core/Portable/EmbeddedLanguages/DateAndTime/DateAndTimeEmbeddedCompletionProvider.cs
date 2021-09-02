@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            if (trigger.Kind == CompletionTriggerKind.Invoke ||
-                trigger.Kind == CompletionTriggerKind.InvokeAndCommitIfUnique)
+            if (trigger.Kind is CompletionTriggerKind.Invoke or
+                CompletionTriggerKind.InvokeAndCommitIfUnique)
             {
                 return true;
             }
@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime
             if (!context.Options.GetOption(DateAndTimeOptions.ProvideDateAndTimeCompletions, context.Document.Project.Language))
                 return;
 
-            if (context.Trigger.Kind != CompletionTriggerKind.Invoke &&
-                context.Trigger.Kind != CompletionTriggerKind.InvokeAndCommitIfUnique &&
-                context.Trigger.Kind != CompletionTriggerKind.Insertion)
+            if (context.Trigger.Kind is not CompletionTriggerKind.Invoke and
+                not CompletionTriggerKind.InvokeAndCommitIfUnique and
+                not CompletionTriggerKind.Insertion)
             {
                 return;
             }

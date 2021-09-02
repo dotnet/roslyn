@@ -4880,7 +4880,7 @@ public class B
             var switchExpressions = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().ToArray();
 
             VerifyOperationTreeForNode(compilation, model, switchExpressions[0], @"
-ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... 1, _ => 2 }')
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... 1, _ => 2 }')
   Value: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
   Arms(2):
@@ -4899,7 +4899,7 @@ ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: Syste
 ");
 
             VerifyOperationTreeForNode(compilation, model, switchExpressions[1], @"
-ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... > new B() }')
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... > new B() }')
   Value: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
   Arms(2):
@@ -4930,7 +4930,7 @@ ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: Syste
 ");
 
             VerifyOperationTreeForNode(compilation, model, switchExpressions[2], @"
-ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: '1 switch {  ... ing.Empty }')
+ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: '1 switch {  ... ing.Empty }')
   Value: 
     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
   Arms(2):
@@ -5012,7 +5012,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, 
       Instance Receiver: 
         null
   Right: 
-    ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... 1, _ => 2 }')
+    ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... 1, _ => 2 }')
       Value: 
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
       Arms(2):
@@ -5040,7 +5040,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '1 switch {  ... > new B() }')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... > new B() }')
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... > new B() }')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
           Arms(2):
@@ -5080,7 +5080,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '1 switch {  ... ing.Empty }')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: '1 switch {  ... ing.Empty }')
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?, IsInvalid) (Syntax: '1 switch {  ... ing.Empty }')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           Arms(2):
@@ -5163,7 +5163,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1 switch {  ... 1, _ => 2 }')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: '1 switch {  ... 1, _ => 2 }')
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32) (Syntax: '1 switch {  ... 1, _ => 2 }')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           Arms(2):
@@ -5190,7 +5190,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1 switch {  ... > new B() }')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: ?) (Syntax: '1 switch {  ... > new B() }')
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?) (Syntax: '1 switch {  ... > new B() }')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           Arms(2):
@@ -5229,7 +5229,7 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: ?, IsImplicit) (Syntax: '1 switch {  ... ing.Empty }')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        ISwitchExpressionOperation (2 arms) (OperationKind.SwitchExpression, Type: ?) (Syntax: '1 switch {  ... ing.Empty }')
+        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: ?) (Syntax: '1 switch {  ... ing.Empty }')
           Value: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           Arms(2):

@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
             var oldSolution = workspace.CurrentSolution;
 
-            bool applied;
+            var applied = false;
 
             // Determine if we're making a simple text edit to a single file or not.
             // If we're not, then we need to make a linked global undo to wrap the 
@@ -152,7 +153,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                 using (workspace.Services.GetService<ISourceTextUndoService>().RegisterUndoTransaction(text, title))
                 {
-                    applied = operations.Single().TryApply(workspace, progressTracker, cancellationToken);
+                    try
+                    {
+                        applied = operations.Single().TryApply(workspace, progressTracker, cancellationToken);
+                    }
+                    catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
                 }
             }
             else
@@ -169,9 +177,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     transaction.AddDocument(fromDocument.Id);
                 }
 
-                applied = ProcessOperations(
-                    workspace, operations, progressTracker,
-                    cancellationToken);
+                try
+                {
+                    applied = ProcessOperations(
+                        workspace, operations, progressTracker,
+                        cancellationToken);
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
 
                 transaction.Commit();
             }

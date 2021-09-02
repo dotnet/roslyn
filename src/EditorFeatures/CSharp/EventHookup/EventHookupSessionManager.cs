@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 analyzedSession.TrackingSpan.GetSpan(CurrentSession.TextView.TextSnapshot).Contains(caretPoint.Value))
             {
                 // Create a tooltip presenter that stays alive, even when the user types, without tracking the mouse.
-                _toolTipPresenter = this._toolTipService.CreatePresenter(analyzedSession.TextView,
+                _toolTipPresenter = _toolTipService.CreatePresenter(analyzedSession.TextView,
                     new ToolTipParameters(trackMouse: false, ignoreBufferChange: true));
 
                 // tooltips text is: Program_MyEvents;      (Press TAB to insert)

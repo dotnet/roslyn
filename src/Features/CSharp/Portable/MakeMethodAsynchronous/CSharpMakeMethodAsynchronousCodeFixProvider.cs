@@ -59,9 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             {
                 case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, knownTypes);
                 case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(keepVoid, methodSymbolOpt, localFunction, knownTypes);
-                case AnonymousMethodExpressionSyntax method: return FixAnonymousMethod(method);
-                case ParenthesizedLambdaExpressionSyntax lambda: return FixParenthesizedLambda(lambda);
-                case SimpleLambdaExpressionSyntax lambda: return FixSimpleLambda(lambda);
+                case AnonymousFunctionExpressionSyntax anonymous: return FixAnonymousFunction(anonymous);
                 default: return node;
             }
         }
@@ -167,22 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
             return result;
         }
 
-        private static SyntaxNode FixParenthesizedLambda(ParenthesizedLambdaExpressionSyntax lambda)
+        private static SyntaxNode FixAnonymousFunction(AnonymousFunctionExpressionSyntax anonymous)
         {
-            return lambda.WithoutLeadingTrivia()
-                         .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(lambda.GetLeadingTrivia()));
-        }
-
-        private static SyntaxNode FixSimpleLambda(SimpleLambdaExpressionSyntax lambda)
-        {
-            return lambda.WithoutLeadingTrivia()
-                         .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(lambda.GetLeadingTrivia()));
-        }
-
-        private static SyntaxNode FixAnonymousMethod(AnonymousMethodExpressionSyntax method)
-        {
-            return method.WithoutLeadingTrivia()
-                         .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(method.GetLeadingTrivia()));
+            return anonymous.WithoutLeadingTrivia()
+                         .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(anonymous.GetLeadingTrivia()));
         }
     }
 }

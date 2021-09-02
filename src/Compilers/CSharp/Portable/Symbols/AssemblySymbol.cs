@@ -431,6 +431,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces);
         }
 
+        /// <summary>
+        /// Figure out if the target runtime supports static abstract members in interfaces.
+        /// </summary>
+        internal bool RuntimeSupportsStaticAbstractMembersInInterfaces
+        {
+            // https://github.com/dotnet/roslyn/issues/53800: Implement the actual check, this is a temporary stub. 
+            get => RuntimeSupportsDefaultInterfaceImplementation;
+        }
+
         private bool RuntimeSupportsFeature(SpecialMember feature)
         {
             Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);

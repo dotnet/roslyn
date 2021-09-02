@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -27,7 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly ClassificationTypeMap _classificationTypeMap;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _operationExecutor;
+        private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -36,13 +38,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             ClassificationTypeMap classificationTypeMap,
             IClassificationFormatMapService classificationFormatMapService,
-            IWaitIndicator waitIndicator)
+            IUIThreadOperationExecutor operationExecutor,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _classificationTypeMap = classificationTypeMap;
             _classificationFormatMapService = classificationFormatMapService;
-            _waitIndicator = waitIndicator;
+            _operationExecutor = operationExecutor;
+            _listener = listenerProvider.GetListener(FeatureAttribute.InheritanceMargin);
         }
 
         public IGlyphFactory GetGlyphFactory(IWpfTextView view, IWpfTextViewMargin margin)
@@ -52,8 +56,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 _streamingFindUsagesPresenter,
                 _classificationTypeMap,
                 _classificationFormatMapService.GetClassificationFormatMap("tooltip"),
-                _waitIndicator,
-                view);
+                _operationExecutor,
+                view,
+                _listener);
         }
     }
 }

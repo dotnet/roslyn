@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class SwitchStatementStructureProvider : AbstractSyntaxNodeStructureProvider<SwitchStatementSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             SwitchStatementSyntax node,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,

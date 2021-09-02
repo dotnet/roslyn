@@ -129,6 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return null;
         }
 
+        internal static SemanticEditDescription Edit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider)
+            => new(kind, symbolProvider);
+
         internal static EditAndContinueLogEntry Row(int rowNumber, TableIndex table, EditAndContinueOperation operation)
         {
             return new EditAndContinueLogEntry(MetadataTokens.Handle(table, rowNumber), operation);
@@ -139,59 +142,30 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return MetadataTokens.Handle(table, rowNumber);
         }
 
+        internal static bool IsDefinition(HandleKind kind)
+            => kind is not (HandleKind.AssemblyReference or HandleKind.ModuleReference or HandleKind.TypeReference or HandleKind.MemberReference or HandleKind.TypeSpecification or HandleKind.MethodSpecification);
+
         internal static void CheckEncLog(MetadataReader reader, params EditAndContinueLogEntry[] rows)
         {
             AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString);
         }
 
+        /// <summary>
+        /// Checks that the EncLog contains specified definition rows. References are ignored as they are usually not interesting to validate. They are emitted as needed.
+        /// </summary>
         internal static void CheckEncLogDefinitions(MetadataReader reader, params EditAndContinueLogEntry[] rows)
         {
-            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries().Where(IsDefinition), itemInspector: EncLogRowToString);
-        }
-
-        private static bool IsDefinition(EditAndContinueLogEntry entry)
-        {
-            TableIndex index;
-            Assert.True(MetadataTokens.TryGetTableIndex(entry.Handle.Kind, out index));
-
-            switch (index)
-            {
-                case TableIndex.MethodDef:
-                case TableIndex.Field:
-                case TableIndex.Constant:
-                case TableIndex.GenericParam:
-                case TableIndex.GenericParamConstraint:
-                case TableIndex.Event:
-                case TableIndex.CustomAttribute:
-                case TableIndex.DeclSecurity:
-                case TableIndex.Assembly:
-                case TableIndex.MethodImpl:
-                case TableIndex.Param:
-                case TableIndex.Property:
-                case TableIndex.TypeDef:
-                case TableIndex.ExportedType:
-                case TableIndex.StandAloneSig:
-                case TableIndex.ClassLayout:
-                case TableIndex.FieldLayout:
-                case TableIndex.FieldMarshal:
-                case TableIndex.File:
-                case TableIndex.ImplMap:
-                case TableIndex.InterfaceImpl:
-                case TableIndex.ManifestResource:
-                case TableIndex.MethodSemantics:
-                case TableIndex.Module:
-                case TableIndex.NestedClass:
-                case TableIndex.EventMap:
-                case TableIndex.PropertyMap:
-                    return true;
-            }
-
-            return false;
+            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries().Where(e => IsDefinition(e.Handle.Kind)), itemInspector: EncLogRowToString);
         }
 
         internal static void CheckEncMap(MetadataReader reader, params EntityHandle[] handles)
         {
             AssertEx.Equal(handles, reader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString);
+        }
+
+        internal static void CheckEncMapDefinitions(MetadataReader reader, params EntityHandle[] handles)
+        {
+            AssertEx.Equal(handles, reader.GetEditAndContinueMapEntries().Where(e => IsDefinition(e.Kind)), itemInspector: EncMapRowToString);
         }
 
         internal static void CheckAttributes(MetadataReader reader, params CustomAttributeRow[] rows)
@@ -214,6 +188,31 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             var actualNames = handles.Select(handlePair => string.Join(".", readers.GetString(handlePair.Namespace), readers.GetString(handlePair.Name))).ToArray();
             AssertEx.Equal(expectedNames, actualNames);
+        }
+
+        public static void CheckNames(IList<MetadataReader> readers, ImmutableArray<TypeDefinitionHandle> typeHandles, params string[] expectedNames)
+            => CheckNames(readers, typeHandles, (reader, handle) => reader.GetTypeDefinition((TypeDefinitionHandle)handle).Name, handle => handle, expectedNames);
+
+        public static void CheckNames(IList<MetadataReader> readers, ImmutableArray<MethodDefinitionHandle> methodHandles, params string[] expectedNames)
+            => CheckNames(readers, methodHandles, (reader, handle) => reader.GetMethodDefinition((MethodDefinitionHandle)handle).Name, handle => handle, expectedNames);
+
+        private static void CheckNames<THandle>(
+            IList<MetadataReader> readers,
+            ImmutableArray<THandle> entityHandles,
+            Func<MetadataReader, Handle, StringHandle> getName,
+            Func<THandle, Handle> toHandle,
+            string[] expectedNames)
+        {
+            var aggregator = new MetadataAggregator(readers[0], readers.Skip(1).ToArray());
+
+            AssertEx.Equal(expectedNames, entityHandles.Select(handle =>
+            {
+                var genEntityHandle = aggregator.GetGenerationHandle(toHandle(handle), out int typeGeneration);
+                var nameHandle = getName(readers[typeGeneration], genEntityHandle);
+
+                var genNameHandle = (StringHandle)aggregator.GetGenerationHandle(nameHandle, out int nameGeneration);
+                return readers[nameGeneration].GetString(genNameHandle);
+            }));
         }
 
         internal static string EncLogRowToString(EditAndContinueLogEntry row)

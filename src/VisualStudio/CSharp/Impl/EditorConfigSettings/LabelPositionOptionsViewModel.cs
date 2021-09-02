@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
         {
         }
 
-        public IEnumSettingViewModel CreateViewModel(FormattingSetting setting)
+        public IEnumSettingViewModel CreateViewModel(WhitespaceSetting setting)
         {
             return new LabelPositionOptionsViewModel(setting);
         }
@@ -35,9 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
 
     internal class LabelPositionOptionsViewModel : EnumSettingViewModel<LabelPositionOptions>
     {
-        private readonly FormattingSetting _setting;
+        private readonly WhitespaceSetting _setting;
 
-        public LabelPositionOptionsViewModel(FormattingSetting setting)
+        public LabelPositionOptionsViewModel(WhitespaceSetting setting)
         {
             _setting = setting;
         }

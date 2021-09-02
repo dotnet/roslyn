@@ -1037,5 +1037,100 @@ class C
 @"class C { void M(object o) { [||]if (o is C) { a(); } else { } } }",
 @"class C { void M(object o) { if (o is not C) { } else { a(); } } }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        public async Task TestEmptyIf()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C { void M(string s){ [||]if (s == ""a""){}else{ s = ""b""}}}",
+                @"class C { void M(string s){ if (s != ""a""){ s = ""b""}}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        public async Task TestOnlySingleLineCommentIf()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class C 
+{
+    void M(string s)
+    {
+        [||]if (s == ""a"")
+        {
+            // A single line comment
+        }
+        else
+        {
+            s = ""b""
+        }
+    }
+}",
+                @"
+class C 
+{
+    void M(string s)
+    {
+        if (s != ""a"")
+        {
+            s = ""b""
+        }
+        else
+        {
+            // A single line comment
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(43224, "https://github.com/dotnet/roslyn/issues/43224")]
+        public async Task TestOnlyMultilineLineCommentIf()
+        {
+            await TestInRegularAndScriptAsync(
+                @"
+class C 
+{ 
+    void M(string s)
+    {
+        [||]if (s == ""a"")
+        {
+            /*
+            * This is
+            * a multiline
+            * comment with
+            * two words
+            * per line.
+            */
+        }
+        else
+        {
+            s = ""b""
+        }
+    }
+}",
+                @"
+class C 
+{ 
+    void M(string s)
+    {
+        if (s != ""a"")
+        {
+            s = ""b""
+        }
+        else
+        {
+            /*
+            * This is
+            * a multiline
+            * comment with
+            * two words
+            * per line.
+            */
+        }
+    }
+}");
+        }
     }
 }

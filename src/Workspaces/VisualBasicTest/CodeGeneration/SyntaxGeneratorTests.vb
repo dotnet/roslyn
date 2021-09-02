@@ -2554,6 +2554,18 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TestWithModifiers_Sealed()
+            Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
+            Dim classBlockWithModifiers = Generator.WithModifiers(classBlock, DeclarationModifiers.Sealed)
+            VerifySyntax(Of ClassBlockSyntax)(classBlockWithModifiers, "NotInheritable Class C
+End Class")
+
+            Dim classStatement = classBlock.ClassStatement
+            Dim classStatementWithModifiers = Generator.WithModifiers(classStatement, DeclarationModifiers.Sealed)
+            VerifySyntax(Of ClassStatementSyntax)(classStatementWithModifiers, "NotInheritable Class C")
+        End Sub
+
+        <Fact>
         Public Sub TestGetType()
             Assert.Equal("t", Generator.GetType(Generator.MethodDeclaration("m", returnType:=Generator.IdentifierName("t"))).ToString())
             Assert.Null(Generator.GetType(Generator.MethodDeclaration("m")))

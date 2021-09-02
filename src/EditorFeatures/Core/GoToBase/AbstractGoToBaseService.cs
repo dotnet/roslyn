@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -14,16 +15,15 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 {
     internal abstract partial class AbstractGoToBaseService : IGoToBaseService
     {
-        public async Task FindBasesAsync(Document document, int position, IFindUsagesContext context)
+        public async Task FindBasesAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
             if (symbolAndProjectOpt == null)
             {
                 await context.ReportMessageAsync(
-                    EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
+                    EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_bases,
-                FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
+                FindUsagesHelpers.GetDisplayName(symbol)),
+                cancellationToken).ConfigureAwait(false);
 
             var found = false;
 
@@ -50,22 +51,21 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                     var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(
                         solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                    await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
+                    await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                     found = true;
                 }
                 else if (baseSymbol.Locations.Any(l => l.IsInMetadata))
                 {
                     var definitionItem = baseSymbol.ToNonClassifiedDefinitionItem(
                         solution, includeHiddenLocations: true);
-                    await context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
+                    await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                     found = true;
                 }
             }
 
             if (!found)
             {
-                await context.ReportMessageAsync(EditorFeaturesResources.The_symbol_has_no_base)
-                    .ConfigureAwait(false);
+                await context.ReportMessageAsync(EditorFeaturesResources.The_symbol_has_no_base, cancellationToken).ConfigureAwait(false);
             }
         }
     }

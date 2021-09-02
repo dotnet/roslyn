@@ -164,6 +164,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Return -1
+            End Get
+        End Property
+
         ''' <summary>
         ''' True if the argument value must be included in the marshalled arguments passed to a remote callee only if it is different from the default value (if there is one).
         ''' </summary>

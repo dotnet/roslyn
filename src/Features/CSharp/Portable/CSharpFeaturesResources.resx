@@ -200,15 +200,6 @@
   <data name="Invalid_selection" xml:space="preserve">
     <value>Invalid selection.</value>
   </data>
-  <data name="Selection_does_not_contain_a_valid_token" xml:space="preserve">
-    <value>Selection does not contain a valid token.</value>
-  </data>
-  <data name="No_valid_selection_to_perform_extraction" xml:space="preserve">
-    <value>No valid selection to perform extraction.</value>
-  </data>
-  <data name="No_common_root_node_for_extraction" xml:space="preserve">
-    <value>No common root node for extraction.</value>
-  </data>
   <data name="Contains_invalid_selection" xml:space="preserve">
     <value>Contains invalid selection.</value>
   </data>
@@ -495,6 +486,9 @@
   <data name="Convert_to_switch_expression" xml:space="preserve">
     <value>Convert to 'switch' expression</value>
   </data>
+  <data name="Use_recursive_patterns" xml:space="preserve">
+    <value>Use recursive patterns</value>
+  </data>
   <data name="Name" xml:space="preserve">
     <value>&lt;Name&gt;</value>
   </data>
@@ -620,5 +614,8 @@
   </data>
   <data name="record_" xml:space="preserve">
     <value>record</value>
+  </data>
+  <data name="record_struct" xml:space="preserve">
+    <value>record struct</value>
   </data>
 </root>

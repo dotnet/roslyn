@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
-                        int backOffTimeSpanInMs,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
-                        : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
                         _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
@@ -227,20 +227,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private IEnumerable<DocumentId> GetPrioritizedPendingDocuments()
                     {
-                        if (Processor._documentTracker != null)
+                        // First the active document
+                        var activeDocumentId = Processor._documentTracker.TryGetActiveDocument();
+                        if (activeDocumentId != null)
                         {
-                            // First the active document
-                            var activeDocumentId = Processor._documentTracker.TryGetActiveDocument();
-                            if (activeDocumentId != null)
-                            {
-                                yield return activeDocumentId;
-                            }
+                            yield return activeDocumentId;
+                        }
 
-                            // Now any visible documents
-                            foreach (var visibleDocumentId in Processor._documentTracker.GetVisibleDocuments())
-                            {
-                                yield return visibleDocumentId;
-                            }
+                        // Now any visible documents
+                        foreach (var visibleDocumentId in Processor._documentTracker.GetVisibleDocuments())
+                        {
+                            yield return visibleDocumentId;
                         }
 
                         // Any other high priority documents
@@ -254,6 +251,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         try
                         {
+                            if (!Processor._documentTracker.SupportsDocumentTracking)
+                            {
+                                return false;
+                            }
+
                             foreach (var documentId in GetPrioritizedPendingDocuments())
                             {
                                 if (CancellationToken.IsCancellationRequested)
@@ -579,8 +581,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     public override void Shutdown()
                     {
                         base.Shutdown();
-
-                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(Processor._registration.CorrelationId, Processor._registration.GetSolutionToAnalyze(), Processor._logAggregator, Analyzers);
 
                         _workItemQueue.Dispose();
 
