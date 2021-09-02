@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -57,9 +56,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constantValue.IsBad ? 0 : constantValue.Int32Value;
             }
 
-            public ConstantValue ToConstantValue(int value) => ConstantValue.Create(value);
+            public ConstantValue ToConstantValue(int value)
+            {
+                return ConstantValue.Create(value);
+            }
 
-            string INumericTC<int>.ToString(int value) => value.ToString();
+            string INumericTC<int>.ToString(int value)
+            {
+                return value.ToString();
+            }
 
             public int Random(Random random)
             {
