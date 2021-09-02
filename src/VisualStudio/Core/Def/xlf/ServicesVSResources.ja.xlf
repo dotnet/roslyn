@@ -287,6 +287,11 @@
         <target state="translated">Alt+F1 を押しながらすべてのヒントを表示する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_diagnostics_inline_experimental">
+        <source>Display diagnostics inline (experimental)</source>
+        <target state="new">Display diagnostics inline (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Disp_lay inline parameter name hints</source>
         <target state="translated">インライン パラメーター名のヒントを表示する(_L)</target>
@@ -457,6 +462,11 @@
         <target state="new">Inheritance Margin</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="new">Inline Diagnostics (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
         <target state="new">Inherited interfaces</target>
@@ -486,6 +496,11 @@
         <source>Introduce undefined TODO variables</source>
         <target state="translated">未定義の TODO 変数の導入</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
+      </trans-unit>
+      <trans-unit id="Invalid_type_name">
+        <source>Invalid type name</source>
+        <target state="new">Invalid type name</target>
+        <note />
       </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
@@ -560,6 +575,11 @@
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
         <target state="translated">修飾子設定:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type_colon">
+        <source>Move Static Members to Another Type:</source>
+        <target state="new">Move Static Members to Another Type:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1485,6 +1505,11 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">'{0}' はパブリックに変更されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="at_the_end_of_the_line_of_code">
+        <source>at the end of the line of code</source>
+        <target state="new">at the end of the line of code</target>
         <note />
       </trans-unit>
       <trans-unit id="generated_by_0_suffix">
@@ -2511,6 +2536,11 @@ Additional information: {1}</source>
       <trans-unit id="When_inserting_properties_events_and_methods_place_them">
         <source>When inserting properties, events and methods, place them:</source>
         <target state="translated">プロパティ、イベント、メソッドを挿入する際には、次の場所に挿入します:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="on_the_right_edge_of_the_editor_window">
+        <source>on the right edge of the editor window</source>
+        <target state="new">on the right edge of the editor window</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">

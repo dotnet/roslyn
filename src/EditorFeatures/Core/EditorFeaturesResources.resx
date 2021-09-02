@@ -1107,4 +1107,16 @@ Do you want to proceed?</value>
   <data name="Regex_OtherEscape" xml:space="preserve">
     <value>Regex - Other Escape</value>
   </data>
+  <data name="Inline_Diagnostics_Error" xml:space="preserve">
+    <value>Inline Diagnostics - Error</value>
+  </data>
+  <data name="Inline_Diagnostics_Rude_Edit" xml:space="preserve">
+    <value>Inline Diagnostics - Rude Edit</value>
+  </data>
+  <data name="Inline_Diagnostics_Warning" xml:space="preserve">
+    <value>Inline Diagnostics - Warning</value>
+  </data>
+  <data name="Execute_Suggested_Action" xml:space="preserve">
+    <value>Execute Suggested Action</value>
+  </data>
 </root>
