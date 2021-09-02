@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis
                 _replacedGeneratedDocumentState = replacementDocumentState;
             }
 
-            public bool HasCompilation => _underlyingTracker.HasCompilation;
-
             public ProjectState ProjectState => _underlyingTracker.ProjectState;
 
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
