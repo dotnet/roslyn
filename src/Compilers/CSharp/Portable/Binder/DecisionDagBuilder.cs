@@ -1219,6 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         // If the length is known to be exact, the two are considered to point to the same element.
                                         continue;
                                     }
+                                    
                                     if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                     {
                                         // Otherwise, we add a test to make the result conditional on the length value.
