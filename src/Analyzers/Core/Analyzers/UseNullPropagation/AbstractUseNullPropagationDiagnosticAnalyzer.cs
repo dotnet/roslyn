@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 conditionPartToCheck.GetLocation(),
                 whenPartToCheck.GetLocation());
 
-            var properties = ImmutableDictionary<string, string>.Empty;
+            var properties = ImmutableDictionary<string, string?>.Empty;
             var whenPartIsNullable = semanticModel.GetTypeInfo(whenPartMatch).Type?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
             if (whenPartIsNullable)
             {
