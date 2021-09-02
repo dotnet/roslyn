@@ -2018,7 +2018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     static int safeAdd(int value, int offset)
                     {
                         Debug.Assert(value >= 0); // Tests with negative values should never be created.
-                        Debug.Assert(offset >= 0); // The number of elements in a list is always positive.
+                        Debug.Assert(offset >= 0); // The number of elements in a list is always non-negative.
                         // We don't expect offset to be very large, but the value could
                         // be anything given that it comes from a constant in the source.
                         return offset > (int.MaxValue - value) ? int.MaxValue : value + offset;
