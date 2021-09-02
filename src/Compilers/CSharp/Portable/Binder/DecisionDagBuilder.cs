@@ -842,7 +842,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // we don't need to update values for the current input. We will emit another assignment node with this temp as the target
                             // if apropos, which has the effect of flowing the remaining values from the other test in the analysis of subsequent states.
                             if (state.RemainingValues.TryGetValue(e.Target, out IValueSet? targetValues))
+                            {
                                 currentValues = currentValues.Intersect(targetValues);
+                            }
                             state.TrueBranch = uniqifyState(RemoveEvaluation(state.Cases, e), state.RemainingValues.SetItem(e.Target, currentValues));
                             break;
                         case BoundDagEvaluation e:
