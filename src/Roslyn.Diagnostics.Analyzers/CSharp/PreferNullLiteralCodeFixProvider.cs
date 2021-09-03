@@ -21,7 +21,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
     [Shared]
     public class PreferNullLiteralCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(PreferNullLiteral.Rule.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(PreferNullLiteral.Rule.Id);
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;

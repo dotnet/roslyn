@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     {
         private const char ObliviousMarker = '~';
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(DiagnosticIds.AnnotatePublicApiRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(DiagnosticIds.AnnotatePublicApiRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider()
             => new PublicSurfaceAreaFixAllProvider();
