@@ -126,9 +126,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Accessibility accessibility,
             TextSpan span,
             ImmutableArray<string> inheritanceNames,
-            bool isNestedType = false, int parameterCount = 0, int typeParameterCount = 0)
+            bool isNestedType = false,
+            int parameterCount = 0,
+            int typeParameterCount = 0)
         {
-            const uint MaxFlagValue5 = 0b10000;
+            const uint MaxFlagValue5 = 0b11111;
             const uint MaxFlagValue4 = 0b1111;
 
             Contract.ThrowIfTrue((uint)accessibility > MaxFlagValue4);
