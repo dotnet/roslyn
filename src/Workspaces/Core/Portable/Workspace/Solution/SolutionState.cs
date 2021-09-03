@@ -1621,22 +1621,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// Gets a copy of the solution isolated from the original so that they do not share computed state.
-        ///
-        /// Use isolated solutions when doing operations that are likely to access a lot of text,
-        /// syntax trees or compilations that are unlikely to be needed again after the operation is done.
-        /// When the isolated solution is reclaimed so will the computed state.
-        /// </summary>
-        public SolutionState GetIsolatedSolution()
-        {
-            var forkedMap = ImmutableDictionary.CreateRange(
-                _projectIdToTrackerMap.Where(kvp => kvp.Value.HasCompilation)
-                                     .Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.Clone())));
-
-            return this.Branch(projectIdToTrackerMap: forkedMap);
-        }
-
         public SolutionState WithOptions(SerializableOptionSet options)
             => Branch(options: options);
 
