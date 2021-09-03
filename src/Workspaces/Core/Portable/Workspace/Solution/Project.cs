@@ -361,40 +361,29 @@ namespace Microsoft.CodeAnalysis
 
             static bool FilterMatches(DeclaredSymbolInfo info, SymbolFilter filter)
             {
-                if ((filter & SymbolFilter.Namespace) != 0)
+                switch (info.Kind)
                 {
-                    if (info.Kind == DeclaredSymbolInfoKind.Namespace)
-                        return true;
-                }
-
-                if ((filter & SymbolFilter.Type) != 0)
-                {
-                    if (info.Kind is DeclaredSymbolInfoKind.Class or
-                                     DeclaredSymbolInfoKind.Delegate or
-                                     DeclaredSymbolInfoKind.Enum or
-                                     DeclaredSymbolInfoKind.Interface or
-                                     DeclaredSymbolInfoKind.Module or
-                                     DeclaredSymbolInfoKind.Record or
-                                     DeclaredSymbolInfoKind.RecordStruct or
-                                     DeclaredSymbolInfoKind.Struct)
-                    {
-                        return true;
-                    }
-                }
-
-                if ((filter & SymbolFilter.Member) != 0)
-                {
-                    if (info.Kind is DeclaredSymbolInfoKind.Constant or
-                                     DeclaredSymbolInfoKind.EnumMember or
-                                     DeclaredSymbolInfoKind.Event or
-                                     DeclaredSymbolInfoKind.ExtensionMethod or
-                                     DeclaredSymbolInfoKind.Field or
-                                     DeclaredSymbolInfoKind.Indexer or
-                                     DeclaredSymbolInfoKind.Method or
-                                     DeclaredSymbolInfoKind.Property)
-                    {
-                        return true;
-                    }
+                    case DeclaredSymbolInfoKind.Namespace:
+                        return (filter & SymbolFilter.Namespace) != 0;
+                    case DeclaredSymbolInfoKind.Class:
+                    case DeclaredSymbolInfoKind.Delegate:
+                    case DeclaredSymbolInfoKind.Enum:
+                    case DeclaredSymbolInfoKind.Interface:
+                    case DeclaredSymbolInfoKind.Module:
+                    case DeclaredSymbolInfoKind.Record:
+                    case DeclaredSymbolInfoKind.RecordStruct:
+                    case DeclaredSymbolInfoKind.Struct:
+                        return (filter & SymbolFilter.Type) != 0;
+                    case DeclaredSymbolInfoKind.Constant:
+                    case DeclaredSymbolInfoKind.Constructor:
+                    case DeclaredSymbolInfoKind.EnumMember:
+                    case DeclaredSymbolInfoKind.Event:
+                    case DeclaredSymbolInfoKind.ExtensionMethod:
+                    case DeclaredSymbolInfoKind.Field:
+                    case DeclaredSymbolInfoKind.Indexer:
+                    case DeclaredSymbolInfoKind.Method:
+                    case DeclaredSymbolInfoKind.Property:
+                        return (filter & SymbolFilter.Member) != 0;
                 }
 
                 return false;
