@@ -100,6 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_prefer_not_pattern",
             $"TextEditor.CSharp.Specific.{nameof(PreferNotPattern)}");
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferExtendedPropertyPattern = CreateOption(
+            CSharpCodeStyleOptionGroups.PatternMatching, nameof(PreferExtendedPropertyPattern),
+            defaultValue: s_trueWithSuggestionEnforcement,
+            "csharp_style_prefer_extended_property_pattern",
+            $"TextEditor.CSharp.Specific.{nameof(PreferExtendedPropertyPattern)}");
+
         public static readonly Option2<CodeStyleOption2<bool>> PreferThrowExpression = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferThrowExpression),
             defaultValue: s_trueWithSuggestionEnforcement,
@@ -241,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly Option2<CodeStyleOption2<bool>> PreferLocalOverAnonymousFunction = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferLocalOverAnonymousFunction),
             defaultValue: s_trueWithSuggestionEnforcement,
-            "csharp_style_pattern_local_over_anonymous_function",
+            "csharp_style_prefer_local_over_anonymous_function",
             $"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}");
 
         public static readonly CodeStyleOption2<AddImportPlacement> PreferOutsidePlacementWithSilentEnforcement =

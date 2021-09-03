@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -1702,6 +1702,18 @@ Additional information: {1}</value>
   <data name="This_rule_is_not_configurable" xml:space="preserve">
     <value>This rule is not configurable</value>
   </data>
+  <data name="Inline_Diagnostics_experimental" xml:space="preserve">
+    <value>Inline Diagnostics (experimental)</value>
+  </data>
+  <data name="Display_diagnostics_inline_experimental" xml:space="preserve">
+    <value>Display diagnostics inline (experimental)</value>
+  </data>
+  <data name="at_the_end_of_the_line_of_code" xml:space="preserve">
+    <value>at the end of the line of code</value>
+  </data>
+  <data name="on_the_right_edge_of_the_editor_window" xml:space="preserve">
+    <value>on the right edge of the editor window</value>
+  </data>
   <data name="Multiple_members_are_inherited" xml:space="preserve">
     <value>Multiple members are inherited</value>
   </data>
@@ -1746,6 +1758,12 @@ Additional information: {1}</value>
   </data>
   <data name="Inherited_interfaces" xml:space="preserve">
     <value>Inherited interfaces</value>
+  </data>
+  <data name="Invalid_type_name" xml:space="preserve">
+    <value>Invalid type name</value>
+  </data>
+  <data name="Move_static_members_to_another_type_colon" xml:space="preserve">
+    <value>Move Static Members to Another Type:</value>
   </data>
   <data name="Select_an_appropriate_symbol_to_start_value_tracking" xml:space="preserve">
     <value>Select an appropriate symbol to start value tracking</value>
@@ -1803,12 +1821,6 @@ Additional information: {1}</value>
   <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
     <value>Combine inheritance margin with indicator margin</value>
   </data>
-  <data name="Package_install_canceled" xml:space="preserve">
-    <value>Package install canceled</value>
-  </data>
-  <data name="Package_uninstall_canceled" xml:space="preserve">
-    <value>Package uninstall canceled</value>
-  </data>
   <data name="Default_Current_Document" xml:space="preserve">
     <value>Default (Current Document)</value>
     <comment>This text is a menu command</comment>
@@ -1820,5 +1832,14 @@ Additional information: {1}</value>
   <data name="Default_Open_Documents" xml:space="preserve">
     <value>Default (Open Documents)</value>
     <comment>This text is a menu command</comment>
+  </data>
+  <data name="Suppress_hints_when_argument_matches_parameter_name" xml:space="preserve">
+    <value>Suppress hints when argument matches parameter name</value>
+  </data>
+  <data name="Package_install_canceled" xml:space="preserve">
+    <value>Package install canceled</value>
+  </data>
+  <data name="Package_uninstall_canceled" xml:space="preserve">
+    <value>Package uninstall canceled</value>
   </data>
 </root>

@@ -274,6 +274,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetNameAndArityOfSimpleName(SyntaxNode? node, out string? name, out int arity);
         bool LooksGeneric(SyntaxNode simpleName);
 
+        SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfGenericName(SyntaxNode? genericName);
+
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
 
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode? node);
