@@ -464,7 +464,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
-        <target state="new">Inline Hints</target>
+        <target state="translated">Satır İçi İpuçları</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -1239,7 +1239,7 @@
       </trans-unit>
       <trans-unit id="Underline_reassigned_variables">
         <source>Underline reassigned variables</source>
-        <target state="new">Underline reassigned variables</target>
+        <target state="translated">Yeniden atanan değişkenlerin altını çiz</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
