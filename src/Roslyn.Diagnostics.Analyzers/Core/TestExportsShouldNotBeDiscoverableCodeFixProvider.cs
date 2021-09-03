@@ -21,7 +21,7 @@ namespace Roslyn.Diagnostics.Analyzers
     [Shared]
     public class TestExportsShouldNotBeDiscoverableCodeFixProvider : CodeFixProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(TestExportsShouldNotBeDiscoverable.Rule.Id);
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(TestExportsShouldNotBeDiscoverable.Rule.Id);
 
         public override FixAllProvider GetFixAllProvider()
             => WellKnownFixAllProviders.BatchFixer;

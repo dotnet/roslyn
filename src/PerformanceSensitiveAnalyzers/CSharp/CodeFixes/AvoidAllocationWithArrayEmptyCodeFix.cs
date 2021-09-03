@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes
     {
         private readonly string _title = CodeFixesResources.AvoidAllocationByUsingArrayEmpty;
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(ExplicitAllocationAnalyzer.ObjectCreationRuleId, ExplicitAllocationAnalyzer.ArrayCreationRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(ExplicitAllocationAnalyzer.ObjectCreationRuleId, ExplicitAllocationAnalyzer.ArrayCreationRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 

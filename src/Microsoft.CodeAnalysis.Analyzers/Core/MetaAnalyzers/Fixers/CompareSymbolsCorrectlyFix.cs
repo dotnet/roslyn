@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
     public abstract class CompareSymbolsCorrectlyFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(CompareSymbolsCorrectlyAnalyzer.EqualityRule.Id);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(CompareSymbolsCorrectlyAnalyzer.EqualityRule.Id);
 
         protected abstract SyntaxNode CreateConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
 
