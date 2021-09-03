@@ -319,7 +319,7 @@
       </trans-unit>
       <trans-unit id="Reassigned_variable">
         <source>Reassigned variable</source>
-        <target state="new">Reassigned variable</target>
+        <target state="translated">Reatribuir variável</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
