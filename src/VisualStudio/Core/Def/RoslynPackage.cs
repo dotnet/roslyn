@@ -25,7 +25,6 @@ using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
-using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;

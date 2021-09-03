@@ -17,26 +17,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly string _searchPattern;
-        private readonly bool _useNavigateToEngine;
 
         public SearchGraphQuery(
             string searchPattern,
             IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener,
-            bool useNavigateToEngine)
+            IAsynchronousOperationListener asyncListener)
         {
             _threadingContext = threadingContext;
             _asyncListener = asyncListener;
             _searchPattern = searchPattern;
-            _useNavigateToEngine = useNavigateToEngine;
         }
 
-        public Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
-            => _useNavigateToEngine
-                ? SearchUsingNavigateToEngineAsync(solution, context, cancellationToken)
-                : SearchUsingSymbolsAsync(solution, context, cancellationToken);
-
-        private async Task<GraphBuilder> SearchUsingNavigateToEngineAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
+        public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
         {
             var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
             var callback = new ProgressionNavigateToSearchCallback(context, graphBuilder);

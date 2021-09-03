@@ -5,7 +5,6 @@
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.Language.Intellisense
@@ -20,15 +19,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(
-            threadingContext As IThreadingContext,
-            glyphService As IGlyphService,
-            serviceProvider As SVsServiceProvider,
-            workspace As VisualStudioWorkspace,
-            optionService As IGlobalOptionService,
-            listenerProvider As IAsynchronousOperationListenerProvider)
-
-            MyBase.New(threadingContext, glyphService, serviceProvider, workspace, optionService, listenerProvider)
+        Public Sub New(threadingContext As IThreadingContext, glyphService As IGlyphService, serviceProvider As SVsServiceProvider, workspace As VisualStudioWorkspace, listenerProvider As IAsynchronousOperationListenerProvider)
+            MyBase.New(threadingContext, glyphService, serviceProvider, workspace, listenerProvider)
         End Sub
     End Class
 End Namespace

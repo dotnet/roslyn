@@ -13,15 +13,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-<<<<<<< HEAD:src/VisualStudio/Core/Def/Implementation/Experimentation/KeybindingResetDetector.cs
-using Microsoft.CodeAnalysis.Experimentation;
-=======
-using Microsoft.CodeAnalysis.Experiments;
->>>>>>> 4afb9ae13f0 (KeybindingResetDetector refactoring):src/VisualStudio/Core/Def/Implementation/KeybindingReset/KeybindingResetDetector.cs
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
@@ -71,7 +65,6 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
         private readonly IGlobalOptionService _optionService;
         private readonly System.IServiceProvider _serviceProvider;
-        private readonly VisualStudioExperimentationService _experimentationService;
         private readonly VisualStudioInfoBarService _infoBarService;
 
         // All mutable fields are UI-thread affinitized
@@ -99,13 +92,11 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         public KeybindingResetDetector(
             IThreadingContext threadingContext,
             IGlobalOptionService optionService,
-            VisualStudioExperimentationService experimentationService,
             VisualStudioInfoBarService infoBarService,
             SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
             _optionService = optionService;
-            _experimentationService = experimentationService;
             _infoBarService = infoBarService;
             _serviceProvider = serviceProvider;
         }
@@ -125,12 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         {
             AssertIsForeground();
 
-            // Ensure one of the flights is enabled, otherwise bail
-<<<<<<< HEAD:src/VisualStudio/Core/Def/Implementation/Experimentation/KeybindingResetDetector.cs
-            if (!_workspace.Options.GetOption(KeybindingResetOptions.EnabledFeatureFlag))
-=======
-            if (!_experimentationService.IsExperimentEnabled(ExternalFlightName) && !_experimentationService.IsExperimentEnabled(InternalFlightName))
->>>>>>> 4afb9ae13f0 (KeybindingResetDetector refactoring):src/VisualStudio/Core/Def/Implementation/KeybindingReset/KeybindingResetDetector.cs
+            if (!_optionService.GetOption(KeybindingResetOptions.EnabledFeatureFlag))
             {
                 return;
             }
