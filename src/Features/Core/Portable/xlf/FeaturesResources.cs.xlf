@@ -232,7 +232,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
         <source>Asynchronously waits for the task to finish.</source>
-        <target state="new">Asynchronously waits for the task to finish.</target>
+        <target state="translated">Asynchronně čeká na dokončení úlohy.</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -752,17 +752,17 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Introduce_parameter">
         <source>Introduce parameter</source>
-        <target state="new">Introduce parameter</target>
+        <target state="translated">Zavést parametr</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">
         <source>Introduce parameter for '{0}'</source>
-        <target state="new">Introduce parameter for '{0}'</target>
+        <target state="translated">Zavést parametr pro{0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter_for_all_occurrences_of_0">
         <source>Introduce parameter for all occurrences of '{0}'</source>
-        <target state="new">Introduce parameter for all occurrences of '{0}'</target>
+        <target state="translated">Zavést parametr pro všechny výskyty položky {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable">
@@ -777,7 +777,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
-        <target state="new">Invalid selection.</target>
+        <target state="translated">Neplatný výběr</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -967,7 +967,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
-        <target state="new">No common root node for extraction.</target>
+        <target state="translated">Žádný společný kořenový uzel pro extrakci</target>
         <note />
       </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
@@ -977,7 +977,7 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       </trans-unit>
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
-        <target state="new">No valid selection to perform extraction.</target>
+        <target state="translated">Žádný platný výběr k provedení extrakce</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2222,7 +2222,7 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
         <source>Selection does not contain a valid token.</source>
-        <target state="new">Selection does not contain a valid token.</target>
+        <target state="translated">Výběr neobsahuje platný token.</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_not_contained_inside_a_type">
@@ -2828,7 +2828,7 @@ Pokud se specifikátor formátu H použije bez dalších specifikátorů vlastn�
       </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
-        <target state="new">and update call sites directly</target>
+        <target state="translated">a aktualizovat místa volání přímo</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -2974,12 +2974,12 @@ Specifikátor standardního formátu f představuje kombinaci vzorů dlouhého d
       </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
         <source>into extracted method to invoke at call sites</source>
-        <target state="new">into extracted method to invoke at call sites</target>
+        <target state="translated">do extrahované metody pro vyvolání na místech volání</target>
         <note />
       </trans-unit>
       <trans-unit id="into_new_overload">
         <source>into new overload</source>
-        <target state="new">into new overload</target>
+        <target state="translated">do nového přetížení</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
@@ -3391,7 +3391,7 @@ Pokud se specifikátor formátu g použije bez dalších specifikátorů vlastn�
       </trans-unit>
       <trans-unit id="property_accessor">
         <source>property accessor</source>
-        <target state="new">property accessor</target>
+        <target state="translated">Přistupující objekt vlastnosti</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
