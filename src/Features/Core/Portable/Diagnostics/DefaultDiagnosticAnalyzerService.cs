@@ -36,14 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
-            {
-                return null;
-            }
-
-            return new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
-        }
+            => new DefaultDiagnosticIncrementalAnalyzer(this, workspace);
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
         public event EventHandler DiagnosticsCleared { add { } remove { } }
