@@ -89,6 +89,7 @@ namespace ConsoleApp4
         [Theory]
         [InlineData("ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#", "ConsoleApp4.MyClass.ThrowAtOne")]
         [InlineData(@"   at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26", "ConsoleApp4.MyClass.ThrowAtOne")]
+        [InlineData(@"at ConsoleApp4.MyClass.ThrowAtOne()", "ConsoleApp4.MyClass.ThrowAtOne")]
         public async Task TestSymbolFound(string inputLine, string symbolText)
         {
             var workspace = CreateWorkspace();
@@ -175,6 +176,17 @@ namespace ConsoleApp4
             symbol = await fileLineResults[4].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
             method = await GetSymbolAsync("ConsoleApp4.Program.Main", workspace);
             Assert.Equal(method, symbol);
+        }
+
+        [Theory]
+        [InlineData("alkjsdflkjasdlkfjasd")]
+        [InlineData("at alksjdlfjasdlkfj")]
+        [InlineData("line 26")]
+        [InlineData("alksdjflkjsadf.cs:line 26")]
+        public async Task TestFailureCases(string line)
+        {
+            var result = await CallstackAnalyzer.AnalyzeAsync(line, CancellationToken.None);
+            Assert.Empty(result.ParsedLines);
         }
     }
 }

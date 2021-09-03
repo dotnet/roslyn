@@ -33,12 +33,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
 
         private void OnPaste()
         {
+            _viewModel.CallstackLines.Clear();
             var textObject = Clipboard.GetData(DataFormats.Text);
 
             if (textObject is string text)
             {
                 _viewModel.OnPaste(text);
             }
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            _viewModel.CallstackLines.Clear();
         }
     }
 }

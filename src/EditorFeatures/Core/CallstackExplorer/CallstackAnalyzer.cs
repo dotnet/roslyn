@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -33,16 +34,16 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
             {
                 var trimmedLine = line.Trim();
 
-                if (trimmedLine.StartsWith(StackTraceStart))
+                if (TryParseDebugWindowStack(trimmedLine, out var parsedLine))
                 {
-                    yield return ParseStackTraceLine(trimmedLine);
+                    yield return parsedLine;
+                    continue;
                 }
-                else
+
+                if (TryParseStackTraceLine(trimmedLine, out parsedLine))
                 {
-                    if (TryParseDebugWindowStack(trimmedLine, out var result))
-                    {
-                        yield return result;
-                    }
+                    yield return parsedLine;
+                    continue;
                 }
             }
         }
@@ -74,16 +75,19 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
             return true;
         }
 
-        private static ParsedLine ParseStackTraceLine(string line)
+        private static bool TryParseStackTraceLine(string line, [NotNullWhen(returnValue: true)] out ParsedLine? parsedLine)
         {
+            var regex = new Regex(@".*([a-zA-Z0-9]+\.)*([a-zA-Z0-9]+)+\(.*\).*");
+            if (!regex.IsMatch(line))
+            {
+                parsedLine = null;
+                return false;
+            }
+
             // Example line
             // at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26
             //   |--------------------------------|  |--------------------------------------------|   |--|
             //          Symbol Data                          File Information                           Line number
-
-            Debug.Assert(line.StartsWith(StackTraceStart));
-
-            line = line.Substring(StackTraceStart.Length);
 
             var symbolInformationStart = StackTraceStart.Length;
 
@@ -96,10 +100,12 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
                 var fileInformationStart = line.IndexOf(StackTraceSymbolAndFileSplit) + StackTraceSymbolAndFileSplit.Length;
                 var fileInformationSpan = new TextSpan(fileInformationStart, line.Length - fileInformationStart);
 
-                return new FileLineResult(line, symbolInformationSpan, fileInformationSpan);
+                parsedLine = new FileLineResult(line, symbolInformationSpan, fileInformationSpan);
+                return true;
             }
 
-            return new ParsedLine(line, symbolInformationSpan);
+            parsedLine = new ParsedLine(line, symbolInformationSpan);
+            return true;
         }
     }
 }
