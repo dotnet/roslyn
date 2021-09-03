@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait);
         }
 
-        private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion, string? inlineDescription = null, bool includeingAwaitf = false)
+        private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion, string? inlineDescription = null, bool awaitf = false)
         {
             await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwait, glyph: (int)Glyph.Keyword, inlineDescription: inlineDescription);
-            if (includeingAwaitf)
+            if (awaitf)
             {
                 await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait, glyph: (int)Glyph.Keyword, inlineDescription: inlineDescription);
             }
@@ -306,7 +306,7 @@ class C
     someTask.$$
   }
 }
-", LanguageVersion.CSharp9, includeingAwaitf: true);
+", LanguageVersion.CSharp9, awaitf: true);
         }
 
         [Fact]
@@ -322,7 +322,7 @@ class C
     someTask.$$
   }
 }
-", LanguageVersion.CSharp9, includeingAwaitf: true);
+", LanguageVersion.CSharp9, awaitf: true);
         }
 
         [Fact]
@@ -390,7 +390,7 @@ static class Program
     {
         someTask.$$.;
     }
-}", LanguageVersion.CSharp9, includeingAwaitf: true);
+}", LanguageVersion.CSharp9, awaitf: true);
         }
 
         [Fact]
@@ -407,7 +407,7 @@ static class Program
         someTask.$$
         Int32 i = 0;
     }
-}", LanguageVersion.CSharp9, includeingAwaitf: true);
+}", LanguageVersion.CSharp9, awaitf: true);
         }
 
         [Fact]
@@ -426,7 +426,7 @@ static class Program
     }
 
     async Task Test() { }
-}", LanguageVersion.CSharp9, includeingAwaitf: true);
+}", LanguageVersion.CSharp9, awaitf: true);
         }
 
         [Theory]
@@ -493,7 +493,7 @@ static class Program
 
         Task LocalFunction() => Task.CompletedTask;
     }}
-}}", LanguageVersion.CSharp9, includeingAwaitf: true);
+}}", LanguageVersion.CSharp9, awaitf: true);
         }
 
         [Fact(Skip = "Fails because speculative binding can't figure out that local is a Task.")]
@@ -542,7 +542,7 @@ static class Program
         var someTask = Task.CompletedTask;
         {lambda}
     }}
-}}", LanguageVersion.CSharp9, inlineDescription: makeContainerAsync ? FeaturesResources.Make_containing_scope_async : null, includeingAwaitf: true);
+}}", LanguageVersion.CSharp9, inlineDescription: makeContainerAsync ? FeaturesResources.Make_containing_scope_async : null, awaitf: true);
         }
 
         [Fact]

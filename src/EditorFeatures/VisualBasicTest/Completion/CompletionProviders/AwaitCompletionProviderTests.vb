@@ -12,9 +12,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return GetType(AwaitCompletionProvider)
         End Function
 
-        Protected Async Function VerifyAwaitKeyword(markup As String, Optional makeContainerAsync As Boolean = False, Optional includeConfigureAwait As Boolean = False) As Task
+        Protected Async Function VerifyAwaitKeyword(markup As String, Optional makeContainerAsync As Boolean = False, Optional awaitf As Boolean = False) As Task
             Await VerifyItemExistsAsync(markup, "Await", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing))
-            If includeConfigureAwait Then
+            If awaitf Then
                 Await VerifyItemExistsAsync(markup, "Awaitf", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing))
             Else
                 Await VerifyItemIsAbsentAsync(markup, "Awaitf")
@@ -136,7 +136,7 @@ Class C
         Task.CompletedTask.$$
     End Sub
 End Class
-", includeConfigureAwait:=True)
+", awaitf:=True)
         End Function
 
         <Fact>
@@ -149,7 +149,7 @@ Class C
         someTask.$$
     End Function
 End Class
-", includeConfigureAwait:=True)
+", awaitf:=True)
         End Function
 
         <Fact>
@@ -225,7 +225,7 @@ Module Program
         Dim i As Int32 = 0
     End Function
 End Module
-", includeConfigureAwait:=True)
+", awaitf:=True)
         End Function
 
         <Fact>
@@ -243,7 +243,7 @@ Module Program
     Private Async Function Test() As Task
     End Function
 End Module
-", includeConfigureAwait:=True)
+", awaitf:=True)
         End Function
 
         <Theory>
@@ -323,7 +323,7 @@ Module Program
 
     End Function
 End Module
-", includeConfigureAwait:=True)
+", awaitf:=True)
         End Function
 
         <Theory>
@@ -349,7 +349,7 @@ Module Program
         {lambda}
     End Function
 End Module
-", includeConfigureAwait:=True, makeContainerAsync:=makeContainerAsync)
+", awaitf:=True, makeContainerAsync:=makeContainerAsync)
         End Function
 
         <Fact>
