@@ -2603,10 +2603,9 @@ public class Class1Helpers
     {
         return 0;
     }
-
     public static int TestMethod2()
     {
-        return TestMethod();
+        return Class1Helpers.TestMethod();
     }
 }";
 

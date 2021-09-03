@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers
 {
@@ -11,7 +12,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
     {
         public string TypeName { get; }
         public INamedTypeSymbol? NamedType { get; }
-        public string DeclarationFile { get; }
+        public string DeclarationFilePath { get; }
+        public string DeclarationFileName { get; }
         public bool IsFromHistory { get; }
         public bool IsNew { get; }
 
@@ -21,7 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             IsNew = false;
             NamedType = type;
             TypeName = type.ToDisplayString();
-            DeclarationFile = declarationFile;
+            DeclarationFileName = PathUtilities.GetFileName(declarationFile);
+            DeclarationFilePath = declarationFile;
         }
 
         public TypeNameItem(string @typeName)
@@ -30,7 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             IsNew = true;
             TypeName = @typeName;
             NamedType = null;
-            DeclarationFile = string.Empty;
+            DeclarationFileName = string.Empty;
+            DeclarationFilePath = string.Empty;
         }
 
         public override string ToString() => TypeName;
@@ -56,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 }
             }
 
-            return x.DeclarationFile.CompareTo(y.DeclarationFile);
+            return x.DeclarationFileName.CompareTo(y.DeclarationFileName);
         }
     }
 }

@@ -2171,8 +2171,7 @@ Public Class Other
         OtherInt = 5
     End Sub
 End Class"
-            Dim fixedDestinationMarkup = "
-Imports System.Runtime.CompilerServices
+            Dim fixedDestinationMarkup = "Imports System.Runtime.CompilerServices
 
 Public Module Class1Helpers
     <Extension>
@@ -2305,11 +2304,11 @@ End Class"
         Public Async Function TestMoveFunctionToExistingModuleRefactorSourceUsage() As Task
             Dim initialSourceMarkup = "
 Public Module Class1
-    Public Shared Function Test[||]Func() As Integer
+    Public Function Test[||]Func() As Integer
         Return 0
     End Function
 
-    Public Shared Function TestFunc2() As Integer
+    Public Function TestFunc2() As Integer
         Return TestFunc()
     End Function
 End Module"
@@ -2320,13 +2319,13 @@ End Module"
             Dim selection = ImmutableArray.Create("TestFunc")
             Dim fixedSourceMarkup = "
 Public Module Class1
-    Public Shared Function TestFunc2() As Integer
+    Public Function TestFunc2() As Integer
         Return TestFunc()
     End Function
 End Module"
             Dim fixedDestinationMarkup = "
 Public Module Class1Helpers
-    Public Shared Function TestFunc() As Integer
+    Public Function TestFunc() As Integer
         Return 0
     End Function
 End Module"
@@ -2361,9 +2360,8 @@ End Class"
             Dim fixedDestinationMarkup = "
 Public Class Class1Helpers
     Public Shared Function TestFunc2() As Integer
-        Return TestFunc()
+        Return Class1Helpers.TestFunc()
     End Function
-
     Public Shared Function TestFunc() As Integer
         Return 0
     End Function

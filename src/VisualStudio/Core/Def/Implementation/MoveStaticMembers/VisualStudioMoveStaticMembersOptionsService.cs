@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             }
 
             return new MoveStaticMembersOptions(
-                destination.DeclarationFile,
+                destination.DeclarationFilePath,
                 destination.NamedType!,
                 selectedMembers);
         }
@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 document.GetRequiredLanguageService<ISyntaxFactsService>());
         }
 
-        private static string GetFile(Location loc) => PathUtilities.GetFileName(loc.SourceTree!.FilePath);
+        private static string GetFile(Location loc) => loc.SourceTree!.FilePath;
 
         /// <summary>
         /// Construct all the type names declared in the project,
@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 // filter to those actually in a real file, and that is not our current location.
                 return t.Locations
                     .Where(l => l.IsInSource &&
-                        (currentType.Name != t.Name || GetFile(l) != currentDocument.Name))
+                        (currentType.Name != t.Name || GetFile(l) != currentDocument.FilePath))
                     .Select(l => new TypeNameItem(
                         history.Contains(t),
                         GetFile(l),

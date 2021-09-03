@@ -73,7 +73,10 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
             if (!moveOptions.IsNewType)
             {
-                // we already have our destination type
+                // we already have our destination type, but we need to find the document it is in
+                // When it is an existing type, "FileName" points to a full path rather than just the name
+                // There should be no two docs that have the same file path
+                var destinationDocId = _document.Project.Solution.GetDocumentIdsWithFilePath(moveOptions.FileName).Single();
                 var fixedSolution = await RefactorAndMoveAsync(
                     moveOptions.SelectedMembers,
                     memberNodes,
@@ -82,6 +85,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                     // TODO: Find a way to merge/change generic type args for classes, or change PullMembersUp to handle instead
                     typeArgIndices: ImmutableArray<int>.Empty,
                     sourceDoc.Id,
+                    destinationDocId,
                     cancellationToken).ConfigureAwait(false);
                 return new CodeActionOperation[] { new ApplyChangesOperation(fixedSolution) };
             }
@@ -124,6 +128,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 newType,
                 typeArgIndices,
                 sourceDoc.Id,
+                newDoc.Id,
                 cancellationToken).ConfigureAwait(false);
 
             return new CodeActionOperation[] { new ApplyChangesOperation(movedSolution) };
@@ -157,8 +162,16 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             INamedTypeSymbol newType,
             ImmutableArray<int> typeArgIndices,
             DocumentId sourceDocId,
+            DocumentId newTypeDocId,
             CancellationToken cancellationToken)
         {
+            // annotate our new type, in case our refactoring changes it
+            var newTypeDoc = await oldSolution.GetRequiredDocumentAsync(newTypeDocId, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var newTypeNode = newType.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
+            var newTypeRoot = newTypeNode.SyntaxTree.GetRoot(cancellationToken);
+            newTypeRoot = newTypeRoot.TrackNodes(newTypeNode);
+            oldSolution = newTypeDoc.WithSyntaxRoot(newTypeRoot).Project.Solution;
+
             // refactor references across the entire solution
             var memberReferenceLocations = await FindMemberReferencesAsync(selectedMembers, oldSolution, cancellationToken).ConfigureAwait(false);
             var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
@@ -166,13 +179,18 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
 
             var sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDocId);
 
-            // get back nodes from our changes
+            // get back tracked nodes from our changes
             var root = await sourceDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var members = oldMemberNodes
                 .Select(node => root.GetCurrentNode(node))
                 .WhereNotNull()
                 .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
+
+            newTypeDoc = solutionWithFixedReferences.GetRequiredDocument(newTypeDoc.Id);
+            newTypeRoot = await newTypeDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newTypeSemanticModel = await newTypeDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            newType = (INamedTypeSymbol)newTypeSemanticModel.GetRequiredDeclaredSymbol(newTypeRoot.GetCurrentNode(newTypeNode)!, cancellationToken);
 
             var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
             return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
