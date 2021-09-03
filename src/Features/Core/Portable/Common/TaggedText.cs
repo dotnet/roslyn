@@ -83,6 +83,18 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
             => Text;
+
+        /// <summary>
+        /// Clones the current instance of <see cref="TaggedText"/> to a new instance with a different text.
+        /// 
+        /// Needed for truncating Exception Texts that are longer than a certain amount of characters.
+        /// </summary>
+        /// <param name="text">The new text to use for the clone of this instance.</param>
+        /// <returns>A new instance of <see cref="TaggedText"/> that clones the current instance.</returns>
+        internal TaggedText WithText(string text)
+        {
+            return new(this.Tag, text, this.Style, this.NavigationTarget, this.NavigationHint);
+        }
     }
 
     internal static class TaggedTextExtensions

@@ -243,17 +243,29 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private void AddExceptions(ISymbol symbol)
             {
-                var exceptionTypes = symbol.GetDocumentationComment(GetCompilation(), expandIncludes: true, expandInheritdoc: true).ExceptionTypes;
+                const int maxTextSize = 70;
+                var documentationComment = symbol.GetDocumentationComment(GetCompilation(), expandIncludes: true, expandInheritdoc: true);
+                var exceptionTypes = documentationComment.ExceptionTypes;
+                var formatter = Services.GetLanguageServices(_semanticModel.Language).GetRequiredService<IDocumentationCommentFormattingService>();
                 if (exceptionTypes.Any())
                 {
-                    var parts = new List<SymbolDisplayPart>();
+                    var parts = new List<TaggedText>();
                     parts.AddLineBreak();
                     parts.AddText(WorkspacesResources.Exceptions_colon);
                     foreach (var exceptionString in exceptionTypes)
                     {
-                        parts.AddRange(LineBreak());
-                        parts.AddRange(Space(count: 2));
-                        parts.AddRange(AbstractDocumentationCommentFormattingService.CrefToSymbolDisplayParts(exceptionString, _position, _semanticModel));
+                        var checkedParts = new List<TaggedText>();
+                        checkedParts.AddRange(LineBreak().ToTaggedText());
+                        checkedParts.AddRange(Space(count: 2).ToTaggedText());
+                        checkedParts.AddRange(AbstractDocumentationCommentFormattingService.CrefToSymbolDisplayParts(exceptionString, _position, _semanticModel).ToTaggedText());
+                        var exceptionTexts = documentationComment.GetExceptionTexts(exceptionString);
+                        if (!string.IsNullOrEmpty(exceptionTexts[0]))
+                        {
+                            var exceptionStr = exceptionTexts[0].Length - 1 > maxTextSize ? $": {(exceptionTexts[0].Remove(maxTextSize - 3) + "...")}" : $": {exceptionTexts[0]}";
+                            checkedParts.AddRange(formatter.Format(exceptionStr, symbol, _semanticModel, _position, ISymbolExtensions2.CrefFormat, CancellationToken));
+                        }
+
+                        parts.AddRange(checkedParts);
                     }
 
                     AddToGroup(SymbolDescriptionGroups.Exceptions, parts);
@@ -784,6 +796,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 AddToGroup(SymbolDescriptionGroups.TypeParameterMap,
                     parts);
+            }
+
+            protected void AddToGroup(SymbolDescriptionGroups group, IEnumerable<TaggedText> partsArray)
+            {
+                _documentationMap.Add(group, partsArray.ToImmutableArray());
             }
 
             protected void AddToGroup(SymbolDescriptionGroups group, params SymbolDisplayPart[] partsArray)

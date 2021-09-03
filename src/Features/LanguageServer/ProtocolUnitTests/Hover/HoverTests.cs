@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
             var expectedLocation = testLspServer.GetLocations("caret").Single();
 
             var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
-            VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException");
+            VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException: Oh no!");
         }
 
         [Fact]
@@ -256,7 +256,7 @@ Remarks&nbsp;are&nbsp;cool&nbsp;too\.
 &nbsp;&nbsp;a&nbsp;string  
   
 {FeaturesResources.Exceptions_colon}  
-&nbsp;&nbsp;System\.NullReferenceException  
+&nbsp;&nbsp;System\.NullReferenceException:&nbsp;Oh&nbsp;no\!  
 ";
 
             var results = await RunGetHoverAsync(
@@ -323,7 +323,7 @@ Remarks are cool too.
   a string
 
 {FeaturesResources.Exceptions_colon}
-  System.NullReferenceException
+  System.NullReferenceException: Oh no!
 ";
 
             var results = await RunGetHoverAsync(

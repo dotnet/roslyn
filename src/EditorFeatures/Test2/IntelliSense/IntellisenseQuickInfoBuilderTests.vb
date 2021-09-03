@@ -388,7 +388,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Text, FeaturesResources.Exceptions_colon)),
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, "  "),
-                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException", navigationAction:=Sub() Return, "IOException"))))
+                        New ClassifiedTextRun(ClassificationTypeNames.ClassName, "IOException", navigationAction:=Sub() Return, "IOException"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, ": If something fails"))))
 
             ToolTipAssert.EqualContent(expected, container)
         End Function
