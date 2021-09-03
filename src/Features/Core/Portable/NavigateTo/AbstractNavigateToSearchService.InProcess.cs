@@ -183,6 +183,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
             {
+                if (declaredSymbolInfo.Kind == DeclaredSymbolInfoKind.Namespace)
+                    continue;
+
                 await AddResultIfMatchAsync(
                     documentId, document,
                     declaredSymbolInfo,

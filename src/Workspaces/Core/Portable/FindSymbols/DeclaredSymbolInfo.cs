@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Interface,
         Method,
         Module,
+        Namespace,
         Property,
         Record,
         RecordStruct,
