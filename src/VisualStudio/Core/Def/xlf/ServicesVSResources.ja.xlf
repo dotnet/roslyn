@@ -1232,6 +1232,11 @@
         <target state="translated">これは無効な名前空間です</target>
         <note />
       </trans-unit>
+      <trans-unit id="This_rule_is_not_configurable">
+        <source>This rule is not configurable</source>
+        <target state="new">This rule is not configurable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
         <target state="translated">タイトル</target>

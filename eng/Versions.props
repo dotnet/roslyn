@@ -50,6 +50,8 @@
   -->
   <PropertyGroup>
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
+    <BasicReferenceAssembliesNetStandard20Version>1.2.1</BasicReferenceAssembliesNetStandard20Version>
+    <BasicReferenceAssembliesNet50Version>1.2.1</BasicReferenceAssembliesNet50Version>
     <BenchmarkDotNetVersion>0.13.0</BenchmarkDotNetVersion>
     <BenchmarkDotNetDiagnosticsWindowsVersion>0.13.0</BenchmarkDotNetDiagnosticsWindowsVersion>
     <DiffPlexVersion>1.4.4</DiffPlexVersion>

@@ -107,9 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = context.Position;
 
             // Escape hatch feature flag to let us disable this feature remotely if we run into any issues with it, 
-            var workspace = document.Project.Solution.Workspace;
-            var disabled = context.Options.GetOption(CompletionOptions.UnnamedSymbolCompletionDisabledFeatureFlag);
-            if (disabled)
+            if (context.Options.GetOption(CompletionOptions.UnnamedSymbolCompletionDisabledFeatureFlag))
                 return;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -122,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var options = CodeAnalysis.Completion.Providers.CompletionUtilities.GetUpdatedRecommendationOptions(context.Options, document.Project.Language);
-            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(workspace, semanticModel, position, options, cancellationToken);
+            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, options, cancellationToken);
 
             AddUnnamedSymbols(context, position, semanticModel, recommendedSymbols.UnnamedSymbols, cancellationToken);
         }

@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
     Public Class EqualsKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <WorkItem(543136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543136")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EqualsAfterJoinInOnIdentifierTest()
