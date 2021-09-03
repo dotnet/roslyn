@@ -2,6 +2,10 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!-- These resources provide the default colors for the dashboard if we're not hosted
+         in a specific host that will override them, like Visual Studio. Each resource here
+         corresponds to an entry in DashboardColors.cs, where it can be overwritten by a host. -->
+    
     <Color x:Key="SystemCaptionTextColor">Black</Color>
     <SolidColorBrush x:Key="SystemCaptionTextBrush"  Color="Black"/>
     <SolidColorBrush x:Key="CheckBoxTextBrush"  Color="Black"/>
