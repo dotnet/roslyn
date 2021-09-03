@@ -20,14 +20,14 @@ parameters:
   default: ''
 - name: queueName
   type: string
-  default: 'BuildPool.Windows.10.Amd64.Open'
+  default: 'Build.Windows.10.Amd64.Open'
 
 jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.buildJobName }}
   pool:
-    name: NetCorePublic-Pool
-    queue: ${{ parameters.queueName }}
+    name: NetCore1ESPool-Svc-Public
+    demands: ImageOverride -equals ${{ parameters.queueName }}
   timeoutInMinutes: 120
   variables:
     DOTNET_ROLL_FORWARD: LatestMajor

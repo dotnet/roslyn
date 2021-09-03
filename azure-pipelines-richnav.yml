@@ -19,8 +19,8 @@ pr: none
 jobs:
 - job: RichCodeNav_Indexing
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.Open
+    name: NetCore1ESPool-Svc-Public
+    demands: ImageOverride -equals Build.Windows.10.Amd64.Open
   variables:
     EnableRichCodeNavigation: true
   timeoutInMinutes: 200
