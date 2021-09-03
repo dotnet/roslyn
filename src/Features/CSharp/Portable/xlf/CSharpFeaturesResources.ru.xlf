@@ -409,7 +409,7 @@
       </trans-unit>
       <trans-unit id="record_struct">
         <source>record struct</source>
-        <target state="new">record struct</target>
+        <target state="translated">структура записей</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

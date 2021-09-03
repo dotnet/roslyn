@@ -1314,7 +1314,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureWithOnAnonymousTypes">
         <source>with on anonymous types</source>
-        <target state="new">with on anonymous types</target>
+        <target state="translated">"with" in anonymen Typen</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStaticAbstractMembersInInterfaces">
