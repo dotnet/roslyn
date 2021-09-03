@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync, cancellationToken))
             {
-                if (await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), cancellationToken).ConfigureAwait(false))
+                if (await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false))
                 {
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 

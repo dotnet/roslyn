@@ -344,11 +344,61 @@ namespace Microsoft.CodeAnalysis
                 cancellationToken);
         }
 
-        internal Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, CancellationToken cancellationToken)
+        internal Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
             return this.ContainsSymbolsAsync(
-                (index, cancellationToken) => index.DeclaredSymbolInfos.Any(d => predicate(d.Name)),
+                (index, cancellationToken) =>
+                {
+                    foreach (var info in index.DeclaredSymbolInfos)
+                    {
+                        if (FilterMatches(info, filter) && predicate(info.Name))
+                            return true;
+                    }
+
+                    return false;
+                },
                 cancellationToken);
+
+            static bool FilterMatches(DeclaredSymbolInfo info, SymbolFilter filter)
+            {
+                if ((filter & SymbolFilter.Namespace) != 0)
+                {
+                    if (info.Kind == DeclaredSymbolInfoKind.Namespace)
+                        return true;
+                }
+
+                if ((filter & SymbolFilter.Type) != 0)
+                {
+                    if (info.Kind is DeclaredSymbolInfoKind.Class or
+                                     DeclaredSymbolInfoKind.Delegate or
+                                     DeclaredSymbolInfoKind.Enum or
+                                     DeclaredSymbolInfoKind.Interface or
+                                     DeclaredSymbolInfoKind.Module or
+                                     DeclaredSymbolInfoKind.Record or
+                                     DeclaredSymbolInfoKind.RecordStruct or
+                                     DeclaredSymbolInfoKind.Struct)
+                    {
+                        return true;
+                    }
+                }
+
+                if ((filter & SymbolFilter.Member) != 0)
+                {
+                    if (info.Kind is DeclaredSymbolInfoKind.Constant or
+                                     DeclaredSymbolInfoKind.EnumMember or
+                                     DeclaredSymbolInfoKind.Event or
+                                     DeclaredSymbolInfoKind.ExtensionMethod or
+                                     DeclaredSymbolInfoKind.Field or
+                                     DeclaredSymbolInfoKind.Indexer or
+                                     DeclaredSymbolInfoKind.Method or
+                                     DeclaredSymbolInfoKind.Property)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private async Task<bool> ContainsSymbolsAsync(

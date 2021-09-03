@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // full compilation if we don't have that.
                 var containsSymbol = isExactNameSearch
                     ? await project.ContainsSymbolsWithNameAsync(query.Name, cancellationToken).ConfigureAwait(false)
-                    : await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), cancellationToken).ConfigureAwait(false);
+                    : await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false);
 
                 if (!containsSymbol)
                 {
