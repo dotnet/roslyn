@@ -90,10 +90,8 @@ namespace Microsoft.CodeAnalysis.Options
 
                 foreach (var lazyProviderAndMetadata in lazyProvidersAndMetadata)
                 {
-                    // We only consider the options defined in the the DefaultAssemblies (Workspaces and Features) as serializable.
-                    // This is due to the fact that other layers above are VS specific and do not execute in OOP.
                     var provider = lazyProviderAndMetadata.Value;
-                    if (!MefHostServices.IsDefaultAssembly(provider.GetType().Assembly))
+                    if (!IsSolutionOptionProvider(provider))
                     {
                         continue;
                     }
@@ -104,6 +102,11 @@ namespace Microsoft.CodeAnalysis.Options
                 return builder.ToImmutable();
             }
         }
+
+        // We only consider the options defined in the the DefaultAssemblies (Workspaces and Features) as serializable.
+        // This is due to the fact that other layers above are VS specific and do not execute in OOP.
+        internal static bool IsSolutionOptionProvider(IOptionProvider provider)
+            => MefHostServices.IsDefaultAssembly(provider.GetType().Assembly);
 
         private ImmutableArray<IOptionPersister> GetOptionPersisters()
         {
@@ -378,34 +381,40 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public void SetGlobalOption(OptionKey optionKey, object? value)
-        {
-            lock (_gate)
-            {
-                // not updating _changedOptionKeys since that's only relevant for serializable options, not global ones
-                _currentValues = _currentValues.SetItem(optionKey, value);
-            }
-
-            PersistOption(GetOptionPersisters(), optionKey, value);
-        }
+            => SetGlobalOptions(ImmutableArray.Create(optionKey), ImmutableArray.Create(value));
 
         public void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values)
         {
             Contract.ThrowIfFalse(optionKeys.Length == values.Length);
 
+            var changedOptions = new List<OptionChangedEventArgs>();
+            var persisters = GetOptionPersisters();
+
             lock (_gate)
             {
                 for (var i = 0; i < optionKeys.Length; i++)
                 {
+                    var optionKey = optionKeys[i];
+                    var value = values[i];
+
+                    var existingValue = GetOption_NoLock(optionKey, persisters);
+                    if (Equals(value, existingValue))
+                    {
+                        continue;
+                    }
+
                     // not updating _changedOptionKeys since that's only relevant for serializable options, not global ones
-                    _currentValues = _currentValues.SetItem(optionKeys[i], values[i]);
+                    _currentValues = _currentValues.SetItem(optionKey, value);
+                    changedOptions.Add(new OptionChangedEventArgs(optionKey, value));
                 }
             }
 
-            var persisters = GetOptionPersisters();
             for (var i = 0; i < optionKeys.Length; i++)
             {
                 PersistOption(persisters, optionKeys[i], values[i]);
             }
+
+            RaiseOptionChangedEvent(changedOptions);
         }
 
         public void SetOptions(OptionSet optionSet)
@@ -493,6 +502,11 @@ namespace Microsoft.CodeAnalysis.Options
                 workspace.UpdateCurrentSolutionOnOptionsChanged();
             }
 
+            RaiseOptionChangedEvent(changedOptions);
+        }
+
+        private void RaiseOptionChangedEvent(List<OptionChangedEventArgs> changedOptions)
+        {
             // Raise option changed events.
             var optionChanged = OptionChanged;
             if (optionChanged != null)
