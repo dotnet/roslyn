@@ -100,62 +100,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return dotToken;
         }
 
-        private protected override DotAwaitContext GetDotAwaitKeywordContext(SyntaxContext syntaxContext, CancellationToken cancellationToken)
+        private protected override ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken)
         {
-            var position = syntaxContext.Position;
-            var syntaxTree = syntaxContext.SyntaxTree;
-            var potentialAwaitableExpression = GetExpressionToPlaceAwaitInFrontOf(syntaxTree, position, cancellationToken);
-            if (potentialAwaitableExpression is not null)
+            if (potentialAwaitableExpression is MemberAccessExpressionSyntax memberAccess)
             {
-                var semanticModel = syntaxContext.SemanticModel;
-                var symbol = GetTypeSymbolOfExpression(semanticModel, potentialAwaitableExpression, cancellationToken);
-                if (symbol is not null && symbol.IsAwaitableNonDynamic(semanticModel, position))
+                var memberAccessExpression = memberAccess.Expression.WalkDownParentheses();
+                var symbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
+                if (symbol is INamedTypeSymbol) // e.g. Task.$$
                 {
-                    var parentOfAwaitable = potentialAwaitableExpression.Parent;
-                    if (parentOfAwaitable is not AwaitExpressionSyntax)
-                    {
-                        // We have a awaitable type left of the dot, that is not yet awaited.
-                        // We need to check if await is valid at the insertion position.
-                        var syntaxContextAtInsertationPosition = syntaxContext.GetLanguageService<ISyntaxContextService>().CreateContext(
-                            syntaxContext.Document, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken);
-                        if (syntaxContextAtInsertationPosition.IsAwaitKeywordContext())
-                        {
-                            return IsConfigureAwaitable(syntaxContext.SemanticModel.Compilation, symbol)
-                                ? DotAwaitContext.AwaitAndConfigureAwait
-                                : DotAwaitContext.AwaitOnly;
-                        }
-                    }
+                    return null;
                 }
+
+                return
+                    symbol?.GetSymbolType() ??
+                    symbol?.GetMemberType() ??
+                    // Some expressions don't have a symbol (e.g. (o as Task).$$), but GetTypeInfo finds the right type.
+                    semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type;
             }
 
-            return DotAwaitContext.None;
-
-            static ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken)
+            if (potentialAwaitableExpression is ExpressionSyntax expression)
             {
-                if (potentialAwaitableExpression is MemberAccessExpressionSyntax memberAccess)
-                {
-                    var memberAccessExpression = memberAccess.Expression.WalkDownParentheses();
-                    var symbol = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol;
-                    if (symbol is INamedTypeSymbol) // e.g. Task.$$
-                    {
-                        return null;
-                    }
-
-                    return
-                        symbol?.GetSymbolType() ??
-                        symbol?.GetMemberType() ??
-                        // Some expressions don't have a symbol (e.g. (o as Task).$$), but GetTypeInfo finds the right type.
-                        semanticModel.GetTypeInfo(memberAccessExpression, cancellationToken).Type;
-                }
-
-                if (potentialAwaitableExpression is ExpressionSyntax expression)
-                {
-                    if (expression.ShouldBeTreatedAsTypeInsteadOfExpression(semanticModel, out _, out var container))
-                        return container;
-                }
-
-                return semanticModel.GetTypeInfo(potentialAwaitableExpression, cancellationToken).Type;
+                if (expression.ShouldBeTreatedAsTypeInsteadOfExpression(semanticModel, out _, out var container))
+                    return container;
             }
+
+            return semanticModel.GetTypeInfo(potentialAwaitableExpression, cancellationToken).Type;
         }
     }
 }

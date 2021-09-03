@@ -50,20 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
 
-        /// <summary>
-        /// Should <see langword="await"/> be offered, if left of the dot at position is an awaitable expression?
-        /// <code>
-        ///   someTask.$$ // Suggest await completion
-        ///   await someTask.$$ // Don't suggest await completion
-        /// </code>
-        /// </summary>
-        /// <returns>
-        ///     <see cref="DotAwaitContext.None"/>, if await can not be suggested for the expression left of the dot.
-        ///     <see cref="DotAwaitContext.AwaitOnly"/>, if await should be suggested for the expression left of the dot, but ConfigureAwait(false) not.
-        ///     <see cref="DotAwaitContext.AwaitAndConfigureAwait"/>, if await should be suggested for the expression left of the dot and ConfigureAwait(false).
-        /// </returns>
-        private protected abstract DotAwaitContext GetDotAwaitKeywordContext(SyntaxContext syntaxContext, CancellationToken cancellationToken);
-
+        private protected abstract ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken);
         private protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         private protected abstract SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
@@ -168,6 +155,50 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var declaration = GetAsyncSupportingDeclaration(token);
             return declaration is not null && !generator.GetModifiers(declaration).IsAsync;
+        }
+
+        /// <summary>
+        /// Should <see langword="await"/> be offered, if left of the dot at position is an awaitable expression?
+        /// <code>
+        ///   someTask.$$ // Suggest await completion
+        ///   await someTask.$$ // Don't suggest await completion
+        /// </code>
+        /// </summary>
+        /// <returns>
+        ///     <see cref="DotAwaitContext.None"/>, if await can not be suggested for the expression left of the dot.
+        ///     <see cref="DotAwaitContext.AwaitOnly"/>, if await should be suggested for the expression left of the dot, but ConfigureAwait(false) not.
+        ///     <see cref="DotAwaitContext.AwaitAndConfigureAwait"/>, if await should be suggested for the expression left of the dot and ConfigureAwait(false).
+        /// </returns>
+        private protected DotAwaitContext GetDotAwaitKeywordContext(SyntaxContext syntaxContext, CancellationToken cancellationToken)
+        {
+            var position = syntaxContext.Position;
+            var syntaxTree = syntaxContext.SyntaxTree;
+            var potentialAwaitableExpression = GetExpressionToPlaceAwaitInFrontOf(syntaxTree, position, cancellationToken);
+            if (potentialAwaitableExpression is not null)
+            {
+                var semanticModel = syntaxContext.SemanticModel;
+                var symbol = GetTypeSymbolOfExpression(semanticModel, potentialAwaitableExpression, cancellationToken);
+                if (symbol is not null && symbol.IsAwaitableNonDynamic(semanticModel, position))
+                {
+                    var parentOfAwaitable = potentialAwaitableExpression.Parent;
+                    var syntaxFacts = syntaxContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                    if (!syntaxFacts.IsAwaitExpression(parentOfAwaitable))
+                    {
+                        // We have a awaitable type left of the dot, that is not yet awaited.
+                        // We need to check if await is valid at the insertion position.
+                        var syntaxContextAtInsertationPosition = syntaxContext.GetLanguageService<ISyntaxContextService>().CreateContext(
+                            syntaxContext.Document, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken);
+                        if (syntaxContextAtInsertationPosition.IsAwaitKeywordContext())
+                        {
+                            return IsConfigureAwaitable(syntaxContext.SemanticModel.Compilation, symbol)
+                                ? DotAwaitContext.AwaitAndConfigureAwait
+                                : DotAwaitContext.AwaitOnly;
+                        }
+                    }
+                }
+            }
+
+            return DotAwaitContext.None;
         }
 
         private IEnumerable<CompletionItem> GetCompletionItems(SyntaxToken token, bool isAwaitKeywordContext, DotAwaitContext dotAwaitContext, SyntaxGenerator generator, ISyntaxKindsService syntaxKinds, ISyntaxFactsService syntaxFacts)

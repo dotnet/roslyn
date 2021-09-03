@@ -45,32 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return token.GetAncestor(Function(node) node.IsAsyncSupportedFunctionSyntax())
         End Function
 
-        Private Protected Overrides Function GetDotAwaitKeywordContext(ByVal syntaxContext As SyntaxContext, ByVal cancellationToken As CancellationToken) As DotAwaitContext
-            Dim position = syntaxContext.Position
-            Dim syntaxTree = syntaxContext.SyntaxTree
-            Dim potentialAwaitableExpression = TryCast(GetExpressionToPlaceAwaitInFrontOf(syntaxTree, position, cancellationToken), ExpressionSyntax)
-
-            If potentialAwaitableExpression IsNot Nothing Then
-                Dim semanticModel = syntaxContext.SemanticModel
-                Dim symbol = GetTypeSymbolOfExpression(semanticModel, potentialAwaitableExpression, cancellationToken)
-
-                If symbol IsNot Nothing AndAlso symbol.IsAwaitableNonDynamic(semanticModel, position) Then
-                    Dim parentOfAwaitable = potentialAwaitableExpression.Parent
-
-                    If Not (TypeOf parentOfAwaitable Is AwaitExpressionSyntax) Then
-                        Dim syntaxContextAtInsertationPosition = syntaxContext.GetLanguageService(Of ISyntaxContextService)().CreateContext(syntaxContext.Document, syntaxContext.SemanticModel, potentialAwaitableExpression.SpanStart, cancellationToken)
-
-                        If syntaxContextAtInsertationPosition.IsAwaitKeywordContext() Then
-                            Return If(IsConfigureAwaitable(syntaxContext.SemanticModel.Compilation, symbol), DotAwaitContext.AwaitAndConfigureAwait, DotAwaitContext.AwaitOnly)
-                        End If
-                    End If
-                End If
-            End If
-
-            Return DotAwaitContext.None
-        End Function
-
-        Private Shared Function GetTypeSymbolOfExpression(semanticModel As SemanticModel, potentialAwaitableExpression As ExpressionSyntax, cancellationToken As CancellationToken) As ITypeSymbol
+        Private Protected Overrides Function GetTypeSymbolOfExpression(semanticModel As SemanticModel, potentialAwaitableExpression As SyntaxNode, cancellationToken As CancellationToken) As ITypeSymbol
             Dim memberAccessExpression = TryCast(potentialAwaitableExpression, MemberAccessExpressionSyntax)?.Expression
             If memberAccessExpression IsNot Nothing Then
                 Dim symbolInfo = semanticModel.GetSymbolInfo(memberAccessExpression.WalkDownParentheses(), cancellationToken)
