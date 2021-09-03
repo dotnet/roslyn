@@ -167,8 +167,10 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         {
             // annotate our new type, in case our refactoring changes it
             var newTypeDoc = await oldSolution.GetRequiredDocumentAsync(newTypeDocId, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var newTypeNode = newType.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
-            var newTypeRoot = newTypeNode.SyntaxTree.GetRoot(cancellationToken);
+            var newTypeRoot = await newTypeDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newTypeNode = newType.DeclaringSyntaxReferences
+                .SelectAsArray(sRef => sRef.GetSyntax(cancellationToken))
+                .First(node => newTypeRoot.Contains(node));
             newTypeRoot = newTypeRoot.TrackNodes(newTypeNode);
             oldSolution = newTypeDoc.WithSyntaxRoot(newTypeRoot).Project.Solution;
 
