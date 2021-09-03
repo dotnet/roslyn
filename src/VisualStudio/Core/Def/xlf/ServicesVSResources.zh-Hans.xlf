@@ -1172,6 +1172,11 @@
         <target state="translated">建议</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
+        <source>Suppress hints when argument matches parameter name</source>
+        <target state="new">Suppress hints when argument matches parameter name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
         <source>Suppress hints when parameter name matches the method's intent</source>
         <target state="translated">当参数名称与方法的意图匹配时禁止显示提示</target>

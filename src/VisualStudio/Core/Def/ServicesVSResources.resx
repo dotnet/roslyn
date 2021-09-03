@@ -1830,6 +1830,9 @@ Additional information: {1}</value>
     <value>Default (Open Documents)</value>
     <comment>This text is a menu command</comment>
   </data>
+  <data name="Suppress_hints_when_argument_matches_parameter_name" xml:space="preserve">
+    <value>Suppress hints when argument matches parameter name</value>
+  </data>
   <data name="Package_install_canceled" xml:space="preserve">
     <value>Package install canceled</value>
   </data>
