@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis
                "System.Console",
                "System.Diagnostics.Debug",
                "System.Diagnostics.StackTrace",
+               "System.Diagnostics.Tracing",
                "System.IO.Compression",
                "System.IO.FileSystem",
                "System.Linq",
