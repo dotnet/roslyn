@@ -1093,24 +1093,6 @@ namespace Microsoft.CodeAnalysis
                     : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
             }
 
-            /// <summary>
-            /// get all syntax trees that contain declaration node with the given name
-            /// </summary>
-            public IEnumerable<SyntaxTree>? GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-            {
-                var state = this.ReadState();
-                if (state.DeclarationOnlyCompilation == null)
-                {
-                    return null;
-                }
-
-                // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
-
-                // use cloned compilation since this will cause symbols to be created.
-                var clone = state.DeclarationOnlyCompilation.Clone();
-                return clone.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree));
-            }
-
             public Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken)
             {
                 var state = this.ReadState();
