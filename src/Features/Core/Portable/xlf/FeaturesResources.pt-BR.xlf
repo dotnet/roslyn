@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="0_directive">
         <source>#{0} directive</source>
-        <target state="new">#{0} directive</target>
+        <target state="translated">diretiva #{0}</target>
         <note />
       </trans-unit>
       <trans-unit id="AM_PM_abbreviated">
@@ -102,17 +102,17 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Adding_0_around_an_active_statement_requires_restarting_the_application">
         <source>Adding {0} around an active statement requires restarting the application.</source>
-        <target state="new">Adding {0} around an active statement requires restarting the application.</target>
+        <target state="translated">Adicionar {0} em torno de uma instrução ativa requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_a_1_requires_restarting_the_application">
         <source>Adding {0} into a {1} requires restarting the application.</source>
-        <target state="new">Adding {0} into a {1} requires restarting the application.</target>
+        <target state="translated">Adicionar {0} a um {1} requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application">
         <source>Adding {0} into a class with explicit or sequential layout requires restarting the application.</source>
-        <target state="new">Adding {0} into a class with explicit or sequential layout requires restarting the application.</target>
+        <target state="translated">Adicionar {0} a uma classe com layout explícito ou sequencial requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_a_generic_type_requires_restarting_the_application">
@@ -122,7 +122,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_requires_restarting_the_application">
         <source>Adding {0} into an interface method requires restarting the application.</source>
-        <target state="new">Adding {0} into an interface method requires restarting the application.</target>
+        <target state="translated">Adicionar {0} a um método de interface requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_requires_restarting_the_application">
@@ -137,22 +137,22 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
         <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="new">Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</target>
+        <target state="translated">Adicionar {0} que acessa as variáveis capturadas '{1}' e '{2}' declaradas em escopos diferentes requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
         <source>Adding {0} with the Handles clause requires restarting the application.</source>
-        <target state="new">Adding {0} with the Handles clause requires restarting the application.</target>
+        <target state="translated">Adicionar {0} com a cláusula Handles requer a reinicialização do aplicativo.</target>
         <note>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_requires_restarting_the_application">
         <source>Adding a MustOverride {0} or overriding an inherited {0} requires restarting the application.</source>
-        <target state="new">Adding a MustOverride {0} or overriding an inherited {0} requires restarting the application.</target>
+        <target state="translated">Adicionar um MustOverride {0} ou substituir um {0} herdado requer a reinicialização do aplicativo.</target>
         <note>{Locked="MustOverride"} "MustOverride" is VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_requires_restarting_the_application">
         <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</source>
-        <target state="new">Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</target>
+        <target state="translated">Adicionar um construtor a um tipo com um inicializador de campo ou propriedade que contém uma função anônima requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_generic_0_requires_restarting_the_application">
@@ -167,12 +167,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Adding_a_new_file_requires_restarting_the_application">
         <source>Adding a new file requires restarting the application.</source>
-        <target state="new">Adding a new file requires restarting the application.</target>
+        <target state="translated">Adicionar um novo arquivo requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_user_defined_0_requires_restarting_the_application">
         <source>Adding a user defined {0} requires restarting the application.</source>
-        <target state="new">Adding a user defined {0} requires restarting the application.</target>
+        <target state="translated">Adicionar um {0} definido pelo usuário requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application">
@@ -187,7 +187,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Adding_an_imported_method_requires_restarting_the_application">
         <source>Adding an imported method requires restarting the application.</source>
-        <target state="new">Adding an imported method requires restarting the application.</target>
+        <target state="translated">Adicionar um método importado requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -272,17 +272,17 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
-        <target state="new">Capturing variable '{0}' that hasn't been captured before requires restarting the application.</target>
+        <target state="translated">Capturar a variável '{0}' que não foi capturada antes requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
         <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
-        <target state="new">Ceasing to access captured variable '{0}' in {1} requires restarting the application.</target>
+        <target state="translated">Deixar de acessar a variável capturada '{0}' em {1} requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
         <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="new">Ceasing to capture variable '{0}' requires restarting the application.</target>
+        <target state="translated">Deixar de capturar a variável '{0}' requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -322,7 +322,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="ChangesRequiredSynthesizedType">
         <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
-        <target state="new">One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</target>
+        <target state="translated">Uma ou mais alterações resultam no compilador criando um novo tipo, o que requer a reinicialização do aplicativo porque não há suporte para ele no runtime</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application">
@@ -357,12 +357,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
         <source>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</source>
-        <target state="new">Changing the declaration scope of a captured variable '{0}' requires restarting the application.</target>
+        <target state="translated">Alterar o escopo de declaração de uma variável capturada '{0}' requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_parameters_of_0_requires_restarting_the_application">
         <source>Changing the parameters of {0} requires restarting the application.</source>
-        <target state="new">Changing the parameters of {0} requires restarting the application.</target>
+        <target state="translated">Alterar os parâmetros de {0} requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_return_type_of_0_requires_restarting_the_application">
@@ -372,7 +372,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Changing_the_type_of_0_requires_restarting_the_application">
         <source>Changing the type of {0} requires restarting the application.</source>
-        <target state="new">Changing the type of {0} requires restarting the application.</target>
+        <target state="translated">Alterar o tipo de {0} requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -382,7 +382,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Changing_type_parameters_of_0_requires_restarting_the_application">
         <source>Changing type parameters of {0} requires restarting the application.</source>
-        <target state="new">Changing type parameters of {0} requires restarting the application.</target>
+        <target state="translated">Alterar os parâmetros de tipo de {0} requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_visibility_of_0_requires_restarting_the_application">
@@ -472,7 +472,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
-        <target state="new">Deleting {0} around an active statement requires restarting the application.</target>
+        <target state="translated">Excluir {0} em torno de uma instrução ativa requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_requires_restarting_the_application">
@@ -482,7 +482,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
         <source>Deleting captured variable '{0}' requires restarting the application.</source>
-        <target state="new">Deleting captured variable '{0}' requires restarting the application.</target>
+        <target state="translated">Excluir a variável capturada '{0}' requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -692,7 +692,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application">
         <source>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</source>
-        <target state="new">Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</target>
+        <target state="translated">Implementar um parâmetro posicional de registro '{0}' com um acessador set requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -797,12 +797,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application">
         <source>Making a method an iterator requires restarting the application.</source>
-        <target state="new">Making a method an iterator requires restarting the application.</target>
+        <target state="translated">Tornar um método um iterador requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application">
         <source>Making a method asynchronous requires restarting the application.</source>
-        <target state="new">Making a method asynchronous requires restarting the application.</target>
+        <target state="translated">Tornar um método assíncrono requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -867,7 +867,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_requires_restarting_the_application">
         <source>Modifying a catch/finally handler with an active statement in the try block requires restarting the application.</source>
-        <target state="new">Modifying a catch/finally handler with an active statement in the try block requires restarting the application.</target>
+        <target state="translated">Modificar um manipulador catch/finally com uma instrução ativa no bloco try requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_requires_restarting_the_application">
@@ -877,7 +877,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Modifying_a_generic_method_requires_restarting_the_application">
         <source>Modifying a generic method requires restarting the application.</source>
-        <target state="new">Modifying a generic method requires restarting the application.</target>
+        <target state="translated">Modificar um método genérico requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_requires_restarting_the_application">
@@ -887,12 +887,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_requires_restarting_the_application">
         <source>Modifying a try/catch/finally statement when the finally block is active requires restarting the application.</source>
-        <target state="new">Modifying a try/catch/finally statement when the finally block is active requires restarting the application.</target>
+        <target state="translated">Modificar uma instrução try/catch/finally quando o bloco finally estiver ativo requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application">
         <source>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</source>
-        <target state="new">Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</target>
+        <target state="translated">Modificar um {0} ativo que contém instruções On Error ou Resume requer a reinicialização do aplicativo.</target>
         <note>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements">
@@ -912,12 +912,12 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1">
         <source>Modifying source file '{0}' requires restarting the application due to internal error: {1}</source>
-        <target state="new">Modifying source file '{0}' requires restarting the application due to internal error: {1}</target>
+        <target state="translated">Modificar o arquivo de origem '{0}' requer a reinicialização do aplicativo devido a um erro interno: {1}</target>
         <note>{2} is a multi-line exception message including a stacktrace. Place it at the end of the message and don't add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Modifying_source_with_experimental_language_features_enabled_requires_restarting_the_application">
         <source>Modifying source with experimental language features enabled requires restarting the application.</source>
-        <target state="new">Modifying source with experimental language features enabled requires restarting the application.</target>
+        <target state="translated">Modificar a origem com recursos de linguagem experimental habilitados requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_requires_restarting_the_application">
@@ -2187,7 +2187,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">
         <source>Removing {0} that contains an active statement requires restarting the application.</source>
-        <target state="new">Removing {0} that contains an active statement requires restarting the application.</target>
+        <target state="translated">Remover {0} que contém uma instrução ativa requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application">
@@ -2197,12 +2197,12 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Renaming {0} requires restarting the application because it is not supported by the runtime.</source>
-        <target state="new">Renaming {0} requires restarting the application because it is not supported by the runtime.</target>
+        <target state="translated">Renomear {0} requer a reinicialização do aplicativo porque não há suporte para ele no runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application">
         <source>Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</source>
-        <target state="new">Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</target>
+        <target state="translated">Renomear uma variável capturada de '{0}' para '{1}' requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2382,7 +2382,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_requires_restarting_the_application">
         <source>Updating a {0} around an active statement requires restarting the application.</source>
-        <target state="new">Updating a {0} around an active statement requires restarting the application.</target>
+        <target state="translated">Atualizar um {0} em torno de uma instrução ativa requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_requires_restarting_the_application">
@@ -2392,7 +2392,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Updating_an_active_statement_requires_restarting_the_application">
         <source>Updating an active statement requires restarting the application.</source>
-        <target state="new">Updating an active statement requires restarting the application.</target>
+        <target state="translated">Atualizar uma instrução ativa requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
@@ -2407,17 +2407,17 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Updating_the_Handles_clause_of_0_requires_restarting_the_application">
         <source>Updating the Handles clause of {0} requires restarting the application.</source>
-        <target state="new">Updating the Handles clause of {0} requires restarting the application.</target>
+        <target state="translated">Atualizar a cláusula Handles de {0} requer a reinicialização do aplicativo.</target>
         <note>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Updating_the_Implements_clause_of_a_0_requires_restarting_the_application">
         <source>Updating the Implements clause of a {0} requires restarting the application.</source>
-        <target state="new">Updating the Implements clause of a {0} requires restarting the application.</target>
+        <target state="translated">Atualizar a cláusula Implements de um {0} requer a reinicialização do aplicativo.</target>
         <note>{Locked="Implements"} "Implements" is VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Updating_the_alias_of_Declare_statement_requires_restarting_the_application">
         <source>Updating the alias of Declare statement requires restarting the application.</source>
-        <target state="new">Updating the alias of Declare statement requires restarting the application.</target>
+        <target state="translated">Atualizar o alias da instrução Declare requer a reinicialização do aplicativo.</target>
         <note>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
@@ -2437,7 +2437,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Updating_the_kind_of_a_property_event_accessor_requires_restarting_the_application">
         <source>Updating the kind of a property/event accessor requires restarting the application.</source>
-        <target state="new">Updating the kind of a property/event accessor requires restarting the application.</target>
+        <target state="translated">Atualizar o tipo de um acessador de propriedade/evento requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_kind_of_a_type_requires_restarting_the_application">
@@ -2457,7 +2457,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Updating_the_size_of_a_0_requires_restarting_the_application">
         <source>Updating the size of a {0} requires restarting the application.</source>
-        <target state="new">Updating the size of a {0} requires restarting the application.</target>
+        <target state="translated">Atualizar o tamanho de um {0} requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
@@ -2467,12 +2467,12 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Updating_the_underlying_type_of_0_requires_restarting_the_application">
         <source>Updating the underlying type of {0} requires restarting the application.</source>
-        <target state="new">Updating the underlying type of {0} requires restarting the application.</target>
+        <target state="translated">Atualizar o tipo subjacente de {0} requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_requires_restarting_the_application">
         <source>Updating the variance of {0} requires restarting the application.</source>
-        <target state="new">Updating the variance of {0} requires restarting the application.</target>
+        <target state="translated">Atualizar a variação de {0} requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -3890,7 +3890,7 @@ Se o especificador de formato "K" for usado sem outros especificadores de format
       </trans-unit>
       <trans-unit id="type">
         <source>type</source>
-        <target state="new">type</target>
+        <target state="translated">tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">
