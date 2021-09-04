@@ -249,6 +249,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             return;
 
+            // Returns the new fully-qualified-container-name built from fullyQualifiedContainerName
+            // with all the pieces of 'name' added to the end of it.
             string AddNamespaceDeclaredSymbolInfos(TNameSyntax name, string fullyQualifiedContainerName)
             {
                 if (name is TQualifiedNameSyntax qualifiedName)
