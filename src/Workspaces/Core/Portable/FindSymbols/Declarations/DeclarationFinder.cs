@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -39,6 +40,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IAssemblySymbol startingAssembly,
             CancellationToken cancellationToken)
         {
+            if (!project.SupportsCompilation)
+                return;
+
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_AddDeclarationsAsync, cancellationToken))
@@ -54,17 +58,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var isExactNameSearch = query.Kind == SearchKind.Exact ||
                     (query.Kind == SearchKind.ExactIgnoreCase && !syntaxFacts.IsCaseSensitive);
 
-                // Note: we first call through the project.  This has an optimization where it will
-                // use the DeclarationOnlyCompilation if we have one, avoiding needing to build the
-                // full compilation if we don't have that.
+                // Do a quick syntactic check first using our cheaply built indices.  That will help us avoid creating
+                // a compilation here if it's not necessary.  In the case of an exact name search we can call a special 
+                // overload that quickly uses the direct bloom-filter identifier maps in the index.  If it's nto an 
+                // exact name search, then we will run the query's predicate over every DeclaredSymbolInfo stored in
+                // the doc.
                 var containsSymbol = isExactNameSearch
-                    ? await project.ContainsSymbolsWithNameAsync(query.Name, cancellationToken).ConfigureAwait(false)
-                    : await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false);
+                    ? await ContainsSymbolsWithNameAsync(project, query.Name, cancellationToken).ConfigureAwait(false)
+                    : await ContainsSymbolsWithNameAsync(project, query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false);
 
                 if (!containsSymbol)
-                {
                     return;
-                }
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -85,6 +89,76 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 list.AddRange(FilterByCriteria(symbolsWithName, filter));
             }
+        }
+
+        private static Task<bool> ContainsSymbolsWithNameAsync(
+            Project project, string name, CancellationToken cancellationToken)
+        {
+            return ContainsSymbolsAsync(
+                project,
+                (index, cancellationToken) => index.ProbablyContainsIdentifier(name) || index.ProbablyContainsEscapedIdentifier(name),
+                cancellationToken);
+        }
+
+        private static Task<bool> ContainsSymbolsWithNameAsync(
+            Project project, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return ContainsSymbolsAsync(
+                project,
+                (index, cancellationToken) =>
+                {
+                    foreach (var info in index.DeclaredSymbolInfos)
+                    {
+                        if (FilterMatches(info, filter) && predicate(info.Name))
+                            return true;
+                    }
+
+                    return false;
+                },
+                cancellationToken);
+
+            static bool FilterMatches(DeclaredSymbolInfo info, SymbolFilter filter)
+            {
+                switch (info.Kind)
+                {
+                    case DeclaredSymbolInfoKind.Namespace:
+                        return (filter & SymbolFilter.Namespace) != 0;
+                    case DeclaredSymbolInfoKind.Class:
+                    case DeclaredSymbolInfoKind.Delegate:
+                    case DeclaredSymbolInfoKind.Enum:
+                    case DeclaredSymbolInfoKind.Interface:
+                    case DeclaredSymbolInfoKind.Module:
+                    case DeclaredSymbolInfoKind.Record:
+                    case DeclaredSymbolInfoKind.RecordStruct:
+                    case DeclaredSymbolInfoKind.Struct:
+                        return (filter & SymbolFilter.Type) != 0;
+                    case DeclaredSymbolInfoKind.Constant:
+                    case DeclaredSymbolInfoKind.Constructor:
+                    case DeclaredSymbolInfoKind.EnumMember:
+                    case DeclaredSymbolInfoKind.Event:
+                    case DeclaredSymbolInfoKind.ExtensionMethod:
+                    case DeclaredSymbolInfoKind.Field:
+                    case DeclaredSymbolInfoKind.Indexer:
+                    case DeclaredSymbolInfoKind.Method:
+                    case DeclaredSymbolInfoKind.Property:
+                        return (filter & SymbolFilter.Member) != 0;
+                }
+
+                return false;
+            }
+        }
+
+        private static async Task<bool> ContainsSymbolsAsync(
+            Project project, Func<SyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
+        {
+            var tasks = project.Documents.Select(async d =>
+            {
+                var index = await SyntaxTreeIndex.GetIndexAsync(d, cancellationToken).ConfigureAwait(false);
+                return index != null && predicate(index, cancellationToken);
+            });
+
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+            return results.Any(b => b);
         }
 
         private static async Task AddMetadataDeclarationsWithNormalQueryAsync(

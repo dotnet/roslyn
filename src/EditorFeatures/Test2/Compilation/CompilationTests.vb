@@ -34,7 +34,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
                 Assert.Null(Await project.GetCompilationAsync())
 
                 Assert.Null(Await project.GetCompilationAsync())
-                Assert.False(Await project.ContainsSymbolsWithNameAsync(Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None))
             End Using
         End Function
     End Class
