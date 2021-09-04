@@ -5495,15 +5495,6 @@ class Derived : Base
     public int TestInt = string.Emp[||]ty.Length;
 }";
 
-            var expected = @"
-class Base
-{
-    public int TestInt = string.Emp$$ty.Length;
-}
-
-class Derived : Base
-{
-}";
             return TestQuickActionNotProvidedAsync(testText);
         }
 
