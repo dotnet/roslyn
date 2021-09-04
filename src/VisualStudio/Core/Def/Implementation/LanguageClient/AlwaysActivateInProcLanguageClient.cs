@@ -31,7 +31,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
     {
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
-        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
@@ -45,7 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             IThreadingContext threadingContext)
             : base(csharpVBRequestDispatcherFactory, globalOptions, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
-            _globalOptions = globalOptions;
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
@@ -58,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var serverCapabilities = new VSInternalServerCapabilities();
 
             // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
-            var isLspEditorEnabled = _globalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
+            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
             if (isLspEditorEnabled)
             {
                 serverCapabilities = (VSInternalServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
