@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -333,6 +334,74 @@ namespace Microsoft.CodeAnalysis
             }
 
             return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
+        }
+
+        internal Task<bool> ContainsSymbolsWithNameAsync(
+            string name, CancellationToken cancellationToken)
+        {
+            return ContainsSymbolsAsync(
+                (index, cancellationToken) => index.ProbablyContainsIdentifier(name) || index.ProbablyContainsEscapedIdentifier(name),
+                cancellationToken);
+        }
+
+        internal Task<bool> ContainsSymbolsWithNameAsync(
+            Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        {
+            return ContainsSymbolsAsync(
+                (index, cancellationToken) =>
+                {
+                    foreach (var info in index.DeclaredSymbolInfos)
+                    {
+                        if (FilterMatches(info, filter) && predicate(info.Name))
+                            return true;
+                    }
+
+                    return false;
+                },
+                cancellationToken);
+
+            static bool FilterMatches(DeclaredSymbolInfo info, SymbolFilter filter)
+            {
+                switch (info.Kind)
+                {
+                    case DeclaredSymbolInfoKind.Namespace:
+                        return (filter & SymbolFilter.Namespace) != 0;
+                    case DeclaredSymbolInfoKind.Class:
+                    case DeclaredSymbolInfoKind.Delegate:
+                    case DeclaredSymbolInfoKind.Enum:
+                    case DeclaredSymbolInfoKind.Interface:
+                    case DeclaredSymbolInfoKind.Module:
+                    case DeclaredSymbolInfoKind.Record:
+                    case DeclaredSymbolInfoKind.RecordStruct:
+                    case DeclaredSymbolInfoKind.Struct:
+                        return (filter & SymbolFilter.Type) != 0;
+                    case DeclaredSymbolInfoKind.Constant:
+                    case DeclaredSymbolInfoKind.Constructor:
+                    case DeclaredSymbolInfoKind.EnumMember:
+                    case DeclaredSymbolInfoKind.Event:
+                    case DeclaredSymbolInfoKind.ExtensionMethod:
+                    case DeclaredSymbolInfoKind.Field:
+                    case DeclaredSymbolInfoKind.Indexer:
+                    case DeclaredSymbolInfoKind.Method:
+                    case DeclaredSymbolInfoKind.Property:
+                        return (filter & SymbolFilter.Member) != 0;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(info.Kind);
+                }
+            }
+        }
+
+        private async Task<bool> ContainsSymbolsAsync(
+            Func<SyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
+        {
+            var tasks = this.Documents.Select(async d =>
+            {
+                var index = await SyntaxTreeIndex.GetIndexAsync(d, cancellationToken).ConfigureAwait(false);
+                return index != null && predicate(index, cancellationToken);
+            });
+
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+            return results.Any(b => b);
         }
 
         private static readonly Func<DocumentId, Project, Document?> s_tryCreateDocumentFunction =
