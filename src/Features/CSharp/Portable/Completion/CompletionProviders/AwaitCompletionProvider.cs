@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // }
             // For this case, we're interested in putting async in front of Method()
             if (node is not LocalFunctionStatementSyntax localFunction ||
-                localFunction.ExpressionBody is { ArrowToken.RawKind: not 0  } ||
+                localFunction.ExpressionBody is { ArrowToken.RawKind: not 0 } ||
                 localFunction.Body is { OpenBraceToken.RawKind: not 0 })
             {
                 return node;
