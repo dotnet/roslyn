@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -12,10 +13,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experimentation;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServices.Experimentation;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -25,7 +26,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
+namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 {
     /// <summary>
     /// Detects if keybindings have been messed up by ReSharper disable, and offers the user the ability
@@ -42,8 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
     /// but at this time ReSharper is the only one we know of that has this behavior.
     /// If we find other extensions that do this in the future, we'll re-use this same mechanism
     /// </para>
-    [Export(typeof(IExperiment))]
-    internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObject, IExperiment, IOleCommandTarget
+    [Export(typeof(KeybindingResetDetector))]
+    internal sealed class KeybindingResetDetector : ForegroundThreadAffinitizedObject, IOleCommandTarget
     {
         private const string KeybindingsFwLink = "https://go.microsoft.com/fwlink/?linkid=864209";
         private const string ReSharperExtensionName = "ReSharper Ultimate";
@@ -54,11 +55,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private const uint ResumeId = 707;
         private const uint SuspendId = 708;
         private const uint ToggleSuspendId = 709;
-        private static readonly Guid ReSharperPackageGuid = new("0C6E6407-13FC-4878-869A-C8B4016C57FE");
-        private static readonly Guid ReSharperCommandGroup = new("{47F03277-5055-4922-899C-0F7F30D26BF1}");
 
-        private readonly VisualStudioWorkspace _workspace;
+        private static readonly Guid s_resharperPackageGuid = new("0C6E6407-13FC-4878-869A-C8B4016C57FE");
+        private static readonly Guid s_resharperCommandGroup = new("47F03277-5055-4922-899C-0F7F30D26BF1");
+
+        private static readonly ImmutableArray<OptionKey> s_statusOptions = ImmutableArray.Create<OptionKey>(
+            KeybindingResetOptions.ReSharperStatus,
+            KeybindingResetOptions.NeedsReset);
+
+        private readonly IGlobalOptionService _optionService;
         private readonly System.IServiceProvider _serviceProvider;
+        private readonly VisualStudioInfoBarService _infoBarService;
 
         // All mutable fields are UI-thread affinitized
 
@@ -82,17 +89,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public KeybindingResetDetector(IThreadingContext threadingContext, VisualStudioWorkspace workspace, SVsServiceProvider serviceProvider)
+        public KeybindingResetDetector(
+            IThreadingContext threadingContext,
+            IGlobalOptionService optionService,
+            VisualStudioInfoBarService infoBarService,
+            SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
-            _workspace = workspace;
+            _optionService = optionService;
+            _infoBarService = infoBarService;
             _serviceProvider = serviceProvider;
         }
 
         public Task InitializeAsync()
         {
             // Immediately bail if the user has asked to never see this bar again.
-            if (_workspace.Options.GetOption(KeybindingResetOptions.NeverShowAgain))
+            if (_optionService.GetOption(KeybindingResetOptions.NeverShowAgain))
             {
                 return Task.CompletedTask;
             }
@@ -104,14 +116,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         {
             AssertIsForeground();
 
-            // Ensure one of the flights is enabled, otherwise bail
-            if (!_workspace.Options.GetOption(KeybindingResetOptions.EnabledFeatureFlag))
+            if (!_optionService.GetOption(KeybindingResetOptions.EnabledFeatureFlag))
             {
                 return;
             }
 
             var vsShell = IServiceProviderExtensions.GetService<SVsShell, IVsShell>(_serviceProvider);
-            var hr = vsShell.IsPackageInstalled(ReSharperPackageGuid, out var extensionEnabled);
+            var hr = vsShell.IsPackageInstalled(s_resharperPackageGuid, out var extensionEnabled);
             if (ErrorHandler.Failed(hr))
             {
                 FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
@@ -161,14 +172,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         private async Task UpdateStateMachineWorkerAsync(CancellationToken cancellationToken)
         {
-            var options = _workspace.Options;
-            var lastStatus = options.GetOption(KeybindingResetOptions.ReSharperStatus);
+            var options = _optionService.GetOptions(s_statusOptions);
+            var lastStatus = (ReSharperStatus)options[0];
+            var needsReset = (bool)options[1];
 
             ReSharperStatus currentStatus;
             try
             {
-                currentStatus = await IsReSharperRunningAsync(cancellationToken)
-                    .ConfigureAwait(false);
+                currentStatus = await IsReSharperRunningAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -180,8 +191,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return;
             }
 
-            options = options.WithChangedOption(KeybindingResetOptions.ReSharperStatus, currentStatus);
-
             switch (lastStatus)
             {
                 case ReSharperStatus.NotInstalledOrDisabled:
@@ -189,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     if (currentStatus == ReSharperStatus.Enabled)
                     {
                         // N->E or S->E. If ReSharper was just installed and is enabled, reset NeedsReset.
-                        options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, false);
+                        needsReset = false;
                     }
 
                     // Else is N->N, N->S, S->N, S->S. N->S can occur if the user suspends ReSharper, then disables
@@ -201,19 +210,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     if (currentStatus != ReSharperStatus.Enabled)
                     {
                         // E->N or E->S. Set NeedsReset. Pop the gold bar to the user.
-                        options = options.WithChangedOption(KeybindingResetOptions.NeedsReset, true);
+                        needsReset = true;
                     }
 
                     // Else is E->E. No actions to take
                     break;
             }
 
-            // Apply the new options.
-            // We need to switch to UI thread to invoke TryApplyChanges.
-            await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(options));
+            _optionService.SetGlobalOptions(s_statusOptions, ImmutableArray.Create<object>(currentStatus, needsReset));
 
-            if (options.GetOption(KeybindingResetOptions.NeedsReset))
+            if (needsReset)
             {
                 ShowGoldBar();
             }
@@ -231,8 +237,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             var message = ServicesVSResources.We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor;
             KeybindingsResetLogger.Log("InfoBarShown");
-            var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
-            infoBarService.ShowInfoBar(
+            _infoBarService.ShowInfoBar(
                 string.Format(message, ReSharperExtensionName),
                 new InfoBarUI(title: ServicesVSResources.Reset_Visual_Studio_default_keymapping,
                               kind: InfoBarUI.UIKind.Button,
@@ -307,7 +312,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                var hr = _oleCommandTarget.QueryStatus(ReSharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
+                var hr = _oleCommandTarget.QueryStatus(s_resharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
                 if (ErrorHandler.Failed(hr))
                 {
                     FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
@@ -349,8 +354,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             KeybindingsResetLogger.Log("KeybindingsReset");
 
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(KeybindingResetOptions.NeedsReset, false)));
+            _optionService.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
         }
 
         private void OpenExtensionsHyperlink()
@@ -360,15 +364,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             VisualStudioNavigateToLinkService.StartBrowser(KeybindingsFwLink);
 
             KeybindingsResetLogger.Log("ExtensionsLink");
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(KeybindingResetOptions.NeedsReset, false)));
+            _optionService.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
         }
 
         private void NeverShowAgain()
         {
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(KeybindingResetOptions.NeverShowAgain, true)
-                .WithChangedOption(KeybindingResetOptions.NeedsReset, false)));
+            _optionService.SetGlobalOption(KeybindingResetOptions.NeverShowAgain, true);
+            _optionService.SetGlobalOption(KeybindingResetOptions.NeedsReset, false);
             KeybindingsResetLogger.Log("NeverShowAgain");
 
             // The only external references to this object are as callbacks, which are removed by the Shutdown method.
@@ -393,7 +395,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         {
             // Technically can be called on any thread, though VS will only ever call it on the UI thread.
             ThisCanBeCalledOnAnyThread();
-            if (pguidCmdGroup == ReSharperCommandGroup && nCmdID >= ResumeId && nCmdID <= ToggleSuspendId)
+            if (pguidCmdGroup == s_resharperCommandGroup && nCmdID >= ResumeId && nCmdID <= ToggleSuspendId)
             {
                 // Don't delay command processing to update resharper status
                 StartUpdateStateMachine();
