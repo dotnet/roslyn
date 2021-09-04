@@ -1505,6 +1505,24 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node)
             => ((PrefixUnaryExpressionSyntax)node).OperatorToken;
 
+        public bool IsOnFieldDeclarationHeader(SyntaxNode root, int position, out SyntaxNode? fieldDeclaration)
+        {
+            var node = TryGetAncestorForLocation<BaseFieldDeclarationSyntax>(root, position);
+            fieldDeclaration = node;
+            if (node == null)
+            {
+                return false;
+            }
+
+            var firstIdentifier = node.Declaration.Variables.FirstOrDefault()?.Identifier;
+            if (firstIdentifier == null)
+            {
+                return false;
+            }
+
+            return IsOnHeader(root, position, node, firstIdentifier.Value);
+        }
+
         public SyntaxNode? GetNextExecutableStatement(SyntaxNode statement)
             => ((StatementSyntax)statement).GetNextStatement();
 

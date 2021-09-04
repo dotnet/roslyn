@@ -5504,7 +5504,7 @@ class Base
 class Derived : Base
 {
 }";
-            return TestInRegularAndScriptAsync(testText, expected);
+            return TestQuickActionNotProvidedAsync(testText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]

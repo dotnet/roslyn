@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -1581,6 +1582,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             operatorToken = memberAccess.OperatorToken
             name = memberAccess.Name
         End Sub
+
+        Public Function IsOnFieldDeclarationHeader(root As SyntaxNode, position As Integer, ByRef fieldDeclaration As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnFieldDeclarationHeader
+            Dim node = TryGetAncestorForLocation(Of FieldDeclarationSyntax)(root, position)
+
+            fieldDeclaration = node
+            If node Is Nothing Then
+                Return False
+            End If
+
+            If node.Modifiers.FullSpan.IntersectsWith(position)
+                Return True
+            End If
+
+            For Each declarator in node.Declarators
+                Dim asClause = declarator.AsClause
+                If asClause IsNot Nothing AndAlso asClause.FullSpan.IntersectsWith(position)
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
 
         Public Function GetNextExecutableStatement(statement As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetNextExecutableStatement
             Return DirectCast(statement, StatementSyntax).GetNextStatement()?.FirstAncestorOrSelf(Of ExecutableStatementSyntax)

@@ -484,6 +484,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsOnWhileStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? whileStatement);
         bool IsOnForeachHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? foreachStatement);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
+        bool IsOnFieldDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? fieldDeclaration);
 
         SyntaxNode? GetNextExecutableStatement(SyntaxNode statement);
 

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             // Given selection is trimmed first to enable over-selection that spans multiple lines. Since trailing whitespace ends
             // at newline boundary over-selection to e.g. a line after LocalFunctionStatement would cause FindNode to find enclosing
-            // block's Node. That is because in addition to LocalFunctionStatement the selection would also contain trailing trivia 
+            // block's Node. That is because in addition to LocalFunctionStatement the selection would also contain trailing trivia
             // (whitespace) of following statement.
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // Every time a Node is considered an extractNodes method is called to add all nodes around the original one
             // that should also be considered.
             //
-            // That enables us to e.g. return node `b` when Node `var a = b;` is being considered without a complex (and potentially 
-            // lang. & situation dependent) into Children descending code here.  We can't just try extracted Node because we might 
+            // That enables us to e.g. return node `b` when Node `var a = b;` is being considered without a complex (and potentially
+            // lang. & situation dependent) into Children descending code here.  We can't just try extracted Node because we might
             // want the whole node `var a = b;`
 
             // Handle selections:
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             //   - The smallest node whose FullSpan includes the whole (trimmed) selection
             //   - Using FullSpan is important because it handles over-selection with comments
             //   - Travels upwards through same-sized (FullSpan) nodes, extracting
-            // - Token with wanted Node as direct parent is selected (e.g. IdentifierToken for LocalFunctionStatement: `C [|Fun|]() {}`) 
+            // - Token with wanted Node as direct parent is selected (e.g. IdentifierToken for LocalFunctionStatement: `C [|Fun|]() {}`)
             // Note: Whether we have selection or location has to be checked against original selection because selecting just
             // whitespace could collapse selectionTrimmed into and empty Location. But we don't want `[|   |]token`
             // registering as `   [||]token`.
@@ -74,22 +74,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 // No more selection -> Handle what current selection is touching:
                 //
-                // Consider touching only for empty selections. Otherwise `[|C|] methodName(){}` would be considered as 
-                // touching the Method's Node (through the left edge, see below) which is something the user probably 
+                // Consider touching only for empty selections. Otherwise `[|C|] methodName(){}` would be considered as
+                // touching the Method's Node (through the left edge, see below) which is something the user probably
                 // didn't want since they specifically selected only the return type.
                 //
-                // What the selection is touching is used in two ways. 
+                // What the selection is touching is used in two ways.
                 // - Firstly, it is used to handle situation where it touches a Token whose direct ancestor is wanted Node.
-                // While having the (even empty) selection inside such token or to left of such Token is already handle 
+                // While having the (even empty) selection inside such token or to left of such Token is already handle
                 // by code above touching it from right `C methodName[||](){}` isn't (the FindNode for that returns Args node).
-                // - Secondly, it is used for left/right edge climbing. E.g. `[||]C methodName(){}` the touching token's direct 
-                // ancestor is TypeNode for the return type but it is still reasonable to expect that the user might want to 
-                // be given refactorings for the whole method (as he has caret on the edge of it). Therefore we travel the 
-                // Node tree upwards and as long as we're on the left edge of a Node's span we consider such node & potentially 
+                // - Secondly, it is used for left/right edge climbing. E.g. `[||]C methodName(){}` the touching token's direct
+                // ancestor is TypeNode for the return type but it is still reasonable to expect that the user might want to
+                // be given refactorings for the whole method (as he has caret on the edge of it). Therefore we travel the
+                // Node tree upwards and as long as we're on the left edge of a Node's span we consider such node & potentially
                 // continue traveling upwards. The situation for right edge (`C methodName(){}[||]`) is analogical.
-                // E.g. for right edge `C methodName(){}[||]`: CloseBraceToken -> BlockSyntax -> LocalFunctionStatement -> null (higher 
+                // E.g. for right edge `C methodName(){}[||]`: CloseBraceToken -> BlockSyntax -> LocalFunctionStatement -> null (higher
                 // node doesn't end on position anymore)
-                // Note: left-edge climbing needs to handle AttributeLists explicitly, see below for more information. 
+                // Note: left-edge climbing needs to handle AttributeLists explicitly, see below for more information.
                 // - Thirdly, if location isn't touching anything, we move the location to the token in whose trivia location is in.
                 // more about that below.
                 // - Fourthly, if we're in an expression / argument we consider touching a parent expression whenever we're within it
@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                     document, root, selectionTrimmed, cancellationToken).ConfigureAwait(false);
 
                 // In addition to per-node extr also check if current location (if selection is empty) is in a header of higher level
-                // desired node once. We do that only for locations because otherwise `[|int|] A { get; set; }) would trigger all refactorings for 
-                // Property Decl. 
+                // desired node once. We do that only for locations because otherwise `[|int|] A { get; set; }) would trigger all refactorings for
+                // Property Decl.
                 // We cannot check this any sooner because the above code could've changed current location.
                 AddNonHiddenCorrectTypeNodes(ExtractNodesInHeader(root, location, syntaxFacts), relevantNodesBuilder, cancellationToken);
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 // We want to treat more types like expressions, e.g.: ArgumentSyntax should still trigger even if deep-in.
                 if (IsWantedTypeExpressionLike<TSyntaxNode>())
                 {
-                    // Reason to treat Arguments (and potentially others) as Expression-like: 
+                    // Reason to treat Arguments (and potentially others) as Expression-like:
                     // https://github.com/dotnet/roslyn/pull/37295#issuecomment-516145904
                     await AddNodesDeepInAsync(document, location, relevantNodesBuilder, cancellationToken).ConfigureAwait(false);
                 }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 ? tokenOnLocation
                 : default;
 
-            // A token can be to the left only when there's either no tokenDirectlyToRightOrIn or there's one  directly starting at current location. 
+            // A token can be to the left only when there's either no tokenDirectlyToRightOrIn or there's one  directly starting at current location.
             // Otherwise (otherwise tokenToRightOrIn is also left from location, e.g: `tok[||]enToRightOrIn`)
             var tokenToLeft = default(SyntaxToken);
             if (tokenToRightOrIn == default || tokenToRightOrIn.FullSpan.Start == location)
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
 
             // If both tokens directly to left & right are empty -> we're somewhere in the middle of whitespace.
-            // Since there wouldn't be (m)any other refactorings we can try to offer at least the ones for (semantically) 
+            // Since there wouldn't be (m)any other refactorings we can try to offer at least the ones for (semantically)
             // closest token/Node. Thus, we move the location to the token in whose `.FullSpan` the original location was.
             if (tokenToLeft == default && tokenToRightOrIn == default)
             {
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 if (lineDistance is not 0 and not 1)
                     return false;
 
-                // Note: being a line below a tokenOnLocation is impossible in current model as whitespace 
+                // Note: being a line below a tokenOnLocation is impossible in current model as whitespace
                 // trailing trivia ends on new line. Which is fine because if you're a line _after_ some node
                 // you usually don't want refactorings for what's above you.
 
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 do
                 {
                     // Consider either a Node that is:
-                    // - Parent of touched Token (location can be within) 
+                    // - Parent of touched Token (location can be within)
                     // - Ancestor Node of such Token as long as their span starts on location (it's still on the edge)
                     AddNonHiddenCorrectTypeNodes(ExtractNodesSimple(rightNode, syntaxFacts), relevantNodesBuilder, cancellationToken);
 
@@ -319,14 +319,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         }
 
         /// <summary>
-        /// Extractor function that retrieves all nodes that should be considered for extraction of given current node. 
+        /// Extractor function that retrieves all nodes that should be considered for extraction of given current node.
         /// <para>
         /// The rationale is that when user selects e.g. entire local declaration statement [|var a = b;|] it is reasonable
         /// to provide refactoring for `b` node. Similarly for other types of refactorings.
         /// </para>
         /// </summary>
         /// <remark>
-        /// Should also return given node. 
+        /// Should also return given node.
         /// </remark>
         protected virtual IEnumerable<SyntaxNode> ExtractNodesSimple(SyntaxNode? node, ISyntaxFactsService syntaxFacts)
         {
@@ -338,10 +338,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // First return the node itself so that it is considered
             yield return node;
 
-            // REMARKS: 
+            // REMARKS:
             // The set of currently attempted extractions is in no way exhaustive and covers only cases
             // that were found to be relevant for refactorings that were moved to `TryGetSelectedNodeAsync`.
-            // Feel free to extend it / refine current heuristics. 
+            // Feel free to extend it / refine current heuristics.
 
             // `var a = b;` | `var a = b`;
             if (syntaxFacts.IsLocalDeclarationStatement(node) || syntaxFacts.IsLocalDeclarationStatement(node.Parent))
@@ -462,6 +462,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             if (syntaxFacts.IsOnTypeHeader(root, location, out var typeDeclaration))
             {
                 yield return typeDeclaration;
+            }
+
+            if (syntaxFacts.IsOnFieldDeclarationHeader(root, location, out var fieldDeclaration))
+            {
+                yield return fieldDeclaration;
             }
         }
 
