@@ -394,10 +394,13 @@ namespace Microsoft.CodeAnalysis
         private async Task<bool> ContainsSymbolsAsync(
             Func<SyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
         {
+            if (!this.SupportsCompilation)
+                return false;
+
             var tasks = this.Documents.Select(async d =>
             {
-                var index = await SyntaxTreeIndex.GetIndexAsync(d, cancellationToken).ConfigureAwait(false);
-                return index != null && predicate(index, cancellationToken);
+                var index = await SyntaxTreeIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
+                return predicate(index, cancellationToken);
             });
 
             var results = await Task.WhenAll(tasks).ConfigureAwait(false);
