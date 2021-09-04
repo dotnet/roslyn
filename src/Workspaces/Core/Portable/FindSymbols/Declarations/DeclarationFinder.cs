@@ -142,9 +142,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     case DeclaredSymbolInfoKind.Method:
                     case DeclaredSymbolInfoKind.Property:
                         return (filter & SymbolFilter.Member) != 0;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(info.Kind);
                 }
-
-                return false;
             }
         }
 
