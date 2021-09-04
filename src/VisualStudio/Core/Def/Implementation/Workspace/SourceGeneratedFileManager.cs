@@ -389,7 +389,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         // If the file isn't already open, open it now. We may transition between opening and closing
                         // if the file is repeatedly appearing and disappearing.
-                        var connectToWorkspace = _workspace.Options.GetOption(Options.EnableOpeningInWorkspace) ?? false;
+                        var connectToWorkspace = _workspace.Options.GetOption(Options.EnableOpeningInWorkspace) ??
+                                                 _workspace.Options.GetOption(Options.EnableOpeningInWorkspaceFeatureFlag);
 
                         if (connectToWorkspace && !_workspace.IsDocumentOpen(_documentIdentity.DocumentId))
                         {
