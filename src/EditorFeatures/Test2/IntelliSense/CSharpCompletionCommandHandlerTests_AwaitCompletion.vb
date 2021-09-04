@@ -413,6 +413,8 @@ public class C
     {
         await MyFunctionCall();
     }
+
+    public void MyFunctionCall() {}
 }
 ", state.GetDocumentText())
             End Using
