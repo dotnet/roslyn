@@ -2511,6 +2511,17 @@ static class MyExtension
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task SpeakableTopLevelStatementType()
+        {
+            await TestMissingAsync(@"
+[|P|] = 10;
+
+partial class Program
+{
+}");
+        }
+
         [WorkItem(539675, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539675")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task AddBlankLineBeforeCommentBetweenMembers1()

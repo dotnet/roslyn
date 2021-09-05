@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         public InlineHintsDataTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints))
+            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.InlineHints))
         {
-            _listener = listenerProvider.GetListener(FeatureAttribute.InlineParameterNameHints);
+            _listener = listenerProvider.GetListener(FeatureAttribute.InlineHints);
         }
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.DisplayAllOverride),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.EnabledForParameters),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForLiteralParameters),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForIndexerParameters),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForObjectCreationParameters),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.ForOtherParameters),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent),

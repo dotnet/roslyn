@@ -550,7 +550,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(recursive.HasAnyErrors);
                         tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
                     }
-                    tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
+                    else
+                    {
+                        tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
+                    }
                 }
             }
 
@@ -937,6 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundDecisionDagNode whenTrue = finalState(first.Syntax, first.CaseLabel, default);
                         BoundDecisionDagNode? whenFalse = state.FalseBranch.Dag;
                         RoslynDebug.Assert(whenFalse is { });
+                        // Note: we may share `when` clauses between multiple DAG nodes, but we deal with that safely during lowering
                         state.Dag = uniqifyDagNode(new BoundWhenDecisionDagNode(first.Syntax, first.Bindings, first.WhenClause, whenTrue, whenFalse));
                     }
 
@@ -1320,8 +1324,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
                             break;
-                        case BoundDagValueTest _:
-                            break;
                         case BoundDagExplicitNullTest _:
                             foundExplicitNullTest = true;
                             // v is T --> !(v == null)
@@ -1338,8 +1340,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 foundExplicitNullTest = true;
                             // v == K --> v != null
                             trueTestImpliesTrueOther = true;
-                            break;
-                        case BoundDagTypeTest _:
                             break;
                         case BoundDagExplicitNullTest _:
                             foundExplicitNullTest = true;
@@ -1430,12 +1430,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool isRuntimeSimilar(TypeSymbol expressionType, TypeSymbol patternType)
             {
-                while (expressionType is ArrayTypeSymbol { ElementType: var e1, IsSZArray: var sz1, Rank: var r1 } &&
-                       patternType is ArrayTypeSymbol { ElementType: var e2, IsSZArray: var sz2, Rank: var r2 } &&
-                       sz1 == sz2 && r1 == r2)
+                while (expressionType is ArrayTypeSymbol array1 &&
+                       patternType is ArrayTypeSymbol array2 &&
+                       array1.IsSZArray == array2.IsSZArray &&
+                       array1.Rank == array2.Rank)
                 {
-                    e1 = e1.EnumUnderlyingTypeOrSelf();
-                    e2 = e2.EnumUnderlyingTypeOrSelf();
+                    TypeSymbol e1 = array1.ElementType.EnumUnderlyingTypeOrSelf();
+                    TypeSymbol e2 = array2.ElementType.EnumUnderlyingTypeOrSelf();
                     switch (e1.SpecialType, e2.SpecialType)
                     {
                         // The following support CLR behavior that is required by
@@ -1507,7 +1508,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private static ImmutableArray<DagState> Successor(DagState state)
             {
-
                 if (state.TrueBranch != null && state.FalseBranch != null)
                 {
                     return ImmutableArray.Create(state.FalseBranch, state.TrueBranch);

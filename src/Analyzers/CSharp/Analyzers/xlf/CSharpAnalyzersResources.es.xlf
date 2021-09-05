@@ -27,6 +27,16 @@
         <target state="translated">Convertir una instrucción switch en expresión</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_block_scoped_namespace">
+        <source>Convert to block scoped namespace</source>
+        <target state="new">Convert to block scoped namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_to_file_scoped_namespace">
+        <source>Convert to file-scoped namespace</source>
+        <target state="new">Convert to file-scoped namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
         <source>Deconstruct variable declaration</source>
         <target state="translated">Desconstruir la declaración de variable</target>
@@ -49,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
-        <target state="translated">La indexación de direcciones puede ser simplificado</target>
+        <target state="translated">La indexación de direcciones se puede simplificar</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_variable_declaration">
@@ -245,6 +255,11 @@
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Usar coincidencia de patrones</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="new">Use pattern matching (may change code meaning)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">

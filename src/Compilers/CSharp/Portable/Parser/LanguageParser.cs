@@ -3312,7 +3312,7 @@ parse_member_name:;
                 }
                 else if (explicitInterfaceOpt is not null && this.CurrentToken.Kind != SyntaxKind.OperatorKeyword && style.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia))
                 {
-                    // Not likely an explicit interface implementation. Likely a begining of the next member on the next line.
+                    // Not likely an explicit interface implementation. Likely a beginning of the next member on the next line.
                     this.Reset(ref point);
                     style = this.EatToken();
                     explicitInterfaceOpt = null;
@@ -3435,7 +3435,7 @@ parse_member_name:;
                     else
                     {
                         // If we saw a . or :: then we must have something explicit.
-                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator, reportAnErrorOnMisplacedColonColon: true);
+                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator);
                     }
                 }
 
@@ -6271,7 +6271,7 @@ tryAgain:
             }
         }
 
-        private void AccumulateExplicitInterfaceName(ref NameSyntax explicitInterfaceName, ref SyntaxToken separator, bool reportAnErrorOnMisplacedColonColon = false)
+        private void AccumulateExplicitInterfaceName(ref NameSyntax explicitInterfaceName, ref SyntaxToken separator)
         {
             // first parse the upcoming name portion.
 
@@ -6310,13 +6310,7 @@ tryAgain:
                 if (this.CurrentToken.Kind == SyntaxKind.ColonColonToken)
                 {
                     separator = this.EatToken();
-
-                    if (reportAnErrorOnMisplacedColonColon)
-                    {
-                        // The https://github.com/dotnet/roslyn/issues/53021 is tracking fixing this in general
-                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName);
-                    }
-
+                    separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName);
                     separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
                 }
                 else if (this.CurrentToken.Kind == SyntaxKind.DotDotToken)
@@ -6403,7 +6397,7 @@ tryAgain:
                     else
                     {
                         // If we saw a . or :: then we must have something explicit.
-                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator, reportAnErrorOnMisplacedColonColon: true);
+                        AccumulateExplicitInterfaceName(ref explicitInterfaceName, ref separator);
                     }
                 }
 
@@ -10042,7 +10036,7 @@ tryAgain:
         /// </summary>
         private bool CanStartExpression()
         {
-            return IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false);
+            return IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false, allowAttributes: false);
         }
 
         /// <summary>
@@ -10050,10 +10044,10 @@ tryAgain:
         /// </summary>
         private bool IsPossibleExpression()
         {
-            return IsPossibleExpression(allowBinaryExpressions: true, allowAssignmentExpressions: true);
+            return IsPossibleExpression(allowBinaryExpressions: true, allowAssignmentExpressions: true, allowAttributes: true);
         }
 
-        private bool IsPossibleExpression(bool allowBinaryExpressions, bool allowAssignmentExpressions)
+        private bool IsPossibleExpression(bool allowBinaryExpressions, bool allowAssignmentExpressions, bool allowAttributes)
         {
             SyntaxKind tk = this.CurrentToken.Kind;
             switch (tk)
@@ -10089,7 +10083,7 @@ tryAgain:
                 case SyntaxKind.StaticKeyword:
                     return IsPossibleAnonymousMethodExpression() || IsPossibleLambdaExpression(Precedence.Expression);
                 case SyntaxKind.OpenBracketToken:
-                    return IsPossibleLambdaExpression(Precedence.Expression);
+                    return allowAttributes && IsPossibleLambdaExpression(Precedence.Expression);
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
                     // expression (whether it is used as an identifier or a keyword).
@@ -10169,7 +10163,7 @@ tryAgain:
             Relational,
             Shift,
             Additive,
-            Mutiplicative,
+            Multiplicative,
             Switch,
             Range,
             Unary,
@@ -10238,7 +10232,7 @@ tryAgain:
                 case SyntaxKind.MultiplyExpression:
                 case SyntaxKind.DivideExpression:
                 case SyntaxKind.ModuloExpression:
-                    return Precedence.Mutiplicative;
+                    return Precedence.Multiplicative;
                 case SyntaxKind.UnaryPlusExpression:
                 case SyntaxKind.UnaryMinusExpression:
                 case SyntaxKind.BitwiseNotExpression:

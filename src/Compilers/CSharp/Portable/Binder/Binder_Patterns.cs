@@ -284,6 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundIndexerAccess? indexerAccess = null;
             PropertySymbol? indexerSymbol = null;
             PropertySymbol? lengthProperty = null;
+            TypeSymbol narrowedType = inputType.StrippedType();
             if (inputType.IsErrorType())
             {
                 hasErrors = true;
@@ -295,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lengthProperty = (PropertySymbol?)((MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Array__get_Length, diagnostics, syntax: node))?.AssociatedSymbol;
                 hasErrors |= lengthProperty is null;
             }
-            else if (TryPerformPatternIndexerLookup(node, inputType, argIsIndex: true, out indexerAccess, out Symbol? patternSymbol, out lengthProperty, diagnostics))
+            else if (TryPerformPatternIndexerLookup(node, narrowedType, argIsIndex: true, out indexerAccess, out Symbol? patternSymbol, out lengthProperty, diagnostics))
             {
                 if (patternSymbol is PropertySymbol indexer)
                 {
@@ -315,7 +316,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
             }
 
-            TypeSymbol narrowedType = inputType.StrippedType();
             ImmutableArray<BoundPattern> subpatterns = BindListPatternSubpatterns(
                 node.Patterns, inputType: narrowedType, elementType: elementType,
                 permitDesignations, ref hasErrors, out bool sawSlice, diagnostics);
@@ -452,13 +452,7 @@ done:
             bool hasErrors,
             BindingDiagnosticBag diagnostics)
         {
-            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(expression);
-            if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
-            {
-                diagnostics.Add(ErrorCode.ERR_DefaultPattern, innerExpression.Location);
-                hasErrors = true;
-            }
-
+            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(expression, diagnostics, ref hasErrors);
             var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, ref hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
             if (wasExpression)
             {
@@ -470,47 +464,30 @@ done:
                 if (!hasErrors)
                     CheckFeatureAvailability(innerExpression, MessageID.IDS_FeatureTypePattern, diagnostics);
 
-                if (hasSuppression(expression))
-                {
-                    diagnostics.Add(ErrorCode.ERR_IllegalSuppression, expression.Location);
-                    hasErrors = true;
-                }
-
                 var boundType = (BoundTypeExpression)convertedExpression;
                 bool isExplicitNotNullTest = boundType.Type.SpecialType == SpecialType.System_Object;
                 return new BoundTypePattern(node, boundType, isExplicitNotNullTest, inputType, boundType.Type, hasErrors);
             }
-
-            static bool hasSuppression(ExpressionSyntax e)
-            {
-                while (true)
-                {
-                    switch (e)
-                    {
-                        case ParenthesizedExpressionSyntax p:
-                            e = p.Expression;
-                            break;
-                        case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression }:
-                            return true;
-                        default:
-                            return false;
-                    }
-                }
-            }
         }
 
-        private static ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e)
+        private static ExpressionSyntax SkipParensAndNullSuppressions(ExpressionSyntax e, BindingDiagnosticBag diagnostics, ref bool hasErrors)
         {
             while (true)
             {
-                switch (e)
+                switch (e.Kind())
                 {
-                    case ParenthesizedExpressionSyntax p:
-                        e = p.Expression;
-                        break;
-                    case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression } p:
-                        e = p.Operand;
-                        break;
+                    case SyntaxKind.DefaultLiteralExpression:
+                        diagnostics.Add(ErrorCode.ERR_DefaultPattern, e.Location);
+                        hasErrors = true;
+                        return e;
+                    case SyntaxKind.ParenthesizedExpression:
+                        e = ((ParenthesizedExpressionSyntax)e).Expression;
+                        continue;
+                    case SyntaxKind.SuppressNullableWarningExpression:
+                        diagnostics.Add(ErrorCode.ERR_IllegalSuppression, e.Location);
+                        hasErrors = true;
+                        e = ((PostfixUnaryExpressionSyntax)e).Operand;
+                        continue;
                     default:
                         return e;
                 }
@@ -1613,12 +1590,7 @@ done:
             BindingDiagnosticBag diagnostics)
         {
             BoundExpression value = BindExpressionForPattern(inputType, node.Expression, ref hasErrors, diagnostics, out var constantValueOpt, out _);
-            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression);
-            if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
-            {
-                diagnostics.Add(ErrorCode.ERR_DefaultPattern, innerExpression.Location);
-                hasErrors = true;
-            }
+            ExpressionSyntax innerExpression = SkipParensAndNullSuppressions(node.Expression, diagnostics, ref hasErrors);
             RoslynDebug.Assert(value.Type is { });
             BinaryOperatorKind operation = tokenKindToBinaryOperatorKind(node.OperatorToken.Kind());
             if (operation == BinaryOperatorKind.Equal)

@@ -230,6 +230,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="new">Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
+        <source>Asynchronously waits for the task to finish.</source>
+        <target state="new">Asynchronously waits for the task to finish.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">대기된 작업에서 '{0}'이(가) 반환됨</target>
@@ -315,6 +320,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">애플리케이션이 실행되는 동안에는 '{0}' 프로젝트의 변경 내용이 적용되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesRequiredSynthesizedType">
+        <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
+        <target state="new">One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application">
         <source>Changing {0} from asynchronous to synchronous requires restarting the application.</source>
         <target state="new">Changing {0} from asynchronous to synchronous requires restarting the application.</target>
@@ -338,6 +348,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
         <source>Changing parameter types of {0} requires restarting the application.</source>
         <target state="new">Changing parameter types of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
+        <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
+        <target state="new">Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
@@ -760,6 +775,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">잘못된 그룹 이름: 그룹 이름은 단어 문자로 시작해야 합니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection.</source>
+        <target state="new">Invalid selection.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
         <target state="translated">'abstract' 클래스 만들기</target>
@@ -945,9 +965,19 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">중첩 수량자 {0}입니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
+      <trans-unit id="No_common_root_node_for_extraction">
+        <source>No common root node for extraction.</source>
+        <target state="new">No common root node for extraction.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
         <source>No valid location to insert method call.</source>
         <target state="translated">메서드 호출을 삽입할 유효한 위치가 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_selection_to_perform_extraction">
+        <source>No valid selection to perform extraction.</source>
+        <target state="new">No valid selection to perform extraction.</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2165,6 +2195,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="new">Renaming {0} requires restarting the application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Renaming {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="new">Renaming {0} requires restarting the application because it is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application">
         <source>Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</source>
         <target state="new">Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</target>
@@ -2183,6 +2218,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">편집 다시 실행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_does_not_contain_a_valid_token">
+        <source>Selection does not contain a valid token.</source>
+        <target state="new">Selection does not contain a valid token.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_not_contained_inside_a_type">
+        <source>Selection not contained inside a type.</source>
+        <target state="new">Selection not contained inside a type.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">

@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -76,12 +75,10 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private static StorageDatabase GetDatabase(HostWorkspaceServices workspaceServices)
         {
-            var experimentationService = workspaceServices.GetService<IExperimentationService>();
-            if (experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.CloudCache) == true)
-                return StorageDatabase.CloudCache;
-
             var optionService = workspaceServices.GetRequiredService<IOptionService>();
-            return optionService.GetOption(StorageOptions.Database);
+
+            return optionService.GetOption(StorageOptions.CloudCacheFeatureFlag) ? StorageDatabase.CloudCache :
+                   optionService.GetOption(StorageOptions.Database);
         }
 
 #endif

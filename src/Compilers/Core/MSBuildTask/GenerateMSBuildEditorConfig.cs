@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -38,6 +39,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </remarks>
     public sealed class GenerateMSBuildEditorConfig : Task
     {
+        /// <remarks>
+        /// Although this task does its own writing to disk, this
+        /// output parameter is here for testing purposes.
+        /// </remarks>
         [Output]
         public string ConfigFileContents { get; set; }
 
@@ -47,11 +52,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Required]
         public ITaskItem[] PropertyItems { get; set; }
 
+        public ITaskItem FileName { get; set; }
+
         public GenerateMSBuildEditorConfig()
         {
             ConfigFileContents = string.Empty;
             MetadataItems = Array.Empty<ITaskItem>();
             PropertyItems = Array.Empty<ITaskItem>();
+            FileName = new TaskItem();
         }
 
         public override bool Execute()
@@ -98,7 +106,31 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             ConfigFileContents = builder.ToString();
-            return true;
+            return string.IsNullOrEmpty(FileName.ItemSpec) ? true : WriteMSBuildEditorConfig();
+        }
+
+        internal bool WriteMSBuildEditorConfig()
+        {
+            try
+            {
+                var targetFileName = FileName.ItemSpec;
+                if (File.Exists(targetFileName))
+                {
+                    string existingContents = File.ReadAllText(targetFileName);
+                    if (existingContents.Equals(ConfigFileContents))
+                    {
+                        return true;
+                    }
+                }
+                var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+                File.WriteAllText(targetFileName, ConfigFileContents, encoding);
+                return true;
+            }
+            catch (IOException ex)
+            {
+                Log.LogErrorFromException(ex);
+                return false;
+            }
         }
 
         /// <remarks>

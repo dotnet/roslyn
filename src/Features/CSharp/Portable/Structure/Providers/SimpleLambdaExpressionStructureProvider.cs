@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class SimpleLambdaExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<SimpleLambdaExpressionSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             SimpleLambdaExpressionSyntax lambdaExpression,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,

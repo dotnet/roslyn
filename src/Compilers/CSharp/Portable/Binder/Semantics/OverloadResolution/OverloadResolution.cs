@@ -2078,7 +2078,7 @@ outerDefault:
                 return result;
             }
 
-            // UNDONE: Otherwise if one member is a non-lifted operator and  the other is a lifted
+            // UNDONE: Otherwise if one member is a non-lifted operator and the other is a lifted
             // operator, the non-lifted one is better.
 
             // Otherwise: Position in interactive submission chain. The last definition wins.
@@ -2138,7 +2138,7 @@ outerDefault:
                         var c2 = m2.Result.ConversionForArg(i);
 
                         isInterpolatedStringHandlerConversion = c1.IsInterpolatedStringHandler && c2.IsInterpolatedStringHandler;
-                        Debug.Assert(!isInterpolatedStringHandlerConversion || arguments[i].Kind == BoundKind.UnconvertedInterpolatedString);
+                        Debug.Assert(!isInterpolatedStringHandlerConversion || arguments[i] is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
                     }
 
                     if (p1.RefKind == RefKind.None && isAcceptableRefMismatch(p2.RefKind, isInterpolatedStringHandlerConversion))
@@ -2333,7 +2333,6 @@ outerDefault:
         // Determine whether t1 or t2 is a better conversion target from node.
         private BetterResult BetterConversionFromExpression(BoundExpression node, TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            Debug.Assert(node.Kind != BoundKind.UnboundLambda);
             bool ignore;
             return BetterConversionFromExpression(
                 node,
@@ -2429,9 +2428,15 @@ outerDefault:
             // and an implicit conversion C2 that converts from an expression E to a type T2,
             // C1 is a better conversion than C2 if E is a non-constant interpolated string expression, C1
             // is an interpolated string handler conversion, and C2 is not an interpolated string
-            // handler conversion
-            // https://github.com/dotnet/roslyn/issues/54584 Handle binary operators composed only of added interpolated strings
-            if (node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null })
+            // handler conversion.
+            // We deviate from our usual policy around language version not changing binding behavior here
+            // because this will cause existing code that chooses one overload to instead choose an overload
+            // that will immediately cause an error. True, the user does need to update their target framework
+            // or a library to a version that takes advantage of the feature, but we made this pragmatic
+            // choice after we received customer reports of problems in the space.
+            // https://github.com/dotnet/roslyn/issues/55345
+            if (_binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureImprovedInterpolatedStrings) &&
+                node is BoundUnconvertedInterpolatedString { ConstantValueOpt: null } or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true, ConstantValue: null })
             {
                 switch ((conv1.Kind, conv2.Kind))
                 {
@@ -3542,6 +3547,7 @@ outerDefault:
             if (arguments.IsExtensionMethodInvocation)
             {
                 var inferredFromFirstArgument = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
+                    _binder.Compilation,
                     _binder.Conversions,
                     method,
                     args,
@@ -3633,7 +3639,7 @@ outerDefault:
                     }
 
                     bool hasInterpolatedStringRefMismatch = false;
-                    if (argument.Kind == BoundKind.UnconvertedInterpolatedString
+                    if (argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
                         && parameterRefKind == RefKind.Ref
                         && parameters.ParameterTypes[argumentPosition].Type is NamedTypeSymbol { IsInterpolatedStringHandlerType: true, IsValueType: true })
                     {

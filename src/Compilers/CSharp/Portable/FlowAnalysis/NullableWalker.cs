@@ -4024,6 +4024,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected override bool VisitInterpolatedStringHandlerParts(BoundInterpolatedStringBase node, bool usesBoolReturns, bool firstPartIsConditional, ref LocalState shortCircuitState)
+        {
+            var result = base.VisitInterpolatedStringHandlerParts(node, usesBoolReturns, firstPartIsConditional, ref shortCircuitState);
+            SetNotNullResult(node);
+            return result;
+        }
+
+        protected override BoundBinaryOperator? PushBinaryOperatorInterpolatedStringChildren(BoundBinaryOperator node, ArrayBuilder<BoundInterpolatedString> stack)
+        {
+            var result = base.PushBinaryOperatorInterpolatedStringChildren(node, stack);
+            SetNotNullResult(node);
+            return result;
+        }
+
         /// <summary>
         /// If we learn that the operand is non-null, we can infer that certain
         /// sub-expressions were also non-null.
@@ -6113,7 +6127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal override TypeWithAnnotations GetTypeWithAnnotations(BoundExpression expr)
             {
-                return TypeWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr));
+                return TypeWithAnnotations.Create(expr.GetTypeOrFunctionType(), GetNullableAnnotation(expr));
             }
 
             /// <summary>
@@ -6960,9 +6974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             NamedTypeSymbol { TypeKind: TypeKind.Delegate, DelegateInvokeMethod: { Parameters: { } parameters } signature } => (signature, parameters),
                             FunctionPointerTypeSymbol { Signature: { Parameters: { } parameters } signature } => (signature, parameters),
-                            { SpecialType: SpecialType.System_Delegate } => (null, ImmutableArray<ParameterSymbol>.Empty),
-                            ErrorTypeSymbol => (null, ImmutableArray<ParameterSymbol>.Empty),
-                            _ => throw ExceptionUtilities.UnexpectedValue(targetType)
+                            _ => (null, ImmutableArray<ParameterSymbol>.Empty),
                         };
 
                 case ConversionKind.AnonymousFunction:
@@ -6979,6 +6991,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return TypeWithState.Create(targetType, NullableFlowState.NotNull);
                     }
+                    break;
+
+                case ConversionKind.FunctionType:
+                    resultState = NullableFlowState.NotNull;
                     break;
 
                 case ConversionKind.InterpolatedString:
@@ -9769,14 +9785,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
-        {
-            // https://github.com/dotnet/roslyn/issues/54583
-            // Better handle the constructor propogation
-            var result = base.VisitInterpolatedString(node);
-            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
-            return result;
-        }
+        // https://github.com/dotnet/roslyn/issues/54583
+        // Better handle the constructor propagation
+        //public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
+        //{
+        //}
 
         public override BoundNode? VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
         {

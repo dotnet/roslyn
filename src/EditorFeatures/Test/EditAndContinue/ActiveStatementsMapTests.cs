@@ -98,7 +98,7 @@ S5();
             var moduleId = Guid.NewGuid();
             var token = 0x06000001;
             ManagedActiveStatementDebugInfo CreateInfo(int startLine, int startColumn, int endLine, int endColumn, string fileName)
-                => new(new(new(moduleId, token++, version: 1), ilOffset: 0), fileName, new SourceSpan(startLine, startColumn, endLine, endColumn), ActiveStatementFlags.None);
+                => new(new(new(moduleId, token++, version: 1), ilOffset: 0), fileName, new SourceSpan(startLine, startColumn, endLine, endColumn), ActiveStatementFlags.MethodUpToDate);
 
             var debugInfos = ImmutableArray.Create(
                 CreateInfo(3, 0, 3, 4, "x"),

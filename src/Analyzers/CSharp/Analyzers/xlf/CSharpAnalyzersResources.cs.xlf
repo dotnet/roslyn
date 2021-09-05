@@ -27,6 +27,16 @@
         <target state="translated">Převést příkaz switch na výraz</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_block_scoped_namespace">
+        <source>Convert to block scoped namespace</source>
+        <target state="new">Convert to block scoped namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_to_file_scoped_namespace">
+        <source>Convert to file-scoped namespace</source>
+        <target state="new">Convert to file-scoped namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
         <source>Deconstruct variable declaration</source>
         <target state="translated">Dekonstruovat deklaraci proměnné</target>
@@ -34,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Delegate_invocation_can_be_simplified">
         <source>Delegate invocation can be simplified.</source>
-        <target state="translated">Volání delegáta se dá zjednodušit.</target>
+        <target state="translated">Volání delegáta může být zjednodušené.</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard_can_be_removed">
@@ -49,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
-        <target state="translated">Indexování se dá zjednodušit.</target>
+        <target state="translated">Indexování může být zjednodušené.</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_variable_declaration">
@@ -247,6 +257,11 @@
         <target state="translated">Použít porovnávání vzorů</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="new">Use pattern matching (may change code meaning)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="translated">Použít operátor rozsahu</target>
@@ -289,22 +304,22 @@
       </trans-unit>
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
-        <target state="translated">{0} se dá zjednodušit.</target>
+        <target state="translated">{0} může být zjednodušený.</target>
         <note />
       </trans-unit>
       <trans-unit id="default_expression_can_be_simplified">
         <source>'default' expression can be simplified</source>
-        <target state="translated">'Výraz default se dá zjednodušit.</target>
+        <target state="translated">Výraz „default“ může být zjednodušený.</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
-        <target state="translated">Příkaz if lze zjednodušit.</target>
+        <target state="translated">Příkaz if může být zjednodušený.</target>
         <note />
       </trans-unit>
       <trans-unit id="new_expression_can_be_simplified">
         <source>'new' expression can be simplified</source>
-        <target state="translated">Výraz new se dá zjednodušit.</target>
+        <target state="translated">Výraz „new“ může být zjednodušený.</target>
         <note />
       </trans-unit>
       <trans-unit id="typeof_can_be_converted_ to_nameof">
@@ -324,7 +339,7 @@
       </trans-unit>
       <trans-unit id="using_statement_can_be_simplified">
         <source>'using' statement can be simplified</source>
-        <target state="translated">Příkaz using lze zjednodušit.</target>
+        <target state="translated">Příkaz using může být zjednodušený.</target>
         <note />
       </trans-unit>
     </body>

@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild InvalidSuppressMessageAttribute = /*IDE0076*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild LegacyFormatSuppressMessageAttribute = /*IDE0077*/ EnforceOnBuild.HighlyRecommended;
         public const EnforceOnBuild RemoveConfusingSuppressionForIsExpression = /*IDE0080*/ EnforceOnBuild.HighlyRecommended;
+        public const EnforceOnBuild UseBlockScopedNamespace = /*IDE0160*/ EnforceOnBuild.HighlyRecommended;
+        public const EnforceOnBuild UseFileScopedNamespace = /*IDE0161*/ EnforceOnBuild.HighlyRecommended;
 
         /* EnforceOnBuild.Recommended */
         public const EnforceOnBuild UseThrowExpression = /*IDE0016*/ EnforceOnBuild.Recommended;

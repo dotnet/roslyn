@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -91,11 +90,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]>(CommitCharacterArrayComparer.Instance);
 
             // Feature flag to enable the return of TextEdits instead of InsertTexts (will increase payload size).
-            // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
-            // We also check against the CompletionOption for test purposes only.
+            // We check against the CompletionOption for test purposes only.
             Contract.ThrowIfNull(context.Solution);
-            var featureFlagService = context.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-            var returnTextEdits = featureFlagService.IsExperimentEnabled(WellKnownExperimentNames.LSPCompletion) ||
+            var returnTextEdits = completionOptions.GetOption(LspOptions.LspCompletionFeatureFlag) ||
                 completionOptions.GetOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, document.Project.Language);
 
             TextSpan? defaultSpan = null;
@@ -133,7 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lspCompletionItems.Add(lspCompletionItem);
             }
 
-            var completionList = new LSP.VSCompletionList
+            var completionList = new LSP.VSInternalCompletionList
             {
                 Items = lspCompletionItems.ToArray(),
                 SuggestionMode = list.SuggestionModeItem != null,
@@ -189,7 +186,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 if (supportsVSExtensions)
                 {
-                    var vsCompletionItem = await CreateCompletionItemAsync<LSP.VSCompletionItem>(
+                    var vsCompletionItem = await CreateCompletionItemAsync<LSP.VSInternalCompletionItem>(
                         request, document, item, completionResolveData, supportsVSExtensions, commitCharacterRulesCache,
                         completionService, clientName, returnTextEdits, snippetsSupported, stringBuilder,
                         documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
@@ -354,8 +351,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return lspCommitCharacters;
             }
 
-            static void PromoteCommonCommitCharactersOntoList(LSP.VSCompletionList completionList)
+            static void PromoteCommonCommitCharactersOntoList(LSP.VSInternalCompletionList completionList)
             {
+                var defaultCommitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
                 var commitCharacterReferences = new Dictionary<object, int>();
                 var mostUsedCount = 0;
                 string[]? mostUsedCommitCharacters = null;
@@ -365,7 +363,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var commitCharacters = completionItem.CommitCharacters;
                     if (commitCharacters == null)
                     {
-                        continue;
+                        // The commit characters on the item are null, this means the commit characters are actually
+                        // the default commit characters we passed in the initialize request.
+                        commitCharacters = defaultCommitCharacters;
                     }
 
                     commitCharacterReferences.TryGetValue(commitCharacters, out var existingCount);

@@ -471,7 +471,7 @@
   <data name="Updating_the_library_name_of_Declare_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the library name of Declare statement requires restarting the application.</value>
     <comment>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</comment>
-  </data>    
+  </data>
   <data name="Updating_the_alias_of_Declare_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the alias of Declare statement requires restarting the application.</value>
     <comment>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</comment>
@@ -961,6 +961,9 @@ This version used in: {2}</value>
   </data>
   <data name="Add_missing_param_nodes" xml:space="preserve">
     <value>Add missing param nodes</value>
+  </data>
+  <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
+    <value>Asynchronously waits for the task to finish.</value>
   </data>
   <data name="Make_containing_scope_async" xml:space="preserve">
     <value>Make containing scope async</value>
@@ -2898,5 +2901,29 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Changing_constraints_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing constraints of {0} requires restarting the application.</value>
+  </data>
+  <data name="No_common_root_node_for_extraction" xml:space="preserve">
+    <value>No common root node for extraction.</value>
+  </data>
+  <data name="No_valid_selection_to_perform_extraction" xml:space="preserve">
+    <value>No valid selection to perform extraction.</value>
+  </data>
+  <data name="Selection_does_not_contain_a_valid_token" xml:space="preserve">
+    <value>Selection does not contain a valid token.</value>
+  </data>
+  <data name="Selection_not_contained_inside_a_type" xml:space="preserve">
+    <value>Selection not contained inside a type.</value>
+  </data>
+  <data name="Invalid_selection" xml:space="preserve">
+    <value>Invalid selection.</value>
+  </data>
+  <data name="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
+    <value>Renaming {0} requires restarting the application because it is not supported by the runtime.</value>
+  </data>
+  <data name="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application" xml:space="preserve">
+    <value>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</value>
+  </data>
+  <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
+    <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
   </data>
 </root>

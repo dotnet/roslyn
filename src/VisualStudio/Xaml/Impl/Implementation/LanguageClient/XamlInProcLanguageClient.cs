@@ -3,15 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Xaml;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Experimentation;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
     /// <summary>
     /// Experimental XAML Language Server Client used everywhere when
-    /// <see cref="StringConstants.EnableLspIntelliSense"/> experiment is turned on.
+    /// <see cref="XamlOptions.EnableLspIntelliSenseFeatureFlag"/> is turned on.
     /// </summary>
     [ContentType(ContentTypeNames.XamlContentType)]
     [Export(typeof(ILanguageClient))]
@@ -42,6 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         {
         }
 
+        protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(StringConstants.XamlLanguageName);
+
         /// <summary>
         /// Gets the name of the language client (displayed in yellow bars).
         /// When updating the string of Name, please make sure to update the same string in Microsoft.VisualStudio.LanguageServer.Client.ExperimentalSnippetSupport.AllowList
@@ -50,10 +53,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
-            var isLspExperimentEnabled = experimentationService.IsExperimentEnabled(StringConstants.EnableLspIntelliSense);
+            var isLspExperimentEnabled = IsXamlLspIntelliSenseEnabled();
 
             return isLspExperimentEnabled ? XamlCapabilities.Current : XamlCapabilities.None;
         }
+
+        /// <summary>
+        /// Failures are only catastrophic when this server is providing intellisense features.
+        /// </summary>
+        public override bool ShowNotificationOnInitializeFailed => IsXamlLspIntelliSenseEnabled();
+
+        private bool IsXamlLspIntelliSenseEnabled()
+            => Workspace.Options.GetOption(XamlOptions.EnableLspIntelliSenseFeatureFlag);
     }
 }
