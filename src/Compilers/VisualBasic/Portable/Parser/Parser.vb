@@ -4636,28 +4636,15 @@ checkNullable:
             Debug.Assert(CurrentToken.Kind = SyntaxKind.ImportsKeyword, "called on wrong token")
 
             Dim importsKeyword As KeywordSyntax = ReportModifiersOnStatementError(Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
-            Dim importsClauses = Me._pool.AllocateSeparated(Of ImportsClauseSyntax)()
-
             GetNextToken()
 
-            Do
+            Dim result = Parse_CommaList(Of ImportsClauseSyntax)(
+                Function(ByRef importsClause As ImportsClauseSyntax) As Boolean
+                    importsClause = ParseOneImportsDirective()
+                    Return True
+                End Function)
 
-                Dim ImportsClause As ImportsClauseSyntax = ParseOneImportsDirective()
-
-                importsClauses.Add(ImportsClause)
-
-                Dim comma As PunctuationSyntax = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                importsClauses.AddSeparator(comma)
-            Loop
-
-            Dim result = importsClauses.ToList
-            Me._pool.Free(importsClauses)
             Dim statement As ImportsStatementSyntax = SyntaxFactory.ImportsStatement(importsKeyword, result)
-
             Return statement
         End Function
 
@@ -4797,26 +4784,15 @@ checkNullable:
 
             GetNextToken()
 
-            Do
-                Dim typeName As TypeSyntax = ParseTypeName(nonArrayName:=True)
+            Dim separatedTypeNames = Parse_CommaList(Of TypeSyntax)(
+                Function(ByRef typeName As TypeSyntax)
+                    typeName = ParseTypeName(nonArrayName:=True)
 
-                If typeName.ContainsDiagnostics Then
-                    typeName = ResyncAt(typeName, SyntaxKind.CommaToken)
-                End If
-
-                typeNames.Add(typeName)
-
-                'Eat a new line after "," but not "INHERITS" or "IMPLEMENTS"
-                Dim comma As PunctuationSyntax = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                typeNames.AddSeparator(comma)
-            Loop
-
-            Dim separatedTypeNames = typeNames.ToList
-            Me._pool.Free(typeNames)
+                    If typeName.ContainsDiagnostics Then
+                        typeName = ResyncAt(typeName, SyntaxKind.CommaToken)
+                    End If
+                    Return True
+                End Function)
 
             Dim result As InheritsOrImplementsStatementSyntax = Nothing
             Select Case (keyword.Kind)
