@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Class Parser
         Implements ISyntaxFactoryContext, IDisposable
 
+        Friend Delegate Function TryParseFunc(Of TSyntax As InternalSyntax.VisualBasicSyntaxNode)(ByRef node As TSyntax) As Boolean
         Private Enum PossibleFirstStatementKind
             No
             Yes
@@ -2150,6 +2151,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
+        Private Function TryParseComma(ByRef comma As PunctuationSyntax) As Boolean
+            Return TryGetTokenAndEatNewLine(Of PunctuationSyntax)(SyntaxKind.CommaToken, comma)
+        End Function
+        Private Function CanParseCommaInto(Of TSyntax As Microsoft.CodeAnalysis.GreenNode)(ByRef l As  CoreInternalSyntax.SeparatedSyntaxListBuilder(Of TSyntax)) As Boolean
+            Dim _comma As PunctuationSyntax = Nothing
+            If TryParseComma(_comma) = False Then Return False
+            l.AddSeparator(_comma)
+            Return True
+        End Function
+
+        Private Function Parse_CommaList(Of TSyntax As InternalSyntax.VisualBasicSyntaxNode) _
+            (CanParseThis As TryParseFunc(Of TSyntax) ) As CoreInternalSyntax.SeparatedSyntaxList(Of TSyntax)
+            Dim commaList = _pool.AllocateSeparated(Of TSyntax)
+            Dim _item As TSyntax = Nothing
+            While CanParseThis(_item)
+                commaList.Add(_item)
+                If CanParseCommaInto(commalist) = False Then Exit While
+            End While
+            Return _pool.ToListAndFree(commaList)
+        End Function
+
         Private Function ParseVariableDeclaration(allowAsNewWith As Boolean) As CoreInternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)
             Dim declarations = _pool.AllocateSeparated(Of VariableDeclaratorSyntax)()
 
@@ -2176,9 +2198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     declarators.Add(declarator)
 
                     comma = Nothing
-                    If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                        Exit Do
-                    End If
+                    If TryParseComma(comma) = False Then Exit Do
 
                     declarators.AddSeparator(comma)
 
@@ -2412,30 +2432,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             If CurrentToken.Kind <> SyntaxKind.CloseBraceToken Then
 
-                Dim expressions = _pool.AllocateSeparated(Of ExpressionSyntax)()
+                initializers = Parse_CommaList(
+                    Function(Byref Initializer As ExpressionSyntax)
+                        initializer = ParseExpressionCore(OperatorPrecedence.PrecedenceNone) 'Dev 10 was ParseInitializer
 
-                Do
-                    'This used to call ParseInitializer
-                    Dim Initializer As ExpressionSyntax = ParseExpressionCore(OperatorPrecedence.PrecedenceNone) 'Dev 10 was ParseInitializer
-
-                    If Initializer.ContainsDiagnostics Then
-                        Initializer = ResyncAt(Initializer, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken)
-                    End If
-
-                    expressions.Add(Initializer)
-
-                    Dim comma As PunctuationSyntax = Nothing
-                    If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                        expressions.AddSeparator(comma)
-                    Else
-                        Exit Do
-                    End If
-
-                Loop
-
-                initializers = expressions.ToList
-                _pool.Free(expressions)
-
+                        If Initializer.ContainsDiagnostics Then
+                            Initializer = ResyncAt(Initializer, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken)
+                        End If
+                        Return true
+                    End Function
+                    )
             End If
 
             Dim closeBrace = GetClosingRightBrace()
@@ -3381,57 +3387,46 @@ checkNullable:
             Return result
         End Function
 
-        ' In Dev10 this was ParseArgument.
+        Private Function TryParseKeyword( kind As SyntaxKind,
+                                    ByRef keyword As KeywordSyntax,
+                                 Optional consume As Boolean = True
+                                        ) As Boolean
+            Debug.Assert(SyntaxFacts.IsKeywordKind(kind), $"{kind} isnot a keyword kind.")
+            keyword = If(CurrentToken.Kind = kind, DirectCast(CurrentToken,KeywordSyntax), Nothing)
+            Dim valid = keyword IsNot Nothing
+            If valid AndAlso consume Then GetNextToken()
+            Return valid
+        End Function
+
+        Private Function TryParse_Argument(ByRef arg As ArgumentSyntax) As Boolean
+            Dim lowerBound As ExpressionSyntax = Nothing
+            Dim toKeyword As KeywordSyntax = Nothing
+            Dim upperBound As ExpressionSyntax = ParseExpressionCore()
+
+            If upperBound.ContainsDiagnostics Then
+                upperBound = ResyncAt(upperBound, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken, SyntaxKind.AsKeyword)
+
+            ElseIf TryParseKeyword(SyntaxKind.ToKeyword, toKeyword) Then
+                lowerBound = upperBound
+                ' Check that lower bound is equal to 0 moved to binder.
+                upperBound = ParseExpressionCore()
+            End If
+
+            If upperBound.ContainsDiagnostics OrElse (toKeyword IsNot Nothing AndAlso lowerBound.ContainsDiagnostics) Then
+                upperBound = ResyncAt(upperBound, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken, SyntaxKind.AsKeyword)
+            End If
+
+
+            If toKeyword Is Nothing Then
+                arg = SyntaxFactory.SimpleArgument(Nothing, upperBound)
+            Else
+                arg = SyntaxFactory.RangeArgument(lowerBound, toKeyword, upperBound)
+            End If
+            Return true
+        End Function
+
         Private Function ParseArgumentList() As CoreInternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)
-            Dim comma As PunctuationSyntax
-
-            Dim arguments = _pool.AllocateSeparated(Of ArgumentSyntax)()
-
-            Do
-                Dim lowerBound As ExpressionSyntax = Nothing
-                Dim toKeyword As KeywordSyntax = Nothing
-                Dim upperBound As ExpressionSyntax = ParseExpressionCore()
-
-                If upperBound.ContainsDiagnostics Then
-                    upperBound = ResyncAt(upperBound, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken, SyntaxKind.AsKeyword)
-
-                ElseIf CurrentToken.Kind = SyntaxKind.ToKeyword Then
-                    toKeyword = DirectCast(CurrentToken, KeywordSyntax)
-                    lowerBound = upperBound
-
-                    ' Check that lower bound is equal to 0 moved to binder.
-
-                    GetNextToken() ' consume To keyword
-
-                    upperBound = ParseExpressionCore()
-                End If
-
-                If upperBound.ContainsDiagnostics OrElse (toKeyword IsNot Nothing AndAlso lowerBound.ContainsDiagnostics) Then
-                    upperBound = ResyncAt(upperBound, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken, SyntaxKind.AsKeyword)
-                End If
-
-                Dim arg As ArgumentSyntax
-
-                If toKeyword Is Nothing Then
-                    arg = SyntaxFactory.SimpleArgument(Nothing, upperBound)
-                Else
-                    arg = SyntaxFactory.RangeArgument(lowerBound, toKeyword, upperBound)
-                End If
-
-                arguments.Add(arg)
-
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                arguments.AddSeparator(comma)
-            Loop
-
-            Dim result = arguments.ToList
-            _pool.Free(arguments)
-
-            Return result
+            Return Parse_CommaList(Of ArgumentSyntax)(AddressOf TryParse_Argument)
         End Function
 
         ' This used to be ParsePropertyOrEventProcedureDefinition
