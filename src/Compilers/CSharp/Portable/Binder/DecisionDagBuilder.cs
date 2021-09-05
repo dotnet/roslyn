@@ -1953,15 +1953,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // we proceed as follows:
                     //
                     //  - If "test" being true proves "other" to be also true, we rewrite "other" as ((P && S) || other),
-                    //    Because we have determined that on this branch, "other" would always succeed if the pre-condition is met.
+                    //    because we have determined that on this branch, "other" would always succeed if the pre-condition is met.
                     //    Note: If there is no pre-condition, i.e. P is True, the above will be reduced to True which means "other" is insignificant.
                     //
                     //  - If "test" being true proves "other" to be false, we rewrite "other" as (!(P && S) && other),
-                    //    Because we have determined that on this branch, "other" would never succeed if the pre-condition is met.
+                    //    because we have determined that on this branch, "other" would never succeed if the pre-condition is met.
                     //    Note: If there is no pre-condition, i.e. P is True, the above will be reduced to False which means "other" is impossible.
                     //
-                    //  - Otherwise, we rewrite "other" as ((!P || S) && other) to preserve the side-effect if the pre-condition is met.
-                    //    Because we have determined that there were no logical implications from one to the other on this branch.
+                    //  - Otherwise, we rewrite "other" as ((!P || S) && other) to preserve the side-effect if the pre-condition is met,
+                    //    because we have determined that there were no logical implications from one to the other on this branch.
                     //    Note: If there is no pre-condition, i.e. P is True, "other" is not rewritten which means the two are considered independent.
                     //
                     whenTrue = rewrite(trueDecisionImpliesTrueOther, trueDecisionPermitsTrueOther, precondition, sideeffect, this);
@@ -1973,9 +1973,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return decisionImpliesTrueOther
                             ? OrSequence.Create(AndSequence.Create(precondition, sideeffect), other)
-                            : decisionPermitsTrueOther
-                                ? AndSequence.Create(OrSequence.Create(Not.Create(precondition), sideeffect), other)
-                                : AndSequence.Create(Not.Create(AndSequence.Create(precondition, sideeffect)), other);
+                            : !decisionPermitsTrueOther
+                                ? AndSequence.Create(Not.Create(AndSequence.Create(precondition, sideeffect)), other)
+                                : AndSequence.Create(OrSequence.Create(Not.Create(precondition), sideeffect), other);
                     }
                 }
                 public override BoundDagTest ComputeSelectedTest() => this.Test;
@@ -2026,10 +2026,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var fac = ValueSetFactory.ForLength;
                         var possibleValues = fac.Related(BinaryOperatorKind.LessThanOrEqual, int.MaxValue - offset);
-                        var lengthValues = fac.Related(relation, constant).Intersect(possibleValues);
-                        if (lengthValues.IsEmpty)
+                        var lengthValues = fac.Related(relation, constant);
+                        if (lengthValues.Intersect(possibleValues).IsEmpty)
                             return False.Instance;
-                        if (lengthValues.Complement().IsEmpty)
+                        if (lengthValues.Complement().Intersect(possibleValues).IsEmpty)
                             return True.Instance;
                         return null;
                     }

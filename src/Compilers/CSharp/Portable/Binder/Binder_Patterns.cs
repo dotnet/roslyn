@@ -1459,7 +1459,7 @@ done:
                 PatternSyntax pattern = p.Pattern;
                 BoundPropertySubpatternMember? member;
                 TypeSymbol memberType;
-                bool isLengthOrCount;
+                bool isLengthOrCount = false;
                 if (expr == null)
                 {
                     if (!hasErrors)
@@ -1468,18 +1468,23 @@ done:
                     memberType = CreateErrorType();
                     member = null;
                     hasErrors = true;
-                    isLengthOrCount = false;
                 }
                 else
                 {
                     member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref hasErrors);
                     memberType = member.Type;
                     // If we're dealing with the member that makes the type countable, and the type is also indexable, then it will be assumed to always return a non-negative value
-                    isLengthOrCount = memberType.SpecialType == SpecialType.System_Int32 &&
-                                      member.Symbol is { Name: WellKnownMemberNames.LengthPropertyName or WellKnownMemberNames.CountPropertyName } memberSymbol &&
-                                      (memberSymbol.Equals(((MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Array__get_Length, BindingDiagnosticBag.Discarded, syntax: node))?.AssociatedSymbol) ||
-                                       TryPerformPatternIndexerLookup(node, inputType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, out PropertySymbol? lengthProperty, BindingDiagnosticBag.Discarded) &&
-                                       memberSymbol.Equals(lengthProperty)); // If both Count and Length are present we want the one that makes this type countable.
+                    if (memberType.SpecialType == SpecialType.System_Int32 &&
+                        member.Symbol is { Name: WellKnownMemberNames.LengthPropertyName or WellKnownMemberNames.CountPropertyName, Kind: SymbolKind.Property } memberSymbol)
+                    {
+                        TypeSymbol receiverType = member.Receiver?.Type ?? inputType;
+                        isLengthOrCount = receiverType.TypeKind switch
+                        {
+                            TypeKind.Error => false,
+                            TypeKind.Array => ReferenceEquals(memberSymbol, ((MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Array__get_Length, BindingDiagnosticBag.Discarded, syntax: node))?.AssociatedSymbol),
+                            _ => TryPerformPatternIndexerLookup(node, receiverType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, lengthProperty: out _, BindingDiagnosticBag.Discarded),
+                        };
+                    }
                 }
 
                 BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);

@@ -1403,6 +1403,14 @@ class X
             "{ new(0, 5) }",
             "[.., { X:0, Y:0 }] or [{ X:0, Y:5 }]",
             "e.Length, e[^1], e[^1].X, e[^1].Y, e[0], e[0].X, e[0].Y, True")]
+        [InlineData(
+            "{ new(0, 1), new(0, 5) }",
+            "[.., { X:0, Y:0 }] or [{ X:0, Y:5 }]",
+            "e.Length, e[^1], e[^1].X, e[^1].Y, False")]
+        [InlineData(
+            "{ null, new(0, 5) }",
+            "[.., { X:0, Y:0 }] or [{ X:0, Y:5 }]",
+            "e.Length, e[^1], e[^1].X, e[^1].Y, False")]
         public void SlicePattern_OrderOfEvaluation(string array, string pattern, string expectedOutput)
         {
             var source = @"
@@ -1503,6 +1511,7 @@ class X
         _ = a is [_, _, ..{ Length: >= int.MaxValue - 1 }]; // 13
         _ = a is [_, _, ..{ Length: < int.MaxValue - 1 }];
         _ = a is [_, _, ..{ Length: > int.MaxValue - 1 }]; // 14
+        _ = (Array)a is { Length: -1 };
     } 
 }
 ";
@@ -1572,38 +1581,59 @@ class X
 {
     public static void Test1<T>(T t) where T : ICountableViaCount
     {
-        _ = t is { Count: -1 }; // ok
+        _ = t is { Count: -1 };
+        _ = new { t } is { t.Count: -1 };
     }
     public static void Test2<T>(T t) where T : ICountableViaLength
     {
-        _ = t is { Length: -1 }; // ok
+        _ = t is { Length: -1 };
+        _ = new { t } is { t.Length: -1 };
     }
     public static void Test3<T>(T t) where T : IIndexable, ICountableViaCount
     {
         _ = t is { Count: -1 }; // 1
+        _ = new { t } is { t.Count: -1 }; // 2
     }
     public static void Test4<T>(T t) where T : IIndexable, ICountableViaLength
     {
-        _ = t is { Length: -1 }; // 2
+        _ = t is { Length: -1 }; // 3
+        _ = new { t } is { t.Length: -1 }; // 4
     }
     public static void Test5<T>(T t) where T : IIndexable, ICountableViaLength, ICountableViaCount
     {
-        _ = t is { Length: -1 }; // 3
-        _ = t is { Count: -1 }; // ok
+        _ = t is { Length: -1 }; // 5
+        _ = t is { Count: -1 }; // 6
+        _ = new { t } is { t.Count: -1 }; // 7
+        _ = new { t } is { t.Length: -1 }; // 8
     }
 }
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
             compilation.VerifyEmitDiagnostics(
-                // (26,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                // (28,13): error CS8518: An expression of type 'T' can never match the provided pattern.
                 //         _ = t is { Count: -1 }; // 1
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Count: -1 }").WithArguments("T").WithLocation(26, 13),
-                // (30,13): error CS8518: An expression of type 'T' can never match the provided pattern.
-                //         _ = t is { Length: -1 }; // 2
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(30, 13),
-                // (34,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Count: -1 }").WithArguments("T").WithLocation(28, 13),
+                // (29,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+                //         _ = new { t } is { t.Count: -1 }; // 2
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Count: -1 }").WithArguments("<anonymous type: T t>").WithLocation(29, 13),
+                // (33,13): error CS8518: An expression of type 'T' can never match the provided pattern.
                 //         _ = t is { Length: -1 }; // 3
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(34, 13));
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(33, 13),
+                // (34,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+                //         _ = new { t } is { t.Length: -1 }; // 4
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(34, 13),
+                // (38,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                //         _ = t is { Length: -1 }; // 5
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(38, 13),
+                // (39,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                //         _ = t is { Count: -1 }; // 6
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Count: -1 }").WithArguments("T").WithLocation(39, 13),
+                // (40,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+                //         _ = new { t } is { t.Count: -1 }; // 7
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Count: -1 }").WithArguments("<anonymous type: T t>").WithLocation(40, 13),
+                // (41,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+                //         _ = new { t } is { t.Length: -1 }; // 8
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(41, 13));
         }
 
         [Fact]
