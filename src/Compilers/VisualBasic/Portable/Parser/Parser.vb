@@ -2483,32 +2483,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 CurrentToken.Kind <> SyntaxKind.StatementTerminatorToken AndAlso
                 CurrentToken.Kind <> SyntaxKind.ColonToken Then
 
-                Dim expressions = _pool.AllocateSeparated(Of FieldInitializerSyntax)()
+                initializers = Parse_CommaList(Of FieldInitializerSyntax)(
+                                Function(ByRef initializer As FieldInitializerSyntax) As Boolean
+                                    'TODO - davidsch - This used to call ParseInitializer which checked for DotToken before calling ParseAssignmentInitializer
+                                    ' Verify that the error path is still the same.
+                                    ' Named initializer of form "."<Identifier>"="
+                                    initializer  = ParseAssignmentInitializer(anonymousTypeInitializer) 'Dev10 was ParseInitializer
 
-                Do
-                    'TODO - davidsch - This used to call ParseInitializer which checked for DotToken before calling ParseAssignmentInitializer
-                    ' Verify that the error path is still the same.
-                    ' Named initializer of form "."<Identifier>"="
-                    Dim initializer As FieldInitializerSyntax = ParseAssignmentInitializer(anonymousTypeInitializer) 'Dev10 was ParseInitializer
-
-                    If initializer.ContainsDiagnostics Then
-                        initializer = ResyncAt(initializer, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken)
-                    End If
-
-                    expressions.Add(initializer)
-
-                    Dim comma As PunctuationSyntax = Nothing
-                    If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                        expressions.AddSeparator(comma)
-                    Else
-                        Exit Do
-                    End If
-
-                Loop
-
-                initializers = expressions.ToList
-                _pool.Free(expressions)
-
+                                    If initializer.ContainsDiagnostics Then
+                                        initializer = ResyncAt(initializer, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken)
+                                    End If
+                                    Return True
+                                End Function
+                               )
             Else
                 ' Create a missing initializer
                 openBrace = ReportSyntaxError(openBrace, If(anonymousTypeInitializer, ERRID.ERR_AnonymousTypeNeedField, ERRID.ERR_InitializerExpected))
