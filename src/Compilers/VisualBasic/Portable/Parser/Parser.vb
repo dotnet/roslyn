@@ -3112,65 +3112,49 @@ checkNullable:
 
             TryGetTokenAndEatNewLine(SyntaxKind.OfKeyword, [of], createIfMissing:=True)
 
-            'Dim typeNames = _pool.AllocateSeparated(Of TypeSyntax)()
-            'Dim typeName As TypeSyntax
-
 
             typeArguments = Parse_CommaList(Of TypeSyntax)(
                 Function(Byref typeName As TypeSyntax) As Boolean
                     typeName = Nothing
 
-                ' Either all generic arguments should be unspecified or all need to be specified.
-                If CurrentToken.Kind = SyntaxKind.CommaToken OrElse CurrentToken.Kind = SyntaxKind.CloseParenToken Then
-                    If temp_allowEmptyGenericArguments Then
-                        ' If a non-empty type argument is already specified, then need to always look for
-                        ' non-empty type arguments, else we can allow empty type arguments.
+                    ' Either all generic arguments should be unspecified or all need to be specified.
+                    If CurrentToken.Kind = SyntaxKind.CommaToken OrElse CurrentToken.Kind = SyntaxKind.CloseParenToken Then
+                        If temp_allowEmptyGenericArguments Then
+                            ' If a non-empty type argument is already specified, then need to always look for
+                            ' non-empty type arguments, else we can allow empty type arguments.
 
-                        typeName = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier)
-                        temp_AllowNonEmptyGenericArguments = False
+                            typeName = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier)
+                            temp_AllowNonEmptyGenericArguments = False
+                        Else
+                            typeName = ParseGeneralType()
+                        End If
+
                     Else
+                        ' If an empty type argument is already specified, then need to always look for
+                        ' empty type arguments and reject non-empty type arguments, else we can allow
+                        ' non-empty type arguments.
+
                         typeName = ParseGeneralType()
+                        If temp_AllowNonEmptyGenericArguments Then
+                            temp_allowEmptyGenericArguments = False
+                        Else
+                            typeName = ReportSyntaxError(typeName, ERRID.ERR_TypeParamMissingCommaOrRParen)
+                        End If
                     End If
 
-                Else
-                    ' If an empty type argument is already specified, then need to always look for
-                    ' empty type arguments and reject non-empty type arguments, else we can allow
-                    ' non-empty type arguments.
-
-                    typeName = ParseGeneralType()
-                    If temp_AllowNonEmptyGenericArguments Then
-                        temp_allowEmptyGenericArguments = False
-                    Else
-                        typeName = ReportSyntaxError(typeName, ERRID.ERR_TypeParamMissingCommaOrRParen)
-                    End If
-                End If
-
-                Debug.Assert(temp_allowEmptyGenericArguments OrElse temp_AllowNonEmptyGenericArguments,
+                    Debug.Assert(temp_allowEmptyGenericArguments OrElse temp_AllowNonEmptyGenericArguments,
                     "Cannot disallow both empty and non-empty generic arguments!!!")
 
-                If typeName.ContainsDiagnostics Then
-                    typeName = ResyncAt(typeName, SyntaxKind.CloseParenToken, SyntaxKind.CommaToken)
-                End If
-                Return True
+                    If typeName.ContainsDiagnostics Then
+                        typeName = ResyncAt(typeName, SyntaxKind.CloseParenToken, SyntaxKind.CommaToken)
+                    End If
+                    Return True
                 End Function)
-            '    typeNames.Add(typeName)
-
-            '    comma = Nothing
-            '    If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-            '        Exit Do
-            '    End If
-
-            '    Debug.Assert(comma IsNot Nothing)
-
-            '    typeNames.AddSeparator(comma)
-            'Loop While True
 
             If openParen IsNot Nothing Then
                 TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
             End If
 
-            'typeArguments = typeNames.ToList
-            '_pool.Free(typeNames)
             genericArguments = SyntaxFactory.TypeArgumentList(openParen, [of], typeArguments, closeParen)
 
             Return genericArguments
@@ -3449,26 +3433,21 @@ checkNullable:
             Debug.Assert(CurrentToken.Kind = SyntaxKind.ImplementsKeyword, "Implements list parsing lost.")
 
             Dim implementsKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
-            Dim ImplementsClauses As SeparatedSyntaxListBuilder(Of QualifiedNameSyntax) =
-                Me._pool.AllocateSeparated(Of QualifiedNameSyntax)()
-
-            Dim comma As PunctuationSyntax
-
             GetNextToken()
 
-            Do
+            Dim implementsClauses = Parse_CommaList(Of QualifiedNameSyntax)(
+                                 Function(ByRef term As QualifiedNameSyntax) As Boolean
+                                     'TODO - davidsch
+                                     ' The old parser did not make a distinction between TypeNames and Names
+                                     ' While there is a ParseTypeName function, the old parser called ParseName.  For now
+                                     ' call ParseName and then break up the name to make a ImplementsClauseItem. The
+                                     ' parameters passed to ParseName guarantee that the name is qualified. The first
+                                     ' parameter ensures qualification.  The last parameter ensures that it is not generic.
 
-                'TODO - davidsch
-                ' The old parser did not make a distinction between TypeNames and Names
-                ' While there is a ParseTypeName function, the old parser called ParseName.  For now
-                ' call ParseName and then break up the name to make a ImplementsClauseItem. The
-                ' parameters passed to ParseName guarantee that the name is qualified. The first
-                ' parameter ensures qualification.  The last parameter ensures that it is not generic.
+                                     ' AllowGlobalNameSpace
+                                     ' Allow generic arguments
 
-                ' AllowGlobalNameSpace
-                ' Allow generic arguments
-
-                Dim term = DirectCast(ParseName(
+                                     term = DirectCast(ParseName(
                     requireQualification:=True,
                     allowGlobalNameSpace:=True,
                     allowGenericArguments:=True,
@@ -3476,20 +3455,11 @@ checkNullable:
                     nonArrayName:=True,
                     disallowGenericArgumentsOnLastQualifiedName:=True), QualifiedNameSyntax) ' Disallow generic arguments on last qualified name i.e. on the method name
 
-                ImplementsClauses.Add(term)
+                                     Return True
+                                 End Function
+                )
 
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                ImplementsClauses.AddSeparator(comma)
-            Loop
-
-            Dim result = ImplementsClauses.ToList
-            Me._pool.Free(ImplementsClauses)
-
-            Return SyntaxFactory.ImplementsClause(implementsKeyword, result)
+            Return SyntaxFactory.ImplementsClause(implementsKeyword, implementsClauses)
         End Function
 
         ' File: Parser.cpp
@@ -3500,80 +3470,69 @@ checkNullable:
             Debug.Assert(CurrentToken.Kind = SyntaxKind.HandlesKeyword, "Handles list parsing lost.")
 
             Dim handlesKeyword = DirectCast(CurrentToken, KeywordSyntax)
-            Dim handlesClauseItems As SeparatedSyntaxListBuilder(Of HandlesClauseItemSyntax) = Me._pool.AllocateSeparated(Of HandlesClauseItemSyntax)()
-            Dim comma As PunctuationSyntax
-
             GetNextToken() ' get off the handles / comma token
-            Do
-                Dim eventContainer As EventContainerSyntax
-                Dim eventMember As IdentifierNameSyntax
 
-                If CurrentToken.Kind = SyntaxKind.MyBaseKeyword OrElse
+            Dim handlesClauseItems = Parse_CommaList(Of HandlesClauseItemSyntax)(
+                Function(ByRef item As HandlesClauseItemSyntax) As Boolean
+                    Dim eventContainer As EventContainerSyntax
+                    Dim eventMember As IdentifierNameSyntax
+
+                    If CurrentToken.Kind = SyntaxKind.MyBaseKeyword OrElse
                     CurrentToken.Kind = SyntaxKind.MyClassKeyword OrElse
                     CurrentToken.Kind = SyntaxKind.MeKeyword Then
 
-                    eventContainer = SyntaxFactory.KeywordEventContainer(DirectCast(CurrentToken, KeywordSyntax))
-                    GetNextToken()
+                        eventContainer = SyntaxFactory.KeywordEventContainer(DirectCast(CurrentToken, KeywordSyntax))
+                        GetNextToken()
 
-                ElseIf CurrentToken.Kind = SyntaxKind.GlobalKeyword Then
-                    ' A handles name can't start with Global, it is local.
-                    ' Produce the error, ignore the token and let the name parse for sync.
+                    ElseIf CurrentToken.Kind = SyntaxKind.GlobalKeyword Then
+                        ' A handles name can't start with Global, it is local.
+                        ' Produce the error, ignore the token and let the name parse for sync.
 
-                    ' we are not consuming Global keyword here as the only acceptable keywords are: Me, MyBase, MyClass
-                    eventContainer = SyntaxFactory.WithEventsEventContainer(InternalSyntaxFactory.MissingIdentifier())
-                    eventContainer = ReportSyntaxError(eventContainer, ERRID.ERR_NoGlobalInHandles)
+                        ' we are not consuming Global keyword here as the only acceptable keywords are: Me, MyBase, MyClass
+                        eventContainer = SyntaxFactory.WithEventsEventContainer(InternalSyntaxFactory.MissingIdentifier())
+                        eventContainer = ReportSyntaxError(eventContainer, ERRID.ERR_NoGlobalInHandles)
 
-                Else
-                    eventContainer = SyntaxFactory.WithEventsEventContainer(ParseIdentifier())
+                    Else
+                        eventContainer = SyntaxFactory.WithEventsEventContainer(ParseIdentifier())
 
-                End If
+                    End If
 
-                Dim Dot As PunctuationSyntax = Nothing
+                    Dim Dot As PunctuationSyntax = Nothing
 
-                ' allow implicit line continuation after '.' in handles list - dev10_503311
-                If TryGetTokenAndEatNewLine(SyntaxKind.DotToken, Dot, createIfMissing:=True) Then
-                    eventMember = InternalSyntaxFactory.IdentifierName(ParseIdentifierAllowingKeyword())
-
-                    ' check if we actually have "withEventsMember.Property.Event"
-                    Dim identContainer = TryCast(eventContainer, WithEventsEventContainerSyntax)
-                    Dim secondDot As PunctuationSyntax = Nothing
-
-                    If identContainer IsNot Nothing AndAlso TryGetTokenAndEatNewLine(SyntaxKind.DotToken, secondDot, createIfMissing:=True) Then
-                        ' former member and dot are shifted into property container.
-                        eventContainer = SyntaxFactory.WithEventsPropertyEventContainer(identContainer, Dot, eventMember)
-                        ' secondDot becomes the event's dot
-                        Dot = secondDot
-                        ' parse another event member since the former one has become a property
+                    ' allow implicit line continuation after '.' in handles list - dev10_503311
+                    If TryGetTokenAndEatNewLine(SyntaxKind.DotToken, Dot, createIfMissing:=True) Then
                         eventMember = InternalSyntaxFactory.IdentifierName(ParseIdentifierAllowingKeyword())
+
+                        ' check if we actually have "withEventsMember.Property.Event"
+                        Dim identContainer = TryCast(eventContainer, WithEventsEventContainerSyntax)
+                        Dim secondDot As PunctuationSyntax = Nothing
+
+                        If identContainer IsNot Nothing AndAlso TryGetTokenAndEatNewLine(SyntaxKind.DotToken, secondDot, createIfMissing:=True) Then
+                            ' former member and dot are shifted into property container.
+                            eventContainer = SyntaxFactory.WithEventsPropertyEventContainer(identContainer, Dot, eventMember)
+                            ' secondDot becomes the event's dot
+                            Dot = secondDot
+                            ' parse another event member since the former one has become a property
+                            eventMember = InternalSyntaxFactory.IdentifierName(ParseIdentifierAllowingKeyword())
+                        End If
+
+                    Else
+                        eventMember = InternalSyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
                     End If
 
-                Else
-                    eventMember = InternalSyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
-                End If
+                    item = SyntaxFactory.HandlesClauseItem(eventContainer, Dot, eventMember)
 
-                Dim item As HandlesClauseItemSyntax = SyntaxFactory.HandlesClauseItem(eventContainer, Dot, eventMember)
+                    If eventContainer.ContainsDiagnostics OrElse Dot.ContainsDiagnostics OrElse eventMember.ContainsDiagnostics Then
 
-                If eventContainer.ContainsDiagnostics OrElse Dot.ContainsDiagnostics OrElse eventMember.ContainsDiagnostics Then
-
-                    If CurrentToken.Kind <> SyntaxKind.CommaToken Then
-                        item = ResyncAt(item, SyntaxKind.CommaToken)
+                        If CurrentToken.Kind <> SyntaxKind.CommaToken Then
+                            item = ResyncAt(item, SyntaxKind.CommaToken)
+                        End If
                     End If
-                End If
+                    Return True
+                End Function
+                )
 
-                handlesClauseItems.Add(item)
-
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                handlesClauseItems.AddSeparator(comma)
-            Loop
-
-            Dim result = handlesClauseItems.ToList
-            Me._pool.Free(handlesClauseItems)
-
-            Return SyntaxFactory.HandlesClause(handlesKeyword, result)
+            Return SyntaxFactory.HandlesClause(handlesKeyword, handlesClauseItems)
         End Function
 
         ' /*********************************************************************
@@ -4282,109 +4241,93 @@ checkNullable:
             ' Consume Of keyword
             TryGetTokenAndEatNewLine(SyntaxKind.OfKeyword, ofKeyword, createIfMissing:=True)
 
-            Dim typeParameters = Me._pool.AllocateSeparated(Of TypeParameterSyntax)()
-            Dim asKeyword As KeywordSyntax
+            Dim asKeyword As KeywordSyntax = nothing
 
-            Do
-                Dim name As IdentifierTokenSyntax = Nothing
 
-                ' (Of In T) or (Of Out T) or just (Of T). If the current token is "Out" or "In"
-                ' then we have to consume it and get the next token...
+            Dim separatedTypeParameters = Parse_CommaList(Of TypeParameterSyntax)(
+                Function(ByRef typeParameter As TypeParameterSyntax) As Boolean
+                    Dim name As IdentifierTokenSyntax = Nothing
 
-                Dim optionalVarianceModifier As KeywordSyntax = Nothing
+                    ' (Of In T) or (Of Out T) or just (Of T). If the current token is "Out" or "In"
+                    ' then we have to consume it and get the next token...
 
-                If CurrentToken.Kind = SyntaxKind.InKeyword Then
-                    optionalVarianceModifier = DirectCast(CurrentToken, KeywordSyntax)
-                    optionalVarianceModifier = CheckFeatureAvailability(Feature.CoContraVariance, optionalVarianceModifier)
-                    GetNextToken()
+                    Dim optionalVarianceModifier As KeywordSyntax = Nothing
 
-                Else
-                    Dim outKeyword As KeywordSyntax = Nothing
-                    If TryTokenAsContextualKeyword(CurrentToken, SyntaxKind.OutKeyword, outKeyword) Then
-                        Dim id = DirectCast(CurrentToken, IdentifierTokenSyntax)
+                    If CurrentToken.Kind = SyntaxKind.InKeyword Then
+                        optionalVarianceModifier = DirectCast(CurrentToken, KeywordSyntax)
+                        optionalVarianceModifier = CheckFeatureAvailability(Feature.CoContraVariance, optionalVarianceModifier)
                         GetNextToken()
 
-                        TryEatNewLineIfFollowedBy(SyntaxKind.CloseParenToken) ' dev10_503122 Allow EOL before ')'
+                    Else
+                        Dim outKeyword As KeywordSyntax = Nothing
+                        If TryTokenAsContextualKeyword(CurrentToken, SyntaxKind.OutKeyword, outKeyword) Then
+                            Dim id = DirectCast(CurrentToken, IdentifierTokenSyntax)
+                            GetNextToken()
 
-                        ' ... unless the next token is ) or , or As -- which indicate that the "Out" we just consumed
-                        ' should have been taken as the identifier instead.
-                        If CurrentToken.Kind = SyntaxKind.CloseParenToken OrElse CurrentToken.Kind = SyntaxKind.CommaToken OrElse CurrentToken.Kind = SyntaxKind.AsKeyword Then
-                            ' Use Out keyword as the identifier and not as the modifier
-                            name = id
-                            optionalVarianceModifier = Nothing
-                        Else
-                            outKeyword = CheckFeatureAvailability(Feature.CoContraVariance, outKeyword)
-                            optionalVarianceModifier = outKeyword
+                            TryEatNewLineIfFollowedBy(SyntaxKind.CloseParenToken) ' dev10_503122 Allow EOL before ')'
+
+                            ' ... unless the next token is ) or , or As -- which indicate that the "Out" we just consumed
+                            ' should have been taken as the identifier instead.
+                            If CurrentToken.Kind = SyntaxKind.CloseParenToken OrElse CurrentToken.Kind = SyntaxKind.CommaToken OrElse CurrentToken.Kind = SyntaxKind.AsKeyword Then
+                                ' Use Out keyword as the identifier and not as the modifier
+                                name = id
+                                optionalVarianceModifier = Nothing
+                            Else
+                                outKeyword = CheckFeatureAvailability(Feature.CoContraVariance, outKeyword)
+                                optionalVarianceModifier = outKeyword
+                            End If
                         End If
                     End If
-                End If
 
-                If name Is Nothing Then
-                    name = ParseIdentifier()
-                End If
+                    If name Is Nothing Then
+                        name = ParseIdentifier()
+                    End If
 
-                Dim typeParameterConstraintClause As TypeParameterConstraintClauseSyntax = Nothing
-                asKeyword = Nothing
+                    Dim typeParameterConstraintClause As TypeParameterConstraintClauseSyntax = Nothing
+                    asKeyword = Nothing
 
-                If CurrentToken.Kind = SyntaxKind.AsKeyword Then
+                    If CurrentToken.Kind = SyntaxKind.AsKeyword Then
 
-                    asKeyword = DirectCast(CurrentToken, KeywordSyntax)
+                        asKeyword = DirectCast(CurrentToken, KeywordSyntax)
 
-                    GetNextToken()
+                        GetNextToken()
 
-                    Dim openBrace As PunctuationSyntax = Nothing
+                        Dim openBrace As PunctuationSyntax = Nothing
 
-                    If TryGetTokenAndEatNewLine(SyntaxKind.OpenBraceToken, openBrace) Then
-                        Dim constraints = Me._pool.AllocateSeparated(Of ConstraintSyntax)()
+                        If TryGetTokenAndEatNewLine(SyntaxKind.OpenBraceToken, openBrace) Then
+                            Dim constraintList = Parse_CommaList(Of ConstraintSyntax)(
+                            Function(ByRef constraint As ConstraintSyntax) As Boolean
+                                constraint = ParseConstraintSyntax()
 
-                        Do
+                                If constraint.ContainsDiagnostics Then
+                                    constraint = ResyncAt(constraint, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken, SyntaxKind.CloseParenToken)
+                                End If
+                                Return True
+                            End Function)
+
+
+                            Dim closeBrace As PunctuationSyntax = Nothing
+                            TryEatNewLineAndGetToken(SyntaxKind.CloseBraceToken, closeBrace, createIfMissing:=True)
+
+                            typeParameterConstraintClause = SyntaxFactory.TypeParameterMultipleConstraintClause(asKeyword, openBrace, constraintList, closeBrace)
+
+                        Else
                             Dim constraint = ParseConstraintSyntax()
 
                             If constraint.ContainsDiagnostics Then
-                                constraint = ResyncAt(constraint, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken, SyntaxKind.CloseParenToken)
+                                constraint = ResyncAt(constraint, SyntaxKind.CloseParenToken)
                             End If
 
-                            constraints.Add(constraint)
+                            typeParameterConstraintClause = SyntaxFactory.TypeParameterSingleConstraintClause(asKeyword, constraint)
 
-                            comma = Nothing
-                            If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                                constraints.AddSeparator(comma)
-                            Else
-                                Exit Do
-                            End If
-                        Loop
-
-                        Dim closeBrace As PunctuationSyntax = Nothing
-                        TryEatNewLineAndGetToken(SyntaxKind.CloseBraceToken, closeBrace, createIfMissing:=True)
-
-                        Dim constraintList = constraints.ToList
-                        Me._pool.Free(constraints)
-
-                        typeParameterConstraintClause = SyntaxFactory.TypeParameterMultipleConstraintClause(asKeyword, openBrace, constraintList, closeBrace)
-
-                    Else
-                        Dim constraint = ParseConstraintSyntax()
-
-                        If constraint.ContainsDiagnostics Then
-                            constraint = ResyncAt(constraint, SyntaxKind.CloseParenToken)
                         End If
-
-                        typeParameterConstraintClause = SyntaxFactory.TypeParameterSingleConstraintClause(asKeyword, constraint)
-
                     End If
-                End If
 
-                Dim typeParameter = SyntaxFactory.TypeParameter(optionalVarianceModifier, name, typeParameterConstraintClause)
+                    typeParameter = SyntaxFactory.TypeParameter(optionalVarianceModifier, name, typeParameterConstraintClause)
+                    Return True
 
-                typeParameters.Add(typeParameter)
-
-                comma = Nothing
-                If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    typeParameters.AddSeparator(comma)
-                Else
-                    Exit Do
-                End If
-            Loop
+                End Function
+            )
 
             If openParen IsNot Nothing Then
                 If Not TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=False) Then
@@ -4397,8 +4340,6 @@ checkNullable:
                 End If
             End If
 
-            Dim separatedTypeParameters = typeParameters.ToList
-            Me._pool.Free(typeParameters)
 
             Dim result As TypeParameterListSyntax = SyntaxFactory.TypeParameterList(openParen, ofKeyword, separatedTypeParameters, closeParen)
 
