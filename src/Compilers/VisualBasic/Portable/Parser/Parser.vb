@@ -2173,69 +2173,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ParseVariableDeclaration(allowAsNewWith As Boolean) As CoreInternalSyntax.SeparatedSyntaxList(Of VariableDeclaratorSyntax)
-            Dim declarations = _pool.AllocateSeparated(Of VariableDeclaratorSyntax)()
-
-            Dim comma As PunctuationSyntax
             Dim checkForCustom As Boolean = True
+            Return Parse_CommaList(Of VariableDeclaratorSyntax)(
+                Function(ByRef declaration As VariableDeclaratorSyntax) As Boolean
+                    Dim names = Parse_CommaList(Of ModifiedIdentifierSyntax)(
+                        Function(Byref declarator As ModifiedIdentifierSyntax) As Boolean
+                            declarator = ParseModifiedIdentifier(True, checkForCustom)
+                            checkForCustom = False
 
-            Dim declarators = _pool.AllocateSeparated(Of ModifiedIdentifierSyntax)()
-            Do
-                declarators.Clear()
+                            If declarator.ContainsDiagnostics Then
+                                ' Resync so we don't get more errors later.
+                                ' davidsch - removed syncing on tkRem because that is now trivia
+                                declarator = ResyncAt(declarator, SyntaxKind.AsKeyword, SyntaxKind.CommaToken, SyntaxKind.NewKeyword, SyntaxKind.EqualsToken)
+                            End If
+                            Return true
+                        End Function)
 
-                ' Parse the declarators.
-                ' name1, name2, name3, .... etc
+                    'TODO - For better error recovery consider adding a resync here for
+                    ' AsKeyword, EqualsToken or CommaToken
+                    ' if the current token is not one of these
 
-                Do
-                    Dim declarator As ModifiedIdentifierSyntax = ParseModifiedIdentifier(True, checkForCustom)
-                    checkForCustom = False
+                    ' Parse the type clause.
 
-                    If declarator.ContainsDiagnostics Then
-                        ' Resync so we don't get more errors later.
-                        ' davidsch - removed syncing on tkRem because that is now trivia
-                        declarator = ResyncAt(declarator, SyntaxKind.AsKeyword, SyntaxKind.CommaToken, SyntaxKind.NewKeyword, SyntaxKind.EqualsToken)
-                    End If
+                    Dim optionalAsClause As AsClauseSyntax = Nothing
+                    Dim optionalInitializer As EqualsValueSyntax = Nothing
 
-                    declarators.Add(declarator)
+                    ParseFieldOrPropertyAsClauseAndInitializer(False, allowAsNewWith, optionalAsClause, optionalInitializer)
 
-                    comma = Nothing
-                    If TryParseComma(comma) = False Then Exit Do
-
-                    declarators.AddSeparator(comma)
-
-                Loop
-
-                Dim names = declarators.ToList
-
-                'TODO - For better error recovery consider adding a resync here for
-                ' AsKeyword, EqualsToken or CommaToken
-                ' if the current token is not one of these
-
-                ' Parse the type clause.
-
-                Dim optionalAsClause As AsClauseSyntax = Nothing
-                Dim optionalInitializer As EqualsValueSyntax = Nothing
-
-                ParseFieldOrPropertyAsClauseAndInitializer(False, allowAsNewWith, optionalAsClause, optionalInitializer)
-
-                Dim declaration As VariableDeclaratorSyntax = SyntaxFactory.VariableDeclarator(names, optionalAsClause, optionalInitializer)
-
-                declarations.Add(declaration)
-
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
-
-                declarations.AddSeparator(comma)
-            Loop
-
-            _pool.Free(declarators)
-
-            Dim result = declarations.ToList
-
-            _pool.Free(declarations)
-
-            Return result
+                    declaration = SyntaxFactory.VariableDeclarator(names, optionalAsClause, optionalInitializer)
+                    Return true
+                End Function )
         End Function
 
         ' Parses the as-clause and initializer for both locals, fields and properties
