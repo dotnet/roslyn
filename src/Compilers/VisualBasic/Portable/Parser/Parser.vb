@@ -3096,7 +3096,8 @@ checkNullable:
 
             Debug.Assert(allowEmptyGenericArguments OrElse AllowNonEmptyGenericArguments,
                 "Cannot disallow both empty and non-empty generic arguments!!!")
-
+            Dim temp_allowEmptyGenericArguments As Boolean =allowEmptyGenericArguments
+            Dim temp_AllowNonEmptyGenericArguments As Boolean = AllowNonEmptyGenericArguments
             Dim [of] As KeywordSyntax = Nothing
             Dim openParen As PunctuationSyntax
             Dim closeParen As PunctuationSyntax = Nothing
@@ -3111,21 +3112,22 @@ checkNullable:
 
             TryGetTokenAndEatNewLine(SyntaxKind.OfKeyword, [of], createIfMissing:=True)
 
-            Dim typeNames = _pool.AllocateSeparated(Of TypeSyntax)()
-            Dim typeName As TypeSyntax
-            Dim comma As PunctuationSyntax
+            'Dim typeNames = _pool.AllocateSeparated(Of TypeSyntax)()
+            'Dim typeName As TypeSyntax
 
-            Do
-                typeName = Nothing
+
+            typeArguments = Parse_CommaList(Of TypeSyntax)(
+                Function(Byref typeName As TypeSyntax) As Boolean
+                    typeName = Nothing
 
                 ' Either all generic arguments should be unspecified or all need to be specified.
                 If CurrentToken.Kind = SyntaxKind.CommaToken OrElse CurrentToken.Kind = SyntaxKind.CloseParenToken Then
-                    If allowEmptyGenericArguments Then
+                    If temp_allowEmptyGenericArguments Then
                         ' If a non-empty type argument is already specified, then need to always look for
                         ' non-empty type arguments, else we can allow empty type arguments.
 
                         typeName = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier)
-                        AllowNonEmptyGenericArguments = False
+                        temp_AllowNonEmptyGenericArguments = False
                     Else
                         typeName = ParseGeneralType()
                     End If
@@ -3136,38 +3138,39 @@ checkNullable:
                     ' non-empty type arguments.
 
                     typeName = ParseGeneralType()
-                    If AllowNonEmptyGenericArguments Then
-                        allowEmptyGenericArguments = False
+                    If temp_AllowNonEmptyGenericArguments Then
+                        temp_allowEmptyGenericArguments = False
                     Else
                         typeName = ReportSyntaxError(typeName, ERRID.ERR_TypeParamMissingCommaOrRParen)
                     End If
                 End If
 
-                Debug.Assert(allowEmptyGenericArguments OrElse AllowNonEmptyGenericArguments,
+                Debug.Assert(temp_allowEmptyGenericArguments OrElse temp_AllowNonEmptyGenericArguments,
                     "Cannot disallow both empty and non-empty generic arguments!!!")
 
                 If typeName.ContainsDiagnostics Then
                     typeName = ResyncAt(typeName, SyntaxKind.CloseParenToken, SyntaxKind.CommaToken)
                 End If
+                Return True
+                End Function)
+            '    typeNames.Add(typeName)
 
-                typeNames.Add(typeName)
+            '    comma = Nothing
+            '    If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
+            '        Exit Do
+            '    End If
 
-                comma = Nothing
-                If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                    Exit Do
-                End If
+            '    Debug.Assert(comma IsNot Nothing)
 
-                Debug.Assert(comma IsNot Nothing)
-
-                typeNames.AddSeparator(comma)
-            Loop While True
+            '    typeNames.AddSeparator(comma)
+            'Loop While True
 
             If openParen IsNot Nothing Then
                 TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
             End If
 
-            typeArguments = typeNames.ToList
-            _pool.Free(typeNames)
+            'typeArguments = typeNames.ToList
+            '_pool.Free(typeNames)
             genericArguments = SyntaxFactory.TypeArgumentList(openParen, [of], typeArguments, closeParen)
 
             Return genericArguments
