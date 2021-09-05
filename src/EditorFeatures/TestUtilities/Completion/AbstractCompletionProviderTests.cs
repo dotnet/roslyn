@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var code = workspaceFixture.Target.Code;
                 var position = workspaceFixture.Target.Position;
 
-                var newOptions = WithChangedOptions(workspace.Options);
+                var newOptions = WithChangedOptions(workspace.CurrentSolution.Options);
 
                 if (TargetTypedCompletionFilterFeatureFlag.HasValue)
                 {
@@ -428,6 +428,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             document = WithChangedOptions(document);
 
+            var options = document.Project.Solution.Options;
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
             var items = completionList.Items;
@@ -437,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             if (service.GetProvider(firstItem) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                VerifyCustomCommitWorker(service, options, customCommitCompletionProvider, firstItem, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
             else
             {
@@ -475,9 +476,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
+            var options = await document.GetOptionsAsync().ConfigureAwait(false);
 
             if (commitChar.HasValue &&
-                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value))
+                !CommitManager.IsCommitCharacter(service.GetRules(options), completionItem, commitChar.Value))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -486,8 +488,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             // textview is created lazily, so need to access it before making 
             // changes to document, so the cursor position is tracked correctly.
             var textView = workspaceFixture.Target.CurrentDocument.GetTextView();
-
-            var options = await document.GetOptionsAsync().ConfigureAwait(false);
 
             var commit = await service.GetChangeAsync(document, completionItem, commitChar, CancellationToken.None);
 
@@ -507,6 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private void VerifyCustomCommitWorker(
             CompletionService service,
+            OptionSet options,
             ICustomCommitCompletionProvider customCommitCompletionProvider,
             RoslynCompletion.CompletionItem completionItem,
             string codeBeforeCommit,
@@ -518,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             if (commitChar.HasValue &&
-                !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value))
+                !CommitManager.IsCommitCharacter(service.GetRules(options), completionItem, commitChar.Value))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -568,13 +569,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
             var items = completionList.Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText + i.DisplayTextSuffix, itemToCommit));
+            var options = document.Project.Solution.Options;
 
             var commitChar = commitCharOpt ?? '\t';
 
             var text = await document.GetTextAsync();
 
             if (commitChar == '\t' ||
-                CommitManager.IsCommitCharacter(service.GetRules(), firstItem, commitChar))
+                CommitManager.IsCommitCharacter(service.GetRules(options), firstItem, commitChar))
             {
                 var textChange = (await service.GetChangeAsync(document, firstItem, commitChar, CancellationToken.None)).TextChange;
 
@@ -1056,6 +1058,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var documentId = workspace.GetDocumentId(hostDocument);
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
+                var options = workspace.CurrentSolution.Options;
 
                 var service = GetCompletionService(document.Project);
                 var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
@@ -1064,13 +1067,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 foreach (var ch in validChars)
                 {
                     Assert.True(CommitManager.IsCommitCharacter(
-                        service.GetRules(), item, ch), $"Expected '{ch}' to be a commit character");
+                        service.GetRules(options), item, ch), $"Expected '{ch}' to be a commit character");
                 }
 
                 foreach (var ch in invalidChars)
                 {
                     Assert.False(CommitManager.IsCommitCharacter(
-                        service.GetRules(), item, ch), $"Expected '{ch}' NOT to be a commit character");
+                        service.GetRules(options), item, ch), $"Expected '{ch}' NOT to be a commit character");
                 }
             }
         }

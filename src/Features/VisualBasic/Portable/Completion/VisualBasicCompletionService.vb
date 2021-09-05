@@ -49,9 +49,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
             defaultEnterKeyRule:=EnterKeyRule.Always)
 
+        <Obsolete>
         Public Overrides Function GetRules() As CompletionRules
-            Dim options = _workspace.Options
+            Return GetRules(_workspace.CurrentSolution.Options)
+        End Function
 
+        Public Overrides Function GetRules(options As OptionSet) As CompletionRules
             ' Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# And VB
             ' In VB the default means Always to maintain previous behavior
             Dim enterRule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic)

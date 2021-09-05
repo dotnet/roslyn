@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion
@@ -31,13 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 
     internal class CSharpCompletionService : CommonCompletionService
     {
-        private readonly Workspace _workspace;
-
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public CSharpCompletionService(Workspace workspace)
             : base(workspace)
         {
-            _workspace = workspace;
         }
 
         public override string Language => LanguageNames.CSharp;
@@ -47,10 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 
         private CompletionRules _latestRules = CompletionRules.Default;
 
-        public override CompletionRules GetRules()
+        public override CompletionRules GetRules(OptionSet options)
         {
-            var options = _workspace.Options;
-
             var enterRule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp);
             var snippetRule = options.GetOption(CompletionOptions.SnippetsBehavior, LanguageNames.CSharp);
 

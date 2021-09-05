@@ -58,7 +58,11 @@ namespace Microsoft.CodeAnalysis.Completion
             _getProviderByName = GetProviderByName;
         }
 
+        [Obsolete]
         public override CompletionRules GetRules()
+            => CompletionRules.Default;
+
+        public override CompletionRules GetRules(OptionSet options)
             => CompletionRules.Default;
 
         /// <summary>
@@ -196,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var optionsRule = options.GetOption(CompletionOptions.SnippetsBehavior, Language);
             var snippetsRule = optionsRule != SnippetsRule.Default
                 ? optionsRule
-                : GetRules().SnippetsRule;
+                : GetRules(options).SnippetsRule;
 
             if (snippetsRule is SnippetsRule.Default or
                 SnippetsRule.NeverInclude)
@@ -261,9 +265,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
         /// we get into this transient state.
         /// </summary>
-        private async Task<(Document document, SemanticModel semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<(Document document, SemanticModel semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var usePartialSemantic = _workspace.Options.GetOption(CompletionServiceOptions.UsePartialSemanticForCompletion);
+            var usePartialSemantic = document.Project.Solution.Options.GetOption(CompletionServiceOptions.UsePartialSemanticForCompletion);
             if (usePartialSemantic)
             {
                 return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -356,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (exclusiveContexts.Any())
             {
-                return (MergeAndPruneCompletionLists(exclusiveContexts, defaultItemSpan, isExclusive: true),
+                return (MergeAndPruneCompletionLists(exclusiveContexts, defaultItemSpan, options, isExclusive: true),
                     expandItemsAvailableFromTriggeredProviders);
             }
 
@@ -382,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // groups are properly ordered based on the original providers.
             allContexts = allContexts.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
 
-            return (MergeAndPruneCompletionLists(allContexts, defaultItemSpan, isExclusive: false),
+            return (MergeAndPruneCompletionLists(allContexts, defaultItemSpan, options, isExclusive: false),
                 (expandItemsAvailableFromTriggeredProviders || expandItemsAvailableFromAugmentingProviders));
         }
 
@@ -451,6 +455,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private CompletionList MergeAndPruneCompletionLists(
             IEnumerable<CompletionContext> completionContexts,
             TextSpan defaultSpan,
+            OptionSet options,
             bool isExclusive)
         {
             // See if any contexts changed the completion list span.  If so, the first context that
@@ -487,7 +492,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return CompletionList.Create(
                 finalCompletionListSpan,
                 builder.ToImmutable(),
-                GetRules(),
+                GetRules(options),
                 suggestionModeItem,
                 isExclusive);
         }
@@ -568,7 +573,7 @@ namespace Microsoft.CodeAnalysis.Completion
         internal override bool ShouldTriggerCompletion(
             Project project, SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
         {
-            options ??= _workspace.Options;
+            options ??= project.Solution.Options;
             if (!options.GetOption(CompletionOptions.TriggerOnTyping, Language))
             {
                 return false;

@@ -38,7 +38,15 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// Gets the current presentation and behavior rules.
         /// </summary>
+        [Obsolete("Use GetRules(OptionSet) instead")]
         public virtual CompletionRules GetRules() => CompletionRules.Default;
+
+        /// <summary>
+        /// Gets the current presentation and behavior rules.
+        /// </summary>
+#pragma warning disable CS0618 // Type or member is obsolete
+        public virtual CompletionRules GetRules(OptionSet options) => GetRules();
+#pragma warning restore
 
         /// <summary>
         /// Returns true if the character recently inserted or deleted in the text should trigger completion.

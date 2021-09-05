@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var document = snapshotForDocument?.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
             var completionService = document?.GetLanguageService<CompletionService>();
-            var completionRules = completionService?.GetRules() ?? CompletionRules.Default;
+            var completionRules = completionService?.GetRules(document!.Project.Solution.Options) ?? CompletionRules.Default;
             var completionHelper = document != null ? CompletionHelper.GetHelper(document) : _defaultCompletionHelper;
 
             // DismissIfLastCharacterDeleted should be applied only when started with Insertion, and then Deleted all characters typed.
