@@ -445,6 +445,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">In Struktur konvertieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="new">Convert to tuple</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
         <target state="translated">Typ in "{0}" konvertieren</target>
@@ -2826,6 +2831,11 @@ Bei Verwendung des Formatbezeichners "H" ohne weitere benutzerdefinierte Formatb
         <target state="translated">Der benutzerdefinierte Formatbezeichner "HH" (plus beliebig viele zusätzliche H-Bezeichner) repräsentiert die Stunde als eine Zahl zwischen 00 und 23, d. h., die Stunde wird in einem nullbasierten 24-Stunden-Format dargestellt, bei dem die Stunden seit Mitternacht gezählt werden. Ein einstelliger Stundenwert wird mit einer führenden Null formatiert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="all_anonymous_types_in_container">
+        <source>all anonymous types in container</source>
+        <target state="new">all anonymous types in container</target>
+        <note />
+      </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
         <target state="new">and update call sites directly</target>
@@ -2980,6 +2990,11 @@ Der Standardformatbezeichner "f" repräsentiert eine Kombination aus den Mustern
       <trans-unit id="into_new_overload">
         <source>into new overload</source>
         <target state="new">into new overload</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="just_this_anonymous_type">
+        <source>just this anonymous type</source>
+        <target state="new">just this anonymous type</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

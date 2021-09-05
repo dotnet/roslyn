@@ -4,22 +4,24 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
+Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.ConvertAnonymousType
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToTuple
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ConvertAnonymousTypeToTuple), [Shared]>
-    Friend Class VisualBasicConvertAnonymousTypeToTupleCodeFixProvider
-        Inherits AbstractConvertAnonymousTypeToTupleCodeFixProvider(Of
-            ExpressionSyntax,
-            TupleExpressionSyntax,
-            AnonymousObjectCreationExpressionSyntax)
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToTuple), [Shared]>
+    Friend Class VisualBasicConvertAnonymousTypeToTupleCodeRefactoringProvider
+        Inherits AbstractConvertAnonymousTypeToTupleCodeRefactoringProvider(Of
+            ExpressionSyntax, TupleExpressionSyntax, AnonymousObjectCreationExpressionSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+        Protected Overrides Function GetInitializerCount(anonymousType As AnonymousObjectCreationExpressionSyntax) As Integer
+            Return anonymousType.Initializer.Initializers.Count
+        End Function
 
         Protected Overrides Function ConvertToTuple(anonCreation As AnonymousObjectCreationExpressionSyntax) As TupleExpressionSyntax
             Return SyntaxFactory.TupleExpression(
