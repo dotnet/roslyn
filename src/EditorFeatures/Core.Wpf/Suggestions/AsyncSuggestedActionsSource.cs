@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -28,11 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             public AsyncSuggestedActionsSource(
                 IThreadingContext threadingContext,
+                IGlobalOptionService globalOptions,
                 SuggestedActionsSourceProvider owner,
                 ITextView textView,
                 ITextBuffer textBuffer,
                 ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry)
-                : base(threadingContext, owner, textView, textBuffer, suggestedActionCategoryRegistry)
+                : base(threadingContext, globalOptions, owner, textView, textBuffer, suggestedActionCategoryRegistry)
             {
             }
 
