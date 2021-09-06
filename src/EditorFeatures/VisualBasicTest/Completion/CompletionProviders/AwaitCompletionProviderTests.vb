@@ -13,11 +13,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         Protected Async Function VerifyAwaitKeyword(markup As String, Optional makeContainerAsync As Boolean = False, Optional dotAwait As Boolean = False, Optional dotAwaitf As Boolean = False) As Task
-            Dim expectedDescritpion = If(dotAwait, GetDescription("Await", FeaturesResources.Await_the_preceding_expression), GetDescription("Await", FeaturesResources.Asynchronously_waits_for_the_task_to_finish))
-            Await VerifyItemExistsAsync(markup, "Await", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing), expectedDescriptionOrNull:=expectedDescritpion)
+            Dim expectedDescription = If(dotAwait, GetDescription("Await", FeaturesResources.Await_the_preceding_expression), GetDescription("Await", FeaturesResources.Asynchronously_waits_for_the_task_to_finish))
+            Await VerifyItemExistsAsync(markup, "Await", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing), expectedDescriptionOrNull:=expectedDescription)
             If dotAwaitf Then
-                expectedDescritpion = GetDescription("Awaitf", String.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, "False"))
-                Await VerifyItemExistsAsync(markup, "Awaitf", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing))
+                expectedDescription = GetDescription("Awaitf", String.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, "False"))
+                Await VerifyItemExistsAsync(markup, "Awaitf", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing), expectedDescriptionOrNull:=expectedDescription)
             Else
                 Await VerifyItemIsAbsentAsync(markup, "Awaitf")
             End If
