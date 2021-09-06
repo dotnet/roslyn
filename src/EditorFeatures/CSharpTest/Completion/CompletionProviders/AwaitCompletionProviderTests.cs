@@ -39,17 +39,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait);
         }
 
-        private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion, string? inlineDescription = null, bool awaitf = false)
+        private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion, string? inlineDescription = null, bool dotAwait = false, bool dotAwaitf = false)
         {
-            await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwait, glyph: (int)Glyph.Keyword, inlineDescription: inlineDescription);
-            if (awaitf)
+            var expectedDescritpion =
+                dotAwait
+                    ? GetDescription("await", FeaturesResources.Await_the_preceding_expression)
+                    : GetDescription("await", FeaturesResources.Asynchronously_waits_for_the_task_to_finish);
+            await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwait, glyph: (int)Glyph.Keyword, expectedDescriptionOrNull: expectedDescritpion, inlineDescription: inlineDescription);
+            if (dotAwaitf)
             {
-                await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait, glyph: (int)Glyph.Keyword, inlineDescription: inlineDescription);
+                expectedDescritpion = GetDescription("awaitf", string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, "false"));
+                await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait, glyph: (int)Glyph.Keyword, expectedDescriptionOrNull: expectedDescritpion, inlineDescription: inlineDescription);
             }
             else
             {
                 await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait);
             }
+
+            static string GetDescription(string keyword, string tooltip)
+                => $"{string.Format(FeaturesResources._0_Keyword, keyword)}\r\n{tooltip}";
         }
 
         [Fact]
@@ -306,7 +314,7 @@ class C
     someTask.$$
   }
 }
-", LanguageVersion.CSharp9, awaitf: true);
+", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -322,7 +330,7 @@ class C
     someTask.$$
   }
 }
-", LanguageVersion.CSharp9, awaitf: true);
+", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -375,7 +383,7 @@ static class Program
         var awaitable = new CustomAwaitable();
         awaitable.$$;
     }
-}", LanguageVersion.CSharp9);
+}", LanguageVersion.CSharp9, dotAwait: true);
         }
 
         [Fact]
@@ -390,7 +398,7 @@ static class Program
     {
         someTask.$$.;
     }
-}", LanguageVersion.CSharp9, awaitf: true);
+}", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -407,7 +415,7 @@ static class Program
         someTask.$$
         Int32 i = 0;
     }
-}", LanguageVersion.CSharp9, awaitf: true);
+}", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
@@ -426,7 +434,7 @@ static class Program
     }
 
     async Task Test() { }
-}", LanguageVersion.CSharp9, awaitf: true);
+}", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
         }
 
         [Theory]
@@ -493,7 +501,7 @@ static class Program
 
         Task LocalFunction() => Task.CompletedTask;
     }}
-}}", LanguageVersion.CSharp9, awaitf: true);
+}}", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact(Skip = "Fails because speculative binding can't figure out that local is a Task.")]
@@ -542,7 +550,7 @@ static class Program
         var someTask = Task.CompletedTask;
         {lambda}
     }}
-}}", LanguageVersion.CSharp9, inlineDescription: makeContainerAsync ? FeaturesResources.Make_containing_scope_async : null, awaitf: true);
+}}", LanguageVersion.CSharp9, inlineDescription: makeContainerAsync ? FeaturesResources.Make_containing_scope_async : null, dotAwait: true, dotAwaitf: true);
         }
 
         [Fact]
