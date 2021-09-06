@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
                    CSharpCodeStyleOptions.PreferTupleSwap,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
-                       nameof(CSharpAnalyzersResources.Use_local_function), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+                       nameof(CSharpAnalyzersResources.Use_tuple_to_swap_values), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
         {
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
                 return;
 
             var variableDeclarator = localDeclarationStatement.Declaration.Variables.First();
-            var localDeclarationExprA = variableDeclarator.Initializer?.Value;
+            var localDeclarationExprA = variableDeclarator.Initializer?.Value.WalkDownParentheses();
             if (localDeclarationExprA == null)
                 return;
 
