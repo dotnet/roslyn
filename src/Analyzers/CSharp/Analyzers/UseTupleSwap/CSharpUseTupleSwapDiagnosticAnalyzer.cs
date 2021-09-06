@@ -134,12 +134,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
             if (assignmentStatement == null)
                 return false;
 
-            if (assignmentStatement is not ExpressionStatementSyntax { Expression: BinaryExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment })
+            if (assignmentStatement is not ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) assignment })
                 return false;
 
             left = assignment.Left.WalkDownParentheses();
             right = assignment.Right.WalkDownParentheses();
-            return true;
+
+            return left is not RefExpressionSyntax && right is not RefExpressionSyntax;
         }
     }
 }
