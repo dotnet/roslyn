@@ -293,9 +293,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(CommittedSolution oldSolution, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
+        internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(Project oldProject, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var oldProject = oldSolution.GetRequiredProject(newProject.Id);
+            Debug.Assert(oldProject.Id == newProject.Id);
 
             if (!newProject.SupportsEditAndContinue() || oldProject.State == newProject.State)
             {

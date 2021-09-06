@@ -608,10 +608,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Analyze changed documents in projects containing active statements:
                 foreach (var projectId in projectIds)
                 {
+                    var oldProject = LastCommittedSolution.GetProject(projectId);
+                    if (oldProject == null)
+                    {
+                        // document is in a project that's been added to the solution
+                        continue;
+                    }
+
                     var newProject = solution.GetRequiredProject(projectId);
                     var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
-
-                    await foreach (var documentId in EditSession.GetChangedDocumentsAsync(LastCommittedSolution, newProject, cancellationToken).ConfigureAwait(false))
+                    await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
@@ -741,7 +747,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 adjustedMappedSpans.AddRange(newDocumentActiveStatementSpans);
 
                 // Update tracking spans to the latest known locations of the active statements contained in changed documents based on their analysis.
-                await foreach (var unmappedDocumentId in EditSession.GetChangedDocumentsAsync(LastCommittedSolution, newProject, cancellationToken).ConfigureAwait(false))
+                await foreach (var unmappedDocumentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
                 {
                     var newUnmappedDocument = await newSolution.GetRequiredDocumentAsync(unmappedDocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
@@ -921,7 +927,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         return null;
                     }
 
-                    documentId = await GetChangedDocumentContainingUnmappedActiveStatementAsync(activeStatementsMap, LastCommittedSolution, newProject, baseActiveStatement, cancellationToken).ConfigureAwait(false);
+                    documentId = await GetChangedDocumentContainingUnmappedActiveStatementAsync(activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -933,7 +939,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     async Task GetTaskAsync(ProjectId projectId)
                     {
                         var newProject = newSolution.GetRequiredProject(projectId);
-                        var id = await GetChangedDocumentContainingUnmappedActiveStatementAsync(activeStatementsMap, LastCommittedSolution, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false);
+                        var oldProject = LastCommittedSolution.GetProject(projectId);
+
+                        var id = (oldProject != null) ? await GetChangedDocumentContainingUnmappedActiveStatementAsync(
+                            activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false) : null;
+
                         Interlocked.CompareExchange(ref documentId, id, null);
                         if (id != null)
                         {
@@ -963,11 +973,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         // Enumerate all changed documents in the project whose module contains the active statement.
         // For each such document enumerate all #line directives to find which maps code to the span that contains the active statement.
-        private static async ValueTask<DocumentId?> GetChangedDocumentContainingUnmappedActiveStatementAsync(ActiveStatementsMap baseActiveStatements, CommittedSolution oldSolution, Project newProject, ActiveStatement activeStatement, CancellationToken cancellationToken)
+        private static async ValueTask<DocumentId?> GetChangedDocumentContainingUnmappedActiveStatementAsync(ActiveStatementsMap baseActiveStatements, CommittedSolution oldSolution, Project oldProject, Project newProject, ActiveStatement activeStatement, CancellationToken cancellationToken)
         {
+            Debug.Assert(oldProject.Id == newProject.Id);
             var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
 
-            await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldSolution, newProject, cancellationToken).ConfigureAwait(false))
+            await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
