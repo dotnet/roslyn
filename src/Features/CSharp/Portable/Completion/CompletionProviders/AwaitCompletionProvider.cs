@@ -57,14 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             //     aw$$ AnotherMethodCall(); // NOTE: Here, the compiler produces LocalFunctionStatementSyntax.
             // }
             // For this case, we're interested in putting async in front of Method()
-            if (node is not LocalFunctionStatementSyntax localFunction ||
-                localFunction.ExpressionBody is { ArrowToken.RawKind: not 0 } ||
-                localFunction.Body is { OpenBraceToken.RawKind: not 0 })
+            if (node is LocalFunctionStatementSyntax { ExpressionBody: null, Body: null })
             {
-                return node;
+                return node.Parent?.FirstAncestorOrSelf<SyntaxNode>(node => node.IsAsyncSupportingFunctionSyntax());
             }
 
-            return node.Parent?.FirstAncestorOrSelf<SyntaxNode>(node => node.IsAsyncSupportingFunctionSyntax());
+            return node;
         }
     }
 }
