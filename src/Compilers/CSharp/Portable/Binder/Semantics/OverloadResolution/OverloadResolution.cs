@@ -1969,6 +1969,12 @@ outerDefault:
                     }
                 }
 
+                result = PreferAnonymousFunctionConversionsOverFunctionTypeConversions(arguments, m1, m2);
+                if (result is BetterResult.Left or BetterResult.Right)
+                {
+                    return result;
+                }
+
                 return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
             }
 
@@ -2111,6 +2117,45 @@ outerDefault:
 
             // Otherwise, prefer methods with 'val' parameters over 'in' parameters and over 'ref' parameters when the argument is an interpolated string handler.
             return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
+        }
+
+        private static BetterResult PreferAnonymousFunctionConversionsOverFunctionTypeConversions<TMember>(
+            ArrayBuilder<BoundExpression> arguments,
+            MemberResolutionResult<TMember> m1,
+            MemberResolutionResult<TMember> m2)
+            where TMember : Symbol
+        {
+            Debug.Assert(m1.Result.IsValid);
+            Debug.Assert(m2.Result.IsValid);
+
+            BetterResult result = BetterResult.Neither;
+            for (int i = 0; i < arguments.Count; ++i)
+            {
+                if (arguments[i].Kind == BoundKind.ArgListOperator)
+                {
+                    continue;
+                }
+                switch (m1.Result.ConversionForArg(i).Kind, m2.Result.ConversionForArg(i).Kind)
+                {
+                    case (ConversionKind.FunctionType, ConversionKind.FunctionType):
+                        break;
+                    case (_, ConversionKind.FunctionType):
+                        if (result == BetterResult.Right)
+                        {
+                            return BetterResult.Neither;
+                        }
+                        result = BetterResult.Left;
+                        break;
+                    case (ConversionKind.FunctionType, _):
+                        if (result == BetterResult.Left)
+                        {
+                            return BetterResult.Neither;
+                        }
+                        result = BetterResult.Right;
+                        break;
+                }
+            }
+            return result;
         }
 
         private static BetterResult PreferValOverInOrRefInterpolatedHandlerParameters<TMember>(
@@ -2447,6 +2492,16 @@ outerDefault:
                     case (_, ConversionKind.InterpolatedStringHandler):
                         return BetterResult.Right;
                 }
+            }
+
+            switch ((conv1.Kind, conv2.Kind))
+            {
+                case (ConversionKind.FunctionType, ConversionKind.FunctionType):
+                    return BetterResult.Neither;
+                case (_, ConversionKind.FunctionType):
+                    return BetterResult.Left;
+                case (ConversionKind.FunctionType, _):
+                    return BetterResult.Right;
             }
 
             // Given an implicit conversion C1 that converts from an expression E to a type T1, 

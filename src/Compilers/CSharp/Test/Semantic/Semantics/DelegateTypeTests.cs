@@ -2761,20 +2761,8 @@ struct PathSring
 }";
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular9);
-
-            // Breaking change from C#9.
-            var expectedDiagnostics10AndLater = new[]
-            {
-                 // (8,5): error CS0121: The call is ambiguous between the following methods or properties: 'AppBuilderExtensions.Map(IAppBuilder, PathSring, Action<IAppBuilder>)' and 'RouteBuilderExtensions.Map(IRouteBuilder, string, Delegate)'
-                // app.Map("/sub2", (IAppBuilder builder) =>
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Map").WithArguments("AppBuilderExtensions.Map(IAppBuilder, PathSring, System.Action<IAppBuilder>)", "RouteBuilderExtensions.Map(IRouteBuilder, string, System.Delegate)").WithLocation(8, 5)
-            };
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
-
-            comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(source);
         }
 
         [WorkItem(55691, "https://github.com/dotnet/roslyn/issues/55691")]
@@ -2795,23 +2783,8 @@ class Program
 }";
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular9);
-
-            // Breaking change from C#9.
-            var expectedDiagnostics10AndLater = new[]
-            {
-                // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(object, Action)' and 'Program.F(int, Delegate)'
-                //         F(1, () => { });
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(object, System.Action)", "Program.F(int, System.Delegate)").WithLocation(6, 9),
-                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(object, Action)' and 'Program.F(int, Delegate)'
-                //         F(2, Main);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(object, System.Action)", "Program.F(int, System.Delegate)").WithLocation(7, 9)
-            };
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
-
-            comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(source);
         }
 
         [WorkItem(55691, "https://github.com/dotnet/roslyn/issues/55691")]
@@ -2832,20 +2805,8 @@ class Program
 }";
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular9);
-
-            // Breaking change from C#9.
-            var expectedDiagnostics10AndLater = new[]
-            {
-                // (7,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Expression<Func<object>>, object)' and 'Program.F(Expression, int)'
-                //         F(() => 1, 2);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Linq.Expressions.Expression<System.Func<object>>, object)", "Program.F(System.Linq.Expressions.Expression, int)").WithLocation(7, 9)
-            };
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
-
-            comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(source);
         }
 
         [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
@@ -3058,20 +3019,8 @@ class Program
 
             string expectedOutput = "F(Func<T> f), System.Func`1[System.Linq.Expressions.Expression]";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
-
-            // Breaking change from C#9.
-            var expectedDiagnostics10AndLater = new[]
-            {
-                // (15,11): error CS0121: The call is ambiguous between the following methods or properties: 'C<T>.F(T)' and 'C<T>.F(Func<T>)'
-                //         c.F(() => Expression.Constant(1));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("C<T>.F(T)", "C<T>.F(System.Func<T>)").WithLocation(15, 11)
-            };
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
-
-            comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -3114,20 +3063,8 @@ class Program
 
             string expectedOutput = "F(Func<Expression> f)";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
-
-            // Breaking change from C#9.
-            var expectedDiagnostics10AndLater = new[]
-            {
-                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Expression)' and 'Program.F(Func<Expression>)'
-                //         F(() => Expression.Constant(1));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Linq.Expressions.Expression)", "Program.F(System.Func<System.Linq.Expressions.Expression>)").WithLocation(9, 9)
-            };
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
-
-            comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(56167, "https://github.com/dotnet/roslyn/issues/56167")]
@@ -5087,7 +5024,11 @@ class Program
                 //         var b3 = Main == (() => { });
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "Main == (() => { })").WithArguments("==", "method group", "lambda expression").WithLocation(8, 18));
 
-            CompileAndVerify(source, expectedOutput: "(False, False, False)");
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0034: Operator '==' is ambiguous on operands of type 'method group' and 'lambda expression'
+                //         var b3 = Main == (() => { });
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "Main == (() => { })").WithArguments("==", "method group", "lambda expression").WithLocation(8, 18));
         }
 
         /// <summary>
