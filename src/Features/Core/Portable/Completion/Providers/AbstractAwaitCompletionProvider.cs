@@ -205,13 +205,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var shouldMakeContainerAsync = ShouldMakeContainerAsync(token, generator);
             var displayText = syntaxFacts.GetText(syntaxKinds.AwaitKeyword);
+            var falseKeyword = syntaxFacts.GetText(syntaxKinds.FalseKeyword);
             var filterText = displayText;
             if (dotAwaitContext is DotAwaitContext.AwaitAndConfigureAwait)
             {
                 // In the AwaitAndConfigureAwait case, we want to offer two completions: await and awaitf
                 // This case adds "await"
                 var completionPropertiesForAwaitOnly = GetCompletionProperties(token, isAwaitKeywordContext, DotAwaitContext.AwaitOnly, shouldMakeContainerAsync);
-                yield return CreateCompletionItem(displayText, filterText, completionPropertiesForAwaitOnly);
+                yield return CreateCompletionItem(displayText, filterText, falseKeyword, completionPropertiesForAwaitOnly);
 
             }
 
@@ -222,15 +223,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 filterText += "F"; // Uppercase F to select "awaitf" if "af" is written.
             }
 
-            yield return CreateCompletionItem(displayText, filterText, completionProperties);
+            yield return CreateCompletionItem(displayText, filterText, falseKeyword, completionProperties);
 
-            static CompletionItem CreateCompletionItem(string displayText, string filterText, ImmutableDictionary<string, string> completionProperties)
+            static CompletionItem CreateCompletionItem(string displayText, string filterText, string falseKeyword, ImmutableDictionary<string, string> completionProperties)
             {
-                var shouldMakeContainerAsync = completionProperties.ContainsKey(AwaitCompletionChange.MakeContainerAsync);
-                var inlineDescription = shouldMakeContainerAsync ? FeaturesResources.Make_containing_scope_async : null; // TODO: Description for ConfigureAwait(false)
-                var isComplexTextEdit = shouldMakeContainerAsync |
-                    completionProperties.ContainsKey(AwaitCompletionChange.AddAwaitBeforeDotExpression) |
-                    completionProperties.ContainsKey(AwaitCompletionChange.AppendConfigureAwait);
+                var makeContainerAsync = completionProperties.ContainsKey(AwaitCompletionChange.MakeContainerAsync);
+                var addAwaitBeforeDotExpression = completionProperties.ContainsKey(AwaitCompletionChange.AddAwaitBeforeDotExpression);
+                var appendConfigureAwait = completionProperties.ContainsKey(AwaitCompletionChange.AppendConfigureAwait);
+                var inlineDescription = makeContainerAsync ? FeaturesResources.Make_containing_scope_async : null;
+                var isComplexTextEdit = makeContainerAsync | addAwaitBeforeDotExpression | appendConfigureAwait;
+                var description =
+                    addAwaitBeforeDotExpression
+                        ? appendConfigureAwait
+                            ? string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, falseKeyword)
+                            : FeaturesResources.Await_the_preceding_expression
+                        : FeaturesResources.Asynchronously_waits_for_the_task_to_finish;
 
                 return CommonCompletionItem.Create(
                     displayText: displayText,
@@ -238,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     filterText: filterText,
                     rules: CompletionItemRules.Default,
                     glyph: Glyph.Keyword,
-                    description: RecommendedKeyword.CreateDisplayParts(displayText, FeaturesResources.Asynchronously_waits_for_the_task_to_finish),
+                    description: RecommendedKeyword.CreateDisplayParts(displayText, description),
                     inlineDescription: inlineDescription,
                     isComplexTextEdit: isComplexTextEdit,
                     properties: completionProperties);
