@@ -57,6 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 var compilation = compilationContext.Compilation;
+
+                // Local functions are only available in C# 7.0 and above.  Don't offer this refactoring
+                // in projects targeting a lesser version.
+                if (((CSharpCompilation)compilation).LanguageVersion < LanguageVersion.CSharp7)
+                    return;
+
                 var expressionTypeOpt = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
 
                 context.RegisterSyntaxNodeAction(ctx => SyntaxNodeAction(ctx, expressionTypeOpt),
@@ -74,13 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
-                return;
-            }
-
-            // Local functions are only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targeting a lesser version.
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
-            {
                 return;
             }
 

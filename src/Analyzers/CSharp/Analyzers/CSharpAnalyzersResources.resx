@@ -337,4 +337,7 @@
   <data name="Simplify_property_pattern" xml:space="preserve">
     <value>Simplify property pattern</value>
   </data>
+  <data name="Use_tuple_to_swap_values" xml:space="preserve">
+    <value>Use tuple to swap values</value>
+  </data>
 </root>
