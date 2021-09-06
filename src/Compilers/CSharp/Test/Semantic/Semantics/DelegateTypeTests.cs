@@ -2333,10 +2333,9 @@ class Program
     }
 }";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: "M(Action<string> a)");
-
-            // Breaking change from C#9 which binds to M(Action<string> a).
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "M<T>(T t)");
+            var expectedOutput = "M(Action<string> a)";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput);
         }
 
         [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
@@ -2854,11 +2853,12 @@ class Program
         public void OverloadResolution_15()
         {
             var source =
-@"delegate void StringAction(string arg);
+@"using System;
+delegate void StringAction(string arg);
 class Program
 {
-    static void F<T>(T t) { }
-    static void F(StringAction a) { }
+    static void F<T>(T t) { Console.WriteLine(typeof(T).Name); }
+    static void F(StringAction a) { Console.WriteLine(""StringAction""); }
     static void M(string arg) { }
     static void Main()
     {
@@ -2867,18 +2867,13 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics();
-
-            // Breaking change from C#9 which binds calls to F(StringAction).
-            comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F<T>(T)' and 'Program.F(StringAction)'
-                //         F((string s) => { }); // C#9: F(StringAction)
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F<T>(T)", "Program.F(StringAction)").WithLocation(9, 9),
-                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F<T>(T)' and 'Program.F(StringAction)'
-                //         F(M); // C#9: F(StringAction)
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F<T>(T)", "Program.F(StringAction)").WithLocation(10, 9));
+            var expectedOutput =
+@"StringAction
+StringAction
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2900,12 +2895,17 @@ class Program
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
 @"System.Func`1[System.Func`1[System.Object]]");
 
-            // Breaking change from C#9 which binds calls to F(Func<Func<object>>, int).
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
+            // Breaking change from C#9 which binds to F(Func<Func<object>>, int).
+            var expectedDiagnostics = new[]
+            {
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Func<Func<object>>, int)' and 'Program.F(Func<Func<int>>, object)'
-                //         F(() => () => 1, 2); // C#9: F(Func<Func<object>>, int)
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Func<System.Func<object>>, int)", "Program.F(System.Func<System.Func<int>>, object)").WithLocation(8, 9));
+                //         F(() => () => 1, 2);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Func<System.Func<object>>, int)", "Program.F(System.Func<System.Func<int>>, object)").WithLocation(8, 9)
+            };
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -3095,6 +3095,7 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
+        [WorkItem(1361172, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1361172")]
         [Fact]
         public void OverloadResolution_24()
         {
@@ -3127,6 +3128,95 @@ class Program
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(expectedDiagnostics10AndLater);
+        }
+
+        [WorkItem(56167, "https://github.com/dotnet/roslyn/issues/56167")]
+        [Fact]
+        public void OverloadResolution_25()
+        {
+            var source =
+@"using static System.Console;
+delegate void D();
+class Program
+{
+    static void F(D d) => WriteLine(""D"");
+    static void F<T>(T t) => WriteLine(typeof(T).Name);
+    static void Main()
+    {
+        F(() => { });
+    }
+}";
+
+            string expectedOutput = "D";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(56167, "https://github.com/dotnet/roslyn/issues/56167")]
+        [Fact]
+        public void OverloadResolution_26()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F(Action action) => Console.WriteLine(""Action"");
+    static void F<T>(T t) => Console.WriteLine(typeof(T).Name);
+    static void Main()
+    {
+        int i = 0;
+        F(() => i++);
+    }
+}";
+
+            string expectedOutput = "Action";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(56319, "https://github.com/dotnet/roslyn/issues/56319")]
+        [Fact]
+        public void OverloadResolution_27()
+        {
+            var source =
+@"using System;
+
+var source = new C<int>();
+source.Aggregate(() => 0, (i, j) => i, (i, j) => i, i => i);
+
+class C<T> { }
+
+static class Extensions
+{
+    public static TResult Aggregate<TSource, TAccumulate, TResult>(
+        this C<TSource> source,
+        Func<TAccumulate> seedFactory,
+        Func<TAccumulate, TSource, TAccumulate> updateAccumulatorFunc,
+        Func<TAccumulate, TAccumulate, TAccumulate> combineAccumulatorsFunc,
+        Func<TAccumulate, TResult> resultSelector)
+    {
+        Console.WriteLine((typeof(TSource).FullName, typeof(TAccumulate).FullName, typeof(TResult).FullName));
+        return default;
+    }
+
+    public static TResult Aggregate<TSource, TAccumulate, TResult>(
+        this C<TSource> source,
+        TAccumulate seed,
+        Func<TAccumulate, TSource, TAccumulate> updateAccumulatorFunc,
+        Func<TAccumulate, TAccumulate, TAccumulate> combineAccumulatorsFunc,
+        Func<TAccumulate, TResult> resultSelector)
+    {
+        Console.WriteLine((typeof(TSource).FullName, typeof(TAccumulate).FullName, typeof(TResult).FullName));
+        return default;
+    }
+}";
+
+            string expectedOutput = "(System.Int32, System.Int32, System.Int32)";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
