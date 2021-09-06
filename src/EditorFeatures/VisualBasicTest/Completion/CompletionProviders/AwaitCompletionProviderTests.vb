@@ -12,13 +12,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return GetType(AwaitCompletionProvider)
         End Function
 
-        Protected Async Function VerifyAwaitKeyword(markup As String, Optional makeContainerAsync As Boolean = False, Optional awaitf As Boolean = False) As Task
-            Await VerifyItemExistsAsync(markup, "Await", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing))
-            If awaitf Then
+        Protected Async Function VerifyAwaitKeyword(markup As String, Optional makeContainerAsync As Boolean = False, Optional dotAwait As Boolean = False, Optional dotAwaitf As Boolean = False) As Task
+            Dim expectedDescritpion = If(dotAwait, GetDescription("Await", FeaturesResources.Await_the_preceding_expression), GetDescription("Await", FeaturesResources.Asynchronously_waits_for_the_task_to_finish))
+            Await VerifyItemExistsAsync(markup, "Await", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing), expectedDescriptionOrNull:=expectedDescritpion)
+            If dotAwaitf Then
+                expectedDescritpion = GetDescription("Awaitf", String.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, "False"))
                 Await VerifyItemExistsAsync(markup, "Awaitf", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing))
             Else
                 Await VerifyItemIsAbsentAsync(markup, "Awaitf")
             End If
+        End Function
+
+        Private Shared Function GetDescription(ByVal keyword As String, ByVal tooltip As String) As String
+            Return $"{String.Format(FeaturesResources._0_Keyword, keyword)}{vbCrLf}{tooltip}"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -136,7 +142,7 @@ Class C
         Task.CompletedTask.$$
     End Sub
 End Class
-", awaitf:=True)
+", dotAwait:=True, dotAwaitf:=True)
         End Function
 
         <Fact>
@@ -149,7 +155,7 @@ Class C
         someTask.$$
     End Function
 End Class
-", awaitf:=True)
+", dotAwait:=True, dotAwaitf:=True)
         End Function
 
         <Fact>
@@ -171,7 +177,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-")
+", dotAwait:=True)
         End Function
 
         <Fact>
@@ -210,7 +216,7 @@ Module Program
         awaitable.$$
     End Function
 End Module
-")
+", dotAwait:=True)
         End Function
 
         <Fact>
@@ -225,7 +231,7 @@ Module Program
         Dim i As Int32 = 0
     End Function
 End Module
-", awaitf:=True)
+", dotAwait:=True, dotAwaitf:=True)
         End Function
 
         <Fact>
@@ -243,7 +249,7 @@ Module Program
     Private Async Function Test() As Task
     End Function
 End Module
-", awaitf:=True)
+", dotAwait:=True, dotAwaitf:=True)
         End Function
 
         <Theory>
@@ -323,7 +329,7 @@ Module Program
 
     End Function
 End Module
-", awaitf:=True)
+", dotAwait:=True, dotAwaitf:=True)
         End Function
 
         <Theory>
@@ -349,7 +355,7 @@ Module Program
         {lambda}
     End Function
 End Module
-", awaitf:=True, makeContainerAsync:=makeContainerAsync)
+", makeContainerAsync:=makeContainerAsync, dotAwait:=True, dotAwaitf:=True)
         End Function
 
         <Fact>
