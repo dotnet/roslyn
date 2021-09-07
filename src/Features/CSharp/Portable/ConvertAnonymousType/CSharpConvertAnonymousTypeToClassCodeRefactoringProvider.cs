@@ -6,11 +6,11 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.ConvertAnonymousTypeToClass;
+using Microsoft.CodeAnalysis.ConvertAnonymousType;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
+namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType
 {
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass), Shared]
