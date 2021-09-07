@@ -79,11 +79,9 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 var taggedText = finalParts.ToTaggedText();
                 var displayString = GetDisplayStringFromParts(taggedText);
 
-                TextChange? textChange = null;
-                if (insertSpan is not null)
-                {
-                    textChange = new TextChange(insertSpan.Value, displayString);
-                }
+                var textChange = insertSpan is null
+                    ? (TextChange?)null
+                    : new TextChange(insertSpan.Value, displayString);
 
                 result.Add(new InlineHint(
                     span, taggedText, textChange,
