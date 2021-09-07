@@ -18,8 +18,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp;
 using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
@@ -3985,6 +3983,36 @@ namespace N2
                 {
                     { GenerationOptions.PlaceSystemNamespaceFirst, false },
                 });
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullMethodWithToClassWithDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public void G[||]oo() { }
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public void Goo() { }
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
         }
 
         #endregion Quick Action
