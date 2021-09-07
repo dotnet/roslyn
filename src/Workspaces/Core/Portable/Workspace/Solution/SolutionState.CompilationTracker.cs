@@ -40,14 +40,14 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Access via the <see cref="ReadState"/> and <see cref="WriteState"/> methods.
             /// </summary>
-            private State _stateDoNotAccessDirectly;
+            private CompilationTrackerState _stateDoNotAccessDirectly;
 
             // guarantees only one thread is building at a time
             private readonly SemaphoreSlim _buildLock = new(initialCount: 1);
 
             private CompilationTracker(
                 ProjectState project,
-                State state)
+                CompilationTrackerState state)
             {
                 Contract.ThrowIfNull(project);
 
@@ -60,14 +60,14 @@ namespace Microsoft.CodeAnalysis
             /// and will have no extra information beyond the project itself.
             /// </summary>
             public CompilationTracker(ProjectState project)
-                : this(project, State.Empty)
+                : this(project, CompilationTrackerState.Empty)
             {
             }
 
-            private State ReadState()
+            private CompilationTrackerState ReadState()
                 => Volatile.Read(ref _stateDoNotAccessDirectly);
 
-            private void WriteState(State state, SolutionServices solutionServices)
+            private void WriteState(CompilationTrackerState state, SolutionServices solutionServices)
             {
                 if (solutionServices.SupportsCachingRecoverableObjects)
                 {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    var newState = State.Create(baseCompilation, state.GeneratedDocuments, state.GeneratorDriver, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
+                    var newState = CompilationTrackerState.Create(baseCompilation, state.GeneratedDocuments, state.GeneratorDriver, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
 
                     return new CompilationTracker(newProject, newState);
                 }
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis
                                 cancellationToken).ConfigureAwait(false);
                         }
 
-                        if (state is FullDeclarationState or FinalState)
+                        if (state is AllSyntaxTreesParsedState or FinalState)
                         {
                             // we have full declaration, just use it.
                             return compilation;
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis
                         cancellationToken).ConfigureAwait(false);
                 }
 
-                if (state is FullDeclarationState or FinalState)
+                if (state is AllSyntaxTreesParsedState or FinalState)
                 {
                     // We have a declaration compilation, use it to reconstruct the final compilation
                     return await FinalizeCompilationAsync(
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var compilation = CreateEmptyCompilation();
 
-                    var trees = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count);
+                    using var _ = ArrayBuilder<SyntaxTree>.GetInstance(ProjectState.DocumentStates.Count, out var trees);
                     foreach (var documentState in ProjectState.DocumentStates.GetStatesInCompilationOrder())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -584,9 +584,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     compilation = compilation.AddSyntaxTrees(trees);
-                    trees.Free();
-
-                    WriteState(new FullDeclarationState(compilation, generatedDocuments, generatorDriver, generatedDocumentsAreFinal), solutionServices);
+                    WriteState(new AllSyntaxTreesParsedState(compilation, generatedDocuments, generatorDriver, generatedDocumentsAreFinal), solutionServices);
                     return compilation;
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -688,7 +686,7 @@ namespace Microsoft.CodeAnalysis
                         // even if we were to get cancelled at a later point.
                         intermediateProjects = intermediateProjects.RemoveAt(0);
 
-                        this.WriteState(State.Create(compilationWithoutGenerators, state.GeneratedDocuments, generatorDriver, compilationWithGenerators, intermediateProjects), solutionServices);
+                        this.WriteState(CompilationTrackerState.Create(compilationWithoutGenerators, state.GeneratedDocuments, generatorDriver, compilationWithGenerators, intermediateProjects), solutionServices);
                     }
 
                     return (compilationWithoutGenerators, compilationWithGenerators, generatorDriver);
@@ -916,8 +914,8 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     var finalState = FinalState.Create(
-                        State.CreateValueSource(compilationWithGenerators, solution.Services),
-                        State.CreateValueSource(compilationWithoutGenerators, solution.Services),
+                        CompilationTrackerState.CreateValueSource(compilationWithGenerators, solution.Services),
+                        CompilationTrackerState.CreateValueSource(compilationWithoutGenerators, solution.Services),
                         compilationWithoutGenerators,
                         hasSuccessfullyLoaded,
                         generatedDocuments,
