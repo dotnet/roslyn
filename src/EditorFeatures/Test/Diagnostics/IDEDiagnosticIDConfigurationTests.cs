@@ -429,6 +429,9 @@ dotnet_diagnostic.IDE0161.severity = %value%
 # IDE0170
 dotnet_diagnostic.IDE0170.severity = %value%
 
+# IDE0180
+dotnet_diagnostic.IDE0180.severity = %value%
+
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
@@ -1012,6 +1015,9 @@ csharp_style_namespace_declarations = block_scoped
 
 # IDE0170, PreferExtendedPropertyPattern
 csharp_style_prefer_extended_property_pattern = true
+
+# IDE0180, PreferTupleSwap
+csharp_style_prefer_tuple_swap = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true

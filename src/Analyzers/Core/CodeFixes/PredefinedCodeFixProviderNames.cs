@@ -148,5 +148,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseSimpleUsingStatement = nameof(UseSimpleUsingStatement);
         public const string UseSystemHashCode = nameof(UseSystemHashCode);
         public const string UseThrowExpression = nameof(UseThrowExpression);
+        public const string UseTupleSwap = nameof(UseTupleSwap);
     }
 }

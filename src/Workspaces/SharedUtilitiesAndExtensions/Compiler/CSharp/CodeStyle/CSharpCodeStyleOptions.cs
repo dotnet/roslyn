@@ -250,6 +250,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_prefer_local_over_anonymous_function",
             $"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}");
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferTupleSwap = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferTupleSwap),
+            defaultValue: s_trueWithSuggestionEnforcement,
+            "csharp_style_prefer_tuple_swap",
+            $"TextEditor.CSharp.Specific.{nameof(PreferTupleSwap)}");
+
         public static readonly CodeStyleOption2<AddImportPlacement> PreferOutsidePlacementWithSilentEnforcement =
            new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent);
 

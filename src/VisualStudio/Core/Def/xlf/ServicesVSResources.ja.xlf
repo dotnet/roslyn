@@ -957,6 +957,11 @@
         <target state="translated">静的ローカル関数を優先する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_tuple_swap">
+        <source>Prefer tuple swap</source>
+        <target state="new">Prefer tuple swap</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Projects">
         <source>Projects</source>
         <target state="translated">プロジェクト</target>
