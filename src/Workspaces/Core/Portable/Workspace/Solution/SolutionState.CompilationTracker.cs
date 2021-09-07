@@ -539,7 +539,12 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    var compilation = await BuildDeclarationCompilationFromScratchAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+                    var compilation = await BuildDeclarationCompilationFromScratchAsync(
+                        solution.Services,
+                        nonAuthoritativeGeneratedDocuments,
+                        generatorDriver,
+                        generatedDocumentsAreFinal: false,
+                        cancellationToken).ConfigureAwait(false);
 
                     return await FinalizeCompilationAsync(
                         solution,
@@ -554,17 +559,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            }
-
-            private Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
-                SolutionServices solutionServices, CancellationToken cancellationToken)
-            {
-                return BuildDeclarationCompilationFromScratchAsync(
-                    solutionServices,
-                    generatedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
-                    generatorDriver: null,
-                    generatedDocumentsAreFinal: false,
-                    cancellationToken);
             }
 
             [PerformanceSensitive(
