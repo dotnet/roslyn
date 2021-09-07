@@ -736,7 +736,7 @@ static class Program
                 Await state.AssertLineTextAroundCaret($"        {committed.Substring(0, committedCursorPosition)}", $"{committed.Substring(committedCursorPosition)}")
             End Using
         End Function
-                
+
         <WorkItem(56006, "https://github.com/dotnet/roslyn/issues/56006")>
         Public Async Function SyntaxIsLikeLocalFunction() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -751,7 +751,7 @@ public class C
     public void MyFunctionCall() {}
 }
 ]]>
-                </Document>)    
+                </Document>)
                 state.SendTypeChars("aw")
                 Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
 
