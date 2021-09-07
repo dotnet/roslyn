@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
                     addOperationScope, priority, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
-                    state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
+                    state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
                     addOperationScope, priority, isBlocking: false, cancellationToken);
 
                 if (priority == CodeActionRequestPriority.High)
