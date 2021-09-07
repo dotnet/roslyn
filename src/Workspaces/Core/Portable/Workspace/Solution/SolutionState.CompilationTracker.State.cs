@@ -22,13 +22,12 @@ namespace Microsoft.CodeAnalysis
             /// starts at <see cref="Empty"/>, and then will progress through the other states until it finally reaches
             /// <see cref="FinalState" />.
             /// </summary>
-            private class State
+            private abstract class State
             {
                 /// <summary>
                 /// The base <see cref="State"/> that starts with everything empty.
                 /// </summary>
-                public static readonly State Empty = new(
-                    compilationWithoutGeneratedDocuments: null,
+                public static readonly State Empty = new NoCompilationState(
                     generatedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
                     generatedDocumentsAreFinal: false,
                     generatorDriver: null);
@@ -111,6 +110,20 @@ namespace Microsoft.CodeAnalysis
                     return services.SupportsCachingRecoverableObjects
                         ? new WeakValueSource<Compilation>(compilation)
                         : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
+                }
+            }
+
+            /// <summary>
+            /// State used when we potentially have some information (like prior generated documents)
+            /// but no compilation.
+            /// </summary>
+            private sealed class NoCompilationState : State
+            {
+                public NoCompilationState(
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                    GeneratorDriver? generatorDriver, bool generatedDocumentsAreFinal)
+                    : base(compilationWithoutGeneratedDocuments: null, generatedDocuments, generatorDriver, generatedDocumentsAreFinal)
+                {
                 }
             }
 

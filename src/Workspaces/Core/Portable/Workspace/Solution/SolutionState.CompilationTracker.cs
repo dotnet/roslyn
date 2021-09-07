@@ -144,18 +144,24 @@ namespace Microsoft.CodeAnalysis
 
                     return new CompilationTracker(newProject, newState);
                 }
-
-                // We have nothing.  Just make a tracker that only points to the new project.  We'll have
-                // to rebuild its compilation from scratch if anyone asks for it.
-                return new CompilationTracker(newProject);
+                else
+                {
+                    // We have no compilation, but we might have information about generated docs.
+                    var newState = new NoCompilationState(state.GeneratedDocuments, state.GeneratorDriver, generatedDocumentsAreFinal: false);
+                    return new CompilationTracker(newProject, newState);
+                }
             }
 
             public ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
                 GetPartialCompilationState(
                     solution, docState.Id,
-                    out var inProgressProject, out var inProgressCompilation,
-                    out var sourceGeneratedDocuments, out var generatorDriver, out var metadataReferenceToProjectId, cancellationToken);
+                    out var inProgressProject,
+                    out var inProgressCompilation,
+                    out var sourceGeneratedDocuments,
+                    out var generatorDriver,
+                    out var metadataReferenceToProjectId,
+                    cancellationToken);
 
                 if (!inProgressCompilation.SyntaxTrees.Contains(tree))
                 {
