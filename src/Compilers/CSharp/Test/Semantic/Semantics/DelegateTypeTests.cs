@@ -673,9 +673,9 @@ $@"class Program
             yield return getData("object () => default", "System.Func<System.Object>");
             yield return getData("void () => { }", "System.Action");
 
-            // These two lambdas have different signatures but produce the same delegate names: https://github.com/dotnet/roslyn/issues/55570
-            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, ref int _17) => { }", "<>A{00000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>");
-            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, in int _17)  => { }", "<>A{00000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>");
+            // Distinct names for distinct signatures with > 16 parameters: https://github.com/dotnet/roslyn/issues/55570
+            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, ref int _17) => { }", "<>A{100000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>");
+            yield return getData("(int _1, int _2, int _3, int _4, int _5, int _6, int _7, int _8, int _9, int _10, int _11, int _12, int _13, int _14, int _15, int _16, in int _17)  => { }", "<>A{300000000}<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32>");
 
             static object?[] getData(string expr, string? expectedType) =>
                 new object?[] { expr, expectedType };
@@ -5936,12 +5936,109 @@ System.Action`2[System.Object,System.Object[]]
 ");
         }
 
+        [Fact]
+        [WorkItem(55570, "https://github.com/dotnet/roslyn/issues/55570")]
+        public void SynthesizedDelegateTypes_18()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report((int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17) => { return 1; });
+        Report((int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, out int _17) => { _17 = 0; return 2; });
+        Report((int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, ref int _17) => { return 3; });
+        Report((int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, in int _17) => { return 4; });
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"<>F`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
+<>F{200000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
+<>F{100000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
+<>F{300000000}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Int32]
+");
+        }
+
+        [Fact]
+        [WorkItem(55570, "https://github.com/dotnet/roslyn/issues/55570")]
+        public void SynthesizedDelegateTypes_19()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1(ref int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17, object _18) { }
+    static void F2(ref int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17, out object _18) { _18 = null; }
+    static void F3(ref int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17, ref object _18) { }
+    static void F4(ref int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16, int _17, in object _18) { }
+    static void Main()
+    {
+        Report(F1);
+        Report(F2);
+        Report(F3);
+        Report(F4);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"<>A{00000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
+<>A{800000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
+<>A{400000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
+<>A{c00000001}`18[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object]
+");
+        }
+
+        [Fact]
+        [WorkItem(55570, "https://github.com/dotnet/roslyn/issues/55570")]
+        public void SynthesizedDelegateTypes_20()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1(
+        int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16,
+        int _17, object _18, int _19, object _20, int _21, object _22, int _23, object _24, int _25, object _26, int _27, object _28, int _29, object _30, int _31, ref object _32, int _33) { }
+    static void F2(
+        int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16,
+        int _17, object _18, int _19, object _20, int _21, object _22, int _23, object _24, int _25, object _26, int _27, object _28, int _29, object _30, int _31, ref object _32, out int _33) { _33 = 0; }
+    static void F3(
+        int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16,
+        int _17, object _18, int _19, object _20, int _21, object _22, int _23, object _24, int _25, object _26, int _27, object _28, int _29, object _30, int _31, ref object _32, ref int _33) { }
+    static void F4(
+        int _1, object _2, int _3, object _4, int _5, object _6, int _7, object _8, int _9, object _10, int _11, object _12, int _13, object _14, int _15, object _16,
+        int _17, object _18, int _19, object _20, int _21, object _22, int _23, object _24, int _25, object _26, int _27, object _28, int _29, object _30, int _31, ref object _32, in int _33) { }
+    static void Main()
+    {
+        Report(F1);
+        Report(F2);
+        Report(F3);
+        Report(F4);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"<>A{4000000000000000\,00000000}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
+<>A{4000000000000000\,00000002}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
+<>A{4000000000000000\,00000001}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
+<>A{4000000000000000\,00000003}`33[System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32,System.Object,System.Int32]
+");
+        }
+
         /// <summary>
         /// Synthesized delegate types should only be emitted if used.
         /// </summary>
         [Fact]
         [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
-        public void SynthesizedDelegateTypes_18()
+        public void SynthesizedDelegateTypes_21()
         {
             var source =
 @"using System;
