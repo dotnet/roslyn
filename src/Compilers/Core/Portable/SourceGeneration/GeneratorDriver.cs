@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
         {
             (var filteredGenerators, var incrementalGenerators) = GetIncrementalGenerators(generators, SourceExtension);
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[filteredGenerators.Length]), DriverStateTable.Empty, driverOptions.DisabledOutputs);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[filteredGenerators.Length]), DriverStateTable.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -135,8 +135,9 @@ namespace Microsoft.CodeAnalysis
                                 => new GeneratorRunResult(generator,
                                                           diagnostics: generatorState.Diagnostics,
                                                           exception: generatorState.Exception,
-                                                          generatedSources: getGeneratorSources(generatorState)));
-            return new GeneratorDriverRunResult(results);
+                                                          generatedSources: getGeneratorSources(generatorState),
+                                                          elapsedTime: generatorState.ElapsedTime));
+            return new GeneratorDriverRunResult(results, _state.RunTime);
 
             static ImmutableArray<GeneratedSourceResult> getGeneratorSources(GeneratorState generatorState)
             {
@@ -158,10 +159,11 @@ namespace Microsoft.CodeAnalysis
             // with no generators, there is no work to do
             if (_state.Generators.IsEmpty)
             {
-                return _state.With(stateTable: DriverStateTable.Empty);
+                return _state.With(stateTable: DriverStateTable.Empty, runTime: TimeSpan.Zero);
             }
 
             // run the actual generation
+            using var timer = CodeAnalysisEventSource.Log.CreateGeneratorDriverRunTimer();
             var state = _state;
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
@@ -244,21 +246,22 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
+                using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i]);
                 try
                 {
                     var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation, cancellationToken, driverStateBuilder);
                     (var sources, var generatorDiagnostics) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
-                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.InputNodes, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics);
+                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.InputNodes, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorTimer.Elapsed);
                 }
                 catch (UserFunctionException ufe)
                 {
-                    stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], ufe.InnerException, diagnosticsBag);
+                    stateBuilder[i] = SetGeneratorException(MessageProvider, stateBuilder[i], state.Generators[i], ufe.InnerException, diagnosticsBag, generatorTimer.Elapsed);
                 }
             }
 
-            state = state.With(stateTable: driverStateBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree());
+            state = state.With(stateTable: driverStateBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed);
             return state;
         }
 
@@ -290,7 +293,7 @@ namespace Microsoft.CodeAnalysis
             return trees.ToImmutableAndFree();
         }
 
-        private static GeneratorState SetGeneratorException(CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, bool isInit = false)
+        private static GeneratorState SetGeneratorException(CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, TimeSpan? runTime = null, bool isInit = false)
         {
             var errorCode = isInit ? provider.WRN_GeneratorFailedDuringInitialization : provider.WRN_GeneratorFailedDuringGeneration;
 
@@ -313,7 +316,7 @@ namespace Microsoft.CodeAnalysis
             var diagnostic = Diagnostic.Create(descriptor, Location.None, generator.GetGeneratorType().Name, e.GetType().Name, e.Message);
 
             diagnosticBag?.Add(diagnostic);
-            return new GeneratorState(generatorState.Info, e, diagnostic);
+            return new GeneratorState(generatorState.Info, e, diagnostic, runTime ?? TimeSpan.Zero);
         }
 
         private static ImmutableArray<Diagnostic> FilterDiagnostics(Compilation compilation, ImmutableArray<Diagnostic> generatorDiagnostics, DiagnosticBag? driverDiagnostics, CancellationToken cancellationToken)

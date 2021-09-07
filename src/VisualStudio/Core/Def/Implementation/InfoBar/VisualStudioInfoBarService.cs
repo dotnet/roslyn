@@ -20,8 +20,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
-    [ExportWorkspaceService(typeof(IInfoBarService), layer: ServiceLayer.Host), Shared]
-    internal class VisualStudioInfoBarService : ForegroundThreadAffinitizedObject, IInfoBarService
+    [Export(typeof(VisualStudioInfoBarService)), Shared]
+    internal sealed class VisualStudioInfoBarService : ForegroundThreadAffinitizedObject
     {
         private readonly SVsServiceProvider _serviceProvider;
         private readonly IAsynchronousOperationListener _listener;

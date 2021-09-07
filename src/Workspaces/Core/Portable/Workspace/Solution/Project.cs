@@ -348,9 +348,6 @@ namespace Microsoft.CodeAnalysis
                    await _solution.State.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false);
         }
 
-        internal async Task<IEnumerable<Document>> GetDocumentsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-            => (await _solution.State.GetDocumentsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false)).Select(s => _solution.GetDocument(s.Id)!);
-
         private static readonly Func<DocumentId, Project, Document?> s_tryCreateDocumentFunction =
             (documentId, project) => project._projectState.DocumentStates.TryGetState(documentId, out var state) ? new Document(project, state) : null;
 
