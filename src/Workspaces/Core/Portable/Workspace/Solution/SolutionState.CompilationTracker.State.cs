@@ -172,7 +172,8 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class FullDeclarationState : State
             {
-                public FullDeclarationState(Compilation declarationCompilation,
+                public FullDeclarationState(
+                    Compilation declarationCompilation,
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     GeneratorDriver? generatorDriver,
                     bool generatedDocumentsAreFinal)
