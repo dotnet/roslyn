@@ -121,7 +121,8 @@ namespace Microsoft.CodeAnalysis
             {
                 public NoCompilationState(
                     TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
-                    GeneratorDriver? generatorDriver, bool generatedDocumentsAreFinal)
+                    GeneratorDriver? generatorDriver,
+                    bool generatedDocumentsAreFinal)
                     : base(compilationWithoutGeneratedDocuments: null, generatedDocuments, generatorDriver, generatedDocumentsAreFinal)
                 {
                 }
