@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis
             /// Builds the compilation matching the project state. In the process of building, also
             /// produce in progress snapshots that can be accessed from other threads.
             /// </summary>
-            private Task<CompilationInfo> BuildCompilationInfoAsync(
+            private async Task<CompilationInfo> BuildCompilationInfoAsync(
                 SolutionState solution,
                 CancellationToken cancellationToken)
             {
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis
                 if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                    return Task.FromResult(new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments));
+                    return new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratedDocuments);
                 }
 
                 compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
@@ -500,41 +500,63 @@ namespace Microsoft.CodeAnalysis
                 if (compilation == null)
                 {
                     // We've got nothing.  Build it from scratch :(
-                    return BuildCompilationInfoFromScratchAsync(solution, cancellationToken);
+                    return await BuildCompilationInfoFromScratchAsync(
+                        solution,
+                        authoritativeGeneratedDocuments,
+                        nonAuthoritativeGeneratedDocuments,
+                        generatorDriver,
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 if (state is FullDeclarationState or FinalState)
                 {
                     // We have a declaration compilation, use it to reconstruct the final compilation
-                    return FinalizeCompilationAsync(
+                    return await FinalizeCompilationAsync(
                         solution,
                         compilation,
                         authoritativeGeneratedDocuments,
                         nonAuthoritativeGeneratedDocuments,
                         compilationWithStaleGeneratedTrees: null,
                         generatorDriver,
-                        cancellationToken);
+                        cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     // We must have an in progress compilation. Build off of that.
-                    return BuildFinalStateFromInProgressStateAsync(solution, (InProgressState)state, compilation, cancellationToken);
+                    return await BuildFinalStateFromInProgressStateAsync(
+                        solution, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            private async Task<CompilationInfo> BuildCompilationInfoFromScratchAsync(
+            private Task<CompilationInfo> BuildCompilationInfoFromScratchAsync(
                 SolutionState solution, CancellationToken cancellationToken)
+            {
+                return BuildCompilationInfoFromScratchAsync(
+                    solution,
+                    authoritativeGeneratedDocuments: null,
+                    nonAuthoritativeGeneratedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
+                    generatorDriver: null,
+                    cancellationToken);
+            }
+
+            private async Task<CompilationInfo> BuildCompilationInfoFromScratchAsync(
+                SolutionState solution,
+                TextDocumentStates<SourceGeneratedDocumentState>? authoritativeGeneratedDocuments,
+                TextDocumentStates<SourceGeneratedDocumentState> nonAuthoritativeGeneratedDocuments,
+                GeneratorDriver? generatorDriver,
+                CancellationToken cancellationToken)
             {
                 try
                 {
                     var compilation = await BuildDeclarationCompilationFromScratchAsync(solution.Services, cancellationToken).ConfigureAwait(false);
 
                     return await FinalizeCompilationAsync(
-                        solution, compilation,
-                        authoritativeGeneratedDocuments: null,
-                        nonAuthoritativeGeneratedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
+                        solution,
+                        compilation,
+                        authoritativeGeneratedDocuments,
+                        nonAuthoritativeGeneratedDocuments,
                         compilationWithStaleGeneratedTrees: null,
-                        generatorDriver: null,
+                        generatorDriver,
                         cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
