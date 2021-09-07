@@ -394,7 +394,12 @@ namespace Microsoft.CodeAnalysis
                         if (compilation == null)
                         {
                             // We've got nothing.  Build it from scratch :(
-                            return await BuildDeclarationCompilationFromScratchAsync(solutionServices, cancellationToken).ConfigureAwait(false);
+                            return await BuildDeclarationCompilationFromScratchAsync(
+                                solutionServices,
+                                state.GeneratedDocuments,
+                                state.GeneratorDriver,
+                                state.GeneratedDocumentsAreFinal,
+                                cancellationToken).ConfigureAwait(false);
                         }
 
                         if (state is FullDeclarationState or FinalState)
@@ -556,11 +561,26 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
+            private Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
+                SolutionServices solutionServices, CancellationToken cancellationToken)
+            {
+                return BuildDeclarationCompilationFromScratchAsync(
+                    solutionServices,
+                    generatedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
+                    generatorDriver: null,
+                    generatedDocumentsAreFinal: false,
+                    cancellationToken);
+            }
+
             [PerformanceSensitive(
                 "https://github.com/dotnet/roslyn/issues/23582",
                 Constraint = "Avoid calling " + nameof(Compilation.AddSyntaxTrees) + " in a loop due to allocation overhead.")]
             private async Task<Compilation> BuildDeclarationCompilationFromScratchAsync(
-                SolutionServices solutionServices, CancellationToken cancellationToken)
+                SolutionServices solutionServices,
+                TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
+                GeneratorDriver? generatorDriver,
+                bool generatedDocumentsAreFinal,
+                CancellationToken cancellationToken)
             {
                 try
                 {
@@ -577,7 +597,7 @@ namespace Microsoft.CodeAnalysis
                     compilation = compilation.AddSyntaxTrees(trees);
                     trees.Free();
 
-                    WriteState(new FullDeclarationState(compilation, TextDocumentStates<SourceGeneratedDocumentState>.Empty, generatorDriver: null, generatedDocumentsAreFinal: false), solutionServices);
+                    WriteState(new FullDeclarationState(compilation, generatedDocuments, generatorDriver, generatedDocumentsAreFinal), solutionServices);
                     return compilation;
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
