@@ -214,7 +214,6 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp6,
             }.RunAsync();
         }
 
@@ -237,7 +236,6 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp6,
             }.RunAsync();
         }
 
@@ -260,7 +258,6 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp6,
             }.RunAsync();
         }
 
@@ -283,7 +280,6 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp6,
             }.RunAsync();
         }
 
@@ -306,7 +302,6 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp6,
             }.RunAsync();
         }
 
@@ -329,7 +324,6 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp6,
             }.RunAsync();
         }
 
@@ -352,7 +346,6 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp6,
             }.RunAsync();
         }
 
@@ -447,7 +440,6 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp6,
             }.RunAsync();
         }
     }
