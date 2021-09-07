@@ -12,20 +12,6 @@ namespace Microsoft.CodeAnalysis
     {
         private interface ICompilationTracker
         {
-            /// <summary>
-            /// Returns true if this tracker currently either points to a compilation, has an in-progress
-            /// compilation being computed, or has a skeleton reference.  Note: this is simply a weak
-            /// statement about the tracker at this exact moment in time.  Immediately after this returns
-            /// the tracker might change and may no longer have a final compilation (for example, if the
-            /// retainer let go of it) or might not have an in-progress compilation (for example, if the
-            /// background compiler finished with it).
-            /// 
-            /// Because of the above limitations, this should only be used by clients as a weak form of
-            /// information about the tracker.  For example, a client may see that a tracker has no
-            /// compilation and may choose to throw it away knowing that it could be reconstructed at a
-            /// later point if necessary.
-            /// </summary>
-            bool HasCompilation { get; }
             ProjectState ProjectState { get; }
 
             /// <summary>
