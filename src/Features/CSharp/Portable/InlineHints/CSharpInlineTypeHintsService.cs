@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     {
                         return node.Parent is VarPatternSyntax varPattern
                             ? CreateTypeHint(type, displayAllOverride, forImplicitVariableTypes, varPattern.VarKeyword, variableDesignation.Identifier)
-                            : new(type, new TextSpan(variableDesignation.Identifier.SpanStart, 0), null, trailingSpace: true);
+                            : new(type, new TextSpan(variableDesignation.Identifier.SpanStart, 0), insertSpan: null, trailingSpace: true);
                     }
                 }
                 else if (node is ForEachStatementSyntax { Type: { IsVar: true } } forEachStatement)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     if (parameter?.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } &&
                         IsValidType(parameter?.Type))
                     {
-                        return new(parameter.Type, new TextSpan(parameterNode.Identifier.SpanStart, 0), null, trailingSpace: true);
+                        return new(parameter.Type, new TextSpan(parameterNode.Identifier.SpanStart, 0), insertSpan: null, trailingSpace: true);
                     }
                 }
             }
