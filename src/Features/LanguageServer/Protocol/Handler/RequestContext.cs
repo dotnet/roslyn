@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -20,17 +21,75 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal readonly struct RequestContext
     {
+        /// <summary>
+        /// This will be null for non-mutating requests because they're not allowed to change documents
+        /// </summary>
+        private readonly IDocumentChangeTracker _documentChangeTracker;
+
+        /// <summary>
+        /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
+        /// </summary>
+        public readonly Solution? Solution;
+
+        /// <summary>
+        /// The client capabilities for the request.
+        /// </summary>
+        public readonly ClientCapabilities ClientCapabilities;
+
+        /// <summary>
+        /// The LSP client making the request
+        /// </summary>
+        public readonly string? ClientName;
+
+        /// <summary>
+        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
+        /// </summary>
+        public readonly Document? Document;
+
+        /// <summary>
+        /// The languages supported by the server making the request.
+        /// </summary>
+        public readonly ImmutableArray<string> SupportedLanguages;
+
+        public readonly IGlobalOptionService GlobalOptions;
+
+        /// <summary>
+        /// Tracing object that can be used to log information about the status of requests.
+        /// </summary>
+        private readonly Action<string> _traceInformation;
+
+        public RequestContext(
+            Solution? solution,
+            Action<string> traceInformation,
+            ClientCapabilities clientCapabilities,
+            string? clientName,
+            Document? document,
+            IDocumentChangeTracker documentChangeTracker,
+            ImmutableArray<string> supportedLanguages,
+            IGlobalOptionService globalOptions)
+        {
+            Document = document;
+            Solution = solution;
+            ClientCapabilities = clientCapabilities;
+            ClientName = clientName;
+            SupportedLanguages = supportedLanguages;
+            GlobalOptions = globalOptions;
+            _documentChangeTracker = documentChangeTracker;
+            _traceInformation = traceInformation;
+        }
+
         public static RequestContext Create(
             bool requiresLSPSolution,
             TextDocumentIdentifier? textDocument,
             string? clientName,
-            ILspLogger _logger,
+            ILspLogger logger,
             RequestTelemetryLogger telemetryLogger,
             ClientCapabilities clientCapabilities,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
             IDocumentChangeTracker? documentChangeTracker,
             ImmutableArray<string> supportedLanguages,
+            IGlobalOptionService globalOptions,
             out Workspace workspace)
         {
             // Go through each registered workspace, find the solution that contains the document that
@@ -44,14 +103,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // If we were given a document, find it in whichever workspace it exists in
             if (textDocument is null)
             {
-                _logger.TraceInformation("Request contained no text document identifier");
+                logger.TraceInformation("Request contained no text document identifier");
             }
             else
             {
                 // There are multiple possible solutions that we could be interested in, so we need to find the document
                 // first and then get the solution from there. If we're not given a document, this will return the default
                 // solution
-                document = FindDocument(_logger, telemetryLogger, lspWorkspaceRegistrationService, textDocument, clientName);
+                document = FindDocument(logger, telemetryLogger, lspWorkspaceRegistrationService, textDocument, clientName);
 
                 if (document is not null)
                 {
@@ -69,7 +128,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (!requiresLSPSolution)
             {
                 workspace = workspaceSolution.Workspace;
-                return new RequestContext(solution: null, _logger.TraceInformation, clientCapabilities, clientName, document: null, documentChangeTracker, supportedLanguages);
+                return new RequestContext(solution: null, logger.TraceInformation, clientCapabilities, clientName, document: null, documentChangeTracker, supportedLanguages, globalOptions);
             }
 
             var lspSolution = BuildLSPSolution(solutionCache, workspaceSolution, documentChangeTracker);
@@ -82,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             workspace = lspSolution.Workspace;
-            return new RequestContext(lspSolution, _logger.TraceInformation, clientCapabilities, clientName, document, documentChangeTracker, supportedLanguages);
+            return new RequestContext(lspSolution, logger.TraceInformation, clientCapabilities, clientName, document, documentChangeTracker, supportedLanguages, globalOptions);
         }
 
         private static Document? FindDocument(
@@ -163,59 +222,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             return solution;
-        }
-
-        /// <summary>
-        /// This will be null for non-mutating requests because they're not allowed to change documents
-        /// </summary>
-        private readonly IDocumentChangeTracker _documentChangeTracker;
-
-        /// <summary>
-        /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
-        /// </summary>
-        public readonly Solution? Solution;
-
-        /// <summary>
-        /// The client capabilities for the request.
-        /// </summary>
-        public readonly ClientCapabilities ClientCapabilities;
-
-        /// <summary>
-        /// The LSP client making the request
-        /// </summary>
-        public readonly string? ClientName;
-
-        /// <summary>
-        /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
-        /// </summary>
-        public readonly Document? Document;
-
-        /// <summary>
-        /// The languages supported by the server making the request.
-        /// </summary>
-        public readonly ImmutableArray<string> SupportedLanguages;
-
-        /// <summary>
-        /// Tracing object that can be used to log information about the status of requests.
-        /// </summary>
-        private readonly Action<string> _traceInformation;
-
-        public RequestContext(
-            Solution? solution,
-            Action<string> traceInformation,
-            ClientCapabilities clientCapabilities,
-            string? clientName,
-            Document? document,
-            IDocumentChangeTracker documentChangeTracker,
-            ImmutableArray<string> supportedLanguages)
-        {
-            Document = document;
-            Solution = solution;
-            ClientCapabilities = clientCapabilities;
-            ClientName = clientName;
-            SupportedLanguages = supportedLanguages;
-            _documentChangeTracker = documentChangeTracker;
-            _traceInformation = traceInformation;
         }
 
         /// <summary>

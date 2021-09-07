@@ -20,11 +20,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -404,8 +404,9 @@ namespace Roslyn.Test.Utilities
 
         private static RequestExecutionQueue CreateRequestQueue(TestWorkspace workspace)
         {
-            var registrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
-            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, ProtocolConstants.RoslynLspLanguages, serverName: "Tests", "TestClient");
+            var registrationService = workspace.GetService<ILspWorkspaceRegistrationService>();
+            var globalOptions = workspace.GetService<IGlobalOptionService>();
+            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, globalOptions, ProtocolConstants.RoslynLspLanguages, serverName: "Tests", "TestClient");
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

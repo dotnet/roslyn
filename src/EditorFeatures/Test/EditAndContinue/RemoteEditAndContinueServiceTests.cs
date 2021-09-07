@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -57,6 +58,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             }
 
             using var localWorkspace = new TestWorkspace(composition: localComposition);
+
+            var globalOptions = localWorkspace.GetService<IGlobalOptionService>();
 
             MockEditAndContinueWorkspaceService mockEncService;
             var clientProvider = (InProcRemoteHostClientProvider?)localWorkspace.Services.GetService<IRemoteHostClientProvider>();
@@ -240,7 +243,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             },
             emitDiagnosticsUpdated.Select(update =>
             {
-                var d = update.GetPushDiagnostics(localWorkspace, InternalDiagnosticsOptions.NormalDiagnosticMode).Single();
+                var d = update.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode).Single();
                 return $"[{d.ProjectId}] {d.Severity} {d.Id}:" +
                        (d.DataLocation != null ? $" {d.DataLocation.OriginalFilePath}({d.DataLocation.OriginalStartLine}, {d.DataLocation.OriginalStartColumn}, {d.DataLocation.OriginalEndLine}, {d.DataLocation.OriginalEndColumn}):" : "") +
                        $" {d.Message}";

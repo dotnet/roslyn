@@ -134,11 +134,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             optionService.OptionChanged -= handler;
         }
 
-        private void OptionService_OptionChanged(object? sender, OptionChangedEventArgs e)
-        {
-            throw new System.NotImplementedException();
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void GettingOptionWithChangedOption()
         {
