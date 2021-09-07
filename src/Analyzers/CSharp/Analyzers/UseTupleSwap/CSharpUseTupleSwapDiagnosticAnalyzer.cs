@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(compilationContext =>
+            context.RegisterCompilationStartAction(context =>
             {
                 // Tuples are only available in C# 7 and above.
-                var compilation = compilationContext.Compilation;
+                var compilation = context.Compilation;
                 if (((CSharpCompilation)compilation).LanguageVersion < LanguageVersion.CSharp7)
                     return;
 
