@@ -407,11 +407,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
 
+                var globalOptions = workspace.GetService<IGlobalOptionService>();
+
                 var languageServer = new VisualStudioInProcLanguageServer(
                     dispatcherFactory,
                     jsonRpc,
                     capabilitiesProvider,
                     lspWorkspaceRegistrationService,
+                    globalOptions,
                     listenerProvider,
                     NoOpLspLogger.Instance,
                     mockDiagnosticService,
