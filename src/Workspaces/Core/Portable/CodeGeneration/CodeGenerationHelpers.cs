@@ -177,9 +177,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             Contract.ThrowIfNull(symbol);
 
-            return options != null && options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1
-                ? symbol.DeclaringSyntaxReferences[0].GetSyntax() as T
-                : null;
+            if (options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
+            {
+                var reusableNode = symbol.DeclaringSyntaxReferences[0].GetSyntax();
+                if (reusableNode is T)
+                {
+                    var leadingTrivia = reusableNode.GetLeadingTrivia().Where(trivia => !trivia.IsDirective);
+                    var trailingTrivia = reusableNode.GetTrailingTrivia().Where(trivia => !trivia.IsDirective);
+                    return reusableNode.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia) as T;
+                }
+            }
+
+            return null;
         }
 
         public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationOptions options)
