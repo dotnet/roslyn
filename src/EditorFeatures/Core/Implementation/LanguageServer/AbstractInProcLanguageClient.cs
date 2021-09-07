@@ -8,11 +8,8 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.LanguageServer;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -39,11 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         private readonly AbstractRequestDispatcherFactory _requestDispatcherFactory;
         private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
-<<<<<<< HEAD
         protected readonly IGlobalOptionService GlobalOptions;
-=======
-        protected readonly HostWorkspaceServices WorkspaceServices;
->>>>>>> 85406c0cb03 (Move LSP client integration down to editor features to support VSMac)
 
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
@@ -88,11 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
         public AbstractInProcLanguageClient(
             AbstractRequestDispatcherFactory requestDispatcherFactory,
-<<<<<<< HEAD
             IGlobalOptionService globalOptions,
-=======
-            ILspWorkspaceServicesProvider workspaceServicesProvider,
->>>>>>> 85406c0cb03 (Move LSP client integration down to editor features to support VSMac)
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
@@ -101,18 +90,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             string? diagnosticsClientName)
         {
             _requestDispatcherFactory = requestDispatcherFactory;
-<<<<<<< HEAD
             GlobalOptions = globalOptions;
-=======
->>>>>>> 85406c0cb03 (Move LSP client integration down to editor features to support VSMac)
             _diagnosticService = diagnosticService;
             _listenerProvider = listenerProvider;
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _diagnosticsClientName = diagnosticsClientName;
             _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
-
-            WorkspaceServices = workspaceServicesProvider.GetHostWorkspaceServices();
         }
 
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
