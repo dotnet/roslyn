@@ -1342,7 +1342,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (IsTupleType)
                 {
                     int originalCount = members.Count;
-                    members = AddOrWrapTupleMembers(members.ToImmutableAndFree());
+                    var peMembers = members.ToImmutableAndFree();
+                    members = MakeSynthesizedTupleMembers(peMembers);
+                    members.AddRange(peMembers);
                     membersCount += (members.Count - originalCount); // account for added tuple error fields
                     Debug.Assert(members is object);
                 }

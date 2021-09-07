@@ -229,7 +229,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsTupleType)
             {
-                builder = AddOrWrapTupleMembers(builder.ToImmutableAndFree());
+                var existingMembers = builder.ToImmutableAndFree();
+                var fieldsToRemove = PooledHashSet<Symbol>.GetInstance();
+                builder = MakeSynthesizedTupleMembers(existingMembers, fieldsToRemove);
+                foreach (var existingMember in existingMembers)
+                {
+                    // Note: fields for tuple elements have a tuple field symbol instead of a substituted field symbol
+                    if (!fieldsToRemove.Contains(existingMember))
+                    {
+                        builder.Add(existingMember);
+                    }
+                }
+                fieldsToRemove.Free();
                 Debug.Assert(builder is object);
             }
 
@@ -260,7 +271,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (IsTupleType)
             {
-                builder = AddOrWrapTupleMembers(builder.ToImmutableAndFree());
+                var existingMembers = builder.ToImmutableAndFree();
+                var fieldsToRemove = PooledHashSet<Symbol>.GetInstance();
+                builder = MakeSynthesizedTupleMembers(existingMembers, fieldsToRemove);
+                foreach (var existingMember in existingMembers)
+                {
+                    // Note: fields for tuple elements have a tuple field symbol instead of a substituted field symbol
+                    if (!fieldsToRemove.Contains(existingMember))
+                    {
+                        builder.Add(existingMember);
+                    }
+                }
+                fieldsToRemove.Free();
                 Debug.Assert(builder is object);
             }
 
