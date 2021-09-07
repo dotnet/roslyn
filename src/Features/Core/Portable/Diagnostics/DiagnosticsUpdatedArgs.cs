@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
         public ImmutableArray<DiagnosticData> GetPullDiagnostics(
-            Workspace workspace, Option2<DiagnosticMode> diagnosticMode)
+            IGlobalOptionService globalOptions, Option2<DiagnosticMode> diagnosticMode)
         {
             // If push diagnostics are on, they get nothing since they're asking for pull diagnostics.
-            if (workspace.IsPushDiagnostics(diagnosticMode))
+            if (globalOptions.IsPushDiagnostics(diagnosticMode))
                 return ImmutableArray<DiagnosticData>.Empty;
 
             return _diagnostics;
@@ -66,10 +66,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// diagnostics in their scenario (or an empty array if not in their scenario).
         /// </summary>
         public ImmutableArray<DiagnosticData> GetPushDiagnostics(
-            Workspace workspace, Option2<DiagnosticMode> diagnosticMode)
+            IGlobalOptionService globalOptions, Option2<DiagnosticMode> diagnosticMode)
         {
             // If pull diagnostics are on, they get nothing since they're asking for push diagnostics.
-            if (workspace.IsPullDiagnostics(diagnosticMode))
+            if (globalOptions.IsPullDiagnostics(diagnosticMode))
                 return ImmutableArray<DiagnosticData>.Empty;
 
             return _diagnostics;
