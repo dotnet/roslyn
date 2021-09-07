@@ -343,7 +343,7 @@ class C
     {
         string temp;
         args[0] = args[1];
-        args[1] = temp;
+        args[1] = {|CS0165:temp|};
     }
 }
 ";
