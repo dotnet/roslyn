@@ -530,17 +530,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            private Task<CompilationInfo> BuildCompilationInfoFromScratchAsync(
-                SolutionState solution, CancellationToken cancellationToken)
-            {
-                return BuildCompilationInfoFromScratchAsync(
-                    solution,
-                    authoritativeGeneratedDocuments: null,
-                    nonAuthoritativeGeneratedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
-                    generatorDriver: null,
-                    cancellationToken);
-            }
-
             private async Task<CompilationInfo> BuildCompilationInfoFromScratchAsync(
                 SolutionState solution,
                 TextDocumentStates<SourceGeneratedDocumentState>? authoritativeGeneratedDocuments,
