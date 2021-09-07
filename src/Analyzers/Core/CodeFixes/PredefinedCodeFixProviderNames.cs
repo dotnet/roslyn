@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ConsecutiveBracePlacement = nameof(ConsecutiveBracePlacement);
         public const string ConsecutiveStatementPlacement = nameof(ConsecutiveStatementPlacement);
         public const string ConstructorInitializerPlacement = nameof(ConstructorInitializerPlacement);
-        public const string ConvertAnonymousTypeToTuple = nameof(ConvertAnonymousTypeToTuple);
         public const string ConvertNamespace = nameof(ConvertNamespace);
         public const string ConvertSwitchStatementToExpression = nameof(ConvertSwitchStatementToExpression);
         public const string ConvertToAsync = nameof(ConvertToAsync);
@@ -49,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string FixReturnType = nameof(FixReturnType);
         public const string FullyQualify = nameof(FullyQualify);
         public const string GenerateConstructor = nameof(GenerateConstructor);
-        public const string GenerateDefaultConstructors = nameof(GenerateDefaultConstructors);
         public const string GenerateConversion = nameof(GenerateConversion);
         public const string GenerateDeconstructMethod = nameof(GenerateDeconstructMethod);
+        public const string GenerateDefaultConstructors = nameof(GenerateDefaultConstructors);
         public const string GenerateEndConstruct = nameof(GenerateEndConstruct);
         public const string GenerateEnumMember = nameof(GenerateEnumMember);
         public const string GenerateEvent = nameof(GenerateEvent);

@@ -5,10 +5,10 @@
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.ConvertAnonymousTypeToClass
+Imports Microsoft.CodeAnalysis.ConvertAnonymousType
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousTypeToClass
+Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAnonymousType
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.IntroduceVariable)>
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToClass), [Shared]>
     Friend Class VisualBasicConvertAnonymousTypeToClassCodeRefactoringProvider

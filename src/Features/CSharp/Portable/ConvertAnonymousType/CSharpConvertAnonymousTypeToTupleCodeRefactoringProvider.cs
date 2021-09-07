@@ -2,30 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.ConvertAnonymousType;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
+namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertAnonymousTypeToTuple), Shared]
-    internal class CSharpConvertAnonymousTypeToTupleCodeFixProvider
-        : AbstractConvertAnonymousTypeToTupleCodeFixProvider<
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToTuple), Shared]
+    internal class CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider
+        : AbstractConvertAnonymousTypeToTupleCodeRefactoringProvider<
             ExpressionSyntax,
             TupleExpressionSyntax,
             AnonymousObjectCreationExpressionSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpConvertAnonymousTypeToTupleCodeFixProvider()
+        public CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider()
         {
         }
+
+        protected override int GetInitializerCount(AnonymousObjectCreationExpressionSyntax anonymousType)
+            => anonymousType.Initializers.Count;
 
         protected override TupleExpressionSyntax ConvertToTuple(AnonymousObjectCreationExpressionSyntax anonCreation)
             => SyntaxFactory.TupleExpression(
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
             => SyntaxFactory.Argument(ConvertName(declarator.NameEquals), default, declarator.Expression)
                             .WithTriviaFrom(declarator);
 
-        private static NameColonSyntax ConvertName(NameEqualsSyntax nameEquals)
+        private static NameColonSyntax? ConvertName(NameEqualsSyntax? nameEquals)
             => nameEquals == null
                 ? null
                 : SyntaxFactory.NameColon(
