@@ -387,6 +387,36 @@ static class Program
         }
 
         [Fact]
+        public async Task TestDotAwaitSuggestAfterDotOnCustomAwaitableButNotConfigureAwaitEvenIfPresent()
+        {
+            await VerifyKeywordAsync(@"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+public class DummyAwaiter: INotifyCompletion {
+    public bool IsCompleted => true;
+    public void OnCompleted(Action continuation) => continuation();
+    public void GetResult() {}
+}
+
+public class CustomAwaitable
+{
+    public DummyAwaiter GetAwaiter() => new DummyAwaiter();
+    public ConfiguredTaskAwaitable ConfigureAwait(bool continueOnCapturedContext) => default;
+}
+
+static class Program
+{
+    static async Task Main()
+    {
+        var awaitable = new CustomAwaitable();
+        awaitable.$$;
+    }
+}", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: false);
+        }
+
+        [Fact]
         public async Task TestDotAwaitSuggestAfterDotDot()
         {
             await VerifyKeywordAsync(@"
