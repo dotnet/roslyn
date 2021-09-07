@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseTupleSwap;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -37,6 +38,32 @@ class C
                 TestCode = code,
                 FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp6,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestMissingWithFeatureOff()
+        {
+            var code = @"
+class C
+{
+    void M(string[] args)
+    {
+        var temp = args[0];
+        args[0] = args[1];
+        args[1] = temp;
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferTupleSwap, false, CodeStyle.NotificationOption2.Silent }
+                }
             }.RunAsync();
         }
 
@@ -307,6 +334,29 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestNotSwap5()
+        {
+            var code = @"
+class C
+{
+    void M(string[] args)
+    {
+        string temp;
+        args[0] = args[1];
+        args[1] = temp;
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp6,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestInSwitch()
         {
             await VerifyCS.VerifyCodeFixAsync(
@@ -340,6 +390,65 @@ class C
     }
 }
 ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestFixAll1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"
+class C
+{
+    void M(string[] args)
+    {
+        // comment 1
+        [|var|] temp1 = args[0];
+        args[0] = args[1];
+        args[1] = temp1;
+
+        // comment 2
+        [|var|] temp2 = args[2];
+        args[2] = args[3];
+        args[3] = temp2;
+    }
+}
+",
+@"
+class C
+{
+    void M(string[] args)
+    {
+        // comment 1
+        (args[1], args[0]) = (args[0], args[1]);
+
+        // comment 2
+        (args[3], args[2]) = (args[2], args[3]);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        public async Task TestNotWithMultipleVariables()
+        {
+            var code = @"
+class C
+{
+    void M(string[] args)
+    {
+        string temp = args[0], temp2 = """";
+        args[0] = args[1];
+        args[1] = temp;
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp6,
+            }.RunAsync();
         }
     }
 }
