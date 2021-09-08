@@ -66,8 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             adornment.ToolTip = "Quick info";
             adornment.ToolTipOpening += Border_ToolTipOpening;
 
-            adornment.MouseLeftButtonDown += Adornment_MouseLeftButtonDown;
-            //adornment.MouseLeftButtonDown -= Adornment_MouseLeftButtonDown;
+            if (_hint.ReplacementTextChange is not null)
+            {
+                adornment.MouseLeftButtonDown += Adornment_MouseLeftButtonDown;
+            }
         }
 
         /// <summary>
@@ -263,12 +265,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             if (e.ClickCount == 2)
             {
                 e.Handled = true;
-                var replacementText = _hint.ReplacementText;
-                if (replacementText != null)
-                {
-                    var replacementValue = replacementText.Value;
-                    _ = _textView.TextBuffer.Replace(new VisualStudio.Text.Span(replacementValue.Span.Start, replacementValue.Span.Length), replacementValue.NewText);
-                }
+                var replacementValue = _hint.ReplacementTextChange!.Value;
+                _ = _textView.TextBuffer.Replace(new VisualStudio.Text.Span(replacementValue.Span.Start, replacementValue.Span.Length), replacementValue.NewText);
             }
         }
     }

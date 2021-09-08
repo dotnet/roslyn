@@ -97,9 +97,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             if (taggedTexts.Length == 1)
             {
                 var first = taggedTexts.First();
-
-                var trimStart = first.Text.TrimStart();
-                var trimBoth = trimStart.TrimEnd();
+                var trimBoth = first.Text.Trim();
                 return trimBoth;
             }
             else if (taggedTexts.Length >= 2)
