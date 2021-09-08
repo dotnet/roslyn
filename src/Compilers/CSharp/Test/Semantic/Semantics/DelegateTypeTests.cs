@@ -3804,6 +3804,51 @@ System.Action");
             Assert.True(HaveMatchingSignatures(((INamedTypeSymbol)typeInfo.Type!).DelegateInvokeMethod!, method));
         }
 
+        [WorkItem(55320, "https://github.com/dotnet/roslyn/issues/55320")]
+        [Fact]
+        public void InferredReturnType_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(() => { return; });
+        Report((bool b) => { if (b) return; });
+        Report((bool b) => { if (b) return; else return; });
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Action
+System.Action`1[System.Boolean]
+System.Action`1[System.Boolean]
+");
+        }
+
+        [Fact]
+        public void InferredReturnType_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(async () => { return; });
+        Report(async (bool b) => { if (b) return; });
+        Report(async (bool b) => { if (b) return; else return; });
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Func`1[System.Threading.Tasks.Task]
+System.Func`2[System.Boolean,System.Threading.Tasks.Task]
+System.Func`2[System.Boolean,System.Threading.Tasks.Task]
+");
+        }
+
         [Fact]
         public void TypeInference_Constraints_01()
         {
