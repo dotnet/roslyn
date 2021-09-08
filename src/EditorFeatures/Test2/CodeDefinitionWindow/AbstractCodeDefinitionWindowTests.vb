@@ -75,9 +75,11 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                     hostDocument.CursorPosition.Value,
                     CancellationToken.None)
 
+                Dim expectedSpan = tree.GetLocation(hostDocument.SelectedSpans.Single()).GetLineSpan()
                 Dim expectedLocation = New CodeDefinitionWindowLocation(
                     displayName,
-                    tree.GetLocation(hostDocument.SelectedSpans.Single()).GetLineSpan())
+                    expectedSpan.Path,
+                    expectedSpan.StartLinePosition)
 
                 Assert.Equal(expectedLocation, locations.Single())
             End Using

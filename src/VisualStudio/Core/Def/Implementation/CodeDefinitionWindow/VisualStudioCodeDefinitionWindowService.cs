@@ -75,13 +75,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeDefinitionW
 
             int IVsCodeDefViewContext.GetLine(uint iItem, out uint piLine)
             {
-                piLine = (uint)_locations[GetIndex(iItem)].Line;
+                piLine = (uint)_locations[GetIndex(iItem)].Position.Line;
                 return VSConstants.S_OK;
             }
 
             int IVsCodeDefViewContext.GetCol(uint iItem, out uint piCol)
             {
-                piCol = (uint)_locations[GetIndex(iItem)].Character;
+                piCol = (uint)_locations[GetIndex(iItem)].Position.Character;
                 return VSConstants.S_OK;
             }
 

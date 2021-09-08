@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 
                             if (item.Document.FilePath != null)
                             {
-                                builder.Add(new CodeDefinitionWindowLocation(item.DisplayTaggedParts.JoinText(), item.Document.FilePath, linePositionSpan));
+                                builder.Add(new CodeDefinitionWindowLocation(item.DisplayTaggedParts.JoinText(), item.Document.FilePath, linePositionSpan.Start));
                             }
                         }
                     }
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             var results = new ArrayBuilder<CodeDefinitionWindowLocation>();
             if (result != null)
             {
-                results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), result.Value.filePath, result.Value.lineNumber, result.Value.charOffset));
+                results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), result.Value.filePath, new LinePosition(result.Value.lineNumber, result.Value.charOffset)));
             }
             else
             {
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
                     foreach (var declaration in sourceLocations)
                     {
                         var declarationLocation = declaration.GetLineSpan();
-                        results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationLocation));
+                        results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declaration.SourceTree!.FilePath, declarationLocation.StartLinePosition));
                     }
                 }
                 else if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
                     // without a modal dialog.
                     var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
                     var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
-                    results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan));
+                    results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
                 }
             }
 

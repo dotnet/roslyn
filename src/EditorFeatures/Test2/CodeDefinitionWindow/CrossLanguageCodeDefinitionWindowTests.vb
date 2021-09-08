@@ -117,7 +117,8 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
                 Dim expectedLocation = New CodeDefinitionWindowLocation(
                     "DisplayText",
-                    New FileLinePositionSpan(document.Name, New LinePositionSpan(start:=New LinePosition(1, 3), [end]:=New LinePosition(1, 5))))
+                    document.FilePath,
+                    New LinePosition(1, 3))
 
                 Assert.Equal(expectedLocation, Assert.Single(locations))
             End Using
@@ -160,9 +161,11 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
                 Dim csHostDocument = workspace.Documents.Single(Function(d) d.Project.Language = LanguageNames.CSharp)
                 Dim tree = Await workspace.CurrentSolution.GetDocument(csHostDocument.Id).GetSyntaxTreeAsync()
+                Dim expectedSpan = tree.GetLocation(csHostDocument.SelectedSpans.Single()).GetLineSpan()
                 Dim expectedLocation = New CodeDefinitionWindowLocation(
                     "Class1.M()",
-                    tree.GetLocation(csHostDocument.SelectedSpans.Single()).GetLineSpan())
+                    expectedSpan.Path,
+                    expectedSpan.StartLinePosition)
 
                 Assert.Equal(expectedLocation, Assert.Single(locations))
             End Using
