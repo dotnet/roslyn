@@ -52,18 +52,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
         {
-            var declaration = token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
             // In a case like
             //   someTask.$$
             //   await Test();
             // someTask.await Test() is parsed as a local function statement.
             // We skip this and look further up in the hierarchy.
-            if (declaration is LocalFunctionStatementSyntax localFunction && localFunction.ReturnType.ChildTokens().Contains(token))
+            if (token.Parent is QualifiedNameSyntax { Parent: LocalFunctionStatementSyntax localFunction } qualifiedName && localFunction.ReturnType == qualifiedName)
             {
                 return localFunction.Parent?.FirstAncestorOrSelf<SyntaxNode>(node => node.IsAsyncSupportingFunctionSyntax());
             }
 
-            return declaration;
+            return token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
         }
 
         private protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
