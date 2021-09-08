@@ -129,7 +129,7 @@ csharp_indent_switch_labels = true
 csharp_indent_labels = flush_left
 
 # Prefer "var" everywhere
-csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_for_built_in_types = false
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_style_var_elsewhere = false:warning
 
@@ -166,6 +166,9 @@ dotnet_diagnostic.SA1130.severity = silent
 
 # CA1508: Avoid dead conditional code
 dotnet_diagnostic.CA1508.severity = warning
+
+# IDE1006: Naming Styles - StyleCop handles these for us
+dotnet_diagnostic.IDE1006.severity = none
 
 [*.sln]
 indent_style = tab
