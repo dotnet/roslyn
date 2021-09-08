@@ -260,11 +260,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 throw new InvalidOperationException(ServicesVSResources.Navigation_must_be_performed_on_the_foreground_thread);
             }
 
-            using (OpenNewDocumentStateScope(options ?? workspace.Options))
+            var solution = workspace.CurrentSolution;
+
+            using (OpenNewDocumentStateScope(options ?? solution.Options))
             {
-                if (workspace.CurrentSolution.GetDocument(documentId) == null)
+                if (solution.GetDocument(documentId) == null)
                 {
-                    var project = workspace.CurrentSolution.GetProject(documentId.ProjectId);
+                    var project = solution.GetProject(documentId.ProjectId);
                     if (project is null)
                     {
                         // This is a source generated document shown in Solution Explorer, but is no longer valid since
@@ -272,10 +274,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         return false;
                     }
 
-                    var generatedDocument = project
-                                                                     .GetSourceGeneratedDocumentAsync(documentId, cancellationToken)
-                                                                     .AsTask().GetAwaiter().GetResult();
-
+                    var generatedDocument = project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).AsTask().GetAwaiter().GetResult();
                     if (generatedDocument != null)
                     {
                         _sourceGeneratedFileManager.Value.NavigateToSourceGeneratedFile(generatedDocument, getTextSpanForMapping(generatedDocument), cancellationToken);
@@ -284,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
-                var document = workspace.CurrentSolution.GetDocument(documentId);
+                var document = solution.GetDocument(documentId);
                 var spanMappingService = document?.Services.GetService<ISpanMappingService>();
                 if (spanMappingService != null)
                 {
@@ -293,7 +292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     {
                         // Check if the mapped file matches one already in the workspace.
                         // If so use the workspace APIs to navigate to it.  Otherwise use VS APIs to navigate to the file path.
-                        var documentIdsForFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(mappedSpan.Value.FilePath);
+                        var documentIdsForFilePath = solution.GetDocumentIdsWithFilePath(mappedSpan.Value.FilePath);
                         if (!documentIdsForFilePath.IsEmpty)
                         {
                             // If the mapped file maps to the same document that was passed in, then re-use the documentId to preserve context.

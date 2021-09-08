@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     return "vb";
                 case LanguageNames.FSharp:
                     return "fsharp";
-                case "TypeScript":
+                case InternalLanguageNames.TypeScript:
                     return "typescript";
                 default:
                     throw new ArgumentException(string.Format("Document project language {0} is not valid", document.Project.Language));
