@@ -89,13 +89,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private PendingSolutionUpdate? _pendingUpdate;
         private Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
-#pragma warning disable IDE0052 // Remove unread private members
         /// <summary>
         /// Last array of module updates generated during the debugging session.
         /// Useful for crash dump diagnostics.
         /// </summary>
         private ImmutableArray<ManagedModuleUpdate> _lastModuleUpdatesLog;
-#pragma warning restore
 
         internal DebuggingSession(
             DebuggingSessionId id,
@@ -722,7 +720,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var oldProject = LastCommittedSolution.GetProject(newProject.Id);
                 if (oldProject == null)
                 {
-                    // project has been added, no changes in active statement spans:
+                    // TODO: https://github.com/dotnet/roslyn/issues/1204
+                    // Enumerate all documents of the new project.
                     return ImmutableArray<ActiveStatementSpan>.Empty;
                 }
 
@@ -916,7 +915,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var oldProject = LastCommittedSolution.GetProject(projectId);
                     if (oldProject == null)
                     {
-                        // project has been added (should have no active statements under normal circumstances)
+                        // TODO: https://github.com/dotnet/roslyn/issues/1204
+                        // project has been added - it may have active statements if the project was unloaded when debugging session started but the sources 
+                        // correspond to the PDB.
                         return null;
                     }
 
@@ -941,8 +942,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var newProject = newSolution.GetRequiredProject(projectId);
                         var oldProject = LastCommittedSolution.GetProject(projectId);
 
+                        // TODO: https://github.com/dotnet/roslyn/issues/1204
+                        // oldProject == null ==> project has been added - it may have active statements if the project was unloaded when debugging session started but the sources 
+                        // correspond to the PDB.
                         var id = (oldProject != null) ? await GetChangedDocumentContainingUnmappedActiveStatementAsync(
-                            activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false) : null;
+                        activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false) : null;
 
                         Interlocked.CompareExchange(ref documentId, id, null);
                         if (id != null)
