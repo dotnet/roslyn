@@ -115,7 +115,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 // Calculate UI elements
                 _cache.Clear();
                 _cacheSnapshot = snapshot;
-
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 var classify = document?.Project.Solution.Workspace.Options.GetOption(InlineHintsOptions.ColorHints, document?.Project.Language) ?? false;
 
@@ -133,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     {
                         var dataTagSpan = dataTagSpans[0];
                         var parameterHintUITag = InlineHintsTag.Create(
-                            tag.Tag.Hint, Format, _textView, dataTagSpan, _taggerProvider, _formatMap, classify);
+                            tag.Tag.Hint, Format, _textView, dataTagSpan, _taggerProvider, _formatMap, snapshot.TextBuffer, classify);
 
                         _cache.Add(new TagSpan<IntraTextAdornmentTag>(dataTagSpan, parameterHintUITag));
                     }

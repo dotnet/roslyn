@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         private readonly IToolTipService _toolTipService;
         private readonly ITextView _textView;
+        private readonly ITextBuffer _subjectBuffer;
         private readonly SnapshotSpan _span;
         private readonly InlineHint _hint;
         private readonly IThreadingContext _threadingContext;
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private InlineHintsTag(
             FrameworkElement adornment,
             ITextView textView,
+            ITextBuffer subjectBuffer,
             SnapshotSpan span,
             InlineHint hint,
             InlineHintsTaggerProvider taggerProvider)
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                    PositionAffinity.Predecessor)
         {
             _textView = textView;
+            _subjectBuffer = subjectBuffer;
             _span = span;
             _hint = hint;
             _streamingPresenter = taggerProvider.StreamingFindUsagesPresenter;
@@ -85,11 +88,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             SnapshotSpan span,
             InlineHintsTaggerProvider taggerProvider,
             IClassificationFormatMap formatMap,
+            ITextBuffer subjectBuffer,
             bool classify)
         {
             return new InlineHintsTag(
                 CreateElement(hint.DisplayParts, textView, format, formatMap, taggerProvider.TypeMap, classify),
-                textView, span, hint, taggerProvider);
+                textView, subjectBuffer, span, hint, taggerProvider);
         }
 
         public async Task<IReadOnlyCollection<object>> CreateDescriptionAsync(CancellationToken cancellationToken)
@@ -266,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             {
                 e.Handled = true;
                 var replacementValue = _hint.ReplacementTextChange!.Value;
-                _ = _textView.TextBuffer.Replace(new VisualStudio.Text.Span(replacementValue.Span.Start, replacementValue.Span.Length), replacementValue.NewText);
+                _ = _subjectBuffer.Replace(new VisualStudio.Text.Span(replacementValue.Span.Start, replacementValue.Span.Length), replacementValue.NewText);
             }
         }
     }
