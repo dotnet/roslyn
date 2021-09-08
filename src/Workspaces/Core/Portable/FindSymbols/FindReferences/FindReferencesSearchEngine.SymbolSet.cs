@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static async Task<HashSet<ISymbol>> DetermineInitialSearchSymbolsAsync(
                 FindReferencesSearchEngine engine, ISymbol symbol, CancellationToken cancellationToken)
             {
-                var result = new HashSet<ISymbol>();
+                var result = new HashSet<ISymbol>(MetadataUnifyingEquivalenceComparer.Instance);
                 var workQueue = new Stack<ISymbol>();
 
                 // Start with the initial symbol we're searching for.
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static async Task<HashSet<ISymbol>> DetermineInitialUpSymbolsAsync(
                 FindReferencesSearchEngine engine, HashSet<ISymbol> initialSymbols, CancellationToken cancellationToken)
             {
-                var upSymbols = new HashSet<ISymbol>();
+                var upSymbols = new HashSet<ISymbol>(MetadataUnifyingEquivalenceComparer.Instance);
                 var workQueue = new Stack<ISymbol>();
                 workQueue.Push(initialSymbols);
 
