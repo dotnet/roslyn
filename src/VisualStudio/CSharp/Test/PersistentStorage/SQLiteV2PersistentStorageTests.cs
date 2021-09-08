@@ -23,9 +23,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTests
     {
-        internal override AbstractPersistentStorageService GetStorageService(OptionSet options, IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
+        internal override AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageConfiguration locationService, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
             => new SQLitePersistentStorageService(
-                options,
                 exportProvider.GetExports<SQLiteConnectionPoolService>().Single().Value,
                 locationService,
                 exportProvider.GetExports<IAsynchronousOperationListenerProvider>().Single().Value.GetListener(FeatureAttribute.PersistentStorage),

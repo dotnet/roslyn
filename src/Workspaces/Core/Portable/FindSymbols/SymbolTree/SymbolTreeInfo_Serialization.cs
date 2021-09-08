@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
@@ -74,8 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Ok, we can use persistence.  First try to load from the persistence service.
                 var persistentStorageService = (IChecksummedPersistentStorageService)workspace.Services.GetService<IPersistentStorageService>();
 
-                var storage = await persistentStorageService.GetStorageAsync(
-                    workspace, solutionKey, checkBranchId: false, cancellationToken).ConfigureAwait(false);
+                var storage = await persistentStorageService.GetStorageAsync(solutionKey, checkBranchId: false, cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
 
                 // Get the unique key to identify our data.

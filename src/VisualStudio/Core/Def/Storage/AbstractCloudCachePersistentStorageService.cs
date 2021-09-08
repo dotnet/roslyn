@@ -18,9 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
     {
         private const string StorageExtension = "CloudCache";
 
-        protected AbstractCloudCachePersistentStorageService(
-            IPersistentStorageLocationService locationService)
-            : base(locationService)
+        protected AbstractCloudCachePersistentStorageService(IPersistentStorageConfiguration configuration)
+            : base(configuration)
         {
         }
 
