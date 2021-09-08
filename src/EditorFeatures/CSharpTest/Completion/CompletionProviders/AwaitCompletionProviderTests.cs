@@ -536,6 +536,7 @@ static class Program
 }}", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
         }
 
+        [WorkItem(56245, "https://github.com/dotnet/roslyn/issues/56245")]
         [Fact(Skip = "Fails because speculative binding can't figure out that local is a Task.")]
         public async Task TestDotAwaitSuggestBeforeLocalFunction()
         {
