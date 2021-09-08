@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     {
                         return node.Parent is VarPatternSyntax varPattern
                             ? CreateTypeHint(type, displayAllOverride, forImplicitVariableTypes, varPattern.VarKeyword, variableDesignation.Identifier)
-                            : new(type, new TextSpan(variableDesignation.Identifier.SpanStart, 0), insertSpan: null, trailingSpace: true);
+                            : new(type, new TextSpan(variableDesignation.Identifier.SpanStart, 0), textChange: null, trailingSpace: true);
                     }
                 }
                 else if (node is ForEachStatementSyntax { Type: { IsVar: true } } forEachStatement)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     if (parameter?.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } &&
                         IsValidType(parameter?.Type))
                     {
-                        return new(parameter.Type, new TextSpan(parameterNode.Identifier.SpanStart, 0), insertSpan: null, trailingSpace: true);
+                        return new(parameter.Type, new TextSpan(parameterNode.Identifier.SpanStart, 0), textChange: null, trailingSpace: true);
                     }
                 }
             }
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
                     if (IsValidType(type))
                     {
                         var span = new TextSpan(implicitNew.NewKeyword.Span.End, 0);
-                        return new(type, span, span, leadingSpace: true);
+                        return new(type, span, new TextChange(span, type.ToDisplayString(s_minimalTypeStyle)), leadingSpace: true);
                     }
                 }
             }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
             // if this is a hint that is placed in-situ (i.e. it's not overwriting text like 'var'), then place
             // a space after it to make things feel less cramped.
             var trailingSpace = span.Length == 0;
-            return new TypeHint(type, span, displayAllSpan.Span, trailingSpace: trailingSpace);
+            return new TypeHint(type, span, new TextChange(displayAllSpan.Span, type.ToDisplayString(s_minimalTypeStyle)), trailingSpace: trailingSpace);
         }
 
         private static TextSpan GetSpan(

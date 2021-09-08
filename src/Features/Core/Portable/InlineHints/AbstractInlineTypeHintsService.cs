@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
     {
-        private static readonly SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
+        protected static readonly SymbolDisplayFormat s_minimalTypeStyle = new SymbolDisplayFormat(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 if (hintOpt == null)
                     continue;
 
-                var (type, span, insertSpan, prefix, suffix) = hintOpt.Value;
+                var (type, span, textChange, prefix, suffix) = hintOpt.Value;
 
                 using var _2 = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var finalParts);
                 finalParts.AddRange(prefix);
@@ -77,10 +77,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                 finalParts.AddRange(suffix);
                 var taggedText = finalParts.ToTaggedText();
-
-                var textChange = insertSpan is null
-                    ? (TextChange?)null
-                    : new TextChange(insertSpan.Value, "");
 
                 result.Add(new InlineHint(
                     span, taggedText, textChange,
