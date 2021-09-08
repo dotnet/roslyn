@@ -2,55 +2,70 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CallstackExplorer;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
 {
+    /// <summary>
+    /// A line of text that was parsed by <see cref="CallstackAnalyzer" />
+    /// to provide metadata bout the line. 
+    /// </summary>
     internal class ParsedLine
     {
-        public ParsedLine(string originalLine, TextSpan symbolSpan)
+        public ParsedLine(string originalLine, TextSpan classSpan, TextSpan methodSpan, TextSpan argsSpan)
         {
+            Contract.ThrowIfTrue(classSpan.IsEmpty);
+            Contract.ThrowIfTrue(methodSpan.IsEmpty);
+
             OriginalLine = originalLine;
-            SymbolSpan = symbolSpan;
+            ClassSpan = classSpan;
+            MethodSpan = methodSpan;
+            ArgsSpan = argsSpan;
         }
 
+        /// <summary>
+        /// The original text that this line was parsed from
+        /// </summary>
         public string OriginalLine { get; }
-        public TextSpan SymbolSpan { get; }
 
-        protected (string methodName, string arguments) GetMethodSignatureParts()
-        {
-            var signature = OriginalLine.Substring(SymbolSpan.Start, SymbolSpan.Length);
+        /// <summary>
+        /// The full classname parsed from the line. 
+        /// e.x: [|Microsoft.CodeAnalysis.Editor.CallstackExplorer|].Example(arg1, arg2)
+        /// </summary>
+        public TextSpan ClassSpan { get; }
 
-            var openingBrace = signature.IndexOf('(');
-            var closingBrace = signature.LastIndexOf(')');
+        /// <summary>
+        /// The method name span
+        /// e.x: Microsoft.CodeAnalysis.Editor.CallstackExplorer.[|Example|](arg1, arg2)
+        /// </summary>
+        public TextSpan MethodSpan { get; }
 
-            var methodName = signature.Substring(0, openingBrace);
-
-            var length = closingBrace - (openingBrace + 1);
-            var arguments = length == 0
-                ? string.Empty 
-                : signature.Substring(openingBrace + 1, length);
-
-            return (methodName, arguments);
-        }
+        /// <summary>
+        /// The span of comma seperated arguments.
+        /// e.x: Microsoft.CodeAnalysis.Editor.CallstackExplorer.Example([|arg1, arg2|])
+        /// </summary>
+        public TextSpan ArgsSpan { get; }
 
         public virtual async Task<ISymbol?> ResolveSymbolAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var (methodName, _) = GetMethodSignatureParts();
+            var className = OriginalLine[ClassSpan.Start..ClassSpan.End];
+            var methodName = OriginalLine[MethodSpan.Start..MethodSpan.End];
+
+            var symbolName = $"{className}.{methodName}";
 
             foreach (var project in solution.Projects)
             {
                 var foundSymbols = await FindSymbols.DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
                     project,
-                    methodName,
+                    symbolName,
                     SymbolFilter.Member,
                     cancellationToken).ConfigureAwait(false);
 
+                // Only use the first symbol for now. 
+                // todo: should we return multiple and let a user decide? 
                 var foundSymbol = foundSymbols.Length == 1
                     ? foundSymbols[0]
                     : null;

@@ -42,27 +42,35 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
 
         private IEnumerable<Inline> CalculateInlines()
         {
-            var textUntilSymbol = _line.OriginalLine.Substring(0, _line.SymbolSpan.Start);
+            var textUntilSymbol = _line.OriginalLine[.._line.ClassSpan.Start];
             yield return new Run(textUntilSymbol);
 
-            var symbolText = _line.OriginalLine.Substring(_line.SymbolSpan.Start, _line.SymbolSpan.Length);
-            var hyperlink = new Hyperlink();
-            hyperlink.Inlines.Add(symbolText);
-            hyperlink.RequestNavigate += (s, e) => NavigateToSymbol();
-            hyperlink.Click += (s, e) => NavigateToSymbol();
-            yield return hyperlink;
+            var classText = _line.OriginalLine[_line.ClassSpan.Start.._line.ClassSpan.End];
+
+            var classLink = new Hyperlink();
+            classLink.Inlines.Add(classText);
+            classLink.Click += ClassLink_Click;
+            classLink.RequestNavigate += ClassLink_Click;
+            yield return classLink;
+
+            var methodText = _line.OriginalLine[_line.MethodSpan.Start.._line.ArgsSpan.End];
+            var methodLink = new Hyperlink();
+            methodLink.Inlines.Add(methodText);
+            methodLink.Click += MethodLink_Click;
+            methodLink.RequestNavigate += MethodLink_Click;
+            yield return methodLink;
 
             if (_line is FileLineResult fileLineResult)
             {
-                var textBetweenLength = fileLineResult.FileSpan.Start - _line.SymbolSpan.End;
-                var textBetweenSpan = new TextSpan(_line.SymbolSpan.End, textBetweenLength);
+                var textBetweenLength = fileLineResult.FileSpan.Start - _line.ArgsSpan.End;
+                var textBetweenSpan = new TextSpan(_line.ArgsSpan.End, textBetweenLength);
                 if (textBetweenSpan.Length > 0)
                 {
                     var textBetween = _line.OriginalLine.Substring(textBetweenSpan.Start, textBetweenSpan.Length);
                     yield return new Run(textBetween);
                 }
 
-                var fileText = _line.OriginalLine.Substring(fileLineResult.FileSpan.Start, fileLineResult.FileSpan.Length);
+                var fileText = _line.OriginalLine[fileLineResult.FileSpan.Start..fileLineResult.FileSpan.End];
                 var fileHyperlink = new Hyperlink();
                 fileHyperlink.Inlines.Add(fileText);
                 fileHyperlink.RequestNavigate += (s, e) => NavigateToFile();
@@ -72,17 +80,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
                 var end = fileLineResult.FileSpan.End;
                 if (end < _line.OriginalLine.Length)
                 {
-                    yield return new Run(_line.OriginalLine.Substring(end));
+                    yield return new Run(_line.OriginalLine[..end]);
                 }
             }
             else
             {
-                var end = _line.SymbolSpan.End;
+                var end = _line.ArgsSpan.End;
                 if (end < _line.OriginalLine.Length)
                 {
-                    yield return new Run(_line.OriginalLine.Substring(end));
+                    yield return new Run(_line.OriginalLine[..end]);
                 }
             }
+        }
+
+        private void MethodLink_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void ClassLink_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private void NavigateToFile()
@@ -136,7 +154,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
                         var document = potentialMatches.First();
                         await NavigateToDocumentAsync(document, lineNumber).ConfigureAwait(false);
                     }
-
 
                     async Task NavigateToDocumentAsync(Document document, int lineNumber)
                     {

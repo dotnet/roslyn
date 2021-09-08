@@ -11,8 +11,13 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
     {
         public TextSpan FileSpan { get; set; }
 
-        public FileLineResult(string originalLine, TextSpan symbolSpan, TextSpan fileSpan)
-            : base(originalLine, symbolSpan)
+        public FileLineResult(
+            string originalLine,
+            TextSpan classSpan,
+            TextSpan methodSpan,
+            TextSpan argsSpan,
+            TextSpan fileSpan)
+            : base(originalLine, classSpan, methodSpan, argsSpan)
         {
             Contract.Requires(fileSpan.Length > 0);
             FileSpan = fileSpan;

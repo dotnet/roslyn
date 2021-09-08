@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
         private const string StackTraceStart = "at ";
         private const string StackTraceSymbolAndFileSplit = " in ";
 
-        internal static Task<CallstackAnalysisResults> AnalyzeAsync(string callstack, CancellationToken cancellationToken)
+        internal static Task<CallstackAnalysisResults> AnalyzeAsync(string callstack, CancellationToken _)
         {
             var parsedLines = ParseLines(callstack);
 
@@ -62,49 +63,108 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
                 return false;
             }
 
-            var endPoint = line.LastIndexOf(')');
-            if (endPoint == -1)
+            var success = TryParseMethodSignature(line, skipCharacters: startPoint, out var classSpan, out var methodSpan, out var argsSpan);
+
+            if (!success)
             {
                 return false;
             }
 
-            // + 1 so we include the ')' character at the end
-            var length = (endPoint - startPoint) + 1;
-
-            result = new ParsedLine(line, new TextSpan(startPoint, length));
+            result = new ParsedLine(line, classSpan, methodSpan, argsSpan);
             return true;
         }
 
         private static bool TryParseStackTraceLine(string line, [NotNullWhen(returnValue: true)] out ParsedLine? parsedLine)
         {
-            var regex = new Regex(@".*([a-zA-Z0-9]+\.)*([a-zA-Z0-9]+)+\(.*\).*");
-            if (!regex.IsMatch(line))
+            parsedLine = null;
+            var success = TryParseMethodSignature(line, skipCharacters: 0, out var classSpan, out var methodSpan, out var argsSpan);
+
+            if (!success)
             {
-                parsedLine = null;
                 return false;
             }
 
-            // Example line
-            // at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26
-            //   |--------------------------------|  |--------------------------------------------|   |--|
-            //          Symbol Data                          File Information                           Line number
-
-            var symbolInformationStart = StackTraceStart.Length;
-
-            // +1 to include the ')' at the end
-            var symbolInformationEnd = (line.LastIndexOf(")") + 1);
-            var symbolInformationSpan = new TextSpan(symbolInformationStart, symbolInformationEnd - symbolInformationStart);
-
+            // The line has " in <filename>:line <line number>"
             if (line.Contains(StackTraceSymbolAndFileSplit))
             {
                 var fileInformationStart = line.IndexOf(StackTraceSymbolAndFileSplit) + StackTraceSymbolAndFileSplit.Length;
                 var fileInformationSpan = new TextSpan(fileInformationStart, line.Length - fileInformationStart);
 
-                parsedLine = new FileLineResult(line, symbolInformationSpan, fileInformationSpan);
+                parsedLine = new FileLineResult(line, classSpan, methodSpan, argsSpan, fileInformationSpan);
                 return true;
             }
 
-            parsedLine = new ParsedLine(line, symbolInformationSpan);
+            parsedLine = new ParsedLine(line, classSpan, methodSpan, argsSpan);
+            return true;
+        }
+
+        private static TextSpan MakeSpanFromEndpoints(int start, int end)
+        {
+            Contract.ThrowIfTrue(start > end);
+            Contract.ThrowIfTrue(start < 0);
+
+            var length = end - start;
+            return new TextSpan(start, length);
+        }
+
+        /// <summary>
+        /// Makes sure that the string at least somewhat resembles the correct form.
+        /// Does not check validity on class or method identifiers
+        /// Example line:
+        /// at ConsoleApp4.MyClass.ThrowAtOne(p1, p2,) 
+        ///   |-------------------||--------||-------| 
+        ///           Class          Method    Args   
+        /// </summary>
+        /// <remarks>
+        /// See https://docs.microsoft.com/en-us/dotnet/api/system.environment.stacktrace for more information
+        /// on expected stacktrace form
+        /// </remarks>
+
+        private static bool TryParseMethodSignature(string line, int skipCharacters, out TextSpan classSpan, out TextSpan methodSpan, out TextSpan argsSpan)
+        {
+            Contract.ThrowIfTrue(skipCharacters < 0);
+
+            classSpan = default;
+            methodSpan = default;
+            argsSpan = default;
+
+            if (skipCharacters > 0)
+            {
+                line = line[skipCharacters..];
+            }
+
+            var regex = new Regex(@"(?<class>[a-zA-Z0-9_]+\.)*(?<method>[a-zA-Z0-9_]+)+\((?<args>.*)\).*");
+            if (!regex.IsMatch(line))
+            {
+                return false;
+            }
+
+            var match = regex.Match(line);
+            if (!match.Success)
+            {
+                return false;
+            }
+
+            var classGroup = match.Groups["class"];
+            if (!classGroup.Success)
+            {
+                return false;
+            }
+
+            var methodGroup = match.Groups["method"];
+            if (!methodGroup.Success)
+            {
+                return false;
+            }
+
+            var argsGroup = match.Groups["args"];
+
+            classSpan = new TextSpan(skipCharacters + classGroup.Index, classGroup.Length);
+            methodSpan = new TextSpan(skipCharacters + methodGroup.Index, methodGroup.Length);
+            argsSpan = argsGroup.Success
+                ? new TextSpan(skipCharacters + argsGroup.Index, argsGroup.Length)
+                : default;
+
             return true;
         }
     }
