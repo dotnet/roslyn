@@ -58,15 +58,17 @@ namespace Microsoft.CodeAnalysis.Options
 
         /// <summary>
         /// Sets and persists the value of a global option.
+        /// Sets the value of a global option.
+        /// Invokes registered option persisters.
+        /// Triggers <see cref="OptionChanged"/>.
         /// Does not update any workspace (since this option is not a solution option).
-        /// Does not trigger <see cref="OptionChanged"/>.
         /// </summary>
         void SetGlobalOption(OptionKey optionKey, object? value);
 
         /// <summary>
         /// Atomically sets the values of specified global options. The option values are persisted.
+        /// Triggers <see cref="OptionChanged"/>.
         /// Does not update any workspace (since this option is not a solution option).
-        /// Does not trigger <see cref="OptionChanged"/>.
         /// </summary>
         void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values);
 

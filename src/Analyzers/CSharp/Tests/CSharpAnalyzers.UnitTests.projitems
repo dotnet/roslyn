@@ -20,7 +20,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredPatternParenthesesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredExpressionParenthesesTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\ConvertAnonymousTypeToTupleTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\ConvertTypeOfToNameOfFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\ConvertTypeOfToNameOfTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InlineDeclaration\CSharpInlineDeclarationTests.cs" />

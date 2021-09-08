@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -75,10 +76,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             using var workspace = TestWorkspace.CreateCSharp("", composition: Composition);
 
             var (_, serverStream) = FullDuplexStream.CreatePair();
-            var dispatcherFactory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
-            var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
-            var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
-            listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var dispatcherFactory = workspace.GetService<RequestDispatcherFactory>();
+            var lspWorkspaceRegistrationService = workspace.GetService<ILspWorkspaceRegistrationService>();
+            var capabilitiesProvider = workspace.GetService<DefaultCapabilitiesProvider>();
+            var globalOptions = workspace.GetService<IGlobalOptionService>();
+            listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
 
             serverJsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(serverStream, serverStream))
             {
@@ -90,6 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 serverJsonRpc,
                 capabilitiesProvider,
                 lspWorkspaceRegistrationService,
+                globalOptions,
                 listenerProvider,
                 NoOpLspLogger.Instance,
                 ProtocolConstants.RoslynLspLanguages,

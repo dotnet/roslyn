@@ -445,6 +445,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">轉換為結構</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="new">Convert to tuple</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
         <target state="translated">將類型轉換為 '{0}'</target>
@@ -2831,6 +2836,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">"HH" 自訂格式規範 (加上任意數目的其他 "H" 規範) 代表小時，以數字 00 到 23 表示; 換句話說，小時即為自午夜起所經過的時數，是以零開始的 24 小時制。單一數字的小時格式，開頭不會出現零。</target>
         <note />
       </trans-unit>
+      <trans-unit id="all_anonymous_types_in_container">
+        <source>all anonymous types in container</source>
+        <target state="new">all anonymous types in container</target>
+        <note />
+      </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
         <target state="new">and update call sites directly</target>
@@ -2985,6 +2995,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="into_new_overload">
         <source>into new overload</source>
         <target state="new">into new overload</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="just_this_anonymous_type">
+        <source>just this anonymous type</source>
+        <target state="new">just this anonymous type</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

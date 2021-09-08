@@ -30,15 +30,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     {
         private readonly IAsyncServiceProvider2 _serviceProvider;
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioWorkspaceStatusServiceFactory(
-            SVsServiceProvider serviceProvider, IThreadingContext threadingContext, IAsynchronousOperationListenerProvider listenerProvider)
+            SVsServiceProvider serviceProvider,
+            IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _serviceProvider = (IAsyncServiceProvider2)serviceProvider;
             _threadingContext = threadingContext;
+            _globalOptions = globalOptions;
 
             // for now, we use workspace so existing tests can automatically wait for full solution load event
             // subscription done in test
@@ -48,9 +53,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            if (workspaceServices.Workspace is VisualStudioWorkspace vsWorkspace)
+            if (workspaceServices.Workspace is VisualStudioWorkspace)
             {
-                if (!vsWorkspace.Options.GetOption(Options.PartialLoadModeFeatureFLag))
+                if (!_globalOptions.GetOption(Options.PartialLoadModeFeatureFlag))
                 {
                     // don't enable partial load mode for ones that are not in experiment yet
                     return new WorkspaceStatusService();
@@ -183,11 +188,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             private const string FeatureName = "VisualStudioWorkspaceStatusService";
 
-            public static readonly Option<bool> PartialLoadModeFeatureFLag = new(FeatureName, nameof(PartialLoadModeFeatureFLag), defaultValue: false,
+            public static readonly Option<bool> PartialLoadModeFeatureFlag = new(FeatureName, nameof(PartialLoadModeFeatureFlag), defaultValue: false,
                 new FeatureFlagStorageLocation("Roslyn.PartialLoadMode"));
 
             ImmutableArray<IOption> IOptionProvider.Options => ImmutableArray.Create<IOption>(
-                PartialLoadModeFeatureFLag);
+                PartialLoadModeFeatureFlag);
 
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

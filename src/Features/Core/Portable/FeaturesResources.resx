@@ -2834,6 +2834,15 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="_0_dash_1" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
+  <data name="all_anonymous_types_in_container" xml:space="preserve">
+    <value>all anonymous types in container</value>
+  </data>
+  <data name="Convert_to_tuple" xml:space="preserve">
+    <value>Convert to tuple</value>
+  </data>
+  <data name="just_this_anonymous_type" xml:space="preserve">
+    <value>just this anonymous type</value>
+  </data>
   <data name="member_kind_and_name" xml:space="preserve">
     <value>{0} '{1}'</value>
     <comment>e.g. "method 'M'"</comment>

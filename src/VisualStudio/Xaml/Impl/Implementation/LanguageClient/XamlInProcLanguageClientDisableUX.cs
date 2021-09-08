@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -34,13 +35,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public XamlInProcLanguageClientDisableUX(
             XamlRequestDispatcherFactory xamlDispatcherFactory,
-            VisualStudioWorkspace workspace,
+            IGlobalOptionService globalOptions,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(xamlDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(xamlDispatcherFactory, globalOptions, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
         }
 
@@ -53,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var isLspExperimentEnabled = Workspace.Options.GetOption(XamlOptions.EnableLspIntelliSenseFeatureFlag);
+            var isLspExperimentEnabled = GlobalOptions.GetOption(XamlOptions.EnableLspIntelliSenseFeatureFlag);
             var capabilities = isLspExperimentEnabled ? XamlCapabilities.None : XamlCapabilities.Current;
 
             // Only turn on CodeAction support for client scenarios. Hosts will get non-LSP lightbulbs automatically.
