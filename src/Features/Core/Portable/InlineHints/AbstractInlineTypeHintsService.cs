@@ -77,11 +77,10 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                 finalParts.AddRange(suffix);
                 var taggedText = finalParts.ToTaggedText();
-                var displayString = GetDisplayStringFromParts(taggedText);
 
                 var textChange = insertSpan is null
                     ? (TextChange?)null
-                    : new TextChange(insertSpan.Value, displayString);
+                    : new TextChange(insertSpan.Value, "");
 
                 result.Add(new InlineHint(
                     span, taggedText, textChange,
@@ -89,34 +88,6 @@ namespace Microsoft.CodeAnalysis.InlineHints
             }
 
             return result.ToImmutable();
-        }
-
-        private static string GetDisplayStringFromParts(ImmutableArray<TaggedText> taggedTexts)
-        {
-            var displayString = PooledStringBuilder.GetInstance();
-            if (taggedTexts.Length == 1)
-            {
-                var first = taggedTexts.First();
-                var trimBoth = first.Text.Trim();
-                return trimBoth;
-            }
-            else if (taggedTexts.Length >= 2)
-            {
-                var first = taggedTexts.First();
-                var trimStart = first.Text.TrimStart();
-                displayString.Builder.Append(trimStart);
-
-                for (var i = 1; i < taggedTexts.Length - 1; i++)
-                {
-                    displayString.Builder.Append(taggedTexts[i].Text);
-                }
-
-                var last = taggedTexts.Last();
-                var trimEnd = last.Text.TrimEnd();
-                displayString.Builder.Append(trimEnd);
-            }
-
-            return displayString.ToStringAndFree();
         }
 
         private void AddParts(
