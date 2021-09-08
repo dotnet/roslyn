@@ -1997,6 +1997,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters = 8971,
         ERR_LambdaWithAttributesToExpressionTree = 8972,
 
+        WRN_CompileTimeCheckedOverflow = 8973,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
