@@ -737,6 +737,79 @@ static class Program
             End Using
         End Function
 
+        <WpfFact>
+        Public Async Function DotAwaitCompletionOffersAwaitAfterConfigureAwaitInvocation() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async Task Main()
+    {
+        Task.CompletedTask.ConfigureAwait(false).$$
+    }
+}
+]]>
+                </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("await")
+                Await state.AssertCompletionItemsDoNotContainAny("awaitf")
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async Task Main()
+    {
+        await Task.CompletedTask.ConfigureAwait(false)
+    }
+}
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        await Task.CompletedTask.ConfigureAwait(false)", "")
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function DotAwaitCompletionOffersAwaitBeforeConfigureAwaitInvocation() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async Task Main()
+    {
+        Task.CompletedTask.$$ConfigureAwait(false);
+    }
+}
+]]>
+                </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("await", "awaitf")
+                state.SendTypeChars("af")
+                Await state.AssertSelectedCompletionItem(displayText:="awaitf", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Threading.Tasks;
+
+public class C
+{
+    public static async Task Main()
+    {
+        await Task.CompletedTask.ConfigureAwait(false)ConfigureAwait(false);
+    }
+}
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        await Task.CompletedTask.ConfigureAwait(false)", "ConfigureAwait(false);")
+            End Using
+        End Function
+
         <WorkItem(56006, "https://github.com/dotnet/roslyn/issues/56006")>
         Public Async Function SyntaxIsLikeLocalFunction() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
