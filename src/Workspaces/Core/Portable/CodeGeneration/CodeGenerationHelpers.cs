@@ -183,8 +183,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 if (reusableNode is T)
                 {
                     var leadingTrivia = reusableNode.GetLeadingTrivia().Where(trivia => !trivia.IsDirective);
-                    var trailingTrivia = reusableNode.GetTrailingTrivia().Where(trivia => !trivia.IsDirective);
-                    return reusableNode.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia) as T;
+                    return reusableNode.WithLeadingTrivia(leadingTrivia) as T;
                 }
             }
 
