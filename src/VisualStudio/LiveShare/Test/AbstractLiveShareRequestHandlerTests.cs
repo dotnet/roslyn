@@ -21,8 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
     public abstract class AbstractLiveShareRequestHandlerTests : AbstractLanguageServerProtocolTests
     {
         private static readonly TestComposition s_composition = LiveShareTestCompositions.Features.AddParts(
-            typeof(MockDocumentNavigationServiceFactory),
-            typeof(TestLspWorkspaceRegistrationService));
+            typeof(MockDocumentNavigationServiceFactory));
 
         private class MockHostProtocolConverter : IHostProtocolConverter
         {
