@@ -270,6 +270,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     element.ReplaceNodes(RewriteMany(symbol, visitedSymbols, compilation, element.Nodes().ToArray(), cancellationToken));
                     xmlText = element.ToString(SaveOptions.DisableFormatting);
                 }
+                catch (XmlException)
+                {
+                    // Malformed documentation comments will produce an exception during parsing. This is not directly
+                    // actionable, so avoid the overhead of telemetry reporting for it.
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1385578
+                }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                 }
