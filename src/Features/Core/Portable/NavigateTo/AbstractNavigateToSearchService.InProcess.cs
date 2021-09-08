@@ -183,6 +183,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
             {
+                // Namespaces are never returned in nav-to as they're too common and have too many locations.
+                if (declaredSymbolInfo.Kind == DeclaredSymbolInfoKind.Namespace)
+                    continue;
+
                 await AddResultIfMatchAsync(
                     documentId, document,
                     declaredSymbolInfo,
