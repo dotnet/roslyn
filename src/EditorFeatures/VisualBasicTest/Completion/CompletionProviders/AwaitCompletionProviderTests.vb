@@ -177,7 +177,7 @@ End Class
         </Document>
     </Project>
 </Workspace>
-", dotAwait:=True)
+", dotAwait:=True, dotAwaitf:=True)
         End Function
 
         <Fact>

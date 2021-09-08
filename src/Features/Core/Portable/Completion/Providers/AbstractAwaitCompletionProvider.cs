@@ -59,7 +59,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var originalDefinition = symbol.OriginalDefinition;
             return
                 originalDefinition.Equals(compilation.TaskOfTType()) ||
-                originalDefinition.Equals(compilation.TaskType());
+                originalDefinition.Equals(compilation.TaskType()) ||
+                originalDefinition.Equals(compilation.ValueTaskOfTType()) ||
+                originalDefinition.Equals(compilation.ValueTaskType());
         }
 
         public sealed override async Task ProvideCompletionsAsync(CompletionContext context)

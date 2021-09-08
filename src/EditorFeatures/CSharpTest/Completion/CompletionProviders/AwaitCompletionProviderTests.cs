@@ -337,7 +337,7 @@ class C
         public async Task TestDotAwaitSuggestAfterDotOnValueTask()
         {
             var valueTaskAssembly = typeof(ValueTask).Assembly.Location;
-            await VerifyItemExistsAsync(@$"
+            var markup = @$"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <MetadataReference>{valueTaskAssembly}</MetadataReference>
@@ -354,7 +354,9 @@ class C
         </Document>
     </Project>
 </Workspace>
-", "await");
+";
+            await VerifyItemExistsAsync(markup, "await");
+            await VerifyItemExistsAsync(markup, "awaitf");
         }
 
         [Fact]
