@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -219,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 location,
                 result.Option.Notification.Severity,
                 additionalLocations,
-                ImmutableDictionary<string, string?>.Empty,
+                ImmutableDictionary<string, string>.Empty,
                 result.SliceLikeMethod.Name);
         }
 

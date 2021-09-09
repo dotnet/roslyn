@@ -29,11 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             /// Mapping from a method like <c>MyType.Get(int)</c> to the <c>Length</c>/<c>Count</c> property for
             /// <c>MyType</c> as well as the optional <c>MyType.Get(System.Index)</c> member if it exists.
             /// </summary>
-            private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo =
-                new();
+            private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo = new();
 
             public InfoCache(Compilation compilation)
-                => IndexType = compilation.GetBestTypeByMetadataName("System.Index");
+                => IndexType = compilation.GetBestTypeByMetadataName("System.Index")!;
 
             public bool TryGetMemberInfo(IMethodSymbol methodSymbol, out MemberInfo memberInfo)
             {
