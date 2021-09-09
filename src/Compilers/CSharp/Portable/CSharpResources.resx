@@ -6845,28 +6845,28 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SimpleProgramIsEmpty" xml:space="preserve">
     <value>At least one top-level statement must be non-empty.</value>
   </data>
-  <data name="ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal" xml:space="preserve">
+  <data name="ERR_LineDoesNotStartWithSameWhitespace" xml:space="preserve">
     <value>Line does not start with the same whitespace as the last line of the raw string literal</value>
   </data>
-  <data name="ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives" xml:space="preserve">
+  <data name="ERR_RawStringNotInDirectives" xml:space="preserve">
     <value>Raw string literals are not allowed in preprocessor directives</value>
   </data>
-  <data name="ERR_Raw_string_literal_delimiter_must_be_on_its_own_line" xml:space="preserve">
+  <data name="ERR_RawStringDelimiterOnOwnLine" xml:space="preserve">
     <value>Raw string literal delimiter must be on its own line</value>
   </data>
-  <data name="ERR_Too_many_closing_quotes_for_raw_string_literal" xml:space="preserve">
+  <data name="ERR_TooManyQuotesForRawString" xml:space="preserve">
     <value>Too many closing quotes for raw string literal</value>
   </data>
-  <data name="ERR_Unterminated_raw_string_literal" xml:space="preserve">
+  <data name="ERR_UnterminatedRawString" xml:space="preserve">
     <value>Unterminated raw string literal</value>
   </data>
   <data name="IDS_FeatureRawStringLiterals" xml:space="preserve">
     <value>raw string literals</value>
   </data>
-  <data name="ERR_Multi_line_raw_string_literals_are_only_allowed_in_verbatim_interpolated_strings" xml:space="preserve">
+  <data name="ERR_RawStringInVerbatimInterpolatedStrings" xml:space="preserve">
     <value>Multi-line raw string literals are only allowed in verbatim interpolated strings</value>
   </data>
-  <data name="ERR_Multi_line_raw_string_literals_must_contain_at_least_one_line_of_content" xml:space="preserve">
+  <data name="ERR_RawStringMustContainContent" xml:space="preserve">
     <value>Multi-line raw string literals must contain at least one line of content</value>
   </data>
   <data name="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString" xml:space="preserve">

@@ -752,6 +752,11 @@
         <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
+        <source>Line does not start with the same whitespace as the last line of the raw string literal</source>
+        <target state="new">Line does not start with the same whitespace as the last line of the raw string literal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
         <source>The #line directive end position must be greater than or equal to the start position</source>
         <target state="new">The #line directive end position must be greater than or equal to the start position</target>
@@ -760,11 +765,6 @@
       <trans-unit id="ERR_LineSpanDirectiveInvalidValue">
         <source>The #line directive value is missing or out of range</source>
         <target state="new">The #line directive value is missing or out of range</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_Line_does_not_start_with_the_same_whitespace_as_the_last_line_of_the_raw_string_literal">
-        <source>Line does not start with the same whitespace as the last line of the raw string literal</source>
-        <target state="new">Line does not start with the same whitespace as the last line of the raw string literal</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
@@ -805,16 +805,6 @@
       <trans-unit id="ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid">
         <source>Module initializer method '{0}' must be static, must have no parameters, and must return 'void'</source>
         <target state="translated">模組初始設定式方法 '{0}' 必須是靜態，不得具有任何參數，而且必須傳回 'void'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_Multi_line_raw_string_literals_are_only_allowed_in_verbatim_interpolated_strings">
-        <source>Multi-line raw string literals are only allowed in verbatim interpolated strings</source>
-        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_Multi_line_raw_string_literals_must_contain_at_least_one_line_of_content">
-        <source>Multi-line raw string literals must contain at least one line of content</source>
-        <target state="new">Multi-line raw string literals must contain at least one line of content</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -1022,12 +1012,22 @@
         <target state="translated">屬性子模式需要對屬性或欄位的參考才能比對，例如 '{{ Name: {0} }}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_Raw_string_literal_delimiter_must_be_on_its_own_line">
+      <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
         <source>Raw string literal delimiter must be on its own line</source>
         <target state="new">Raw string literal delimiter must be on its own line</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_Raw_string_literals_are_not_allowed_in_preprocessor_directives">
+      <trans-unit id="ERR_RawStringInVerbatimInterpolatedStrings">
+        <source>Multi-line raw string literals are only allowed in verbatim interpolated strings</source>
+        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringMustContainContent">
+        <source>Multi-line raw string literals must contain at least one line of content</source>
+        <target state="new">Multi-line raw string literals must contain at least one line of content</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringNotInDirectives">
         <source>Raw string literals are not allowed in preprocessor directives</source>
         <target state="new">Raw string literals are not allowed in preprocessor directives</target>
         <note />
@@ -1187,7 +1187,7 @@
         <target state="translated">switch 主導的運算式前後必須有括弧。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_Too_many_closing_quotes_for_raw_string_literal">
+      <trans-unit id="ERR_TooManyQuotesForRawString">
         <source>Too many closing quotes for raw string literal</source>
         <target state="new">Too many closing quotes for raw string literal</target>
         <note />
@@ -1237,7 +1237,7 @@
         <target state="translated">'{0}' 使用 'UnmanagedCallersOnly' 屬性化，因此無法轉換為委派類型。取得此方法的函式指標。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_Unterminated_raw_string_literal">
+      <trans-unit id="ERR_UnterminatedRawString">
         <source>Unterminated raw string literal</source>
         <target state="new">Unterminated raw string literal</target>
         <note />
