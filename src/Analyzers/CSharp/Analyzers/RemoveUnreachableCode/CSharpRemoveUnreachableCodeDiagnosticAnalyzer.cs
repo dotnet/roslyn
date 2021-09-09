@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
         public const string IsSubsequentSection = nameof(IsSubsequentSection);
-        private static readonly ImmutableDictionary<string, string?> s_subsequentSectionProperties = ImmutableDictionary<string, string>.Empty.Add(IsSubsequentSection, "");
+        private static readonly ImmutableDictionary<string, string?> s_subsequentSectionProperties = ImmutableDictionary<string, string?>.Empty.Add(IsSubsequentSection, "");
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
