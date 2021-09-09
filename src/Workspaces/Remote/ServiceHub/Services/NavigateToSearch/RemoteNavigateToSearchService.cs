@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var callback = GetCallback(callbackId, cancellationToken);
 
                 await AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
-                    GetWorkspace(), documentKeys, priorityDocumentKeys, database, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                    GetWorkspaceServices(), documentKeys, priorityDocumentKeys, database, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

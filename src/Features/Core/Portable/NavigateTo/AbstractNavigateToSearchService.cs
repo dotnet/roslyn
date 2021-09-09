@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             await SearchCachedDocumentsInCurrentProcessAsync(
-                solution.Workspace, documentKeys, priorityDocumentKeys, database, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
+                solution.Workspace.Services, documentKeys, priorityDocumentKeys, database, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
     }
 }
