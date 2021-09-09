@@ -33,17 +33,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeDefinitionW
 
         public async Task SetContextAsync(ImmutableArray<CodeDefinitionWindowLocation> locations, CancellationToken cancellationToken)
         {
+            // If the new context has no location, then just don't update, instead of showing the
+            // "No definition selected" page.
+            if (!locations.Any())
+            {
+                return;
+            }
+
             var vsCodeDefView = await _asyncServiceProvider.GetServiceAsync<SVsCodeDefView, IVsCodeDefView>().ConfigureAwait(false);
 
             // Switch to the UI thread before using the IVsCodeDefView service
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // If the new context has no location, then just don't update, instead of showing the
-            // "No definition selected" page.
-            if (locations.Any())
-            {
-                Marshal.ThrowExceptionForHR(vsCodeDefView.SetContext(new Context(locations)));
-            }
+            Marshal.ThrowExceptionForHR(vsCodeDefView.SetContext(new Context(locations)));
         }
 
         private class Context : IVsCodeDefViewContext
