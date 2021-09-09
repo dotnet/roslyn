@@ -400,7 +400,7 @@ End Class
         End Function
 
         <Fact>
-        Public Async Function DotAwaitNotInQuery() As Task
+        Public Async Function DotAwaitQueryNotInSelect() As Task
             Await VerifyNoItemsExistAsync("
 Imports System.Linq
 Imports System.Threading.Tasks
@@ -411,6 +411,75 @@ Class C
     End Function
 End Class
 ")
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitQueryInFirstFromClause() As Task
+            Await VerifyAwaitKeyword("
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Dim arrayTask1 = Task.FromResult(new Integer() {})
+        Dim qry = From i In arrayTask1.$$
+    End Function
+End Class
+", dotAwait:=True, dotAwaitf:=True)
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitQueryNotInSecondFirstFromClause_1() As Task
+            Await VerifyNoItemsExistAsync("
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Dim array1 = new Integer() {}
+        Dim arrayTask2 = Task.FromResult(new Integer() {})
+
+        Dim qry = From i1 In array1
+                  From i2 In arrayTask2.$$
+    End Function
+End Class
+")
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitQueryNotInSecondFirstFromClause_2() As Task
+            Await VerifyNoItemsExistAsync("
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Dim array1 = new Integer() {}
+        Dim arrayTask2 = Task.FromResult(new Integer() {})
+
+        Dim qry = From i1 In array1, i2 In arrayTask2.$$
+    End Function
+End Class
+")
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitQueryNotInSecondFirstFromClause_2() As Task
+            Await VerifyAwaitKeyword("
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Dim array1 = new Integer() {}
+        Dim arrayTask2 = Task.FromResult(new Integer() {})
+
+        Dim qry = From i1 In array1
+                  Join i2 In arrayTask2.$$
+                  On i1 Equals i2
+    End Function
+End Class
+", dotAwait:=True, dotAwaitf:=True)
         End Function
 
         <Fact>
