@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (!(typeSyntax is NameSyntax nameSyntax))
+            if (typeSyntax is not NameSyntax nameSyntax)
             {
                 return false;
             }

@@ -52,10 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             var coalesceLeft = coalesceExpression.Left;
             var coalesceRight = coalesceExpression.Right;
 
-            if (!(coalesceRight is ParenthesizedExpressionSyntax parenthesizedExpr))
+            if (coalesceRight is not ParenthesizedExpressionSyntax parenthesizedExpr)
                 return;
 
-            if (!(parenthesizedExpr.Expression is AssignmentExpressionSyntax assignment))
+            if (parenthesizedExpr.Expression is not AssignmentExpressionSyntax assignment)
                 return;
 
             if (assignment.Kind() != SyntaxKind.SimpleAssignmentExpression)

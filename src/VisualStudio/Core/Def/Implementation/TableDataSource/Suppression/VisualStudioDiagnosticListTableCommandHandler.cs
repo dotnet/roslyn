@@ -223,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             if (!_tableControl.SelectedEntry.TryGetSnapshot(out var snapshot, out var index) ||
-                !(snapshot is AbstractTableEntriesSnapshot<DiagnosticTableItem> roslynSnapshot))
+                snapshot is not AbstractTableEntriesSnapshot<DiagnosticTableItem> roslynSnapshot)
             {
                 return null;
             }

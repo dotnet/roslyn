@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 return false;
             }
 
-            if (!(documentationComment.Content[0] is XmlTextSyntax xmlText))
+            if (documentationComment.Content[0] is not XmlTextSyntax xmlText)
             {
                 return false;
             }
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 return false;
             }
 
-            if (!(documentationComment.Content.LastOrDefault() is XmlTextSyntax xmlText))
+            if (documentationComment.Content.LastOrDefault() is not XmlTextSyntax xmlText)
             {
                 return false;
             }

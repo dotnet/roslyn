@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                     return null;
                 }
 
-                if (!(syntaxRefs[0].GetSyntax() is VariableDeclaratorSyntax declarator))
+                if (syntaxRefs[0].GetSyntax() is not VariableDeclaratorSyntax declarator)
                 {
                     return null;
                 }

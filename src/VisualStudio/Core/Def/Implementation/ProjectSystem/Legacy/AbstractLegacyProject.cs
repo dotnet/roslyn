@@ -249,7 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 return;
             }
 
-            if (!(Hierarchy is IVsBuildPropertyStorage storage))
+            if (Hierarchy is not IVsBuildPropertyStorage storage)
             {
                 return;
             }
@@ -426,7 +426,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         private static bool TryGetPropertyValue(IVsHierarchy hierarchy, string propertyName, out string propertyValue)
         {
-            if (!(hierarchy is IVsBuildPropertyStorage storage))
+            if (hierarchy is not IVsBuildPropertyStorage storage)
             {
                 propertyValue = null;
                 return false;

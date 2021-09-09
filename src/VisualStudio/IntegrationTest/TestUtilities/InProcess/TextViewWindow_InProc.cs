@@ -451,7 +451,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
 
                 action.Invoke(CancellationToken.None);
-                return !(action is SuggestedAction suggestedAction)
+                return action is not SuggestedAction suggestedAction
                     || suggestedAction.GetTestAccessor().IsApplied;
             };
         }

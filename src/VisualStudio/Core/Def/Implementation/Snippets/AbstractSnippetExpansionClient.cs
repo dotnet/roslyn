@@ -1083,7 +1083,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     continue;
                 }
 
-                if (!(workspace is VisualStudioWorkspaceImpl visualStudioWorkspace) ||
+                if (workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace ||
                     !visualStudioWorkspace.TryAddReferenceToProject(projectId, assemblyName))
                 {
                     failedReferenceAdditions.Add(assemblyName);
@@ -1103,7 +1103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected static bool TryAddImportsToContainedDocument(Document document, IEnumerable<string> memberImportsNamespaces)
         {
-            if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl vsWorkspace))
+            if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl vsWorkspace)
             {
                 return false;
             }
