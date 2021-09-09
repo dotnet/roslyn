@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             });
         }
 
-        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol expressionTypeOpt)
+        private void AnalyzeSyntaxNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionTypeOpt)
         {
             var argumentNode = (ArgumentSyntax)context.Node;
             var csOptions = (CSharpParseOptions)context.Node.SyntaxTree.Options;
@@ -87,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             }
 
             var argumentExpression = argumentNode.Expression;
-            if (!argumentExpression.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
+            if (!argumentExpression.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax? identifierName))
             {
                 // has to be exactly the form "out i".  i.e. "out this.i" or "out v[i]" are legal
                 // cases for out-arguments, but could not be converted to an out-variable-declaration.
