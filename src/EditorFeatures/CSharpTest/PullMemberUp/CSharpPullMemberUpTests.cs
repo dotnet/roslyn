@@ -4015,7 +4015,6 @@ public class Bar : BaseClass
             return TestInRegularAndScriptAsync(text, expected);
         }
 
-
         [Fact]
         [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
         public Task TestPullMethodToClassBeforeDirective()
