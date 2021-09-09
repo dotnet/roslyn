@@ -645,7 +645,7 @@ lock(this) { Task.CompletedTask.$$ }
         }
 
         [Fact]
-        public async Task TestDotAwaitNotInQuery()
+        public async Task TestDotAwaitQueryNotInSelect()
         {
             await VerifyAbsenceAsync(@"
 using System.Linq;
@@ -660,6 +660,46 @@ class C
   }
 }
 ", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestDotAwaitQueryInFirstFromClause()
+        {
+            await VerifyKeywordAsync(@"
+using System.Linq;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task F()
+    {
+        var arrayTask2 = Task.FromResult(new int[0]);
+        var z = from t in arrayTask2.$$
+                select t;
+    }
+}
+", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+        }
+
+        [Fact]
+        public async Task TestDotAwaitQueryNotInSecondFromClause()
+        {
+            await VerifyNoItemsExistAsync(@"
+using System.Linq;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task F()
+    {
+        var array1 = new int[0];
+        var arrayTask2 = Task.FromResult(new int[0]);
+        var z = from i1 in array1
+                from i2 in arrayTask2.$$
+                select i2;
+    }
+}
+");
         }
 
         [Fact]
