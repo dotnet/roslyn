@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         where TBinaryLikeExpressionSyntax : TExpressionSyntax
         where TLanguageKindEnum : struct
     {
-        private static readonly Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string>> s_cachedProperties =
+        private static readonly Dictionary<(bool includeInFixAll, string equivalenceKey), ImmutableDictionary<string, string?>> s_cachedProperties =
             new();
 
         private readonly IPrecedenceService _precedenceService;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             {
                 foreach (var includeInFixAll in includeArray)
                 {
-                    var properties = ImmutableDictionary<string, string>.Empty;
+                    var properties = ImmutableDictionary<string, string?>.Empty;
                     if (includeInFixAll)
                     {
                         properties = properties.Add(AddRequiredParenthesesConstants.IncludeInFixAll, "");
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         private static string GetEquivalenceKey(PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> parentPrecedence)
             => parentPrecedence.Name;
 
-        private static ImmutableDictionary<string, string> GetProperties(bool includeInFixAll, string equivalenceKey)
+        private static ImmutableDictionary<string, string?> GetProperties(bool includeInFixAll, string equivalenceKey)
             => s_cachedProperties[(includeInFixAll, equivalenceKey)];
 
         protected abstract int GetPrecedence(TBinaryLikeExpressionSyntax binaryLike);

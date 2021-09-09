@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -46,13 +44,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
             => false;
 
-        public async Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        public async Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet? options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             return TryNavigateToSpan(workspace, documentId, textSpan, options, allowInvalidSpan, cancellationToken);
         }
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet? options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             if (workspace is not InteractiveWindowWorkspace interactiveWorkspace)
             {
@@ -60,10 +58,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 return false;
             }
 
+            if (interactiveWorkspace.Window is null)
+            {
+                Debug.Fail("We are trying to navigate with a workspace that doesn't have a window!");
+                return false;
+            }
+
             var textView = interactiveWorkspace.Window.TextView;
             var document = interactiveWorkspace.CurrentSolution.GetDocument(documentId);
 
-            var textSnapshot = document.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
+            var textSnapshot = document?.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
             if (textSnapshot == null)
             {
                 return false;
@@ -91,10 +95,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             return true;
         }
 
-        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options, CancellationToken cancellationToken)
+        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet? options, CancellationToken cancellationToken)
             => throw new NotSupportedException();
 
-        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options, CancellationToken cancellationToken)
+        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet? options, CancellationToken cancellationToken)
             => throw new NotSupportedException();
     }
 }

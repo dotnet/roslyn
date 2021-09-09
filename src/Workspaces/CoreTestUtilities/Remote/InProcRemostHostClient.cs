@@ -12,7 +12,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
@@ -91,12 +90,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 (writer, data, cancellationToken) => RemoteHostAssetSerialization.WriteDataAsync(
                     writer, _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage, _workspaceServices.GetRequiredService<ISerializerService>(), data.scopeId, data.checksums, cancellationToken),
                 cancellationToken);
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public Task<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => _workspaceServices.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName) ? SpecializedTasks.True : SpecializedTasks.False;
 
         public RemoteHostTestData TestData => _inprocServices.TestData;
 

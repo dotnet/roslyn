@@ -888,6 +888,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             return false;
         }
 
+        internal bool IsInOpenTextBuffer(SnapshotPoint point)
+            => _openTextBuffers.ContainsKey(point.Snapshot.TextBuffer);
+
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
 

@@ -347,6 +347,40 @@ Delta: Epsilon: Test E
             Assert.Equal(FileAttributes.Archive, (FileAttributes)result!);
         }
 
+        [Fact]
+        public void AssemblyLoading_Delete()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var loader = new DefaultAnalyzerAssemblyLoader();
+
+            var tempDir = Temp.CreateDirectory();
+            var deltaCopy = tempDir.CreateFile("Delta.dll").CopyContentFrom(_testFixture.Delta1.Path);
+            loader.AddDependencyLocation(deltaCopy.Path);
+            Assembly delta = loader.LoadFromPath(deltaCopy.Path);
+
+            try
+            {
+                File.Delete(deltaCopy.Path);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return;
+            }
+
+            // The above call may or may not throw depending on the platform configuration.
+            // If it doesn't throw, we might as well check that things are still functioning reasonably.
+
+            var d = delta.CreateInstance("Delta.D");
+            d!.GetType().GetMethod("Write")!.Invoke(d, new object[] { sb, "Test D" });
+
+            var actual = sb.ToString();
+            Assert.Equal(
+@"Delta: Test D
+",
+                actual);
+        }
+
 #if NETCOREAPP
         [Fact]
         public void VerifyCompilerAssemblySimpleNames()

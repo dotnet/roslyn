@@ -915,6 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundDecisionDagNode whenTrue = finalState(first.Syntax, first.CaseLabel, default);
                         BoundDecisionDagNode? whenFalse = state.FalseBranch.Dag;
                         RoslynDebug.Assert(whenFalse is { });
+                        // Note: we may share `when` clauses between multiple DAG nodes, but we deal with that safely during lowering
                         state.Dag = uniqifyDagNode(new BoundWhenDecisionDagNode(first.Syntax, first.Bindings, first.WhenClause, whenTrue, whenFalse));
                     }
 
