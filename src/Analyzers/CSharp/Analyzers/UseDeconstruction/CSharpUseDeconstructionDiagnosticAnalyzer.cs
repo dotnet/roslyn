@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             out ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions,
             CancellationToken cancellationToken)
         {
-            var local = semanticModel.GetRequiredDeclaredSymbol(forEachStatement, cancellationToken);
+            var local = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(forEachStatement, cancellationToken);
             var elementConversion = semanticModel.GetForEachStatementInfo(forEachStatement).ElementConversion;
 
             return TryAnalyze(
