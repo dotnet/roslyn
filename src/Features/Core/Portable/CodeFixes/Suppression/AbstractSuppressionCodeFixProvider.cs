@@ -87,11 +87,47 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return diagnostic.Id;
         }
 
-        protected virtual SyntaxToken GetAdjustedTokenForPragmaDisable(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
-            => token;
+        protected abstract SyntaxNode GetContainingStatement(SyntaxToken token);
+        protected abstract bool TokenHasTrailingLineContinuationChar(SyntaxToken token);
 
-        protected virtual SyntaxToken GetAdjustedTokenForPragmaRestore(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
-            => token;
+        protected virtual SyntaxToken GetAdjustedTokenForPragmaDisable(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
+        {
+            var containingStatement = GetContainingStatement(token);
+            if (containingStatement is not null && containingStatement.GetFirstToken() != token)
+            {
+                indexOfLine = lines.IndexOf(containingStatement.GetFirstToken().SpanStart);
+                var line = lines[indexOfLine];
+                token = root.FindToken(line.Start);
+            }
+
+            return token;
+        }
+
+        private SyntaxToken GetAdjustedTokenForPragmaRestore(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
+        {
+            var containingStatement = GetContainingStatement(token);
+            while (true)
+            {
+                if (TokenHasTrailingLineContinuationChar(token))
+                {
+                    indexOfLine = indexOfLine + 1;
+                }
+                else if (containingStatement is not null && containingStatement.GetLastToken() != token)
+                {
+                    indexOfLine = lines.IndexOf(containingStatement.GetLastToken().SpanStart);
+                    containingStatement = null;
+                }
+                else
+                {
+                    break;
+                }
+
+                var line = lines[indexOfLine];
+                token = root.FindToken(line.End);
+            }
+
+            return token;
+        }
 
         public Task<ImmutableArray<CodeFix>> GetFixesAsync(
             Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)

@@ -101,6 +101,45 @@ line"";
 }}");
                 }
 
+                [WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")]
+                [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+                public async Task TestPragmaWarningDirectiveAroundMultiLineInterpolatedString()
+                {
+                    await TestAsync(
+            @"
+using System;
+
+[Obsolete]
+class Session { }
+
+class Class
+{
+    void Method()
+    {
+        var s = $@""
+hi {[|new Session()|]}
+"";
+    }
+}",
+            $@"
+using System;
+
+[Obsolete]
+class Session {{ }}
+
+class Class
+{{
+    void Method()
+    {{
+#pragma warning disable CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+        var s = $@""
+hi {{new Session()}}
+"";
+#pragma warning restore CS0612 // {CSharpResources.WRN_DeprecatedSymbol_Title}
+    }}
+}}");
+                }
+
                 [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
                 public async Task TestMultilineStatementPragmaWarningDirective()
                 {
@@ -121,8 +160,8 @@ class Class
     {{
 #pragma warning disable CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
         int x = 0
-#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
               + 1;
+#pragma warning restore CS0219 // {CSharpResources.WRN_UnreferencedVarAssg_Title}
     }}
 }}");
                 }

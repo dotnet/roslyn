@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
@@ -253,23 +254,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             return SyntaxFactory.Trivia(newPragmaWarning);
         }
 
-        protected override SyntaxToken GetAdjustedTokenForPragmaRestore(
-            SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
+        protected override SyntaxToken GetAdjustedTokenForPragmaDisable(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
         {
-            var nextToken = token.GetNextToken();
-            if (nextToken.Kind() == SyntaxKind.SemicolonToken &&
-                nextToken.Parent is StatementSyntax statement &&
-                statement.GetLastToken() == nextToken &&
-                token.Parent.FirstAncestorOrSelf<StatementSyntax>() == statement)
+            // normally we find the parent statement for the token but if the token is a close brace
+            // that could expand to a very large block, so we skip it and just return the token itself
+            if (token.IsKind(SyntaxKind.CloseBraceToken))
             {
-                // both the current and next tokens belong to the same statement, and the next token
-                // is the final semicolon in a statement.  Do not put the pragma before that
-                // semicolon.  Place it after the semicolon so the statement stays whole.
-
-                return nextToken;
+                return token;
             }
 
-            return token;
+            return base.GetAdjustedTokenForPragmaDisable(token, root, lines, indexOfLine);
         }
+
+        protected override SyntaxNode GetContainingStatement(SyntaxToken token)
+            => token.GetAncestor<StatementSyntax>();
+
+        protected override bool TokenHasTrailingLineContinuationChar(SyntaxToken token)
+            => false;
     }
 }

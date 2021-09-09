@@ -374,6 +374,60 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
+                <WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                Public Async Function TestMultilineInterpolatedString() As Task
+                    Dim source = <![CDATA[
+Imports System
+<Obsolete>
+Class C
+End Class
+
+Module Module1
+    Sub Main
+        Dim s = $"
+Hi {[|new C()|]}
+"
+    End Sub
+End Module]]>
+                    Dim expected = $"
+Imports System
+<Obsolete>
+Class C
+End Class
+
+Module Module1
+    Sub Main
+#Disable Warning BC40008 ' {VBResources.WRN_UseOfObsoleteSymbolNoMessage1_Title}
+        Dim s = $""
+Hi {{new C()}}
+""
+#Enable Warning BC40008 ' {VBResources.WRN_UseOfObsoleteSymbolNoMessage1_Title}
+    End Sub
+End Module"
+
+                    Await TestAsync(source.Value, expected)
+
+                    ' Also verify that the added directive does indeed suppress the diagnostic.
+                    Dim fixedSource = <![CDATA[
+Imports System
+<Obsolete>
+Class C
+End Class
+
+Module Module1
+    Sub Main
+#Disable Warning BC40008 ' Type or member is obsolete
+        Dim s = $"
+Hi {[|new C()|]}
+"
+#Enable Warning BC40008 ' Type or member is obsolete
+    End Sub
+End Module]]>
+
+                    Await TestMissingAsync(fixedSource.Value)
+                End Function
+
                 <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveWithExistingTrivia() As Task
