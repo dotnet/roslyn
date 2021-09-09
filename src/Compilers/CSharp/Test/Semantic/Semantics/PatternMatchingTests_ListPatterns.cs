@@ -750,9 +750,13 @@ class X
 " + TestSources.GetSubArray;
             var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns);
             compilation.MakeMemberMissing(SpecialMember.System_Array__Length);
-            // PROTOTYPE(list-patterns) Missing diagnostic on missing member
-            compilation.VerifyEmitDiagnostics();
-            CompileAndVerify(compilation);
+            compilation.VerifyEmitDiagnostics(
+                // (6,18): error CS0656: Missing compiler required member 'System.Array.Length'
+                //         _ = a is [0];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[0]").WithArguments("System.Array", "Length").WithLocation(6, 18),
+                // (7,18): error CS0656: Missing compiler required member 'System.Array.Length'
+                //         _ = a is [.._];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[.._]").WithArguments("System.Array", "Length").WithLocation(7, 18));
         }
 
         [Fact]
