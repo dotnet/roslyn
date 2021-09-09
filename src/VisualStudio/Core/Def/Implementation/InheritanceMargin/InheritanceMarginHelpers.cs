@@ -354,9 +354,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 }
             }
 
-            var toolTipTextBlock = inlinesBuilder.ToTextBlock(classificationFormatMap);
-            toolTipTextBlock.FlowDirection = FlowDirection.LeftToRight;
-            return toolTipTextBlock;
+            // 3. Generate the textBlock by using the generated inlines.
+            // This textBlock will later be used to shown as the tooltip content of inheritance margin glyph
+            var textBlock = inlinesBuilder.ToTextBlock(classificationFormatMap);
+            textBlock.FlowDirection = FlowDirection.LeftToRight;
+            return textBlock;
         }
     }
 }
