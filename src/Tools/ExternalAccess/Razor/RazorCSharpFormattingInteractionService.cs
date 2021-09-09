@@ -74,5 +74,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
             return formattingService.GetFormattingChangesOnPasteAsync(document, textSpan, documentOptions, cancellationToken);
         }
+
+        /// <summary>
+        /// Returns the text changes necessary to format the document after the user enters a Return
+        /// The position provided is the position of the caret in the document after Return.
+        /// </summary>
+        public static Task<ImmutableArray<TextChange>> GetFormattingChangesOnReturnAsync(
+            Document document,
+            int position,
+            DocumentOptionSet? documentOptions,
+            CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
+            var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
+            return formattingService.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken);
+        }
     }
 }
