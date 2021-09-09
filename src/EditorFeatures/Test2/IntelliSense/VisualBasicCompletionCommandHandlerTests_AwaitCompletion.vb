@@ -622,5 +622,77 @@ End Class
                 Await state.AssertLineTextAroundCaret($"        {committed}", "")
             End Using
         End Function
+
+        <WpfFact>
+        Public Async Function DotAwaitCompletionInQueryInFirstFromClause() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Dim arrayTask1 = Task.FromResult(new Integer() {})
+        Dim qry = From i in arrayTask1.$$
+    End Function
+End Class
+]]>
+                </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Await", "Awaitf")
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Dim arrayTask1 = Task.FromResult(new Integer() {})
+        Dim qry = From i in Await arrayTask1
+    End Function
+End Class
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        Dim qry = From i in Await arrayTask1", "")
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function DotAwaitCompletionInQueryInFirstFromClauseConfigureAwait() As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Dim arrayTask1 = Task.FromResult(new Integer() {})
+        Dim qry = From i in arrayTask1.$$
+    End Function
+End Class
+]]>
+                </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("Await", "Awaitf")
+                state.SendTypeChars("af")
+                Await state.AssertSelectedCompletionItem(displayText:="Awaitf", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Dim arrayTask1 = Task.FromResult(new Integer() {})
+        Dim qry = From i in Await arrayTask1.ConfigureAwait(False)
+    End Function
+End Class
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        Dim qry = From i in Await arrayTask1.ConfigureAwait(False)", "")
+            End Using
+        End Function
     End Class
 End Namespace
