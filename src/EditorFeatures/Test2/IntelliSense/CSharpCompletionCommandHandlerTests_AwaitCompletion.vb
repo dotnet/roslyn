@@ -640,65 +640,73 @@ public class C
             End Using
         End Function
 
-        ' expressionAndCommitted explained:
-        ' expressionAndCommitted(0): the expression template before completion starts
-        ' expressionAndCommitted(1): the committed template text after completion
-        ' template markers:
-        ' ASYNC: if makeAsync, the modifier is removed, so the completion provider can add it
-        ' $$ in expressionAndCommitted(0): the cursor position
-        ' $$ in expressionAndCommitted(1): the cursor position after commit. If appendConfigureAwait,
-        ' ConfigureAwait(false) is expected to be inserted here and the cursor is after the ConfigureAwait(false)
-        <WpfTheory, CombinatorialData>
-        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpressionInLambdas(<CombinatorialValues(
-                {
-                "await Task.Run(ASYNC () => Task.CompletedTask.$$",
-                "await Task.Run(async () => await Task.CompletedTask$$"
-                },
-                {
-                "await Task.Run(ASYNC () => Task.CompletedTask.aw$$",
-                "await Task.Run(async () => await Task.CompletedTask$$"
-                },
-                {
-                "await Task.Run(ASYNC () => someTask.$$",
-                "await Task.Run(async () => await someTask$$"
-                },
-                {
-                "await Task.Run(ASYNC () => someTask.$$);",
-                "await Task.Run(async () => await someTask$$);"
-                },
-                {
-                "await Task.Run(ASYNC () => someTask.aw$$);",
-                "await Task.Run(async () => await someTask$$);"
-                },
-                {
-                "await Task.Run(ASYNC () => {someTask.$$}",
-                "await Task.Run(async () => {await someTask$$}"
-                },
-                {
-                "await Task.Run(ASYNC () => {someTask.$$});",
-                "await Task.Run(async () => {await someTask$$});"
-                },
-                {
-                "await Task.Run(ASYNC () => someTask.   $$  );",
-                "await Task.Run(async () => await someTask$$  );"
-                },
-                {
-                "await Task.Run(ASYNC () => someTask  .   $$    );",
-                "await Task.Run(async () => await someTask  $$    );"
-                },
-                {
-                "await Task.Run(ASYNC () => someTask.$$.);",
-                "await Task.Run(async () => await someTask$$.);"
-                },
-                {
-                "Task.Run(async () => await someTask).$$",
-                "await Task.Run(async () => await someTask)$$"
-                }
-                )> expressionAndCommitted As String(), makeAsync As Boolean, appendConfigureAwait As Boolean) As Task
+        <WpfTheory>
+        <InlineData(
+            "await Task.Run(async () => Task.CompletedTask.$$",
+            "await Task.Run(async () => await Task.CompletedTask$$")>
+        <InlineData(
+            "await Task.Run(() => Task.CompletedTask.$$",
+            "await Task.Run(async () => await Task.CompletedTask$$")>
+        <InlineData(
+            "await Task.Run(async () => Task.CompletedTask.aw$$",
+            "await Task.Run(async () => await Task.CompletedTask$$")>
+        <InlineData(
+            "await Task.Run(() => Task.CompletedTask.aw$$",
+            "await Task.Run(async () => await Task.CompletedTask$$")>
+        <InlineData(
+            "await Task.Run(async () => someTask.$$",
+            "await Task.Run(async () => await someTask$$")>
+        <InlineData(
+            "await Task.Run(() => someTask.$$",
+            "await Task.Run(async () => await someTask$$")>
+        <InlineData(
+            "await Task.Run(async () => someTask.$$);",
+            "await Task.Run(async () => await someTask$$);")>
+        <InlineData(
+            "await Task.Run(() => someTask.$$);",
+            "await Task.Run(async () => await someTask$$);")>
+        <InlineData(
+            "await Task.Run(async () => someTask.aw$$);",
+            "await Task.Run(async () => await someTask$$);")>
+        <InlineData(
+            "await Task.Run(() => someTask.aw$$);",
+            "await Task.Run(async () => await someTask$$);")>
+        <InlineData(
+            "await Task.Run(async () => {someTask.$$}",
+            "await Task.Run(async () => {await someTask$$}")>
+        <InlineData(
+            "await Task.Run(() => {someTask.$$}",
+            "await Task.Run(async () => {await someTask$$}")>
+        <InlineData(
+            "await Task.Run(async () => {someTask.$$});",
+            "await Task.Run(async () => {await someTask$$});")>
+        <InlineData(
+            "await Task.Run(() => {someTask.$$});",
+            "await Task.Run(async () => {await someTask$$});")>
+        <InlineData(
+            "await Task.Run(async () => someTask.   $$  );",
+            "await Task.Run(async () => await someTask$$  );")>
+        <InlineData(
+            "await Task.Run(() => someTask.   $$  );",
+            "await Task.Run(async () => await someTask$$  );")>
+        <InlineData(
+            "await Task.Run(async () => someTask  .   $$    );",
+            "await Task.Run(async () => await someTask  $$    );")>
+        <InlineData(
+            "await Task.Run(() => someTask  .   $$    );",
+            "await Task.Run(async () => await someTask  $$    );")>
+        <InlineData(
+            "await Task.Run(async () => someTask.$$.);",
+            "await Task.Run(async () => await someTask$$.);")>
+        <InlineData(
+            "await Task.Run(() => someTask.$$.);",
+            "await Task.Run(async () => await someTask$$.);")>
+        <InlineData(
+            "Task.Run(async () => await someTask).$$",
+            "await Task.Run(async () => await someTask)$$")>
+        Public Async Function DotAwaitCompletionAddsAwaitInFrontOfExpressionInLambdas(expression As String, committed As String) As Task
 
-            Dim expression = expressionAndCommitted(0).Replace("ASYNC ", If(makeAsync, "", "async "))
-            Using state = TestStateFactory.CreateCSharpTestState(
-<Document>
+            Dim document As XElement = <Document>
 using System.Threading.Tasks;
 
 static class Program
@@ -709,18 +717,19 @@ static class Program
         <%= expression %>
     }
 }
-</Document>)
+</Document>
+            ' Test await completion
+            Using state = TestStateFactory.CreateCSharpTestState(document)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("await", "awaitf")
                 state.SendTypeChars("a")
-                state.SendTypeChars(If(appendConfigureAwait, "f", "w"))
-                Await state.AssertSelectedCompletionItem(If(appendConfigureAwait, "awaitf", "await"))
+                state.SendTypeChars("w")
+                Await state.AssertSelectedCompletionItem("await")
 
                 state.SendTab()
-                Dim committedTemplate = expressionAndCommitted(1)
-                Dim committed = committedTemplate.Replace("$$", If(appendConfigureAwait, ".ConfigureAwait(false)$$", "$$"))
-                Dim committedCursorPosition = committed.IndexOf("$$")
-                committed = committed.Replace("$$", "")
+                Dim committedAwait = committed
+                Dim committedCursorPosition = committedAwait.IndexOf("$$")
+                committedAwait = committedAwait.Replace("$$", "")
                 Assert.Equal($"
 using System.Threading.Tasks;
 
@@ -729,11 +738,39 @@ static class Program
     static async Task Main()
     {{
         var someTask = Task.CompletedTask;
-        {committed}
+        {committedAwait}
     }}
 }}
 ", state.GetDocumentText())
-                Await state.AssertLineTextAroundCaret($"        {committed.Substring(0, committedCursorPosition)}", $"{committed.Substring(committedCursorPosition)}")
+                Await state.AssertLineTextAroundCaret($"        {committedAwait.Substring(0, committedCursorPosition)}", committedAwait.Substring(committedCursorPosition))
+            End Using
+
+            ' Test awaitf completion
+            Using state = TestStateFactory.CreateCSharpTestState(document)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("await", "awaitf")
+                state.SendTypeChars("a")
+                state.SendTypeChars("f")
+                Await state.AssertSelectedCompletionItem("awaitf")
+
+                state.SendTab()
+                ' In the awaitf case, .ConfigureAwait(false) is inserted at the cursor position and the cursor is expected to be right after .ConfigureAwait(false)
+                Dim committedAwaitf = committed.Replace("$$", ".ConfigureAwait(false)$$")
+                Dim committedCursorPosition = committedAwaitf.IndexOf("$$")
+                committedAwaitf = committedAwaitf.Replace("$$", "")
+                Assert.Equal($"
+using System.Threading.Tasks;
+
+static class Program
+{{
+    static async Task Main()
+    {{
+        var someTask = Task.CompletedTask;
+        {committedAwaitf}
+    }}
+}}
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret($"        {committedAwaitf.Substring(0, committedCursorPosition)}", committedAwaitf.Substring(committedCursorPosition))
             End Using
         End Function
 
@@ -751,7 +788,7 @@ public class C
     }
 }
 ]]>
-                </Document>)
+                                            </Document>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("await")
                 Await state.AssertCompletionItemsDoNotContainAny("awaitf")
@@ -788,7 +825,7 @@ public class C
     }
 }
 ]]>
-                </Document>)
+                                                </Document>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("await", "awaitf")
                 state.SendTypeChars("af")
@@ -824,7 +861,7 @@ public class C
     public void MyFunctionCall() {}
 }
 ]]>
-                </Document>)
+                                                    </Document>)
                 state.SendTypeChars("aw")
                 Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
 
