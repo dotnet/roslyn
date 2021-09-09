@@ -78,8 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (semanticModel.GetOperation(currentInvocation, cancellationToken) is IInvocationOperation invocation)
             {
                 var infoCache = new InfoCache(semanticModel.Compilation);
-                var resultOpt = AnalyzeInvocation(
-                    invocation, infoCache, analyzerOptionsOpt: null, cancellationToken);
+                var resultOpt = AnalyzeInvocation(invocation, infoCache);
 
                 if (resultOpt != null)
                 {
