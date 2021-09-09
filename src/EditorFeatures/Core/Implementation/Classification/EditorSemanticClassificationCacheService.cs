@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public async Task<ImmutableArray<ClassifiedSpan>> GetCachedSemanticClassificationsAsync(
             Document document,
             TextSpan textSpan,
-            Checksum checksum,
             CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
@@ -39,7 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return default;
             }
 
-            var documentKey = SemanticClassificationCacheUtilities.GetDocumentKeyForCaching(document);
+            var (documentKey, checksum) = await SemanticClassificationCacheUtilities.GetDocumentKeyAndChecksumAsync(
+                document, cancellationToken).ConfigureAwait(false);
+
             var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService, SerializableClassifiedSpans?>(
                 (service, cancellationToken) => service.GetCachedSemanticClassificationsAsync(documentKey, textSpan, checksum, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
