@@ -96,7 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return null;
             }
 
-            CodeStyleOption2<bool>? option = null;
             // Check if we're at least on C# 8, and that the user wants these operators.
             var syntaxTree = invocationSyntax.SyntaxTree;
             var parseOptions = (CSharpParseOptions)syntaxTree.Options;
