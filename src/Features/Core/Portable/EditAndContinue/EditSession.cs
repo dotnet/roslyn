@@ -708,6 +708,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _4 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
                 using var _5 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
                 using var _6 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
+                Diagnostic? syntaxError = null;
 
                 var oldSolution = DebuggingSession.LastCommittedSolution;
 
@@ -783,6 +784,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
                     if (projectSummary == ProjectAnalysisSummary.CompilationErrors)
                     {
+                        // only remember the first syntax error we encounter:
+                        syntaxError ??= changedDocumentAnalyses.FirstOrDefault(a => a.SyntaxError != null)?.SyntaxError;
                         isBlocked = true;
                     }
                     else if (projectSummary == ProjectAnalysisSummary.RudeEdits)
@@ -921,7 +924,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var update = isBlocked ?
-                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable()) :
+                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError) :
                     new SolutionUpdate(
                         new ManagedModuleUpdates(
                             (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
@@ -929,7 +932,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         nonRemappableRegions.ToImmutable(),
                         emitBaselines.ToImmutable(),
                         diagnostics.ToImmutable(),
-                        documentsWithRudeEdits.ToImmutable());
+                        documentsWithRudeEdits.ToImmutable(),
+                        syntaxError);
 
                 return update;
             }
