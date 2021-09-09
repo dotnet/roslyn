@@ -1485,7 +1485,7 @@ class X
 using System;
 class X
 {
-    public void M(int[] a)
+    public void M(int[] a, int[,] mdarray)
     {
         _ = a is [] and [1];          // 1
         _ = a is [1] and [1];
@@ -1511,7 +1511,9 @@ class X
         _ = a is [_, _, ..{ Length: >= int.MaxValue - 1 }]; // 13
         _ = a is [_, _, ..{ Length: < int.MaxValue - 1 }];
         _ = a is [_, _, ..{ Length: > int.MaxValue - 1 }]; // 14
+        _ = a is { LongLength: -1 };
         _ = (Array)a is { Length: -1 };
+        _ = mdarray is { Length: -1 };
     } 
 }
 ";

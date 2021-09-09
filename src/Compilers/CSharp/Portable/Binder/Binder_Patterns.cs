@@ -1458,7 +1458,7 @@ done:
                         isLengthOrCount = receiverType.TypeKind switch
                         {
                             TypeKind.Error => false,
-                            TypeKind.Array => ReferenceEquals(memberSymbol, ((MethodSymbol?)GetWellKnownTypeMember(WellKnownMember.System_Array__get_Length, BindingDiagnosticBag.Discarded, syntax: node))?.AssociatedSymbol),
+                            TypeKind.Array => ((ArrayTypeSymbol)receiverType).IsSZArray && ReferenceEquals(memberSymbol, Compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length)),
                             _ => TryPerformPatternIndexerLookup(node, receiverType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, lengthProperty: out _, BindingDiagnosticBag.Discarded),
                         };
                     }
