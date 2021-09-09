@@ -5,6 +5,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
 {
@@ -32,6 +33,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
         {
             Caption = "Callstack Explorer";
             Content = _root;
+        }
+
+        public override void OnToolWindowCreated()
+        {
+            if (ViewModel is not null)
+            {
+                // Paste from the clipboard on toolwindow creation
+                ViewModel.OnPaste();
+            }
+            else if (Frame is IVsWindowFrame windowFrame)
+            {
+                // If we're not initialized don't show the frame
+                windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
+            }
         }
     }
 }

@@ -13,13 +13,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.CallstackExplorer;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
@@ -29,12 +32,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
         private readonly ParsedLine _line;
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
+        private readonly IClassificationFormatMap _formatMap;
+        private readonly ClassificationTypeMap _classificationTypeMap;
 
-        public CallstackLineViewModel(ParsedLine line, IThreadingContext threadingContext, Workspace workspace)
+        private ISymbol? _cachedSymbol;
+        private Document? _cachedDocument;
+        private int _cachedLineNumber;
+
+        public CallstackLineViewModel(
+            ParsedLine line,
+            IThreadingContext threadingContext,
+            Workspace workspace,
+            IClassificationFormatMap formatMap,
+            ClassificationTypeMap classificationTypeMap)
         {
             _line = line;
             _threadingContext = threadingContext;
             _workspace = workspace;
+            _formatMap = formatMap;
+            _classificationTypeMap = classificationTypeMap;
         }
 
         public ImmutableArray<Inline> Inlines => CalculateInlines().ToImmutableArray();
@@ -42,19 +58,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
         private IEnumerable<Inline> CalculateInlines()
         {
             var textUntilSymbol = _line.OriginalLine[.._line.ClassSpan.Start];
-            yield return new Run(textUntilSymbol);
+            yield return MakeClassifiedRun(ClassificationTypeNames.Text, textUntilSymbol);
 
             var classText = _line.OriginalLine[_line.ClassSpan.Start.._line.ClassSpan.End];
 
             var classLink = new Hyperlink();
-            classLink.Inlines.Add(classText);
+            classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, classText));
             classLink.Click += (s, a) => NavigateToClass();
             classLink.RequestNavigate += (s, a) => NavigateToClass();
             yield return classLink;
 
-            var methodText = _line.OriginalLine[_line.MethodSpan.Start.._line.ArgsSpan.End];
+            // +1 to the argspan end because we want to include the closing paren
+            var methodText = _line.OriginalLine[_line.MethodSpan.Start..(_line.ArgsSpan.End + 1)];
             var methodLink = new Hyperlink();
-            methodLink.Inlines.Add(methodText);
+            var methodClassifiedText = new ClassifiedText(ClassificationTypeNames.MethodName, methodText);
+            methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, methodText));
             methodLink.Click += (s, a) => NavigateToSymbol();
             methodLink.RequestNavigate += (s, a) => NavigateToSymbol();
             yield return methodLink;
@@ -71,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
 
                 var fileText = _line.OriginalLine[fileLineResult.FileSpan.Start..fileLineResult.FileSpan.End];
                 var fileHyperlink = new Hyperlink();
-                fileHyperlink.Inlines.Add(fileText);
+                fileHyperlink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileText));
                 fileHyperlink.RequestNavigate += (s, e) => NavigateToFile();
                 fileHyperlink.Click += (s, e) => NavigateToFile();
                 yield return fileHyperlink;
@@ -79,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
                 var end = fileLineResult.FileSpan.End;
                 if (end < _line.OriginalLine.Length)
                 {
-                    yield return new Run(_line.OriginalLine[..end]);
+                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _line.OriginalLine[..end]);
                 }
             }
             else
@@ -87,22 +105,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
                 var end = _line.ArgsSpan.End;
                 if (end < _line.OriginalLine.Length)
                 {
-                    yield return new Run(_line.OriginalLine[..end]);
+                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _line.OriginalLine[..end]);
                 }
             }
         }
 
-        private void NavigateToClass()
+        private Run MakeClassifiedRun(string classificationName, string text)
+        {
+            var classifiedText = new ClassifiedText(classificationName, text);
+            return classifiedText.ToRun(_formatMap, _classificationTypeMap);
+        }
+
+        public void NavigateToClass()
         {
             var cancellationToken = _threadingContext.DisposalToken;
             Task.Run(() => NavigateToClassAsync(cancellationToken), cancellationToken);
         }
 
-        private async Task NavigateToClassAsync(CancellationToken cancellationToken)
+        public async Task NavigateToClassAsync(CancellationToken cancellationToken)
         {
             try
             {
-                var symbol = await _line.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                var symbol = await GetSymbolAsync(cancellationToken).ConfigureAwait(false);
 
                 if (symbol is not { ContainingSymbol: not null })
                 {
@@ -141,13 +165,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
             }
         }
 
-        private void NavigateToSymbol()
+        public void NavigateToSymbol()
         {
             var cancellationToken = _threadingContext.DisposalToken;
             Task.Run(() => NavigateToMethodAsync(cancellationToken), cancellationToken);
         }
 
-        private async Task NavigateToMethodAsync(CancellationToken cancellationToken)
+        public async Task NavigateToMethodAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -187,24 +211,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
             }
         }
 
-        private void NavigateToFile()
+        public void NavigateToFile()
         {
             var cancellationToken = _threadingContext.DisposalToken;
             Task.Run(() => NavigateToFileAsync(cancellationToken), cancellationToken);
         }
 
-        private async Task NavigateToFileAsync(CancellationToken cancellationToken)
+        public async Task NavigateToFileAsync(CancellationToken cancellationToken)
         {
             try
             {
-                var potentialMatches = GetFileMatches(out var lineNumber);
+                var document = GetDocument(out var lineNumber);
 
-                // If the document didn't match exactly but we have potential matches, navigate
-                // to the first match available. This isn't great, but will work for now.
-                if (potentialMatches.Any())
+                if (document is not null)
                 {
-                    var document = potentialMatches.First();
-
                     // While navigating do not activate the tab, which will change focus from the tool window
                     var options = _workspace.Options
                             .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
@@ -227,6 +247,35 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
             {
             }
+        }
+
+        private Document? GetDocument(out int lineNumber)
+        {
+            if (_cachedDocument is not null)
+            {
+                lineNumber = _cachedLineNumber;
+                return _cachedDocument;
+            }
+
+            var potentialMatches = GetFileMatches(out _cachedLineNumber);
+            if (potentialMatches.Any())
+            {
+                _cachedDocument = potentialMatches.First();
+            }
+
+            lineNumber = _cachedLineNumber;
+            return _cachedDocument;
+        }
+
+        private async Task<ISymbol?> GetSymbolAsync(CancellationToken cancellationToken)
+        {
+            if (_cachedSymbol is not null)
+            {
+                return _cachedSymbol;
+            }
+
+            _cachedSymbol = await _line.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+            return _cachedSymbol;
         }
 
         private ImmutableArray<Document> GetFileMatches(out int lineNumber)

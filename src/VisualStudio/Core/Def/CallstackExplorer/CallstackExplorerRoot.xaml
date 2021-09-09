@@ -4,9 +4,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.CallstackExplorer"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             Resources="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogDefaultStylesKey}}">
     <Grid x:Name="RootGrid">
         <TextBlock Text="{Binding EmptyText}" x:Name="EmptyTextMessage"/>
     </Grid>

@@ -13,14 +13,9 @@
             <CommandBinding Command="{x:Static ApplicationCommands.Paste}" Executed="CommandBinding_Executed"/>
         </Grid.CommandBindings>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Grid.Row="0">
-            <Button Content="Add from clipboard" Click="Button_Click" />
-            <Button Content="Clear" Click="Button_Click_1" />
-        </StackPanel>
-        <ListView ItemsSource="{Binding CallstackLines}" Grid.Row="1">
+        <ListView ItemsSource="{Binding CallstackLines}" Grid.Row="0" SelectedItem="{Binding Selection, Mode=TwoWay}" MouseDoubleClick="ListViewItem_MouseDoubleClick">
             <ListView.ItemTemplate>
                 <DataTemplate DataType="{x:Type local:CallstackLineViewModel}">
                     <utils:BindableTextBlock InlineCollection="{Binding Inlines}" />

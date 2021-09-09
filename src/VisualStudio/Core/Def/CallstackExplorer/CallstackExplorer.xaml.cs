@@ -25,26 +25,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
         private void OnPaste(object sender, DataObjectPastingEventArgs e)
             => OnPaste();
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-            => OnPaste();
-
         private void CommandBinding_Executed(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
             => OnPaste();
 
         private void OnPaste()
         {
-            _viewModel.CallstackLines.Clear();
-            var textObject = Clipboard.GetData(DataFormats.Text);
-
-            if (textObject is string text)
-            {
-                _viewModel.OnPaste(text);
-            }
+            _viewModel.OnPaste();
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void ListViewItem_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            _viewModel.CallstackLines.Clear();
+            _viewModel.Selection?.NavigateToSymbol();
         }
     }
 }
