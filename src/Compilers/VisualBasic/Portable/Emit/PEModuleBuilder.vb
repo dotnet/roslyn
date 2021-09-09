@@ -637,6 +637,89 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return container.GetSynthesizedNestedTypes()
         End Function
 
+        Public Overrides Function GetTypeToDebugDocumentMap(context As EmitContext) As MultiDictionary(Of Cci.ITypeDefinition, Cci.DebugSourceDocument)
+            Dim result = New MultiDictionary(Of Cci.ITypeDefinition, Cci.DebugSourceDocument)(DirectCast(Cci.SymbolEquivalentEqualityComparer.Instance, IEqualityComparer(Of Cci.IReference)))
+
+            Dim namespacesAndTypesToProcess = New Stack(Of NamespaceOrTypeSymbol)()
+            namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace)
+
+            While namespacesAndTypesToProcess.Count > 0
+                Dim symbol = namespacesAndTypesToProcess.Pop()
+
+                If symbol.Locations.Length = 0 Then
+                    Continue While
+                End If
+
+                Select Case symbol.Kind
+                    Case SymbolKind.Namespace
+                        Dim location = GetSmallestSourceLocationOrNull(symbol)
+
+                        ' filtering out synthesized symbols not having real source 
+                        ' locations such as anonymous types, my types, etc...
+                        If location IsNot Nothing Then
+                            For Each member In symbol.GetMembers()
+                                Select Case member.Kind
+                                    Case SymbolKind.Namespace, SymbolKind.NamedType
+                                        namespacesAndTypesToProcess.Push(DirectCast(member, NamespaceOrTypeSymbol))
+                                    Case Else
+                                        Throw ExceptionUtilities.UnexpectedValue(member.Kind)
+                                End Select
+                            Next
+                        End If
+
+                    Case SymbolKind.NamedType
+                        Dim allMethodsHaveIL As Boolean = False
+                        Dim docList = GetDocumentsForMethods(symbol, context, allMethodsHaveIL)
+
+                        If Not allMethodsHaveIL Then
+                            Dim typeDefinition = DirectCast(symbol.GetCciAdapter(), Cci.ITypeDefinition)
+
+                            For Each loc In symbol.Locations
+                                If Not loc.IsInSource Then
+                                    Continue For
+                                End If
+
+                                Dim span = loc.GetLineSpan()
+                                Dim debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=loc.SourceTree.FilePath)
+
+                                If Not docList.Contains(debugDocument) Then
+                                    result.Add(typeDefinition, debugDocument)
+                                End If
+                            Next
+                        End If
+
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(symbol.Kind)
+                End Select
+            End While
+
+            Return result
+        End Function
+
+        Private Shared Function GetDocumentsForMethods(ByVal typeSymbol As NamespaceOrTypeSymbol, ByVal context As EmitContext, <Out> ByRef allMethodsHaveIL As Boolean) As HashSet(Of Cci.DebugSourceDocument)
+            Dim docList = New HashSet(Of Cci.DebugSourceDocument)()
+            Dim typeDef = DirectCast(typeSymbol.GetCciAdapter(), Cci.ITypeDefinition)
+            Dim typeMethods = typeDef.GetMethods(context)
+            Dim foundMethodWithIL = False
+            Dim foundMethodWithoutIL = False
+
+            For Each method In typeMethods
+
+                If Cci.Extensions.HasBody(method) AndAlso Not method.GetBody(context).SequencePoints.IsEmpty Then
+                    foundMethodWithIL = True
+
+                    For Each point In method.GetBody(context).SequencePoints
+                        docList.Add(point.Document)
+                    Next
+                Else
+                    foundMethodWithoutIL = True
+                End If
+            Next
+
+            allMethodsHaveIL = foundMethodWithIL AndAlso Not foundMethodWithoutIL
+            Return docList
+        End Function
+
         Public Sub SetDisableJITOptimization(methodSymbol As MethodSymbol)
             Debug.Assert(methodSymbol.ContainingModule Is Me.SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
 
