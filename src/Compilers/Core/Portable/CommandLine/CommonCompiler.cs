@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis
         {
             GeneratorDriver? driver = null;
             string cacheKey = string.Empty;
-            bool disableCache = Arguments.ParseOptions.Features.ContainsKey("disable-generator-cache") || string.IsNullOrWhiteSpace(Arguments.OutputFileName);
+            bool disableCache = !Arguments.ParseOptions.Features.ContainsKey("enable-generator-cache") || string.IsNullOrWhiteSpace(Arguments.OutputFileName);
             if (this.GeneratorDriverCache is object && !disableCache)
             {
                 cacheKey = deriveCacheKey();

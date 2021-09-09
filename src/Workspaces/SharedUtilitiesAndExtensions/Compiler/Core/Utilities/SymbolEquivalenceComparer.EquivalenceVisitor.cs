@@ -332,6 +332,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
 
+                if (x.IsTupleType != y.IsTupleType)
+                    return false;
+
                 if (x.IsTupleType)
                     return HandleTupleTypes(x, y, equivalentTypesWithDifferingAssemblies);
 
@@ -340,7 +343,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     x.Name != y.Name ||
                     x.IsAnonymousType != y.IsAnonymousType ||
                     x.IsUnboundGenericType != y.IsUnboundGenericType ||
-                    x.IsTupleType != y.IsTupleType ||
                     !NullableAnnotationsEquivalent(x, y))
                 {
                     return false;
