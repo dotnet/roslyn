@@ -18,17 +18,11 @@ pr:
 - features/*
 - demos/*
 
-parameters:
-- name: queueName
-  displayName: Queue Name
-  type: string
-  default: 'Build.Windows.Amd64.VS2022.Pre.Open'
-
 jobs:
 - job: VS_Integration_LSP
   pool:
     name: NetCore1ESPool-Svc-Public
-    demands: ImageOverride -equals ${{ parameters.queueName }}
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 135
 
   steps:
