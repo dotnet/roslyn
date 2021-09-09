@@ -429,7 +429,7 @@ End Class
         End Function
 
         <Fact>
-        Public Async Function DotAwaitQueryNotInSecondFirstFromClause_1() As Task
+        Public Async Function DotAwaitQueryNotInSecondFromClause_1() As Task
             Await VerifyNoItemsExistAsync("
 Imports System.Linq
 Imports System.Threading.Tasks
@@ -447,7 +447,7 @@ End Class
         End Function
 
         <Fact>
-        Public Async Function DotAwaitQueryNotInSecondFirstFromClause_2() As Task
+        Public Async Function DotAwaitQueryNotInSecondFromClause_2() As Task
             Await VerifyNoItemsExistAsync("
 Imports System.Linq
 Imports System.Threading.Tasks
@@ -464,7 +464,43 @@ End Class
         End Function
 
         <Fact>
-        Public Async Function DotAwaitQueryNotInSecondFirstFromClause_2() As Task
+        Public Async Function DotAwaitQueryNotInSecondFromClause_3() As Task
+            Await VerifyNoItemsExistAsync("
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Dim array1 = new Integer() {}
+        Dim arrayTask2 = Task.FromResult(new Integer() {})
+
+        Dim qry = From i1 In array1
+                  From i2 In array1, i2 In arrayTask2.$$
+    End Function
+End Class
+")
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitQueryNotInSecondFromClause_4() As Task
+            Await VerifyNoItemsExistAsync("
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Dim array1 = new Integer() {}
+        Dim arrayTask2 = Task.FromResult(new Integer() {})
+
+        Dim qry = From i1 In array1, i2 In array1
+                  From i3 In arrayTask2.$$
+    End Function
+End Class
+")
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitQueryInJoinClause() As Task
             Await VerifyAwaitKeyword("
 Imports System.Linq
 Imports System.Threading.Tasks
@@ -477,6 +513,25 @@ Class C
         Dim qry = From i1 In array1
                   Join i2 In arrayTask2.$$
                   On i1 Equals i2
+    End Function
+End Class
+", dotAwait:=True, dotAwaitf:=True)
+        End Function
+
+        <Fact>
+        Public Async Function DotAwaitQueryInGroupJoinClause() As Task
+            Await VerifyAwaitKeyword("
+Imports System.Linq
+Imports System.Threading.Tasks
+
+Class C
+    Private Async Function F() As Task
+        Dim array1 = new Integer() {}
+        Dim arrayTask2 = Task.FromResult(new Integer() {})
+
+        Dim qry = From i1 In array1
+                  Group Join i2 In arrayTask2.$$
+                  On i1 Equals i2 Into g = Group
     End Function
 End Class
 ", dotAwait:=True, dotAwaitf:=True)
