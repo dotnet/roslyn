@@ -500,6 +500,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         string GetBannerText(SyntaxNode? documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken);
 
         SyntaxTokenList GetModifiers(SyntaxNode? node);
+
+        [return: NotNullIfNotNull("node")]
         SyntaxNode? WithModifiers(SyntaxNode? node, SyntaxTokenList modifiers);
 
         Location GetDeconstructionReferenceLocation(SyntaxNode node);

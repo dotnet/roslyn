@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             editor.ReplaceNode(nodeToReplace, nameOfSyntax);
         }
 
-        protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract SyntaxNode? GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken);
 
         protected abstract string GetCodeFixTitle();
 
