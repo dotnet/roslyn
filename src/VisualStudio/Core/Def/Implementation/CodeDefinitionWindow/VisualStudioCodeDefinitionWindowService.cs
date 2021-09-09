@@ -65,29 +65,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeDefinitionW
 
             int IVsCodeDefViewContext.GetSymbolName(uint iItem, out string pbstrSymbolName)
             {
-                pbstrSymbolName = _locations[GetIndex(iItem)].DisplayName;
+                pbstrSymbolName = GetItem(iItem).DisplayName;
                 return VSConstants.S_OK;
             }
 
             int IVsCodeDefViewContext.GetFileName(uint iItem, out string pbstrFilename)
             {
-                pbstrFilename = _locations[GetIndex(iItem)].FilePath;
+                pbstrFilename = GetItem(iItem).FilePath;
                 return VSConstants.S_OK;
             }
 
             int IVsCodeDefViewContext.GetLine(uint iItem, out uint piLine)
             {
-                piLine = (uint)_locations[GetIndex(iItem)].Position.Line;
+                piLine = (uint)GetItem(iItem).Position.Line;
                 return VSConstants.S_OK;
             }
 
             int IVsCodeDefViewContext.GetCol(uint iItem, out uint piCol)
             {
-                piCol = (uint)_locations[GetIndex(iItem)].Position.Character;
+                piCol = (uint)GetItem(iItem).Position.Character;
                 return VSConstants.S_OK;
             }
 
-            private int GetIndex(uint iItem)
+            private CodeDefinitionWindowLocation GetItem(uint iItem)
             {
                 var index = (int)iItem;
                 if (index < 0 || index >= _locations.Length)
@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeDefinitionW
                     throw new ArgumentOutOfRangeException(nameof(iItem));
                 }
 
-                return index;
+                return _locations[index];
             }
         }
     }
