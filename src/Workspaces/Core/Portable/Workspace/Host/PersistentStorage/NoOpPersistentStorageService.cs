@@ -23,24 +23,18 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
-        public static IPersistentStorageService GetOrThrow(OptionSet optionSet)
-            => optionSet.GetOption(StorageOptions.DatabaseMustSucceed)
+        public static IPersistentStorageService GetOrThrow(IPersistentStorageConfiguration configuration)
+            => configuration.ThrowOnFailure
                 ? throw new InvalidOperationException("Database was not supported")
                 : Instance;
 
         public IPersistentStorage GetStorage(Solution solution)
-            => NoOpPersistentStorage.GetOrThrow(solution.Options);
+            => NoOpPersistentStorage.GetOrThrow(throwOnFailure: false);
 
         public ValueTask<IPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken)
-            => new(NoOpPersistentStorage.GetOrThrow(solution.Options));
+            => new(GetStorage(solution));
 
-        ValueTask<IChecksummedPersistentStorage> IChecksummedPersistentStorageService.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
-            => new(NoOpPersistentStorage.GetOrThrow(solution.Options));
-
-        ValueTask<IChecksummedPersistentStorage> IChecksummedPersistentStorageService.GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
-            => new(NoOpPersistentStorage.GetOrThrow(solution.Options));
-
-        ValueTask<IChecksummedPersistentStorage> IChecksummedPersistentStorageService.GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
-            => new(NoOpPersistentStorage.GetOrThrow(workspace.Options));
+        ValueTask<IChecksummedPersistentStorage> IChecksummedPersistentStorageService.GetStorageAsync(SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
+            => new(NoOpPersistentStorage.GetOrThrow(throwOnFailure: false));
     }
 }
