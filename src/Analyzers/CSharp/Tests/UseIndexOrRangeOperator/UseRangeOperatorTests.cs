@@ -1074,7 +1074,6 @@ class C
             }.RunAsync();
         }
 
-
         [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestStartingFromAribtraryPosition()
@@ -1106,7 +1105,6 @@ class C
             }.RunAsync();
         }
 
-
         [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestStartingFromZeroToArbitraryEnd()
@@ -1137,7 +1135,6 @@ class C
                 FixedCode = fixedSource,
             }.RunAsync();
         }
-
 
         [WorkItem(56269, "https://github.com/dotnet/roslyn/issues/56269")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
