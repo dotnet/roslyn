@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public async ValueTask<(
                 ManagedModuleUpdates updates,
                 ImmutableArray<DiagnosticData> diagnostics,
-                ImmutableArray<(DocumentId documentId, ImmutableArray<RudeEditDiagnostic> diagnostics)>,
+                ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
                 DiagnosticData? syntaxError)> EmitSolutionUpdateAsync(
             Solution solution,
             ActiveStatementSpanProvider activeStatementSpanProvider,

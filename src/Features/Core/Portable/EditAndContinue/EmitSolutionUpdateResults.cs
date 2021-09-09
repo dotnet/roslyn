@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             [DataMember(Order = 2)]
             public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits;
 
-            [DataMember(Order = 33)]
+            [DataMember(Order = 3)]
             public readonly DiagnosticData? SyntaxError;
 
             public Data(

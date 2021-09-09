@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(semanticEditsOpt.IsDefault);
                 Debug.Assert(exceptionRegionsOpt.IsDefault);
                 Debug.Assert(lineEditsOpt.IsDefault);
-                Debug.Assert(syntaxError != null || !rudeEdits.IsEmpty);
+                Debug.Assert(syntaxError != null || !rudeEdits.IsEmpty || !hasChanges);
             }
             else
             {
