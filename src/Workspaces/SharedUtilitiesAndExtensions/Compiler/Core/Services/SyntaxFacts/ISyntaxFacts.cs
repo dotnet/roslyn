@@ -244,6 +244,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         void GetPartsOfElementAccessExpression(SyntaxNode? node, out SyntaxNode? expression, out SyntaxNode? argumentList);
 
+        [return: NotNullIfNotNull("node")]
         SyntaxNode? GetExpressionOfArgument(SyntaxNode? node);
         SyntaxNode? GetExpressionOfInterpolation(SyntaxNode? node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
@@ -502,6 +503,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         string GetBannerText(SyntaxNode? documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken);
 
         SyntaxTokenList GetModifiers(SyntaxNode? node);
+
+        [return: NotNullIfNotNull("node")]
         SyntaxNode? WithModifiers(SyntaxNode? node, SyntaxTokenList modifiers);
 
         Location GetDeconstructionReferenceLocation(SyntaxNode node);
