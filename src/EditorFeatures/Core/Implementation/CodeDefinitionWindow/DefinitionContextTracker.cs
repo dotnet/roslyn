@@ -112,24 +112,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 
         private async Task UpdateForCaretPositionAsync(SnapshotPoint pointInRoslynSnapshot, CancellationToken cancellationToken)
         {
-            var locations = await GetContextFromPointAfterDelayAsync(pointInRoslynSnapshot, cancellationToken).ConfigureAwait(true);
-
-            await _codeDefinitionWindowService.SetContextAsync(locations, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<ImmutableArray<CodeDefinitionWindowLocation>> GetContextFromPointAfterDelayAsync(
-            SnapshotPoint pointInRoslynSnapshot, CancellationToken cancellationToken)
-        {
-            // TODO: Does this allocate too many tasks - should we switch to a queue like the classifier uses?
-            await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
+            await _asyncListener.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
 
             var document = pointInRoslynSnapshot.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
+                return;
             }
 
-            return await GetContextFromPointAsync(document, pointInRoslynSnapshot.Position, cancellationToken).ConfigureAwait(false);
+            var locations = await GetContextFromPointAsync(document, pointInRoslynSnapshot, cancellationToken).ConfigureAwait(true);
+            await _codeDefinitionWindowService.SetContextAsync(locations, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
