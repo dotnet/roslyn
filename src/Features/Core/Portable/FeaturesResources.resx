@@ -2834,6 +2834,15 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="_0_dash_1" xml:space="preserve">
     <value>{0} - {1}</value>
   </data>
+  <data name="all_anonymous_types_in_container" xml:space="preserve">
+    <value>all anonymous types in container</value>
+  </data>
+  <data name="Convert_to_tuple" xml:space="preserve">
+    <value>Convert to tuple</value>
+  </data>
+  <data name="just_this_anonymous_type" xml:space="preserve">
+    <value>just this anonymous type</value>
+  </data>
   <data name="member_kind_and_name" xml:space="preserve">
     <value>{0} '{1}'</value>
     <comment>e.g. "method 'M'"</comment>
@@ -2919,6 +2928,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Renaming {0} requires restarting the application because it is not supported by the runtime.</value>
+  </data>
+  <data name="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application" xml:space="preserve">
+    <value>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</value>
   </data>
   <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
     <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>

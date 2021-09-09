@@ -1974,6 +1974,29 @@ foreach (var (a, b) in e1) { }
         #region Lambdas
 
         [Fact]
+        public void Lambdas_AddAttribute()
+        {
+            var src1 = "Func<int, int> x = (a) => a;";
+            var src2 = "Func<int, int> x = [A][return:A]([A]a) => a;";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(a) => a]@21 -> [[A][return:A]([A]a) => a]@21",
+                "Update [a]@22 -> [[A]a]@35");
+
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
+                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.parameter));
+
+            GetTopEdits(edits).VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true) },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
         public void Lambdas_InVariableDeclarator()
         {
             var src1 = "Action x = a => a, y = b => b;";
@@ -3121,6 +3144,18 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", CSharpFeaturesResources.lambda));
+        }
+
+        [Fact]
+        public void Lambdas_Update_Signature_ReturnType2()
+        {
+            var src1 = "var x = int (int a) => a;";
+            var src2 = "var x = long (int a) => a;";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "(int a)", CSharpFeaturesResources.lambda));
         }
 
         [Fact]

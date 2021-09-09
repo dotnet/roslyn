@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
@@ -270,9 +271,9 @@ public class Class1
                 syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(csSource) },
                 references: new MetadataReference[]
                 {
-                    TestMetadata.NetStandard20.mscorlib,
-                    TestMetadata.NetStandard20.netstandard,
-                    TestMetadata.NetStandard20.SystemRuntime
+                    NetStandard20.mscorlib,
+                    NetStandard20.netstandard,
+                    NetStandard20.SystemRuntime
                 }.Concat(additionalReferences),
                 options: s_dllWithMaxWarningLevel);
 

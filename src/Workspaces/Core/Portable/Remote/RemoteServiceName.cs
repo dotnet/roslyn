@@ -20,11 +20,6 @@ namespace Microsoft.CodeAnalysis.Remote
         internal const string Suffix64 = "64";
         internal const string SuffixServerGC = "S";
         internal const string SuffixCoreClr = "Core";
-        internal const string IntelliCodeServiceName = "pythia";
-        internal const string RazorServiceName = "razorLanguageService";
-        internal const string UnitTestingAnalysisServiceName = "UnitTestingAnalysis";
-        internal const string LiveUnitTestingBuildServiceName = "LiveUnitTestingBuild";
-        internal const string UnitTestingSourceLookupServiceName = "UnitTestingSourceLookup";
 
         public readonly WellKnownServiceHubService WellKnownService;
         public readonly string? CustomServiceName;
@@ -62,8 +57,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return WellKnownService switch
             {
                 WellKnownServiceHubService.RemoteHost => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + suffix,
-                WellKnownServiceHubService.IntelliCode => IntelliCodeServiceName + suffix,
-
                 _ => throw ExceptionUtilities.UnexpectedValue(WellKnownService),
             };
         }

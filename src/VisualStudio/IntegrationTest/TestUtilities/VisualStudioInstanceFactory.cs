@@ -12,7 +12,6 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using EnvDTE;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.Win32;
 using Roslyn.Utilities;
@@ -346,8 +345,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
 
                 var lspRegistryValue = isUsingLspEditor ? "1" : "0";
-                var lspFeatureFlagName = VisualStudioWorkspaceContextService.LspEditorFeatureFlagName.Replace(".", "\\");
-                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\{lspFeatureFlagName}\" Value dword {lspRegistryValue}")).WaitForExit();
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\LSP\\Editor\" Value dword {lspRegistryValue}")).WaitForExit();
                 Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\Telemetry\Channels", "fileLogger", 1, RegistryValueKind.DWord);
 
                 // Remove legacy experiment setting for controlling async completion to ensure it does not interfere.

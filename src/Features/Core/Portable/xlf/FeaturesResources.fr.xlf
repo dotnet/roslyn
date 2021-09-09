@@ -350,6 +350,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="new">Changing parameter types of {0} requires restarting the application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
+        <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
+        <target state="new">Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
         <source>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</source>
         <target state="new">Changing the declaration scope of a captured variable '{0}' requires restarting the application.</target>
@@ -438,6 +443,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">Convertir en struct</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="new">Convert to tuple</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">
@@ -2821,6 +2831,11 @@ Si le spécificateur de format "H" est utilisé sans autres spécificateurs de f
         <target state="translated">Le spécificateur de format personnalisé "HH" (plus n'importe quel nombre de spécificateurs "H" supplémentaires) représente les heures sous la forme d'un nombre compris entre 00 et 23. En d'autres termes, les heures sont représentées par une horloge de 24 heures de base zéro, qui compte les heures écoulées depuis minuit. Une heure à un chiffre est présentée dans un format qui comporte un zéro de début.</target>
         <note />
       </trans-unit>
+      <trans-unit id="all_anonymous_types_in_container">
+        <source>all anonymous types in container</source>
+        <target state="new">all anonymous types in container</target>
+        <note />
+      </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
         <target state="new">and update call sites directly</target>
@@ -2975,6 +2990,11 @@ Le spécificateur de format standard "f" représente une combinaison des modèle
       <trans-unit id="into_new_overload">
         <source>into new overload</source>
         <target state="new">into new overload</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="just_this_anonymous_type">
+        <source>just this anonymous type</source>
+        <target state="new">just this anonymous type</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
