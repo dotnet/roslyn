@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     var newVariableDeclaration = variableDeclaration.WithVariables(newVariableDeclaratorsList);
                     if (variableDeclaration.Parent is FieldDeclarationSyntax fieldDecl)
                     {
-                        return fieldDecl.WithDeclaration(newVariableDeclaration);
+                        return RemoveLeadingDirectiveTrivia(fieldDecl.WithDeclaration(newVariableDeclaration));
                     }
                 }
             }

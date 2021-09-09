@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Dim newVariableDeclarator = variableDeclarator.WithNames(names)
                     Dim fieldDecl = TryCast(variableDeclarator.Parent, FieldDeclarationSyntax)
                     If fieldDecl IsNot Nothing Then
-                        Return fieldDecl.WithDeclarators((New SeparatedSyntaxList(Of VariableDeclaratorSyntax)).Add(newVariableDeclarator))
+                        Return RemoveLeadingDirectiveTrivia(fieldDecl.WithDeclarators((New SeparatedSyntaxList(Of VariableDeclaratorSyntax)).Add(newVariableDeclarator)))
                     End If
                 End If
             End If

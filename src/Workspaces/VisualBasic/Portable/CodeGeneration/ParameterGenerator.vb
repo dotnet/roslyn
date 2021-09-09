@@ -30,13 +30,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Shared Function GenerateParameter(parameter As IParameterSymbol, seenOptional As Boolean, options As CodeGenerationOptions) As ParameterSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of ParameterSyntax)(parameter, options)
             If reusableSyntax IsNot Nothing Then
-                Return reusableSyntax
+                Return RemoveLeadingDirectiveTrivia(reusableSyntax)
             End If
 
             ' TODO(cyrusn): Should we provide some way to disable this special case?
 
             ' If the type is actually an array, then we place the array specifier on the identifier,
-            ' not on the type syntax.  
+            ' not on the type syntax.
 
             If parameter.Type.IsArrayType() Then
                 Dim arrayType = DirectCast(parameter.Type, IArrayTypeSymbol)

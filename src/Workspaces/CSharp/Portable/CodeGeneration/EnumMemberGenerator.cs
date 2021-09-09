@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<EnumMemberDeclarationSyntax>(enumMember, options);
             if (reusableSyntax != null)
             {
-                return reusableSyntax;
+                return RemoveLeadingDirectiveTrivia(reusableSyntax);
             }
 
             var value = CreateEnumMemberValue(destinationOpt, enumMember);

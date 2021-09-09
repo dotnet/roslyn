@@ -177,17 +177,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             Contract.ThrowIfNull(symbol);
 
-            if (options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
-            {
-                var reusableNode = symbol.DeclaringSyntaxReferences[0].GetSyntax();
-                if (reusableNode is T)
-                {
-                    var leadingTrivia = reusableNode.GetLeadingTrivia().Where(trivia => !trivia.IsDirective);
-                    return reusableNode.WithLeadingTrivia(leadingTrivia) as T;
-                }
-            }
+            return options != null && options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1
+                ? symbol.DeclaringSyntaxReferences[0].GetSyntax() as T
+                : null;
+        }
 
-            return null;
+        public static T RemoveLeadingDirectiveTrivia<T>(T node) where T : SyntaxNode
+        {
+            var leadingTrivia = node.GetLeadingTrivia().Where(trivia => !trivia.IsDirective);
+            return node.WithLeadingTrivia(leadingTrivia);
         }
 
         public static T? GetReuseableSyntaxNodeForAttribute<T>(AttributeData attribute, CodeGenerationOptions options)

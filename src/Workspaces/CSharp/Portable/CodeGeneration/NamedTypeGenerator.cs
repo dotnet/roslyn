@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableDeclarationSyntax = GetReuseableSyntaxNodeForSymbol<MemberDeclarationSyntax>(namedType, options);
             return reusableDeclarationSyntax == null
                 ? GetDeclarationSyntaxWithoutMembersWorker(namedType, destination, options)
-                : RemoveAllMembers(reusableDeclarationSyntax);
+                : RemoveLeadingDirectiveTrivia(RemoveAllMembers(reusableDeclarationSyntax));
         }
 
         private static MemberDeclarationSyntax RemoveAllMembers(MemberDeclarationSyntax declaration)

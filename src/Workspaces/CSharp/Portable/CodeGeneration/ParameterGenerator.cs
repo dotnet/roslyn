@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ParameterSyntax>(p, options);
             if (reusableSyntax != null)
             {
-                return reusableSyntax;
+                return RemoveLeadingDirectiveTrivia(reusableSyntax);
             }
 
             return SyntaxFactory.Parameter(p.Name.ToIdentifierToken())

@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return GenerateNamespaceDeclarationWorker(name, innermostNamespace)
             End If
 
-            Return RemoveAllMembers(reusableSyntax)
+            Return RemoveLeadingDirectiveTrivia(RemoveAllMembers(reusableSyntax))
         End Function
 
         Private Function RemoveAllMembers(declaration As SyntaxNode) As SyntaxNode

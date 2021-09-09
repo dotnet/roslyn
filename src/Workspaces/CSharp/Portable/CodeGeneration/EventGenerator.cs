@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GenerateEventDeclaration(@event, CodeGenerationDestination.CompilationUnit, options);
 
             // Place the event depending on its shape.  Field style events go with fields, property
-            // style events go with properties.  If there 
+            // style events go with properties.  If there
             var members = Insert(destination.Members, declaration, options, availableIndices,
                 after: list => AfterMember(list, declaration), before: list => BeforeMember(list, declaration));
             return destination.WithMembers(members.ToSyntaxList());
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MemberDeclarationSyntax>(@event, options);
             if (reusableSyntax != null)
             {
-                return reusableSyntax;
+                return RemoveLeadingDirectiveTrivia(reusableSyntax);
             }
 
             var declaration = !options.GenerateMethodBodies || @event.IsAbstract || @event.AddMethod == null || @event.RemoveMethod == null

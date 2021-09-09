@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GeneratePropertyOrIndexer(property, GetDestination(destination),
                 options, destination?.SyntaxTree.Options ?? options.ParseOptions);
 
-            // Create a clone of the original type with the new method inserted. 
+            // Create a clone of the original type with the new method inserted.
             var members = Insert(destination.Members, declaration, options,
                 availableIndices, after: LastPropertyOrField, before: FirstMember);
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MemberDeclarationSyntax>(property, options);
             if (reusableSyntax != null)
             {
-                return reusableSyntax;
+                return RemoveLeadingDirectiveTrivia(reusableSyntax);
             }
 
             var declaration = property.IsIndexer
