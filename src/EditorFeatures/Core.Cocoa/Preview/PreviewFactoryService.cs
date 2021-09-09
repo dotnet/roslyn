@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     [Export(typeof(IPreviewFactoryService)), Shared]
-    internal class PreviewFactoryService : AbstractPreviewFactoryService<ICocoaDifferenceViewer>, IPreviewFactoryService
+    internal class PreviewFactoryService : AbstractPreviewFactoryService<ICocoaDifferenceViewer>
     {
         private readonly ICocoaDifferenceViewerFactoryService _differenceViewerService;
 

@@ -215,8 +215,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 ? InternalDiagnosticsOptions.RazorDiagnosticMode
                 : InternalDiagnosticsOptions.NormalDiagnosticMode;
 
-            var workspace = document.Project.Solution.Workspace;
-            var isPull = workspace.IsPullDiagnostics(diagnosticMode);
+            var isPull = context.GlobalOptions.IsPullDiagnostics(diagnosticMode);
 
             context.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
 

@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -28,22 +29,20 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
 
         private static AdhocWorkspace CreateWorkspace()
-            => new AdhocWorkspace(s_composition.GetHostServices());
+            => new(s_composition.GetHostServices());
 
         [Fact]
         public async Task UpdaterService()
         {
-            var hostServices = s_composition.GetHostServices();
-            using var workspace = new AdhocWorkspace(hostServices);
+            using var workspace = CreateWorkspace();
 
-            var options = workspace.CurrentSolution.Options
-                .WithChangedOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
+            var exportProvider = (IMefHostExportProvider)workspace.Services.HostServices;
+            var listenerProvider = exportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            var globalOptions = exportProvider.GetExportedValue<IGlobalOptionService>();
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
+            globalOptions.SetGlobalOption(RemoteHostOptions.SolutionChecksumMonitorBackOffTimeSpanInMS, 1);
 
-            var listenerProvider = ((IMefHostExportProvider)hostServices).GetExportedValue<AsynchronousOperationListenerProvider>();
-
-            var checksumUpdater = new SolutionChecksumUpdater(workspace, listenerProvider, CancellationToken.None);
+            var checksumUpdater = new SolutionChecksumUpdater(workspace, globalOptions, listenerProvider, CancellationToken.None);
             var service = workspace.Services.GetRequiredService<IRemoteHostClientProvider>();
 
             // make sure client is ready

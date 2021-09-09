@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' reach outside of the span And ended up with "node not within syntax tree" error from the speculative model.
             Dim semanticModel = (Await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(False)).semanticModel
             Contract.ThrowIfNull(semanticModel)
-            Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
+            Return VisualBasicSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken)
         End Function
     End Class
 End Namespace

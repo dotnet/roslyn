@@ -303,9 +303,6 @@ dotnet_diagnostic.IDE0048.severity = %value%
 # IDE0049
 dotnet_diagnostic.IDE0049.severity = %value%
 
-# IDE0050
-dotnet_diagnostic.IDE0050.severity = %value%
-
 # IDE0051
 dotnet_diagnostic.IDE0051.severity = %value%
 
@@ -526,9 +523,6 @@ dotnet_diagnostic.IDE0048.severity = %value%
 
 # IDE0049
 dotnet_diagnostic.IDE0049.severity = %value%
-
-# IDE0050
-dotnet_diagnostic.IDE0050.severity = %value%
 
 # IDE0051
 dotnet_diagnostic.IDE0051.severity = %value%
@@ -893,9 +887,6 @@ dotnet_style_predefined_type_for_locals_parameters_members = true
 # IDE0049, PreferIntrinsicPredefinedTypeKeywordInMemberAccess
 dotnet_style_predefined_type_for_member_access = true
 
-# IDE0050
-No editorconfig based code style option
-
 # IDE0051
 No editorconfig based code style option
 
@@ -1158,9 +1149,6 @@ dotnet_style_predefined_type_for_locals_parameters_members = true
 
 # IDE0049, PreferIntrinsicPredefinedTypeKeywordInMemberAccess
 dotnet_style_predefined_type_for_member_access = true
-
-# IDE0050
-No editorconfig based code style option
 
 # IDE0051
 No editorconfig based code style option
