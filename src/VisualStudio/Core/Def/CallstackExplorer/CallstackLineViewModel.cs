@@ -9,9 +9,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Documents;
-using System.Windows.Navigation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.CallstackExplorer;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
@@ -49,15 +48,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
 
             var classLink = new Hyperlink();
             classLink.Inlines.Add(classText);
-            classLink.Click += ClassLink_Click;
-            classLink.RequestNavigate += ClassLink_Click;
+            classLink.Click += (s, a) => NavigateToClass();
+            classLink.RequestNavigate += (s, a) => NavigateToClass();
             yield return classLink;
 
             var methodText = _line.OriginalLine[_line.MethodSpan.Start.._line.ArgsSpan.End];
             var methodLink = new Hyperlink();
             methodLink.Inlines.Add(methodText);
-            methodLink.Click += MethodLink_Click;
-            methodLink.RequestNavigate += MethodLink_Click;
+            methodLink.Click += (s, a) => NavigateToSymbol();
+            methodLink.RequestNavigate += (s, a) => NavigateToSymbol();
             yield return methodLink;
 
             if (_line is FileLineResult fileLineResult)
@@ -93,139 +92,181 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
             }
         }
 
-        private void MethodLink_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void ClassLink_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void NavigateToFile()
+        private void NavigateToClass()
         {
             var cancellationToken = _threadingContext.DisposalToken;
-            Task.Run(async () =>
+            Task.Run(() => NavigateToClassAsync(cancellationToken), cancellationToken);
+        }
+
+        private async Task NavigateToClassAsync(CancellationToken cancellationToken)
+        {
+            try
             {
-                try
+                var symbol = await _line.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+
+                if (symbol is not { ContainingSymbol: not null })
                 {
-                    var fileLineResult = _line as FileLineResult;
-                    Contract.ThrowIfNull(fileLineResult);
-
-                    var fileText = _line.OriginalLine.Substring(fileLineResult.FileSpan.Start, fileLineResult.FileSpan.Length);
-                    Debug.Assert(fileText.Contains(':'));
-
-                    var splitIndex = fileText.LastIndexOf(':');
-
-                    var split = fileText.Split(':');
-                    var fileName = fileText.Substring(0, splitIndex);
-                    var lineNumberText = fileText.Substring(splitIndex + 1);
-
-                    var numberRegex = new Regex("[0-9]+");
-                    var match = numberRegex.Match(lineNumberText);
-                    var lineNumber = int.Parse(match.Value);
-
-                    var documentName = Path.GetFileName(fileName);
-                    var potentialMatches = new HashSet<Document>();
-
-                    var solution = _workspace.CurrentSolution;
-                    foreach (var project in solution.Projects)
-                    {
-                        foreach (var document in project.Documents)
-                        {
-                            if (document.FilePath == fileName)
-                            {
-                                await NavigateToDocumentAsync(document, lineNumber).ConfigureAwait(false);
-                                return;
-                            }
-
-                            else if (document.Name == documentName)
-                            {
-                                potentialMatches.Add(document);
-                            }
-                        }
-                    }
-
-                    // If the document didn't match exactly but we have potential matches, navigate
-                    // to the first match available. This isn't great, but will work for now.
-                    if (potentialMatches.Any())
-                    {
-                        var document = potentialMatches.First();
-                        await NavigateToDocumentAsync(document, lineNumber).ConfigureAwait(false);
-                    }
-
-                    async Task NavigateToDocumentAsync(Document document, int lineNumber)
-                    {
-                        // While navigating do not activate the tab, which will change focus from the tool window
-                        var options = _workspace.Options
-                                .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
-                                .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
-
-                        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                        lineNumber = Math.Min(sourceText.Lines.Count, lineNumber);
-
-                        var navigationService = _workspace.Services.GetService<IDocumentNavigationService>();
-                        if (navigationService is null)
-                        {
-                            return;
-                        }
-
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        navigationService.TryNavigateToLineAndOffset(_workspace, document.Id, lineNumber - 1, 0, cancellationToken);
-                    }
+                    // Show some dialog?
+                    return;
                 }
-                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
+
+                // Use the parent class instead of the method to navigate to
+                symbol = symbol.ContainingSymbol;
+
+                var sourceLocation = symbol.Locations.FirstOrDefault(l => l.IsInSource);
+                if (sourceLocation is null || sourceLocation.SourceTree is null)
                 {
-                    Debug.Assert(false);
+                    // Show some dialog?
+                    return;
                 }
-            }, cancellationToken);
+
+                var navigationService = _workspace.Services.GetService<IDocumentNavigationService>();
+                if (navigationService is null)
+                {
+                    return;
+                }
+
+                // While navigating do not activate the tab, which will change focus from the tool window
+                var options = _workspace.Options
+                        .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
+                        .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
+
+                var document = _workspace.CurrentSolution.GetRequiredDocument(sourceLocation.SourceTree);
+
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                navigationService.TryNavigateToSpan(_workspace, document.Id, sourceLocation.SourceSpan, options, cancellationToken);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
+            {
+            }
         }
 
         private void NavigateToSymbol()
         {
             var cancellationToken = _threadingContext.DisposalToken;
-            Task.Run(async () =>
+            Task.Run(() => NavigateToMethodAsync(cancellationToken), cancellationToken);
+        }
+
+        private async Task NavigateToMethodAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var symbol = await _line.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+
+                if (symbol is null)
                 {
-                    try
+                    // Show some dialog?
+                    return;
+                }
+
+                var sourceLocation = symbol.Locations.FirstOrDefault(l => l.IsInSource);
+                if (sourceLocation is null || sourceLocation.SourceTree is null)
+                {
+                    // Show some dialog?
+                    return;
+                }
+
+                var navigationService = _workspace.Services.GetService<IDocumentNavigationService>();
+                if (navigationService is null)
+                {
+                    return;
+                }
+
+                // While navigating do not activate the tab, which will change focus from the tool window
+                var options = _workspace.Options
+                        .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
+                        .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
+
+                var document = _workspace.CurrentSolution.GetRequiredDocument(sourceLocation.SourceTree);
+
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                navigationService.TryNavigateToSpan(_workspace, document.Id, sourceLocation.SourceSpan, options, cancellationToken);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
+            {
+            }
+        }
+
+        private void NavigateToFile()
+        {
+            var cancellationToken = _threadingContext.DisposalToken;
+            Task.Run(() => NavigateToFileAsync(cancellationToken), cancellationToken);
+        }
+
+        private async Task NavigateToFileAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var potentialMatches = GetFileMatches(out var lineNumber);
+
+                // If the document didn't match exactly but we have potential matches, navigate
+                // to the first match available. This isn't great, but will work for now.
+                if (potentialMatches.Any())
+                {
+                    var document = potentialMatches.First();
+
+                    // While navigating do not activate the tab, which will change focus from the tool window
+                    var options = _workspace.Options
+                            .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
+                            .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
+
+                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    lineNumber = Math.Min(sourceText.Lines.Count, lineNumber);
+
+                    var navigationService = _workspace.Services.GetService<IDocumentNavigationService>();
+                    if (navigationService is null)
                     {
-                        var symbol = await _line.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
-
-                        if (symbol is null)
-                        {
-                            // Show some dialog?
-                            return;
-                        }
-
-                        var sourceLocation = symbol.Locations.FirstOrDefault(l => l.IsInSource);
-                        if (sourceLocation is null || sourceLocation.SourceTree is null)
-                        {
-                            // Show some dialog?
-                            return;
-                        }
-
-                        var navigationService = _workspace.Services.GetService<IDocumentNavigationService>();
-                        if (navigationService is null)
-                        {
-                            return;
-                        }
-
-                        // While navigating do not activate the tab, which will change focus from the tool window
-                        var options = _workspace.Options
-                                .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
-                                .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
-
-                        var document = _workspace.CurrentSolution.GetRequiredDocument(sourceLocation.SourceTree);
-
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        navigationService.TryNavigateToSpan(_workspace, document.Id, sourceLocation.SourceSpan, options, cancellationToken);
+                        return;
                     }
-                    catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
+
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    navigationService.TryNavigateToLineAndOffset(_workspace, document.Id, lineNumber - 1, 0, cancellationToken);
+                }
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
+            {
+            }
+        }
+
+        private ImmutableArray<Document> GetFileMatches(out int lineNumber)
+        {
+            var fileLineResult = _line as FileLineResult;
+            Contract.ThrowIfNull(fileLineResult);
+
+            var fileText = _line.OriginalLine.Substring(fileLineResult.FileSpan.Start, fileLineResult.FileSpan.Length);
+            Debug.Assert(fileText.Contains(':'));
+
+            var splitIndex = fileText.LastIndexOf(':');
+
+            var fileName = fileText[..splitIndex];
+            var lineNumberText = fileText[(splitIndex + 1)..];
+
+            var numberRegex = new Regex("[0-9]+");
+            var match = numberRegex.Match(lineNumberText);
+            lineNumber = int.Parse(match.Value);
+
+            var documentName = Path.GetFileName(fileName);
+            var potentialMatches = new HashSet<Document>();
+
+            var solution = _workspace.CurrentSolution;
+            foreach (var project in solution.Projects)
+            {
+                foreach (var document in project.Documents)
+                {
+                    if (document.FilePath == fileName)
                     {
-                        Debug.Assert(false);
+                        return ImmutableArray.Create(document);
                     }
-                }, cancellationToken);
+
+                    else if (document.Name == documentName)
+                    {
+                        potentialMatches.Add(document);
+                    }
+                }
+            }
+
+            return potentialMatches.ToImmutableArray();
         }
     }
 }
