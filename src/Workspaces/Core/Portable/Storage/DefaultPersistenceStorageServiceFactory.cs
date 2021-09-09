@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DesktopPersistenceStorageServiceFactory()
+        public DefaultPersistenceStorageServiceFactory()
         {
         }
 
