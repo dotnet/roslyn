@@ -46,15 +46,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// <summary>
         /// Gets the span start where async keyword should go.
         /// </summary>
-        private protected abstract int GetSpanStart(SyntaxNode declaration);
+        protected abstract int GetSpanStart(SyntaxNode declaration);
 
-        private protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
+        protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
 
-        private protected abstract ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken);
-        private protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-        private protected abstract SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
+        protected abstract ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken);
+        protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
+        protected abstract SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
-        private protected static bool IsConfigureAwaitable(Compilation compilation, ITypeSymbol symbol)
+        protected static bool IsConfigureAwaitable(Compilation compilation, ITypeSymbol symbol)
         {
             var originalDefinition = symbol.OriginalDefinition;
             return
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
 #pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        private protected bool ShouldMakeContainerAsync(SyntaxToken token, SyntaxGenerator generator)
+        protected bool ShouldMakeContainerAsync(SyntaxToken token, SyntaxGenerator generator)
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var declaration = GetAsyncSupportingDeclaration(token);
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         ///     <see cref="DotAwaitContext.AwaitOnly"/>, if await should be suggested for the expression left of the dot, but ConfigureAwait(false) not.
         ///     <see cref="DotAwaitContext.AwaitAndConfigureAwait"/>, if await should be suggested for the expression left of the dot and ConfigureAwait(false).
         /// </returns>
-        private protected DotAwaitContext GetDotAwaitKeywordContext(SyntaxContext syntaxContext, CancellationToken cancellationToken)
+        protected DotAwaitContext GetDotAwaitKeywordContext(SyntaxContext syntaxContext, CancellationToken cancellationToken)
         {
             var position = syntaxContext.Position;
             var syntaxTree = syntaxContext.SyntaxTree;

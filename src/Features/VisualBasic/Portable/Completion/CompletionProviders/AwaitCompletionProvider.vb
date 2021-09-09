@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CommonTriggerChars
 
-        Private Protected Overrides Function GetSpanStart(declaration As SyntaxNode) As Integer
+        Protected Overrides Function GetSpanStart(declaration As SyntaxNode) As Integer
             Select Case declaration.Kind()
                 Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock
@@ -41,11 +41,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Private Protected Overrides Function GetAsyncSupportingDeclaration(token As SyntaxToken) As SyntaxNode
+        Protected Overrides Function GetAsyncSupportingDeclaration(token As SyntaxToken) As SyntaxNode
             Return token.GetAncestor(Function(node) node.IsAsyncSupportedFunctionSyntax())
         End Function
 
-        Private Protected Overrides Function GetTypeSymbolOfExpression(semanticModel As SemanticModel, potentialAwaitableExpression As SyntaxNode, cancellationToken As CancellationToken) As ITypeSymbol
+        Protected Overrides Function GetTypeSymbolOfExpression(semanticModel As SemanticModel, potentialAwaitableExpression As SyntaxNode, cancellationToken As CancellationToken) As ITypeSymbol
             Dim memberAccessExpression = TryCast(potentialAwaitableExpression, MemberAccessExpressionSyntax)?.Expression
             If memberAccessExpression IsNot Nothing Then
                 Dim symbolInfo = semanticModel.GetSymbolInfo(memberAccessExpression.WalkDownParentheses(), cancellationToken)
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Nothing
         End Function
 
-        Private Protected Overrides Function GetExpressionToPlaceAwaitInFrontOf(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxNode
+        Protected Overrides Function GetExpressionToPlaceAwaitInFrontOf(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxNode
             Dim dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken)
             If Not dotToken.HasValue Then
                 Return Nothing
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Nothing
         End Function
 
-        Private Protected Overrides Function GetDotTokenLeftOfPosition(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxToken?
+        Protected Overrides Function GetDotTokenLeftOfPosition(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxToken?
             Dim tokenOnLeft = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
             Dim dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position)
             If Not dotToken.IsKind(SyntaxKind.DotToken) Then

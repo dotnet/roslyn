@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// <summary>
         /// Gets the span start where async keyword should go.
         /// </summary>
-        private protected override int GetSpanStart(SyntaxNode declaration)
+        protected override int GetSpanStart(SyntaxNode declaration)
         {
             return declaration switch
             {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        private protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
+        protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
         {
             // In a case like
             //   someTask.$$
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
         }
 
-        private protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var dotToken = GetDotTokenLeftOfPosition(syntaxTree, position, cancellationToken);
             return dotToken switch
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        private protected override SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        protected override SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             // TODO: Parts of this code are taken from UnnamedSymbolCompletionProvider.GetDotAndExpressionStart -> Unify
             var tokenOnLeft = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return dotToken;
         }
 
-        private protected override ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken)
+        protected override ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken)
         {
             if (potentialAwaitableExpression is MemberAccessExpressionSyntax memberAccess)
             {
