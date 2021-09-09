@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Diagnostics;
@@ -77,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return true;
             }
 
-            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
             var text = document.GetTextSynchronously(cancellationToken);
 
             var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
@@ -109,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return true;
             }
 
-            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
             var text = document.GetTextSynchronously(cancellationToken);
             var vsTextSpan = text.GetVsTextSpanForLineOffset(lineNumber, offset);
 
@@ -126,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return true;
             }
 
-            var document = workspace.CurrentSolution.GetDocument(documentId);
+            var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
             var text = document.GetTextSynchronously(cancellationToken);
 
             var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
@@ -148,13 +146,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
         }
 
-        public async Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        public async Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet? options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             return TryNavigateToSpan(workspace, documentId, textSpan, options, allowInvalidSpan, cancellationToken);
         }
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet? options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             return TryNavigateToLocation(workspace,
                 documentId,
@@ -182,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool TryNavigateToLineAndOffset(
-            Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options, CancellationToken cancellationToken)
+            Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet? options, CancellationToken cancellationToken)
         {
             return TryNavigateToLocation(workspace,
                 documentId,
@@ -206,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool TryNavigateToPosition(
-            Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options, CancellationToken cancellationToken)
+            Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet? options, CancellationToken cancellationToken)
         {
             return TryNavigateToLocation(workspace,
                 documentId,
@@ -249,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             DocumentId documentId,
             Func<Document, TextSpan> getTextSpanForMapping,
             Func<SourceText, VsTextSpan> getVsTextSpan,
-            OptionSet options,
+            OptionSet? options,
             CancellationToken cancellationToken)
         {
             // Navigation should not change the context of linked files and Shared Projects.
@@ -264,7 +262,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             using (OpenNewDocumentStateScope(options ?? solution.Options))
             {
-                if (solution.GetDocument(documentId) == null)
+                var document = solution.GetDocument(documentId);
+                if (document == null)
                 {
                     var project = solution.GetProject(documentId.ProjectId);
                     if (project is null)
@@ -280,11 +279,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         _sourceGeneratedFileManager.Value.NavigateToSourceGeneratedFile(generatedDocument, getTextSpanForMapping(generatedDocument), cancellationToken);
                         return true;
                     }
+
+                    return false;
                 }
 
                 // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
-                var document = solution.GetDocument(documentId);
-                var spanMappingService = document?.Services.GetService<ISpanMappingService>();
+                var spanMappingService = document.Services.GetService<ISpanMappingService>();
                 if (spanMappingService != null)
                 {
                     var mappedSpan = GetMappedSpan(spanMappingService, document, getTextSpanForMapping(document), cancellationToken);
@@ -401,7 +401,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private static TextSpan GetSpanWithinDocumentBounds(TextSpan span, int documentLength)
             => TextSpan.FromBounds(GetPositionWithinDocumentBounds(span.Start, documentLength), GetPositionWithinDocumentBounds(span.End, documentLength));
 
-        private static Document OpenDocument(Workspace workspace, DocumentId documentId)
+        private static Document? OpenDocument(Workspace workspace, DocumentId documentId)
         {
             // Always open the document again, even if the document is already open in the 
             // workspace. If a document is already open in a preview tab and it is opened again 
