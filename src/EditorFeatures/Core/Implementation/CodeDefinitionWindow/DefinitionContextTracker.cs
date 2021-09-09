@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 
         void ITextViewConnectionListener.SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
+            Contract.ThrowIfFalse(_threadingContext.JoinableTaskContext.IsOnMainThread);
+
             if (!_subscribedViews.Contains(textView) && !textView.Roles.Contains(PredefinedTextViewRoles.CodeDefinitionView))
             {
                 _subscribedViews.Add(textView);
@@ -67,6 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 
         void ITextViewConnectionListener.SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
         {
+            Contract.ThrowIfFalse(_threadingContext.JoinableTaskContext.IsOnMainThread);
+
             if (reason == ConnectionReason.TextViewLifetime ||
                 !textView.BufferGraph.GetTextBuffers(b => b.ContentType.IsOfType(ContentTypeNames.RoslynContentType)).Any())
             {
@@ -80,6 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
 
         private void OnTextViewCaretPositionChanged(object? sender, CaretPositionChangedEventArgs e)
         {
+            Contract.ThrowIfFalse(_threadingContext.JoinableTaskContext.IsOnMainThread);
+
             QueueUpdateForCaretPosition(e.NewPosition);
         }
 
