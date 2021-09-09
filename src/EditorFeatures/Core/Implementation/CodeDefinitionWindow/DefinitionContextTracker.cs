@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
                     var builder = new ArrayBuilder<CodeDefinitionWindowLocation>();
                     foreach (var item in navigableItems)
                     {
-                        if (navigationService.CanNavigateToPosition(workspace, item.Document.Id, item.SourceSpan.Start, cancellationToken))
+                        if (await navigationService.CanNavigateToSpanAsync(workspace, item.Document.Id, item.SourceSpan, cancellationToken).ConfigureAwait(false))
                         {
                             var text = await item.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                             var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
