@@ -13,14 +13,14 @@ using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
     [Export(typeof(ILspWorkspaceRegistrationService)), Shared]
-    internal class VisualStudioLspWorkspaceRegistrationService : ILspWorkspaceRegistrationService
+    internal class LspWorkspaceRegistrationService : ILspWorkspaceRegistrationService
     {
         private readonly object _gate = new();
         private ImmutableArray<Workspace> _registrations = ImmutableArray.Create<Workspace>();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioLspWorkspaceRegistrationService()
+        public LspWorkspaceRegistrationService()
         {
         }
 

@@ -11,13 +11,13 @@ using Microsoft.CodeAnalysis.LanguageServer;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host, WorkspaceKind.MiscellaneousFiles, WorkspaceKind.MetadataAsSource), Shared]
-    internal class VisualStudioLspWorkspaceRegistrationEventListener : IEventListener<object>
+    internal class LspWorkspaceRegistrationEventListener : IEventListener<object>
     {
         private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioLspWorkspaceRegistrationEventListener(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService)
+        public LspWorkspaceRegistrationEventListener(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService)
         {
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
         }
