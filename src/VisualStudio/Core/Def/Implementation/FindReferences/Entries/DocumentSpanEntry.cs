@@ -301,14 +301,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // this is because the file path given to the table control isn't a real file path to a file
                 // on disk.
 
-                var workspace = _excerptResult.Document.Project.Solution.Workspace;
+                var solution = _excerptResult.Document.Project.Solution;
+                var workspace = solution.Workspace;
                 var documentNavigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
                 return documentNavigationService.TryNavigateToSpanAsync(
                     workspace,
                     _excerptResult.Document.Id,
                     _excerptResult.Span,
-                    workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview),
+                    solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview),
                     cancellationToken);
             }
         }

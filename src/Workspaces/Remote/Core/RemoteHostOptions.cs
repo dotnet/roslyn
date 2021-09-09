@@ -67,37 +67,20 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public static bool IsServiceHubProcessServerGC(HostWorkspaceServices services)
-        {
-            var optionService = services.GetRequiredService<IOptionService>();
-            return optionService.GetOption(OOPServerGC) || optionService.GetOption(OOPServerGCFeatureFlag);
-        }
+        public static bool IsServiceHubProcessServerGC(IGlobalOptionService globalOptions)
+            => globalOptions.GetOption(OOPServerGC) || globalOptions.GetOption(OOPServerGCFeatureFlag);
 
         /// <summary>
         /// Determines whether ServiceHub out-of-process execution is enabled for Roslyn.
         /// </summary>
-        public static bool IsUsingServiceHubOutOfProcess(HostWorkspaceServices services)
-        {
-            var optionService = services.GetRequiredService<IOptionService>();
-            if (Environment.Is64BitOperatingSystem && optionService.GetOption(OOP64Bit))
-            {
-                // OOP64Bit is set and supported
-                return true;
-            }
+        public static bool IsUsingServiceHubOutOfProcess(IGlobalOptionService globalOptions)
+            => Environment.Is64BitOperatingSystem && globalOptions.GetOption(OOP64Bit);
 
-            return false;
-        }
-
-        public static bool IsServiceHubProcessCoreClr(HostWorkspaceServices services)
-        {
-            var optionService = services.GetRequiredService<IOptionService>();
-            return optionService.GetOption(OOPCoreClr) || optionService.GetOption(OOPCoreClrFeatureFlag);
-        }
+        public static bool IsServiceHubProcessCoreClr(IGlobalOptionService globalOptions)
+            => globalOptions.GetOption(OOPCoreClr) || globalOptions.GetOption(OOPCoreClrFeatureFlag);
 
         public static bool IsCurrentProcessRunningOnCoreClr()
-        {
-            return !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework")
-                && !RuntimeInformation.FrameworkDescription.StartsWith(".NET Native");
-        }
+            => !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework") &&
+               !RuntimeInformation.FrameworkDescription.StartsWith(".NET Native");
     }
 }

@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             InitializeComponent();
         }
 
-        private void ValueTrackingTreeView_PreviewKeyDown(object sender, KeyEventArgs e)
+        private void ValueTrackingTree_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = e.Handled || e.Key switch
             {
@@ -64,11 +64,21 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
         }
 
-        private void ValueTrackingTreeView_MouseClickPreview(object sender, MouseButtonEventArgs e)
+        private void ValueTrackingTree_MouseDoubleClickPreview(object sender, MouseButtonEventArgs e)
         {
-            if (sender is TreeViewItemBase viewModel && e.ChangedButton == MouseButton.Left)
+            if (e.ChangedButton != MouseButton.Left)
+            {
+                return;
+            }
+
+            if (sender is TreeViewItemBase viewModel)
             {
                 SelectItem(viewModel, true);
+                e.Handled = true;
+            }
+            else if (sender is TreeView)
+            {
+                SelectItem(_viewModel.SelectedItem, true);
                 e.Handled = true;
             }
         }
@@ -111,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             return item.GetPreviousInTree();
         }
 
-        private void ValueTrackingTreeView_SelectedItemChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<object> e)
+        private void ValueTrackingTree_SelectedItemChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<object> e)
         {
             _viewModel.SelectedItem = ValueTrackingTreeView.SelectedItem as TreeViewItemBase;
         }

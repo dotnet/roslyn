@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
                 var navigableItems = await goToDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
                 if (navigableItems != null)
                 {
-                    var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+                    var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
                     var builder = new ArrayBuilder<CodeDefinitionWindowLocation>();
                     foreach (var item in navigableItems)
