@@ -882,5 +882,88 @@ public class C
 ", state.GetDocumentText())
             End Using
         End Function
+        <WpfFact>
+        Public Async Function DotAwaitCompletionInQueryInFirstFromClause() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Linq;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task F()
+    {
+        var arrayTask2 = Task.FromResult(new int[0]);
+        var z = from i1 in arrayTask2.$$
+                select i1;
+    }
+}
+]]>
+                </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("await", "awaitf")
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Linq;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task F()
+    {
+        var arrayTask2 = Task.FromResult(new int[0]);
+        var z = from i1 in await arrayTask2
+                select i1;
+    }
+}
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        var z = from i1 in await arrayTask2", "")
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function DotAwaitCompletionInQueryInFirstFromClauseConfigureAwait() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Linq;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task F()
+    {
+        var arrayTask2 = Task.FromResult(new int[0]);
+        var z = from i1 in arrayTask2.$$
+                select i1;
+    }
+}
+]]>
+                </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("await", "awaitf")
+                state.SendTypeChars("af")
+                Await state.AssertSelectedCompletionItem(displayText:="awaitf", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System.Linq;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task F()
+    {
+        var arrayTask2 = Task.FromResult(new int[0]);
+        var z = from i1 in await arrayTask2.ConfigureAwait(false)
+                select i1;
+    }
+}
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        var z = from i1 in await arrayTask2.ConfigureAwait(false)", "")
+            End Using
+        End Function
     End Class
 End Namespace
