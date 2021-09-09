@@ -1749,13 +1749,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Identifier.ValueText,
                 EnumMemberDeclarationSyntax enumMemberDeclaration => enumMemberDeclaration.Identifier.ValueText,
                 EventDeclarationSyntax eventDeclaration => eventDeclaration.Identifier.ValueText,
-<<<<<<< HEAD
-                NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Name.ToString(),
-                UsingDirectiveSyntax usingDirective => usingDirective.Name?.ToString() ?? string.Empty,
-=======
                 BaseNamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Name.ToString(),
-                UsingDirectiveSyntax usingDirective => usingDirective.Name.ToString(),
->>>>>>> upstream/main
+                UsingDirectiveSyntax usingDirective => usingDirective.Name?.ToString() ?? string.Empty,
                 ParameterSyntax parameter => parameter.Identifier.ValueText,
                 LocalDeclarationStatementSyntax localDeclaration => this.GetName(localDeclaration.Declaration),
                 VariableDeclarationSyntax variableDeclaration when variableDeclaration.Variables.Count == 1 => variableDeclaration.Variables[0].Identifier.ValueText,
@@ -1784,13 +1779,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 PropertyDeclarationSyntax propertyDeclaration => ReplaceWithTrivia(declaration, propertyDeclaration.Identifier, id),
                 EnumMemberDeclarationSyntax enumMemberDeclaration => ReplaceWithTrivia(declaration, enumMemberDeclaration.Identifier, id),
                 EventDeclarationSyntax eventDeclaration => ReplaceWithTrivia(declaration, eventDeclaration.Identifier, id),
-<<<<<<< HEAD
-                NamespaceDeclarationSyntax namespaceDeclaration => ReplaceWithTrivia(declaration, namespaceDeclaration.Name, this.DottedName(name)),
-                UsingDirectiveSyntax usingDeclaration => ReplaceWithTrivia(declaration, usingDeclaration.Type, this.DottedName(name)),
-=======
                 BaseNamespaceDeclarationSyntax namespaceDeclaration => ReplaceWithTrivia(declaration, namespaceDeclaration.Name, this.DottedName(name)),
-                UsingDirectiveSyntax usingDeclaration => ReplaceWithTrivia(declaration, usingDeclaration.Name, this.DottedName(name)),
->>>>>>> upstream/main
+                UsingDirectiveSyntax usingDeclaration => ReplaceWithTrivia(declaration, usingDeclaration.Type, this.DottedName(name)),
                 ParameterSyntax parameter => ReplaceWithTrivia(declaration, parameter.Identifier, id),
 
                 LocalDeclarationStatementSyntax localDeclaration when localDeclaration.Declaration.Variables.Count == 1 =>
