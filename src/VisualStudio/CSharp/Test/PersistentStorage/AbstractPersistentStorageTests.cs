@@ -940,11 +940,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         }
 
         internal async Task<IChecksummedPersistentStorage> GetStorageAsync(
-            Solution solution, IPersistentStorageFaultInjector? faultInjector = null)
+            Solution solution,
+            IPersistentStorageFaultInjector? faultInjector = null,
+            bool throwOnFailure = true)
         {
             // If we handed out one for a previous test, we need to shut that down first
             _storageService?.GetTestAccessor().Shutdown();
-            var configuration = new MockPersistentStorageConfiguration(solution.Id, _persistentFolder.Path);
+            var configuration = new MockPersistentStorageConfiguration(solution.Id, _persistentFolder.Path, throwOnFailure);
 
             _storageService = GetStorageService((IMefHostExportProvider)solution.Workspace.Services.HostServices, configuration, faultInjector, _persistentFolder.Path);
             var storage = await _storageService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), checkBranchId: true, CancellationToken.None);
@@ -963,7 +965,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             // If we handed out one for a previous test, we need to shut that down first
             _storageService?.GetTestAccessor().Shutdown();
-            var configuration = new MockPersistentStorageConfiguration(solutionKey.Id, _persistentFolder.Path);
+            var configuration = new MockPersistentStorageConfiguration(solutionKey.Id, _persistentFolder.Path, throwOnFailure: true);
 
             _storageService = GetStorageService((IMefHostExportProvider)workspace.Services.HostServices, configuration, faultInjector, _persistentFolder.Path);
             var storage = await _storageService.GetStorageAsync(solutionKey, checkBranchId: true, CancellationToken.None);
@@ -981,14 +983,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             private readonly SolutionId _solutionId;
             private readonly string _storageLocation;
+            private readonly bool _throwOnFailure;
 
-            public MockPersistentStorageConfiguration(SolutionId solutionId, string storageLocation)
+            public MockPersistentStorageConfiguration(SolutionId solutionId, string storageLocation, bool throwOnFailure)
             {
                 _solutionId = solutionId;
                 _storageLocation = storageLocation;
+                _throwOnFailure = throwOnFailure;
             }
 
-            public bool ThrowOnFailure => true;
+            public bool ThrowOnFailure => _throwOnFailure;
 
             public string? TryGetStorageLocation(SolutionKey solutionKey)
                 => solutionKey.Id == _solutionId ? _storageLocation : null;
