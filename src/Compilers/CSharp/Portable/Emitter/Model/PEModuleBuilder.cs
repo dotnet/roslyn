@@ -11,7 +11,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -209,20 +208,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        public sealed override List<(Cci.IDefinition definition, Cci.DebugSourceDocument[] document)> GetTypeDocument(EmitContext context)
+        public sealed override MultiDictionary<Cci.ITypeDefinition, Cci.DebugSourceDocument> GetTypeToDebugDocumentMap(EmitContext context)
         {
-            var result = new List<(Cci.IDefinition definition, Cci.DebugSourceDocument[] document)>();
+            var result = new MultiDictionary<Cci.ITypeDefinition, Cci.DebugSourceDocument>(Cci.SymbolEquivalentEqualityComparer.Instance);
 
             var namespacesAndTypesToProcess = new Stack<NamespaceOrTypeSymbol>();
             namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace);
             while (namespacesAndTypesToProcess.Count > 0)
             {
-                NamespaceOrTypeSymbol symbol = namespacesAndTypesToProcess.Pop();
-                var locations = symbol.Locations.ToArray();
+                var symbol = namespacesAndTypesToProcess.Pop();
+
                 switch (symbol.Kind)
                 {
                     case SymbolKind.Namespace:
-                        if (!locations.IsEmpty())
+                        var location = GetSmallestSourceLocationOrNull(symbol);
+
+                        // filtering out synthesized symbols not having real source 
+                        // locations such as anonymous types, etc...
+                        if (location != null)
                         {
                             foreach (var member in symbol.GetMembers())
                             {
@@ -239,14 +242,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         }
                         break;
                     case SymbolKind.NamedType:
-                        if (!locations.IsEmpty())
+                        var docList = GetDocumentsForMethods(symbol, context, out var allMethodsHaveIL);
+
+                        // If all of the methods have IL then the document data we already have is enough, but if not
+                        // then we want to add document info for the type.
+                        if (!allMethodsHaveIL)
                         {
-                            var docList = new HashSet<Cci.DebugSourceDocument>();
-                            if (!TypeHasIL(symbol, context, docList))
+                            var typeDefinition = (Cci.ITypeDefinition)symbol.GetCciAdapter();
+
+                            foreach (var loc in symbol.Locations)
                             {
-                                AddDefinitionAndDocument(result, locations, (Cci.IDefinition)symbol.GetCciAdapter(), docList);
+                                if (!loc.IsInSource)
+                                {
+                                    continue;
+                                }
+
+                                var span = loc.GetLineSpan();
+                                var debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: loc.SourceTree.FilePath);
+
+                                // We don't need to duplicate the data, if the method debug info would already contain this document
+                                if (!docList.Contains(debugDocument))
+                                {
+                                    result.Add(typeDefinition, debugDocument);
+                                }
                             }
-                            docList.Clear();
                         }
                         break;
                     default:
@@ -256,36 +275,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        // Method checks if all methods contained in the type have IL, methods with IL documents will be added to a document list.
-        // The method will return true if all methods in the type have IL, otherwise will return false.
-        private static bool TypeHasIL(NamespaceOrTypeSymbol typeSymbol, EmitContext context, HashSet<Cci.DebugSourceDocument> docList)
+        /// <summary>
+        /// Gets a list of documents from the method definitions in this type, and also outputs whether there are
+        /// any methods that don't have document info (ie don't have any IL)
+        /// </summary>
+        private static HashSet<Cci.DebugSourceDocument> GetDocumentsForMethods(NamespaceOrTypeSymbol typeSymbol, EmitContext context, out bool allMethodsHaveIL)
         {
+            var docList = new HashSet<Cci.DebugSourceDocument>();
+
             var typeDef = (Cci.ITypeDefinition)typeSymbol.GetCciAdapter();
             var typeMethods = typeDef.GetMethods(context);
-            var methodDoesHaveIL = false;
-            var aMethodDoesHaveIL = true;
+
+            var foundMethodWithIL = false;
+            var foundMethodWithoutIL = false;
             foreach (var method in typeMethods)
             {
                 if (Cci.Extensions.HasBody(method) && !method.GetBody(context).SequencePoints.IsEmpty)
                 {
-                    methodDoesHaveIL = true;
+                    foundMethodWithIL = true;
 
                     foreach (var point in method.GetBody(context).SequencePoints)
                     {
-                        if (!docList.Contains(point.Document))
-                        {
-                            docList.Add(point.Document);
-                        }
+                        docList.Add(point.Document);
                     }
                 }
                 else
                 {
-                    aMethodDoesHaveIL = false;
+                    foundMethodWithoutIL = true;
                 }
             }
-            return methodDoesHaveIL && aMethodDoesHaveIL;
+            allMethodsHaveIL = foundMethodWithIL && !foundMethodWithoutIL;
+            return docList;
         }
-
 
         public sealed override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
         {
@@ -416,26 +437,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                span.StartLinePosition.Character,
                                span.EndLinePosition.Line,
                                span.EndLinePosition.Character));
-            }
-        }
-
-        private void AddDefinitionAndDocument(List<(Cci.IDefinition definition, Cci.DebugSourceDocument[] document)> result, Location[] location, Cci.IDefinition definition, HashSet<Cci.DebugSourceDocument> doclist)
-        {
-            int i = 0;
-            Cci.DebugSourceDocument[] sourceDoc = new Cci.DebugSourceDocument[location.Length];
-            foreach (var loc in location)
-            {
-                FileLinePositionSpan span = loc.GetLineSpan();
-                Cci.DebugSourceDocument doc = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: loc.SourceTree.FilePath);
-                sourceDoc[i] = doc;
-                i++;
-            }
-            foreach (var source in sourceDoc)
-            {
-                if (!doclist.Contains(source))
-                {
-                    result.Add((definition, sourceDoc));
-                }
             }
         }
 

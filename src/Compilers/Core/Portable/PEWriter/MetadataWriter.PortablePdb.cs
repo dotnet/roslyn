@@ -14,7 +14,6 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
@@ -989,24 +988,21 @@ namespace Microsoft.Cci
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
         }
 
-        private void TypeDocumentInformation(CommonPEModuleBuilder module)
+        private void EmbedTypeDocumentInformation(CommonPEModuleBuilder module)
         {
-            DocumentHandle rowid;
             var builder = new BlobBuilder();
-            var document = module.GetTypeDocument(Context);
 
-            foreach (var pair in document)
+            foreach (var (definition, documents) in module.GetTypeToDebugDocumentMap(Context))
             {
-                var def = (ITypeDefinition)pair.definition;
-                foreach (var val in pair.document)
+                foreach (var val in documents)
                 {
-                    rowid = GetOrAddDocument(val, _documentIndex);
+                    var rowid = GetOrAddDocument(val, _documentIndex);
                     builder.WriteCompressedInteger(MetadataTokens.GetRowNumber(rowid));
                 }
                 _debugMetadataOpt.AddCustomDebugInformation(
-                parent: GetTypeDefinitionHandle(def),
-                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.TypeDocuments),
-                value: _debugMetadataOpt.GetOrAddBlob(builder));
+                    parent: GetTypeDefinitionHandle(definition),
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.TypeDocument),
+                    value: _debugMetadataOpt.GetOrAddBlob(builder));
                 builder.Clear();
             }
         }

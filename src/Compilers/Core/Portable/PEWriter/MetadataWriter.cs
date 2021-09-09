@@ -1805,7 +1805,7 @@ namespace Microsoft.Cci
 
                 EmbedCompilationOptions(module);
                 EmbedMetadataReferenceInformation(module);
-                TypeDocumentInformation(module);
+                EmbedTypeDocumentInformation(module);
             }
 
             int[] methodBodyOffsets;
