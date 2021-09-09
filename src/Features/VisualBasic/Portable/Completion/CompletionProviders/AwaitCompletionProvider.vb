@@ -68,8 +68,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Nothing
             End If
 
-            If TypeOf dotToken.Value.Parent Is MemberAccessExpressionSyntax Then
-                Dim memberAccess = CType(dotToken.Value.Parent, MemberAccessExpressionSyntax)
+            Dim memberAccess = TryCast(dotToken.Value.Parent, MemberAccessExpressionSyntax)
+            If memberAccess IsNot Nothing Then
                 If memberAccess.Expression.GetParentConditionalAccessExpression() Is Nothing Then
                     Return memberAccess
                 End If

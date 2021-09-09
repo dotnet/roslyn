@@ -215,7 +215,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // This case adds "await"
                 var completionPropertiesForAwaitOnly = GetCompletionProperties(token, isAwaitKeywordContext, DotAwaitContext.AwaitOnly, shouldMakeContainerAsync);
                 yield return CreateCompletionItem(displayText, filterText, falseKeyword, completionPropertiesForAwaitOnly);
-
             }
 
             var completionProperties = GetCompletionProperties(token, isAwaitKeywordContext, dotAwaitContext, shouldMakeContainerAsync);
