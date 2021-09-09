@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var originalNodes = diagnostics.SelectAsArray(
                 d => (TParenthesizedExpressionSyntax)d.AdditionalLocations[0].FindNode(
                     findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken));

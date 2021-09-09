@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             foreach (var diagnostic in diagnostics)
             {
