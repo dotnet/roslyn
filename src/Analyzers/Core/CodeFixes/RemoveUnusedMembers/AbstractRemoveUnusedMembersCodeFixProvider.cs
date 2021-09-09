@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -53,8 +51,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         {
             var declarators = new HashSet<SyntaxNode>();
             var fieldDeclarators = new HashSet<TFieldDeclarationSyntax>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
 
             // Compute declarators to remove, and also track common field declarators.
             foreach (var diagnostic in diagnostics)
@@ -75,6 +73,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     if (symbol.Kind == SymbolKind.Field)
                     {
                         var fieldDeclarator = node.FirstAncestorOrSelf<TFieldDeclarationSyntax>();
+                        Contract.ThrowIfNull(fieldDeclarator);
                         fieldDeclarators.Add(fieldDeclarator);
                     }
                 }
