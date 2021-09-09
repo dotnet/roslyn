@@ -297,8 +297,8 @@
   <data name="Introduce_query_variable_for_0" xml:space="preserve">
     <value>Introduce query variable for '{0}'</value>
   </data>
-  <data name="Anonymous_Types_colon" xml:space="preserve">
-    <value>Anonymous Types:</value>
+  <data name="Types_colon" xml:space="preserve">
+    <value>Types:</value>
   </data>
   <data name="is_" xml:space="preserve">
     <value>is</value>

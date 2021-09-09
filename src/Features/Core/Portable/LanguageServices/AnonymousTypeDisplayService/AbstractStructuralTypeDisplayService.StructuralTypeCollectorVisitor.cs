@@ -2,22 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal partial class AbstractAnonymousTypeDisplayService
+    internal partial class AbstractStructuralTypeDisplayService
     {
-        private class NormalAnonymousTypeCollectorVisitor : SymbolVisitor
+        private class StructuralTypeCollectorVisitor : SymbolVisitor
         {
             private readonly ISet<INamedTypeSymbol> _seenTypes = new HashSet<INamedTypeSymbol>();
-            private readonly ICollection<INamedTypeSymbol> _namedTypes;
+            private readonly Dictionary<INamedTypeSymbol, (int order, int count)> _namedTypes;
 
-            public NormalAnonymousTypeCollectorVisitor(ICollection<INamedTypeSymbol> namedTypes)
+            public StructuralTypeCollectorVisitor(Dictionary<INamedTypeSymbol, (int order, int count)> namedTypes)
                 => _namedTypes = namedTypes;
 
             public override void DefaultVisit(ISymbol node)
@@ -57,14 +55,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 // 'b Select<'a, 'b>('a a);
 
                 foreach (var typeArgument in symbol.TypeArguments)
-                {
                     typeArgument.Accept(this);
-                }
 
                 foreach (var parameter in symbol.Parameters)
-                {
                     parameter.Accept(this);
-                }
 
                 symbol.ReturnType.Accept(this);
             }
@@ -75,27 +69,39 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             public override void VisitNamedType(INamedTypeSymbol symbol)
             {
+                // If we're hitting an anonymous/tuple type another time, then up the count we have for it.
+                // that way we can tell how often this type appears in the final signature.
+                if (_namedTypes.TryGetValue(symbol, out var orderAndCount))
+                {
+                    orderAndCount.count++;
+                    _namedTypes[symbol] = orderAndCount;
+                    return;
+                }
+
                 if (_seenTypes.Add(symbol))
                 {
                     if (symbol.IsNormalAnonymousType())
                     {
-                        _namedTypes.Add(symbol);
+                        _namedTypes.Add(symbol, (order: _namedTypes.Count, count: 1));
 
                         foreach (var property in symbol.GetValidAnonymousTypeProperties())
-                        {
                             property.Accept(this);
-                        }
+                    }
+                    else if (symbol.IsTupleType)
+                    {
+                        _namedTypes.Add(symbol, (order: _namedTypes.Count, count: 1));
+
+                        foreach (var field in symbol.TupleElements)
+                            field.Accept(this);
                     }
                     else if (symbol.IsAnonymousDelegateType())
                     {
-                        symbol.DelegateInvokeMethod.Accept(this);
+                        symbol.DelegateInvokeMethod?.Accept(this);
                     }
                     else
                     {
                         foreach (var typeArgument in symbol.GetAllTypeArguments())
-                        {
                             typeArgument.Accept(this);
-                        }
                     }
                 }
             }
@@ -115,9 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 symbol.Type.Accept(this);
 
                 foreach (var parameter in symbol.Parameters)
-                {
                     parameter.Accept(this);
-                }
             }
 
             public override void VisitEvent(IEventSymbol symbol)
@@ -126,9 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             public override void VisitTypeParameter(ITypeParameterSymbol symbol)
             {
                 foreach (var constraint in symbol.ConstraintTypes)
-                {
                     constraint.Accept(this);
-                }
             }
 
             public override void VisitRangeVariable(IRangeVariableSymbol symbol)

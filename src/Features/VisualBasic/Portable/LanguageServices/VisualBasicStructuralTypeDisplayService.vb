@@ -12,9 +12,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
 
     <Export, [Shared]>
-    <ExportLanguageService(GetType(IAnonymousTypeDisplayService), LanguageNames.VisualBasic)>
-    Friend Class VisualBasicAnonymousTypeDisplayService
-        Inherits AbstractAnonymousTypeDisplayService
+    <ExportLanguageService(GetType(IStructuralTypeDisplayService), LanguageNames.VisualBasic)>
+    Friend Class VisualBasicStructuralTypeDisplayService
+        Inherits AbstractStructuralTypeDisplayService
 
         Private Shared ReadOnly s_anonymousDelegateFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
             globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.Omitted,
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
                 members.AddRange(Space())
                 members.Add(Keyword(SyntaxFacts.GetText(SyntaxKind.AsKeyword)))
                 members.AddRange(Space())
-                members.AddRange([property].Type.ToMinimalDisplayParts(semanticModel, position).Select(Function(p) p.MassageErrorTypeNames("?")))
+                members.AddRange([property].Type.ToMinimalDisplayParts(semanticModel, position, s_minimalWithoutExpandedTuples).Select(Function(p) p.MassageErrorTypeNames("?")))
             Next
 
             members.AddRange(Space())

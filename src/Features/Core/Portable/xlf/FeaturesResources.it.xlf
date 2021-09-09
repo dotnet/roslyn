@@ -2305,6 +2305,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Troppe parentesi di chiusura</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="new">Types:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Non è possibile leggere il file di origine '{0}' o il file PDB compilato per il progetto contenitore. Tutte le modifiche apportate a questo file durante il debug non verranno applicate finché il relativo contenuto non corrisponde al codice sorgente compilato.</target>
@@ -3353,11 +3358,6 @@ Se l'identificatore di formato "M" viene usato senza altri identificatori di for
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">Introduce la variabile di query per '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">Tipi anonimi:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">

@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -18,12 +17,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 {
-    [ExportLanguageService(typeof(IAnonymousTypeDisplayService), LanguageNames.CSharp), Shared]
-    internal class CSharpAnonymousTypeDisplayService : AbstractAnonymousTypeDisplayService
+    [ExportLanguageService(typeof(IStructuralTypeDisplayService), LanguageNames.CSharp), Shared]
+    internal class CSharpStructuralTypeDisplayService : AbstractStructuralTypeDisplayService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpAnonymousTypeDisplayService()
+        public CSharpStructuralTypeDisplayService()
         {
         }
 
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 }
 
                 first = false;
-                members.AddRange(property.Type.ToMinimalDisplayParts(semanticModel, position).Select(p => p.MassageErrorTypeNames("?")));
+                members.AddRange(property.Type.ToMinimalDisplayParts(semanticModel, position, s_minimalWithoutExpandedTuples).Select(p => p.MassageErrorTypeNames("?")));
                 members.AddRange(Space());
                 members.Add(new SymbolDisplayPart(SymbolDisplayPartKind.PropertyName, property, property.Name));
             }

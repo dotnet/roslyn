@@ -2305,6 +2305,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Demasiados )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="new">Types:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">No se puede leer el archivo de código fuente "{0}" o el PDB compilado para el proyecto que lo contiene. Los cambios realizados en este archivo durante la depuración no se aplicarán hasta que su contenido coincida con el del código fuente compilado.</target>
@@ -3353,11 +3358,6 @@ Si el especificador de formato "M" se usa sin otros especificadores de formato p
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">Introducir la variable de consulta de '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">Tipos anónimos:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">

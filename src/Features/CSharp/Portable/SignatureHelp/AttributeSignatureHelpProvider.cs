@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var anonymousTypeDisplayService = document.GetRequiredLanguageService<IAnonymousTypeDisplayService>();
+            var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
             var documentationCommentFormatter = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(attribute.ArgumentList!);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             var selectedItem = TryGetSelectedIndex(accessibleConstructors, symbolInfo.Symbol);
 
             return CreateSignatureHelpItems(accessibleConstructors.Select(c =>
-                Convert(c, within, attribute, semanticModel, anonymousTypeDisplayService, documentationCommentFormatter, cancellationToken)).ToList(),
+                Convert(c, within, attribute, semanticModel, structuralTypeDisplayService, documentationCommentFormatter, cancellationToken)).ToList(),
                 textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem);
         }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             ISymbol within,
             AttributeSyntax attribute,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
+            IStructuralTypeDisplayService structuralTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormatter,
             CancellationToken cancellationToken)
         {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var item = CreateItem(
                 constructor, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 isVariadic,
                 constructor.GetDocumentationPartsFactory(semanticModel, position, documentationCommentFormatter),
                 GetPreambleParts(constructor, semanticModel, position),

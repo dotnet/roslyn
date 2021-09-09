@@ -2305,6 +2305,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">太多 )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="new">Types:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">無法讀取來源檔案 '{0}' 或為包含該檔案之專案所建置的 PDB。等到此檔案的內容與已建置的來源一致後，才會套用於偵錯期間對此檔案所做的所有變更。</target>
@@ -3353,11 +3358,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">為 '{0}' 引進查詢變數</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">匿名類型:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">

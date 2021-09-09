@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 textContentBuilder.AddRange(parts);
             }
 
-            if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out parts))
+            if (sections.TryGetValue(SymbolDescriptionGroups.StructuralTypes, out parts))
             {
                 if (!parts.IsDefaultOrEmpty)
                 {
