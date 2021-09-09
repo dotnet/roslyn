@@ -1552,11 +1552,6 @@
         <target state="translated">Basistypen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Miscellaneous_Files">
-        <source>Miscellaneous Files</source>
-        <target state="translated">Sonstige Dateien</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Could_not_find_project_0">
         <source>Could not find project '{0}'</source>
         <target state="translated">Das Projekt "{0}" wurde nicht gefunden.</target>

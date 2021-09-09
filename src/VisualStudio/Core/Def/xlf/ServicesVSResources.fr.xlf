@@ -1552,11 +1552,6 @@
         <target state="translated">Types de base</target>
         <note />
       </trans-unit>
-      <trans-unit id="Miscellaneous_Files">
-        <source>Miscellaneous Files</source>
-        <target state="translated">Fichiers divers</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Could_not_find_project_0">
         <source>Could not find project '{0}'</source>
         <target state="translated">Projet '{0}' introuvable</target>

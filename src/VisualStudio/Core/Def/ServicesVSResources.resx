@@ -222,9 +222,6 @@
   <data name="Base_Types" xml:space="preserve">
     <value>Base Types</value>
   </data>
-  <data name="Miscellaneous_Files" xml:space="preserve">
-    <value>Miscellaneous Files</value>
-  </data>
   <data name="Could_not_find_project_0" xml:space="preserve">
     <value>Could not find project '{0}'</value>
   </data>

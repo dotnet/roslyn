@@ -406,7 +406,8 @@ namespace Roslyn.Test.Utilities
         {
             var registrationService = workspace.GetService<ILspWorkspaceRegistrationService>();
             var globalOptions = workspace.GetService<IGlobalOptionService>();
-            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, globalOptions, ProtocolConstants.RoslynLspLanguages, serverName: "Tests", "TestClient");
+            var lspMiscFilesWorkspace = new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance);
+            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, lspMiscFilesWorkspace, globalOptions, ProtocolConstants.RoslynLspLanguages, serverName: "Tests", "TestClient");
         }
 
         private static string GetDocumentFilePathFromName(string documentName)
@@ -475,11 +476,16 @@ namespace Roslyn.Test.Utilities
                     _executionQueue, methodName, request, clientCapabilities, clientName, cancellationToken);
             }
 
-            public async Task OpenDocumentAsync(Uri documentUri)
+            public async Task OpenDocumentAsync(Uri documentUri, string? text = null)
             {
-                // LSP open files don't care about the project context, just the file contents with the URI.
-                // So pick any of the linked documents to get the text from.
-                var text = await TestWorkspace.CurrentSolution.GetDocuments(documentUri).First().GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+                if (text == null)
+                {
+                    // LSP open files don't care about the project context, just the file contents with the URI.
+                    // So pick any of the linked documents to get the text from.
+                    var sourceText = await TestWorkspace.CurrentSolution.GetDocuments(documentUri).First().GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+                    text = sourceText.ToString();
+                }
+
                 var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, text.ToString());
                 await ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(LSP.Methods.TextDocumentDidOpenName,
                            didOpenParams, new LSP.ClientCapabilities(), null, CancellationToken.None);

@@ -2935,4 +2935,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
     <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
   </data>
+  <data name="Miscellaneous_Files" xml:space="preserve">
+    <value>Miscellaneous Files</value>
+  </data>
 </root>

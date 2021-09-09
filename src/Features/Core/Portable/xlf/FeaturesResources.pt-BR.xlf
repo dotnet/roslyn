@@ -850,6 +850,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">{0} precisa retornar um fluxo compatível com as operações de leitura e busca.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Miscellaneous_Files">
+        <source>Miscellaneous Files</source>
+        <target state="new">Miscellaneous Files</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Missing_control_character">
         <source>Missing control character</source>
         <target state="translated">Caractere de controle ausente</target>
