@@ -2073,10 +2073,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 GetNextToken()
             Loop
 
-            Dim result = kwList.ToList
-            _pool.Free(kwList)
-
-            Return result
+            Return _pool.ToListAndFree(kwList)
         End Function
 
         ' /*********************************************************************
@@ -2211,11 +2208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             _pool.Free(declarators)
 
-            Dim result = declarations.ToList
-
-            _pool.Free(declarations)
-
-            Return result
+            Return _pool.ToListAndFree(declarations)
         End Function
 
         ' Parses the as-clause and initializer for both locals, fields and properties
@@ -2433,8 +2426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Loop
 
-                initializers = expressions.ToList
-                _pool.Free(expressions)
+                initializers = _pool.ToListAndFree(expressions)
 
             End If
 
@@ -2533,8 +2525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Loop
 
-                initializers = expressions.ToList
-                _pool.Free(expressions)
+                initializers = _pool.ToListAndFree(expressions)
 
             Else
                 ' Create a missing initializer
@@ -3027,8 +3018,7 @@ checkNullable:
                 elementBuilder.Add(_syntaxFactory.TypedTupleElement(missing))
             End If
 
-            Dim tupleElements = elementBuilder.ToList
-            _pool.Free(elementBuilder)
+            Dim tupleElements = _pool.ToListAndFree(elementBuilder)
 
             Dim tupleType = SyntaxFactory.TupleType(openParen, tupleElements, closeParen)
 
@@ -3206,8 +3196,7 @@ checkNullable:
                 TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
             End If
 
-            typeArguments = typeNames.ToList
-            _pool.Free(typeNames)
+            typeArguments = _pool.ToListAndFree(typeNames)
             genericArguments = SyntaxFactory.TypeArgumentList(openParen, [of], typeArguments, closeParen)
 
             Return genericArguments
@@ -3256,10 +3245,7 @@ checkNullable:
 
             Loop While CurrentToken.Kind = SyntaxKind.OpenParenToken
 
-            Dim result As CoreInternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = arrayModifiers.ToList
-            _pool.Free(arrayModifiers)
-
-            Return result
+            Return _pool.ToLIstAndFree(arrayModifiers)
         End Function
 
         ' davidsch - Just as ParseIdentifier was split into two ParseIdentifiers (nullable and non-nullable cases), ParseArrayDeclarator was split 
@@ -3329,9 +3315,7 @@ checkNullable:
                 innerArrayType = True
             Loop While CurrentToken.Kind = SyntaxKind.OpenParenToken
 
-            Dim modifiersArr As CoreInternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = arrayModifiers.ToList
-            _pool.Free(arrayModifiers)
-
+            Dim modifiersArr = _pool.ToListAndFree(arrayModifiers)
             Return SyntaxFactory.ModifiedIdentifier(elementType, optionalNullable, optionalArrayBounds, modifiersArr)
         End Function
 
@@ -3375,10 +3359,7 @@ checkNullable:
                 separators.Add(sep)
             End While
 
-            Dim result = separators.ToList
-            _pool.Free(separators)
-
-            Return result
+            Return _pool.ToListAndFree(separators)
         End Function
 
         ' In Dev10 this was ParseArgument.
@@ -3428,10 +3409,7 @@ checkNullable:
                 arguments.AddSeparator(comma)
             Loop
 
-            Dim result = arguments.ToList
-            _pool.Free(arguments)
-
-            Return result
+            Return _pool.ToListAndFree(arguments)
         End Function
 
         ' This used to be ParsePropertyOrEventProcedureDefinition
@@ -3534,10 +3512,7 @@ checkNullable:
                 ImplementsClauses.AddSeparator(comma)
             Loop
 
-            Dim result = ImplementsClauses.ToList
-            Me._pool.Free(ImplementsClauses)
-
-            Return SyntaxFactory.ImplementsClause(implementsKeyword, result)
+            Return SyntaxFactory.ImplementsClause(implementsKeyword, _pool.ToListAndFree(ImplementsClauses))
         End Function
 
         ' File: Parser.cpp
@@ -3618,10 +3593,7 @@ checkNullable:
                 handlesClauseItems.AddSeparator(comma)
             Loop
 
-            Dim result = handlesClauseItems.ToList
-            Me._pool.Free(handlesClauseItems)
-
-            Return SyntaxFactory.HandlesClause(handlesKeyword, result)
+            Return SyntaxFactory.HandlesClause(handlesKeyword, _pool.ToListAndFree(handlesClauseItems))
         End Function
 
         ' /*********************************************************************
@@ -4405,9 +4377,7 @@ checkNullable:
                         Dim closeBrace As PunctuationSyntax = Nothing
                         TryEatNewLineAndGetToken(SyntaxKind.CloseBraceToken, closeBrace, createIfMissing:=True)
 
-                        Dim constraintList = constraints.ToList
-                        Me._pool.Free(constraints)
-
+                        Dim constraintList = _pool.ToListAndFree(constraints)
                         typeParameterConstraintClause = SyntaxFactory.TypeParameterMultipleConstraintClause(asKeyword, openBrace, constraintList, closeBrace)
 
                     Else
@@ -4445,8 +4415,7 @@ checkNullable:
                 End If
             End If
 
-            Dim separatedTypeParameters = typeParameters.ToList
-            Me._pool.Free(typeParameters)
+            Dim separatedTypeParameters = _pool.ToListAndFree(typeParameters)
 
             Dim result As TypeParameterListSyntax = SyntaxFactory.TypeParameterList(openParen, ofKeyword, separatedTypeParameters, closeParen)
 
@@ -4580,11 +4549,7 @@ checkNullable:
 
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
 
-            Dim result = parameters.ToList()
-
-            _pool.Free(parameters)
-
-            Return result
+            Return _pool.ToListAndFree(parameters)
 
         End Function
 
@@ -4648,10 +4613,7 @@ checkNullable:
                         specifier = ParameterSpecifiers.ParamArray
 
                     Case Else
-                        Dim result = keywords.ToList
-                        Me._pool.Free(keywords)
-
-                        Return result
+                        Return _pool.ToListAndFree(keywords)
                 End Select
 
                 If (specifiers And specifier) <> 0 Then
@@ -4761,11 +4723,7 @@ checkNullable:
                 importsClauses.AddSeparator(comma)
             Loop
 
-            Dim result = importsClauses.ToList
-            Me._pool.Free(importsClauses)
-            Dim statement As ImportsStatementSyntax = SyntaxFactory.ImportsStatement(importsKeyword, result)
-
-            Return statement
+            Return SyntaxFactory.ImportsStatement(importsKeyword, _pool.ToListAndFree(importsClauses))
         End Function
 
         ' File:Parser.cpp
@@ -4922,8 +4880,7 @@ checkNullable:
                 typeNames.AddSeparator(comma)
             Loop
 
-            Dim separatedTypeNames = typeNames.ToList
-            Me._pool.Free(typeNames)
+            Dim separatedTypeNames = _pool.ToListAndFree(typeNames)
 
             Dim result As InheritsOrImplementsStatementSyntax = Nothing
             Select Case (keyword.Kind)
@@ -5483,11 +5440,8 @@ checkNullable:
                 Nothing)
 
             attributes.Add(attribute)
-            attributeBlocks.Add(SyntaxFactory.AttributeList(lessThan, attributes.ToList(), greaterThan))
-            Dim result = attributeBlocks.ToList()
-            _pool.Free(attributes)
-            _pool.Free(attributeBlocks)
-            Return result
+            attributeBlocks.Add(SyntaxFactory.AttributeList(lessThan, _pool.ToListAndFree(attributes), greaterThan))
+            Return _pool.ToListAndFree(attributeBlocks)
         End Function
 
         ' File:Parser.cpp
@@ -5608,11 +5562,8 @@ checkNullable:
 
             Loop While CurrentToken.Kind = SyntaxKind.LessThanToken
 
-            Dim result = attributeBlocks.ToList
             _pool.Free(attributes)
-            _pool.Free(attributeBlocks)
-
-            Return result
+            Return _pool.ToListAndFree(attributeBlocks)
         End Function
 
         Private Function GetTokenAsAssemblyOrModuleKeyword(token As SyntaxToken) As KeywordSyntax
