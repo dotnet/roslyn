@@ -9,9 +9,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -319,6 +318,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return minAritySymbol;
         }
 
+#nullable enable
+        /// <summary>
+        /// Return all of the type parameters in this symbol and enclosing symbols,
+        /// from outer-most to inner-most type.
+        /// </summary>
+        internal static ImmutableArray<TypeParameterSymbol> GetAllTypeParameters(this Symbol? symbol)
+        {
+            var builder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
+            getAllTypeParameters(builder, symbol);
+            return builder.ToImmutableAndFree();
+
+            static void getAllTypeParameters(ArrayBuilder<TypeParameterSymbol> builder, Symbol? symbol)
+            {
+                if (symbol is null || symbol.Kind == SymbolKind.Namespace)
+                {
+                    return;
+                }
+                getAllTypeParameters(builder, symbol.ContainingSymbol);
+                builder.AddRange(symbol.GetMemberTypeParameters());
+            }
+        }
+
         internal static ImmutableArray<TypeParameterSymbol> GetMemberTypeParameters(this Symbol symbol)
         {
             switch (symbol.Kind)
@@ -354,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
         }
+#nullable disable
 
         internal static bool IsConstructor(this MethodSymbol method)
         {

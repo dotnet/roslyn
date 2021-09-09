@@ -14,11 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal sealed class AnonymousDelegatePublicSymbol : AnonymousTypeOrDelegatePublicSymbol
         {
+            internal readonly ImmutableArray<TypeParameterSymbol> ContainingTypeParameters;
             private ImmutableArray<Symbol> _lazyMembers;
 
-            internal AnonymousDelegatePublicSymbol(AnonymousTypeManager manager, AnonymousTypeDescriptor typeDescr) :
+            internal AnonymousDelegatePublicSymbol(AnonymousTypeManager manager, ImmutableArray<TypeParameterSymbol> containingTypeParameters, AnonymousTypeDescriptor typeDescr) :
                 base(manager, typeDescr)
             {
+                ContainingTypeParameters = containingTypeParameters;
             }
 
             internal override NamedTypeSymbol MapToImplementationSymbol()
@@ -28,10 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override AnonymousTypeOrDelegatePublicSymbol SubstituteTypes(AbstractTypeMap map)
             {
-                var typeDescr = TypeDescriptor.SubstituteTypes(map, out bool changed);
-                return changed ?
-                    new AnonymousDelegatePublicSymbol(Manager, typeDescr) :
-                    this;
+                var containingTypeParameters = map.SubstituteTypeParameters(ContainingTypeParameters);
+                var typeDescr = TypeDescriptor.SubstituteTypes(map, out _);
+                return new AnonymousDelegatePublicSymbol(Manager, containingTypeParameters, typeDescr);
             }
 
             public override TypeKind TypeKind => TypeKind.Delegate;

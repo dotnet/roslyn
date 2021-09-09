@@ -31,106 +31,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly int Index;
         }
 
-        /// <summary>
-        /// Represents an anonymous type 'template' which is a generic type to be used for all 
-        /// anonymous type having the same structure, i.e. the same number of fields and field names.
-        /// </summary>
-        internal sealed class AnonymousTypeTemplateSymbol : NamedTypeSymbol
+        internal abstract class AnonymousTypeOrDelegateTemplateSymbol : NamedTypeSymbol
         {
             /// <summary> Name to be used as metadata name during emit </summary>
             private NameAndIndex _nameAndIndex;
-
-            private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
-            private readonly ImmutableArray<Symbol> _members;
-
-            /// <summary> This list consists of synthesized method symbols for ToString, 
-            /// Equals and GetHashCode which are not part of symbol table </summary>
-            internal readonly ImmutableArray<MethodSymbol> SpecialMembers;
-
-            /// <summary> Properties defined in the template </summary>
-            internal readonly ImmutableArray<AnonymousTypePropertySymbol> Properties;
-
-            /// <summary> Maps member names to symbol(s) </summary>
-            private readonly MultiDictionary<string, Symbol> _nameToSymbols = new MultiDictionary<string, Symbol>();
-
-            /// <summary> Anonymous type manager owning this template </summary>
-            internal readonly AnonymousTypeManager Manager;
 
             /// <summary> Smallest location of the template, actually contains the smallest location 
             /// of all the anonymous type instances created using this template during EMIT </summary>
             private Location _smallestLocation;
 
-            /// <summary> Key pf the anonymous type descriptor </summary>
-            internal readonly string TypeDescriptorKey;
+            /// <summary> Anonymous type manager owning this template </summary>
+            internal readonly AnonymousTypeManager Manager;
 
-            internal AnonymousTypeTemplateSymbol(AnonymousTypeManager manager, AnonymousTypeDescriptor typeDescr)
+            internal AnonymousTypeOrDelegateTemplateSymbol(AnonymousTypeManager manager, Location location)
             {
                 this.Manager = manager;
-                this.TypeDescriptorKey = typeDescr.Key;
-                _smallestLocation = typeDescr.Location;
+                _smallestLocation = location;
 
                 // Will be set when the type's metadata is ready to be emitted, 
                 // <anonymous-type>.Name will throw exception if requested
                 // before that moment.
                 _nameAndIndex = null;
-
-                int fieldsCount = typeDescr.Fields.Length;
-                int membersCount = fieldsCount * 3 + 1;
-
-                // members
-                var membersBuilder = ArrayBuilder<Symbol>.GetInstance(membersCount);
-                var propertiesBuilder = ArrayBuilder<AnonymousTypePropertySymbol>.GetInstance(fieldsCount);
-                var typeParametersBuilder = ArrayBuilder<TypeParameterSymbol>.GetInstance(fieldsCount);
-
-                // Process fields
-                for (int fieldIndex = 0; fieldIndex < fieldsCount; fieldIndex++)
-                {
-                    AnonymousTypeField field = typeDescr.Fields[fieldIndex];
-
-                    // Add a type parameter
-                    AnonymousTypeParameterSymbol typeParameter =
-                        new AnonymousTypeParameterSymbol(this, fieldIndex, GeneratedNames.MakeAnonymousTypeParameterName(field.Name));
-                    typeParametersBuilder.Add(typeParameter);
-
-                    // Add a property
-                    AnonymousTypePropertySymbol property = new AnonymousTypePropertySymbol(this, field, TypeWithAnnotations.Create(typeParameter), fieldIndex);
-                    propertiesBuilder.Add(property);
-
-                    // Property related symbols
-                    membersBuilder.Add(property);
-                    membersBuilder.Add(property.BackingField);
-                    membersBuilder.Add(property.GetMethod);
-                }
-
-                _typeParameters = typeParametersBuilder.ToImmutableAndFree();
-                this.Properties = propertiesBuilder.ToImmutableAndFree();
-
-                // Add a constructor
-                membersBuilder.Add(new AnonymousTypeConstructorSymbol(this, this.Properties));
-                _members = membersBuilder.ToImmutableAndFree();
-                Debug.Assert(membersCount == _members.Length);
-
-                // fill nameToSymbols map
-                foreach (var symbol in _members)
-                {
-                    _nameToSymbols.Add(symbol.Name, symbol);
-                }
-
-                // special members: Equals, GetHashCode, ToString
-                this.SpecialMembers = ImmutableArray.Create<MethodSymbol>(
-                    new AnonymousTypeEqualsMethodSymbol(this),
-                    new AnonymousTypeGetHashCodeMethodSymbol(this),
-                    new AnonymousTypeToStringMethodSymbol(this));
             }
 
-            protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
+            internal abstract string TypeDescriptorKey { get; }
+
+            protected sealed override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
                 => throw ExceptionUtilities.Unreachable;
-
-            internal AnonymousTypeKey GetAnonymousTypeKey()
-            {
-                var properties = Properties.SelectAsArray(p => new AnonymousTypeKeyField(p.Name, isKey: false, ignoreCase: false));
-                return new AnonymousTypeKey(properties);
-            }
 
             /// <summary>
             /// Smallest location of the template, actually contains the smallest location 
@@ -189,6 +116,300 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            internal sealed override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+            internal sealed override bool IsInterpolatedStringHandlerType => false;
+
+            internal sealed override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
+            {
+                return this.GetMembersUnordered();
+            }
+
+            internal sealed override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name)
+            {
+                return this.GetMembers(name);
+            }
+
+            public sealed override Symbol ContainingSymbol
+            {
+                get { return this.Manager.Compilation.SourceModule.GlobalNamespace; }
+            }
+
+            public sealed override string Name
+            {
+                get { return _nameAndIndex.Name; }
+            }
+
+            internal sealed override bool HasSpecialName
+            {
+                get { return false; }
+            }
+
+            public sealed override bool IsImplicitlyDeclared
+            {
+                get { return true; }
+            }
+
+            public sealed override bool IsAbstract
+            {
+                get { return false; }
+            }
+
+            public sealed override bool IsRefLikeType
+            {
+                get { return false; }
+            }
+
+            public sealed override bool IsReadOnly
+            {
+                get { return false; }
+            }
+
+            public sealed override bool IsSealed
+            {
+                get { return true; }
+            }
+
+            public sealed override bool MightContainExtensionMethods
+            {
+                get { return false; }
+            }
+
+            public sealed override bool AreLocalsZeroed
+            {
+                get { return ContainingModule.AreLocalsZeroed; }
+            }
+
+            public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
+            {
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+            }
+
+            public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
+            {
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+            }
+
+            public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
+            {
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+            }
+
+            public sealed override Accessibility DeclaredAccessibility
+            {
+                get { return Accessibility.Internal; }
+            }
+
+            internal sealed override bool IsInterface
+            {
+                get { return false; }
+            }
+
+            public sealed override ImmutableArray<Location> Locations
+            {
+                get { return ImmutableArray<Location>.Empty; }
+            }
+
+            public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+            {
+                get
+                {
+                    return ImmutableArray<SyntaxReference>.Empty;
+                }
+            }
+
+            public sealed override bool IsStatic
+            {
+                get { return false; }
+            }
+
+            public sealed override NamedTypeSymbol ConstructedFrom
+            {
+                get { return this; }
+            }
+
+            internal sealed override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
+            {
+                return this.Manager.System_Object;
+            }
+
+            internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
+            {
+                return ImmutableArray<NamedTypeSymbol>.Empty;
+            }
+
+            internal sealed override bool MangleName
+            {
+                get { return this.Arity > 0; }
+            }
+
+            internal sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
+            {
+                get { return GetTypeParametersAsTypeArguments(); }
+            }
+
+            public sealed override int Arity
+            {
+                get { return TypeParameters.Length; }
+            }
+
+            internal sealed override bool ShouldAddWinRTMembers
+            {
+                get { return false; }
+            }
+
+            internal sealed override bool IsWindowsRuntimeImport
+            {
+                get { return false; }
+            }
+
+            internal sealed override bool IsComImport
+            {
+                get { return false; }
+            }
+
+            internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+            {
+                get { return null; }
+            }
+
+            internal sealed override TypeLayout Layout
+            {
+                get { return default(TypeLayout); }
+            }
+
+            internal sealed override CharSet MarshallingCharSet
+            {
+                get { return DefaultMarshallingCharSet; }
+            }
+
+            public sealed override bool IsSerializable
+            {
+                get { return false; }
+            }
+
+            internal sealed override bool HasDeclarativeSecurity
+            {
+                get { return false; }
+            }
+
+            internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            internal sealed override AttributeUsageInfo GetAttributeUsageInfo()
+            {
+                return AttributeUsageInfo.Null;
+            }
+
+            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
+
+            internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+            internal sealed override bool IsRecord => false;
+
+            internal sealed override bool IsRecordStruct => false;
+
+            internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
+
+            internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+            {
+                return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+            }
+        }
+
+        /// <summary>
+        /// Represents an anonymous type 'template' which is a generic type to be used for all 
+        /// anonymous types having the same structure, i.e. the same number of fields and field names.
+        /// </summary>
+        internal sealed class AnonymousTypeTemplateSymbol : AnonymousTypeOrDelegateTemplateSymbol
+        {
+            private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
+            private readonly ImmutableArray<Symbol> _members;
+
+            /// <summary> This list consists of synthesized method symbols for ToString, 
+            /// Equals and GetHashCode which are not part of symbol table </summary>
+            internal readonly ImmutableArray<MethodSymbol> SpecialMembers;
+
+            /// <summary> Properties defined in the template </summary>
+            internal readonly ImmutableArray<AnonymousTypePropertySymbol> Properties;
+
+            /// <summary> Maps member names to symbol(s) </summary>
+            private readonly MultiDictionary<string, Symbol> _nameToSymbols = new MultiDictionary<string, Symbol>();
+
+            internal AnonymousTypeTemplateSymbol(AnonymousTypeManager manager, AnonymousTypeDescriptor typeDescr) :
+                base(manager, typeDescr.Location)
+            {
+                this.TypeDescriptorKey = typeDescr.Key;
+
+                int fieldsCount = typeDescr.Fields.Length;
+                int membersCount = fieldsCount * 3 + 1;
+
+                // members
+                var membersBuilder = ArrayBuilder<Symbol>.GetInstance(membersCount);
+                var propertiesBuilder = ArrayBuilder<AnonymousTypePropertySymbol>.GetInstance(fieldsCount);
+                var typeParametersBuilder = ArrayBuilder<TypeParameterSymbol>.GetInstance(fieldsCount);
+
+                // Process fields
+                for (int fieldIndex = 0; fieldIndex < fieldsCount; fieldIndex++)
+                {
+                    AnonymousTypeField field = typeDescr.Fields[fieldIndex];
+
+                    // Add a type parameter
+                    AnonymousTypeParameterSymbol typeParameter =
+                        new AnonymousTypeParameterSymbol(this, fieldIndex, GeneratedNames.MakeAnonymousTypeParameterName(field.Name));
+                    typeParametersBuilder.Add(typeParameter);
+
+                    // Add a property
+                    AnonymousTypePropertySymbol property = new AnonymousTypePropertySymbol(this, field, TypeWithAnnotations.Create(typeParameter), fieldIndex);
+                    propertiesBuilder.Add(property);
+
+                    // Property related symbols
+                    membersBuilder.Add(property);
+                    membersBuilder.Add(property.BackingField);
+                    membersBuilder.Add(property.GetMethod);
+                }
+
+                _typeParameters = typeParametersBuilder.ToImmutableAndFree();
+                this.Properties = propertiesBuilder.ToImmutableAndFree();
+
+                // Add a constructor
+                membersBuilder.Add(new AnonymousTypeConstructorSymbol(this, this.Properties));
+                _members = membersBuilder.ToImmutableAndFree();
+                Debug.Assert(membersCount == _members.Length);
+
+                // fill nameToSymbols map
+                foreach (var symbol in _members)
+                {
+                    _nameToSymbols.Add(symbol.Name, symbol);
+                }
+
+                // special members: Equals, GetHashCode, ToString
+                this.SpecialMembers = ImmutableArray.Create<MethodSymbol>(
+                    new AnonymousTypeEqualsMethodSymbol(this),
+                    new AnonymousTypeGetHashCodeMethodSymbol(this),
+                    new AnonymousTypeToStringMethodSymbol(this));
+            }
+
+            internal AnonymousTypeKey GetAnonymousTypeKey()
+            {
+                var properties = Properties.SelectAsArray(p => new AnonymousTypeKeyField(p.Name, isKey: false, ignoreCase: false));
+                return new AnonymousTypeKey(properties);
+            }
+
+            internal override string TypeDescriptorKey { get; }
+
+            public override TypeKind TypeKind
+            {
+                get { return TypeKind.Class; }
+            }
+
             public override ImmutableArray<Symbol> GetMembers()
             {
                 return _members;
@@ -207,15 +428,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override bool HasCodeAnalysisEmbeddedAttribute => false;
-
-            internal override bool IsInterpolatedStringHandlerType => false;
-
-            internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
-            {
-                get { return GetTypeParametersAsTypeArguments(); }
-            }
-
             public override ImmutableArray<Symbol> GetMembers(string name)
             {
                 var symbols = _nameToSymbols[name];
@@ -226,106 +438,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return builder.ToImmutableAndFree();
-            }
-
-            internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
-            {
-                return this.GetMembersUnordered();
-            }
-
-            internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name)
-            {
-                return this.GetMembers(name);
-            }
-
-            public override IEnumerable<string> MemberNames
-            {
-                get { return _nameToSymbols.Keys; }
-            }
-
-            public override Symbol ContainingSymbol
-            {
-                get { return this.Manager.Compilation.SourceModule.GlobalNamespace; }
-            }
-
-            public override string Name
-            {
-                get { return _nameAndIndex.Name; }
-            }
-
-            internal override bool HasSpecialName
-            {
-                get { return false; }
-            }
-
-            internal override bool MangleName
-            {
-                get { return this.Arity > 0; }
-            }
-
-            public override int Arity
-            {
-                get { return _typeParameters.Length; }
-            }
-
-            public override bool IsImplicitlyDeclared
-            {
-                get { return true; }
-            }
-
-            public override ImmutableArray<TypeParameterSymbol> TypeParameters
-            {
-                get { return _typeParameters; }
-            }
-
-            public override bool IsAbstract
-            {
-                get { return false; }
-            }
-
-            public sealed override bool IsRefLikeType
-            {
-                get { return false; }
-            }
-
-            public sealed override bool IsReadOnly
-            {
-                get { return false; }
-            }
-
-            public override bool IsSealed
-            {
-                get { return true; }
-            }
-
-            public override bool MightContainExtensionMethods
-            {
-                get { return false; }
-            }
-
-            public sealed override bool AreLocalsZeroed
-            {
-                get { return ContainingModule.AreLocalsZeroed; }
-            }
-
-            public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
-            {
-                return ImmutableArray<NamedTypeSymbol>.Empty;
-            }
-
-            public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
-            {
-                return ImmutableArray<NamedTypeSymbol>.Empty;
-            }
-
-            public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
-            {
-                return ImmutableArray<NamedTypeSymbol>.Empty;
-            }
-
-            public override Accessibility DeclaredAccessibility
-            {
-                get { return Accessibility.Internal; }
             }
 
             internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
@@ -340,111 +452,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics => this.Manager.System_Object;
 
-            public override TypeKind TypeKind
+            public override ImmutableArray<TypeParameterSymbol> TypeParameters
             {
-                get { return TypeKind.Class; }
+                get { return _typeParameters; }
             }
 
-            internal override bool IsInterface
+            public override IEnumerable<string> MemberNames
             {
-                get { return false; }
+                get { return _nameToSymbols.Keys; }
             }
-
-            public override ImmutableArray<Location> Locations
-            {
-                get { return ImmutableArray<Location>.Empty; }
-            }
-
-            public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-            {
-                get
-                {
-                    return ImmutableArray<SyntaxReference>.Empty;
-                }
-            }
-
-            public override bool IsStatic
-            {
-                get { return false; }
-            }
-
-            public override NamedTypeSymbol ConstructedFrom
-            {
-                get { return this; }
-            }
-
-            internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<TypeSymbol> basesBeingResolved)
-            {
-                return this.Manager.System_Object;
-            }
-
-            internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved)
-            {
-                return ImmutableArray<NamedTypeSymbol>.Empty;
-            }
-
-            internal override bool ShouldAddWinRTMembers
-            {
-                get { return false; }
-            }
-
-            internal override bool IsWindowsRuntimeImport
-            {
-                get { return false; }
-            }
-
-            internal override bool IsComImport
-            {
-                get { return false; }
-            }
-
-            internal sealed override ObsoleteAttributeData ObsoleteAttributeData
-            {
-                get { return null; }
-            }
-
-            internal override TypeLayout Layout
-            {
-                get { return default(TypeLayout); }
-            }
-
-            internal override CharSet MarshallingCharSet
-            {
-                get { return DefaultMarshallingCharSet; }
-            }
-
-            public override bool IsSerializable
-            {
-                get { return false; }
-            }
-
-            internal override bool HasDeclarativeSecurity
-            {
-                get { return false; }
-            }
-
-            internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            internal override ImmutableArray<string> GetAppliedConditionalSymbols()
-            {
-                return ImmutableArray<string>.Empty;
-            }
-
-            internal override AttributeUsageInfo GetAttributeUsageInfo()
-            {
-                return AttributeUsageInfo.Null;
-            }
-
-            internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable;
-
-            internal sealed override NamedTypeSymbol NativeIntegerUnderlyingType => null;
-
-            internal override bool IsRecord => false;
-
-            internal override bool IsRecordStruct => false;
 
             internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
             {
@@ -510,13 +526,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     namedArguments: ImmutableArray.Create(new KeyValuePair<WellKnownMember, TypedConstant>(
                                         WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type,
                                         new TypedConstant(Manager.System_String, TypedConstantKind.Primitive, "<Anonymous Type>"))));
-            }
-
-            internal override bool HasPossibleWellKnownCloneMethod() => false;
-
-            internal override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
-            {
-                return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
             }
         }
     }

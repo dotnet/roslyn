@@ -1946,24 +1946,23 @@ class Program
         public void InvalidTypeArguments()
         {
             var source =
-@"unsafe class Program
+@"using System;
+unsafe class Program
 {
     static int* F() => throw null;
     static void Main()
     {
-        System.Delegate d;
-        d = F;
-        d = (int x, int* y) => { };
+        Delegate d1 = F;
+        Delegate d2 = (int x, int* y) => { };
+        Report(d1);
+        Report(d2);
     }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe);
-            comp.VerifyDiagnostics(
-                // (7,13): error CS8917: The delegate type could not be inferred.
-                //         d = F;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F").WithLocation(7, 13),
-                // (8,13): error CS8917: The delegate type could not be inferred.
-                //         d = (int x, int* y) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(int x, int* y) => { }").WithLocation(8, 13));
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseExe, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+");
         }
 
         [Fact]
@@ -8356,7 +8355,8 @@ class Program
         public void SynthesizedDelegateTypes_11()
         {
             var source =
-@"class Program
+@"using System;
+class Program
 {
     unsafe static void Main()
     {
@@ -8364,23 +8364,23 @@ class Program
         var d2 = (int* p) => { };
         var d3 = delegate*<void> () => default;
         var d4 = (delegate*<void> d) => { };
+        Report(d1);
+        Report(d2);
+        Report(d3);
+        Report(d4);
     }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
 
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
-            comp.VerifyDiagnostics(
-                // (5,18): error CS8917: The delegate type could not be inferred.
-                //         var d1 = int* () => (int*)42;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "int* () => (int*)42").WithLocation(5, 18),
-                // (6,18): error CS8917: The delegate type could not be inferred.
-                //         var d2 = (int* p) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(int* p) => { }").WithLocation(6, 18),
-                // (7,18): error CS8917: The delegate type could not be inferred.
-                //         var d3 = delegate*<void> () => default;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "delegate*<void> () => default").WithLocation(7, 18),
-                // (8,18): error CS8917: The delegate type could not be inferred.
-                //         var d4 = (delegate*<void> d) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(delegate*<void> d) => { }").WithLocation(8, 18));
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+<>f__AnonymousDelegate2
+<>f__AnonymousDelegate3
+");
         }
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
@@ -8396,19 +8396,21 @@ class Program
         var d1 = (TypedReference x) => { };
         var d2 = (int x, RuntimeArgumentHandle y) => { };
         var d3 = (ArgIterator x) => { };
+        Report(d1);
+        Report(d2);
+        Report(d3);
     }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (6,18): error CS8917: The delegate type could not be inferred.
-                //         var d1 = (TypedReference x) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(TypedReference x) => { }").WithLocation(6, 18),
-                // (7,18): error CS8917: The delegate type could not be inferred.
-                //         var d2 = (int x, RuntimeArgumentHandle y) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(int x, RuntimeArgumentHandle y) => { }").WithLocation(7, 18),
-                // (8,18): error CS8917: The delegate type could not be inferred.
-                //         var d3 = (ArgIterator x) => { };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(ArgIterator x) => { }").WithLocation(8, 18));
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+<>f__AnonymousDelegate2
+");
         }
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
@@ -8416,7 +8418,8 @@ class Program
         public void SynthesizedDelegateTypes_13()
         {
             var source =
-@"ref struct S<T> { }
+@"using System;
+ref struct S<T> { }
 class Program
 {
     static void F1(int x, S<int> y) { }
@@ -8425,16 +8428,19 @@ class Program
     {
         var d1 = F1;
         var d2 = F2<object>;
+        Report(d1);
+        Report(d2);
     }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (8,18): error CS8917: The delegate type could not be inferred.
-                //         var d1 = F1;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F1").WithLocation(8, 18),
-                // (9,18): error CS8917: The delegate type could not be inferred.
-                //         var d2 = F2<object>;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "F2<object>").WithLocation(9, 18));
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+");
         }
 
         [Fact]
@@ -8852,6 +8858,350 @@ class B<T>
 ");
         }
 
+        [Fact]
+        public void SynthesizedDelegateTypes_25()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(A.F1());
+        Report(A.F2<int>());
+        Report(B<string>.F3());
+        Report(A.F2<string>());
+        Report(B<int>.F3());
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+class A
+{
+    internal unsafe static Delegate F1() => int* () => (int*)1;
+    internal unsafe static Delegate F2<T>() => int* () => (int*)2;
+}
+class B<T>
+{
+    internal unsafe static Delegate F3() => int* () => (int*)3;
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1`1[System.Int32]
+<>f__AnonymousDelegate1`1[System.String]
+<>f__AnonymousDelegate1`1[System.String]
+<>f__AnonymousDelegate1`1[System.Int32]
+");
+        }
+
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [Fact]
+        public void SynthesizedDelegateTypes_26()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Span<int> s = stackalloc int[] { 1, 2, 3 };
+        var d = (Span<int> s) => { Console.WriteLine(s.Length); };
+        d.Invoke(s);
+        Console.WriteLine(d.GetType());
+    }
+}";
+            var comp = CreateCompilationWithSpan(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput:
+@"3
+<>f__AnonymousDelegate0
+");
+        }
+
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [Fact]
+        public void SynthesizedDelegateTypes_27()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    unsafe static void Main()
+    {
+        object o = null; // 1
+        var d = (int* p) => o;
+        d((int*)42).ToString(); // 2
+    }
+}";
+            // Should report warning 2.
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object o = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 20));
+        }
+
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [Fact]
+        public void SynthesizedDelegateTypes_28()
+        {
+            var sourceA =
+@"using System;
+class A
+{
+    static void Main()
+    {
+        B.M();
+        C.M();
+    }
+    internal static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+            var sourceB =
+@"class B
+{
+    internal unsafe static void M()
+    {
+        int* x = (int*)42;
+        A.Report((int y) => x);
+        A.Report((ref int y) => x);
+        A.Report((out int y) => { y = 0; return x; });
+        A.Report((in int y) => x);
+    }
+}";
+            var sourceC =
+@"class C
+{
+    internal unsafe static void M()
+    {
+        int* p = (int*)42;
+        A.Report((in int i) => p);
+        A.Report((out int i) => { i = 0; return p; });
+        A.Report((ref int i) => p);
+        A.Report((int i) => p);
+    }
+}";
+            CompileAndVerify(new[] { sourceA, sourceB, sourceC }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+<>f__AnonymousDelegate2
+<>f__AnonymousDelegate3
+<>f__AnonymousDelegate3
+<>f__AnonymousDelegate2
+<>f__AnonymousDelegate1
+<>f__AnonymousDelegate0
+");
+        }
+
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
+        [Fact]
+        public void SynthesizedDelegateTypes_29()
+        {
+            var sourceA =
+@"using System;
+class A
+{
+    static void Main()
+    {
+        B.M();
+        C.M();
+    }
+    internal static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}";
+            var sourceB =
+@"class B
+{
+    internal unsafe static void M()
+    {
+        A.Report((int* x, int y) => { });
+        A.Report((short* x, int y) => { });
+        A.Report((int* x, object y) => { });
+    }
+}";
+            var sourceC =
+@"class C
+{
+    internal unsafe static void M()
+    {
+        A.Report((int* x, string y) => { });
+        A.Report((short* x, int y) => { });
+        A.Report((char* x, char y) => { });
+        A.Report((int* x, int y) => { });
+        A.Report((int* x, object y) => { });
+    }
+}";
+            CompileAndVerify(new[] { sourceA, sourceB, sourceC }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"<>f__AnonymousDelegate0
+<>f__AnonymousDelegate1
+<>f__AnonymousDelegate2
+<>f__AnonymousDelegate3
+<>f__AnonymousDelegate1
+<>f__AnonymousDelegate4
+<>f__AnonymousDelegate0
+<>f__AnonymousDelegate2
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_30()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d = F<string>();
+        Console.WriteLine(d.GetType());
+    }
+    unsafe static Delegate F<T>()
+    {
+        return Local<int>();
+        static Delegate Local<U>() where U : unmanaged
+        {
+            var d = (T t, U* u) => { Console.WriteLine((t, (int)u)); };
+            d.Invoke(default, (U*)42);
+            return d;
+        }
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(, 42)
+<>f__AnonymousDelegate0`2[System.String,System.Int32]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_31()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(C<string>.F());
+        Report(C<float>.F());
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+unsafe class C<T>
+{
+    internal static Func<Delegate> F = () =>
+    {
+        return Local1<int>();
+        static Delegate Local1<U>() where U : unmanaged
+        {
+            return Local2<double>();
+            static Delegate Local2<V>() where V : struct
+            {
+                var d = U* (T t) => { Console.WriteLine((typeof(T), typeof(U))); return (U*)42; };
+                d.Invoke(default);
+                return d;
+            }
+        }
+    };
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(System.String, System.Int32)
+<>f__AnonymousDelegate0`3[System.String,System.Int32,System.Double]
+(System.Single, System.Int32)
+<>f__AnonymousDelegate0`3[System.Single,System.Int32,System.Double]
+");
+        }
+
+        // PROTOTYPE: Test type parameters where one depends on the other (in constraints).
+        // PROTOTYPE: Test different number of type parameters that aren't used in the signature.
+        // PROTOTYPE: Test same number of type parameters that may or may not be used in the signature, with same or different constraints.
+
+        [Fact]
+        public void SynthesizedDelegateTypes_32()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(S<int>.F);
+        Report(S<char>.P);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+unsafe struct S<T> where T : unmanaged
+{
+    internal static Delegate F = T* () => (T*)1;
+    internal static Delegate P => S<T>* () => (S<T>*)2;
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"<>f__AnonymousDelegate0`1[System.Int32]
+<>f__AnonymousDelegate1`1[System.Char]
+");
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_33()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(A.F1<int, string>());
+        Report(A.F1<string, int>());
+        Report(A.B<int, string>.F2());
+        Report(A.B<string, int>.F2());
+        Report(S<int>.C.F3<string>());
+        Report(S<string>.C.F3<int>());
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+class A
+{
+    internal unsafe static Delegate F1<T, U>()
+    {
+        var d = int (int* x, T[] y, S<U> z) => { Console.WriteLine(((int)x, typeof(T), typeof(U))); return 0; };
+        d.Invoke((int*)1, null, default);
+        return d;
+    }
+    internal struct B<T, U>
+    {
+        internal unsafe static Delegate F2()
+        {
+            var d = int (int* x, T[] y, S<U> z) => { Console.WriteLine(((int)x, typeof(T), typeof(U))); return 0; };
+            d.Invoke((int*)2, null, default);
+            return d;
+        }
+    }
+}
+struct S<U>
+{
+    internal class C
+    {
+        internal unsafe static Delegate F3<T>()
+        {
+            var d = int (int* x, T[] y, S<U> z) => { Console.WriteLine(((int)x, typeof(T), typeof(U))); return 0; };
+            d.Invoke((int*)3, null, default);
+            return d;
+        }
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput:
+@"(1, System.Int32, System.String)
+<>f__AnonymousDelegate0`2[System.Int32,System.String]
+(1, System.String, System.Int32)
+<>f__AnonymousDelegate0`2[System.String,System.Int32]
+(2, System.Int32, System.String)
+<>f__AnonymousDelegate0`2[System.Int32,System.String]
+(2, System.String, System.Int32)
+<>f__AnonymousDelegate0`2[System.String,System.Int32]
+(3, System.String, System.Int32)
+<>f__AnonymousDelegate1`2[System.Int32,System.String]
+(3, System.Int32, System.String)
+<>f__AnonymousDelegate1`2[System.String,System.Int32]
+");
+        }
+
+        // PROTOTYPE: Test EnC. Either allow EnC or block it.
+
         private static void VerifyLocalDelegateType(SemanticModel model, VariableDeclaratorSyntax variable, string expectedInvokeMethod)
         {
             var expectedBaseType = ((CSharpCompilation)model.Compilation).GetSpecialType(SpecialType.System_MulticastDelegate);
@@ -8912,6 +9262,50 @@ class Program
     }
 }";
             CompileAndVerify(source, expectedOutput: @"<>F{00000001}`2[System.Int32,System.Int32]");
+        }
+
+        [WorkItem(56808, "https://github.com/dotnet/roslyn/issues/56808")]
+        [Fact]
+        public void Invoke_03()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        M1();
+        M2();
+    }
+    static void M1()
+    {
+        var d1 = (ref object obj) => { };
+        object obj = null;
+        var result = d1.BeginInvoke(ref obj, null, null);
+        d1.EndInvoke(result);
+    }
+    unsafe static void M2()
+    {
+        var d2 = (int* p) => p;
+        int* p = (int*)0;
+        var result = d2.BeginInvoke(p, null, null);
+        d2.EndInvoke(result);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            // https://github.com/dotnet/roslyn/issues/56808: Synthesized delegates should include BeginInvoke() and EndInvoke().
+            comp.VerifyDiagnostics(
+                // (12,25): error CS1061: '<anonymous delegate>' does not contain a definition for 'BeginInvoke' and no accessible extension method 'BeginInvoke' accepting a first argument of type '<anonymous delegate>' could be found (are you missing a using directive or an assembly reference?)
+                //         var result = d1.BeginInvoke(ref obj, null, null);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "BeginInvoke").WithArguments("<anonymous delegate>", "BeginInvoke").WithLocation(12, 25),
+                // (13,12): error CS1061: '<anonymous delegate>' does not contain a definition for 'EndInvoke' and no accessible extension method 'EndInvoke' accepting a first argument of type '<anonymous delegate>' could be found (are you missing a using directive or an assembly reference?)
+                //         d1.EndInvoke(result);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "EndInvoke").WithArguments("<anonymous delegate>", "EndInvoke").WithLocation(13, 12),
+                // (19,25): error CS1061: '<anonymous delegate>' does not contain a definition for 'BeginInvoke' and no accessible extension method 'BeginInvoke' accepting a first argument of type '<anonymous delegate>' could be found (are you missing a using directive or an assembly reference?)
+                //         var result = d2.BeginInvoke(p, null, null);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "BeginInvoke").WithArguments("<anonymous delegate>", "BeginInvoke").WithLocation(19, 25),
+                // (20,12): error CS1061: '<anonymous delegate>' does not contain a definition for 'EndInvoke' and no accessible extension method 'EndInvoke' accepting a first argument of type '<anonymous delegate>' could be found (are you missing a using directive or an assembly reference?)
+                //         d2.EndInvoke(result);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "EndInvoke").WithArguments("<anonymous delegate>", "EndInvoke").WithLocation(20, 12));
         }
 
         [Fact]

@@ -284,10 +284,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _previousGeneration.GetNextAnonymousTypeIndex();
         }
 
-        internal override bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
+        internal override bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
         {
             Debug.Assert(this.Compilation == template.DeclaringCompilation);
-            return _previousDefinitions.TryGetAnonymousTypeName(template, out name, out index);
+
+            // Not re-using synthesized delegate types.
+            if (template is AnonymousTypeManager.AnonymousTypeTemplateSymbol { } typeTemplate)
+            {
+                return _previousDefinitions.TryGetAnonymousTypeName(typeTemplate, out name, out index);
+            }
+
+            name = null;
+            index = -1;
+            return false;
         }
 
         public void OnCreatedIndices(DiagnosticBag diagnostics)
