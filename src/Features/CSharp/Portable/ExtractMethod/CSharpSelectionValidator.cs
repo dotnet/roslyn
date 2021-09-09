@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // now, only method is okay to be extracted out
-            if (!(body.Parent is MethodDeclarationSyntax method))
+            if (body.Parent is not MethodDeclarationSyntax method)
             {
                 return false;
             }

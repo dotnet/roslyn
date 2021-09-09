@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                if (!(LookupSymbol() is IMethodSymbol methodSymbol))
+                if (LookupSymbol() is not IMethodSymbol methodSymbol)
                 {
                     throw Exceptions.ThrowEUnexpected();
                 }

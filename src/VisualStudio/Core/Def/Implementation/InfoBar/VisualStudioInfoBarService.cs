@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             this.AssertIsForeground();
 
-            if (!(_serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) is IVsInfoBarUIFactory factory))
+            if (_serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) is not IVsInfoBarUIFactory factory)
             {
                 // no info bar factory, don't do anything
                 return;
