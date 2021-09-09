@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -16,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
@@ -60,72 +59,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             {
                 // We're going to be checking every invocation in the compilation. Cache information
                 // we compute in this object so we don't have to continually recompute it.
-                var infoCache = new InfoCache(compilationContext.Compilation);
+                if (!InfoCache.TryCreate(compilationContext.Compilation, out var infoCache))
+                    return;
 
-                // The System.Range type is always required to offer this fix.
-                if (infoCache.RangeType != null)
-                {
-                    compilationContext.RegisterOperationAction(
-                        c => AnalyzeInvocation(c, infoCache),
-                        OperationKind.Invocation);
-                }
+                compilationContext.RegisterOperationAction(
+                    c => AnalyzeInvocation(c, infoCache),
+                    OperationKind.Invocation);
             });
         }
 
         private void AnalyzeInvocation(
             OperationAnalysisContext context, InfoCache infoCache)
         {
-            var resultOpt = AnalyzeInvocation(
-                (IInvocationOperation)context.Operation, infoCache, context.Options, context.CancellationToken);
-
-            if (resultOpt == null)
-            {
+            var syntaxTree = context.Operation.SemanticModel!.SyntaxTree;
+            var cancellationToken = context.CancellationToken;
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken);
+            if (!option.Value)
                 return;
-            }
 
-            context.ReportDiagnostic(CreateDiagnostic(resultOpt.Value));
+            var result = AnalyzeInvocation((IInvocationOperation)context.Operation, infoCache);
+            if (result == null)
+                return;
+
+            context.ReportDiagnostic(CreateDiagnostic(result.Value, option.Notification.Severity));
         }
 
-        public static Result? AnalyzeInvocation(
-            IInvocationOperation invocation, InfoCache infoCache,
-            AnalyzerOptions analyzerOptionsOpt, CancellationToken cancellationToken)
+        public static Result? AnalyzeInvocation(IInvocationOperation invocation, InfoCache infoCache)
         {
             // Validate we're on a piece of syntax we expect.  While not necessary for analysis, we
             // want to make sure we're on something the fixer will know how to actually fix.
-            if (!(invocation.Syntax is InvocationExpressionSyntax invocationSyntax) ||
+            if (invocation.Syntax is not InvocationExpressionSyntax invocationSyntax ||
                 invocationSyntax.ArgumentList is null)
             {
                 return null;
             }
 
-            CodeStyleOption2<bool> option = null;
-            if (analyzerOptionsOpt != null)
-            {
-                // Check if we're at least on C# 8, and that the user wants these operators.
-                var syntaxTree = invocationSyntax.SyntaxTree;
-                var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-                if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
-                {
-                    return null;
-                }
-
-                option = analyzerOptionsOpt.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken);
-                if (!option.Value)
-                {
-                    return null;
-                }
-            }
+            // Check if we're at least on C# 8, and that the user wants these operators.
+            var syntaxTree = invocationSyntax.SyntaxTree;
+            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
+            if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
+                return null;
 
             // look for `s.Slice(e1, end - e2)` or `s.Slice(e1)`
             if (invocation.Instance is null)
-            {
                 return null;
-            }
 
             return invocation.Arguments.Length switch
             {
-                1 => AnalyzeOneArgumentInvocation(invocation, infoCache, invocationSyntax, option),
-                2 => AnalyzeTwoArgumentInvocation(invocation, infoCache, invocationSyntax, option),
+                1 => AnalyzeOneArgumentInvocation(invocation, infoCache, invocationSyntax),
+                2 => AnalyzeTwoArgumentInvocation(invocation, infoCache, invocationSyntax),
                 _ => null,
             };
         }
@@ -133,8 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private static Result? AnalyzeOneArgumentInvocation(
             IInvocationOperation invocation,
             InfoCache infoCache,
-            InvocationExpressionSyntax invocationSyntax,
-            CodeStyleOption2<bool> option)
+            InvocationExpressionSyntax invocationSyntax)
         {
             var targetMethod = invocation.TargetMethod;
 
@@ -142,14 +123,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             // Ensure that there is an overload with signature like `Substring(int start, int length)`
             // and there is a suitable indexer to replace this with `[expr..]`.
             if (!infoCache.TryGetMemberInfoOneArgument(targetMethod, out var memberInfo))
-            {
                 return null;
-            }
 
             var startOperation = invocation.Arguments[0].Value;
             return new Result(
                 ResultKind.Computed,
-                option,
                 invocation,
                 invocationSyntax,
                 targetMethod,
@@ -161,9 +139,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private static Result? AnalyzeTwoArgumentInvocation(
             IInvocationOperation invocation,
             InfoCache infoCache,
-            InvocationExpressionSyntax invocationSyntax,
-            CodeStyleOption2<bool> option)
+            InvocationExpressionSyntax invocationSyntax)
         {
+            Contract.ThrowIfNull(invocation.Instance);
+
             // See if the call is to something slice-like.
             var targetMethod = invocation.TargetMethod;
 
@@ -191,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (CSharpSyntaxFacts.Instance.AreEquivalent(startOperation.Syntax, subtraction.RightOperand.Syntax))
             {
                 return new Result(
-                    ResultKind.Computed, option,
+                    ResultKind.Computed,
                     invocation, invocationSyntax,
                     targetMethod, memberInfo,
                     startOperation, subtraction.LeftOperand);
@@ -204,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 IsInstanceLengthCheck(memberInfo.LengthLikeProperty, invocation.Instance, subtraction.LeftOperand))
             {
                 return new Result(
-                    ResultKind.Constant, option,
+                    ResultKind.Constant,
                     invocation, invocationSyntax,
                     targetMethod, memberInfo,
                     startOperation, subtraction.RightOperand);
@@ -213,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             return null;
         }
 
-        private Diagnostic CreateDiagnostic(Result result)
+        private Diagnostic CreateDiagnostic(Result result, ReportDiagnostic severity)
         {
             // Keep track of the invocation node
             var invocation = result.Invocation;
@@ -229,9 +208,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             return DiagnosticHelper.Create(
                 Descriptor,
                 location,
-                result.Option.Notification.Severity,
+                severity,
                 additionalLocations,
-                ImmutableDictionary<string, string>.Empty,
+                ImmutableDictionary<string, string?>.Empty,
                 result.SliceLikeMethod.Name);
         }
 
