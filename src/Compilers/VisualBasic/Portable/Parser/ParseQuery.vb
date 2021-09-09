@@ -73,10 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
-
-            Return result
+            Return _pool.ToListAndFree(RangeVariables)
         End Function
 
         ' File: Parser.cpp
@@ -270,10 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
-
-            Return result
+            Return _pool.ToListAndFree(RangeVariables)
         End Function
 
         ' File: Parser.cpp
@@ -397,10 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
-
-            Return result
+            Return _pool.ToListAndFree(RangeVariables)
         End Function
 
         Private Function ParseFromControlVars() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
@@ -514,10 +505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
-
-            Return result
+            Return _pool.ToListAndFree(RangeVariables)
         End Function
 
         ' /*********************************************************************
@@ -651,8 +639,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Else
                 Dim rangeVariables = Me._pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
                 rangeVariables.Add(InternalSyntaxFactory.ExpressionRangeVariable(Nothing, InternalSyntaxFactory.MissingExpression()))
-                keys = rangeVariables.ToList
-                Me._pool.Free(rangeVariables)
+                keys = _pool.ToListAndFree(rangeVariables)
             End If
 
             Dim intoKw As KeywordSyntax = Nothing
@@ -671,9 +658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function MissingAggregationRangeVariables() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
             Dim rangeVariables = Me._pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
             rangeVariables.Add(InternalSyntaxFactory.AggregationRangeVariable(Nothing, SyntaxFactory.FunctionAggregation(InternalSyntaxFactory.MissingIdentifier(), Nothing, Nothing, Nothing)))
-            Dim result As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = rangeVariables.ToList
-            Me._pool.Free(rangeVariables)
-            Return result
+            Return _pool.ToListAndFree(RangeVariables)
         End Function
 
         ' File: Parser.cpp
@@ -714,8 +699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             Dim joinVarList = New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)(joinVariable)
-            Dim moreJoins = moreJoinsBuilder.ToList()
-            _pool.Free(moreJoinsBuilder)
+            Dim moreJoins = _pool.ToListAndFree(moreJoinsBuilder)
 
             If groupKw Is Nothing Then
                 Return SyntaxFactory.SimpleJoinClause(joinKw, joinVarList, moreJoins, onKw, Predicate)
@@ -920,8 +904,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Exit Do
             Loop
 
-            Dim result = Exprs.ToList
-            Me._pool.Free(Exprs)
+            Dim result = _pool.ToListAndFree(Exprs)
 
             ' // try to recover
             If result.Node.ContainsDiagnostics Then
@@ -1001,8 +984,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = exprs.ToList
-            Me._pool.Free(exprs)
+            Dim result = _pool.ToListAndFree(exprs)
 
             Return result
         End Function
@@ -1178,9 +1160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             operators.Add(ParseFromOperator(fromKw))
             ParseMoreQueryOperators(operators)
 
-            Dim result = operators.ToList
-            Me._pool.Free(operators)
-
+            Dim result = _pool.ToListAndFree(operators)
             Return SyntaxFactory.QueryExpression(result)
         End Function
 
@@ -1191,8 +1171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             operators.Add(ParseAggregateClause(AggregateKw))
 
-            Dim result = operators.ToList
-            Me._pool.Free(operators)
+            Dim result = _pool.ToListAndFree(operators)
 
             Return SyntaxFactory.QueryExpression(result)
         End Function
@@ -1206,9 +1185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim moreOperators = Me._pool.Allocate(Of QueryClauseSyntax)()
             ParseMoreQueryOperators(moreOperators)
-            Dim operatorList = moreOperators.ToList
-            Me._pool.Free(moreOperators)
-
+            Dim operatorList = _pool.ToListAndFree(moreOperators)
             Dim intoKw As KeywordSyntax = Nothing
             Dim variables As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = Nothing
             If TryEatNewLineAndGetContextualKeyword(SyntaxKind.IntoKeyword, intoKw, createIfMissing:=True) Then

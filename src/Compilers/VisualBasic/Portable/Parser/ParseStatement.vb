@@ -326,8 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             End If
 
-            Dim separatedCaseClauses = caseClauses.ToList()
-            _pool.Free(caseClauses)
+            Dim separatedCaseClauses = _pool.ToListAndFree(caseClauses)
 
             Dim statement As CaseStatementSyntax
 
@@ -754,11 +753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
                 Loop
 
-                Dim statement = SyntaxFactory.NextStatement(nextKeyword, variables.ToList)
-
-                _pool.Free(variables)
-
-                Return statement
+                Return SyntaxFactory.NextStatement(nextKeyword, _pool.ToListAndFree(variables))
             End If
         End Function
 
@@ -850,12 +845,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 optionalAsClause = SyntaxFactory.SimpleAsClause([As], Nothing, Type)
             End If ' Else if "As" is not present, the error falls out as a "Syntax error" IN the caller
 
-            Dim names = _pool.AllocateSeparated(Of ModifiedIdentifierSyntax)()
+            Dim names = _pool.AllocateSeparated(Of ModifiedIdentifierSyntax)
             names.Add(Declarator)
 
-            Dim result = SyntaxFactory.VariableDeclarator(names.ToList, optionalAsClause, Nothing)
-
-            _pool.Free(names)
+            Dim result = SyntaxFactory.VariableDeclarator(_pool.ToListAndFree(names), optionalAsClause, Nothing)
 
             Return result
         End Function
@@ -1318,12 +1311,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Loop
 
-            Dim statement = If(optionalPreserveKeyword Is Nothing,
-                               SyntaxFactory.ReDimStatement(reDimKeyword, optionalPreserveKeyword, clauses.ToList),
-                               SyntaxFactory.ReDimPreserveStatement(reDimKeyword, optionalPreserveKeyword, clauses.ToList)
-                            )
+            Dim clausesList = _pool.ToListAndFree(clauses)
 
-            _pool.Free(clauses)
+            Dim statement = If(optionalPreserveKeyword Is Nothing,
+                               SyntaxFactory.ReDimStatement(reDimKeyword, optionalPreserveKeyword, clausesList),
+                               SyntaxFactory.ReDimPreserveStatement(reDimKeyword, optionalPreserveKeyword, clausesList)
+                            )
 
             If CurrentToken.Kind = SyntaxKind.AsKeyword Then
                 statement = statement.AddTrailingSyntax(CurrentToken, ERRID.ERR_ObsoleteRedimAs)
@@ -1641,8 +1634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 argumentsBuilder.Add(ParseArgument(RedimOrNewParent:=False))
             End If
 
-            Dim arguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax) = argumentsBuilder.ToList
-            _pool.Free(argumentsBuilder)
+            Dim arguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax) = _pool.ToListAndFree(argumentsBuilder)
 
             Dim closeParen As PunctuationSyntax = Nothing
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
