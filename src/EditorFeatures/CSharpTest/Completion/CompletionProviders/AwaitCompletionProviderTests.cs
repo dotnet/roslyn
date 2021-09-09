@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
             if (dotAwaitf)
             {
-                expectedDescritpion = GetDescription(CompletionDisplayTextAwaitAndConfigureAwait, string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, "false"));
+                expectedDescritpion = string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, "false");
                 await VerifyItemExistsAsync(GetMarkup(code, languageVersion), CompletionDisplayTextAwaitAndConfigureAwait, glyph: (int)Glyph.Keyword, expectedDescriptionOrNull: expectedDescritpion, inlineDescription: inlineDescription);
             }
             else

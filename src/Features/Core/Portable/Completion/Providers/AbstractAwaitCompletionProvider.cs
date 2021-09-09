@@ -234,12 +234,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var appendConfigureAwait = completionProperties.ContainsKey(AwaitCompletionChange.AppendConfigureAwait);
                 var inlineDescription = makeContainerAsync ? FeaturesResources.Make_containing_scope_async : null;
                 var isComplexTextEdit = makeContainerAsync | addAwaitBeforeDotExpression | appendConfigureAwait;
-                var description =
+                var tooltip =
                     addAwaitBeforeDotExpression
                         ? appendConfigureAwait
                             ? string.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, falseKeyword)
                             : FeaturesResources.Await_the_preceding_expression
                         : FeaturesResources.Asynchronously_waits_for_the_task_to_finish;
+                var description = appendConfigureAwait
+                    ? ImmutableArray.Create(new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, tooltip))
+                    : RecommendedKeyword.CreateDisplayParts(displayText, tooltip);
 
                 return CommonCompletionItem.Create(
                     displayText: displayText,
@@ -247,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     filterText: filterText,
                     rules: CompletionItemRules.Default,
                     glyph: Glyph.Keyword,
-                    description: RecommendedKeyword.CreateDisplayParts(displayText, description),
+                    description: description,
                     inlineDescription: inlineDescription,
                     isComplexTextEdit: isComplexTextEdit,
                     properties: completionProperties);

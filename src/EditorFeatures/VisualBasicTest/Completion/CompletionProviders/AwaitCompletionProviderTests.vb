@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Dim expectedDescription = If(dotAwait, GetDescription("Await", FeaturesResources.Await_the_preceding_expression), GetDescription("Await", FeaturesResources.Asynchronously_waits_for_the_task_to_finish))
             Await VerifyItemExistsAsync(markup, "Await", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing), expectedDescriptionOrNull:=expectedDescription)
             If dotAwaitf Then
-                expectedDescription = GetDescription("Awaitf", String.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, "False"))
+                expectedDescription = String.Format(FeaturesResources.Await_the_preceding_expression_and_add_ConfigureAwait_0, "False")
                 Await VerifyItemExistsAsync(markup, "Awaitf", inlineDescription:=If(makeContainerAsync, FeaturesResources.Make_containing_scope_async, Nothing), expectedDescriptionOrNull:=expectedDescription)
             Else
                 Await VerifyItemIsAbsentAsync(markup, "Awaitf")
