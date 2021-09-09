@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -92,35 +90,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         {
             // Validate we're on a piece of syntax we expect.  While not necessary for analysis, we
             // want to make sure we're on something the fixer will know how to actually fix.
-            if (!(invocation.Syntax is InvocationExpressionSyntax invocationSyntax) ||
+            if (invocation.Syntax is not InvocationExpressionSyntax invocationSyntax ||
                 invocationSyntax.ArgumentList is null)
             {
                 return null;
             }
 
-            CodeStyleOption2<bool> option = null;
-            if (analyzerOptionsOpt != null)
-            {
-                // Check if we're at least on C# 8, and that the user wants these operators.
-                var syntaxTree = invocationSyntax.SyntaxTree;
-                var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-                if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
-                {
-                    return null;
-                }
+            CodeStyleOption2<bool>? option = null;
+            // Check if we're at least on C# 8, and that the user wants these operators.
+            var syntaxTree = invocationSyntax.SyntaxTree;
+            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
+            if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
+                return null;
 
-                option = analyzerOptionsOpt.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken);
-                if (!option.Value)
-                {
-                    return null;
-                }
-            }
+            var option = analyzerOptionsOpt.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken);
+            if (!option.Value)
+                return null;
 
             // look for `s.Slice(e1, end - e2)` or `s.Slice(e1)`
             if (invocation.Instance is null)
-            {
                 return null;
-            }
 
             return invocation.Arguments.Length switch
             {
@@ -231,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 location,
                 result.Option.Notification.Severity,
                 additionalLocations,
-                ImmutableDictionary<string, string>.Empty,
+                ImmutableDictionary<string, string?>.Empty,
                 result.SliceLikeMethod.Name);
         }
 
