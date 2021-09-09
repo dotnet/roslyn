@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SemanticClassificationCache
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SemanticClassificationCache
                 document, cancellationToken).ConfigureAwait(false);
 
             var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService, SerializableClassifiedSpans?>(
-                (service, cancellationToken) => service.GetCachedSemanticClassificationsAsync(documentKey, textSpan, checksum, cancellationToken),
+                (service, cancellationToken) => service.GetCachedSemanticClassificationsAsync(documentKey, textSpan, checksum, database, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!classifiedSpans.HasValue || classifiedSpans.Value == null)
