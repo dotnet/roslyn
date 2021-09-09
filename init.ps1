@@ -104,7 +104,7 @@ try {
     $InstallNuGetPkgScriptPath = ".\azure-pipelines\Install-NuGetPackage.ps1"
     $nugetVerbosity = 'quiet'
     if ($Verbose) { $nugetVerbosity = 'normal' }
-    $MicroBuildPackageSource = 'https://devdiv.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
+    $MicroBuildPackageSource = 'https://pkgs.dev.azure.com/devdiv/_packaging/MicroBuildToolset%40Local/nuget/v3/index.json'
     if ($Signing) {
         Write-Host "Installing MicroBuild signing plugin" -ForegroundColor $HeaderColor
         & $InstallNuGetPkgScriptPath MicroBuild.Plugins.Signing -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
@@ -127,11 +127,6 @@ try {
         & $InstallNuGetPkgScriptPath MicroBuild.Plugins.Localization -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
         $EnvVars['LocType'] = "Pseudo"
         $EnvVars['LocLanguages'] = "JPN"
-    }
-
-    # This is a workaround for https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1283978
-    if ($Signing -or $Setup -or $OptProf -or $Localization) {
-        & $InstallNuGetPkgScriptPath MicroBuild.Core.Sentinel -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
     }
 
     & "$PSScriptRoot/tools/Set-EnvVars.ps1" -Variables $EnvVars | Out-Null

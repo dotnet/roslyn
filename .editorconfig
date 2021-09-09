@@ -170,5 +170,8 @@ dotnet_diagnostic.SA1130.severity = silent
 # CA1508: Avoid dead conditional code
 dotnet_diagnostic.CA1508.severity = warning
 
+# IDE1006: Naming Styles - StyleCop handles these for us
+dotnet_diagnostic.IDE1006.severity = none
+
 [*.sln]
 indent_style = tab
