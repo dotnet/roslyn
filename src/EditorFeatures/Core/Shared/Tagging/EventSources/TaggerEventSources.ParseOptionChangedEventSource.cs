@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class ParseOptionChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
         {
-            public ParseOptionChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
-                : base(subjectBuffer, delay)
+            public ParseOptionChangedEventSource(ITextBuffer subjectBuffer)
+                : base(subjectBuffer)
             {
             }
 

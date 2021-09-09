@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -35,17 +36,14 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var result = ImmutableArray.CreateBuilder<ISymbol>();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
 
             var beginInvoke = symbol.ContainingType.GetMembers(WellKnownMemberNames.DelegateBeginInvokeName).FirstOrDefault();
             if (beginInvoke != null)
-            {
                 result.Add(beginInvoke);
-            }
 
             // All method group references
             foreach (var project in solution.Projects)
@@ -53,8 +51,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 foreach (var document in project.Documents)
                 {
                     var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
-                    result.AddRange(await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(
-                        symbol, document, cancellationToken).ConfigureAwait(false));
+                    var cascaded = await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(
+                        symbol, document, cancellationToken).ConfigureAwait(false);
+                    result.AddRange(cascaded);
                 }
             }
 
@@ -86,20 +85,22 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var nodes = root.DescendantNodes();
 
-            var convertedAnonymousFunctions = nodes.Where(n => syntaxFactsService.IsAnonymousFunction(n))
-                .Where(n =>
-                    {
-                        ISymbol convertedType = semanticModel.GetTypeInfo(n, cancellationToken).ConvertedType;
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var convertedAnonymousFunctions);
+            foreach (var node in nodes)
+            {
+                if (!syntaxFactsService.IsAnonymousFunction(node))
+                    continue;
 
-                        if (convertedType != null)
-                        {
-                            convertedType =
-                                SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken)
-                                    ?? convertedType;
-                        }
+                var convertedType = (ISymbol)semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
+                if (convertedType != null)
+                {
+                    convertedType = await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).ConfigureAwait(false)
+                        ?? convertedType;
+                }
 
-                        return convertedType == methodSymbol.ContainingType;
-                    });
+                if (convertedType == methodSymbol.ContainingType)
+                    convertedAnonymousFunctions.Add(node);
+            }
 
             var invocations = nodes.Where(n => syntaxFactsService.IsInvocationExpression(n))
                 .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);

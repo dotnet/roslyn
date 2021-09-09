@@ -11,6 +11,7 @@
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") interactive host implementation.
     </PackageDescription>
@@ -24,6 +25,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost32" />
     <InternalsVisibleTo Include="InteractiveHost64" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" />
     <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />

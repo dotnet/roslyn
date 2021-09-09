@@ -398,8 +398,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
         {
             Debug.Assert(node.ParameterList is object);
+            Debug.Assert(node.IsKind(SyntaxKind.RecordDeclaration));
 
-            if (node.PrimaryConstructorBaseType is PrimaryConstructorBaseTypeSyntax baseWithArguments)
+            if (node.PrimaryConstructorBaseTypeIfClass is PrimaryConstructorBaseTypeSyntax baseWithArguments)
             {
                 VisitNodeToBind(baseWithArguments);
             }

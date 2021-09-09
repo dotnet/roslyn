@@ -127,7 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
-#pragma warning disable CA1821 // Remove empty Finalizers
 #if DEBUG
             ~WorkspaceUndoTransaction()
             {
@@ -135,7 +134,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 Debug.Assert(!_transactionAlive);
             }
 #endif
-#pragma warning restore CA1821 // Remove empty Finalizers
         }
     }
 }

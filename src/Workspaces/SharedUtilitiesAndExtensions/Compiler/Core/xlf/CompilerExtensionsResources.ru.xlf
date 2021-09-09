@@ -97,6 +97,11 @@
         <target state="translated">Стили именования</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Предпочтения для новых строк</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_Field_Members">
         <source>Non-Field Members</source>
         <target state="translated">Не являющиеся полем члены</target>

@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.IOperation
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IPointerIndirectionReferenceOperation : SemanticModelTestBase
     {
         //Currently, we are not creating the IPointerIndirectionReferenceOperation node
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

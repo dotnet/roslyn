@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal static class GoToDefinitionHelpers
     {
-        public static ImmutableArray<DefinitionItem> GetDefinitions(
+        public static async Task<ImmutableArray<DefinitionItem>> GetDefinitionsAsync(
             ISymbol symbol,
             Solution solution,
             bool thirdPartyNavigationAllowed,
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 }
             }
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).WaitAndGetResult(cancellationToken);
+            var definition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             symbol = definition ?? symbol;
@@ -75,11 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             //
             // Passing along the classified information is valuable for OOP scenarios where we want
             // all that expensive computation done on the OOP side and not in the VS side.
-            // 
+            //
             // However, Go To Definition is all in-process, and is also synchronous.  So we do not
-            // want to fetch the classifications here.  It slows down the command and leads to a 
+            // want to fetch the classifications here.  It slows down the command and leads to a
             // measurable delay in our perf tests.
-            // 
+            //
             // So, if we only have a single location to go to, this does no unnecessary work.  And,
             // if we do have multiple locations to show, it will just be done in the BG, unblocking
             // this command thread so it can return the user faster.
@@ -88,8 +89,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (thirdPartyNavigationAllowed)
             {
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, definitionItem, cancellationToken);
-                definitions.AddIfNotNull(thirdPartyItem);
+                if (factory != null)
+                {
+                    var thirdPartyItem = await factory.GetThirdPartyDefinitionItemAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                    definitions.AddIfNotNull(thirdPartyItem);
+                }
             }
 
             definitions.Add(definitionItem);
@@ -104,29 +108,25 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {
-            var definitions = GetDefinitions(symbol, solution, thirdPartyNavigationAllowed, cancellationToken);
+            return threadingContext.JoinableTaskFactory.Run(
+                () => TryGoToDefinitionAsync(symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed));
+        }
 
+        public static async Task<bool> TryGoToDefinitionAsync(
+            ISymbol symbol,
+            Solution solution,
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter,
+            CancellationToken cancellationToken,
+            bool thirdPartyNavigationAllowed = true)
+        {
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return threadingContext.JoinableTaskFactory.Run(
-                () => streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution.Workspace, title, definitions));
-        }
+            var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
 
-        public static bool TryGoToDefinition(
-            ImmutableArray<DefinitionItem> definitions,
-            Solution solution,
-            string title,
-            IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter)
-        {
-            if (definitions.IsDefaultOrEmpty)
-                return false;
-
-            return threadingContext.JoinableTaskFactory.Run(() =>
-                streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution.Workspace, title, definitions));
+            return await streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IThreadingContext _threadingContext;
         private readonly Dictionary<IVsHierarchy, VisualStudioProject> _xamlProjects = new();
-        private readonly Dictionary<uint, DocumentId> _rdtDocumentIds = new();
+        private readonly ConcurrentDictionary<string, DocumentId> _documentIds = new ConcurrentDictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
 
         private RunningDocumentTable? _rdt;
         private IVsSolution? _vsSolution;
@@ -56,34 +56,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             _threadingContext = threadingContext;
 
             AnalyzerService = analyzerService;
+
+            _workspace.DocumentClosed += OnDocumentClosed;
         }
 
         public static IXamlDocumentAnalyzerService? AnalyzerService { get; private set; }
 
-        public void TrackOpenDocument(string filePath)
+        public DocumentId? TrackOpenDocument(string filePath)
         {
             if (string.IsNullOrEmpty(filePath))
             {
                 // Can't track anything without a path (can happen while diffing)
-                return;
+                return null;
             }
 
-            if (_threadingContext.JoinableTaskContext.IsOnMainThread)
+            if (_documentIds.TryGetValue(filePath, out var documentId))
             {
-                EnsureDocument(filePath);
+                return documentId;
             }
-            else
+
+            documentId = GetDocumentId(filePath);
+            if (documentId != null)
             {
-                _threadingContext.JoinableTaskFactory.Run(async () =>
+                _documentIds.TryAdd(filePath, documentId);
+            }
+
+            return documentId;
+
+            DocumentId? GetDocumentId(string path)
+            {
+                if (_threadingContext.JoinableTaskContext.IsOnMainThread)
                 {
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    return EnsureDocument(filePath);
+                }
+                else
+                {
+                    return _threadingContext.JoinableTaskFactory.Run(async () =>
+                    {
+                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                    EnsureDocument(filePath);
-                });
+                        return EnsureDocument(filePath);
+                    });
+                }
             }
         }
 
-        private void EnsureDocument(string filePath)
+        private DocumentId? EnsureDocument(string filePath)
         {
             if (_rdt == null)
             {
@@ -107,23 +125,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             catch (ArgumentException)
             {
                 // We only support open documents that are in the RDT already
+                return null;
             }
 
             if (hierarchy == null || docCookie == 0)
             {
-                return;
+                return null;
             }
 
             if (!_xamlProjects.TryGetValue(hierarchy, out var project))
             {
                 if (!hierarchy.TryGetName(out var name))
                 {
-                    return;
+                    return null;
                 }
 
                 if (!hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var projectGuid))
                 {
-                    return;
+                    return null;
                 }
 
                 var projectInfo = new VisualStudioProjectCreationInfo
@@ -133,7 +152,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                     ProjectGuid = projectGuid
                 };
 
-                project = _visualStudioProjectFactory.CreateAndAddToWorkspace(name, StringConstants.XamlLanguageName, projectInfo);
+                project = _threadingContext.JoinableTaskFactory.Run(() => _visualStudioProjectFactory.CreateAndAddToWorkspaceAsync(
+                    name, StringConstants.XamlLanguageName, projectInfo, CancellationToken.None));
                 _xamlProjects.Add(hierarchy, project);
             }
 
@@ -142,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 project.AddSourceFile(filePath);
 
                 var documentId = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).Single(d => d.ProjectId == project.Id);
-                _rdtDocumentIds[docCookie] = documentId;
+                _documentIds[filePath] = documentId;
 
                 // Remove the following when https://github.com/dotnet/roslyn/issues/49879 is fixed
                 var document = _workspace.CurrentSolution.GetRequiredDocument(documentId);
@@ -157,6 +177,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                         _workspace.OnDocumentTextChanged(documentId, textContainer.CurrentText, PreservationMode.PreserveIdentity);
                     }
                 }
+            }
+
+            if (_documentIds.TryGetValue(filePath, out var docId))
+            {
+                return docId;
+            }
+
+            return null;
+        }
+
+        private void OnDocumentClosed(object sender, DocumentEventArgs e)
+        {
+            var filePath = e.Document.FilePath;
+            if (filePath == null)
+            {
+                return;
+            }
+
+            if (_documentIds.TryGetValue(filePath, out var documentId))
+            {
+                var document = _workspace.CurrentSolution.GetDocument(documentId);
+                if (document?.FilePath != null)
+                {
+                    var project = _xamlProjects.Values.SingleOrDefault(p => p.Id == document.Project.Id);
+                    project?.RemoveSourceFile(document.FilePath);
+                }
+
+                _documentIds.TryRemove(filePath, out _);
             }
         }
 
@@ -197,28 +245,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 project.RemoveSourceFile(oldMoniker);
             }
 
-            _rdtDocumentIds.Remove(docCookie);
+            _documentIds.TryRemove(oldMoniker, out _);
 
             if (isXaml)
             {
                 project.AddSourceFile(newMoniker);
 
                 var documentId = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(newMoniker).Single(d => d.ProjectId == project.Id);
-                _rdtDocumentIds[docCookie] = documentId;
-            }
-        }
-
-        private void OnDocumentClosed(uint docCookie)
-        {
-            if (_rdtDocumentIds.TryGetValue(docCookie, out var documentId))
-            {
-                var document = _workspace.CurrentSolution.GetDocument(documentId);
-                if (document?.FilePath != null)
-                {
-                    var project = _xamlProjects.Values.SingleOrDefault(p => p.Id == document.Project.Id);
-                    project?.RemoveSourceFile(document.FilePath);
-                }
-                _rdtDocumentIds.Remove(docCookie);
+                _documentIds[newMoniker] = documentId;
             }
         }
 

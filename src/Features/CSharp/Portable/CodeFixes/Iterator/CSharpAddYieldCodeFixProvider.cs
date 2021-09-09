@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             root = root.ReplaceNode(returnStatement, yieldStatement);
-            return new MyCodeAction(CSharpFeaturesResources.Replace_return_with_yield_return, document.WithSyntaxRoot(root));
+            return new MyCodeAction(document.WithSyntaxRoot(root));
         }
 
         private static bool TryGetExpressionType(
@@ -222,8 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Document newDocument)
-                : base(title, c => Task.FromResult(newDocument))
+            public MyCodeAction(Document newDocument)
+                : base(CSharpFeaturesResources.Replace_return_with_yield_return, c => Task.FromResult(newDocument), nameof(CSharpFeaturesResources.Replace_return_with_yield_return))
             {
             }
         }

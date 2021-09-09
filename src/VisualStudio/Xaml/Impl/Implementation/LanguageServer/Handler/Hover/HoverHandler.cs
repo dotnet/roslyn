@@ -21,9 +21,9 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentHoverName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
-    internal class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover?>
+    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    [ProvidesMethod(Methods.TextDocumentHoverName)]
+    internal class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -31,9 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+        public override string Method => Methods.TextDocumentHoverName;
 
-        public async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+
+        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
@@ -58,19 +63,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             var descriptionBuilder = new List<TaggedText>(info.Description);
             if (info.Symbol != null)
             {
-                var description = await info.Symbol.GetDescriptionAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var description = await info.Symbol.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
                 if (description.Any())
                 {
                     if (descriptionBuilder.Any())
                     {
                         descriptionBuilder.AddLineBreak();
                     }
+
                     descriptionBuilder.AddRange(description);
                 }
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return new VSHover
+            return new VSInternalHover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),
                 Contents = new MarkupContent

@@ -225,6 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                     {
                         return string.Empty;
                     }
+
                     switch (ParameterSymbol.Language)
                     {
                         case LanguageNames.CSharp:
@@ -232,6 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                         case LanguageNames.VisualBasic:
                             return NullText("Nothing", "Nothing");
                     }
+
                     return string.Empty;
 
                     string NullText(string @null, string @default)

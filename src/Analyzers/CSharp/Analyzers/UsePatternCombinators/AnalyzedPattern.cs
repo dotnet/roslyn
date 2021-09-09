@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 if (target is null)
                     return null;
 
-                if (!SyntaxFactory.AreEquivalent(target.Syntax, rightPattern.Target.Syntax))
+                var compareTarget = target == leftTarget ? rightTarget : leftTarget;
+                if (!SyntaxFactory.AreEquivalent(target.Syntax, compareTarget.Syntax))
                     return null;
 
                 return new Binary(leftPattern, rightPattern, isDisjunctive, token, target);

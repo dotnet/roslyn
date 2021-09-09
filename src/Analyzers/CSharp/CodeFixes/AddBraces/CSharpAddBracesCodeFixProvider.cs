@@ -21,7 +21,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddBraces), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddAwait)]
     internal sealed class CSharpAddBracesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]

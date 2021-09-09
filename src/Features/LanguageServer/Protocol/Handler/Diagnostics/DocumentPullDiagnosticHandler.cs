@@ -4,23 +4,21 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportLspMethod(MSLSPMethods.DocumentPullDiagnosticName, mutatesSolutionState: false), Shared]
-    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticsParams, DiagnosticReport>
+    internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport>
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public override string Method => VSInternalMethods.DocumentPullDiagnosticName;
+
         public DocumentPullDiagnosticHandler(
             IDiagnosticService diagnosticService,
             IDiagnosticAnalyzerService analyzerService)
@@ -29,11 +27,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _analyzerService = analyzerService;
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticsParams diagnosticsParams)
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.TextDocument;
 
-        protected override DiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new DiagnosticReport
+        protected override VSInternalDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
+            => new VSInternalDiagnosticReport
             {
                 Diagnostics = diagnostics,
                 ResultId = resultId,
@@ -45,10 +43,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Supersedes = WorkspaceDiagnosticIdentifier,
             };
 
-        protected override DiagnosticParams[]? GetPreviousResults(DocumentDiagnosticsParams diagnosticsParams)
+        protected override VSInternalDiagnosticParams[]? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => new[] { diagnosticsParams };
 
-        protected override IProgress<DiagnosticReport[]>? GetProgress(DocumentDiagnosticsParams diagnosticsParams)
+        protected override IProgress<VSInternalDiagnosticReport[]>? GetProgress(VSInternalDocumentDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PartialResultToken;
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
@@ -64,9 +62,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             //
             // Only consider open documents here (and only closed ones in the WorkspacePullDiagnosticHandler).  Each
             // handler treats those as separate worlds that they are responsible for.
-            return context.Document != null && context.IsTracking(context.Document.GetURI())
-                ? ImmutableArray.Create(context.Document)
-                : ImmutableArray<Document>.Empty;
+            if (context.Document == null)
+            {
+                context.TraceInformation("Ignoring diagnostics request because no document was provided");
+                return ImmutableArray<Document>.Empty;
+            }
+
+            if (!context.IsTracking(context.Document.GetURI()))
+            {
+                context.TraceInformation($"Ignoring diagnostics request for untracked document: {context.Document.GetURI()}");
+                return ImmutableArray<Document>.Empty;
+            }
+
+            return ImmutableArray.Create(context.Document);
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
@@ -76,7 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // we're passing in.  If information is already cached for that snapshot, it will be returned.  Otherwise,
             // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
             // and do not need to be adjusted.
-            return _analyzerService.GetDiagnosticsAsync(document.Project.Solution, documentId: document.Id, cancellationToken: cancellationToken);
+            return _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
         }
     }
 }

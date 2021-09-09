@@ -21,12 +21,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
+    [ExtensionOrder(After = nameof(UnnamedSymbolCompletionProvider))]
     internal partial class ExplicitInterfaceMemberCompletionProvider : LSPCompletionProvider
     {
         private static readonly SymbolDisplayFormat s_signatureDisplayFormat =
-            new SymbolDisplayFormat(
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            new(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 memberOptions:
                     SymbolDisplayMemberOptions.IncludeParameters,
                 parameterOptions:
@@ -43,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => text[characterPosition] == '.';
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

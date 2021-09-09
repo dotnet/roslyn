@@ -49,15 +49,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary> A not-null collection of synthesized methods generated for the current source type. </summary>
         protected readonly TypeCompilationState CompilationState;
 
-        protected readonly DiagnosticBag Diagnostics;
+        protected readonly BindingDiagnosticBag Diagnostics;
         protected readonly VariableSlotAllocator slotAllocatorOpt;
 
         private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap;
 
-        protected MethodToClassRewriter(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        protected MethodToClassRewriter(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
+            Debug.Assert(diagnostics.DiagnosticBag != null);
 
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
             Conversion disposableConversion = RewriteConversion(node.IDisposableConversion);
-            return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body, node.AwaitOpt, node.DisposeMethodOpt, binder: null);
+            return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body, node.AwaitOpt, node.PatternDisposeInfoOpt);
         }
 
         private Conversion RewriteConversion(Conversion conversion)
@@ -202,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
+                    Debug.Assert(conversion.ConstrainedToTypeOpt is null);
                     return new Conversion(conversion.Kind, VisitMethodSymbol(conversion.Method), conversion.IsExtensionMethod);
                 case ConversionKind.MethodGroup:
                     throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
@@ -257,7 +259,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 node.ArgsToParamsOpt,
                 node.DefaultArguments,
                 node.ResultKind,
-                node.BinderOpt,
                 rewrittenType);
         }
 
@@ -487,7 +488,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     rewritten.DefaultArguments,
                     rewritten.ConstantValueOpt,
                     rewritten.InitializerExpressionOpt,
-                    rewritten.BinderOpt,
                     rewritten.Type);
             }
 
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
         {
-            return node.Update(VisitMethodSymbol(node.TargetMethod), VisitType(node.Type));
+            return node.Update(VisitMethodSymbol(node.TargetMethod), VisitType(node.ConstrainedToTypeOpt), VisitType(node.Type));
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, node.Binder, type);
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, type);
         }
 
         public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)

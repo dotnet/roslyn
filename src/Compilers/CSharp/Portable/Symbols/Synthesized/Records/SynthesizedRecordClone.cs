@@ -23,12 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedRecordClone(
             SourceMemberContainerTypeSymbol containingType,
             int memberOffset,
-            DiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.CloneMethodName, hasBody: !containingType.IsAbstract, memberOffset, diagnostics)
+            BindingDiagnosticBag diagnostics)
+            : base(containingType, WellKnownMemberNames.CloneMethodName, isReadOnly: false, hasBody: !containingType.IsAbstract, memberOffset, diagnostics)
         {
+            Debug.Assert(!containingType.IsRecordStruct);
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, DiagnosticBag diagnostics)
+        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             DeclarationModifiers result = DeclarationModifiers.Public;
 
@@ -88,17 +89,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!baseType.IsObjectType())
             {
-                HashSet<DiagnosticInfo>? ignoredUseSiteDiagnostics = null; // This is reported when we bind bases
-                return FindValidCloneMethod(baseType, ref ignoredUseSiteDiagnostics);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // This is reported when we bind bases
+                return FindValidCloneMethod(baseType, ref discardedUseSiteInfo);
             }
 
             return null;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
-            return (ReturnType: VirtualCloneInBase() is { } baseClone ?
-                                     baseClone.ReturnTypeWithAnnotations : // Use covariant returns when available
+            return (ReturnType: !ContainingAssembly.RuntimeSupportsCovariantReturnsOfClasses && VirtualCloneInBase() is { } baseClone ?
+                                     baseClone.ReturnTypeWithAnnotations :
                                      TypeWithAnnotations.Create(isNullableEnabled: true, ContainingType),
                     Parameters: ImmutableArray<ParameterSymbol>.Empty,
                     IsVararg: false,
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => 0;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!IsAbstract);
 
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static MethodSymbol? FindValidCloneMethod(TypeSymbol containingType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        internal static MethodSymbol? FindValidCloneMethod(TypeSymbol containingType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (containingType.IsObjectType() || containingType is not NamedTypeSymbol containingNamedType)
             {
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !containingType.IsEqualToOrDerivedFrom(
                     candidate.ReturnType,
                     TypeCompareKind.AllIgnoreOptions,
-                    ref useSiteDiagnostics))
+                    ref useSiteInfo))
             {
                 return null;
             }

@@ -18,8 +18,8 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
 {
-    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.Suppression)]
+    [ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.ConfigureSeverity, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExtensionOrder(After = PredefinedConfigurationFixProviderNames.Suppression)]
     internal sealed partial class ConfigureSeverityLevelCodeFixProvider : IConfigurationFixProvider
     {
         private static readonly ImmutableArray<(string name, string value)> s_editorConfigSeverityStrings =
@@ -61,7 +61,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                 foreach (var (name, value) in s_editorConfigSeverityStrings)
                 {
                     nestedActions.Add(
-                        new SolutionChangeAction(name, solution => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken)));
+                        new SolutionChangeAction(
+                            name,
+                            solution => ConfigurationUpdater.ConfigureSeverityAsync(value, diagnostic, project, cancellationToken),
+                            name));
                 }
 
                 var codeAction = new TopLevelConfigureSeverityCodeAction(diagnostic, nestedActions.ToImmutableAndFree());
@@ -103,7 +106,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureSeverity
                             name,
                             solution => category != null
                                 ? ConfigurationUpdater.BulkConfigureSeverityAsync(value, category, project, cancellationToken)
-                                : ConfigurationUpdater.BulkConfigureSeverityAsync(value, project, cancellationToken)));
+                                : ConfigurationUpdater.BulkConfigureSeverityAsync(value, project, cancellationToken),
+                            name));
                 }
 
                 var codeAction = new TopLevelBulkConfigureSeverityCodeAction(nestedActions.ToImmutableAndFree(), category);

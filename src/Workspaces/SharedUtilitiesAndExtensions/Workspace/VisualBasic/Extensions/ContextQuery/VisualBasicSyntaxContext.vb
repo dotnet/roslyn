@@ -45,7 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         Public ReadOnly ModifierCollectionFacts As ModifierCollectionFacts
         Public ReadOnly IsPreprocessorStartContext As Boolean
-        Public ReadOnly TouchingToken As SyntaxToken
         Public ReadOnly IsInLambda As Boolean
         Public ReadOnly IsQueryOperatorContext As Boolean
         Public ReadOnly EnclosingNamedType As CancellableLazy(Of INamedTypeSymbol)
@@ -55,12 +54,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsWithinPreprocessorContext As Boolean
 
         Private Sub New(
-            workspace As Workspace,
+            document As Document,
             semanticModel As SemanticModel,
             position As Integer,
             leftToken As SyntaxToken,
             targetToken As SyntaxToken,
-            touchingToken As SyntaxToken,
             isTypeContext As Boolean,
             isNamespaceContext As Boolean,
             isNamespaceDeclarationNameContext As Boolean,
@@ -82,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         )
 
             MyBase.New(
-                workspace,
+                document,
                 semanticModel,
                 position,
                 leftToken,
@@ -123,7 +121,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Me.IsInterfaceMemberDeclarationKeywordContext = syntaxTree.IsInterfaceMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
 
             Me.ModifierCollectionFacts = New ModifierCollectionFacts(syntaxTree, position, targetToken, cancellationToken)
-            Me.TouchingToken = touchingToken
             Me.IsInLambda = isInLambda
             Me.IsPreprocessorStartContext = ComputeIsPreprocessorStartContext(position, targetToken)
             Me.IsWithinPreprocessorContext = ComputeIsWithinPreprocessorContext(position, targetToken)
@@ -140,24 +137,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return enclosingMethod IsNot Nothing AndAlso enclosingMethod.BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
         End Function
 
-        Public Shared Async Function CreateContextAsync(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
+        Public Shared Function CreateContext(document As Document, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As VisualBasicSyntaxContext
             Dim syntaxTree = semanticModel.SyntaxTree
             Dim leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
             Dim targetToken = syntaxTree.GetTargetToken(position, cancellationToken)
-            Dim touchingToken = Await syntaxTree.GetTouchingTokenAsync(position, cancellationToken).ConfigureAwait(False)
 
             Return New VisualBasicSyntaxContext(
-                workspace,
+                document,
                 semanticModel,
                 position,
                 leftToken,
                 targetToken,
-                touchingToken,
                 isTypeContext:=syntaxTree.IsTypeContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceContext:=syntaxTree.IsNamespaceContext(position, targetToken, cancellationToken, semanticModel),
                 isNamespaceDeclarationNameContext:=syntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken),
                 isPreProcessorDirectiveContext:=syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken),
-                isPreProcessorExpressionContext:=syntaxTree.IsInPreProcessorExpressionContext(position, cancellationToken),
+                isPreProcessorExpressionContext:=syntaxTree.IsInPreprocessorExpressionContext(position, cancellationToken),
                 isRightOfNameSeparator:=syntaxTree.IsRightOfDot(position, cancellationToken),
                 isSingleLineStatementContext:=syntaxTree.IsSingleLineStatementContext(position, targetToken, cancellationToken),
                 isExpressionContext:=syntaxTree.IsExpressionContext(position, targetToken, cancellationToken, semanticModel),
@@ -171,6 +166,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isPossibleTupleContext:=syntaxTree.IsPossibleTupleContext(targetToken, position),
                 isInArgumentList:=targetToken.Parent.IsKind(SyntaxKind.ArgumentList),
                 cancellationToken:=cancellationToken)
+        End Function
+
+        Friend Overrides Function IsAwaitKeywordContext() As Boolean
+            If IsAnyExpressionContext OrElse IsSingleLineStatementContext Then
+                For Each node In TargetToken.GetAncestors(Of SyntaxNode)()
+                    If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression, SyntaxKind.SingleLineFunctionLambdaExpression,
+                                        SyntaxKind.MultiLineSubLambdaExpression, SyntaxKind.MultiLineFunctionLambdaExpression) Then
+                        Return True
+                    End If
+
+                    If node.IsKind(SyntaxKind.FinallyBlock, SyntaxKind.SyncLockBlock, SyntaxKind.CatchBlock) Then
+                        Return False
+                    End If
+                Next
+
+                Return True
+            End If
+
+            Return False
         End Function
 
         Private Function ComputeEnclosingNamedType(cancellationToken As CancellationToken) As INamedTypeSymbol
@@ -280,16 +294,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Return SyntaxTree.IsFollowingCompleteExpression(Of JoinClauseSyntax)(
                 Position, TargetToken, Function(joinOperator) joinOperator.JoinedVariables.LastCollectionExpression(), cancellationToken)
         End Function
-
-        Friend Overrides Function GetTypeInferenceServiceWithoutWorkspace() As ITypeInferenceService
-            Return New VisualBasicTypeInferenceService()
-        End Function
-
-        Friend Structure TestAccessor
-            Public Shared Function CreateContextAsync(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
-                Return VisualBasicSyntaxContext.CreateContextAsync(Nothing, semanticModel, position, cancellationToken)
-            End Function
-        End Structure
     End Class
 End Namespace
 

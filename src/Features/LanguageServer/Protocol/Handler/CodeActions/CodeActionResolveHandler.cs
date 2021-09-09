@@ -4,14 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -29,15 +27,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// complex data, such as edits and commands, to be computed only when necessary
     /// (i.e. when hovering/previewing a code action).
     /// </summary>
-    [ExportLspMethod(MSLSPMethods.TextDocumentCodeActionResolveName, mutatesSolutionState: false), Shared]
-    internal class CodeActionResolveHandler : IRequestHandler<LSP.VSCodeAction, LSP.VSCodeAction>
+    internal class CodeActionResolveHandler : IRequestHandler<LSP.CodeAction, LSP.CodeAction>
     {
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionResolveHandler(
             CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
@@ -48,10 +43,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService;
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(VSCodeAction request)
+        public string Method => LSP.Methods.CodeActionResolveName;
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CodeAction request)
             => ((JToken)request.Data!).ToObject<CodeActionResolveData>().TextDocument;
 
-        public async Task<LSP.VSCodeAction> HandleRequestAsync(LSP.VSCodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.CodeAction> HandleRequestAsync(LSP.CodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             Contract.ThrowIfNull(document);
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
 
                     var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
-                    var documentIdentifier = new VersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
+                    var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
                     textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits.ToArray() });
                 }
             }

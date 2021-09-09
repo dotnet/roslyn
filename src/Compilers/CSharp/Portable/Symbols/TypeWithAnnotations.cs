@@ -414,10 +414,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    Symbol.GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, owner, ref checkedTypes);
         }
 
-        public bool IsAtLeastAsVisibleAs(Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public bool IsAtLeastAsVisibleAs(Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // System.Nullable is public, so it is safe to delegate to the underlying.
-            return NullableUnderlyingTypeOrSelf.IsAtLeastAsVisibleAs(sym, ref useSiteDiagnostics);
+            return NullableUnderlyingTypeOrSelf.IsAtLeastAsVisibleAs(sym, ref useSiteInfo);
         }
 
         public TypeWithAnnotations SubstituteType(AbstractTypeMap typeMap) =>
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
         }
 
-        public void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics) =>
+        public void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics) =>
             _extensions.ReportDiagnosticsIfObsolete(this, binder, syntax, diagnostics);
 
         private bool TypeSymbolEqualsCore(TypeWithAnnotations other, TypeCompareKind comparison)
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Type.Equals(other.Type, comparison);
         }
 
-        private void ReportDiagnosticsIfObsoleteCore(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        private void ReportDiagnosticsIfObsoleteCore(Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             binder.ReportDiagnosticsIfObsolete(diagnostics, Type, syntax, hasBaseReceiver: false);
         }
@@ -728,7 +728,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool Equals(object other)
 #pragma warning restore CS0809
         {
-            throw ExceptionUtilities.Unreachable;
+            // It is possible to get here when we compare diagnostic for equality
+            return other is TypeWithAnnotations t && this.Equals(t, TypeCompareKind.ConsiderEverything);
         }
 
 #pragma warning disable CS0809
@@ -844,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal abstract bool TypeSymbolEquals(TypeWithAnnotations type, TypeWithAnnotations other, TypeCompareKind comparison);
             internal abstract TypeWithAnnotations SubstituteType(TypeWithAnnotations type, AbstractTypeMap typeMap);
-            internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics);
+            internal abstract void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics);
 
             internal abstract void TryForceResolve(bool asValueType);
         }
@@ -904,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return type.SubstituteTypeCore(typeMap);
             }
 
-            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
             {
                 type.ReportDiagnosticsIfObsoleteCore(binder, syntax, diagnostics);
             }
@@ -941,8 +942,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_resolved == null)
                 {
-                    Debug.Assert(_underlying.IsSafeToResolve());
-
                     TryForceResolve(asValueType: _underlying.Type.IsValueType);
                 }
 
@@ -1034,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+            internal override void ReportDiagnosticsIfObsolete(TypeWithAnnotations type, Binder binder, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
             {
                 if ((object)_resolved != null)
                 {

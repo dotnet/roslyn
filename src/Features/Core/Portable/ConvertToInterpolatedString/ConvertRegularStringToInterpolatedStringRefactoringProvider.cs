@@ -85,10 +85,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var text = literalExpression.GetFirstToken().Text;
+            var valueText = literalExpression.GetFirstToken().ValueText;
             var newNode = generator.InterpolatedStringText(
                 generator.InterpolatedStringTextToken(
-                    GetTextWithoutQuotes(text.Replace("{", "{{").Replace("}", "}}"),
-                    isVerbatim)));
+                    GetTextWithoutQuotes(text.Replace("{", "{{").Replace("}", "}}"), isVerbatim),
+                    valueText));
 
             return generator.InterpolatedStringExpression(
                 generator.CreateInterpolatedStringStartToken(isVerbatim),
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             internal override CodeActionPriority Priority => CodeActionPriority.Low;
 
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_to_interpolated_string, createChangedDocument)
+                : base(FeaturesResources.Convert_to_interpolated_string, createChangedDocument, nameof(FeaturesResources.Convert_to_interpolated_string))
             {
             }
         }

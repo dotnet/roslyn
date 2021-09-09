@@ -116,7 +116,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var originalOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var options = originalOptions
                 .WithChangedOption(CompletionOptions.SnippetsBehavior, document.Project.Language, SnippetsRule.NeverInclude)
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language, false);
+                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, document.Project.Language, false)
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false);
 
             var completionList = await service.GetCompletionsAsync(
                 document, nameToken.SpanStart, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         private static async Task<string> GetInsertionTextAsync(Document document, CompletionItem item, TextSpan completionListSpan, CancellationToken cancellationToken)
         {
             var service = CompletionService.GetService(document);
-            var change = await service.GetChangeAsync(document, item, completionListSpan, commitCharacter: null, disallowAddingImports: false, cancellationToken).ConfigureAwait(false);
+            var change = await service.GetChangeAsync(document, item, commitCharacter: null, cancellationToken).ConfigureAwait(false);
             var text = change.TextChange.NewText;
             var nonCharIndex = text.IndexOfAny(s_punctuation);
             return nonCharIndex > 0

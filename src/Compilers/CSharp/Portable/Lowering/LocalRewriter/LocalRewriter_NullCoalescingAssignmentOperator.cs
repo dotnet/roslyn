@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // tmp = lhsRead.GetValueOrDefault();
-                var tmp = _factory.StoreToTemp(BoundCall.Synthesized(leftOperand.Syntax, lhsRead, getValueOrDefault, binder: null),
+                var tmp = _factory.StoreToTemp(BoundCall.Synthesized(leftOperand.Syntax, lhsRead, getValueOrDefault),
                                                out var getValueOrDefaultStore);
 
                 stores.Add(getValueOrDefaultStore);
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isCompoundAssignment: false);
 
                 // lhsRead.HasValue
-                var lhsReadHasValue = BoundCall.Synthesized(leftOperand.Syntax, lhsRead, hasValue, binder: null);
+                var lhsReadHasValue = BoundCall.Synthesized(leftOperand.Syntax, lhsRead, hasValue);
 
                 // { tmp = b; transformedLhs = tmp; tmp }
                 var alternative = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(tmpAssignment, transformedLhsAssignment), tmp);

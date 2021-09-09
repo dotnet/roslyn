@@ -12,8 +12,12 @@ using Microsoft.CodeAnalysis;
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 {
     /// <summary>
-    /// Project context to initialize properties and items of a Workspace project created with <see cref="IWorkspaceProjectContextFactory.CreateProjectContext(string, string, string, Guid, object, string)"/>. 
+    /// Project context to initialize properties and items of a Workspace project created with <see
+    /// cref="IWorkspaceProjectContextFactory.CreateProjectContextAsync"/>. 
     /// </summary>
+    /// <remarks>
+    /// <see cref="IDisposable.Dispose"/> is safe to call on instances of this type on any thread.
+    /// </remarks>
     internal interface IWorkspaceProjectContext : IDisposable
     {
         // Project properties.

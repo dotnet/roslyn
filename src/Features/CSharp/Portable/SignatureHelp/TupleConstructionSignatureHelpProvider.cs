@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
         }
 
-        public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
+        public override SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             if (GetOuterMostTupleExpressionInSpan(root, position, syntaxFacts, currentSpan, cancellationToken, out var expression))
             {
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         private bool GetOuterMostTupleExpressionInSpan(SyntaxNode root, int position,
-            ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken, out TupleExpressionSyntax result)
+            ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken, [NotNullWhen(true)] out TupleExpressionSyntax? result)
         {
             result = null;
             while (TryGetTupleExpression(SignatureHelpTriggerReason.InvokeSignatureHelpCommand,
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         private bool GetOuterMostParenthesizedExpressionInSpan(SyntaxNode root, int position,
-         ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken, out ParenthesizedExpressionSyntax result)
+         ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken, [NotNullWhen(true)] out ParenthesizedExpressionSyntax? result)
         {
             result = null;
             while (TryGetParenthesizedExpression(SignatureHelpTriggerReason.InvokeSignatureHelpCommand,
@@ -105,13 +104,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         public override Boolean IsTriggerCharacter(Char ch)
             => ch == '(' || ch == ',';
 
-        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var typeInferrer = document.GetRequiredLanguageService<ITypeInferenceService>();
             var inferredTypes = FindNearestTupleConstructionWithInferrableType(root, semanticModel, position, triggerInfo,
                 typeInferrer, syntaxFacts, cancellationToken, out var targetExpression);
 
@@ -120,20 +119,20 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            return CreateItems(position, root, syntaxFacts, targetExpression, semanticModel, inferredTypes, cancellationToken);
+            return CreateItems(position, root, syntaxFacts, targetExpression!, semanticModel, inferredTypes, cancellationToken);
         }
 
-        private IEnumerable<INamedTypeSymbol> FindNearestTupleConstructionWithInferrableType(SyntaxNode root, SemanticModel semanticModel, int position, SignatureHelpTriggerInfo triggerInfo,
-            ITypeInferenceService typeInferrer, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out ExpressionSyntax targetExpression)
+        private IEnumerable<INamedTypeSymbol>? FindNearestTupleConstructionWithInferrableType(SyntaxNode root, SemanticModel semanticModel, int position, SignatureHelpTriggerInfo triggerInfo,
+            ITypeInferenceService typeInferrer, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out ExpressionSyntax? targetExpression)
         {
             // Walk upward through TupleExpressionSyntax/ParenthsizedExpressionSyntax looking for a 
             // place where we can infer a tuple type. 
-            ParenthesizedExpressionSyntax parenthesizedExpression = null;
+            ParenthesizedExpressionSyntax? parenthesizedExpression = null;
             while (TryGetTupleExpression(triggerInfo.TriggerReason, root, position, syntaxFacts, cancellationToken, out var tupleExpression) ||
                    TryGetParenthesizedExpression(triggerInfo.TriggerReason, root, position, syntaxFacts, cancellationToken, out parenthesizedExpression))
             {
-                targetExpression = (ExpressionSyntax)tupleExpression ?? parenthesizedExpression;
-                var inferredTypes = typeInferrer.InferTypes(semanticModel, targetExpression.SpanStart, cancellationToken);
+                targetExpression = (ExpressionSyntax?)tupleExpression ?? parenthesizedExpression;
+                var inferredTypes = typeInferrer.InferTypes(semanticModel, targetExpression!.SpanStart, cancellationToken);
 
                 var tupleTypes = inferredTypes.Where(t => t.IsTupleType).OfType<INamedTypeSymbol>().ToList();
                 if (tupleTypes.Any())
@@ -148,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return null;
         }
 
-        private SignatureHelpItems CreateItems(int position, SyntaxNode root, ISyntaxFactsService syntaxFacts,
+        private SignatureHelpItems? CreateItems(int position, SyntaxNode root, ISyntaxFactsService syntaxFacts,
             SyntaxNode targetExpression, SemanticModel semanticModel, IEnumerable<INamedTypeSymbol> tupleTypes, CancellationToken cancellationToken)
         {
             var prefixParts = SpecializedCollections.SingletonEnumerable(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, "(")).ToTaggedText();
@@ -201,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         private bool TryGetTupleExpression(SignatureHelpTriggerReason triggerReason, SyntaxNode root, int position,
-            ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out TupleExpressionSyntax tupleExpression)
+            ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, [NotNullWhen(true)] out TupleExpressionSyntax? tupleExpression)
         {
             return CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTupleExpressionTriggerToken,
                 IsTupleArgumentListToken, cancellationToken, out tupleExpression);
@@ -210,14 +209,15 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private bool IsTupleExpressionTriggerToken(SyntaxToken token)
             => SignatureHelpUtilities.IsTriggerParenOrComma<TupleExpressionSyntax>(token, IsTriggerCharacter);
 
-        private static bool IsTupleArgumentListToken(TupleExpressionSyntax tupleExpression, SyntaxToken token)
+        private static bool IsTupleArgumentListToken(TupleExpressionSyntax? tupleExpression, SyntaxToken token)
         {
-            return tupleExpression.Arguments.FullSpan.Contains(token.SpanStart) &&
+            return tupleExpression != null &&
+                tupleExpression.Arguments.FullSpan.Contains(token.SpanStart) &&
                 token != tupleExpression.CloseParenToken;
         }
 
         private bool TryGetParenthesizedExpression(SignatureHelpTriggerReason triggerReason, SyntaxNode root, int position,
-            ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, out ParenthesizedExpressionSyntax parenthesizedExpression)
+            ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken, [NotNullWhen(true)] out ParenthesizedExpressionSyntax? parenthesizedExpression)
         {
             return CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason,
                 IsParenthesizedExpressionTriggerToken, IsParenthesizedExpressionToken, cancellationToken, out parenthesizedExpression);
@@ -226,9 +226,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         private bool IsParenthesizedExpressionTriggerToken(SyntaxToken token)
             => token.IsKind(SyntaxKind.OpenParenToken) && token.Parent is ParenthesizedExpressionSyntax;
 
-        private static bool IsParenthesizedExpressionToken(ParenthesizedExpressionSyntax expr, SyntaxToken token)
+        private static bool IsParenthesizedExpressionToken(ParenthesizedExpressionSyntax? expr, SyntaxToken token)
         {
-            return expr.FullSpan.Contains(token.SpanStart) &&
+            return expr != null &&
+                expr.FullSpan.Contains(token.SpanStart) &&
                 token != expr.CloseParenToken;
         }
     }

@@ -19,8 +19,8 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders;
@@ -40,12 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         internal CSharpCodeModelService(
             HostLanguageServices languageServiceProvider,
             IEditorOptionsFactoryService editorOptionsFactoryService,
-            IEnumerable<IRefactorNotifyService> refactorNotifyServices)
+            IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+            IThreadingContext threadingContext)
             : base(languageServiceProvider,
                    editorOptionsFactoryService,
                    refactorNotifyServices,
                    BlankLineInGeneratedMethodFormattingRule.Instance,
-                   EndRegionFormattingRule.Instance)
+                   EndRegionFormattingRule.Instance,
+                   threadingContext)
         {
         }
 
@@ -86,6 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.DelegateDeclaration:
@@ -97,9 +100,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.PropertyDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return true;
 
                 case SyntaxKind.VariableDeclarator:
@@ -129,6 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             switch (node.Kind())
             {
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     if (scope == EnvDTE.vsCMElement.vsCMElementNamespace &&
                         node.Parent != null)
                     {
@@ -273,10 +279,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override IEnumerable<SyntaxNode> GetImportNodes(SyntaxNode parent)
-            => parent.Kind() switch
+            => parent switch
             {
-                SyntaxKind.CompilationUnit => ((CompilationUnitSyntax)parent).Usings,
-                SyntaxKind.NamespaceDeclaration => ((NamespaceDeclarationSyntax)parent).Usings,
+                CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
+                BaseNamespaceDeclarationSyntax baseNamespace => baseNamespace.Usings,
                 _ => SpecializedCollections.EmptyEnumerable<SyntaxNode>(),
             };
 
@@ -367,11 +373,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         private static bool IsContainerNode(SyntaxNode container) =>
             container is CompilationUnitSyntax ||
-            container is NamespaceDeclarationSyntax ||
+            container is BaseNamespaceDeclarationSyntax ||
             container is BaseTypeDeclarationSyntax;
 
         private static bool IsNamespaceOrTypeDeclaration(SyntaxNode node) =>
-            node.Kind() == SyntaxKind.NamespaceDeclaration ||
+            node is BaseNamespaceDeclarationSyntax ||
             node is BaseTypeDeclarationSyntax ||
             node is DelegateDeclarationSyntax;
 
@@ -387,7 +393,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     }
                 }
             }
-            else if (container is NamespaceDeclarationSyntax namespaceDecl)
+            else if (container is BaseNamespaceDeclarationSyntax namespaceDecl)
             {
                 foreach (var member in namespaceDecl.Members)
                 {
@@ -434,6 +440,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         /// of the field.</param>
         /// <param name="onlySupportedNodes">If true, only members supported by Code Model are returned.</param>
         public override IEnumerable<SyntaxNode> GetMemberNodes(SyntaxNode container, bool includeSelf, bool recursive, bool logicalFields, bool onlySupportedNodes)
+        {
+            // Filter out all records from code model, they are not supported at all.
+            return GetMemberNodesWorker(container, includeSelf, recursive, logicalFields, onlySupportedNodes).Where(t => t is not RecordDeclarationSyntax);
+        }
+
+        private IEnumerable<SyntaxNode> GetMemberNodesWorker(SyntaxNode container, bool includeSelf, bool recursive, bool logicalFields, bool onlySupportedNodes)
         {
             if (!IsContainerNode(container))
             {
@@ -549,6 +561,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.ConversionOperatorDeclaration:
                     return (EnvDTE.CodeElement)CodeFunction.Create(state, fileCodeModel, nodeKey, (int)node.Kind());
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     return (EnvDTE.CodeElement)CodeNamespace.Create(state, fileCodeModel, nodeKey, (int)node.Kind());
                 case SyntaxKind.PropertyDeclaration:
                 case SyntaxKind.IndexerDeclaration:
@@ -580,6 +593,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             switch (node.Kind())
             {
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                     return (EnvDTE.CodeElement)CodeNamespace.CreateUnknown(state, fileCodeModel, node.RawKind, GetName(node));
 
                 case SyntaxKind.ClassDeclaration:
@@ -816,7 +830,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.Parameter:
                     return GetParameterName(node);
                 case SyntaxKind.NamespaceDeclaration:
-                    return ((NamespaceDeclarationSyntax)node).Name.ToString();
+                case SyntaxKind.FileScopedNamespaceDeclaration:
+                    return ((BaseNamespaceDeclarationSyntax)node).Name.ToString();
                 case SyntaxKind.OperatorDeclaration:
                     return "operator " + ((OperatorDeclarationSyntax)node).OperatorToken.ToString();
                 case SyntaxKind.ConversionOperatorDeclaration:
@@ -890,7 +905,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.Parameter:
                     return ((ParameterSyntax)node).WithIdentifier(newIdentifier);
                 case SyntaxKind.NamespaceDeclaration:
-                    return ((NamespaceDeclarationSyntax)node).WithName(
+                case SyntaxKind.FileScopedNamespaceDeclaration:
+                    return ((BaseNamespaceDeclarationSyntax)node).WithName(
                         SyntaxFactory.ParseName(name)
                             .WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker))
                             .WithTrailingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker)));
@@ -2740,8 +2756,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 var newFieldDeclaration = fieldDeclaration.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
-                return document.ReplaceNodeAsync(fieldDeclaration, newFieldDeclaration, CancellationToken.None)
-                               .WaitAndGetResult_CodeModel(CancellationToken.None);
+                return document.ReplaceNodeSynchronously(fieldDeclaration, newFieldDeclaration, CancellationToken.None);
             }
         }
 
@@ -2762,8 +2777,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 newEnumDeclaration = newEnumDeclaration.ReplaceNode(lastMember, lastMember.WithTrailingTrivia(trailingTrivia));
             }
 
-            return document.ReplaceNodeAsync(enumDeclaration, newEnumDeclaration, CancellationToken.None)
-                           .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return document.ReplaceNodeSynchronously(enumDeclaration, newEnumDeclaration, CancellationToken.None);
         }
 
         private Document Delete(Document document, AttributeSyntax node)
@@ -2773,8 +2787,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             // If we don't have anything left, then just delete the whole attribute list.
             if (attributeList.Attributes.Count == 1)
             {
-                var text = document.GetTextAsync(CancellationToken.None)
-                                   .WaitAndGetResult_CodeModel(CancellationToken.None);
+                var text = document.GetTextSynchronously(CancellationToken.None);
 
                 // Note that we want to keep all leading trivia and delete all trailing trivia.
                 var deletionStart = attributeList.SpanStart;
@@ -2788,8 +2801,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 var newAttributeList = attributeList.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
-                return document.ReplaceNodeAsync(attributeList, newAttributeList, CancellationToken.None)
-                               .WaitAndGetResult_CodeModel(CancellationToken.None);
+                return document.ReplaceNodeSynchronously(attributeList, newAttributeList, CancellationToken.None);
             }
         }
 
@@ -2798,8 +2810,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var argumentList = node.FirstAncestorOrSelf<AttributeArgumentListSyntax>();
             var newArgumentList = argumentList.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
-            return document.ReplaceNodeAsync(argumentList, newArgumentList, CancellationToken.None)
-                           .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return document.ReplaceNodeSynchronously(argumentList, newArgumentList, CancellationToken.None);
         }
 
         private Document Delete(Document document, ParameterSyntax node)
@@ -2807,14 +2818,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var parameterList = node.FirstAncestorOrSelf<ParameterListSyntax>();
             var newParameterList = parameterList.RemoveNode(node, SyntaxRemoveOptions.KeepNoTrivia);
 
-            return document.ReplaceNodeAsync(parameterList, newParameterList, CancellationToken.None)
-                           .WaitAndGetResult_CodeModel(CancellationToken.None);
+            return document.ReplaceNodeSynchronously(parameterList, newParameterList, CancellationToken.None);
         }
 
         private Document DeleteMember(Document document, SyntaxNode node)
         {
-            var text = document.GetTextAsync(CancellationToken.None)
-                               .WaitAndGetResult_CodeModel(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             // We want to delete all the leading trivia from the node back to,
             // but not including:
@@ -3200,7 +3209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 var newMembers = compilationUnit.Members.Insert(index, (MemberDeclarationSyntax)member);
                 return compilationUnit.WithMembers(newMembers);
             }
-            else if (container is NamespaceDeclarationSyntax namespaceDeclaration)
+            else if (container is BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
                 var newMembers = namespaceDeclaration.Members.Insert(index, (MemberDeclarationSyntax)member);
                 return namespaceDeclaration.WithMembers(newMembers);
@@ -3242,7 +3251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 return compilationUnit.Members[index];
             }
-            else if (container is NamespaceDeclarationSyntax namespaceDeclaration)
+            else if (container is BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
                 return namespaceDeclaration.Members[index];
             }
@@ -3488,6 +3497,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.PropertyDeclaration:
                 case SyntaxKind.StructDeclaration:
@@ -3500,7 +3510,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override bool IsNamespace(SyntaxNode node)
-            => node.IsKind(SyntaxKind.NamespaceDeclaration);
+            => node is BaseNamespaceDeclarationSyntax;
 
         public override bool IsType(SyntaxNode node)
         {

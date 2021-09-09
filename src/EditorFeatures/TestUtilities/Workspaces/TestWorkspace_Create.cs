@@ -48,8 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string CommonReferencesWinRTAttributeName = "CommonReferencesWinRT";
         private const string CommonReferencesNet45AttributeName = "CommonReferencesNet45";
         private const string CommonReferencesPortableAttributeName = "CommonReferencesPortable";
-        private const string CommonReferencesNetCoreApp30Name = "CommonReferencesNetCoreApp30";
+        private const string CommonReferencesNetCoreAppName = "CommonReferencesNetCoreApp";
         private const string CommonReferencesNetStandard20Name = "CommonReferencesNetStandard20";
+        private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
         private const string FilePathAttributeName = "FilePath";
         private const string FoldersAttributeName = "Folders";
         private const string KindAttributeName = "Kind";
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string AllowUnsafeAttributeName = "AllowUnsafe";
         private const string OutputKindName = "OutputKind";
         private const string NullableAttributeName = "Nullable";
-        private const string DocumentFromSourceGenerator = "DocumentFromSourceGenerator";
+        private const string DocumentFromSourceGeneratorElementName = "DocumentFromSourceGenerator";
 
         /// <summary>
         /// Creates a single buffer in a workspace.

@@ -104,6 +104,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CSharpProject\Properties\AssemblyInfo.cs", Resources.SourceFiles.CSharp.AssemblyInfo));
         }
 
+        protected static FileSet GetSimpleCSharpSolutionWithAdditionaFile()
+        {
+            return new FileSet(
+                (@"NuGet.Config", Resources.NuGet_Config),
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"TestSolution.sln", Resources.SolutionFiles.CSharp),
+                (@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.AdditionalFile),
+                (@"CSharpProject\CSharpClass.cs", Resources.SourceFiles.CSharp.CSharpClass),
+                (@"CSharpProject\Properties\AssemblyInfo.cs", Resources.SourceFiles.CSharp.AssemblyInfo),
+                (@"CSharpProject\ValidAdditionalFile.txt", Resources.SourceFiles.Text.ValidAdditionalFile));
+        }
+
         protected static FileSet GetNetCoreApp2Files()
         {
             return new FileSet(
@@ -278,14 +291,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CircularSolution.sln", Resources.SolutionFiles.CircularSolution),
                 (@"CircularCSharpProject1.csproj", Resources.ProjectFiles.CSharp.CircularProjectReferences_CircularCSharpProject1),
                 (@"CircularCSharpProject2.csproj", Resources.ProjectFiles.CSharp.CircularProjectReferences_CircularCSharpProject2));
-        }
-
-        protected static string GetParentDirOfParentDirOfContainingDir(string fileName)
-        {
-            var containingDir = Directory.GetParent(fileName).FullName;
-            var parentOfContainingDir = Directory.GetParent(containingDir).FullName;
-
-            return Directory.GetParent(parentOfContainingDir).FullName;
         }
     }
 }

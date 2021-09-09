@@ -7,6 +7,81 @@
         <target state="translated">選択範囲でコード分析を実行(&amp;A)</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
+        <source>&amp;Current Document</source>
+        <target state="new">&amp;Current Document</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|CommandName">
+        <source>AnalysisScopeCurrentDocument</source>
+        <target state="new">AnalysisScopeCurrentDocument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|LocCanonicalName">
+        <source>Current Document</source>
+        <target state="new">Current Document</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|ButtonText">
+        <source>&amp;Default</source>
+        <target state="new">&amp;Default</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|CommandName">
+        <source>AnalysisScopeDefault</source>
+        <target state="new">AnalysisScopeDefault</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|LocCanonicalName">
+        <source>Default</source>
+        <target state="new">Default</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|ButtonText">
+        <source>&amp;Entire Solution</source>
+        <target state="new">&amp;Entire Solution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|CommandName">
+        <source>AnalysisScopeEntireSolution</source>
+        <target state="new">AnalysisScopeEntireSolution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|LocCanonicalName">
+        <source>Entire Solution</source>
+        <target state="new">Entire Solution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
+        <source>&amp;Open Documents</source>
+        <target state="new">&amp;Open Documents</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|CommandName">
+        <source>AnalysisScopeOpenDocuments</source>
+        <target state="new">AnalysisScopeOpenDocuments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|LocCanonicalName">
+        <source>Open Documents</source>
+        <target state="new">Open Documents</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|ButtonText">
+        <source>Set Analysis Scope</source>
+        <target state="new">Set Analysis Scope</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|CommandName">
+        <source>Set Analysis Scope</source>
+        <target state="new">Set Analysis Scope</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|LocCanonicalName">
+        <source>SetAnalysisScope</source>
+        <target state="new">SetAnalysisScope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
         <source>Sort &amp;Usings</source>
         <target state="translated">using の並べ替え(&amp;U)</target>
@@ -212,6 +287,21 @@
         <target state="translated">OpenActiveRuleSet</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|ButtonText">
+        <source>Remove Unused References...</source>
+        <target state="translated">未使用の参照を削除する(&amp;U)...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|CommandName">
+        <source>RemoveUnusedReferences</source>
+        <target state="translated">RemoveUnusedReferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|LocCanonicalName">
+        <source>RemoveUnusedReferences</source>
+        <target state="translated">RemoveUnusedReferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
         <source>Run C&amp;ode Analysis</source>
         <target state="translated">コード分析の実行(&amp;O)</target>
@@ -405,6 +495,36 @@
       <trans-unit id="cmdidGoToImplementation|CommandName">
         <source>Go To Implementation</source>
         <target state="translated">実装に移動</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|ButtonText">
+        <source>Sync &amp;Namespaces</source>
+        <target state="new">Sync &amp;Namespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|CommandName">
+        <source>SyncNamespaces</source>
+        <target state="new">SyncNamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|LocCanonicalName">
+        <source>SyncNamespaces</source>
+        <target state="new">SyncNamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|ButtonText">
+        <source>Track Value Source</source>
+        <target state="new">Track Value Source</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|CommandName">
+        <source>ShowValueTrackingCommandName</source>
+        <target state="new">ShowValueTrackingCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
+        <source>ViewEditorConfigSettings</source>
+        <target state="new">ViewEditorConfigSettings</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

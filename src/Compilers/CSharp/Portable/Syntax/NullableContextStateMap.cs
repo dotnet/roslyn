@@ -7,14 +7,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     /// <summary>
-    /// Contains the nullable warnings and annotations context state at a given position in source,
-    /// where <see langword="true"/> means the context is 'enable', <see langword="false"/> means the context is 'disable',
-    /// and <see langword="null"/> means the context is 'restore' or not specified.
+    /// Contains the nullable warnings and annotations context state at a given position in source.
     /// </summary>
     internal readonly struct NullableContextState
     {
@@ -37,17 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             ExplicitlyRestored
         }
     }
+
     internal readonly struct NullableContextStateMap
     {
-        private static readonly NullableContextStateMap Empty = new NullableContextStateMap(ImmutableArray<NullableContextState>.Empty);
-
         private readonly ImmutableArray<NullableContextState> _contexts;
 
         internal static NullableContextStateMap Create(SyntaxTree tree)
         {
             var contexts = GetContexts(tree);
-
-            return contexts.IsEmpty ? Empty : new NullableContextStateMap(contexts);
+            return new NullableContextStateMap(contexts);
         }
 
         private NullableContextStateMap(ImmutableArray<NullableContextState> contexts)
@@ -61,13 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             _contexts = contexts;
         }
 
-        private static NullableContextState GetContextForFileStart(int position)
+        private static NullableContextState GetContextForFileStart()
             => new NullableContextState(
-                position,
+                position: 0,
                 warningsState: NullableContextState.State.Unknown,
                 annotationsState: NullableContextState.State.Unknown);
 
-        internal NullableContextState GetContextState(int position)
+        private int GetContextStateIndex(int position)
         {
             // PositionComparer only checks the position, not the states
             var searchContext = new NullableContextState(position, warningsState: NullableContextState.State.Unknown, annotationsState: NullableContextState.State.Unknown);
@@ -79,38 +76,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 index = ~index - 1;
             }
 
-            var context = GetContextForFileStart(position);
-
+            Debug.Assert(index >= -1);
+            Debug.Assert(index < _contexts.Length);
+#if DEBUG
             if (index >= 0)
             {
                 Debug.Assert(_contexts[index].Position <= position);
                 Debug.Assert(index == _contexts.Length - 1 || position < _contexts[index + 1].Position);
-                context = _contexts[index];
             }
+#endif
+            return index;
+        }
 
-            return context;
+        internal NullableContextState GetContextState(int position)
+        {
+            var index = GetContextStateIndex(position);
+            return index < 0 ? GetContextForFileStart() : _contexts[index];
         }
 
         /// <summary>
-        /// Returns true if any of the NullableContexts in this map enable annotations, warnings, or both.
-        /// This does not include any restore directives.
+        /// Returns whether nullable warnings are enabled within the span.
+        /// Returns true if nullable warnings are enabled anywhere in the span;
+        /// false if nullable warnings are disabled throughout the span; and
+        /// null otherwise.
         /// </summary>
-        internal bool HasNullableEnables()
+        internal bool? IsNullableAnalysisEnabled(TextSpan span)
         {
-            foreach (var context in _contexts)
+            bool hasUnknownOrExplicitlyRestored = false;
+            int index = GetContextStateIndex(span.Start);
+            var context = index < 0 ? GetContextForFileStart() : _contexts[index];
+            Debug.Assert(context.Position <= span.Start);
+
+            while (true)
             {
-                if (context.AnnotationsState == NullableContextState.State.Enabled || context.WarningsState == NullableContextState.State.Enabled)
+                switch (context.WarningsState)
                 {
-                    return true;
+                    case NullableContextState.State.Enabled:
+                        return true;
+                    case NullableContextState.State.Unknown:
+                    case NullableContextState.State.ExplicitlyRestored:
+                        hasUnknownOrExplicitlyRestored = true;
+                        break;
+                }
+                index++;
+                if (index >= _contexts.Length)
+                {
+                    break;
+                }
+                context = _contexts[index];
+                if (context.Position >= span.End)
+                {
+                    break;
                 }
             }
 
-            return false;
+            return hasUnknownOrExplicitlyRestored ? null : false;
         }
 
         private static ImmutableArray<NullableContextState> GetContexts(SyntaxTree tree)
         {
-            var previousContext = GetContextForFileStart(position: 0);
+            var previousContext = GetContextForFileStart();
 
             var builder = ArrayBuilder<NullableContextState>.GetInstance();
             foreach (var d in tree.GetRoot().GetDirectives())

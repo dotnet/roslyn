@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.HasAllInformation = value;
         }
 
-        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid, string binOutputPath)
+        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid, string? binOutputPath)
         {
             _visualStudioProject = visualStudioProject;
             _visualStudioWorkspace = visualStudioWorkspace;
@@ -176,6 +176,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 var boolValue = bool.TryParse(value, out var parsedBoolValue) ? parsedBoolValue : (bool?)null;
                 _visualStudioProject.RunAnalyzersDuringLiveAnalysis = boolValue;
+            }
+            else if (name == AdditionalPropertyNames.TemporaryDependencyNodeTargetIdentifier && !RoslynString.IsNullOrEmpty(value))
+            {
+                _visualStudioProject.DependencyNodeTargetIdentifier = value;
             }
         }
 

@@ -4,8 +4,12 @@
 
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
@@ -16,19 +20,29 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private const string PersistentStorageFileName = "storage.ide";
 
         private readonly SQLiteConnectionPoolService _connectionPoolService;
+        private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly OptionSet _options;
         private readonly IPersistentStorageFaultInjector? _faultInjector;
 
-        public SQLitePersistentStorageService(SQLiteConnectionPoolService connectionPoolService, IPersistentStorageLocationService locationService)
+        public SQLitePersistentStorageService(
+            OptionSet options,
+            SQLiteConnectionPoolService connectionPoolService,
+            IPersistentStorageLocationService locationService,
+            IAsynchronousOperationListener asyncListener)
             : base(locationService)
         {
+            _options = options;
             _connectionPoolService = connectionPoolService;
+            _asyncListener = asyncListener;
         }
 
         public SQLitePersistentStorageService(
+            OptionSet options,
             SQLiteConnectionPoolService connectionPoolService,
             IPersistentStorageLocationService locationService,
+            IAsynchronousOperationListener asyncListener,
             IPersistentStorageFaultInjector? faultInjector)
-            : this(connectionPoolService, locationService)
+            : this(options, connectionPoolService, locationService, asyncListener)
         {
             _faultInjector = faultInjector;
         }
@@ -39,22 +53,25 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             return Path.Combine(workingFolderPath, StorageExtension, nameof(v2), PersistentStorageFileName);
         }
 
-        protected override IChecksummedPersistentStorage? TryOpenDatabase(
-            SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath)
+        protected override ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
+            SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
         {
             if (!TryInitializeLibraries())
             {
                 // SQLite is not supported on the current platform
-                return null;
+                return new((IChecksummedPersistentStorage?)null);
             }
 
-            return SQLitePersistentStorage.TryCreate(
+            if (solutionKey.FilePath == null)
+                return new(NoOpPersistentStorage.GetOrThrow(_options));
+
+            return new(SQLitePersistentStorage.TryCreate(
                 _connectionPoolService,
-                bulkLoadSnapshot,
                 workingFolderPath,
                 solutionKey.FilePath,
                 databaseFilePath,
-                _faultInjector);
+                _asyncListener,
+                _faultInjector));
         }
 
         // Error occurred when trying to open this DB.  Try to remove it so we can create a good DB.

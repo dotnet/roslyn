@@ -12,10 +12,30 @@
         <target state="translated">Aggiunge le parentesi graffe all'istruzione '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
+        <source>Blank line not allowed after constructor initializer colon</source>
+        <target state="translated">Non sono consentite righe vuote dopo i due punti dell'inizializzatore del costruttore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Consecutive_braces_must_not_have_a_blank_between_them">
+        <source>Consecutive braces must not have blank line between them</source>
+        <target state="translated">Tra parentesi graffe consecutive non devono essere presenti righe vuote</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_switch_statement_to_expression">
         <source>Convert switch statement to expression</source>
         <target state="translated">Converti l'istruzione switch in espressione</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_block_scoped_namespace">
+        <source>Convert to block scoped namespace</source>
+        <target state="new">Convert to block scoped namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_to_file_scoped_namespace">
+        <source>Convert to file-scoped namespace</source>
+        <target state="new">Convert to file-scoped namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
         <source>Deconstruct variable declaration</source>
@@ -30,6 +50,11 @@
       <trans-unit id="Discard_can_be_removed">
         <source>Discard can be removed</source>
         <target state="translated">È possibile rimuovere discard</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Embedded_statements_must_be_on_their_own_line">
+        <source>Embedded statements must be on their own line</source>
+        <target state="translated">Le istruzioni incorporate devono essere posizionate nella rispettiva riga</target>
         <note />
       </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
@@ -72,6 +97,16 @@
         <target state="translated">Nega l'espressione (modifica la semantica)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Null_check_can_be_clarified">
+        <source>Null check can be clarified</source>
+        <target state="new">Null check can be clarified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="new">Prefer 'null' check over type check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
         <source>Remove operator (preserves semantics)</source>
         <target state="translated">Rimuovi l'operatore (conserva la semantica)</target>
@@ -98,8 +133,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="translated">Struct contiene l'assegnazione a 'this' all'esterno del costruttore. Impostare i campi di sola lettura come scrivibili</target>
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
+        <target state="translated">La parola chiave Struct contiene l'assegnazione a 'this' all'esterno del costruttore. Impostare i campi di sola lettura come scrivibili.</target>
         <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">
@@ -220,6 +255,11 @@
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Usa i criteri di ricerca</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="new">Use pattern matching (may change code meaning)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_range_operator">

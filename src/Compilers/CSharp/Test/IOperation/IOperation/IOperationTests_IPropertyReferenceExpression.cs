@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IPropertyReferenceExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation), WorkItem(21769, "https://github.com/dotnet/roslyn/issues/21769")]
         [Fact]
@@ -1019,7 +1019,7 @@ class C
     public object this[int i] { set { } }
 
 }
-", options: TestOptions.ReleaseExe);
+");
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(comp, @"
 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C { [0] = 1 }')
@@ -1056,7 +1056,7 @@ class C
     public object Prop1 { get; set; }
     public object this[int i] { set { } }
 }
-", options: TestOptions.ReleaseExe);
+");
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(comp, @"
 IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C { [0] ... op1 = 1 } }')

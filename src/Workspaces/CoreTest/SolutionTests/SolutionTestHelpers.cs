@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Xunit;
@@ -31,15 +32,28 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace;
         }
 
+        public static Workspace CreateWorkspaceWithPartalSemantics(Type[]? additionalParts = null)
+            => new WorkspaceWithPartialSemantics(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
+
+        private class WorkspaceWithPartialSemantics : Workspace
+        {
+            public WorkspaceWithPartialSemantics(HostServices hostServices) : base(hostServices, workspaceKind: nameof(WorkspaceWithPartialSemantics))
+            {
+            }
+
+            protected internal override bool PartialSemanticsEnabled => true;
+        }
+
         public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp)
         {
+            var id = ProjectId.CreateNewId();
             return solution.AddProject(
                 ProjectInfo.Create(
-                    ProjectId.CreateNewId(),
+                    id,
                     VersionStamp.Default,
                     name: "TestProject",
                     assemblyName: "TestProject",
-                    language: languageName)).Projects.Single();
+                    language: languageName)).GetRequiredProject(id);
         }
 
 #nullable disable
@@ -104,7 +118,5 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Throws<ArgumentException>(() => factory(instanceWithNoItem, new TValue[] { item, item }));
             }
         }
-
-#nullable enable
     }
 }

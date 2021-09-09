@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
         private bool _needsSpilling;
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private Instrumenter _instrumenter;
         private readonly BoundStatement _rootStatement;
 
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             Instrumenter instrumenter)
         {
             _compilation = compilation;
@@ -85,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool instrumentForDynamicAnalysis,
             ref ImmutableArray<SourceSpan> dynamicAnalysisSpans,
             DebugDocumentProvider debugDocumentProvider,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out bool sawLambdas,
             out bool sawLocalFunctions,
             out bool sawAwaitInExceptionHandler)
@@ -248,17 +247,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLambda(BoundLambda node)
         {
             _sawLambdas = true;
-            CheckRefReadOnlySymbols(node.Symbol);
+
+            var lambda = node.Symbol;
+            CheckRefReadOnlySymbols(lambda);
 
             var oldContainingSymbol = _factory.CurrentFunction;
+            var oldInstrumenter = _instrumenter;
             try
             {
-                _factory.CurrentFunction = node.Symbol;
+                _factory.CurrentFunction = lambda;
+                if (lambda.IsDirectlyExcludedFromCodeCoverage)
+                {
+                    _instrumenter = RemoveDynamicAnalysisInjectors(oldInstrumenter);
+                }
                 return base.VisitLambda(node)!;
             }
             finally
             {
                 _factory.CurrentFunction = oldContainingSymbol;
+                _instrumenter = oldInstrumenter;
             }
         }
 
@@ -383,6 +390,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return PlaceholderReplacement(node);
         }
 
+        public override BoundNode VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
+            => PlaceholderReplacement(node);
+
+        public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
+            => PlaceholderReplacement(node);
+
         /// <summary>
         /// Returns substitution currently used by the rewriter for a placeholder node.
         /// Each occurrence of the placeholder node is replaced with the node returned.
@@ -492,10 +505,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
-        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, DiagnosticBag, out MethodSymbol)"/> instead!
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, BindingDiagnosticBag, out MethodSymbol)"/> instead!
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
-        private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
         {
             MethodSymbol method;
             if (TryGetSpecialTypeMethod(syntax, specialMember, compilation, diagnostics, out method))
@@ -517,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TryGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics, out method);
         }
 
-        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics, out MethodSymbol method)
+        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, BindingDiagnosticBag diagnostics, out MethodSymbol method)
         {
             return Binder.TryGetSpecialTypeMember(compilation, specialMember, syntax, diagnostics, out method);
         }
@@ -781,8 +794,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rhs.IsDefaultValue();
         }
 
-        // There are two situations in which the language permits passing rvalues by reference.
-        // (technically there are 4, but we can ignore COM and dynamic here, since that results in byval semantics regardless of the parameter ref kind)
+        // There are three situations in which the language permits passing rvalues by reference.
+        // (technically there are 5, but we can ignore COM and dynamic here, since that results in byval semantics regardless of the parameter ref kind)
         //
         // #1: Receiver of a struct/generic method call.
         //
@@ -843,6 +856,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         //            Console.WriteLine(y);
         //        }
         //
+        // #3: Ordinary byval interpolated string expression passed to a "ref" interpolated string handler value type.
+        //
+        // Interpolated string expressions passed to a builder type are lowered into a handler form. When the handler type
+        // is a value type (struct, or type parameter constrained to struct (though the latter will fail to bind today because
+        // there's no constructor)), the final handler instance type is passed by reference if the parameter is by reference.
+        //
+        // Example:
+        //        M($""); // Language lowers this to a sequence of creating CustomHandler, appending all values, and evaluating to the builder
+        //        static void M(ref CustomHandler c) { }
+        //
         // NB: The readonliness is not considered here.
         //     We only care about possible introduction of aliasing. I.E. RValue->LValue change.
         //     Even if we start with a readonly variable, it cannot be lowered into a writeable one,
@@ -871,6 +894,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DeconstructValuePlaceholder:
                     // we will consider that placeholder always represents a temp local
                     // the assumption should be confirmed or changed when https://github.com/dotnet/roslyn/issues/24160 is fixed
+                    return true;
+
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
+                    // An argument placeholder is always a reference to some type of temp local,
+                    // either representing a user-typed expression that went through this path
+                    // itself when it was originally visited, or the trailing out parameter that
+                    // is passed by out.
+                    return true;
+
+                case BoundKind.InterpolatedStringHandlerPlaceholder:
+                    // A handler placeholder is the receiver of the interpolated string AppendLiteral
+                    // or AppendFormatted calls, and should never be defensively copied.
                     return true;
 
                 case BoundKind.EventAccess:
@@ -923,6 +958,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _ => throw ExceptionUtilities.UnexpectedValue(patternIndexer.PatternSymbol)
                     };
                     return refKind != RefKind.None;
+
+                case BoundKind.Conversion:
+                    var conversion = ((BoundConversion)expr);
+                    return expr is BoundConversion { Conversion: { IsInterpolatedStringHandler: true }, Type: { IsValueType: true } };
             }
 
             return false;
@@ -935,6 +974,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
             }
+        }
+
+        private CompoundUseSiteInfo<AssemblySymbol> GetNewCompoundUseSiteInfo()
+        {
+            return new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
         }
 
 #if DEBUG
@@ -989,6 +1033,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode? VisitDisposableValuePlaceholder(BoundDisposableValuePlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitInterpolatedStringArgumentPlaceholder(BoundInterpolatedStringArgumentPlaceholder node)
+            {
+                Fail(node);
+                return null;
+            }
+
+            public override BoundNode? VisitInterpolatedStringHandlerPlaceholder(BoundInterpolatedStringHandlerPlaceholder node)
             {
                 Fail(node);
                 return null;

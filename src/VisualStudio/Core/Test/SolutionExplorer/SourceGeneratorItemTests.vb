@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Sub SourceGeneratorsListed()
             Dim workspaceXml =
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                     </Project>
                 </Workspace>
 
@@ -39,7 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Async Function PlaceholderItemCreateIfGeneratorProducesNoFiles() As Task
             Dim workspaceXml =
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                     </Project>
                 </Workspace>
 
@@ -63,7 +63,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Async Function SingleSourceGeneratedFileProducesItem() As Task
             Dim workspaceXml =
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                         <AdditionalDocument FilePath="Test.txt"></AdditionalDocument>
                     </Project>
                 </Workspace>
@@ -92,7 +92,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Async Function MultipleSourceGeneratedFilesProducesSortedItem() As Task
             Dim workspaceXml =
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                         <AdditionalDocument FilePath="Test1.txt"></AdditionalDocument>
                         <AdditionalDocument FilePath="Test2.txt"></AdditionalDocument>
                         <AdditionalDocument FilePath="Test3.txt"></AdditionalDocument>
@@ -124,7 +124,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Async Function ChangeToNoGeneratedDocumentsUpdatesListCorrectly() As Task
             Dim workspaceXml =
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                         <AdditionalDocument FilePath="Test1.txt"></AdditionalDocument>
                     </Project>
                 </Workspace>
@@ -153,7 +153,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Public Async Function AddingAGeneratedDocumentUpdatesListCorrectly() As Task
             Dim workspaceXml =
                 <Workspace>
-                    <Project Language="C#" CommonReferences="true">
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                     </Project>
                 </Workspace>
 

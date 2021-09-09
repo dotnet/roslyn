@@ -997,8 +997,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 Assert.Throws<ArgumentException>("compoundAssignment", () => VisualBasic.VisualBasicExtensions.GetInConversion(operation));
                 Assert.Throws<ArgumentException>("compoundAssignment", () => VisualBasic.VisualBasicExtensions.GetOutConversion(operation));
-                var inConversionInteranl = CSharp.CSharpExtensions.GetInConversion(operation);
-                var outConversionInteranl = CSharp.CSharpExtensions.GetOutConversion(operation);
+                var inConversionInternal = CSharp.CSharpExtensions.GetInConversion(operation);
+                var outConversionInternal = CSharp.CSharpExtensions.GetOutConversion(operation);
             }
             else
             {
@@ -1105,7 +1105,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInterpolatedStringText(IInterpolatedStringTextOperation operation)
         {
             Assert.Equal(OperationKind.InterpolatedStringText, operation.Kind);
-            Assert.Equal(OperationKind.Literal, operation.Text.Kind);
+            if (operation.Text.Kind != OperationKind.Literal)
+            {
+                Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.Text).Operand.Kind);
+            }
             Assert.Same(operation.Text, operation.Children.Single());
         }
 
@@ -1120,7 +1123,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (operation.FormatString != null)
             {
-                Assert.Equal(OperationKind.Literal, operation.FormatString.Kind);
+                if (operation.FormatString.Kind != OperationKind.Literal)
+                {
+                    Assert.Equal(OperationKind.Literal, ((IConversionOperation)operation.FormatString).Operand.Kind);
+                }
                 children = children.Concat(new[] { operation.FormatString });
             }
 
@@ -1145,14 +1151,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitRelationalPattern(IRelationalPatternOperation operation)
         {
             Assert.Equal(OperationKind.RelationalPattern, operation.Kind);
-            Assert.True(operation.OperatorKind switch
-            {
-                Operations.BinaryOperatorKind.LessThan => true,
-                Operations.BinaryOperatorKind.LessThanOrEqual => true,
-                Operations.BinaryOperatorKind.GreaterThan => true,
-                Operations.BinaryOperatorKind.GreaterThanOrEqual => true,
-                _ => false,
-            });
+            Assert.True(operation.OperatorKind is Operations.BinaryOperatorKind.LessThan or
+                                                  Operations.BinaryOperatorKind.LessThanOrEqual or
+                                                  Operations.BinaryOperatorKind.GreaterThan or
+                                                  Operations.BinaryOperatorKind.GreaterThanOrEqual or
+                                                  Operations.BinaryOperatorKind.Equals or // Error cases
+                                                  Operations.BinaryOperatorKind.NotEquals);
             VisitPatternCommon(operation);
             Assert.Same(operation.Value, operation.Children.Single());
         }
@@ -1286,6 +1290,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitSwitchExpression(ISwitchExpressionOperation operation)
         {
+            //force the existence of IsExhaustive
+            _ = operation.IsExhaustive;
             Assert.NotNull(operation.Type);
             Assert.False(operation.ConstantValue.HasValue);
             Assert.Equal(OperationKind.SwitchExpression, operation.Kind);

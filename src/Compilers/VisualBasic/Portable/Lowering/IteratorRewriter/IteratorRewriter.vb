@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        stateMachineType As IteratorStateMachine,
                        slotAllocatorOpt As VariableSlotAllocator,
                        compilationState As TypeCompilationState,
-                       diagnostics As DiagnosticBag)
+                       diagnostics As BindingDiagnosticBag)
 
             MyBase.New(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
 
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  methodOrdinal As Integer,
                                                  slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
-                                                 diagnostics As DiagnosticBag,
+                                                 diagnostics As BindingDiagnosticBag,
                                                  <Out> ByRef stateMachineType As IteratorStateMachine) As BoundBlock
 
             If body.HasErrors Or Not method.IsIterator Then
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            Dim bag = DiagnosticBag.GetInstance()
+            Dim bag = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=Me.Diagnostics.AccumulatesDependencies)
 
             ' NOTE: We don't ensure DebuggerStepThroughAttribute, it is just not emitted if not found
             ' EnsureWellKnownMember(Of MethodSymbol)(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor, hasErrors)
@@ -124,6 +124,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim hasErrors As Boolean = bag.HasAnyErrors
             If hasErrors Then
                 Me.Diagnostics.AddRange(bag)
+            Else
+                Me.Diagnostics.AddDependencies(bag)
             End If
 
             bag.Free()

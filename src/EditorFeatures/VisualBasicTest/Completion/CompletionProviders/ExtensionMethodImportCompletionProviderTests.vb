@@ -20,14 +20,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Private Property ShowImportCompletionItemsOptionValue As Boolean = True
 
         Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
-            Return options _
+            Return MyBase.WithChangedOptions(options) _
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion) _
                 .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds)
-        End Function
-
-        Protected Overrides Function GetComposition() As TestComposition
-            Return MyBase.GetComposition().AddParts(GetType(TestExperimentationService))
         End Function
 
         Friend Overrides Function GetCompletionProviderType() As Type

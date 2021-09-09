@@ -90,7 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    CSharpFeaturesResources.Inline_temporary_variable,
                     c => InlineTemporaryAsync(document, variableDeclarator, c)),
                 variableDeclarator.Span);
         }
@@ -461,6 +460,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
             var newExpression = InitializerRewriter.Visit(expression, localSymbol, semanticModel);
 
+            // Consider: C c = new(); Console.WriteLine(c.ToString());
+            // Inlining result should be: Console.WriteLine(new C().ToString()); instead of Console.WriteLine(new().ToString());
+            // This condition converts implicit object creation expression to normal object creation expression.
+            if (newExpression.IsKind(SyntaxKind.ImplicitObjectCreationExpression))
+            {
+                var implicitCreation = (ImplicitObjectCreationExpressionSyntax)newExpression;
+                var type = localSymbol.Type.GenerateTypeSyntax();
+                newExpression = SyntaxFactory.ObjectCreationExpression(implicitCreation.NewKeyword, type, implicitCreation.ArgumentList, implicitCreation.Initializer);
+            }
+
             // If this is an array initializer, we need to transform it into an array creation
             // expression for inlining.
             if (newExpression.Kind() == SyntaxKind.ArrayInitializerExpression)
@@ -621,8 +630,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(CSharpFeaturesResources.Inline_temporary_variable, createChangedDocument, nameof(CSharpFeaturesResources.Inline_temporary_variable))
             {
             }
         }

@@ -17,9 +17,24 @@
         <target state="translated">캡처된 변수를 인수로 전달</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_colon_on_following_line">
+        <source>Place colon on following line</source>
+        <target state="translated">다음 줄에 콜론 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="translated">다음 줄에 문 배치</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">
         <source>Remove Unnecessary Usings</source>
         <target state="translated">불필요한 Using 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank line between braces</source>
+        <target state="translated">중괄호 사이의 빈 줄 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">

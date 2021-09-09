@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.Emit
 {
     internal abstract class LambdaSyntaxFacts
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// E.g. join clause declares left expression and right expression -- each of these expressions is a lambda body.
         /// JoinClause1.GetCorrespondingLambdaBody(JoinClause2.RightExpression) returns JoinClause1.RightExpression.
         /// </summary>
-        public abstract SyntaxNode TryGetCorrespondingLambdaBody(SyntaxNode previousLambdaSyntax, SyntaxNode lambdaOrLambdaBodySyntax);
+        public abstract SyntaxNode? TryGetCorrespondingLambdaBody(SyntaxNode previousLambdaSyntax, SyntaxNode lambdaOrLambdaBodySyntax);
 
         /// <summary>
         /// Given a node that represents a variable declaration, lambda or a closure scope return the position to be used to calculate 

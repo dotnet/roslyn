@@ -72,6 +72,10 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             lock (_globalNotificationsGate)
             {
+                // Pass TaskContinuationOptions.OnlyOnRanToCompletion to avoid delivering further notifications once the task gets canceled or fails.
+                // The cancellation happens only when VS is shutting down. The task might fail if communication with OOP fails. 
+                // Once that happens there is not point in sending more notifications to the remote service.
+
                 _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
                     SendStartNotificationAsync, _cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
             }
@@ -103,6 +107,10 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             lock (_globalNotificationsGate)
             {
+                // Pass TaskContinuationOptions.OnlyOnRanToCompletion to avoid delivering further notifications once the task gets canceled or fails.
+                // The cancellation happens only when VS is shutting down. The task might fail if communication with OOP fails. 
+                // Once that happens there is not point in sending more notifications to the remote service.
+
                 _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
                     previous => SendStoppedNotificationAsync(previous, e), _cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
             }
@@ -124,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             _ = await client.TryInvokeAsync<IRemoteGlobalNotificationDeliveryService>(
-                (service, cancellationToken) => service.OnGlobalOperationStoppedAsync(e.Operations, e.Cancelled, cancellationToken),
+                (service, cancellationToken) => service.OnGlobalOperationStoppedAsync(e.Operations, cancellationToken),
                 _cancellationToken).ConfigureAwait(false);
 
             // Mark that we're stopped now.

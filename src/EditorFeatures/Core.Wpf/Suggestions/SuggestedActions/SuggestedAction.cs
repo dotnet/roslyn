@@ -17,10 +17,12 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Base class for all Roslyn light bulb menu items.
     /// </summary>
-    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction, IEquatable<ISuggestedAction>
+    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction3, IEquatable<ISuggestedAction>
     {
         protected readonly SuggestedActionsSourceProvider SourceProvider;
 
@@ -94,6 +96,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(CancellationToken cancellationToken)
         {
+            SourceProvider.UIThreadOperationExecutor.Execute(CodeAction.Title, CodeAction.Message, allowCancellation: true, showProgress: true, action: context =>
+            {
+                // If we want to report progress, we need to create a scope inside the context -- the main context itself doesn't have a way
+                // to report progress. We pass the same allow cancellation and message so otherwise nothing changes.
+                using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
+                using var combinedCancellationToken = cancellationToken.CombineWith(context.UserCancellationToken);
+                Invoke(new UIThreadOperationContextProgressTracker(scope), combinedCancellationToken.Token);
+            });
+        }
+
+        public void Invoke(IUIThreadOperationContext context)
+        {
+            using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
+            this.Invoke(new UIThreadOperationContextProgressTracker(scope), context.UserCancellationToken);
+        }
+
+        private void Invoke(IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
             // While we're not technically doing anything async here, we need to let the
             // integration test harness know that it should not proceed until all this
             // work is done.  Otherwise it might ask to do some work before we finish.
@@ -102,17 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // to the UI thread as well.
             using (SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}"))
             {
-                // WaitIndicator cannot be used with async/await. Even though we call async methods
-                // later in this call chain, do not await them.
-                SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
-                {
-                    using var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken);
-                    InnerInvoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
-                    foreach (var actionCallback in SourceProvider.ActionCallbacks)
-                    {
-                        actionCallback.Value.OnSuggestedActionExecuted(this);
-                    }
-                });
+                InnerInvoke(progressTracker, cancellationToken);
             }
         }
 
@@ -212,6 +222,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
+        public string DisplayTextSuffix => "";
+
         protected async Task<SolutionPreviewResult> GetPreviewResultAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -222,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // We use ConfigureAwait(true) to stay on the UI thread.
             var operations = await GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(true);
 
-            return EditHandler.GetPreviews(Workspace, operations, cancellationToken);
+            return await EditHandler.GetPreviewsAsync(Workspace, operations, cancellationToken).ConfigureAwait(true);
         }
 
         public virtual bool HasPreview => false;
@@ -252,11 +264,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var tags = CodeAction.Tags;
                 if (tags.Length > 0)
                 {
-                    foreach (var service in SourceProvider.ImageMonikerServices)
+                    foreach (var service in SourceProvider.ImageIdServices)
                     {
-                        if (service.Value.TryGetImageMoniker(tags, out var moniker) && !moniker.Equals(default(ImageMoniker)))
+                        if (service.Value.TryGetImageId(tags, out var imageId) && !imageId.Equals(default(ImageId)))
                         {
-                            return moniker;
+                            // Not using the extension method because it's not available in Cocoa
+                            return new ImageMoniker
+                            {
+                                Guid = imageId.Guid,
+                                Id = imageId.Id
+                            };
                         }
                     }
                 }

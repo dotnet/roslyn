@@ -17,10 +17,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)AbstractCodeQualityDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer_Core.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AbstractParenthesesDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AbstractAddAccessibilityModifiers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AbstractAddAccessibilityModifiersDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\IAddAccessibilityModifiersService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AbstractAddRequiredParenthesesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredParenthesesConstants.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertAnonymousTypeToTuple\AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\AbstractConvertTypeOfToNameOfDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCustomTags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderDiagnosticAnalyzer.cs" />
@@ -33,6 +34,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)EnforceOnBuild.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIdToOptionMappingHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\AbstractConsecutiveStatementPlacementDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\AbstractMultipleBlankLinesDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\AbstractMatchFolderAndNamespaceDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\MatchFolderAndNamespaceConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\AbstractRemoveRedundantEqualityDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\RedundantEqualityConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessarySuppressions\AbstractRemoveUnnecessaryPragmaSuppressionsDiagnosticAnalyzer.cs" />
@@ -60,7 +65,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\AbstractSimplifyConditionalDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyBooleanExpression\SimplifyBooleanExpressionConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\AbstractSimplifyInterpolationDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\Helpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\AbstractSimplifyInterpolationHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\AbstractSimplifyLinqExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />

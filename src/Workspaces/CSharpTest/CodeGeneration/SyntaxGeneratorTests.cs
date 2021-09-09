@@ -971,7 +971,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 Generator.ConstructorDeclaration("c",
                     parameters: new[] { Generator.ParameterDeclaration("p", Generator.IdentifierName("t")) },
                     baseConstructorArguments: new[] { Generator.IdentifierName("p") }),
-                "c(t p): base(p)\r\n{\r\n}");
+                "c(t p) : base(p)\r\n{\r\n}");
         }
 
         [Fact]
@@ -1804,8 +1804,36 @@ public class C { } // end").Members[0];
             VerifySyntax<MethodDeclarationSyntax>(
                 Generator.Declaration(
                     _emptyCompilation.GetTypeByMetadataName("System.IntPtr").GetMembers("ToPointer").Single()),
-@"public unsafe void *ToPointer()
+@"public unsafe void* ToPointer()
 {
+}");
+        }
+
+        [Fact]
+        public void TestEnumDeclarationFromSymbol()
+        {
+            VerifySyntax<EnumDeclarationSyntax>(
+                    Generator.Declaration(
+                        _emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
+@"public enum DateTimeKind
+{
+    Unspecified = 0,
+    Utc = 1,
+    Local = 2
+}");
+        }
+
+        [Fact]
+        public void TestEnumWithUnderlyingTypeFromSymbol()
+        {
+            VerifySyntax<EnumDeclarationSyntax>(
+                    Generator.Declaration(
+                        _emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
+@"public enum SecurityRuleSet : byte
+{
+    None = 0,
+    Level1 = 1,
+    Level2 = 2
 }");
         }
 
@@ -2995,11 +3023,13 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
-        public void TestInsertMembersOnRecord_SemiColon()
+        [Theory, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        public void TestInsertMembersOnRecord_SemiColon(string typeKind)
         {
             var comp = Compile(
-@"public record C;
+$@"public {typeKind} C;
 ");
 
             var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
@@ -3007,7 +3037,28 @@ public class C
 
             VerifySyntax<RecordDeclarationSyntax>(
                 Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
-@"public record C
+$@"public {typeKind} C
+{{
+    T A;
+}}");
+        }
+
+        [Fact, WorkItem(48789, "https://github.com/dotnet/roslyn/issues/48789")]
+        public void TestInsertMembersOnRecordStruct_SemiColon()
+        {
+            var src =
+@"public record struct C;
+";
+            var comp = CSharpCompilation.Create("test")
+                .AddReferences(TestMetadata.Net451.mscorlib)
+                .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(src, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
+
+            var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();
+            var declC = Generator.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(x => x.GetSyntax()).First());
+
+            VerifySyntax<RecordDeclarationSyntax>(
+                Generator.InsertMembers(declC, 0, Generator.FieldDeclaration("A", Generator.IdentifierName("T"))),
+@"public record struct C
 {
     T A;
 }");
@@ -3501,6 +3552,14 @@ public class C : IDisposable
 [|namespace N1
 {
 }|]");
+        }
+
+        [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]
+        public void TestFileScopedNamespaceModifiers()
+        {
+            TestModifiersAsync(DeclarationModifiers.None,
+                @"
+[|namespace N1;|]");
         }
 
         [Fact, WorkItem(1084965, " https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1084965")]

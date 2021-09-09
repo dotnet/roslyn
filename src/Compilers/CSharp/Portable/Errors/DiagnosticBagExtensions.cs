@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool Add(
             this DiagnosticBag diagnostics,
             Location location,
-            HashSet<DiagnosticInfo> useSiteDiagnostics)
+            IReadOnlyCollection<DiagnosticInfo> useSiteDiagnostics)
         {
             if (useSiteDiagnostics.IsNullOrEmpty())
             {

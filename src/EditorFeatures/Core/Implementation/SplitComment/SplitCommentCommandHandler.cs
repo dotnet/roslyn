@@ -34,15 +34,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SplitCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IGlobalOptionService globalOptions)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _globalOptions = globalOptions;
         }
 
         public string DisplayName => EditorFeaturesResources.Split_comment;
@@ -63,6 +66,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             var snapshot = subjectBuffer.CurrentSnapshot;
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
+                return false;
+
+            if (!_globalOptions.GetOption(SplitCommentOptions.Enabled, document.Project.Language))
                 return false;
 
             var splitCommentService = document.GetLanguageService<ISplitCommentService>();
@@ -138,11 +144,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             SnapshotSpan selectionSpan,
             CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var enabled = options.GetOption(SplitCommentOptions.Enabled);
-            if (!enabled)
-                return null;
-
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
             var trivia = root.FindTrivia(selectionSpan.Start);
@@ -168,6 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             var textSnapshot = selectionSpan.Snapshot;
             var triviaLine = textSnapshot.GetLineFromPosition(trivia.SpanStart);
 
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var replacementSpan = GetReplacementSpan(triviaLine, selectionSpan);
             var replacementText = GetReplacementText(textView, options, triviaLine, trivia, selectionSpan.Start);
             return (replacementSpan, replacementText);

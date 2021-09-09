@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="root">The root of the subtree containing the current node corresponding to the original tracked node.</param>
         /// <param name="node">The node instance originally tracked.</param>
-        public static TNode GetCurrentNode<TNode>(this SyntaxNode root, TNode node)
+        public static TNode? GetCurrentNode<TNode>(this SyntaxNode root, TNode node)
             where TNode : SyntaxNode
         {
             return GetCurrentNodes(root, node).SingleOrDefault();
@@ -191,13 +192,14 @@ namespace Microsoft.CodeAnalysis
 
         private class CurrentNodes
         {
-            private readonly Dictionary<SyntaxAnnotation, IReadOnlyList<SyntaxNode>> _idToNodeMap;
+            [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1320760", Constraint = "Avoid large object heap allocations")]
+            private readonly ImmutableSegmentedDictionary<SyntaxAnnotation, IReadOnlyList<SyntaxNode>> _idToNodeMap;
 
             public CurrentNodes(SyntaxNode root)
             {
                 // there could be multiple nodes with same annotation if a tree is rewritten with
                 // same node injected multiple times.
-                var map = new Dictionary<SyntaxAnnotation, List<SyntaxNode>>();
+                var map = new SegmentedDictionary<SyntaxAnnotation, List<SyntaxNode>>();
 
                 foreach (var node in root.GetAnnotatedNodesAndTokens(IdAnnotationKind).Select(n => n.AsNode()!))
                 {
@@ -215,7 +217,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                _idToNodeMap = map.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<SyntaxNode>)ImmutableArray.CreateRange(kv.Value));
+                _idToNodeMap = map.ToImmutableSegmentedDictionary(kv => kv.Key, kv => (IReadOnlyList<SyntaxNode>)ImmutableArray.CreateRange(kv.Value));
             }
 
             public IReadOnlyList<SyntaxNode> GetNodes(SyntaxAnnotation id)

@@ -64,14 +64,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(TextEditorResources).Assembly,
                 typeof(EditorFeaturesResources).Assembly,
                 typeof(CSharp.CSharpEditorResources).Assembly,
-                typeof(VisualBasic.VBEditorResources).Assembly)
-            .AddParts(
-                typeof(TestWaitIndicator));
+                typeof(VisualBasic.VBEditorResources).Assembly);
 
         public static readonly TestComposition EditorFeaturesWpf = EditorFeatures
             .AddAssemblies(
-                typeof(EditorFeaturesWpfResources).Assembly,
-                typeof(CSharp.CSharpEditorWpfResources).Assembly);
+                typeof(EditorFeaturesWpfResources).Assembly);
 
         public static readonly TestComposition InteractiveWindow = EditorFeaturesWpf
             .AddAssemblies(

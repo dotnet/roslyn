@@ -27,3 +27,7 @@ src/VisualStudio/ @dotnet/roslyn-ide
 src/VisualStudio/LiveShare @dotnet/roslyn-ide @daytonellwanger @srivatsn @aletsdelarosa
 src/Workspaces/ @dotnet/roslyn-ide
 
+src/Compilers/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
+src/Workspaces/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
+src/Features/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
+src/EditorFeatures/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners

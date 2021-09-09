@@ -25,9 +25,9 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 {
-    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.ConfigureCodeStyleOption, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
-    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.ConfigureSeverity)]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.Suppression)]
+    [ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.ConfigureCodeStyleOption, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExtensionOrder(Before = PredefinedConfigurationFixProviderNames.ConfigureSeverity)]
+    [ExtensionOrder(After = PredefinedConfigurationFixProviderNames.Suppression)]
     internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigurationFixProvider
     {
         private static readonly ImmutableArray<bool> s_boolValues = ImmutableArray.Create(true, false);
@@ -164,7 +164,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
                         nestedActions.Add(
                             new SolutionChangeAction(
                                 parts.optionValue,
-                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, diagnostic, isPerLanguage, project, cancellationToken)));
+                                solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, diagnostic, isPerLanguage, project, cancellationToken),
+                                parts.optionValue));
                     }
                 }
             }

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             if (workspace.CanOpenDocuments)
             {
                 var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                navigationService.TryNavigateToPosition(workspace, _documentId, _position);
+                navigationService.TryNavigateToPosition(workspace, _documentId, _position, cancellationToken);
             }
         }
     }

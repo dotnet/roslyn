@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.BraceCompletion
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// <summary>
         /// Get any text changes that should be applied after the enter key is typed inside a brace completion context.
         /// </summary>
-        Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
+        Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, DocumentOptionSet documentOptions, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the brace completion context if the caret is located between an already completed

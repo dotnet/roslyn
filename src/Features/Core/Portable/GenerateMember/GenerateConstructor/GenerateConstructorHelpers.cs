@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         public static bool CanDelegateTo<TExpressionSyntax>(
             SemanticDocument document,
             ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<TExpressionSyntax> expressions,
+            ImmutableArray<TExpressionSyntax?> expressions,
             IMethodSymbol constructor)
             where TExpressionSyntax : SyntaxNode
         {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             ISemanticFactsService semanticFacts,
             SemanticModel semanticModel,
             IMethodSymbol constructor,
-            ImmutableArray<TExpressionSyntax> expressions)
+            ImmutableArray<TExpressionSyntax?> expressions)
             where TExpressionSyntax : SyntaxNode
         {
             Debug.Assert(constructor.Parameters.Length == expressions.Length);
@@ -81,13 +81,35 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             // Resolve the constructor into our semantic model's compilation; if the constructor we're looking at is from
             // another project with a different language.
             var constructorInCompilation = (IMethodSymbol?)SymbolKey.Create(constructor).Resolve(semanticModel.Compilation).Symbol;
-            Contract.ThrowIfNull(constructorInCompilation);
+
+            if (constructorInCompilation == null)
+            {
+                // If the constructor can't be mapped into our invocation project, we'll just bail.
+                // Note the logic in this method doesn't handle a complicated case where:
+                //
+                // 1. Project A has some public type.
+                // 2. Project B references A, and has one constructor that uses the public type from A.
+                // 3. Project C, which references B but not A, has an invocation of B's constructor passing some
+                //    parameters.
+                //
+                // The algorithm of this class tries to map the constructor in B (that we might delegate to) into
+                // C, but that constructor might not be mappable if the public type from A is not available.
+                // However, theoretically the public type from A could have a user-defined conversion.
+                // The alternative approach might be to map the type of the parameters back into B, and then
+                // classify the conversions in Project B, but that'll run into other issues if the experssions
+                // don't have a natural type (like default). We choose to ignore all complicated cases here.
+                return false;
+            }
 
             for (var i = 0; i < constructorInCompilation.Parameters.Length; i++)
             {
                 var constructorParameter = constructorInCompilation.Parameters[i];
                 if (constructorParameter == null)
                     return false;
+
+                // In VB the argument may not have been specified at all if the parameter is optional
+                if (expressions[i] is null && constructorParameter.IsOptional)
+                    continue;
 
                 var conversion = semanticFacts.ClassifyConversion(semanticModel, expressions[i], constructorParameter.Type);
                 if (!conversion.IsIdentity && !conversion.IsImplicit)

@@ -15,17 +15,24 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         IImmutableSet<string> KindsProvided { get; }
         bool CanFilter { get; }
 
-        Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken);
-        Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken);
+        /// <summary>
+        /// Searches the documents inside <paramref name="project"/> for symbols that matches
+        /// <paramref name="searchPattern"/>. <paramref name="priorityDocuments"/> is an optional
+        /// subset of the documents from <paramref name="project"/> that can be used to prioritize
+        /// work.
+        /// </summary>
+        Task<NavigateToSearchLocation> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken);
+        Task<NavigateToSearchLocation> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken);
     }
 
-    [Obsolete("Use " + nameof(INavigateToSearchResult) + " instead", error: false)]
-    internal interface INavigateToSeINavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdatearchService : ILanguageService
+    internal enum NavigateToSearchLocation
     {
-        IImmutableSet<string> KindsProvided { get; }
-        bool CanFilter { get; }
+        /// <summary>
+        /// If the search was performed against cached data from a previous run.
+        /// </summary>
+        Cache,
 
-        Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken);
-        Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken);
+        // If the search examined the latest data we have for the requested project or document.
+        Latest
     }
 }

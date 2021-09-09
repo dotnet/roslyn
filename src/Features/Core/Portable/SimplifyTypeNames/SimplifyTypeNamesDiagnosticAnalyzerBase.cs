@@ -8,8 +8,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -42,7 +44,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                                                                     DiagnosticCategory.Style,
                                                                     DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
+                                                                    helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.SimplifyNamesDiagnosticId),
+                                                                    customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.SimplifyNames.ToCustomTag()).ToArray());
 
         private static readonly LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(FeaturesResources.Simplify_Member_Access), FeaturesResources.ResourceManager, typeof(FeaturesResources));
         private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = new(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
@@ -51,7 +54,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                                                                     DiagnosticCategory.Style,
                                                                     DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
+                                                                    helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId),
+                                                                    customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.SimplifyMemberAccess.ToCustomTag()).ToArray());
 
         private static readonly DiagnosticDescriptor s_descriptorPreferBuiltinOrFrameworkType = new(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
             s_localizableTitleSimplifyNames,
@@ -59,7 +63,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             DiagnosticCategory.Style,
             DiagnosticSeverity.Hidden,
             isEnabledByDefault: true,
-            customTags: DiagnosticCustomTags.Unnecessary);
+            helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId),
+            customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.PreferBuiltInOrFrameworkType.ToCustomTag()).ToArray());
 
         internal abstract bool IsCandidate(SyntaxNode node);
         internal abstract bool CanSimplifyTypeNameExpression(
@@ -76,6 +81,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         protected SimplifyTypeNamesDiagnosticAnalyzerBase()
         {
         }
+
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
         public bool OpenFileOnly(OptionSet options)
         {
@@ -169,7 +176,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             }
 
             var tree = model.SyntaxTree;
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            var builder = ImmutableDictionary.CreateBuilder<string, string?>();
             builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
             var diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());

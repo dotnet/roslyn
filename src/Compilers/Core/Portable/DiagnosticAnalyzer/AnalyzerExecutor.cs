@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -1251,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             blockActions.Free();
         }
 
-        internal static ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
+        internal static ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
             IEnumerable<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> nodeActions)
             where TLanguageKindEnum : struct
         {
@@ -1272,7 +1273,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var tuples = nodeActionsByKind.Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
-            var map = ImmutableDictionary.CreateRange(tuples);
+            var map = ImmutableSegmentedDictionary.CreateRange(tuples);
             nodeActionsByKind.Free();
             return map;
         }
@@ -1286,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </returns>
         public bool TryExecuteSyntaxNodeActions<TLanguageKindEnum>(
            IEnumerable<SyntaxNode> nodesToAnalyze,
-           IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
+           ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
            DiagnosticAnalyzer analyzer,
            SemanticModel model,
            Func<SyntaxNode, TLanguageKindEnum> getKind,
@@ -1318,7 +1319,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteSyntaxNodeActionsCore<TLanguageKindEnum>(
             IEnumerable<SyntaxNode> nodesToAnalyze,
-            IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
+            ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             DiagnosticAnalyzer analyzer,
             ISymbol containingSymbol,
             SemanticModel model,
@@ -1343,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
             IEnumerable<SyntaxNode> nodesToAnalyze,
-            IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
+            ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             DiagnosticAnalyzer analyzer,
             ISymbol containingSymbol,
             SemanticModel model,
@@ -1375,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
             SyntaxNode node,
-            IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
+            ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             ISymbol containingSymbol,
             SemanticModel model,
             Func<SyntaxNode, TLanguageKindEnum> getKind,
@@ -1395,7 +1396,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             analyzerState?.ClearNodeAnalysisState();
         }
 
-        internal static ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(IEnumerable<OperationAnalyzerAction> operationActions)
+        internal static ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> GetOperationActionsByKind(IEnumerable<OperationAnalyzerAction> operationActions)
         {
             Debug.Assert(operationActions.Any());
 
@@ -1414,7 +1415,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var tuples = operationActionsByKind.Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableAndFree()));
-            var map = ImmutableDictionary.CreateRange(tuples);
+            var map = ImmutableSegmentedDictionary.CreateRange(tuples);
             operationActionsByKind.Free();
             return map;
         }
@@ -1428,7 +1429,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </returns>
         public bool TryExecuteOperationActions(
             IEnumerable<IOperation> operationsToAnalyze,
-            IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
             DiagnosticAnalyzer analyzer,
             SemanticModel model,
             TextSpan filterSpan,
@@ -1458,7 +1459,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteOperationActionsCore(
             IEnumerable<IOperation> operationsToAnalyze,
-            IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
             DiagnosticAnalyzer analyzer,
             ISymbol containingSymbol,
             SemanticModel model,
@@ -1481,7 +1482,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteOperationActions(
             IEnumerable<IOperation> operationsToAnalyze,
-            IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
             DiagnosticAnalyzer analyzer,
             ISymbol containingSymbol,
             SemanticModel model,
@@ -1512,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteOperationActions(
             IOperation operation,
-            IDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
+            ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
             ISymbol containingSymbol,
             SemanticModel model,
             Action<Diagnostic> addDiagnostic,
@@ -1552,6 +1553,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ExecuteAndCatchIfThrows<TArg>(DiagnosticAnalyzer analyzer, Action<TArg> analyze, TArg argument, AnalysisContextInfo? info = null)
         {
+            SharedStopwatch timer = default;
+            if (_analyzerExecutionTimeMap != null)
+            {
+                _ = SharedStopwatch.StartNew();
+
+                // This call to StartNew isn't required by the API, but is included to avoid measurement errors
+                // which can occur during periods of high allocation activity. In some cases, calls to Stopwatch
+                // operations can block at their return point on the completion of a background GC operation. When
+                // this occurs, the GC wait time ends up included in the measured time span. In the event the first
+                // call to StartNew blocked on a GC operation, this call to StartNew will most likely occur when the
+                // GC is no longer active. In practice, a substantial improvement to the consistency of analyzer
+                // timing data was observed.
+                //
+                // Note that the call to SharedStopwatch.Elapsed is not affected, because the GC wait will occur
+                // after the timer has already recorded its stop time.
+                timer = SharedStopwatch.StartNew();
+            }
+
             var gate = _getAnalyzerGate?.Invoke(analyzer);
             if (gate != null)
             {
@@ -1564,6 +1583,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 ExecuteAndCatchIfThrows_NoLock(analyzer, analyze, argument, info);
             }
+
+            if (_analyzerExecutionTimeMap != null)
+            {
+                var elapsed = timer.Elapsed.Ticks;
+                StrongBox<long> totalTicks = _analyzerExecutionTimeMap.GetOrAdd(analyzer, _ => new StrongBox<long>(0));
+                Interlocked.Add(ref totalTicks.Value, elapsed);
+            }
         }
 
         [PerformanceSensitive(
@@ -1574,33 +1600,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             try
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-
-                SharedStopwatch timer = default;
-                if (_analyzerExecutionTimeMap != null)
-                {
-                    timer = SharedStopwatch.StartNew();
-
-                    // This call to StartNew isn't required by the API, but is included to avoid measurement errors
-                    // which can occur during periods of high allocation activity. In some cases, calls to Stopwatch
-                    // operations can block at their return point on the completion of a background GC operation. When
-                    // this occurs, the GC wait time ends up included in the measured time span. In the event the first
-                    // call to StartNew blocked on a GC operation, this call to StartNew will most likely occur when the
-                    // GC is no longer active. In practice, a substantial improvement to the consistency of analyzer
-                    // timing data was observed.
-                    //
-                    // Note that the call to SharedStopwatch.Elapsed is not affected, because the GC wait will occur
-                    // after the timer has already recorded its stop time.
-                    timer = SharedStopwatch.StartNew();
-                }
-
                 analyze(argument);
-
-                if (_analyzerExecutionTimeMap != null)
-                {
-                    var elapsed = timer.Elapsed.Ticks;
-                    StrongBox<long> totalTicks = _analyzerExecutionTimeMap.GetOrAdd(analyzer, _ => new StrongBox<long>(0));
-                    Interlocked.Add(ref totalTicks.Value, elapsed);
-                }
             }
             catch (Exception e) when (ExceptionFilter(e))
             {
@@ -1714,7 +1714,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (diagnostic.Id == AnalyzerExceptionDiagnosticId || diagnostic.Id == AnalyzerDriverExceptionDiagnosticId)
             {
-                foreach (var tag in diagnostic.Descriptor.CustomTags)
+                foreach (var tag in diagnostic.Descriptor.ImmutableCustomTags)
                 {
                     if (tag == WellKnownDiagnosticTags.AnalyzerException)
                     {

@@ -100,9 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
                 // If it's in the base list of an interface or struct, then it's definitely an
                 // interface.
-                return
-                    baseList.IsParentKind(SyntaxKind.InterfaceDeclaration) ||
-                    baseList.IsParentKind(SyntaxKind.StructDeclaration);
+                return baseList.IsParentKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration);
             }
 
             if (expression is TypeSyntax &&
@@ -576,12 +574,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 if (enclosingNamespace != null)
                 {
                     var enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name, cancellationToken);
-                    if (enclosingNamespaceSymbol.Symbol != null)
-                    {
-                        return ((INamespaceSymbol)enclosingNamespaceSymbol.Symbol,
-                                namedTypeSymbol,
-                                enclosingNamespace.CloseBraceToken.GetLocation());
-                    }
+                    if (enclosingNamespaceSymbol.Symbol is INamespaceSymbol namespaceSymbol)
+                        return (namespaceSymbol, namedTypeSymbol, enclosingNamespace.GetLastToken().GetLocation());
                 }
             }
 
@@ -595,11 +589,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return (globalNamespace, rootNamespaceOrType, afterThisLocation);
         }
 
-        private NamespaceDeclarationSyntax FindNamespaceInMemberDeclarations(SyntaxList<MemberDeclarationSyntax> members, int indexDone, List<string> containers)
+        private BaseNamespaceDeclarationSyntax FindNamespaceInMemberDeclarations(SyntaxList<MemberDeclarationSyntax> members, int indexDone, List<string> containers)
         {
             foreach (var member in members)
             {
-                if (member is NamespaceDeclarationSyntax namespaceDeclaration)
+                if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 {
                     var found = FindNamespaceInNamespace(namespaceDeclaration, indexDone, containers);
                     if (found != null)
@@ -610,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return null;
         }
 
-        private NamespaceDeclarationSyntax FindNamespaceInNamespace(NamespaceDeclarationSyntax namespaceDecl, int indexDone, List<string> containers)
+        private BaseNamespaceDeclarationSyntax FindNamespaceInNamespace(BaseNamespaceDeclarationSyntax namespaceDecl, int indexDone, List<string> containers)
         {
             if (namespaceDecl.Name is AliasQualifiedNameSyntax)
                 return null;
@@ -673,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             {
                 if (node is BaseListSyntax)
                 {
-                    if (node.Parent != null && (node.Parent is InterfaceDeclarationSyntax || node.Parent is StructDeclarationSyntax))
+                    if (node.Parent.IsKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration))
                     {
                         typeKindValue = TypeKindOptions.Interface;
                         return true;

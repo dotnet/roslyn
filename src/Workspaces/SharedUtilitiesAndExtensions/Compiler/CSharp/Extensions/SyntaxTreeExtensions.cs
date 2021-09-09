@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -66,13 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             continue;
                         }
 
-                        if (token.HasMatchingText(SyntaxKind.DataKeyword))
-                        {
-                            result.Add(SyntaxKind.DataKeyword);
-                            token = token.GetPreviousToken(includeSkipped: true);
-                            continue;
-                        }
-
                         break;
                 }
 
@@ -83,13 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return result;
         }
 
-        public static TypeDeclarationSyntax GetContainingTypeDeclaration(
+        public static TypeDeclarationSyntax? GetContainingTypeDeclaration(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.GetContainingTypeDeclarations(position, cancellationToken).FirstOrDefault();
         }
 
-        public static BaseTypeDeclarationSyntax GetContainingTypeOrEnumDeclaration(
+        public static BaseTypeDeclarationSyntax? GetContainingTypeOrEnumDeclaration(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.GetContainingTypeOrEnumDeclarations(position, cancellationToken).FirstOrDefault();

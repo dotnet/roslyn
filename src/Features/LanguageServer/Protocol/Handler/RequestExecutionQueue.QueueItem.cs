@@ -5,6 +5,8 @@
 #nullable enable
 
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -16,15 +18,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly struct QueueItem
         {
             /// <summary>
-            /// Processes the queued request. Exceptions that occur will be sent back to the requesting client, then re-thrown
+            /// Callback to call into underlying <see cref="IRequestHandler"/> to perform the actual work of this item.
             /// </summary>
-            public readonly Func<RequestContext, CancellationToken, Task> CallbackAsync;
+            private readonly Func<RequestContext, CancellationToken, Task> _callbackAsync;
 
-            /// <inheritdoc cref="ExportLspMethodAttribute.MutatesSolutionState" />
+            /// <summary>
+            /// <see cref="CorrelationManager.ActivityId"/> used to properly correlate this work with the loghub
+            /// tracing/logging subsystem.
+            /// </summary>
+            public readonly Guid ActivityId;
+            private readonly ILspLogger _logger;
+
+            /// <inheritdoc cref="IRequestHandler.MutatesSolutionState" />
             public readonly bool MutatesSolutionState;
+
+            /// <inheritdoc cref="IRequestHandler.RequiresLSPSolution" />
+            public readonly bool RequiresLSPSolution;
 
             /// <inheritdoc cref="RequestContext.ClientName" />
             public readonly string? ClientName;
+            public readonly string MethodName;
 
             /// <inheritdoc cref="RequestContext.ClientCapabilities" />
             public readonly ClientCapabilities ClientCapabilities;
@@ -39,14 +52,65 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// </summary>
             public readonly CancellationToken CancellationToken;
 
-            public QueueItem(bool mutatesSolutionState, ClientCapabilities clientCapabilities, string? clientName, TextDocumentIdentifier? textDocument, Func<RequestContext, CancellationToken, Task> callbackAsync, CancellationToken cancellationToken)
+            public readonly RequestMetrics Metrics;
+
+            public QueueItem(
+                bool mutatesSolutionState,
+                bool requiresLSPSolution,
+                ClientCapabilities clientCapabilities,
+                string? clientName,
+                string methodName,
+                TextDocumentIdentifier? textDocument,
+                Guid activityId,
+                ILspLogger logger,
+                RequestTelemetryLogger telemetryLogger,
+                Func<RequestContext, CancellationToken, Task> callbackAsync,
+                CancellationToken cancellationToken)
             {
+                Metrics = new RequestMetrics(methodName, telemetryLogger);
+
+                _callbackAsync = callbackAsync;
+                _logger = logger;
+
+                ActivityId = activityId;
                 MutatesSolutionState = mutatesSolutionState;
+                RequiresLSPSolution = requiresLSPSolution;
                 ClientCapabilities = clientCapabilities;
                 ClientName = clientName;
+                MethodName = methodName;
                 TextDocument = textDocument;
-                CallbackAsync = callbackAsync;
                 CancellationToken = cancellationToken;
+            }
+
+            /// <summary>
+            /// Processes the queued request. Exceptions that occur will be sent back to the requesting client, then re-thrown
+            /// </summary>
+            public async Task CallbackAsync(RequestContext context, CancellationToken cancellationToken)
+            {
+                // Restore our activity id so that logging/tracking works.
+                Trace.CorrelationManager.ActivityId = ActivityId;
+                _logger.TraceStart($"{MethodName} - Roslyn");
+                try
+                {
+                    await _callbackAsync(context, cancellationToken).ConfigureAwait(false);
+                    this.Metrics.RecordSuccess();
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.TraceInformation($"{MethodName} - Canceled");
+                    this.Metrics.RecordCancellation();
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    _logger.TraceException(ex);
+                    this.Metrics.RecordFailure();
+                    throw;
+                }
+                finally
+                {
+                    _logger.TraceStop($"{MethodName} - Roslyn");
+                }
             }
         }
     }

@@ -695,7 +695,7 @@ public class C {
             comp.VerifyDiagnostics(
                 // (11,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
                 //         var x = arr[0..2];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr[0..2]").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(11, 17));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "0..2").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(11, 21));
         }
 
         [Fact]
@@ -720,7 +720,7 @@ namespace System
             comp.VerifyDiagnostics(
                 // (6,17): error CS0656: Missing compiler required member 'System.Index.GetOffset'
                 //         var x = arr[^2];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr[^2]").WithArguments("System.Index", "GetOffset").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "^2").WithArguments("System.Index", "GetOffset").WithLocation(6, 21));
 
             comp = CreateCompilation(source + @"
 namespace System

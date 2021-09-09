@@ -82,7 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // a namespace can't come before usings/externs
             // a child namespace can't come before usings/externs
-            if (leftToken.GetNextToken(includeSkipped: true).IsUsingOrExternKeyword())
+            var nextToken = leftToken.GetNextToken(includeSkipped: true);
+            if (nextToken.IsUsingOrExternKeyword() ||
+                (nextToken.Kind() == SyntaxKind.GlobalKeyword && nextToken.GetAncestor<UsingDirectiveSyntax>()?.GlobalKeyword == nextToken))
             {
                 return false;
             }
@@ -114,7 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // |
             if (token.Kind() == SyntaxKind.SemicolonToken)
             {
-                if (token.Parent.IsKind(SyntaxKind.ExternAliasDirective, SyntaxKind.UsingDirective))
+                if (token.Parent.IsKind(SyntaxKind.ExternAliasDirective, SyntaxKind.UsingDirective)
+                    && !token.Parent.Parent.IsKind(SyntaxKind.FileScopedNamespaceDeclaration))
                 {
                     return true;
                 }

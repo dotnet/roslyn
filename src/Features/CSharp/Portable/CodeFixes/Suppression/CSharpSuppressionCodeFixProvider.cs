@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 {
-    [ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.Suppression, LanguageNames.CSharp), Shared]
+    [ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.Suppression, LanguageNames.CSharp), Shared]
     internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProvider
     {
         [ImportingConstructor]

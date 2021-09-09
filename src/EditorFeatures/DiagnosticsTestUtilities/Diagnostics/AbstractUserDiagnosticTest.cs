@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract partial class AbstractUserDiagnosticTest : AbstractCodeActionOrUserDiagnosticTest
     {
-        public AbstractUserDiagnosticTest(ITestOutputHelper logger)
+        protected AbstractUserDiagnosticTest(ITestOutputHelper logger)
            : base(logger)
         {
         }

@@ -76,5 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsInitOnly => false;
 
         public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
+
+        internal override bool IsNullableAnalysisEnabled() => false;
     }
 }

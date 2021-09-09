@@ -53,6 +53,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterStackAlloc()
         {
             await VerifyKeywordAsync(
@@ -805,6 +812,15 @@ class C
 class C
 {
     delegate*$$");
+        }
+
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunction))]
+        public async Task TestAfterKeywordIndicatingLocalFunction(string keyword)
+        {
+            await VerifyKeywordAsync(AddInsideMethod($@"
+{keyword} $$"));
         }
     }
 }

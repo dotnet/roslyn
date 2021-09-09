@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                         break;
                 }
             }
+
             return result;
         }
 
@@ -313,6 +314,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             {
                 applicableAccessibilityList.Add(AccessibilityExtensions.FromXElement(accessibilityElement));
             }
+
             return applicableAccessibilityList.ToImmutableAndFree();
         }
 

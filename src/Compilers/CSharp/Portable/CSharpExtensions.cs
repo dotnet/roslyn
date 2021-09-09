@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns what 'Add' method symbol(s), if any, corresponds to the given expression syntax
-        /// within <see cref="ObjectCreationExpressionSyntax.Initializer"/>.
+        /// within <see cref="BaseObjectCreationExpressionSyntax.Initializer"/>.
         /// </summary>
         public static SymbolInfo GetCollectionInitializerSymbolInfo(this SemanticModel? semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -1312,6 +1312,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the declaration assembly.
         /// </summary>
         public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
+        /// the declaration assembly.
+        /// </summary>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);

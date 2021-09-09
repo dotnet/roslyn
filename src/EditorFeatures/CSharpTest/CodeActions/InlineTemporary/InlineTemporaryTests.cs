@@ -2291,7 +2291,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine((Func<int?, int?>)((int? s) => { return s; }));
+        Console.WriteLine((int? s) => { return s; });
     }
 }");
         }
@@ -5425,6 +5425,34 @@ namespace Whatever
         <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
     </Project>
 </Workspace>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(50207, "https://github.com/dotnet/roslyn/issues/50207")]
+        public async Task TestImplicitObjectCreation()
+        {
+            var code = @"
+class MyClass
+{
+    void Test()
+    {
+        MyClass [||]myClass = new();
+        myClass.ToString();
+    }
+}
+";
+
+            var expected = @"
+class MyClass
+{
+    void Test()
+    {
+        new MyClass().ToString();
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
     }
 }

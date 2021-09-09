@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -29,7 +30,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Glyph glyph,
             string genericTypeSuffix,
             CompletionItemFlags flags,
-            (string methodSymbolKey, string receiverTypeSymbolKey, int overloadCount)? extensionMethodData)
+            (string methodSymbolKey, string receiverTypeSymbolKey, int overloadCount)? extensionMethodData,
+            bool includedInTargetTypeCompletion = false)
         {
             ImmutableDictionary<string, string>? properties = null;
 
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // We don't need arity to recover symbol if we already have SymbolKeyData or it's 0.
                     // (but it still needed below to decide whether to show generic suffix)
-                    builder.Add(TypeAritySuffixName, AbstractDeclaredSymbolInfoFactoryService.GetMetadataAritySuffix(arity));
+                    builder.Add(TypeAritySuffixName, ArityUtilities.GetMetadataAritySuffix(arity));
                 }
 
                 properties = builder.ToImmutableDictionaryAndFree();
@@ -71,7 +73,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
                  displayTextSuffix: arity == 0 ? string.Empty : genericTypeSuffix,
-                 inlineDescription: containingNamespace);
+                 inlineDescription: containingNamespace,
+                 isComplexTextEdit: true);
+
+            if (includedInTargetTypeCompletion)
+            {
+                item = item.AddTag(WellKnownTags.TargetTypeMatch);
+            }
 
             item.Flags = flags;
             return item;
@@ -95,7 +103,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                  rules: attributeItem.Rules,
                  displayTextPrefix: attributeItem.DisplayTextPrefix,
                  displayTextSuffix: attributeItem.DisplayTextSuffix,
-                 inlineDescription: attributeItem.InlineDescription);
+                 inlineDescription: attributeItem.InlineDescription,
+                 isComplexTextEdit: true);
 
             item.Flags = flags;
             return item;
@@ -127,6 +136,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return CompletionDescription.Empty;
+        }
+
+        public static string GetTypeName(CompletionItem item)
+        {
+            var typeName = item.Properties.TryGetValue(AttributeFullName, out var attributeFullName)
+                ? attributeFullName
+                : item.DisplayText;
+
+            if (item.Properties.TryGetValue(TypeAritySuffixName, out var aritySuffix))
+            {
+                return typeName + aritySuffix;
+            }
+
+            return typeName;
         }
 
         private static string GetFullyQualifiedName(string namespaceName, string typeName)

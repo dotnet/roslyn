@@ -29,41 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             public event EventHandler<TaggerEventArgs> Changed
             {
-                add
-                {
-                    _providers.Do(p => p.Changed += value);
-                }
-
-                remove
-                {
-                    _providers.Do(p => p.Changed -= value);
-                }
-            }
-
-            public event EventHandler UIUpdatesPaused
-            {
-                add
-                {
-                    _providers.Do(p => p.UIUpdatesPaused += value);
-                }
-
-                remove
-                {
-                    _providers.Do(p => p.UIUpdatesPaused -= value);
-                }
-            }
-
-            public event EventHandler UIUpdatesResumed
-            {
-                add
-                {
-                    _providers.Do(p => p.UIUpdatesResumed += value);
-                }
-
-                remove
-                {
-                    _providers.Do(p => p.UIUpdatesResumed -= value);
-                }
+                add => _providers.Do(p => p.Changed += value);
+                remove => _providers.Do(p => p.Changed -= value);
             }
         }
     }

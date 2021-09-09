@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(within));
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             return AccessCheck.IsSymbolAccessible(
                 symbol,
                 within,
-                ref useSiteDiagnostics,
+                ref discardedUseSiteInfo,
                 throughTypeOpt);
         }
 
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(within));
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return AccessCheck.IsSymbolAccessible(symbol, within, ref useSiteDiagnostics);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return AccessCheck.IsSymbolAccessible(symbol, within, ref discardedUseSiteInfo);
         }
     }
 }

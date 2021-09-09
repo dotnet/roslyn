@@ -4,12 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServer</RootNamespace>
-    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
-
-    <!-- Workaround dependencies that do not yet support netcoreapp3.1 https://github.com/dotnet/roslyn/issues/45114 -->
-    <NoWarn>NU1701;$(NoWarn)</NoWarn>
-    <AssetTargetFallback Condition="'$(TargetFramework)' == 'netcoreapp3.1'">net472;$(AssetTargetFallback)</AssetTargetFallback>
-
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for Language Server Protocol.
@@ -24,6 +19,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(MicrosoftVisualStudioLanguageServerProtocolInternalVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="$(MicrosoftVisualStudioCoreUtilityVersion)" />
@@ -41,6 +37,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator" />
+
+    <InternalsVisibleTo Include="Microsoft.CSharp.VSCode.Extension" Key="$(VisualStudioKey)" />
   </ItemGroup>
 
   <ItemGroup>

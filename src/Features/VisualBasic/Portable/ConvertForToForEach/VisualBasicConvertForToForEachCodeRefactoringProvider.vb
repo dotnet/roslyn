@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertForToForEachCodeRefactoringProvider)), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertForToForEach), [Shared]>
     Friend Class VisualBasicConvertForToForEachCodeRefactoringProvider
         Inherits AbstractConvertForToForEachCodeRefactoringProvider(Of
             StatementSyntax,
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
                     Dim subtraction = TryCast(forStatement.ToValue, BinaryExpressionSyntax)
                     If subtraction?.Kind() = SyntaxKind.SubtractExpression Then
                         Dim subtractionRight = TryCast(subtraction.Right, LiteralExpressionSyntax)
-                        If TypeOf subtractionRight.Token.Value Is Integer AndAlso
+                        If TypeOf subtractionRight?.Token.Value Is Integer AndAlso
                            DirectCast(subtractionRight.Token.Value, Integer) = 1 Then
 
                             memberAccess = TryCast(subtraction.Left, MemberAccessExpressionSyntax)

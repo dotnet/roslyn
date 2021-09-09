@@ -174,13 +174,10 @@ namespace Microsoft.CodeAnalysis.Remote
         private class ChecksumJsonConverter : BaseJsonConverter<Checksum>
         {
             protected override Checksum ReadValue(JsonReader reader, JsonSerializer serializer)
-            {
-                var value = (string)reader.Value;
-                return value == null ? null : Checksum.FromSerialized(Convert.FromBase64String(value));
-            }
+                => Checksum.FromBase64String((string)reader.Value);
 
             protected override void WriteValue(JsonWriter writer, Checksum value, JsonSerializer serializer)
-                => writer.WriteValue(value?.ToString());
+                => writer.WriteValue(value?.ToBase64String());
         }
 
         private class PinnedSolutionInfoJsonConverter : BaseJsonConverter<PinnedSolutionInfo>
@@ -194,11 +191,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 var fromPrimaryBranch = ReadProperty<bool>(reader);
                 var workspaceVersion = ReadProperty<long>(reader);
                 var checksum = ReadProperty<Checksum>(reader, serializer);
+                var projectId = ReadProperty<ProjectId>(reader, serializer);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
 
-                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, (int)workspaceVersion, checksum);
+                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, (int)workspaceVersion, checksum, projectId);
             }
 
             protected override void WriteValue(JsonWriter writer, PinnedSolutionInfo scope, JsonSerializer serializer)
@@ -216,6 +214,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName("checksum");
                 serializer.Serialize(writer, scope.SolutionChecksum);
+
+                writer.WritePropertyName("projectId");
+                serializer.Serialize(writer, scope.ProjectId);
 
                 writer.WriteEndObject();
             }

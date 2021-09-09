@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -27,6 +28,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+
         public bool OpenFileOnly(OptionSet options)
             => false;
 
@@ -36,20 +39,41 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var services = document.Project.Solution.Workspace.Services;
-            var encService = services.GetService<IEditAndContinueWorkspaceService>();
-            if (encService is null)
+            var workspace = document.Project.Solution.Workspace;
+
+            // do not load EnC service and its dependencies if the app is not running:
+            var debuggingService = workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
+            if (debuggingService.CurrentDebuggingState == DebuggingState.Design)
             {
                 return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
             }
 
-            var activeStatementSpanProvider = new DocumentActiveStatementSpanProvider(async cancellationToken =>
+            return AnalyzeSemanticsImplAsync(workspace, document, cancellationToken);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsImplAsync(Workspace workspace, Document designTimeDocument, CancellationToken cancellationToken)
+        {
+            var designTimeSolution = designTimeDocument.Project.Solution;
+            var compileTimeSolution = workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(designTimeSolution);
+
+            var compileTimeDocument = await CompileTimeSolutionProvider.TryGetCompileTimeDocumentAsync(designTimeDocument, compileTimeSolution, cancellationToken).ConfigureAwait(false);
+            if (compileTimeDocument == null)
             {
-                var trackingService = services.GetRequiredService<IActiveStatementTrackingService>();
-                return await trackingService.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
+                return ImmutableArray<Diagnostic>.Empty;
+            }
+
+            // EnC services should never be called on a design-time solution.
+
+            var proxy = new RemoteEditAndContinueServiceProxy(workspace);
+
+            var activeStatementSpanProvider = new ActiveStatementSpanProvider(async (documentId, filePath, cancellationToken) =>
+            {
+                var trackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
+                return await trackingService.GetSpansAsync(compileTimeSolution, documentId, filePath, cancellationToken).ConfigureAwait(false);
             });
 
-            return encService.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken);
+            return await proxy.GetDocumentDiagnosticsAsync(compileTimeDocument, designTimeDocument, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
         }
     }
 }

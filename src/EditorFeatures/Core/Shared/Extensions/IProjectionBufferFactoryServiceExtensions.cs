@@ -108,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                         finalSpans.Add(snapshot.CreateTrackingSpan(Span.FromBounds(finalSpanStart, finalSpanEnd), SpanTrackingMode.EdgeExclusive));
                     }
                 }
+
                 projectionBuffer.InsertSpans(0, finalSpans);
             }
 

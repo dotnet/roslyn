@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string KeyProcessors = nameof(KeyProcessors);
             public const string KeyProcessorProviders = nameof(KeyProcessorProviders);
             public const string Preview = nameof(Preview);
+            public const string LanguageServerProtocol = nameof(LanguageServerProtocol);
         }
 
         public const string Feature = nameof(Feature);
@@ -109,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInsertBraces = "CodeActions.InsertBraces";
             public const string CodeActionsInsertMissingTokens = "CodeActions.InsertMissingTokens";
             public const string CodeActionsIntroduceLocalForExpression = "CodeActions.IntroduceLocalForExpression";
+            public const string CodeActionsIntroduceParameter = "CodeActions.IntroduceParameter";
             public const string CodeActionsIntroduceUsingStatement = "CodeActions.IntroduceUsingStatement";
             public const string CodeActionsIntroduceVariable = "CodeActions.IntroduceVariable";
             public const string CodeActionsInvertConditional = "CodeActions.InvertConditional";
@@ -158,6 +160,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsReverseForStatement = "CodeActions.ReverseForStatement";
             public const string CodeActionsSimplifyConditional = "CodeActions.SimplifyConditional";
             public const string CodeActionsSimplifyInterpolation = "CodeActions.SimplifyInterpolation";
+            public const string CodeActionsSimplifyLinqExpression = "CodeActions.SimplifyLinqExpression";
             public const string CodeActionsSimplifyThisOrMe = "CodeActions.SimplifyThisOrMe";
             public const string CodeActionsSimplifyTypeNames = "CodeActions.SimplifyTypeNames";
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
@@ -192,6 +195,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
             public const string CodeActionsUseNotPattern = "CodeActions.UseNotPattern";
             public const string CodeActionsUsePatternCombinators = "CodeActions.UsePatternCombinators";
+            public const string CodeActionsUseRecursivePatterns = "CodeActions.UseRecursivePatterns";
             public const string CodeActionsUseNullPropagation = "CodeActions.UseNullPropagation";
             public const string CodeActionsUseObjectInitializer = "CodeActions.UseObjectInitializer";
             public const string CodeActionsUseRangeOperator = "CodeActions.UseRangeOperator";
@@ -225,6 +229,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string DocCommentFormatting = nameof(DocCommentFormatting);
             public const string DocumentationComments = nameof(DocumentationComments);
             public const string EditorConfig = nameof(EditorConfig);
+            public const string EditorConfigUI = nameof(EditorConfigUI);
             public const string EncapsulateField = nameof(EncapsulateField);
             public const string EndConstructGeneration = nameof(EndConstructGeneration);
             public const string ErrorList = nameof(ErrorList);
@@ -242,6 +247,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string GoToBase = nameof(GoToBase);
             public const string GoToDefinition = nameof(GoToDefinition);
             public const string GoToImplementation = nameof(GoToImplementation);
+            public const string InheritanceMargin = nameof(InheritanceMargin);
             public const string InlineHints = nameof(InlineHints);
             public const string Interactive = nameof(Interactive);
             public const string InteractiveHost = nameof(InteractiveHost);
@@ -286,12 +292,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string SplitComment = nameof(SplitComment);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
             public const string SuggestionTags = nameof(SuggestionTags);
+            public const string SyncNamespaces = nameof(SyncNamespaces);
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
             public const string TodoComments = nameof(TodoComments);
             public const string ToggleBlockComment = nameof(ToggleBlockComment);
             public const string ToggleLineComment = nameof(ToggleLineComment);
             public const string TypeInferenceService = nameof(TypeInferenceService);
+            public const string UnusedReferences = nameof(UnusedReferences);
             public const string ValidateFormatString = nameof(ValidateFormatString);
             public const string ValidateRegexString = nameof(ValidateRegexString);
             public const string Venus = nameof(Venus);

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -26,6 +27,14 @@ namespace Microsoft.CodeAnalysis.Text
 
                 var solution = workspace.CurrentSolution;
 
+                if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(documentId, out var documentIdentity))
+                {
+                    // For source generated documents, we won't count them as linked across multiple projects; this is because
+                    // the generated documents in each target may have different source so other features might be surprised if we
+                    // return the same documents but with different text. So in this case, we'll just return a single document.
+                    return ImmutableArray.Create(solution.WithFrozenSourceGeneratedDocument(documentIdentity, text));
+                }
+
                 var relatedIds = solution.GetRelatedDocumentIds(documentId);
                 solution = solution.WithDocumentText(relatedIds, text, PreservationMode.PreserveIdentity);
                 return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
@@ -44,9 +53,14 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 var solution = workspace.CurrentSolution;
                 var id = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (id == null || !solution.ContainsDocument(id))
+                if (id == null)
                 {
                     return null;
+                }
+
+                if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(id, out var documentIdentity))
+                {
+                    return solution.WithFrozenSourceGeneratedDocument(documentIdentity, text);
                 }
 
                 // We update all linked files to ensure they are all in sync. Otherwise code might try to jump from
@@ -91,6 +105,19 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Tries to get the document corresponding to the text from the current partial solution 
+        /// associated with the text's container. If the document does not contain the exact text a document 
+        /// from a new solution containing the specified text is constructed. If no document is associated
+        /// with the specified text's container, or the text's container isn't associated with a workspace,
+        /// then the method returns false.
+        /// </summary>
+        internal static Document? GetDocumentWithFrozenPartialSemantics(this SourceText text, CancellationToken cancellationToken)
+        {
+            var document = text.GetOpenDocumentInCurrentContextWithChanges();
+            return document?.WithFrozenPartialSemantics(cancellationToken);
         }
     }
 }

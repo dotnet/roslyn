@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        private BoundExpression BindAnonymousObjectCreation(AnonymousObjectCreationExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindAnonymousObjectCreation(AnonymousObjectCreationExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             //  prepare
             var initializers = node.Initializers;
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns the type to be used as a field type; generates errors in case the type is not
         /// supported for anonymous type fields.
         /// </summary>
-        private TypeSymbol GetAnonymousTypeFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, DiagnosticBag diagnostics, ref bool hasError)
+        private TypeSymbol GetAnonymousTypeFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, BindingDiagnosticBag diagnostics, ref bool hasError)
         {
             object? errorArg = null;
             TypeSymbol? expressionType = expression.Type;

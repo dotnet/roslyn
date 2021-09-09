@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (semanticModel.GetEnclosingSymbol(position, cancellationToken) is not INamedTypeSymbol enclosingSymbol)
                 return null;
 
-            if (!(enclosingSymbol.TypeKind == TypeKind.Struct || enclosingSymbol.TypeKind == TypeKind.Class))
+            if (enclosingSymbol.TypeKind is not (TypeKind.Struct or TypeKind.Class))
                 return null;
 
             var symbols = semanticModel.LookupSymbols(position, container: enclosingSymbol)

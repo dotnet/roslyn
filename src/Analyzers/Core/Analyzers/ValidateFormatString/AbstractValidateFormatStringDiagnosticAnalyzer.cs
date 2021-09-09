@@ -28,11 +28,9 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             AnalyzersResources.ResourceManager,
             typeof(AnalyzersResources));
 
-        private static readonly LocalizableString Description = new LocalizableResourceString(
-            nameof(AnalyzersResources.Invalid_format_string),
-            AnalyzersResources.ResourceManager,
-            typeof(AnalyzersResources));
-
+#pragma warning disable RS0030 // Do not used banned APIs - We cannot use AbstractBuiltInCodeStyleDiagnosticAnalyzer nor AbstractCodeQualityDiagnosticAnalyzer.
+        // This analyzer is run against generated code while the abstract base classes mentioned doesn't. The rule is also not documented.
+        // There is even a current work to remove the rule completely in favor of CA2241.
         private static readonly DiagnosticDescriptor Rule = new(
             DiagnosticID,
             Title,
@@ -40,8 +38,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             DiagnosticCategory.Compiler,
             DiagnosticSeverity.Info,
             isEnabledByDefault: true,
-            description: Description,
             customTags: EnforceOnBuildValues.ValidateFormatString.ToCustomTag());
+#pragma warning restore RS0030 // Do not used banned APIs
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(Rule);

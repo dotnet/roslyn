@@ -638,7 +638,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 using (var inStream = new MemoryStream(compressedBytes))
                 using (var deflateStream = new DeflateStream(inStream, CompressionMode.Decompress))
                 {
+#if NETCOREAPP
+                    await deflateStream.CopyToAsync(outStream, cancellationToken).ConfigureAwait(false);
+#else
                     await deflateStream.CopyToAsync(outStream).ConfigureAwait(false);
+#endif
                 }
 
                 var bytes = outStream.ToArray();

@@ -4367,21 +4367,18 @@ public class Source
                 parseOptions: TestOptions.Regular9);
 
             comp.VerifyDiagnostics(
-                // (6,9): warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
-                //         a.M(new());
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.M").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(6, 9),
+                // warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(1, 1),
                 // (6,11): error CS0121: The call is ambiguous between the following methods or properties: 'A.M(B)' and 'A.M(string)'
                 //         a.M(new());
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(6, 11),
-                // (7,9): warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
-                //         a.M(default);
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.M").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(7, 9),
+                // warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(1, 1),
                 // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'A.M(B)' and 'A.M(string)'
                 //         a.M(default);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(7, 11),
-                // (8,9): warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
-                //         a.M(null);
-                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "a.M").WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(8, 9),
+                // warning CS1701: Assuming assembly reference 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B").WithLocation(1, 1),
                 // (8,11): error CS0121: The call is ambiguous between the following methods or properties: 'A.M(B)' and 'A.M(string)'
                 //         a.M(null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("A.M(B)", "A.M(string)").WithLocation(8, 11)
@@ -4395,10 +4392,10 @@ public class Source
 using System;
 using System.Runtime.CompilerServices;
 
-class Foo
+class Test
 {
     public string Caller { get; set; }
-    public Foo([CallerMemberName] string caller = ""?"") => Caller = caller;
+    public Test([CallerMemberName] string caller = ""?"") => Caller = caller;
     public void PrintCaller() => Console.WriteLine(Caller);
 }
 
@@ -4406,20 +4403,285 @@ class Program
 {
     static void Main()
     {            
-        Foo f1 = new Foo();
+        Test f1 = new Test();
         f1.PrintCaller();
 
-        Foo f2 = new();
+        Test f2 = new();
         f2.PrintCaller();
     }
 }
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput:
 @"Main
-Main");
+Main").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void CallerLineNumberAttributeWithImplicitObjectCreation()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Test
+{
+    public int LineNumber { get; set; }
+    public Test([CallerLineNumber] int lineNumber = -1) => LineNumber = lineNumber;
+    public void PrintLineNumber() => Console.WriteLine(LineNumber);
+}
+
+class Program
+{
+    static void Main()
+    {            
+        Test f1 = new Test();
+        f1.PrintLineNumber();
+
+        Test f2 = new();
+        f2.PrintLineNumber();
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput:
+@"16
+19").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(50030, "https://github.com/dotnet/roslyn/issues/50030")]
+        public void GetCollectionInitializerSymbolInfo()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+ 
+class X : List<int>
+{
+    new void Add(int x) { }
+    void Add(string x) {}
+ 
+    static void Main()
+    {
+        X z = new() { String.Empty, 12 };
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var nodes = (from node in tree.GetRoot().DescendantNodes()
+                         where node.IsKind(SyntaxKind.CollectionInitializerExpression)
+                         select (InitializerExpressionSyntax)node).Single().Expressions;
+
+            SymbolInfo symbolInfo;
+
+            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[0]);
+
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal("void X.Add(System.String x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+
+            symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(nodes[1]);
+
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal("void X.Add(System.Int32 x)", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        public void GetNamedParameterSymbolInfo()
+        {
+            var source = @"
+class X
+{
+
+    X(int aParameter)
+    {}
+
+    static void Main()
+    {
+        X z = new(aParameter: 1);
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "aParameter").Single();
+
+            SymbolInfo symbolInfo;
+
+            symbolInfo = semanticModel.GetSymbolInfo(node);
+
+            Assert.NotNull(symbolInfo.Symbol);
+            Assert.Equal("System.Int32 aParameter", symbolInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+        }
+
+        [Fact]
+        [WorkItem(50489, "https://github.com/dotnet/roslyn/issues/50489")]
+        public void InEarlyWellknownAttribute_01()
+        {
+            var source1 = @"
+public class C
+{
+    static void Main()
+    {
+        M1();
+        M2();
+    }
+    
+    [System.Obsolete(""reported 1"", new bool())]
+    static public void M1()
+    {
+    }
+    
+    [System.Obsolete(""reported 2"", new())]
+    static public void M2()
+    {
+    }
+}";
+
+            var compilation1 = CreateCompilation(source1);
+            compilation1.VerifyDiagnostics(
+                // (6,9): warning CS0618: 'C.M1()' is obsolete: 'reported 1'
+                //         M1();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "M1()").WithArguments("C.M1()", "reported 1").WithLocation(6, 9),
+                // (7,9): warning CS0618: 'C.M2()' is obsolete: 'reported 2'
+                //         M2();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "M2()").WithArguments("C.M2()", "reported 2").WithLocation(7, 9)
+                );
+
+            var source2 = @"
+public class B
+{
+    static void Main()
+    {
+        C.M1();
+        C.M2();
+    }
+}";
+
+            var compilation2 = CreateCompilation(source2, references: new[] { compilation1.EmitToImageReference() });
+            compilation2.VerifyDiagnostics(
+                // (6,9): warning CS0618: 'C.M1()' is obsolete: 'reported 1'
+                //         C.M1();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C.M1()").WithArguments("C.M1()", "reported 1").WithLocation(6, 9),
+                // (7,9): warning CS0618: 'C.M2()' is obsolete: 'reported 2'
+                //         C.M2();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "C.M2()").WithArguments("C.M2()", "reported 2").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void InEarlyWellknownAttribute_02()
+        {
+            var source1 = @"
+using System.Runtime.InteropServices;
+
+public class C
+{
+    public void M1([DefaultParameterValue(new())] object o)
+    {
+    }
+
+    public void M2([DefaultParameterValue(new object())] object o)
+    {
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1);
+            compilation1.VerifyDiagnostics(
+                // (6,43): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     public void M1([DefaultParameterValue(new())] object o)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new()").WithLocation(6, 43),
+                // (10,43): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     public void M2([DefaultParameterValue(new object())] object o)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new object()").WithLocation(10, 43)
+                );
+        }
+
+        [Fact]
+        public void InEarlyWellknownAttribute_03()
+        {
+            var source1 = @"
+using System;
+
+[AttributeUsage(new AttributeTargets())]
+public class Attr1 : Attribute {}
+
+[AttributeUsage(new())]
+public class Attr2 : Attribute {}
+";
+
+            var compilation1 = CreateCompilation(source1);
+            compilation1.VerifyDiagnostics(
+                // (4,17): error CS0591: Invalid value for argument to 'AttributeUsage' attribute
+                // [AttributeUsage(new AttributeTargets())]
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "new AttributeTargets()").WithArguments("AttributeUsage").WithLocation(4, 17),
+                // (7,17): error CS0591: Invalid value for argument to 'AttributeUsage' attribute
+                // [AttributeUsage(new())]
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "new()").WithArguments("AttributeUsage").WithLocation(7, 17)
+                );
+        }
+
+        [Fact]
+        public void InAttributes()
+        {
+            var source = @"
+[C(new())]
+public class C : System.Attribute
+{
+   public C(C c) {}
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (2,2): error CS0181: Attribute constructor parameter 'c' has type 'C', which is not a valid attribute parameter type
+                // [C(new())]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "C").WithArguments("c", "C").WithLocation(2, 2),
+                // (2,4): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.C(C)'
+                // [C(new())]
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new()").WithArguments("c", "C.C(C)").WithLocation(2, 4)
+                );
+        }
+
+        [Fact, WorkItem(54193, "https://github.com/dotnet/roslyn/issues/54193")]
+        public void InSwitchExpression()
+        {
+            var source = @"
+using static System.Console;
+
+var c0 = 0 switch { 1 => new C(), int n => new() { n = n } };
+C c1 = 1 switch { int n => new() { n = n } };
+C c2 = 2 switch { int n => n switch { int u => new() { n = n + u } } };
+
+Write(c0.n);
+Write(c1.n);
+Write(c2.n);
+
+class C 
+{
+    public int n;
+}
+";
+            var compilation = CreateCompilation(source);
+            CompileAndVerify(compilation, expectedOutput: "014")
+                .VerifyDiagnostics();
         }
     }
 }

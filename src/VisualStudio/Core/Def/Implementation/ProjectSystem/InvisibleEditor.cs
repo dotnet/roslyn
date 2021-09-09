@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// The text buffer. null if the object has been disposed.
         /// </summary>
-        private ITextBuffer _buffer;
+        private ITextBuffer? _buffer;
         private IVsTextLines _vsTextLines;
         private IVsInvisibleEditor _invisibleEditor;
         private OLE.Interop.IOleUndoManager? _manager;
@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            _buffer = null!;
+            _buffer = null;
             _vsTextLines = null!;
 
             try
@@ -159,11 +159,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-#pragma warning disable CA1821 // Remove empty Finalizers
 #if DEBUG
         ~InvisibleEditor()
             => Debug.Assert(Environment.HasShutdownStarted, GetType().Name + " was leaked without Dispose being called.");
 #endif
-#pragma warning restore CA1821 // Remove empty Finalizers
     }
 }

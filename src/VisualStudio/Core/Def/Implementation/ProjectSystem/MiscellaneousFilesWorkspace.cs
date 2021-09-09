@@ -11,6 +11,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
@@ -335,10 +336,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private CompilationOptions GetCompilationOptionsWithScriptReferenceResolvers(CompilationOptions compilationOptions, string filePath)
         {
             var metadataService = Services.GetService<IMetadataService>();
-            var scriptEnvironmentService = Services.GetService<IScriptEnvironmentService>();
-
-            // Misc files workspace always provides the service:
-            Contract.ThrowIfNull(scriptEnvironmentService);
 
             var baseDirectory = PathUtilities.GetDirectoryName(filePath);
 
@@ -348,16 +345,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // - Add default script globals available in 'csi goo.csx' environment: CommandLineScriptGlobals
 
             var referenceResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
-                searchPaths: scriptEnvironmentService.MetadataReferenceSearchPaths,
+                searchPaths: ImmutableArray.Create(RuntimeEnvironment.GetRuntimeDirectory()),
                 baseDirectory: baseDirectory,
                 fileReferenceProvider: (path, properties) => metadataService.GetReference(path, properties));
 
             return compilationOptions
                 .WithMetadataReferenceResolver(referenceResolver)
-                .WithSourceReferenceResolver(new SourceFileResolver(scriptEnvironmentService.SourceReferenceSearchPaths, baseDirectory));
+                .WithSourceReferenceResolver(new SourceFileResolver(searchPaths: ImmutableArray<string>.Empty, baseDirectory));
         }
 
-        private SourceCodeKind GetSourceCodeKind(
+        private static SourceCodeKind GetSourceCodeKind(
             ParseOptions parseOptionsOpt,
             string fileExtension,
             LanguageInformation languageInformation)

@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -36,16 +35,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             // We should never be called in a context where we get references.
-            protected override ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
+            protected override ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
                 => throw new InvalidOperationException();
 
             // Nothing to do on completion.
-            protected override Task OnCompletedAsyncWorkerAsync()
+            protected override Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition)
+            protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
-                var definitionBucket = GetOrCreateDefinitionBucket(definition);
+                var definitionBucket = GetOrCreateDefinitionBucket(definition, expandedByDefault: true);
 
                 using var _ = ArrayBuilder<Entry>.GetInstance(out var entries);
 
@@ -55,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     // definition as what to show.  That way we show enough information for things
                     // methods.  i.e. we'll show "void TypeName.MethodName(args...)" allowing
                     // the user to see the type the method was created in.
-                    var entry = await TryCreateEntryAsync(definitionBucket, definition).ConfigureAwait(false);
+                    var entry = await TryCreateEntryAsync(definitionBucket, definition, cancellationToken).ConfigureAwait(false);
                     entries.AddIfNotNull(entry);
                 }
                 else if (definition.SourceSpans.Length == 0)
@@ -77,8 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             sourceSpan,
                             HighlightSpanKind.Definition,
                             symbolUsageInfo: SymbolUsageInfo.None,
-                            additionalProperties: definition.DisplayableProperties)
-                                .ConfigureAwait(false);
+                            additionalProperties: definition.DisplayableProperties,
+                            cancellationToken).ConfigureAwait(false);
                         entries.AddIfNotNull(entry);
                     }
                 }
@@ -95,14 +94,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            private async Task<Entry> TryCreateEntryAsync(
-                RoslynDefinitionBucket definitionBucket, DefinitionItem definition)
+            private async Task<Entry?> TryCreateEntryAsync(
+                RoslynDefinitionBucket definitionBucket, DefinitionItem definition, CancellationToken cancellationToken)
             {
                 var documentSpan = definition.SourceSpans[0];
-                var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document).ConfigureAwait(false);
+                var (guid, projectName, _) = GetGuidAndProjectInfo(documentSpan.Document);
+                var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 var lineText = AbstractDocumentSpanEntry.GetLineContainingPosition(sourceText, documentSpan.SourceSpan.Start);
-                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, CancellationToken).ConfigureAwait(false);
+                var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
                 {
                     // this will be removed from the result

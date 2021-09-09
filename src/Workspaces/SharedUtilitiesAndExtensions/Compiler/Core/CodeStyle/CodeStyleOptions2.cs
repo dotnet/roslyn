@@ -16,22 +16,55 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         internal static ImmutableArray<IOption2> AllOptions { get; }
 
-        private static PerLanguageOption2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation2[] storageLocations)
+        private static PerLanguageOption2<T> CreateOption<T>(
+            OptionGroup group, string name, T defaultValue,
+            OptionStorageLocation2 storageLocation)
         {
-            var option = new PerLanguageOption2<T>("CodeStyleOptions", group, name, defaultValue, storageLocations);
+            var option = new PerLanguageOption2<T>(
+                "CodeStyleOptions",
+                group, name, defaultValue,
+                ImmutableArray.Create(storageLocation));
+
             s_allOptionsBuilder.Add(option);
             return option;
         }
 
-        private static Option2<T> CreateCommonOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation2[] storageLocations)
+        private static PerLanguageOption2<T> CreateOption<T>(
+            OptionGroup group, string name, T defaultValue,
+            OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
         {
-            var option = new Option2<T>("CodeStyleOptions", group, name, defaultValue, storageLocations);
+            var option = new PerLanguageOption2<T>(
+                "CodeStyleOptions",
+                group, name, defaultValue,
+                ImmutableArray.Create(storageLocation1, storageLocation2));
+
             s_allOptionsBuilder.Add(option);
             return option;
         }
 
-        private static PerLanguageOption2<CodeStyleOption2<bool>> CreateOption(OptionGroup group, string name, CodeStyleOption2<bool> defaultValue, string editorconfigKeyName, string roamingProfileStorageKeyName)
-            => CreateOption(group, name, defaultValue, EditorConfigStorageLocation.ForBoolCodeStyleOption(editorconfigKeyName, defaultValue), new RoamingProfileStorageLocation(roamingProfileStorageKeyName));
+        private static Option2<T> CreateCommonOption<T>(OptionGroup group, string name, T defaultValue, OptionStorageLocation2 storageLocation)
+        {
+            var option = new Option2<T>(
+                "CodeStyleOptions",
+                group, name, defaultValue,
+                ImmutableArray.Create(storageLocation));
+
+            s_allOptionsBuilder.Add(option);
+            return option;
+        }
+
+        private static Option2<T> CreateCommonOption<T>(
+            OptionGroup group, string name, T defaultValue,
+            OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
+        {
+            var option = new Option2<T>(
+                "CodeStyleOptions",
+                group, name, defaultValue,
+                ImmutableArray.Create(storageLocation1, storageLocation2));
+
+            s_allOptionsBuilder.Add(option);
+            return option;
+        }
 
         /// <remarks>
         /// When user preferences are not yet set for a style, we fall back to the default value.
@@ -42,6 +75,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         internal static readonly CodeStyleOption2<bool> FalseWithSilentEnforcement = new(value: false, notification: NotificationOption2.Silent);
         internal static readonly CodeStyleOption2<bool> TrueWithSuggestionEnforcement = new(value: true, notification: NotificationOption2.Suggestion);
         internal static readonly CodeStyleOption2<bool> FalseWithSuggestionEnforcement = new(value: false, notification: NotificationOption2.Suggestion);
+
+        private static PerLanguageOption2<CodeStyleOption2<bool>> CreateOption(
+            OptionGroup group, string name, CodeStyleOption2<bool> defaultValue,
+            string editorconfigKeyName, string roamingProfileStorageKeyName)
+            => CreateOption(
+                group, name, defaultValue,
+                EditorConfigStorageLocation.ForBoolCodeStyleOption(editorconfigKeyName, defaultValue),
+                new RoamingProfileStorageLocation(roamingProfileStorageKeyName));
 
         private static PerLanguageOption2<CodeStyleOption2<bool>> CreateQualifyAccessOption(string optionName, string editorconfigKeyName)
             => CreateOption(
@@ -109,12 +150,12 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         internal static readonly PerLanguageOption2<bool> PreferObjectInitializer_FadeOutCode = new(
             "CodeStyleOptions", nameof(PreferObjectInitializer_FadeOutCode),
             defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer_FadeOutCode"));
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferObjectInitializer_FadeOutCode"));
 
         internal static readonly PerLanguageOption2<bool> PreferCollectionInitializer_FadeOutCode = new(
             "CodeStyleOptions", nameof(PreferCollectionInitializer_FadeOutCode),
             defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSimplifiedBooleanExpressions = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferSimplifiedBooleanExpressions),
@@ -127,11 +168,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 CodeStyleOptionGroups.ExpressionLevelPreferences,
                 nameof(OperatorPlacementWhenWrapping),
                 defaultValue: OperatorPlacementWhenWrappingPreference.BeginningOfLine,
-                storageLocations:
-                    new EditorConfigStorageLocation<OperatorPlacementWhenWrappingPreference>(
-                        "dotnet_style_operator_placement_when_wrapping",
-                        OperatorPlacementUtilities.Parse,
-                        OperatorPlacementUtilities.GetEditorConfigString));
+                new EditorConfigStorageLocation<OperatorPlacementWhenWrappingPreference>(
+                    "dotnet_style_operator_placement_when_wrapping",
+                    OperatorPlacementUtilities.Parse,
+                    OperatorPlacementUtilities.GetEditorConfigString));
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferCoalesceExpression = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferCoalesceExpression),
@@ -209,12 +249,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CodeStyleOptionGroups.Parameter,
             nameof(UnusedParameters),
             defaultValue: s_preferAllMethodsUnusedParametersPreference,
-            storageLocations: new OptionStorageLocation2[]{
-                new EditorConfigStorageLocation<CodeStyleOption2<UnusedParametersPreference>>(
-                        "dotnet_code_quality_unused_parameters",
-                        s => ParseUnusedParametersPreference(s, s_preferAllMethodsUnusedParametersPreference),
-                        o => GetUnusedParametersPreferenceEditorConfigString(o, s_preferAllMethodsUnusedParametersPreference)),
-                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(UnusedParameters)}Preference") });
+            new EditorConfigStorageLocation<CodeStyleOption2<UnusedParametersPreference>>(
+                    "dotnet_code_quality_unused_parameters",
+                    s => ParseUnusedParametersPreference(s, s_preferAllMethodsUnusedParametersPreference),
+                    o => GetUnusedParametersPreferenceEditorConfigString(o, s_preferAllMethodsUnusedParametersPreference)),
+            new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(UnusedParameters)}Preference"));
 
         private static readonly CodeStyleOption2<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
             new(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption2.Silent);
@@ -223,12 +262,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CreateOption(
                 CodeStyleOptionGroups.Modifier, nameof(RequireAccessibilityModifiers),
                 defaultValue: s_requireAccessibilityModifiersDefault,
-                storageLocations: new OptionStorageLocation2[]{
-                    new EditorConfigStorageLocation<CodeStyleOption2<AccessibilityModifiersRequired>>(
-                        "dotnet_style_require_accessibility_modifiers",
-                        s => ParseAccessibilityModifiersRequired(s, s_requireAccessibilityModifiersDefault),
-                        v => GetAccessibilityModifiersRequiredEditorConfigString(v, s_requireAccessibilityModifiersDefault)),
-                    new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RequireAccessibilityModifiers")});
+                new EditorConfigStorageLocation<CodeStyleOption2<AccessibilityModifiersRequired>>(
+                    "dotnet_style_require_accessibility_modifiers",
+                    s => ParseAccessibilityModifiersRequired(s, s_requireAccessibilityModifiersDefault),
+                    v => GetAccessibilityModifiersRequiredEditorConfigString(v, s_requireAccessibilityModifiersDefault)),
+                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RequireAccessibilityModifiers"));
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferReadonly = CreateOption(
             CodeStyleOptionGroups.Field, nameof(PreferReadonly),
@@ -245,9 +283,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CodeStyleOptionGroups.Suppressions,
             nameof(RemoveUnnecessarySuppressionExclusions),
             defaultValue: "",
-            storageLocations: new OptionStorageLocation2[]{
-                EditorConfigStorageLocation.ForStringOption("dotnet_remove_unnecessary_suppression_exclusions", emptyStringRepresentation: "none"),
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveUnnecessarySuppressionExclusions") });
+            EditorConfigStorageLocation.ForStringOption("dotnet_remove_unnecessary_suppression_exclusions", emptyStringRepresentation: "none"),
+            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveUnnecessarySuppressionExclusions"));
 
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
             new(new[]
@@ -295,12 +332,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             return CreateOption(
                 CodeStyleOptionGroups.Parentheses, fieldName, defaultValue,
-                storageLocations: new OptionStorageLocation2[]{
-                    new EditorConfigStorageLocation<CodeStyleOption2<ParenthesesPreference>>(
-                        styleName,
-                        s => ParseParenthesesPreference(s, defaultValue),
-                        v => GetParenthesesPreferenceEditorConfigString(v, defaultValue)),
-                    new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{fieldName}Preference")});
+                new EditorConfigStorageLocation<CodeStyleOption2<ParenthesesPreference>>(
+                    styleName,
+                    s => ParseParenthesesPreference(s, defaultValue),
+                    v => GetParenthesesPreferenceEditorConfigString(v, defaultValue)),
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{fieldName}Preference"));
         }
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> ArithmeticBinaryParentheses =
@@ -345,8 +381,25 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CodeStyleOptionGroups.ExpressionLevelPreferences,
             nameof(PreferSystemHashCode),
             defaultValue: TrueWithSuggestionEnforcement,
-            storageLocations: new OptionStorageLocation2[]{
-                new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode") });
+            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode"));
+
+        public static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferNamespaceAndFolderMatchStructure = CreateOption(
+            CodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferNamespaceAndFolderMatchStructure),
+            defaultValue: TrueWithSuggestionEnforcement,
+            editorconfigKeyName: "dotnet_style_namespace_match_folder",
+            roamingProfileStorageKeyName: $"TextEditor.%LANGUAGE%.Specific.{nameof(PreferNamespaceAndFolderMatchStructure)}");
+
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> AllowMultipleBlankLines = CreateOption(
+            CodeStyleOptionGroups.NewLinePreferences, nameof(AllowMultipleBlankLines),
+            defaultValue: TrueWithSilentEnforcement,
+            "dotnet_style_allow_multiple_blank_lines_experimental",
+            "TextEditor.%LANGUAGE%.Specific.AllowMultipleBlankLines");
+
+        internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> AllowStatementImmediatelyAfterBlock = CreateOption(
+            CodeStyleOptionGroups.NewLinePreferences, nameof(AllowStatementImmediatelyAfterBlock),
+            defaultValue: TrueWithSilentEnforcement,
+            "dotnet_style_allow_statement_immediately_after_block_experimental",
+            "TextEditor.%LANGUAGE%.Specific.AllowStatementImmediatelyAfterBlock");
 
         static CodeStyleOptions2()
         {
@@ -405,5 +458,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public static readonly OptionGroup Field = new(CompilerExtensionsResources.Field_preferences, priority: 7);
         public static readonly OptionGroup Parameter = new(CompilerExtensionsResources.Parameter_preferences, priority: 8);
         public static readonly OptionGroup Suppressions = new(CompilerExtensionsResources.Suppression_preferences, priority: 9);
+        public static readonly OptionGroup NewLinePreferences = new(CompilerExtensionsResources.New_line_preferences, priority: 10);
     }
 }

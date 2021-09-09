@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Newtonsoft.Json;
@@ -38,6 +39,19 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
             lock (_writeGate)
             {
                 _outputWriter.WriteLine(line);
+            }
+        }
+
+        public void WriteAll(List<Element> elements)
+        {
+            var lines = new List<string>();
+            foreach (var element in elements)
+                lines.Add(JsonConvert.SerializeObject(element, _settings));
+
+            lock (_writeGate)
+            {
+                foreach (var line in lines)
+                    _outputWriter.WriteLine(line);
             }
         }
     }

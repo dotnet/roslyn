@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Remote
             TextSpan span,
             string diagnosticId,
             int maxResults,
-            bool placeSystemNamespaceFirst,
             bool allowInHiddenRegions,
             bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources,
@@ -46,23 +45,48 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (UserOperationBooster.Boost())
-                {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var document = solution.GetDocument(documentId);
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var document = solution.GetDocument(documentId);
 
-                    var service = document.GetLanguageService<IAddImportFeatureService>();
+                var service = document.GetLanguageService<IAddImportFeatureService>();
 
-                    var symbolSearchService = new SymbolSearchService(_callback, callbackId);
+                var symbolSearchService = new SymbolSearchService(_callback, callbackId);
 
-                    var result = await service.GetFixesAsync(
-                        document, span, diagnosticId, maxResults,
-                        placeSystemNamespaceFirst, allowInHiddenRegions,
-                        symbolSearchService, searchReferenceAssemblies,
-                        packageSources, cancellationToken).ConfigureAwait(false);
+                var result = await service.GetFixesAsync(
+                    document, span, diagnosticId, maxResults,
+                    allowInHiddenRegions,
+                    symbolSearchService, searchReferenceAssemblies,
+                    packageSources, cancellationToken).ConfigureAwait(false);
 
-                    return result;
-                }
+                return result;
+            }, cancellationToken);
+        }
+
+        public ValueTask<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
+            PinnedSolutionInfo solutionInfo,
+            RemoteServiceCallbackId callbackId,
+            DocumentId documentId,
+            TextSpan span,
+            ImmutableArray<string> diagnosticIds,
+            bool searchReferenceAssemblies,
+            ImmutableArray<PackageSource> packageSources,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
+            {
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var document = solution.GetDocument(documentId);
+
+                var service = document.GetLanguageService<IAddImportFeatureService>();
+
+                var symbolSearchService = new SymbolSearchService(_callback, callbackId);
+
+                var result = await service.GetUniqueFixesAsync(
+                    document, span, diagnosticIds,
+                    symbolSearchService, searchReferenceAssemblies,
+                    packageSources, cancellationToken).ConfigureAwait(false);
+
+                return result;
             }, cancellationToken);
         }
 

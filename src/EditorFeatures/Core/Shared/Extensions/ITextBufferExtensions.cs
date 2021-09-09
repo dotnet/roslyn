@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return option.DefaultValue;
         }
 
-        internal static bool GetFeatureOnOffOption(this ITextBuffer buffer, PerLanguageOption2<bool> option)
+        internal static T GetFeatureOnOffOption<T>(this ITextBuffer buffer, PerLanguageOption2<T> option)
         {
             // Add a FailFast to help diagnose 984249.  Hopefully this will let us know what the issue is.
             try

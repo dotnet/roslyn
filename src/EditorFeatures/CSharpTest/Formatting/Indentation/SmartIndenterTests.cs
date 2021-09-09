@@ -170,6 +170,11 @@ namespace NS
                 code,
                 indentationLine: 3,
                 expectedIndentation: 4);
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 4,
+                expectedIndentation: 4);
         }
 
         [WpfFact]
@@ -201,6 +206,32 @@ namespace NS
                 code,
                 indentationLine: 4,
                 expectedIndentation: 4);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void FileScopedNamespace()
+        {
+            var code = @"using System;
+
+namespace NS;
+
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 1,
+                expectedIndentation: 0);
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 2,
+                expectedIndentation: 0);
+
+            AssertSmartIndent(
+                code,
+                indentationLine: 4,
+                expectedIndentation: 0);
         }
 
         [WpfFact]
@@ -498,6 +529,50 @@ namespace NS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ExtendedPropertyPattern()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public void ExtendedPropertyPattern_WithPattern()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        {
+
+            A.B: 1,
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+            AssertSmartIndent(
+                code,
+                indentationLine: 9,
+                expectedIndentation: 12);
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void Block()
         {
             var code = @"using System;
@@ -664,6 +739,32 @@ namespace NS
                 code,
                 indentationLine: 6,
                 expectedIndentation: 8);
+        }
+
+        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/50063")]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WorkItem(50063, "https://github.com/dotnet/roslyn/issues/50063")]
+        [InlineData("do")]
+        [InlineData("for (;;)")]
+        [InlineData("if (true)")]
+        [InlineData("void localFunction()")]
+        [InlineData("static void localFunction()")]
+        public void EmbeddedStatement2(string statement)
+        {
+            var code = $@"class Program
+{{
+    static void Main(string[] args)
+    {{
+{statement}
+
+    }}
+}}
+
+";
+            AssertSmartIndent(
+                code,
+                indentationLine: 5,
+                expectedIndentation: 4);
         }
 
         [WorkItem(537883, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537883")]

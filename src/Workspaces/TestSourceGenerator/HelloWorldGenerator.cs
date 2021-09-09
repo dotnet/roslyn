@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.TestSourceGenerator
         public void Execute(GeneratorExecutionContext context)
         {
             context.AddSource(GeneratedEnglishClassName, SourceText.From(@"
+/// <summary><see cref=""" + GeneratedEnglishClassName + @""" /> is a simple class to fetch the classic message.</summary>
 internal class " + GeneratedEnglishClassName + @"
 {
     public static string GetMessage()

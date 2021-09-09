@@ -4,6 +4,7 @@
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.RuntimeMembers
@@ -17,10 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Structure NamespaceOrTypeAndImportsClausePosition
         Public ReadOnly NamespaceOrType As NamespaceOrTypeSymbol
         Public ReadOnly ImportsClausePosition As Integer
+        Public ReadOnly Dependencies As ImmutableArray(Of AssemblySymbol)
 
-        Public Sub New(namespaceOrType As NamespaceOrTypeSymbol, importsClausePosition As Integer)
+        Public Sub New(namespaceOrType As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As ImmutableArray(Of AssemblySymbol))
             Me.NamespaceOrType = namespaceOrType
             Me.ImportsClausePosition = importsClausePosition
+            Me.Dependencies = dependencies
         End Sub
     End Structure
 End Namespace

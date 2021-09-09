@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,7 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.Extensions.Logging;
 
 namespace BuildValidator
@@ -22,15 +24,38 @@ namespace BuildValidator
     /// </summary>
     internal class LocalReferenceResolver
     {
-        private readonly Dictionary<Guid, string> _cache = new Dictionary<Guid, string>();
-        private readonly HashSet<DirectoryInfo> _indexDirectories = new HashSet<DirectoryInfo>();
+        /// <summary>
+        /// This maps MVID to the <see cref="AssemblyInfo"/> we are using for that particular MVID.
+        /// </summary>
+        private readonly Dictionary<Guid, AssemblyInfo> _mvidMap = new();
+
+        /// <summary>
+        /// This maps a given file name to all of the <see cref="AssemblyInfo"/> that we ever considered 
+        /// for that file name. It's useful for diagnostic purposes to see where we may have missed a
+        /// reference lookup.
+        /// </summary>
+        private readonly Dictionary<string, List<AssemblyInfo>> _nameMap = new(FileNameEqualityComparer.StringComparer);
+        private readonly HashSet<DirectoryInfo> _indexDirectories = new();
         private readonly ILogger _logger;
 
-        public LocalReferenceResolver(ILoggerFactory loggerFactory)
+        public LocalReferenceResolver(Options options, ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<LocalReferenceResolver>();
-            _indexDirectories.Add(GetArtifactsDirectory());
+            foreach (var path in options.AssembliesPaths)
+            {
+                _indexDirectories.Add(new DirectoryInfo(path));
+            }
             _indexDirectories.Add(GetNugetCacheDirectory());
+            foreach (var path in options.ReferencesPaths)
+            {
+                _indexDirectories.Add(new DirectoryInfo(path));
+            }
+
+            using var _ = _logger.BeginScope("Assembly Reference Search Paths");
+            foreach (var directory in _indexDirectories)
+            {
+                _logger.LogInformation($@"""{directory.FullName}""");
+            }
         }
 
         public static DirectoryInfo GetNugetCacheDirectory()
@@ -44,97 +69,95 @@ namespace BuildValidator
             return new DirectoryInfo(nugetPackageDirectory);
         }
 
-        public ImmutableArray<MetadataReference> ResolveReferences(IEnumerable<MetadataReferenceInfo> references)
+        public IEnumerable<AssemblyInfo> GetCachedAssemblyInfos(string fileName) => _nameMap.TryGetValue(fileName, out var list)
+            ? list
+            : Array.Empty<AssemblyInfo>();
+
+        public bool TryGetCachedAssemblyInfo(Guid mvid, [NotNullWhen(true)] out AssemblyInfo? assemblyInfo) => _mvidMap.TryGetValue(mvid, out assemblyInfo);
+
+        public string GetCachedReferencePath(MetadataReferenceInfo referenceInfo)
         {
-            var referenceArray = references.ToImmutableArray();
-            CacheNames(referenceArray);
+            if (_mvidMap.TryGetValue(referenceInfo.ModuleVersionId, out var value))
+            {
+                return value.FilePath;
+            }
 
-            var files = referenceArray.Select(r => _cache[r.Mvid]);
-
-            var metadataReferences = files.Select(f => MetadataReference.CreateFromFile(f)).Cast<MetadataReference>().ToImmutableArray();
-            return metadataReferences;
+            throw new Exception($"Could not find referenced assembly {referenceInfo}");
         }
 
-        public void CacheNames(ImmutableArray<MetadataReferenceInfo> names)
+        public bool TryResolveReferences(MetadataReferenceInfo metadataReferenceInfo, [NotNullWhen(true)] out MetadataReference? metadataReference)
         {
-            if (names.All(r => _cache.ContainsKey(r.Mvid)))
+            if (!TryGetAssemblyInfo(metadataReferenceInfo, out var assemblyInfo))
             {
-                // All references have already been cached, no reason to look in the file system
-                return;
+                metadataReference = null;
+                return false;
             }
+
+            // This is deliberately using an ordinal comparison here. The name of the assembly is written out 
+            // into the PDB. Rebuild will only succeed if the provided reference has the same name with the
+            // same casing
+            var filePath = assemblyInfo.FilePath;
+            if (Path.GetFileName(filePath) != metadataReferenceInfo.FileName)
+            {
+                filePath = Path.Combine(Path.GetDirectoryName(filePath)!, metadataReferenceInfo.FileName);
+            }
+
+            metadataReference = MetadataReference.CreateFromStream(
+                File.OpenRead(assemblyInfo.FilePath),
+                filePath: filePath,
+                properties: new MetadataReferenceProperties(
+                    kind: MetadataImageKind.Assembly,
+                    aliases: metadataReferenceInfo.ExternAlias is null ? ImmutableArray<string>.Empty : ImmutableArray.Create(metadataReferenceInfo.ExternAlias),
+                    embedInteropTypes: metadataReferenceInfo.EmbedInteropTypes));
+            return true;
+        }
+
+        public bool TryGetAssemblyInfo(MetadataReferenceInfo metadataReferenceInfo, [NotNullWhen(true)] out AssemblyInfo? assemblyInfo)
+        {
+            if (_mvidMap.TryGetValue(metadataReferenceInfo.ModuleVersionId, out assemblyInfo))
+            {
+                return true;
+            }
+
+            if (_nameMap.TryGetValue(metadataReferenceInfo.FileName, out var _))
+            {
+                // The file name of this reference has already been searched for and none of them 
+                // had the correct MVID (else the _mvidMap lookup would succeed). No reason to do 
+                // more work here.
+                return false;
+            }
+
+            var list = new List<AssemblyInfo>();
 
             foreach (var directory in _indexDirectories)
             {
-                foreach (var file in directory.GetFiles("*.*", SearchOption.AllDirectories))
+                foreach (var fileInfo in directory.EnumerateFiles(metadataReferenceInfo.FileName, SearchOption.AllDirectories))
                 {
-                    // A single file name can have multiple MVID, so compare by name first then
-                    // open the files to check the MVID 
-                    var potentialMatches = names.Where(m => FileNameEqualityComparer.Instance.Equals(m.FileInfo, file));
-
-                    if (!potentialMatches.Any())
+                    if (Util.GetPortableExecutableInfo(fileInfo.FullName) is not { } peInfo)
                     {
+                        _logger.LogWarning($@"Could not read MVID from ""{fileInfo.FullName}""");
                         continue;
                     }
 
-                    if (!(GetMvidForFile(file) is { } mvid) || !_cache.ContainsKey(mvid))
+                    if (peInfo.IsReadyToRun)
                     {
+                        _logger.LogInformation($@"Skipping ReadyToRun image ""{fileInfo.FullName}""");
                         continue;
                     }
 
-                    var matchedReference = potentialMatches.FirstOrDefault(m => m.Mvid == mvid);
-                    if (matchedReference.FileInfo is null)
+                    var currentInfo = new AssemblyInfo(fileInfo.FullName, peInfo.Mvid);
+                    list.Add(currentInfo);
+
+                    if (!_mvidMap.ContainsKey(peInfo.Mvid))
                     {
-                        continue;
+                        _logger.LogTrace($"Caching [{peInfo.Mvid}, {fileInfo.FullName}]");
+                        _mvidMap[peInfo.Mvid] = currentInfo;
                     }
-
-                    _logger.LogTrace($"Caching [{mvid}, {file.FullName}]");
-                    _cache[mvid] = file.FullName;
                 }
             }
 
-            var uncached = names.Where(m => !_cache.ContainsKey(m.Mvid)).ToArray();
-
-            if (uncached.Any())
-            {
-                _logger.LogDebug($"Unable to find files for the following metadata references: {uncached}");
-            }
-        }
-
-        private static Guid? GetMvidForFile(FileInfo fileInfo)
-        {
-            using (var stream = fileInfo.OpenRead())
-            {
-                PEReader reader = new PEReader(stream);
-
-                if (reader.HasMetadata)
-                {
-                    var metadataReader = reader.GetMetadataReader();
-                    var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-                    return metadataReader.GetGuid(mvidHandle);
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
-
-        public static DirectoryInfo GetArtifactsDirectory()
-        {
-            var assemblyLocation = typeof(LocalReferenceResolver).Assembly.Location;
-            var binDir = Directory.GetParent(assemblyLocation);
-
-            while (binDir != null && !binDir.FullName.EndsWith("artifacts\\bin", FileNameEqualityComparer.StringComparison))
-            {
-                binDir = binDir.Parent;
-            }
-
-            if (binDir == null)
-            {
-                throw new Exception();
-            }
-
-            return binDir;
+            _nameMap[metadataReferenceInfo.FileName] = list;
+            return _mvidMap.TryGetValue(metadataReferenceInfo.ModuleVersionId, out assemblyInfo);
         }
     }
 }

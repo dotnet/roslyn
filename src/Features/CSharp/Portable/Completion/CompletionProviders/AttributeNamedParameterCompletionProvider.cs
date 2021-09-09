@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     return;
                 }
-                if (!(token.Parent.Parent is AttributeSyntax attributeSyntax) || !(token.Parent is AttributeArgumentListSyntax attributeArgumentList))
+
+                if (token.Parent.Parent is not AttributeSyntax attributeSyntax || token.Parent is not AttributeArgumentListSyntax attributeArgumentList)
                 {
                     return;
                 }

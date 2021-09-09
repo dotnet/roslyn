@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_missing_imports_on_paste">
         <source>Add missing imports on paste</source>
-        <target state="new">Add missing imports on paste</target>
+        <target state="translated">Dodaj brakujące dyrektywy import przy wklejaniu</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
@@ -51,6 +51,16 @@
         <source>Prefer 'Is Nothing' for reference equality checks</source>
         <target state="translated">Preferuj wyrażenie „Is Nothing” w przypadku sprawdzeń odwołań pod kątem równości</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_object_creation">
+        <source>Prefer simplified object creation</source>
+        <target state="translated">Preferuj uproszczone tworzenie obiektów</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_Imports">
+        <source>Remove unnecessary Imports</source>
+        <target state="translated">Usuń niepotrzebne dyrektywy Import</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
@@ -166,6 +176,11 @@
         <source>Import Directives</source>
         <target state="translated">Dyrektywy import</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Sort_imports">
+        <source>Sort imports</source>
+        <target state="translated">Sortuj dyrektywy Import</target>
+        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>

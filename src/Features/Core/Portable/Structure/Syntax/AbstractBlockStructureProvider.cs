@@ -30,50 +30,21 @@ namespace Microsoft.CodeAnalysis.Structure
             _triviaProviderMap = defaultTriviaOutlinerMap;
         }
 
-        /// <summary>
-        /// Keep in sync with <see cref="ProvideBlockStructureAsync"/>
-        /// </summary>
         public override void ProvideBlockStructure(BlockStructureContext context)
         {
             try
             {
                 var syntaxRoot = context.SyntaxTree.GetRoot(context.CancellationToken);
+                using var spans = TemporaryArray<BlockSpan>.Empty;
+                BlockSpanCollector.CollectBlockSpans(
+                    syntaxRoot, context.OptionProvider, _nodeProviderMap, _triviaProviderMap, ref spans.AsRef(), context.CancellationToken);
 
-                ProvideBlockStructureWorker(context, syntaxRoot);
+                foreach (var span in spans)
+                    context.AddBlockSpan(span);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        /// <summary>
-        /// Keep in sync with <see cref="ProvideBlockStructure"/>
-        /// </summary>
-        public override async Task ProvideBlockStructureAsync(BlockStructureContext context)
-        {
-            try
-            {
-                var syntaxRoot = await context.SyntaxTree.GetRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-                ProvideBlockStructureWorker(context, syntaxRoot);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        private void ProvideBlockStructureWorker(
-            BlockStructureContext context, SyntaxNode syntaxRoot)
-        {
-            using var spans = TemporaryArray<BlockSpan>.Empty;
-            BlockSpanCollector.CollectBlockSpans(
-                syntaxRoot, context.OptionProvider, _nodeProviderMap, _triviaProviderMap, ref spans.AsRef(), context.CancellationToken);
-
-            foreach (var span in spans)
-            {
-                context.AddBlockSpan(span);
             }
         }
     }

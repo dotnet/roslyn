@@ -35,12 +35,16 @@ namespace RunTests
         {
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
-
             var options = Options.Parse(args);
             if (options == null)
             {
                 return ExitFailure;
             }
+
+            ConsoleUtil.WriteLine($"Running '{options.DotnetFilePath} --version'..");
+            var dotnetResult = await ProcessRunner.CreateProcess(options.DotnetFilePath, arguments: "--version", captureOutput: true).Result;
+            ConsoleUtil.WriteLine(string.Join(Environment.NewLine, dotnetResult.OutputLines));
+            ConsoleUtil.WriteLine(ConsoleColor.Red, string.Join(Environment.NewLine, dotnetResult.ErrorLines));
 
             if (options.CollectDumps)
             {
@@ -136,7 +140,9 @@ namespace RunTests
             ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
             ConsoleUtil.WriteLine($"Running {assemblyCount} test assemblies in {assemblyInfoList.Count} partitions");
 
-            var result = await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
+            var result = options.UseHelix
+                ? await testRunner.RunAllOnHelixAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true)
+                : await testRunner.RunAllAsync(assemblyInfoList, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
@@ -186,6 +192,7 @@ namespace RunTests
             var logFilePath = Path.Combine(options.LogFilesDirectory, "runtests.log");
             try
             {
+                Directory.CreateDirectory(options.LogFilesDirectory);
                 using (var writer = new StreamWriter(logFilePath, append: false))
                 {
                     Logger.WriteTo(writer);
@@ -364,8 +371,7 @@ namespace RunTests
                 dotnetFilePath: options.DotnetFilePath,
                 procDumpInfo: options.CollectDumps ? GetProcDumpInfo(options) : null,
                 testResultsDirectory: options.TestResultsDirectory,
-                trait: options.Trait,
-                noTrait: options.NoTrait,
+                testFilter: options.TestFilter,
                 includeHtml: options.IncludeHtml,
                 retry: options.Retry);
             return new ProcessTestExecutor(testExecutionOptions);

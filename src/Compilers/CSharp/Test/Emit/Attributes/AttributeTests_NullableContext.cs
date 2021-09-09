@@ -88,11 +88,11 @@ public class Program
             comp.VerifyEmitDiagnostics();
 
             // C#8, nullable disabled
-            comp = CreateCompilation(new[] { source1, source2 }, options: WithNonNullTypesFalse());
+            comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableDisable());
             comp.VerifyEmitDiagnostics();
 
             // C#8, nullable enabled
-            comp = CreateCompilation(new[] { source1, source2 }, options: WithNonNullTypesTrue());
+            comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
             comp.VerifyEmitDiagnostics(
                 // (3,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.NullableContextAttribute..ctor'
                 //     public object F(object arg) => arg;
