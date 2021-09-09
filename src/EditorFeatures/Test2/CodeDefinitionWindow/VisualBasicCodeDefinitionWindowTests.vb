@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 Class $$[|C|]
 End Class"
 
-            Await VerifyContextLocationInSameFile(code, "C")
+            Await VerifyContextLocationAsync(code, "C")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -28,7 +28,7 @@ Class [|C|]
     End Sub
 End Class"
 
-            Await VerifyContextLocationInSameFile(code, "C")
+            Await VerifyContextLocationAsync(code, "C")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -39,7 +39,7 @@ Class C
     End Sub
 End Class"
 
-            Await VerifyContextLocationInSameFile(code, "Public Sub M()")
+            Await VerifyContextLocationAsync(code, "Public Sub M()")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -51,7 +51,7 @@ Class C
     End Sub
 End Class"
 
-            Await VerifyContextLocationInSameFile(code, "Public Sub M()")
+            Await VerifyContextLocationAsync(code, "Public Sub M()")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -73,10 +73,10 @@ Module Program
     End Sub
 End Module"
 
-            Await VerifyContextLocationInSameFile(code, "Public Sub M(Of T)(list As System.Collections.Generic.List(Of T))")
+            Await VerifyContextLocationAsync(code, "Public Sub M(Of T)(list As System.Collections.Generic.List(Of T))")
         End Function
 
-        Protected Overrides Function CreateWorkspace(code As String, Optional testComposition As TestComposition = Nothing) As TestWorkspace
+        Protected Overrides Function CreateWorkspace(code As String, testComposition As TestComposition) As TestWorkspace
             Return TestWorkspace.CreateVisualBasic(code, composition:=testComposition)
         End Function
     End Class

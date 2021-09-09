@@ -17,7 +17,7 @@ class $$[|C|]
 {
 }"
 
-            Await VerifyContextLocationInSameFile(code, "C")
+            Await VerifyContextLocationAsync(code, "C")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -31,7 +31,7 @@ class [|C|]
     }
 }"
 
-            Await VerifyContextLocationInSameFile(code, "C")
+            Await VerifyContextLocationAsync(code, "C")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -44,7 +44,7 @@ class C
     }
 }"
 
-            Await VerifyContextLocationInSameFile(code, "C.M()")
+            Await VerifyContextLocationAsync(code, "C.M()")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -58,7 +58,7 @@ class C
     }
 }"
 
-            Await VerifyContextLocationInSameFile(code, "C.M()")
+            Await VerifyContextLocationAsync(code, "C.M()")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -79,7 +79,7 @@ class C
     }
 }"
 
-            Await VerifyContextLocationInSameFile(code, "Ex.M<T>(System.Collections.Generic.List<T>)")
+            Await VerifyContextLocationAsync(code, "Ex.M<T>(System.Collections.Generic.List<T>)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -94,7 +94,7 @@ class C
 
         End Function
 
-        Protected Overrides Function CreateWorkspace(code As String, Optional testComposition As TestComposition = Nothing) As TestWorkspace
+        Protected Overrides Function CreateWorkspace(code As String, testComposition As TestComposition) As TestWorkspace
             Return TestWorkspace.CreateCSharp(code, composition:=testComposition)
         End Function
     End Class

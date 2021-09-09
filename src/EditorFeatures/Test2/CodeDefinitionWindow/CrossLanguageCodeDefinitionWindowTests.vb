@@ -16,7 +16,6 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
     <UseExportProvider>
     Public Class CrossLanguageCodeDefinitionWindowTests
-        Inherits AbstractCodeDefinitionWindowTests
 
         Private Class FakeNavigableItem
             Implements INavigableItem
@@ -104,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                         </Document>
                     </Project>
                 </Workspace>,
-                composition:=TestComposition.AddParts(GetType(FakeGoToDefinitionService)))
+                composition:=AbstractCodeDefinitionWindowTests.TestComposition.AddParts(GetType(FakeGoToDefinitionService)))
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
@@ -148,32 +147,10 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                         </Document>
                     </Project>
                 </Workspace>,
-                composition:=TestComposition)
+                composition:=AbstractCodeDefinitionWindowTests.TestComposition)
 
-                Dim vbHostDocument = workspace.Documents.Single(Function(d) d.Project.Language = LanguageNames.VisualBasic)
-                Dim document As Document = workspace.CurrentSolution.GetDocument(vbHostDocument.Id)
-
-                Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
-                Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
-                    document,
-                    vbHostDocument.CursorPosition.Value,
-                    CancellationToken.None)
-
-                Dim csHostDocument = workspace.Documents.Single(Function(d) d.Project.Language = LanguageNames.CSharp)
-                Dim tree = Await workspace.CurrentSolution.GetDocument(csHostDocument.Id).GetSyntaxTreeAsync()
-                Dim expectedSpan = tree.GetLocation(csHostDocument.SelectedSpans.Single()).GetLineSpan()
-                Dim expectedLocation = New CodeDefinitionWindowLocation(
-                    "Class1.M()",
-                    expectedSpan.Path,
-                    expectedSpan.StartLinePosition)
-
-                Assert.Equal(expectedLocation, Assert.Single(locations))
+                Await AbstractCodeDefinitionWindowTests.VerifyContextLocationAsync("Class1.M()", workspace)
             End Using
-        End Function
-
-        Protected Overrides Function CreateWorkspace(code As String, Optional testComposition As TestComposition = Nothing) As TestWorkspace
-            Assert.False(True)
-            Return Nothing
         End Function
     End Class
 End Namespace
