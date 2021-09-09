@@ -754,10 +754,11 @@ static class Program
                 Await state.AssertSelectedCompletionItem("awaitf")
 
                 state.SendTab()
-                ' In the awaitf case, .ConfigureAwait(false) is inserted at the cursor position and the cursor is expected to be right after .ConfigureAwait(false)
-                Dim committedAwaitf = committed.Replace("$$", ".ConfigureAwait(false)$$")
+                Dim committedAwaitf = committed
                 Dim committedCursorPosition = committedAwaitf.IndexOf("$$")
                 committedAwaitf = committedAwaitf.Replace("$$", "")
+                Dim committedAwaitfBeforeCursor = committedAwaitf.Substring(0, committedCursorPosition)
+                Dim committedAwaitfAfterCursor = committedAwaitf.Substring(committedCursorPosition)
                 Assert.Equal($"
 using System.Threading.Tasks;
 
@@ -766,11 +767,12 @@ static class Program
     static async Task Main()
     {{
         var someTask = Task.CompletedTask;
-        {committedAwaitf}
+        {committedAwaitfBeforeCursor}.ConfigureAwait(false){committedAwaitfAfterCursor}
     }}
 }}
 ", state.GetDocumentText())
-                Await state.AssertLineTextAroundCaret($"        {committedAwaitf.Substring(0, committedCursorPosition)}", committedAwaitf.Substring(committedCursorPosition))
+                ' the expected cursor position is right after the inserted .ConfigureAwait(false)
+                Await state.AssertLineTextAroundCaret($"        {committedAwaitfBeforeCursor}.ConfigureAwait(false)", committedAwaitfAfterCursor)
             End Using
         End Function
 
@@ -788,7 +790,7 @@ public class C
     }
 }
 ]]>
-                                            </Document>)
+                </Document>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("await")
                 Await state.AssertCompletionItemsDoNotContainAny("awaitf")
@@ -825,7 +827,7 @@ public class C
     }
 }
 ]]>
-                                                </Document>)
+                </Document>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("await", "awaitf")
                 state.SendTypeChars("af")
@@ -861,7 +863,7 @@ public class C
     public void MyFunctionCall() {}
 }
 ]]>
-                                                    </Document>)
+                </Document>)
                 state.SendTypeChars("aw")
                 Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=FeaturesResources.Make_containing_scope_async)
 
