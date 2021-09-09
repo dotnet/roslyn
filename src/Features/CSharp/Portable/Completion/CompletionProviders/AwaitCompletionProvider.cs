@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (potentialAwaitableExpression is ExpressionSyntax expression)
             {
-                if (expression.ShouldBeTreatedAsTypeInsteadOfExpression(semanticModel, out _, out var container))
+                if (expression.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(semanticModel, out _, out var container))
                     return container;
             }
 

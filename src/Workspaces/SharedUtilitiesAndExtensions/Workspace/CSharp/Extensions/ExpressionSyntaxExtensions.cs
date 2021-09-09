@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// </code>
         /// Here "stringList.await" is thought of as the return type of a local function.
         /// </summary>
-        public static bool ShouldBeTreatedAsTypeInsteadOfExpression(
+        public static bool ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(
             this ExpressionSyntax name,
             SemanticModel semanticModel,
             out SymbolInfo leftHandBinding,

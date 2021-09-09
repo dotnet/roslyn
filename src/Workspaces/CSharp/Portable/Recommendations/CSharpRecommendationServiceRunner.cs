@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             if (_context.IsEnumTypeMemberAccessContext)
                 return GetSymbolsOffOfExpression(name);
 
-            if (name.ShouldBeTreatedAsTypeInsteadOfExpression(_context.SemanticModel, out var nameBinding, out var container))
+            if (name.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(_context.SemanticModel, out var nameBinding, out var container))
                 return GetSymbolsOffOfBoundExpression(name, name, nameBinding, container, unwrapNullable: false);
 
             // We're in a name-only context, since if we were an expression we'd be a
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
         private ITypeSymbol? GetContainerForUnnamedSymbols(SemanticModel semanticModel, ExpressionSyntax originalExpression)
         {
-            return originalExpression.ShouldBeTreatedAsTypeInsteadOfExpression(_context.SemanticModel, out _, out var container)
+            return originalExpression.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(_context.SemanticModel, out _, out var container)
                 ? container
                 : semanticModel.GetTypeInfo(originalExpression, _cancellationToken).Type;
         }
