@@ -29,6 +29,9 @@ $DotNetInstallScriptRoot = Resolve-Path $DotNetInstallScriptRoot
 # Look up actual required .NET Core SDK version from global.json
 $sdkVersion = & "$PSScriptRoot/../azure-pipelines/variables/DotNetSdkVersion.ps1"
 
+$arch = 'x64'
+if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { $arch = 'ARM64' }
+
 # Search for all .NET Core runtime versions referenced from MSBuild projects and arrange to install them.
 $runtimeVersions = @()
 $windowsDesktopRuntimeVersions = @()
@@ -51,6 +54,15 @@ Get-ChildItem "$PSScriptRoot\..\src\*.*proj","$PSScriptRoot\..\test\*.*proj","$P
             $windowsDesktopRuntimeVersions += $v
         }
     }
+
+	# Add target frameworks of the form: netXX
+	$targetFrameworks |? { $_ -match 'net(\d+\.\d+)' } |% {
+        $v = $Matches[1]
+        $runtimeVersions += $v
+        if (-not ($IsMacOS -or $IsLinux)) {
+            $windowsDesktopRuntimeVersions += $v
+        }
+	}
 }
 
 Function Get-FileFromWeb([Uri]$Uri, $OutDir) {
@@ -77,7 +89,7 @@ Function Get-InstallerExe($Version, [switch]$Runtime) {
         $Version = $versionInfo[-1]
     }
 
-    Get-FileFromWeb -Uri "https://dotnetcli.blob.core.windows.net/dotnet/$sdkOrRuntime/$Version/dotnet-$($sdkOrRuntime.ToLowerInvariant())-$Version-win-x64.exe" -OutDir "$DotNetInstallScriptRoot"
+    Get-FileFromWeb -Uri "https://dotnetcli.blob.core.windows.net/dotnet/$sdkOrRuntime/$Version/dotnet-$($sdkOrRuntime.ToLowerInvariant())-$Version-win-$arch.exe" -OutDir "$DotNetInstallScriptRoot"
 }
 
 Function Install-DotNet($Version, [switch]$Runtime) {
@@ -94,7 +106,7 @@ Function Install-DotNet($Version, [switch]$Runtime) {
 }
 
 $switches = @(
-    '-Architecture','x64'
+    '-Architecture',$arch
 )
 $envVars = @{
     # For locally installed dotnet, skip first time experience which takes a long time
