@@ -10,7 +10,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     internal static class SemanticClassificationCacheUtilities
     {
-        private static DocumentKey GetDocumentKeyForCaching(Document document)
+        public static async Task<(DocumentKey documentKey, Checksum checksum)> GetDocumentKeyAndChecksumAsync(
+            Document document, CancellationToken cancellationToken)
         {
             var project = document.Project;
 
@@ -20,26 +21,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // RELEASE state, we'll still find the entry.  The data may be inaccurate, but that's ok as this is just for
             // temporary classifying until the real classifier takes over when the solution fully loads.
             var projectKey = new ProjectKey(SolutionKey.ToSolutionKey(project.Solution), project.Id, project.FilePath, project.Name, Checksum.Null);
-            return new DocumentKey(projectKey, document.Id, document.FilePath, document.Name);
-        }
+            var documentKey = new DocumentKey(projectKey, document.Id, document.FilePath, document.Name);
 
-        private static async Task<Checksum> GetChecksumAsync(Document document, CancellationToken cancellationToken)
-        {
             // We only checksum off of the contents of the file.  During load, we can't really compute any other
             // information since we don't necessarily know about other files, metadata, or dependencies.  So during
             // load, we allow for the previous semantic classifications to be used as long as the file contents match.
             var checksums = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var textChecksum = checksums.Text;
-            return textChecksum;
-        }
 
-        public static async Task<(DocumentKey documentKey, Checksum checksum)> GetDocumentKeyAndChecksumAsync(
-            Document document, CancellationToken cancellationToken)
-        {
-            var documentKey = GetDocumentKeyForCaching(document);
-            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
-
-            return (documentKey, checksum);
+            return (documentKey, checksums.Text);
         }
     }
 }
