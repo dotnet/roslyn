@@ -703,6 +703,70 @@ class C
         }
 
         [Fact]
+        public async Task TestDotAwaitQueryNotInContinuation()
+        {
+            await VerifyNoItemsExistAsync(@"
+using System.Linq;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task F()
+    {
+        var array1 = new int[0];
+        var arrayTask2 = Task.FromResult(new int[0]);
+        var z = from i1 in array1
+                select i1 into c
+                from i2 in arrayTask2.$$
+                select i2;
+    }
+}
+");
+        }
+
+        [Fact]
+        public async Task TestDotAwaitQueryInJoinClause()
+        {
+            await VerifyKeywordAsync(@"
+using System.Linq;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task F()
+    {
+        var array1 = new int[0];
+        var arrayTask2 = Task.FromResult(new int[0]);
+        var z = from i1 in array1
+                join i2 in arrayTask2.$$ on i1 equals i2
+                select i1;
+    }
+}
+", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+        }
+
+        [Fact]
+        public async Task TestDotAwaitQueryInJoinIntoClause()
+        {
+            await VerifyKeywordAsync(@"
+using System.Linq;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task F()
+    {
+        var array1 = new int[0];
+        var arrayTask2 = Task.FromResult(new int[0]);
+        var z = from i1 in array1
+                join i2 in arrayTask2.$$ on i1 equals i2 into g
+                select g;
+    }
+}
+", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+        }
+
+        [Fact]
         public async Task TestDotAwaitNotAfterConditionalAccessOfTaskMembers()
         {
             // The conditional access suggests, that someTask can be null.
