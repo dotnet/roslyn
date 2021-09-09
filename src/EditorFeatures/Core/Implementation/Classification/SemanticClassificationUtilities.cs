@@ -212,8 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             var checksum = checksums.Text;
 
             var result = await semanticCacheService.GetCachedSemanticClassificationsAsync(
-                SemanticClassificationCacheUtilities.GetDocumentKeyForCaching(document),
-                textSpan, checksum, cancellationToken).ConfigureAwait(false);
+                document, textSpan, checksum, cancellationToken).ConfigureAwait(false);
             if (result.IsDefault)
                 return false;
 

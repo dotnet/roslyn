@@ -7,41 +7,30 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassificationCache
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     [ExportWorkspaceService(typeof(ISemanticClassificationCacheService), ServiceLayer.Host), Shared]
-    internal class VisualStudioSemanticClassificationCacheService
-        : ForegroundThreadAffinitizedObject, ISemanticClassificationCacheService
+    internal class EditorSemanticClassificationCacheService : ISemanticClassificationCacheService
     {
-        private readonly VisualStudioWorkspaceImpl _workspace;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioSemanticClassificationCacheService(
-            VisualStudioWorkspaceImpl workspace,
-            IThreadingContext threadingContext)
-            : base(threadingContext)
+        public EditorSemanticClassificationCacheService()
         {
-            _workspace = workspace;
         }
 
         public async Task<ImmutableArray<ClassifiedSpan>> GetCachedSemanticClassificationsAsync(
-            DocumentKey documentKey,
+            Document document,
             TextSpan textSpan,
             Checksum checksum,
             CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            var client = await RemoteHostClient.TryGetClientAsync(document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 // We don't do anything if we fail to get the external process.  That's the case when something has gone
@@ -50,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
                 return default;
             }
 
+            var documentKey = SemanticClassificationCacheUtilities.GetDocumentKeyForCaching(document);
             var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService, SerializableClassifiedSpans?>(
                 (service, cancellationToken) => service.GetCachedSemanticClassificationsAsync(documentKey, textSpan, checksum, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
