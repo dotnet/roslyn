@@ -199,16 +199,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var oldProject = oldSolution.GetProject(newProject.Id);
 
-            // When debugging session is started some projects might not have been loaded to the workspace yet. 
-            // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
-            // and will result in source mismatch when the user steps into them.
-            //
-            // TODO (https://github.com/dotnet/roslyn/issues/1204):
-            // hook up the debugger reported error, check that the project has not been loaded and report a better error.
-            // Here, we assume these projects are not modified.
             if (oldProject == null)
             {
                 EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", newProject.Id.DebugName, newProject.Id);
+
+                // TODO (https://github.com/dotnet/roslyn/issues/1204):
+                //
+                // When debugging session is started some projects might not have been loaded to the workspace yet (may be explicitly unloaded by the user).
+                // We capture the base solution. Edits in files that are in projects that haven't been loaded won't be applied
+                // and will result in source mismatch when the user steps into them.
+                //
+                // We can allow project to be added by including all its documents here.
+                // When we analyze these documents later on we'll check if they match the PDB.
+                // If so we can add them to the committed solution and detect further changes.
+                // It might be more efficient though to track added projects separately.
+
                 return;
             }
 
@@ -293,9 +298,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(CommittedSolution oldSolution, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
+        internal static async IAsyncEnumerable<DocumentId> GetChangedDocumentsAsync(Project oldProject, Project newProject, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var oldProject = oldSolution.GetRequiredProject(newProject.Id);
+            Debug.Assert(oldProject.Id == newProject.Id);
 
             if (!newProject.SupportsEditAndContinue() || oldProject.State == newProject.State)
             {
@@ -739,10 +744,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
-                    var oldProject = oldSolution.GetProject(newProject.Id);
-                    Contract.ThrowIfNull(oldProject);
-
                     // Ensure that all changed documents are in-sync. Once a document is in-sync it can't get out-of-sync.
                     // Therefore, results of further computations based on base snapshots of changed documents can't be invalidated by 
                     // incoming events updating the content of out-of-sync documents.
@@ -818,6 +819,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", newProject.Id.DebugName, newProject.Id);
+
+                    // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
+                    var oldProject = oldSolution.GetProject(newProject.Id);
+                    Contract.ThrowIfNull(oldProject);
 
                     var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
