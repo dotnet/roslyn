@@ -58,5 +58,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings
                 }
             }
         }
+
+        protected override IEnumerable<SyntaxNode> ExtractNodesInHeader(SyntaxNode root, int location, ISyntaxFactsService syntaxFacts)
+        {
+            foreach (var node in base.ExtractNodesInHeader(root, location, syntaxFacts))
+            {
+                yield return node;
+            }
+
+            var token = root.FindToken(location);
+
+        }
     }
 }

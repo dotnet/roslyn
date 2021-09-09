@@ -5622,6 +5622,254 @@ namespace PushUpTest
             await TestInRegularAndScriptAsync(testText, expected);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringFieldFromModifier()
+        {
+            var testText = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    pub[||]lic int TestInt;
+}";
+
+            var expected = @"
+class Base
+{
+    public int TestInt;
+}
+
+class Derived : Base
+{
+}";
+            return TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringFieldFromInitializer()
+        {
+            var testText = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    public int TestInt = string.Emp[||]ty.Length;
+}";
+
+            return TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringFieldFromType()
+        {
+            var testText = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    public i[||]nt TestInt;
+}";
+
+            var expected = @"
+class Base
+{
+    public int TestInt;
+}
+
+class Derived : Base
+{
+}";
+            return TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringMultipleFieldsOnModifier()
+        {
+            var testText = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    pub[||]lic int I, J;
+}";
+            return TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringFieldFromAttribute()
+        {
+            var testText = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    [Go[||]o]
+    public int TestInt = string.Empty.Length;
+}
+
+internal class GooAttribute : Attribute
+{
+}";
+
+            return TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringMultipleFieldsOnType()
+        {
+            var testText = @"
+class Base
+{
+}
+
+class Derived : Base
+{
+    public i[||]nt I, J;
+}";
+            return TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringEventFromModifier()
+        {
+            var testText = @"
+using System;
+class Base
+{
+}
+
+class Derived : Base
+{
+    publ[||]ic event EventHandler e;
+}";
+
+            var expected = @"
+using System;
+class Base
+{
+    public event EventHandler e;
+}
+
+class Derived : Base
+{
+}";
+            return TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringEventFromEventKeyword()
+        {
+            var testText = @"
+using System;
+class Base
+{
+}
+
+class Derived : Base
+{
+    public ev[||]ent EventHandler e;
+}";
+
+            var expected = @"
+using System;
+class Base
+{
+    public event EventHandler e;
+}
+
+class Derived : Base
+{
+}";
+            return TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringEventFromEventHandler()
+        {
+            var testText = @"
+using System;
+class Base
+{
+}
+
+class Derived : Base
+{
+    public event Eve[||]ntHandler e;
+}";
+
+            var expected = @"
+using System;
+class Base
+{
+    public event EventHandler e;
+}
+
+class Derived : Base
+{
+}";
+            return TestInRegularAndScriptAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringMutipleEventsOnEventHandler()
+        {
+            var testText = @"
+using System;
+class Base
+{
+}
+
+class Derived : Base
+{
+    public event Eve[||]ntHandler e, e1;
+}";
+
+            return TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringMutipleEventsOnModifier()
+        {
+            var testText = @"
+using System;
+class Base
+{
+}
+
+class Derived : Base
+{
+    pu[||]blic event EventHandler e, e1;
+}";
+
+            return TestQuickActionNotProvidedAsync(testText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public Task TestRefactoringMutipleEventsOnEventKeyword()
+        {
+            var testText = @"
+using System;
+class Base
+{
+}
+
+class Derived : Base
+{
+    public e[||]vent EventHandler e, e1;
+}";
+
+            return TestQuickActionNotProvidedAsync(testText);
+        }
         #endregion
     }
 }
