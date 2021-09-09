@@ -126,8 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return false;
             }
 
-            var local = (ILocalSymbol?)semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
-            Contract.ThrowIfNull(local);
+            var local = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(declarator, cancellationToken);
 
             var initializerConversion = semanticModel.GetConversion(declarator.Initializer.Value, cancellationToken);
 
