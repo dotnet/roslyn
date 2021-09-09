@@ -4047,6 +4047,98 @@ public class Bar : BaseClass
             return TestInRegularAndScriptAsync(text, expected);
         }
 
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullFieldToClassBeforeDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int G[||]oo = 100;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 100;
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullEventToClassBeforeDirective()
+        {
+            var text = @"
+using System;
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public event EventHandler e[||]1;
+    #endregion
+}";
+            var expected = @"
+using System;
+public class BaseClass
+{
+    public event EventHandler e1;
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullPropertyToClassBeforeDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int Go[||]o => 1;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo => 1;
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
         #endregion Quick Action
 
         #region Dialog
