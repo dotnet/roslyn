@@ -1455,12 +1455,12 @@ done:
                         member.Symbol is { Name: WellKnownMemberNames.LengthPropertyName or WellKnownMemberNames.CountPropertyName, Kind: SymbolKind.Property } memberSymbol)
                     {
                         TypeSymbol receiverType = member.Receiver?.Type ?? inputType;
-                        isLengthOrCount = receiverType.TypeKind switch
+                        if (!receiverType.IsErrorType())
                         {
-                            TypeKind.Error => false,
-                            TypeKind.Array => ((ArrayTypeSymbol)receiverType).IsSZArray && ReferenceEquals(memberSymbol, Compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length)),
-                            _ => TryPerformPatternIndexerLookup(node, receiverType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, lengthProperty: out _, BindingDiagnosticBag.Discarded),
-                        };
+                            isLengthOrCount = receiverType.IsSZArray()
+                                ? ReferenceEquals(memberSymbol, Compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length))
+                                : TryPerformPatternIndexerLookup(node, receiverType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, lengthProperty: out _, BindingDiagnosticBag.Discarded);
+                        }
                     }
                 }
 
