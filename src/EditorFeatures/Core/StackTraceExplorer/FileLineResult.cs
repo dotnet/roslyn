@@ -5,9 +5,9 @@
 using System.Diagnostics.Contracts;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
+namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
-    internal class FileLineResult : ParsedLine
+    internal class FileLineResult : StackTraceLine
     {
         public TextSpan FileSpan { get; set; }
 

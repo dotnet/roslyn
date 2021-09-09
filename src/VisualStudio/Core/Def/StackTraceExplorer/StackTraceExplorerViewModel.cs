@@ -7,19 +7,19 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.CallstackExplorer;
+using Microsoft.CodeAnalysis.Editor.StackTraceExplorer;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
+namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
-    internal class CallstackExplorerViewModel : ViewModelBase
+    internal class StackTraceExplorerViewModel : ViewModelBase
     {
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
 
-        public ObservableCollection<CallstackLineViewModel> CallstackLines { get; } = new();
+        public ObservableCollection<StackTraceLineViewModel> CallstackLines { get; } = new();
 
         private bool _isLoading;
         private readonly ClassificationTypeMap _classificationTypeMap;
@@ -31,14 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
             set => SetProperty(ref _isLoading, value);
         }
 
-        private CallstackLineViewModel? _selection;
-        public CallstackLineViewModel? Selection
+        private StackTraceLineViewModel? _selection;
+        public StackTraceLineViewModel? Selection
         {
             get => _selection;
             set => SetProperty(ref _selection, value);
         }
 
-        public CallstackExplorerViewModel(IThreadingContext threadingContext, Workspace workspace, ClassificationTypeMap classificationTypeMap, IClassificationFormatMap formatMap)
+        public StackTraceExplorerViewModel(IThreadingContext threadingContext, Workspace workspace, ClassificationTypeMap classificationTypeMap, IClassificationFormatMap formatMap)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
@@ -74,8 +74,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
             {
                 try
                 {
-                    var result = await CallstackAnalyzer.AnalyzeAsync(text, _threadingContext.DisposalToken).ConfigureAwait(false);
-                    var viewModels = result.ParsedLines.Select(l => new CallstackLineViewModel(l, _threadingContext, _workspace, _formatMap, _classificationTypeMap));
+                    var result = await StackTraceAnalyzer.AnalyzeAsync(text, _threadingContext.DisposalToken).ConfigureAwait(false);
+                    var viewModels = result.ParsedLines.Select(l => new StackTraceLineViewModel(l, _threadingContext, _workspace, _formatMap, _classificationTypeMap));
 
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 

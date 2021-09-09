@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.CallstackExplorer.CallstackExplorerRoot"
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer.StackTraceExplorerRoot"
              x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

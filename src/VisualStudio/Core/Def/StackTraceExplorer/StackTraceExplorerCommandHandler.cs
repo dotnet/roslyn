@@ -11,15 +11,15 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
+namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
-    internal class CallstackExplorerMenuCommand
+    internal class StackTraceExplorerCommandHandler
     {
         private readonly RoslynPackage _package;
         private readonly IThreadingContext _threadingContext;
-        private static CallstackExplorerMenuCommand? _instance;
+        private static StackTraceExplorerCommandHandler? _instance;
 
-        private CallstackExplorerMenuCommand(RoslynPackage package, IThreadingContext threadingContext)
+        private StackTraceExplorerCommandHandler(RoslynPackage package, IThreadingContext threadingContext)
         {
             _package = package;
             _threadingContext = threadingContext;
@@ -39,12 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
             window.ViewModel?.OnPaste();
         }
 
-        private CallstackExplorerToolWindow GetOrInitializeWindow()
+        private StackTraceExplorerToolWindow GetOrInitializeWindow()
         {
             // Get the instance number 0 of this tool window. This window is single instance so this instance
             // is actually the only one.
             // The last flag is set to true so that if the tool window does not exists it will be created.
-            var window = _package.FindToolWindow(typeof(CallstackExplorerToolWindow), 0, true) as CallstackExplorerToolWindow;
+            var window = _package.FindToolWindow(typeof(StackTraceExplorerToolWindow), 0, true) as StackTraceExplorerToolWindow;
             if (window is not { Frame: not null })
             {
                 throw new NotSupportedException("Cannot create tool window");

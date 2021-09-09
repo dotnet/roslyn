@@ -17,17 +17,17 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
+namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
 
     /// <summary>
     /// Interaction logic for CallstackExplorerRoot.xaml
     /// </summary>
-    internal partial class CallstackExplorerRoot : UserControl
+    internal partial class StackTraceExplorerRoot : UserControl
     {
         public string EmptyText => "Paste into the window to get started";
 
-        public CallstackExplorerRoot()
+        public StackTraceExplorerRoot()
         {
             InitializeComponent();
         }

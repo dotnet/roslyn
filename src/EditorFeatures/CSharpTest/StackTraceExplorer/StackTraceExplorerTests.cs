@@ -6,16 +6,16 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CallstackExplorer;
+using Microsoft.CodeAnalysis.Editor.StackTraceExplorer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CallstackExplorer
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StackTraceExplorer
 {
     [UseExportProvider]
-    public class CallstackExplorerTests
+    public class StackTraceExplorerTests
     {
         private const string BaseCode = @"using System;
 
@@ -93,7 +93,7 @@ namespace ConsoleApp4
         public async Task TestSymbolFound(string inputLine, string symbolText)
         {
             var workspace = CreateWorkspace();
-            var result = await CallstackAnalyzer.AnalyzeAsync(inputLine, CancellationToken.None);
+            var result = await StackTraceAnalyzer.AnalyzeAsync(inputLine, CancellationToken.None);
             Assert.Single(result.ParsedLines);
 
             var symbol = await result.ParsedLines[0].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
@@ -114,7 +114,7 @@ namespace ConsoleApp4
  	ConsoleApp4.dll!ConsoleApp4.Program.Main(string[] args) Line 10	C#
 ";
 
-            var result = await CallstackAnalyzer.AnalyzeAsync(callstack, CancellationToken.None);
+            var result = await StackTraceAnalyzer.AnalyzeAsync(callstack, CancellationToken.None);
             Assert.Equal(5, result.ParsedLines.Length);
 
             var symbol = await result.ParsedLines[0].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
@@ -151,7 +151,7 @@ namespace ConsoleApp4
    at ConsoleApp4.Program.Main(String[] args) in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 12
 ";
 
-            var result = await CallstackAnalyzer.AnalyzeAsync(callstack, CancellationToken.None);
+            var result = await StackTraceAnalyzer.AnalyzeAsync(callstack, CancellationToken.None);
             Assert.Equal(5, result.ParsedLines.Length);
 
             var fileLineResults = result.ParsedLines.OfType<FileLineResult>().ToImmutableArray();
@@ -185,7 +185,7 @@ namespace ConsoleApp4
         [InlineData("alksdjflkjsadf.cs:line 26")]
         public async Task TestFailureCases(string line)
         {
-            var result = await CallstackAnalyzer.AnalyzeAsync(line, CancellationToken.None);
+            var result = await StackTraceAnalyzer.AnalyzeAsync(line, CancellationToken.None);
             Assert.Empty(result.ParsedLines);
         }
     }

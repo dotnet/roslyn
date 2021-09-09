@@ -7,15 +7,15 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
+namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
     [Guid(Guids.CallstackExplorerToolWindowIdString)]
-    internal class CallstackExplorerToolWindow : ToolWindowPane
+    internal class StackTraceExplorerToolWindow : ToolWindowPane
     {
-        private readonly CallstackExplorerRoot _root = new();
+        private readonly StackTraceExplorerRoot _root = new();
 
-        private CallstackExplorerViewModel? _viewModel;
-        public CallstackExplorerViewModel? ViewModel
+        private StackTraceExplorerViewModel? _viewModel;
+        public StackTraceExplorerViewModel? ViewModel
         {
             get => _viewModel;
             set
@@ -26,10 +26,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
                 }
 
                 _viewModel = value;
-                _root.SetChild(new CallstackExplorer(_viewModel));
+                _root.SetChild(new StackTraceExplorer(_viewModel));
             }
         }
-        public CallstackExplorerToolWindow() : base(null)
+        public StackTraceExplorerToolWindow() : base(null)
         {
             Caption = "Callstack Explorer";
             Content = _root;

@@ -5,31 +5,30 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
+namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
-    internal static class CallstackAnalyzer
+    internal static class StackTraceAnalyzer
+
     {
         private const string StackTraceStart = "at ";
         private const string StackTraceSymbolAndFileSplit = " in ";
 
-        internal static Task<CallstackAnalysisResults> AnalyzeAsync(string callstack, CancellationToken _)
+        internal static Task<StackTraceAnalysisResult> AnalyzeAsync(string callstack, CancellationToken _)
         {
             var parsedLines = ParseLines(callstack);
 
-            return Task.FromResult(new CallstackAnalysisResults(
+            return Task.FromResult(new StackTraceAnalysisResult(
                 parsedLines.ToImmutableArray()));
         }
 
-        private static IEnumerable<ParsedLine> ParseLines(string callstack)
+        private static IEnumerable<StackTraceLine> ParseLines(string callstack)
         {
             foreach (var line in callstack.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
             {
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
             }
         }
 
-        private static bool TryParseDebugWindowStack(string line, [NotNullWhen(returnValue: true)] out ParsedLine? result)
+        private static bool TryParseDebugWindowStack(string line, [NotNullWhen(returnValue: true)] out StackTraceLine? result)
         {
             // Example line:
             // ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#
@@ -70,11 +69,11 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
                 return false;
             }
 
-            result = new ParsedLine(line, classSpan, methodSpan, argsSpan);
+            result = new StackTraceLine(line, classSpan, methodSpan, argsSpan);
             return true;
         }
 
-        private static bool TryParseStackTraceLine(string line, [NotNullWhen(returnValue: true)] out ParsedLine? parsedLine)
+        private static bool TryParseStackTraceLine(string line, [NotNullWhen(returnValue: true)] out StackTraceLine? parsedLine)
         {
             parsedLine = null;
             var success = TryParseMethodSignature(line, skipCharacters: 0, out var classSpan, out var methodSpan, out var argsSpan);
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
                 return true;
             }
 
-            parsedLine = new ParsedLine(line, classSpan, methodSpan, argsSpan);
+            parsedLine = new StackTraceLine(line, classSpan, methodSpan, argsSpan);
             return true;
         }
 
@@ -163,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
             methodSpan = new TextSpan(skipCharacters + methodGroup.Index, methodGroup.Length);
             argsSpan = argsGroup.Success
                 ? new TextSpan(skipCharacters + argsGroup.Index, argsGroup.Length)
-                : default;
+                : new TextSpan(skipCharacters + methodGroup.Index + methodGroup.Length, 0); // Default to a 0 length span at the end of the method text
 
             return true;
         }

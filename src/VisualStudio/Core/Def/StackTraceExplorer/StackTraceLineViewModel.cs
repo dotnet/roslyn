@@ -14,9 +14,9 @@ using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.CallstackExplorer;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.StackTraceExplorer;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
@@ -25,11 +25,11 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
+namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
-    internal class CallstackLineViewModel
+    internal class StackTraceLineViewModel
     {
-        private readonly ParsedLine _line;
+        private readonly StackTraceLine _line;
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
         private readonly IClassificationFormatMap _formatMap;
@@ -39,8 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
         private Document? _cachedDocument;
         private int _cachedLineNumber;
 
-        public CallstackLineViewModel(
-            ParsedLine line,
+        public StackTraceLineViewModel(
+            StackTraceLine line,
             IThreadingContext threadingContext,
             Workspace workspace,
             IClassificationFormatMap formatMap,

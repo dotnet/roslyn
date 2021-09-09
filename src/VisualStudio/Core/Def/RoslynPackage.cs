@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.CallstackExplorer;
+using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
     // The option page configuration is duplicated in PackageRegistration.pkgdef
     [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
-    [ProvideToolWindow(typeof(CallstackExplorerToolWindow))]
+    [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
     internal sealed class RoslynPackage : AbstractPackage
     {
         // The randomly-generated key name is used for serializing the Background Analysis Scope preference to the .SUO
@@ -250,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 return this;
             }
 
-            if (toolWindowType == typeof(CallstackExplorer.CallstackExplorerToolWindow).GUID)
+            if (toolWindowType == typeof(StackTraceExplorerToolWindow).GUID)
             {
                 return this;
             }
@@ -301,7 +301,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
-            CallstackExplorerMenuCommand.Initialize(menuCommandService, this);
+            StackTraceExplorerCommandHandler.Initialize(menuCommandService, this);
         }
 
         internal IComponentModel ComponentModel

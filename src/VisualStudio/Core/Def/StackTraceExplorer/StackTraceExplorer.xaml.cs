@@ -5,16 +5,16 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Microsoft.VisualStudio.LanguageServices.CallstackExplorer
+namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
     /// <summary>
     /// Interaction logic for CallstackExplorer.xaml
     /// </summary>
-    internal partial class CallstackExplorer : UserControl
+    internal partial class StackTraceExplorer : UserControl
     {
-        private readonly CallstackExplorerViewModel _viewModel;
+        private readonly StackTraceExplorerViewModel _viewModel;
 
-        public CallstackExplorer(CallstackExplorerViewModel viewModel)
+        public StackTraceExplorer(StackTraceExplorerViewModel viewModel)
         {
             DataContext = _viewModel = viewModel;
             InitializeComponent();

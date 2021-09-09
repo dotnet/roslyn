@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
+namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
     /// <summary>
-    /// A line of text that was parsed by <see cref="CallstackAnalyzer" />
+    /// A line of text that was parsed by <see cref="StackTraceAnalyzer" />
     /// to provide metadata bout the line. 
     /// </summary>
-    internal class ParsedLine
+    internal class StackTraceLine
     {
-        public ParsedLine(string originalLine, TextSpan classSpan, TextSpan methodSpan, TextSpan argsSpan)
+        public StackTraceLine(string originalLine, TextSpan classSpan, TextSpan methodSpan, TextSpan argsSpan)
         {
             Contract.ThrowIfTrue(classSpan.IsEmpty);
             Contract.ThrowIfTrue(methodSpan.IsEmpty);

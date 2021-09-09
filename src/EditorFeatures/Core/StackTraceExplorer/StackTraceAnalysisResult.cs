@@ -6,16 +6,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Editor.CallstackExplorer
+namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
-    internal class CallstackAnalysisResults
+    internal class StackTraceAnalysisResult
     {
-        public CallstackAnalysisResults(
-            ImmutableArray<ParsedLine> parsedLines)
+        public StackTraceAnalysisResult(
+            ImmutableArray<StackTraceLine> parsedLines)
         {
             ParsedLines = parsedLines;
         }
 
-        public ImmutableArray<ParsedLine> ParsedLines { get; }
+        public ImmutableArray<StackTraceLine> ParsedLines { get; }
     }
 }
