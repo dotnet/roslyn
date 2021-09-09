@@ -145,6 +145,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             // See if the call is to something slice-like.
             var targetMethod = invocation.TargetMethod;
+            if (targetMethod == null)
+                return null;
+
+            return AnalyzeTwoArgumentSubtractionInvocation(invocation, infoCache, invocationSyntax, targetMethod) ??
+                   AnalyzeTwoArgumentFromStartOrToEndInvocation(invocation, infoCache, invocationSyntax, targetMethod);
+        }
+
+        private static Result? AnalyzeTwoArgumentSubtractionInvocation(
+            IInvocationOperation invocation,
+            InfoCache infoCache,
+            InvocationExpressionSyntax invocationSyntax,
+            IMethodSymbol targetMethod)
+        {
+            Contract.ThrowIfNull(invocation.Instance);
 
             // Second arg needs to be a subtraction for: `end - e2`.  Once we've seen that we have
             // that, try to see if we're calling into some sort of Slice method with a matching
@@ -155,13 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return null;
             }
 
-            var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
-            // Need to make sure that if the target method is being written to, that the indexer returns a ref, is a read/write property,
-            // or the syntax allows for the slice method to be run
-            if (invocation.Syntax.IsLeftSideOfAnyAssignExpression() && indexer != null && IsWriteableIndexer(invocation, indexer))
-            {
+            if (!IsValidIndexing(invocation, infoCache, targetMethod))
                 return null;
-            }
 
             // See if we have: (start, end - start).  Specifically where the start operation it the
             // same as the right side of the subtraction.
@@ -192,6 +201,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             return null;
         }
 
+        private static Result? AnalyzeTwoArgumentFromStartOrToEndInvocation(
+            IInvocationOperation invocation,
+            InfoCache infoCache,
+            InvocationExpressionSyntax invocationSyntax,
+            IMethodSymbol targetMethod)
+        {
+            Contract.ThrowIfNull(invocation.Instance);
+
+            // if we have `x.Substring(0, end)` then that can just become `x[..end]`
+            // if we have `x.Substring(0, x.Length)` then that can just become `x[..]`
+            // if we have `x.Substring(0, x.Length - n)` then that is handled in AnalyzeTwoArgumentSubtractionInvocation
+
+            var startOperation = invocation.Arguments[0].Value;
+            if (!IsConstantInt32(startOperation, value: 0) ||
+                !infoCache.TryGetMemberInfo(targetMethod, out var memberInfo))
+            {
+                return null;
+            }
+
+            if (!IsValidIndexing(invocation, infoCache, targetMethod))
+                return null;
+
+            return new Result(
+                ResultKind.Computed,
+                invocation,
+                invocationSyntax,
+                targetMethod,
+                memberInfo,
+                startOperation,
+                invocation.Arguments[1].Value);
+        }
+
+        private static bool IsValidIndexing(IInvocationOperation invocation, InfoCache infoCache, IMethodSymbol targetMethod)
+        {
+            var indexer = GetIndexer(targetMethod.ContainingType, infoCache.RangeType, targetMethod.ContainingType);
+            // Need to make sure that if the target method is being written to, that the indexer returns a ref, is a read/write property,
+            // or the syntax allows for the slice method to be run
+            return !invocation.Syntax.IsLeftSideOfAnyAssignExpression() || indexer == null || !IsWriteableIndexer(invocation, indexer);
+        }
+
         private Diagnostic CreateDiagnostic(Result result, ReportDiagnostic severity)
         {
             // Keep track of the invocation node
@@ -214,8 +263,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 result.SliceLikeMethod.Name);
         }
 
-        private static bool IsConstantInt32(IOperation operation)
-            => operation.ConstantValue.HasValue && operation.ConstantValue.Value is int;
+        private static bool IsConstantInt32(IOperation operation, int? value = null)
+            => operation.ConstantValue.HasValue &&
+               operation.ConstantValue.Value is int i &&
+               (value == null || i == value);
 
         private static bool IsWriteableIndexer(IInvocationOperation invocation, IPropertySymbol indexer)
         {
