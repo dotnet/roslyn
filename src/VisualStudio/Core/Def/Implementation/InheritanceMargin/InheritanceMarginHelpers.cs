@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
@@ -153,9 +154,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 InheritanceRelationship.InheritedInterface => ServicesVSResources._0_is_inherited_from_1,
                 InheritanceRelationship.ImplementingType => ServicesVSResources._0_is_implemented_by_1,
                 InheritanceRelationship.ImplementedMember => ServicesVSResources._0_implements_1,
+                InheritanceRelationship.ImplementingMember => ServicesVSResources._0_is_implemented_by_1,
                 InheritanceRelationship.OverriddenMember => ServicesVSResources._0_overrides_1,
                 InheritanceRelationship.OverridingMember => ServicesVSResources._0_is_overridden_by_1,
-                InheritanceRelationship.ImplementingMember => ServicesVSResources._0_is_implemented_by_1,
                 _ => throw ExceptionUtilities.UnexpectedValue(headerRelationship),
             };
 
@@ -168,9 +169,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 InheritanceRelationship.InheritedInterface => ServicesVSResources._0_has_multiple_inherited_interfaces,
                 InheritanceRelationship.ImplementingType => ServicesVSResources._0_has_multiple_implementing_types,
                 InheritanceRelationship.ImplementedMember => ServicesVSResources._0_implements_members_from_multiple_interfaces,
+                InheritanceRelationship.ImplementingMember => ServicesVSResources._0_is_implemented_by_members_from_multiple_types,
                 InheritanceRelationship.OverriddenMember => ServicesVSResources._0_overrides_members_from_multiple_classes,
                 InheritanceRelationship.OverridingMember => ServicesVSResources._0_is_overridden_by_members_from_multiple_classes,
-                InheritanceRelationship.ImplementingMember => ServicesVSResources._0_is_implemented_by_members_from_multiple_types,
                 _ => throw ExceptionUtilities.UnexpectedValue(headerRelationship)
             };
 
@@ -262,11 +263,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return (tooltipTextBlock, automationName);
             }
 
-            using var _ = CodeAnalysis.PooledObjects.PooledHashSet<InheritanceRelationship>.GetInstance(out var targetRelationshipSet);
+            using var _ = PooledHashSet<InheritanceRelationship>.GetInstance(out var targetRelationshipSet);
             foreach (var target in targets)
-            {
                 targetRelationshipSet.Add(target.RelationToMember);
-            }
 
             if (targetRelationshipSet.Count == 1)
             {
@@ -311,8 +310,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             params ImmutableArray<TaggedText>[] taggedTexts)
         {
             Contract.ThrowIfTrue(taggedTexts.Length == 0);
-            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<Inline>.GetInstance(out var inlinesBuilder);
-            using var __ = CodeAnalysis.PooledObjects.ArrayBuilder<int>.GetInstance(out var indexBuilder);
+            using var _1 = ArrayBuilder<Inline>.GetInstance(out var inlinesBuilder);
+            using var _2 = ArrayBuilder<int>.GetInstance(out var indexBuilder);
 
             // 1. Find all the indexes of the placeholders from the template.
             for (var i = 0; i < taggedTexts.Length; i++)
