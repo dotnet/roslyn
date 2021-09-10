@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -15,12 +17,18 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersAndValues
 {
     public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public RemoveUnusedParametersTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer(), new CSharpRemoveUnusedValuesCodeFixProvider());
 
@@ -1572,6 +1580,38 @@ record B(int X, int [|Y|]) : A(X);
             await TestDiagnosticMissingAsync(
 @"public record Base(int I) { }
 public record Derived(string [|S|]) : Base(42) { }
+");
+        }
+
+        [WorkItem(45743, "https://github.com/dotnet/roslyn/issues/45743")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task RequiredGetInstanceMethodByICustomMarshaler()
+        {
+            await TestDiagnosticMissingAsync(@"
+using System;
+using System.Runtime.InteropServices;
+
+
+public class C : ICustomMarshaler
+{
+    public void CleanUpManagedData(object ManagedObj)
+        => throw new NotImplementedException();
+
+    public void CleanUpNativeData(IntPtr pNativeData)
+        => throw new NotImplementedException();
+
+    public int GetNativeDataSize()
+        => throw new NotImplementedException();
+
+    public IntPtr MarshalManagedToNative(object ManagedObj)
+        => throw new NotImplementedException();
+
+    public object MarshalNativeToManaged(IntPtr pNativeData)
+        => throw new NotImplementedException();
+
+    public static ICustomMarshaler GetInstance(string [|s|])
+        => null;
+}
 ");
         }
     }

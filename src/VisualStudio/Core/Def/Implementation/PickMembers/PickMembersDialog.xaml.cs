@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,6 +56,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers
                     typeof(PickMembersDialog),
                     new InputGestureCollection(new List<InputGesture> { new KeyGesture(Key.D, ModifierKeys.Alt) })),
                 Deselect_All_Click));
+        }
+
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _viewModel.Filter(SearchTextBox.Text);
+            Members.Items.Refresh();
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)

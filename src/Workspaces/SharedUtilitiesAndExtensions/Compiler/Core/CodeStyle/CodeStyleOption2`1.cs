@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     internal interface ICodeStyleOption : IObjectWritable
     {
         XElement ToXElement();
-        object Value { get; }
+        object? Value { get; }
         NotificationOption2 Notification { get; }
         ICodeStyleOption WithValue(object value);
         ICodeStyleOption WithNotification(NotificationOption2 notification);
@@ -37,18 +37,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// hosts that expect the value to be a boolean.  Specifically, if the enum value is 0 or 1
     /// then those values will write back as false/true.
     /// </summary>
-    internal partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>>
+    internal sealed partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
     {
         static CodeStyleOption2()
         {
             ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption2<T>), ReadFrom);
         }
 
-        public static CodeStyleOption2<T> Default => new(default, NotificationOption2.Silent);
+        public static CodeStyleOption2<T> Default => new(default!, NotificationOption2.Silent);
 
         private const int SerializationVersion = 1;
 
-        private NotificationOption2 _notification;
+        private readonly NotificationOption2 _notification;
 
         public CodeStyleOption2(T value, NotificationOption2 notification)
         {
@@ -56,9 +56,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _notification = notification ?? throw new ArgumentNullException(nameof(notification));
         }
 
-        public T Value { get; set; }
+        public T Value { get; }
 
-        object ICodeStyleOption.Value => this.Value;
+        object? ICodeStyleOption.Value => this.Value;
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption2<T>((T)value, Notification);
         ICodeStyleOption ICodeStyleOption.WithNotification(NotificationOption2 notification) => new CodeStyleOption2<T>(Value, notification);
 
@@ -70,12 +70,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         ICodeStyleOption ICodeStyleOption.AsPublicCodeStyleOption() => new CodeStyleOption<T>(this);
 #endif
 
-        private int EnumValueAsInt32 => (int)(object)Value;
+        private int EnumValueAsInt32 => (int)(object)Value!;
 
         public NotificationOption2 Notification
         {
             get => _notification;
-            set => _notification = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         public XElement ToXElement() =>
@@ -89,11 +88,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         {
             if (typeof(T) == typeof(string))
             {
-                return Value;
+                return Value!;
             }
             else if (typeof(T) == typeof(bool))
             {
-                return Value;
+                return Value!;
             }
             else if (IsZeroOrOneValueOfEnum())
             {
@@ -111,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 return nameof(String);
             }
+
             if (typeof(T) == typeof(bool) || IsZeroOrOneValueOfEnum())
             {
                 return nameof(Boolean);
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var typeAttribute = element.Attribute("Type");
             var valueAttribute = element.Attribute(nameof(Value));
             var severityAttribute = element.Attribute(nameof(DiagnosticSeverity));
-            var version = (int)element.Attribute(nameof(SerializationVersion));
+            var version = (int?)element.Attribute(nameof(SerializationVersion));
 
             if (typeAttribute == null || valueAttribute == null || severityAttribute == null)
             {
@@ -218,15 +218,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return (T)(object)(i);
         }
 
-        public bool Equals(CodeStyleOption2<T> other)
-            => EqualityComparer<T>.Default.Equals(Value, other.Value) &&
-               Notification == other.Notification;
+        public bool Equals(CodeStyleOption2<T>? other)
+        {
+            return other is not null
+                && EqualityComparer<T>.Default.Equals(Value, other.Value)
+                && Notification == other.Notification;
+        }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is CodeStyleOption2<T> option &&
                Equals(option);
 
         public override int GetHashCode()
-            => unchecked((Notification.GetHashCode() * (int)0xA5555529) + Value.GetHashCode());
+            => unchecked((Notification.GetHashCode() * (int)0xA5555529) + EqualityComparer<T>.Default.GetHashCode(Value!));
     }
 }

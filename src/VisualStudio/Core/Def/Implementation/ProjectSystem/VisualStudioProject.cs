@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,7 +13,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Roslyn.Utilities;
@@ -28,6 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly IWorkspaceTelemetryService? _telemetryService;
+        private readonly IWorkspaceStatusService? _workspaceStatusService;
 
         /// <summary>
         /// Provides dynamic source files for files added through <see cref="AddDynamicSourceFile" />.
@@ -114,7 +116,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// The workspace snapshot will only have a document with  <see cref="DynamicFileInfo.FilePath"/> (the value) but not the
         /// original dynamic file path (the key).
         /// </summary>
-        private readonly Dictionary<string, string?> _dynamicFilePathMaps = new();
+        /// <remarks>
+        /// We use the same string comparer as in the <see cref="BatchingDocumentCollection"/> used by _sourceFiles, below, as these
+        /// files are added to that collection too.
+        /// </remarks>
+        private readonly Dictionary<string, string?> _dynamicFilePathMaps = new(StringComparer.OrdinalIgnoreCase);
 
         private readonly BatchingDocumentCollection _sourceFiles;
         private readonly BatchingDocumentCollection _additionalFiles;
@@ -139,25 +145,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _dynamicFileInfoProviders = dynamicFileInfoProviders;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
 
+            _telemetryService = _workspace.Services.GetService<IWorkspaceTelemetryService>();
+            _workspaceStatusService = _workspace.Services.GetService<IWorkspaceStatusService>();
+
             Id = id;
             Language = language;
             _displayName = displayName;
-
-            var fileExtensionToWatch = language switch { LanguageNames.CSharp => ".cs", LanguageNames.VisualBasic => ".vb", _ => null };
-
-            if (filePath != null && fileExtensionToWatch != null)
-            {
-                // Since we have a project directory, we'll just watch all the files under that path; that'll avoid extra overhead of
-                // having to add explicit file watches everywhere.
-                var projectDirectoryToWatch = new FileChangeWatcher.WatchedDirectory(Path.GetDirectoryName(filePath), fileExtensionToWatch);
-                _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContext(projectDirectoryToWatch);
-            }
-            else
-            {
-                _documentFileChangeContext = workspace.FileChangeWatcher.CreateContext();
-            }
-
-            _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
 
             _sourceFiles = new BatchingDocumentCollection(
                 this,
@@ -182,9 +175,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _compilationOptions = compilationOptions;
             _filePath = filePath;
             _parseOptions = parseOptions;
+
+            var fileExtensionToWatch = language switch { LanguageNames.CSharp => ".cs", LanguageNames.VisualBasic => ".vb", _ => null };
+
+            if (filePath != null && fileExtensionToWatch != null)
+            {
+                // Since we have a project directory, we'll just watch all the files under that path; that'll avoid extra overhead of
+                // having to add explicit file watches everywhere.
+                var projectDirectoryToWatch = new FileChangeWatcher.WatchedDirectory(Path.GetDirectoryName(filePath), fileExtensionToWatch);
+                _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContext(projectDirectoryToWatch);
+            }
+            else
+            {
+                _documentFileChangeContext = workspace.FileChangeWatcher.CreateContext();
+            }
+
+            _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
         }
 
-        private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue)
+        private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, bool logThrowAwayTelemetry = false)
         {
             lock (_gate)
             {
@@ -196,6 +205,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 field = newValue;
 
+                // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
+                // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
+                // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
+                // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
+                // fully loaded.
+                var isFullyLoadedTask = _workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
+                var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
+
+                // We only log telemetry during solution open
+                if (logThrowAwayTelemetry && _telemetryService?.HasActiveSession == true && !isFullyLoaded)
+                {
+                    TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
+                }
+
                 if (_activeBatchScopes > 0)
                 {
                     _projectPropertyModificationsInBatch.Add(withNewValue);
@@ -204,6 +227,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     _workspace.ApplyChangeToWorkspace(Id, withNewValue);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Reports a telemetry event if compilation information is being thrown away after being previously computed
+        /// </summary>
+        private static void TryReportCompilationThrownAway(SolutionState solutionState, ProjectId projectId)
+        {
+            // We log the number of syntax trees that have been parsed even if there was no compilation created yet
+            var projectState = solutionState.GetRequiredProjectState(projectId);
+            var parsedTrees = 0;
+            foreach (var (_, documentState) in projectState.DocumentStates.States)
+            {
+                if (documentState.TryGetSyntaxTree(out _))
+                {
+                    parsedTrees++;
+                }
+            }
+
+            // But we also want to know if a compilation was created
+            var hadCompilation = solutionState.TryGetCompilation(projectId, out _);
+
+            if (parsedTrees > 0 || hadCompilation)
+            {
+                Logger.Log(FunctionId.Workspace_Project_CompilationThrownAway, KeyValueLogMessage.Create(m =>
+                {
+                    // Note: Not using our project Id. This is the same ProjectGuid that the project system uses
+                    // so data can be correlated
+                    m["ProjectGuid"] = projectState.ProjectInfo.Attributes.TelemetryId.ToString("B");
+                    m["SyntaxTreesParsed"] = parsedTrees;
+                    m["HadCompilation"] = hadCompilation;
+                }));
             }
         }
 
@@ -234,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public string AssemblyName
         {
             get => _assemblyName;
-            set => ChangeProjectProperty(ref _assemblyName, value, s => s.WithProjectAssemblyName(Id, value));
+            set => ChangeProjectProperty(ref _assemblyName, value, s => s.WithProjectAssemblyName(Id, value), logThrowAwayTelemetry: true);
         }
 
         // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
@@ -243,7 +298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public CompilationOptions? CompilationOptions
         {
             get => _compilationOptions;
-            set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value));
+            set => ChangeProjectProperty(ref _compilationOptions, value, s => s.WithProjectCompilationOptions(Id, value), logThrowAwayTelemetry: true);
         }
 
         // The property could be null if this is a non-C#/VB language and we don't have one for it. But we disallow assigning null, because C#/VB cannot end up null
@@ -252,7 +307,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public ParseOptions? ParseOptions
         {
             get => _parseOptions;
-            set => ChangeProjectProperty(ref _parseOptions, value, s => s.WithProjectParseOptions(Id, value));
+            set => ChangeProjectProperty(ref _parseOptions, value, s => s.WithProjectParseOptions(Id, value), logThrowAwayTelemetry: true);
         }
 
         /// <summary>
@@ -350,6 +405,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal string? MaxLangVersion
         {
             set => _workspace.SetMaxLanguageVersion(Id, value);
+        }
+
+        internal string DependencyNodeTargetIdentifier
+        {
+            set => _workspace.SetDependencyNodeTargetIdentifier(Id, value);
         }
 
         #region Batching

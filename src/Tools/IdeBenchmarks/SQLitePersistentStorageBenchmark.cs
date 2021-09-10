@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -32,6 +34,15 @@ namespace IdeBenchmarks
         private IChecksummedPersistentStorage _storage;
         private Document _document;
         private Random _random;
+
+        public SQLitePersistentStorageBenchmarks()
+        {
+            _document = null!;
+            _storage = null!;
+            _storageService = null!;
+            _workspace = null!;
+            _random = null!;
+        }
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -54,16 +65,16 @@ namespace IdeBenchmarks
 
             // Explicitly choose the sqlite db to test.
             _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
+                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)
+                .WithChangedOption(StorageOptions.DatabaseMustSucceed, true)));
 
-            _storageService = new SQLitePersistentStorageService(new LocationService());
+            var connectionPoolService = _workspace.ExportProvider.GetExportedValue<SQLiteConnectionPoolService>();
+            _storageService = new SQLitePersistentStorageService(
+                _workspace.Options, connectionPoolService, new LocationService(),
+                _workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.PersistentStorage));
 
             var solution = _workspace.CurrentSolution;
-            _storage = _storageService.GetStorageWorker(_workspace, (SolutionKey)solution, solution);
-            if (_storage == NoOpPersistentStorage.Instance)
-            {
-                throw new InvalidOperationException("We didn't properly get the sqlite storage instance.");
-            }
+            _storage = _storageService.GetStorageWorkerAsync(_workspace, SolutionKey.ToSolutionKey(solution), solution, CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
             Console.WriteLine("Storage type: " + _storage.GetType());
             _document = _workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -78,12 +89,12 @@ namespace IdeBenchmarks
                 throw new InvalidOperationException();
             }
 
-            _document = null;
+            _document = null!;
             _storage.Dispose();
-            _storage = null;
-            _storageService = null;
+            _storage = null!;
+            _storageService = null!;
             _workspace.Dispose();
-            _workspace = null;
+            _workspace = null!;
 
             _useExportProviderAttribute.After(null);
         }

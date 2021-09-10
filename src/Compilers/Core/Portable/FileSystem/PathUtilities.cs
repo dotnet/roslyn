@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -91,6 +89,11 @@ namespace Roslyn.Utilities
         }
 
         public static string GetExtension(string path)
+        {
+            return FileNameUtilities.GetExtension(path);
+        }
+
+        public static ReadOnlyMemory<char> GetExtension(ReadOnlyMemory<char> path)
         {
             return FileNameUtilities.GetExtension(path);
         }
@@ -438,6 +441,34 @@ namespace Roslyn.Utilities
             return root + relativePath;
         }
 
+        /// <summary>
+        /// Combines paths with the same semantics as <see cref="Path.Combine(string, string)"/>
+        /// but does not throw on null paths or paths with invalid characters.
+        /// </summary>
+        /// <param name="root">First path: absolute, relative, or null.</param>
+        /// <param name="path">Second path: absolute, relative, or null.</param>
+        /// <returns>
+        /// The combined paths. If <paramref name="path"/> contains an absolute path, returns <paramref name="path"/>.
+        /// </returns>
+        /// <remarks>
+        /// Relative and absolute paths treated the same as <see cref="Path.Combine(string, string)"/>.
+        /// </remarks>
+        [return: NotNullIfNotNull("path")]
+        public static string? CombinePaths(string? root, string? path)
+        {
+            if (RoslynString.IsNullOrEmpty(root))
+            {
+                return path;
+            }
+
+            if (RoslynString.IsNullOrEmpty(path))
+            {
+                return root;
+            }
+
+            return IsAbsolute(path) ? path : CombinePathsUnchecked(root, path);
+        }
+
         private static string RemoveTrailingDirectorySeparator(string path)
         {
             if (path.Length > 0 && IsDirectorySeparator(path[path.Length - 1]))
@@ -476,7 +507,7 @@ namespace Roslyn.Utilities
         /// not have "goo" as a component. That's because here "goo" is the server name portion
         /// of the UNC path, and not an actual directory or file name.
         /// </summary>
-        public static bool ContainsPathComponent(string path, string component, bool ignoreCase)
+        public static bool ContainsPathComponent(string? path, string component, bool ignoreCase)
         {
             var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
             if (path?.IndexOf(component, comparison) >= 0)
@@ -507,6 +538,9 @@ namespace Roslyn.Utilities
         public static string GetRelativePath(string directory, string fullPath)
         {
             string relativePath = string.Empty;
+
+            directory = TrimTrailingSeparators(directory);
+            fullPath = TrimTrailingSeparators(fullPath);
 
             if (IsChildPath(directory, fullPath))
             {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -48,6 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal readonly BinaryOperatorKind Kind;
             internal readonly MethodSymbol? MethodSymbolOpt; // User-defined comparison operator, if applicable
+            internal readonly TypeSymbol? ConstrainedToTypeOpt;
 
             internal readonly Conversion ConversionForBool; // If a conversion to bool exists, then no operator needed. If an operator is needed, this holds the conversion for input to that operator.
             internal readonly UnaryOperatorSignature BoolOperator; // Information for op_true or op_false
@@ -57,10 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol? rightConvertedTypeOpt,
                 BinaryOperatorKind kind,
                 MethodSymbol? methodSymbolOpt,
+                TypeSymbol? constrainedToTypeOpt,
                 Conversion conversionForBool, UnaryOperatorSignature boolOperator) : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
             {
                 Kind = kind;
                 MethodSymbolOpt = methodSymbolOpt;
+                ConstrainedToTypeOpt = constrainedToTypeOpt;
                 ConversionForBool = conversionForBool;
                 BoolOperator = boolOperator;
 

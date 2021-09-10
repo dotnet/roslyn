@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Remote.Services
 {
@@ -26,7 +25,21 @@ namespace Microsoft.CodeAnalysis.Remote.Services
         {
             // may return null in tests
             var assetSource = RemoteWorkspaceManager.Default.TryGetAssetSource();
-            return assetSource?.IsExperimentEnabledAsync(experimentName, CancellationToken.None).Result ?? false;
+            if (assetSource is null)
+                return false;
+
+            var isEnabledValueTask = assetSource.IsExperimentEnabledAsync(experimentName, CancellationToken.None);
+            if (isEnabledValueTask.IsCompleted)
+                return isEnabledValueTask.Result;
+
+            isEnabledValueTask.Forget();
+            return false;
+        }
+
+        public void EnableExperiment(string experimentName, bool value)
+        {
+            // This should never be called out of proc
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+#nullable enable annotations
 
 using System;
 using Microsoft.CodeAnalysis.Host;
@@ -29,7 +30,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
         public TService? GetService<TService>() where TService : class, IDocumentService
         {
-            if (typeof(TService) == typeof(ISpanMappingService))
+            var serviceType = typeof(TService);
+            if (serviceType == typeof(ISpanMappingService))
             {
                 if (_spanMappingService == null)
                 {
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 return (TService)(object)_spanMappingService;
             }
 
-            if (typeof(TService) == typeof(IDocumentExcerptService))
+            if (serviceType == typeof(IDocumentExcerptService))
             {
                 if (_excerptService == null)
                 {
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 return (TService)(object)_excerptService;
             }
 
-            if (typeof(TService) == typeof(DocumentPropertiesService))
+            if (serviceType == typeof(DocumentPropertiesService))
             {
                 if (_documentPropertiesService == null)
                 {

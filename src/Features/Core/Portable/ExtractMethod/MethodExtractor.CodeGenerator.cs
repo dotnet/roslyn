@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -61,6 +63,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
             protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
             protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
+            protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName();
@@ -94,6 +97,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 if (LocalFunction)
                 {
                     destination = InsertionPoint.With(callSiteDocument).GetContext();
+
+                    // No valid location to insert the new method call.
+                    if (destination == null)
+                    {
+                        return await CreateGeneratedCodeAsync(
+                            OperationStatus.NoValidLocationToInsertMethodCall, callSiteDocument, cancellationToken).ConfigureAwait(false);
+                    }
+
                     var localMethod = codeGenerationService.CreateMethodDeclaration(
                         method: result.Data,
                         options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: Options, parseOptions: destination?.SyntaxTree.Options));
@@ -272,8 +283,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var variableToUseAsReturnValue = AnalyzerResult.VariableToUseAsReturnValue;
 
-                Contract.ThrowIfFalse(variableToUseAsReturnValue.ReturnBehavior == ReturnBehavior.Assignment ||
-                                      variableToUseAsReturnValue.ReturnBehavior == ReturnBehavior.Initialization);
+                Contract.ThrowIfFalse(variableToUseAsReturnValue.ReturnBehavior is ReturnBehavior.Assignment or
+                                      ReturnBehavior.Initialization);
 
                 return statements.Concat(CreateReturnStatement(AnalyzerResult.VariableToUseAsReturnValue.Name));
             }
@@ -285,9 +296,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 foreach (var variable in variables)
                 {
-                    Contract.ThrowIfFalse(variable.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut ||
-                                          variable.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn ||
-                                          variable.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.Delete);
+                    Contract.ThrowIfFalse(variable.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.MoveOut or
+                                          DeclarationBehavior.MoveIn or
+                                          DeclarationBehavior.Delete);
 
                     variable.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
                 }
@@ -325,19 +336,22 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected ImmutableArray<IParameterSymbol> CreateMethodParameters()
             {
                 var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
-
+                var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
                 foreach (var parameter in AnalyzerResult.MethodParameters)
                 {
-                    var refKind = GetRefKind(parameter.ParameterModifier);
-                    var type = parameter.GetVariableType(SemanticDocument);
+                    if (!isLocalFunction || !parameter.CanBeCapturedByLocalFunction)
+                    {
+                        var refKind = GetRefKind(parameter.ParameterModifier);
+                        var type = parameter.GetVariableType(SemanticDocument);
 
-                    parameters.Add(
-                        CodeGenerationSymbolFactory.CreateParameterSymbol(
-                            attributes: ImmutableArray<AttributeData>.Empty,
-                            refKind: refKind,
-                            isParams: false,
-                            type: type,
-                            name: parameter.Name));
+                        parameters.Add(
+                            CodeGenerationSymbolFactory.CreateParameterSymbol(
+                                attributes: ImmutableArray<AttributeData>.Empty,
+                                refKind: refKind,
+                                isParams: false,
+                                type: type,
+                                name: parameter.Name));
+                    }
                 }
 
                 return parameters.ToImmutableAndFree();

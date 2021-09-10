@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +17,7 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using IVsUIShell = Microsoft.VisualStudio.Shell.Interop.IVsUIShell;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
+using Microsoft.VisualStudio.Text.Differencing;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 {
@@ -205,9 +208,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 // cache the diff viewer so that we can close it when panel goes away.
                 // this is a bit weird since we are mutating state here.
                 _differenceViewerPreview = (DifferenceViewerPreview)previewItem;
-                PreviewDockPanel.Background = _differenceViewerPreview.Viewer.InlineView.Background;
+                var viewer = (IWpfDifferenceViewer)_differenceViewerPreview.Viewer;
+                PreviewDockPanel.Background = viewer.InlineView.Background;
 
-                var previewElement = _differenceViewerPreview.Viewer.VisualElement;
+                var previewElement = viewer.VisualElement;
                 return previewElement;
             }
 
@@ -326,7 +330,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 return;
             }
 
-            BrowserHelper.StartBrowser(e.Uri);
+            VisualStudioNavigateToLinkService.StartBrowser(e.Uri);
             e.Handled = true;
 
             if (!(sender is Hyperlink hyperlink))

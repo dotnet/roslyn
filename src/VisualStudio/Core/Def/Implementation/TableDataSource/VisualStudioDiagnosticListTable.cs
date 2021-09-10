@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel;
 using System.Composition;
@@ -77,8 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 VisualStudioWorkspaceImpl workspace,
                 IDiagnosticService diagnosticService,
                 ITableManagerProvider provider,
-                IErrorList errorList) :
-                base(workspace, provider)
+                IErrorList errorList)
+                : base(workspace, provider)
             {
                 _errorList = errorList;
 
@@ -102,15 +104,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             /// this is for test only
-            internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
-                base(workspace, provider)
+            internal VisualStudioDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+                : base(workspace, provider)
             {
                 AddInitialTableSource(workspace.CurrentSolution, new LiveTableDataSource(workspace, diagnosticService, IdentifierString));
             }
 
             /// this is for test only
-            internal VisualStudioDiagnosticListTable(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider) :
-                base(workspace, provider)
+            internal VisualStudioDiagnosticListTable(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider)
+                : base(workspace, provider)
             {
                 AddInitialTableSource(workspace.CurrentSolution, new BuildTableDataSource(workspace, errorSource));
             }

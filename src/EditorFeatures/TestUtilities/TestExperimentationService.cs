@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -22,10 +24,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
         }
 
-        public void SetExperimentOption(string experimentName, bool enabled)
-            => _experimentsOptionValues[experimentName] = enabled;
-
         public bool IsExperimentEnabled(string experimentName)
             => _experimentsOptionValues.TryGetValue(experimentName, out var enabled) && enabled;
+
+        public void EnableExperiment(string experimentName, bool value)
+            => _experimentsOptionValues[experimentName] = value;
     }
 }

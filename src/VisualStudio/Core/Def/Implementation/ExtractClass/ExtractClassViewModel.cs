@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable 
-
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
 {
@@ -20,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
         private readonly INotificationService _notificationService;
 
         public ExtractClassViewModel(
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             INotificationService notificationService,
             ImmutableArray<PullMemberUpSymbolViewModel> memberViewModels,
             ImmutableDictionary<ISymbol, Task<ImmutableArray<ISymbol>>> memberToDependentsMap,
@@ -34,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             _notificationService = notificationService;
 
             MemberSelectionViewModel = new MemberSelectionViewModel(
-                waitIndicator,
+                uiThreadOperationExecutor,
                 memberViewModels,
                 memberToDependentsMap,
                 destinationTypeKind: TypeKind.Class);

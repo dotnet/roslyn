@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -58,6 +60,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             _featureFlags = featureFlags;
             _experimentationServiceOpt = experimentationServiceOpt;
             _isCachedFlightEnabledInfo = isCachedFlightEnabledInfo;
+        }
+
+        public void EnableExperiment(string experimentName, bool value)
+        {
+            // We're changing the value of an experiment name, remove the cached version so we look it up again.
+            lock (_experimentEnabledMap)
+            {
+                if (_experimentEnabledMap.ContainsKey(experimentName))
+                    _experimentEnabledMap.Remove(experimentName);
+            }
+
+            var featureFlags2 = (IVsFeatureFlags2)_featureFlags;
+            featureFlags2.EnableFeatureFlag(experimentName, value);
         }
 
         public bool IsExperimentEnabled(string experimentName)

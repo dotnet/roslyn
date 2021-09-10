@@ -47,25 +47,15 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
             {
                 var declaration = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
                 var declarator = MapToDeclarator(declaration);
-
                 var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
-
-                // Check to see if we need to add or remove
-                // If there's a modifier, then we need to remove it, otherwise no modifier, add it.
-                editor.ReplaceNode(
-                    declaration,
-                    (currentDeclaration, generator) =>
-                    {
-                        return generator.GetAccessibility(currentDeclaration) == Accessibility.NotApplicable
-                                    ? generator.WithAccessibility(currentDeclaration, symbol.DeclaredAccessibility) // No accessibility was declared, we need to add it
-                                    : generator.WithAccessibility(currentDeclaration, Accessibility.NotApplicable); // There was an accessibility, so remove it                       
-                    });
+                Contract.ThrowIfNull(symbol);
+                AddAccessibilityModifiersHelpers.UpdateDeclaration(editor, symbol, declaration);
             }
         }
 

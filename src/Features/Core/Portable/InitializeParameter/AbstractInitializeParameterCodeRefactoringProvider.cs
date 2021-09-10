@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -104,12 +102,21 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return;
             }
 
+            // We shouldn't offer a refactoring if the compilation doesn't contain the ArgumentNullException type,
+            // as we use it later on in our computations.
+            var argumentNullExceptionType = typeof(ArgumentNullException).FullName;
+            if (argumentNullExceptionType is null || semanticModel.Compilation.GetTypeByMetadataName(argumentNullExceptionType) is null)
+            {
+                return;
+            }
+
             if (CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out var blockStatementOpt))
             {
                 // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
-                context.RegisterRefactorings(await GetRefactoringsForSingleParameterAsync(
-                    document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false));
+                var refactorings = await GetRefactoringsForSingleParameterAsync(
+                    document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
+                context.RegisterRefactorings(refactorings, context.Span);
             }
 
             // List with parameterNodes that pass all checks
@@ -127,9 +134,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 // Looks like we can offer a refactoring for more than one parameter. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
-                context.RegisterRefactorings(await GetRefactoringsForAllParametersAsync(
+                var refactorings = await GetRefactoringsForAllParametersAsync(
                     document, functionDeclaration, methodSymbol, blockStatementOpt,
-                    listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, cancellationToken).ConfigureAwait(false));
+                    listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, cancellationToken).ConfigureAwait(false);
+                context.RegisterRefactorings(refactorings, context.Span);
             }
 
             return;
@@ -243,8 +251,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (operation is IMemberReferenceOperation memberReference &&
                 memberReference.Member.ContainingType.Equals(containingType))
             {
-                if (memberReference.Member is IFieldSymbol ||
-                    memberReference.Member is IPropertySymbol)
+                if (memberReference.Member is IFieldSymbol or
+                    IPropertySymbol)
                 {
                     fieldOrProperty = memberReference.Member;
                     return true;
@@ -257,8 +265,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
+                : base(title, createChangedDocument, equivalenceKey)
             {
             }
         }

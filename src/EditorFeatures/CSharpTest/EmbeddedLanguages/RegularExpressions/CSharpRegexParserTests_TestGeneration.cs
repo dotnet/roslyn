@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #if false
 
 // This file is entirely disabled, but serves a useful purpose and is thus kept in the source tree.

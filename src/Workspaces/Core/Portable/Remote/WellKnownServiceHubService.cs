@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal enum WellKnownServiceHubService
@@ -15,13 +13,13 @@ namespace Microsoft.CodeAnalysis.Remote
         // obsolete: RemoteDesignerAttributeService = 4,
         // obsolete: RemoteProjectTelemetryService = 5,
         // obsolete: RemoteTodoCommentsService = 6,
-        LanguageServer = 7,
+        // obsolete: RemoteLanguageServer = 7,
         IntelliCode = 8,
-        Razor = 9,
+        // obsolete: Razor = 9,
 
         // owned by Unit Testing team:
-        UnitTestingAnalysisService = 10,
-        LiveUnitTestingBuildService = 11,
-        UnitTestingSourceLookupService = 12,
+        // obsolete: UnitTestingAnalysisService = 10,
+        // obsolete: LiveUnitTestingBuildService = 11,
+        // obsolete: UnitTestingSourceLookupService = 12,
     }
 }

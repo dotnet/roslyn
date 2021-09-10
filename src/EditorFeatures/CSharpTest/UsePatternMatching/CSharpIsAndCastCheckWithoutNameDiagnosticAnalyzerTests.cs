@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -9,12 +11,19 @@ using Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
 {
     public partial class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzerTests(ITestOutputHelper logger)
+             : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer(), new CSharpIsAndCastCheckWithoutNameCodeFixProvider());
 
@@ -512,6 +521,31 @@ class TestFile
             M(file.i);
         }
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(51340, "https://github.com/dotnet/roslyn/issues/51340")]
+        public async Task TestNoDiagnosticWhenCS0103Happens()
+        {
+            await TestDiagnosticMissingAsync(
+@"
+using System.Linq;
+class Bar
+{
+    private void Foo()
+    {
+        var objects = new SpecificThingType[100];
+        var d = from obj in objects
+                let aGenericThing = obj.Prop
+                where aGenericTh[||]ing is SpecificThingType
+                let specificThing = (SpecificThingType)aGenericThing
+                select (obj, specificThing);
+    }
+}
+class SpecificThingType
+{
+    public SpecificThingType Prop { get; }
 }");
         }
     }

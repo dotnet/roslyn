@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,15 +11,22 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParentheses
 {
     public partial class RemoveUnnecessaryExpressionParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public RemoveUnnecessaryExpressionParenthesesTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer(), new CSharpRemoveUnnecessaryParenthesesCodeFixProvider());
 
@@ -36,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
         }
 
         internal override bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
-            => descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary) && descriptor.DefaultSeverity == DiagnosticSeverity.Hidden;
+            => descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary) && descriptor.DefaultSeverity == DiagnosticSeverity.Hidden;
 
         private static DiagnosticDescription GetRemoveUnnecessaryParenthesesDiagnostic(string text, int line, int column)
             => TestHelpers.Diagnostic(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId, text, startLocation: new LinePosition(line, column));
@@ -2617,6 +2626,54 @@ parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
         bool x = o is 1 or 2;
     }
 }", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [WorkItem(50025, "https://github.com/dotnet/roslyn/issues/50025")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestDoNotRemoveWithConstantAndTypeAmbiguity()
+        {
+            await TestMissingAsync(
+@"
+public class C
+{    
+    public const int Goo = 1;  
+    
+    public void M(Goo o)
+    {
+        if (o is $$(Goo)) M(1);
+    }
+}
+
+public class Goo { }");
+        }
+
+        [WorkItem(50025, "https://github.com/dotnet/roslyn/issues/50025")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestDoRemoveWithNoConstantAndTypeAmbiguity()
+        {
+            await TestAsync(
+@"
+public class C
+{    
+    public const int Goo = 1;  
+    
+    public void M(object o)
+    {
+        if (o is $$(Goo)) M(1);
+    }    
+}
+",
+@"
+public class C
+{    
+    public const int Goo = 1;  
+    
+    public void M(object o)
+    {
+        if (o is Goo) M(1);
+    }    
+}
+", offeredWhenRequireForClarityIsEnabled: true);
         }
     }
 }

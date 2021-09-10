@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal interface IFindUsagesContext
     {
-        CancellationToken CancellationToken { get; }
-
         /// <summary>
         /// Used for clients that are finding usages to push information about how far along they
         /// are in their search.
@@ -22,17 +20,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// <summary>
         /// Report a message to be displayed to the user.
         /// </summary>
-        ValueTask ReportMessageAsync(string message);
+        ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken);
 
         /// <summary>
         /// Set the title of the window that results are displayed in.
         /// </summary>
-        ValueTask SetSearchTitleAsync(string title);
+        ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken);
 
-        ValueTask OnDefinitionFoundAsync(DefinitionItem definition);
-        ValueTask OnReferenceFoundAsync(SourceReferenceItem reference);
-
-        [Obsolete("Use ProgressTracker instead", error: false)]
-        ValueTask ReportProgressAsync(int current, int maximum);
+        ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken);
+        ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             var solutionCrawlerService = _workspace.Services.GetService<ISolutionCrawlerService>();
             if (solutionCrawlerService != null)
             {
-                var analyzer = ((IIncrementalAnalyzerProvider)this).CreateIncrementalAnalyzer(_workspace);
+                var analyzer = ((IIncrementalAnalyzerProvider)this).CreateIncrementalAnalyzer(_workspace)!;
                 solutionCrawlerService.Reanalyze(_workspace, analyzer, projectIds: null, documentIds: null, highPriority: false);
             }
         }

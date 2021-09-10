@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -81,7 +83,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 WrappingColumn = options.GetOption(FormattingOptions2.PreferredWrappingColumn);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                NewLineTrivia = new SyntaxTriviaList(generator.EndOfLine(NewLine));
+                var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(NewLine));
                 SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
             }
 

@@ -2,14 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -48,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             DisposalToken = threadingContext.DisposalToken;
         }
 
-        protected abstract void EnableService();
+        protected abstract Task EnableServiceAsync(CancellationToken cancellationToken);
 
         protected abstract void StartWorking();
 
@@ -63,8 +68,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 return;
             }
 
-            this._registeredLanguageNames.Add(languageName);
-            if (this._registeredLanguageNames.Count == 1)
+            _registeredLanguageNames.Add(languageName);
+            if (_registeredLanguageNames.Count == 1)
             {
                 // Register to hear about option changing.
                 var optionsService = Workspace.Services.GetService<IOptionService>();
@@ -85,16 +90,23 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 return;
             }
 
-            // The first time we see that we're registered for a language, enable the
-            // service.
-            if (!_enabled)
+            var listenerProvider = Workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+            var asyncToken = listenerProvider.GetListener().BeginAsyncOperation(nameof(AbstractDelayStartedService.EnableServiceAsync), tag: GetType());
+            var enableAsync = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                _enabled = true;
-                EnableService();
-            }
+                // The first time we see that we're registered for a language, enable the
+                // service.
+                if (!_enabled)
+                {
+                    _enabled = true;
+                    await EnableServiceAsync(ThreadingContext.DisposalToken).ConfigureAwait(true);
+                }
 
-            // Then tell it to start work.
-            StartWorking();
+                // Then tell it to start work.
+                StartWorking();
+            });
+
+            enableAsync.Task.CompletesAsyncOperation(asyncToken);
         }
 
         private bool IsRegisteredForLanguage(string language)

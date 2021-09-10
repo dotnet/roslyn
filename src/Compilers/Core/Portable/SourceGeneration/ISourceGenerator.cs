@@ -8,8 +8,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>

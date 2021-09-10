@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseAutoProperty;
@@ -49,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
             MemberDeclarationSyntax member,
             List<AnalysisResult> analysisResults)
         {
-            if (member.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax? namespaceDeclaration))
+            if (member is BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
                 AnalyzeMembers(context, namespaceDeclaration.Members, analysisResults);
             }

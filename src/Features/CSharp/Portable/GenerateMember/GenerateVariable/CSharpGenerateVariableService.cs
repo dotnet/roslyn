@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Linq;
@@ -158,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 return true;
             }
 
-            if (expression.IsParentKind(SyntaxKind.NameColon) &&
+            if (expression.IsParentKind(SyntaxKind.NameColon, SyntaxKind.ExpressionColon) &&
                 expression.Parent.IsParentKind(SyntaxKind.Subpattern))
             {
                 return true;

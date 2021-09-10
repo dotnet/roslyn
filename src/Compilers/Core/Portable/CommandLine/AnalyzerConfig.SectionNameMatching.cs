@@ -114,6 +114,22 @@ namespace Microsoft.CodeAnalysis
                 numberRangePairs.ToImmutableAndFree());
         }
 
+        internal static bool TryUnescapeSectionName(string sectionName, out string? escapedSectionName)
+        {
+            var sb = new StringBuilder();
+            SectionNameLexer lexer = new SectionNameLexer(sectionName);
+            while (!lexer.IsDone)
+            {
+                var tokenKind = lexer.Lex();
+                if (tokenKind == TokenKind.SimpleCharacter)
+                {
+                    sb.Append(lexer.EatCurrentCharacter());
+                }
+            }
+            escapedSectionName = sb.ToString();
+            return true;
+        }
+
         /// <summary>
         /// Test if a section name is an absolute path with no special chars
         /// </summary>
@@ -530,7 +546,7 @@ namespace Microsoft.CodeAnalysis
             /// Returns the string representation of a decimal integer, or null if
             /// the current lexeme is not an integer.
             /// </summary>
-            public string TryLexNumber()
+            public string? TryLexNumber()
             {
                 bool start = true;
                 var sb = new StringBuilder();

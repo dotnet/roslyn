@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private bool _lastTokenEndedInWhitespace;
 
             public SingleLineRewriter(bool useElasticTrivia)
-                => this._useElasticTrivia = useElasticTrivia;
+                => _useElasticTrivia = useElasticTrivia;
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {

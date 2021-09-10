@@ -808,5 +808,55 @@ class C
 
             Await VerifyHighlightsAsync(input, testHost)
         End Function
+
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function TestNotOnNewInObjectCreation(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+namespace X
+{
+    class B
+    {
+        public void M()
+        {
+            $$new B();
+            new B();
+        }
+    }
+}
+</Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function TestOnTypeInObjectCreation(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+namespace X
+{
+    class {|Definition:B|}
+    {
+        public void M()
+        {
+            new $${|Reference:B|}();
+            new {|Reference:B|}();
+        }
+    }
+}
+</Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
     End Class
 End Namespace

@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 
 #if !CODE_STYLE
 using System;
@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public class Test : VisualBasicCodeRefactoringTest<TCodeRefactoring, XUnitVerifier>
         {
+            private readonly SharedVerifierState _sharedState;
+
             static Test()
             {
                 // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
@@ -39,30 +41,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public Test()
             {
+                _sharedState = new SharedVerifierState(this, DefaultFileExt);
+
                 SolutionTransforms.Add((solution, projectId) =>
                 {
                     var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId)!.ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
-                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
-                    if (analyzerConfigSource is object)
-                    {
-                        foreach (var id in solution.ProjectIds)
-                        {
-                            var documentId = DocumentId.CreateNewId(id, ".editorconfig");
-                            solution = solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", analyzerConfigSource, filePath: "/.editorconfig");
-                        }
-                    }
-
-#if !CODE_STYLE
-                    var options = solution.Options;
-                    foreach (var (key, value) in remainingOptions)
-                    {
-                        options = options.WithChangedOption(key, value);
-                    }
-
-                    solution = solution.WithOptions(options);
-#endif
 
                     return solution;
                 });
@@ -74,13 +58,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic16;
 
-            /// <summary>
-            /// Gets a collection of options to apply to <see cref="Solution.Options"/> for testing. Values may be added
-            /// using a collection initializer.
-            /// </summary>
-            internal OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
+            /// <inheritdoc cref="SharedVerifierState.Options"/>
+            internal OptionsCollection Options => _sharedState.Options;
 
-            public string? EditorConfig { get; set; }
+            /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
+            public string? EditorConfig
+            {
+                get => _sharedState.EditorConfig;
+                set => _sharedState.EditorConfig = value;
+            }
+
+            protected override async Task RunImplAsync(CancellationToken cancellationToken)
+            {
+                _sharedState.Apply();
+                await base.RunImplAsync(cancellationToken);
+            }
 
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)

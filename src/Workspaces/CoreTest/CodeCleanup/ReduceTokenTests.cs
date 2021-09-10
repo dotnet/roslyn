@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
@@ -2031,13 +2033,16 @@ End Module
 
         [Fact]
         [WorkItem(14034, "https://github.com/dotnet/roslyn/issues/14034")]
+        [WorkItem(48492, "https://github.com/dotnet/roslyn/issues/48492")]
         [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
-        public async Task ReduceIntegersWithDigitSeparators()
+        public async Task DoNotReduceDigitSeparators()
         {
             var source = @"
 Module Module1
     Sub Main()
         Dim x = 100_000
+        Dim y = 100_000.0F
+        Dim z = 100_000.0D
     End Sub
 End Module
 ";

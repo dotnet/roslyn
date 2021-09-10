@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+using Microsoft.CodeAnalysis.Editor.LineSeparators;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -47,5 +50,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 
         protected override string FeatureAttributeName => FeatureAttribute.LineSeparators;
         protected override string AdornmentLayerName => LayerName;
+
+        protected override void CreateAdornmentManager(IWpfTextView textView)
+        {
+            // the manager keeps itself alive by listening to text view events.
+            _ = new LineSeparatorAdornmentManager(ThreadingContext, textView, TagAggregatorFactoryService, AsyncListener, AdornmentLayerName);
+        }
     }
 }

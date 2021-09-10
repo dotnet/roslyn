@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
@@ -13,11 +11,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public static readonly IReferenceFinder Constructor = ConstructorSymbolReferenceFinder.Instance;
         public static readonly IReferenceFinder ConstructorInitializer = new ConstructorInitializerSymbolReferenceFinder();
         public static readonly IReferenceFinder Destructor = new DestructorSymbolReferenceFinder();
+        public static readonly IReferenceFinder ExplicitConversion = new ExplicitConversionSymbolReferenceFinder();
         public static readonly IReferenceFinder ExplicitInterfaceMethod = new ExplicitInterfaceMethodReferenceFinder();
         public static readonly IReferenceFinder Event = new EventSymbolReferenceFinder();
         public static readonly IReferenceFinder Field = new FieldSymbolReferenceFinder();
         public static readonly IReferenceFinder Label = new LabelSymbolReferenceFinder();
-        public static readonly IReferenceFinder LinkedFiles = new LinkedFileReferenceFinder();
         public static readonly IReferenceFinder Local = new LocalSymbolReferenceFinder();
         public static readonly IReferenceFinder MethodTypeParameter = new MethodTypeParameterSymbolReferenceFinder();
         public static readonly IReferenceFinder NamedType = new NamedTypeSymbolReferenceFinder();
@@ -44,10 +42,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 Constructor,
                 Destructor,
                 Event,
+                ExplicitConversion,
                 ExplicitInterfaceMethod,
                 Field,
                 Label,
-                LinkedFiles,
                 Local,
                 MethodTypeParameter,
                 NamedType,

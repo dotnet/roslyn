@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -74,6 +76,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
         public static byte[] Key_snk => GetBytes("key.snk");
         public static string NuGet_Config => GetText("NuGet.Config");
 
+        public static class SolutionFilters
+        {
+            public static string Invalid => GetText("SolutionFilters.InvalidSolutionFilter.slnf");
+            public static string CSharp => GetText("SolutionFilters.CSharpSolutionFilter.slnf");
+        }
+
         public static class SolutionFiles
         {
             public static string AnalyzerReference => GetText("SolutionFiles.AnalyzerReference.sln");
@@ -116,6 +124,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string CircularProjectReferences_CircularCSharpProject1 => GetText("CircularProjectReferences.CircularCSharpProject1.csproj");
                 public static string CircularProjectReferences_CircularCSharpProject2 => GetText("CircularProjectReferences.CircularCSharpProject2.csproj");
                 public static string CSharpProject => GetText("ProjectFiles.CSharp.CSharpProject.csproj");
+                public static string AdditionalFile => GetText("ProjectFiles.CSharp.AdditionalFile.csproj");
                 public static string DuplicateFile => GetText("ProjectFiles.CSharp.DuplicateFile.csproj");
                 public static string DuplicateReferences => GetText("ProjectFiles.CSharp.DuplicateReferences.csproj");
                 public static string DuplicatedGuidLibrary1 => GetText("ProjectFiles.CSharp.DuplicatedGuidLibrary1.csproj");

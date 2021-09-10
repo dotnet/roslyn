@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var options = perLanguageOptions.Cast<IOption2>().ToImmutableHashSet();
             AddOptionMapping(s_diagnosticIdToOptionMap, diagnosticId, options);
         }
+
         public static void AddOptionMapping(string diagnosticId, ImmutableHashSet<ILanguageSpecificOption> languageSpecificOptions, string language)
         {
             diagnosticId = diagnosticId ?? throw new ArgumentNullException(nameof(diagnosticId));

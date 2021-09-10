@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
@@ -51,14 +54,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static ImmutableArray<ImmutableArray<SyntaxTrivia>> GetLeadingBlankLines(SyntaxTriviaList triviaList)
         {
-            var result = ArrayBuilder<ImmutableArray<SyntaxTrivia>>.GetInstance();
-            var currentLine = ArrayBuilder<SyntaxTrivia>.GetInstance();
+            using var result = TemporaryArray<ImmutableArray<SyntaxTrivia>>.Empty;
+            using var currentLine = TemporaryArray<SyntaxTrivia>.Empty;
             foreach (var trivia in triviaList)
             {
                 currentLine.Add(trivia);
                 if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
                 {
-                    var currentLineIsBlank = currentLine.All(t =>
+                    var currentLineIsBlank = currentLine.All(static t =>
                         t.Kind() == SyntaxKind.EndOfLineTrivia ||
                         t.Kind() == SyntaxKind.WhitespaceTrivia);
                     if (!currentLineIsBlank)
@@ -66,12 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         break;
                     }
 
-                    result.Add(currentLine.ToImmutableAndFree());
-                    currentLine = ArrayBuilder<SyntaxTrivia>.GetInstance();
+                    result.Add(currentLine.ToImmutableAndClear());
                 }
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutableAndClear();
         }
 
         public static SyntaxTriviaList WithoutLeadingBlankLines(this SyntaxTriviaList triviaList)

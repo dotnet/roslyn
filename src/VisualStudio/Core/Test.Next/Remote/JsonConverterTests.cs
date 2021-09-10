@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestChecksum()
         {
-            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            var checksum = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
             VerifyJsonSerialization(checksum);
         }
 
@@ -61,7 +63,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         {
             var projectId = ProjectId.CreateNewId("project");
             var arguments = new DiagnosticArguments(
-                isHighPriority: true,
                 reportSuppressedDiagnostics: true,
                 logPerformanceInfo: true,
                 getTelemetryInfo: true,
@@ -73,8 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             VerifyJsonSerialization(arguments, (x, y) =>
             {
-                if (x.IsHighPriority == y.IsHighPriority &&
-                    x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
+                if (x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
                     x.LogPerformanceInfo == y.LogPerformanceInfo &&
                     x.GetTelemetryInfo == y.GetTelemetryInfo &&
                     x.DocumentId == y.DocumentId &&
@@ -138,8 +138,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestPinnedSolutionInfo()
         {
-            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
-            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, workspaceVersion: 100, solutionChecksum: checksum), (x, y) =>
+            var checksum = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, workspaceVersion: 100, solutionChecksum: checksum, projectId: null), (x, y) =>
             {
                 return (x.ScopeId == y.ScopeId &&
                         x.FromPrimaryBranch == y.FromPrimaryBranch &&

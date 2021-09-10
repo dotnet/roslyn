@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -156,8 +158,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public ImmutableArray<VariableInfo> GetVariablesToSplitOrMoveIntoMethodDefinition(CancellationToken cancellationToken)
             {
                 return _variables.WhereAsArray(
-                    v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.SplitIn ||
-                         v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
+                    v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.SplitIn or
+                         DeclarationBehavior.MoveIn);
             }
 
             public IEnumerable<VariableInfo> GetVariablesToMoveIntoMethodDefinition(CancellationToken cancellationToken)
@@ -168,14 +170,14 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSiteOrDelete(CancellationToken cancellationToken)
             {
-                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut ||
-                                                 v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.Delete);
+                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.MoveOut or
+                                                 DeclarationBehavior.Delete);
             }
 
             public IEnumerable<VariableInfo> GetVariablesToSplitOrMoveOutToCallSite(CancellationToken cancellationToken)
             {
-                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.SplitOut ||
-                                                 v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
+                return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.SplitOut or
+                                                 DeclarationBehavior.MoveOut);
             }
         }
     }

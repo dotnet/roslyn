@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -118,9 +120,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private RegexEscapeNode FindReferenceNode(RegexNode node, VirtualChar virtualChar)
         {
-            if (node.Kind == RegexKind.BackreferenceEscape ||
-                node.Kind == RegexKind.CaptureEscape ||
-                node.Kind == RegexKind.KCaptureEscape)
+            if (node.Kind is RegexKind.BackreferenceEscape or
+                RegexKind.CaptureEscape or
+                RegexKind.KCaptureEscape)
             {
                 if (node.Contains(virtualChar))
                 {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -66,12 +68,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal static async Task<bool> IsOverrideAsync(Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
         {
-            for (var current = member; current != null; current = current.OverriddenMember())
+            for (var current = member; current != null; current = current.GetOverriddenMember())
             {
-                if (await OriginalSymbolsMatchAsync(solution, current.OverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
-                {
+                if (await OriginalSymbolsMatchAsync(solution, current.GetOverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
                     return true;
-                }
             }
 
             return false;
@@ -86,15 +86,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return await FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false);
         }
 
+        internal static Task<ImmutableArray<ISymbol>> FindImplementedInterfaceMembersArrayAsync(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        {
+            return FindImplementedInterfaceMembersArrayAsync(symbol, solution, projects: null, cancellationToken);
+        }
+
         /// <inheritdoc cref="FindImplementedInterfaceMembersAsync"/>
         /// <remarks>
         /// Use this overload to avoid boxing the result into an <see cref="IEnumerable{T}"/>.
         /// </remarks>
         internal static async Task<ImmutableArray<ISymbol>> FindImplementedInterfaceMembersArrayAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+            ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
             // Member can only implement interface members if it is an explicit member, or if it is
-            // public and non static.
+            // public
             if (symbol != null)
             {
                 var explicitImplementations = symbol.ExplicitInterfaceImplementations();
@@ -103,7 +109,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return explicitImplementations;
                 }
                 else if (
-                    symbol.DeclaredAccessibility == Accessibility.Public && !symbol.IsStatic &&
+                    symbol.DeclaredAccessibility == Accessibility.Public &&
                     (symbol.ContainingType.TypeKind == TypeKind.Class || symbol.ContainingType.TypeKind == TypeKind.Struct))
                 {
                     // Interface implementation is a tricky thing.  A method may implement an interface

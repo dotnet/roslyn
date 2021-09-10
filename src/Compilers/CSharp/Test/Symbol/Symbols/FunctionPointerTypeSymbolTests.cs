@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System;
 using System.Collections.Immutable;
@@ -11,7 +10,6 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -249,9 +247,18 @@ class C
 
             void verify(CSharpCompilation comp)
             {
-                comp.Assembly.SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention();
-
-                comp.VerifyDiagnostics();
+                if (expectedConvention == CallingConvention.Unmanaged)
+                {
+                    comp.VerifyDiagnostics(
+                        // (4,36): error CS8889: The target runtime doesn't support extensible or runtime-environment default calling conventions.
+                        //     public unsafe void M(delegate* unmanaged<string> p) {}
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportUnmanagedDefaultCallConv, "unmanaged").WithLocation(4, 36)
+                    );
+                }
+                else
+                {
+                    comp.VerifyDiagnostics();
+                }
                 var c = comp.GetTypeByMetadataName("C");
                 var m = c.GetMethod("M");
                 var pointerType = (FunctionPointerTypeSymbol)m.Parameters.Single().Type;
@@ -926,8 +933,7 @@ class C
                 if (parameterEqualities[i] == Equality.Equal)
                 {
                     Assert.True(((FunctionPointerParameterSymbol)param1).MethodEqualityChecks((FunctionPointerParameterSymbol)param2,
-                                                                                              TypeCompareKind.ConsiderEverything,
-                                                                                              isValueTypeOverride: null));
+                                                                                              TypeCompareKind.ConsiderEverything));
                 }
 
                 for (int j = 0; j < p1.Signature.ParameterCount; j++)
@@ -1519,9 +1525,9 @@ unsafe class C
             var f2 = c.GetField("Field2").Type;
 
             Assert.Equal("delegate*<ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Int32>", f1.ToTestDisplayString());
-            Assert.Equal("delegate*<int>", f1.ToDisplayString());
+            Assert.Equal("delegate*<ref readonly int>", f1.ToDisplayString());
             Assert.Equal("delegate*<ref System.Int32 modopt(System.Object)>", f2.ToTestDisplayString());
-            Assert.Equal("delegate*<int>", f2.ToDisplayString());
+            Assert.Equal("delegate*<ref int>", f2.ToDisplayString());
         }
 
         [Fact]

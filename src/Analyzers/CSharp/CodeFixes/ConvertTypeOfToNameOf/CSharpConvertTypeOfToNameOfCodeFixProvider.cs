@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -14,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertTypeOfToNameOfCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertTypeOfToNameOf), Shared]
     internal class CSharpConvertTypeOfToNameOfCodeFixProvider : AbstractConvertTypeOfToNameOfCodeFixProvider
     {
         [ImportingConstructor]
@@ -26,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
         protected override string GetCodeFixTitle()
             => CSharpCodeFixesResources.Convert_typeof_to_nameof;
 
-        protected override SyntaxNode? GetSymbolTypeExpression(SemanticModel model, SyntaxNode node)
+        protected override SyntaxNode? GetSymbolTypeExpression(SemanticModel model, SyntaxNode node, CancellationToken cancellationToken)
         {
             if (node is MemberAccessExpressionSyntax { Expression: TypeOfExpressionSyntax typeOfExpression })
             {
-                var typeSymbol = model.GetSymbolInfo(typeOfExpression.Type).Symbol.GetSymbolType();
-                return typeSymbol?.GenerateTypeSyntax();
+                var typeSymbol = model.GetSymbolInfo(typeOfExpression.Type, cancellationToken).Symbol.GetSymbolType();
+                return typeSymbol?.GenerateExpressionSyntax();
             }
 
             return null;

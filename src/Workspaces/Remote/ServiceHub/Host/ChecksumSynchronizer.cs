@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
@@ -125,9 +124,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void AddIfNeeded(HashSet<Checksum> checksums, Checksum checksum)
         {
-            if (!_assetProvider.EnsureCacheEntryIfExists(checksum))
+            if (checksum != Checksum.Null)
             {
-                checksums.Add(checksum);
+                if (!_assetProvider.EnsureCacheEntryIfExists(checksum))
+                {
+                    checksums.Add(checksum);
+                }
             }
         }
     }

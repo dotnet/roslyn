@@ -2,34 +2,47 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PersistentStorage;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
-    internal partial class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
+    internal class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
     {
-        private const string LockFile = "db.lock";
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
 
+        private readonly SQLiteConnectionPoolService _connectionPoolService;
+        private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly OptionSet _options;
         private readonly IPersistentStorageFaultInjector? _faultInjector;
 
-        public SQLitePersistentStorageService(IPersistentStorageLocationService locationService)
+        public SQLitePersistentStorageService(
+            OptionSet options,
+            SQLiteConnectionPoolService connectionPoolService,
+            IPersistentStorageLocationService locationService,
+            IAsynchronousOperationListener asyncListener)
             : base(locationService)
         {
+            _options = options;
+            _connectionPoolService = connectionPoolService;
+            _asyncListener = asyncListener;
         }
 
         public SQLitePersistentStorageService(
+            OptionSet options,
+            SQLiteConnectionPoolService connectionPoolService,
             IPersistentStorageLocationService locationService,
+            IAsynchronousOperationListener asyncListener,
             IPersistentStorageFaultInjector? faultInjector)
-            : this(locationService)
+            : this(options, connectionPoolService, locationService, asyncListener)
         {
             _faultInjector = faultInjector;
         }
@@ -40,78 +53,25 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             return Path.Combine(workingFolderPath, StorageExtension, nameof(v2), PersistentStorageFileName);
         }
 
-        protected override IChecksummedPersistentStorage? TryOpenDatabase(
-            SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath)
+        protected override ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
+            SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
         {
             if (!TryInitializeLibraries())
             {
                 // SQLite is not supported on the current platform
-                return null;
+                return new((IChecksummedPersistentStorage?)null);
             }
 
-            // try to get db ownership lock. if someone else already has the lock. it will throw
-            var dbOwnershipLock = TryGetDatabaseOwnership(databaseFilePath);
-            if (dbOwnershipLock == null)
-            {
-                return null;
-            }
+            if (solutionKey.FilePath == null)
+                return new(NoOpPersistentStorage.GetOrThrow(_options));
 
-            SQLitePersistentStorage? sqlStorage = null;
-            try
-            {
-                sqlStorage = new SQLitePersistentStorage(
-                     workingFolderPath, solutionKey.FilePath, databaseFilePath, dbOwnershipLock, _faultInjector);
-
-                sqlStorage.Initialize(bulkLoadSnapshot);
-
-                return sqlStorage;
-            }
-            catch (Exception)
-            {
-                if (sqlStorage != null)
-                {
-                    // Dispose of the storage, releasing the ownership lock.
-                    sqlStorage.Dispose();
-                }
-                else
-                {
-                    // The storage was not created so nothing owns the lock.
-                    // Dispose the lock to allow reuse.
-                    dbOwnershipLock.Dispose();
-                }
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Returns null in the case where an IO exception prevented us from being able to acquire
-        /// the db lock file.
-        /// </summary>
-        private static IDisposable? TryGetDatabaseOwnership(string databaseFilePath)
-        {
-            return IOUtilities.PerformIO<IDisposable?>(() =>
-            {
-                // make sure directory exist first.
-                EnsureDirectory(databaseFilePath);
-
-                var directoryName = Path.GetDirectoryName(databaseFilePath);
-                Contract.ThrowIfNull(directoryName);
-
-                return File.Open(
-                    Path.Combine(directoryName, LockFile),
-                    FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-            }, defaultValue: null);
-        }
-
-        private static void EnsureDirectory(string databaseFilePath)
-        {
-            var directory = Path.GetDirectoryName(databaseFilePath);
-            if (Directory.Exists(directory))
-            {
-                return;
-            }
-
-            Directory.CreateDirectory(directory);
+            return new(SQLitePersistentStorage.TryCreate(
+                _connectionPoolService,
+                workingFolderPath,
+                solutionKey.FilePath,
+                databaseFilePath,
+                _asyncListener,
+                _faultInjector));
         }
 
         // Error occurred when trying to open this DB.  Try to remove it so we can create a good DB.

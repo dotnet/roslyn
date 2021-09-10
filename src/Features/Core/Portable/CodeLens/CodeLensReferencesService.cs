@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,9 +22,20 @@ namespace Microsoft.CodeAnalysis.CodeLens
     internal sealed class CodeLensReferencesService : ICodeLensReferencesService
     {
         private static readonly SymbolDisplayFormat MethodDisplayFormat =
-            new(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            new(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
+
+        /// <summary>
+        /// Set ourselves as an implicit invocation of FindReferences.  This will cause the finding operation to operate
+        /// in serial, not parallel.  We're running ephemerally in the BG and do not want to saturate the system with
+        /// work that then slows the user down.  Also, only process the inheritance hierarchy unidirectionally.  We want
+        /// to find references that could actually call into a particular, not references to other members that could
+        /// never actually call into this member.
+        /// </summary>
+        private static readonly FindReferencesSearchOptions s_nonParallelSearch =
+            FindReferencesSearchOptions.Default.With(
+                @explicit: false,
+                unidirectionalHierarchyCascade: true);
 
         private static async Task<T?> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
@@ -47,8 +60,8 @@ namespace Microsoft.CodeAnalysis.CodeLens
             using var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken);
             try
             {
-                await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
-                    progress.CancellationToken).ConfigureAwait(false);
+                await SymbolFinder.FindReferencesAsync(
+                    symbol, solution, progress, documents: null, s_nonParallelSearch, progress.CancellationToken).ConfigureAwait(false);
 
                 return await onResults(progress).ConfigureAwait(false);
             }
@@ -66,15 +79,21 @@ namespace Microsoft.CodeAnalysis.CodeLens
             }
         }
 
-        public Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
+        public async ValueTask<VersionStamp> GetProjectCodeLensVersionAsync(Solution solution, ProjectId projectId, CancellationToken cancellationToken)
         {
-            return FindAsync(solution, documentId, syntaxNode,
+            return await solution.GetRequiredProject(projectId).GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
+        {
+            var projectVersion = await GetProjectCodeLensVersionAsync(solution, documentId.ProjectId, cancellationToken).ConfigureAwait(false);
+            return await FindAsync(solution, documentId, syntaxNode,
                 progress => Task.FromResult(new ReferenceCount(
                     progress.SearchCap > 0
                         ? Math.Min(progress.ReferencesCount, progress.SearchCap)
-                        : progress.ReferencesCount, progress.SearchCapReached)),
-                progress => Task.FromResult(new ReferenceCount(progress.SearchCap, isCapped: true)),
-                maxSearchResults, cancellationToken);
+                        : progress.ReferencesCount, progress.SearchCapReached, projectVersion.ToString())),
+                progress => Task.FromResult(new ReferenceCount(progress.SearchCap, isCapped: true, projectVersion.ToString())),
+                maxSearchResults, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ReferenceLocationDescriptor> GetDescriptorOfEnclosingSymbolAsync(Solution solution, Location location, CancellationToken cancellationToken)
@@ -226,13 +245,12 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
         private static async Task<ReferenceMethodDescriptor> TryGetMethodDescriptorAsync(Location commonLocation, Solution solution, CancellationToken cancellationToken)
         {
-            var doc = solution.GetDocument(commonLocation.SourceTree);
-            if (doc == null)
+            var document = solution.GetDocument(commonLocation.SourceTree);
+            if (document == null)
             {
                 return null;
             }
 
-            var document = solution.GetDocument(doc.Id);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var fullName = GetEnclosingMethod(semanticModel, commonLocation, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
 
@@ -288,11 +306,13 @@ namespace Microsoft.CodeAnalysis.CodeLens
                             switch (parts[index + 1].Kind)
                             {
                                 case SymbolDisplayPartKind.ClassName:
+                                case SymbolDisplayPartKind.RecordClassName:
                                 case SymbolDisplayPartKind.DelegateName:
                                 case SymbolDisplayPartKind.EnumName:
                                 case SymbolDisplayPartKind.ErrorTypeName:
                                 case SymbolDisplayPartKind.InterfaceName:
                                 case SymbolDisplayPartKind.StructName:
+                                case SymbolDisplayPartKind.RecordStructName:
                                     actualBuilder.Append('+');
                                     break;
 
@@ -306,9 +326,11 @@ namespace Microsoft.CodeAnalysis.CodeLens
                             actualBuilder.Append(part);
                         }
 
-                        previousWasClass = part.Kind == SymbolDisplayPartKind.ClassName ||
-                                           part.Kind == SymbolDisplayPartKind.InterfaceName ||
-                                           part.Kind == SymbolDisplayPartKind.StructName;
+                        previousWasClass = part.Kind is SymbolDisplayPartKind.ClassName or
+                                           SymbolDisplayPartKind.RecordClassName or
+                                           SymbolDisplayPartKind.InterfaceName or
+                                           SymbolDisplayPartKind.StructName or
+                                           SymbolDisplayPartKind.RecordStructName;
                     }
 
                     return actualBuilder.ToString();

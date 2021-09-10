@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 // LICENSING NOTE: The license for this file is from the originating 
 // source and not the general https://github.com/dotnet/roslyn license.
 // See https://github.com/dotnet/corefx/blob/68b76c30eafb3647c11e3f766a2645b130ca1448/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     using static FeaturesResources;
 
     /// <summary>
-    /// Minimal copy of https://github.com/dotnet/corefx/blob/master/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
+    /// Minimal copy of https://github.com/dotnet/corefx/blob/main/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
     /// Used to accurately determine if something is a WordChar according to the .NET regex engine.
     /// </summary>
     internal static class RegexCharClass
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private const string WordClass = "\u0000\u0000\u000A\u0000\u0002\u0004\u0005\u0003\u0001\u0006\u0009\u0013\u0000";
 
         public static readonly Dictionary<string, (string shortDescription, string longDescription)> EscapeCategories =
-            new Dictionary<string, (string, string)>
+            new()
             {
                 // Others
                 { "Cc", (Regex_other_control, "") },
@@ -313,6 +315,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                             continue;
                         }
                     }
+
                     --curcat;
 
                     if (chcategory == (UnicodeCategory)curcat)
@@ -341,8 +344,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     if (chcategory != (UnicodeCategory)curcat)
                         return true;
                 }
+
                 i++;
             }
+
             return false;
         }
 
@@ -368,9 +373,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         if (chcategory == (UnicodeCategory)curcat)
                             answer = true;
                     }
+
                     i++;
                     curcat = (short)category[i];
                 }
+
                 return answer;
             }
             else
@@ -388,9 +395,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         if (chcategory == (UnicodeCategory)curcat)
                             answer = false;
                     }
+
                     i++;
                     curcat = unchecked((short)category[i]);
                 }
+
                 return answer;
             }
         }

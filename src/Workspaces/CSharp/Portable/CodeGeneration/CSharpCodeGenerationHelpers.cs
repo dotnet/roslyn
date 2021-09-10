@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,11 +72,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static TypeDeclarationSyntax AddMembersTo(
             TypeDeclarationSyntax destination, SyntaxList<MemberDeclarationSyntax> members)
         {
+            var syntaxTree = destination.SyntaxTree;
             destination = ReplaceUnterminatedConstructs(destination);
 
-            return ConditionallyAddFormattingAnnotationTo(
+            var node = ConditionallyAddFormattingAnnotationTo(
                 destination.EnsureOpenAndCloseBraceTokens().WithMembers(members),
                 members);
+
+            // Make sure the generated syntax node has same parse option.
+            // e.g. If add syntax member to a C# 5 destination, we should return a C# 5 syntax node.
+            var tree = node.SyntaxTree.WithRootAndOptions(node, syntaxTree.Options);
+            return (TypeDeclarationSyntax)tree.GetRoot();
         }
 
         private static TypeDeclarationSyntax ReplaceUnterminatedConstructs(TypeDeclarationSyntax destination)
@@ -226,6 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     SyntaxKind.CompilationUnit => CodeGenerationDestination.CompilationUnit,
                     SyntaxKind.EnumDeclaration => CodeGenerationDestination.EnumType,
                     SyntaxKind.InterfaceDeclaration => CodeGenerationDestination.InterfaceType,
+                    SyntaxKind.FileScopedNamespaceDeclaration => CodeGenerationDestination.Namespace,
                     SyntaxKind.NamespaceDeclaration => CodeGenerationDestination.Namespace,
                     SyntaxKind.StructDeclaration => CodeGenerationDestination.StructType,
                     _ => CodeGenerationDestination.Unspecified,

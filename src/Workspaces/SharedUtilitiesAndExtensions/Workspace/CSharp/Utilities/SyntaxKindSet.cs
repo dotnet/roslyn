@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 
@@ -71,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SyntaxKind.ClassDeclaration,
             SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
+            SyntaxKind.RecordStructDeclaration,
             SyntaxKind.EnumDeclaration,
         };
 
@@ -80,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SyntaxKind.ClassDeclaration,
             SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
+            SyntaxKind.RecordStructDeclaration,
         };
 
         public static readonly ISet<SyntaxKind> ClassInterfaceRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
@@ -89,16 +93,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             SyntaxKind.RecordDeclaration,
         };
 
+        public static readonly ISet<SyntaxKind> ClassRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.ClassDeclaration,
+            SyntaxKind.RecordDeclaration,
+        };
+
         public static readonly ISet<SyntaxKind> ClassStructRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.ClassDeclaration,
             SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
+            SyntaxKind.RecordStructDeclaration,
         };
 
         public static readonly ISet<SyntaxKind> StructOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.StructDeclaration,
+            SyntaxKind.RecordStructDeclaration,
+        };
+
+        public static readonly ISet<SyntaxKind> InterfaceOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.InterfaceDeclaration,
         };
     }
 }

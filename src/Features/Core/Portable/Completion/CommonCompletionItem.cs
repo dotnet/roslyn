@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -23,7 +25,9 @@ namespace Microsoft.CodeAnalysis.Completion
             bool showsWarningIcon = false,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default,
-            string inlineDescription = null)
+            string inlineDescription = null,
+            string displayTextPrefix = null,
+            bool isComplexTextEdit = false)
         {
             tags = tags.NullToEmpty();
 
@@ -47,12 +51,14 @@ namespace Microsoft.CodeAnalysis.Completion
             return CompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
+                displayTextPrefix: displayTextPrefix,
                 filterText: filterText,
                 sortText: sortText,
                 properties: properties,
                 tags: tags,
                 rules: rules,
-                inlineDescription: inlineDescription);
+                inlineDescription: inlineDescription,
+                isComplexTextEdit: isComplexTextEdit);
         }
 
         public static bool HasDescription(CompletionItem item)

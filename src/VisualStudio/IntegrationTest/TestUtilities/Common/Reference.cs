@@ -13,27 +13,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
     [Serializable]
     public class Reference : IEquatable<Reference>
     {
-        public string FilePath { get; set; }
+        public string? FilePath { get; set; }
         public int Line { get; set; }
         public int Column { get; set; }
-        public string Code { get; set; }
+        public string? Code { get; set; }
 
         public Reference() { }
 
-        public bool Equals(Reference other)
+        public bool Equals(Reference? other)
         {
             if (other == null)
             {
                 return false;
             }
 
-            return FilePath.Equals(other.FilePath, StringComparison.OrdinalIgnoreCase)
+            return string.Equals(FilePath, other.FilePath, StringComparison.OrdinalIgnoreCase)
                 && Line == other.Line
                 && Column == other.Column
-                && Code.Equals(other.Code);
+                && string.Equals(Code, other.Code, StringComparison.Ordinal);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => Equals(obj as Reference);
 
         public override int GetHashCode()

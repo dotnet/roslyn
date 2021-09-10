@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -23,11 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public string HostDisplayName => "Visual Studio";
 
-        public void ShowErrorInfoInActiveView(string message, params InfoBarUI[] items)
-            => _infoBarService.ShowInfoBarInActiveView(message, items);
-
         public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
-            => _infoBarService.ShowInfoBarInGlobalView(message, items);
+        {
+            _infoBarService.ShowInfoBar(message, items);
+
+            // Have to use KeyValueLogMessage so it gets reported in telemetry
+            Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, message, LogLevel.Information);
+        }
 
         public void ShowDetailedErrorInfo(Exception exception)
         {
@@ -52,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             infoBarUIs.Add(new InfoBarUI(
                 ServicesVSResources.Learn_more,
                 InfoBarUI.UIKind.HyperLink,
-                () => BrowserHelper.StartBrowser(new Uri("https://go.microsoft.com/fwlink/?linkid=842308")),
+                () => VisualStudioNavigateToLinkService.StartBrowser(new Uri("https://go.microsoft.com/fwlink/?linkid=842308")),
                 closeAfterAction: false));
 
             if (exception != null)

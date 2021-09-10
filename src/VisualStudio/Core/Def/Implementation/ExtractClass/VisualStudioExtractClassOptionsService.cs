@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable 
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -11,11 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractClass;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
@@ -25,6 +20,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
@@ -34,18 +30,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IGlyphService _glyphService;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioExtractClassOptionsService(
             IThreadingContext threadingContext,
             IGlyphService glyphService,
-            IWaitIndicator waitIndicator)
+            IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
             _threadingContext = threadingContext;
             _glyphService = glyphService;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
         public async Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol selectedType, ISymbol? selectedMember)
@@ -80,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass
             var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, selectedType, membersInType);
 
             var viewModel = new ExtractClassViewModel(
-                _waitIndicator,
+                _uiThreadOperationExecutor,
                 notificationService,
                 memberViewModels,
                 memberToDependentsMap,

@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim paramsArr = New ParameterSymbol(fieldsCount - 1) {}
                 For index = 0 To fieldsCount - 1
                     Dim [property] As PropertySymbol = container.Properties(index)
-                    paramsArr(index) = New SynthesizedParameterSimpleSymbol(Me, [property].Type, index, [property].Name)
+                    paramsArr(index) = New AnonymousTypeOrDelegateParameterSymbol(Me, [property].Type, index, isByRef:=False, [property].Name, correspondingInvokeParameterOrProperty:=index)
                 Next
                 Me._parameters = paramsArr.AsImmutableOrNull()
             End Sub

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,7 +30,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             s.Kind == SymbolKind.Parameter ||
             s.Kind == SymbolKind.RangeVariable ||
             s.Kind == SymbolKind.Field ||
-            s.Kind == SymbolKind.Property;
+            s.Kind == SymbolKind.Property ||
+            (s.Kind == SymbolKind.NamedType && s.IsStatic);
 
         public SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,

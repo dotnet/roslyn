@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -304,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var diag in supportedDiagnostics)
             {
-                if (HasNotConfigurableTag(diag.CustomTags))
+                if (diag.IsNotConfigurable())
                 {
                     if (diag.IsEnabledByDefault)
                     {
@@ -395,7 +393,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static bool HasNotConfigurableTag(IEnumerable<string> customTags)
+        internal static bool HasCompilerOrNotConfigurableTag(ImmutableArray<string> customTags)
+        {
+            foreach (var customTag in customTags)
+            {
+                if (customTag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        internal static bool HasNotConfigurableTag(ImmutableArray<string> customTags)
         {
             foreach (var customTag in customTags)
             {

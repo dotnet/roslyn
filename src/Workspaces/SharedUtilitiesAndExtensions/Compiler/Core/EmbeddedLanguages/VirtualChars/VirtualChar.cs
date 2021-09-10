@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public static bool operator !=(VirtualChar ch1, char ch2)
             => !(ch1 == ch2);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is VirtualChar vc && Equals(vc);
 
         public bool Equals(VirtualChar other)

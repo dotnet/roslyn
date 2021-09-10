@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -74,12 +72,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return visibility;
         }
 
-        public static ISymbol? OverriddenMember(this ISymbol symbol)
-            => symbol.Kind switch
+        public static ISymbol? GetOverriddenMember(this ISymbol? symbol)
+            => symbol switch
             {
-                SymbolKind.Event => ((IEventSymbol)symbol).OverriddenEvent,
-                SymbolKind.Method => ((IMethodSymbol)symbol).OverriddenMethod,
-                SymbolKind.Property => ((IPropertySymbol)symbol).OverriddenProperty,
+                IMethodSymbol method => method.OverriddenMethod,
+                IPropertySymbol property => property.OverriddenProperty,
+                IEventSymbol @event => @event.OverriddenEvent,
                 _ => null,
             };
 
@@ -139,7 +137,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     var methodSymbol = (IMethodSymbol)symbol;
                     if (methodSymbol.MethodKind == MethodKind.Ordinary ||
                         methodSymbol.MethodKind == MethodKind.PropertyGet ||
-                        methodSymbol.MethodKind == MethodKind.PropertySet)
+                        methodSymbol.MethodKind == MethodKind.PropertySet ||
+                        methodSymbol.MethodKind == MethodKind.UserDefinedOperator ||
+                        methodSymbol.MethodKind == MethodKind.Conversion)
                     {
                         return true;
                     }
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsOrdinaryMethodOrLocalFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            if (!(symbol is IMethodSymbol method))
+            if (symbol is not IMethodSymbol method)
             {
                 return false;
             }
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => symbol.IsAnonymousType() && !symbol.IsDelegateType();
 
         public static bool IsAnonymousDelegateType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol.IsAnonymousType() && symbol.IsDelegateType();
+            => symbol.IsDelegateType() && (symbol.IsAnonymousType() || !symbol.CanBeReferencedByName);
 
         public static bool IsAnonymousTypeProperty([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol is IPropertySymbol && symbol.ContainingType.IsNormalAnonymousType();
@@ -742,5 +742,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             result = (TSymbol)symbol;
             return true;
         }
+
+        /// <summary>
+        /// Returns true for symbols whose name starts with an underscore and
+        /// are optionally followed by an integer, such as '_', '_1', '_2', etc.
+        /// These are treated as special discard symbol names.
+        /// </summary>
+        public static bool IsSymbolWithSpecialDiscardName(this ISymbol symbol)
+            => symbol.Name.StartsWith("_") &&
+               (symbol.Name.Length == 1 || uint.TryParse(symbol.Name.Substring(1), out _));
+
+        /// <summary>
+        /// Returns <see langword="true"/>, if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns><see langword="true"/> if the symbol is marked with the <see cref="System.ObsoleteAttribute"/>.</returns>
+        public static bool IsObsolete(this ISymbol symbol)
+            => symbol.GetAttributes().Any(x => x.AttributeClass is
+            {
+                MetadataName: nameof(ObsoleteAttribute),
+                ContainingNamespace: { Name: nameof(System) },
+            });
     }
 }

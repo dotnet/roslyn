@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -31,6 +29,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         {
         }
 
+        public ValueTask<VersionStamp> GetProjectCodeLensVersionAsync(Solution solution, ProjectId projectId, CancellationToken cancellationToken)
+        {
+            // This value is more efficient to calculate in the current process
+            return CodeLensReferencesServiceFactory.Instance.GetProjectCodeLensVersionAsync(solution, projectId, cancellationToken);
+        }
+
         public async Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode? syntaxNode, int maxSearchResults,
             CancellationToken cancellationToken)
         {
@@ -47,7 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ReferenceCount?>(
                         solution,
                         (service, solutionInfo, cancellationToken) => service.GetReferenceCountAsync(solutionInfo, documentId, syntaxNode.Span, maxSearchResults, cancellationToken),
-                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     return result.HasValue ? result.Value : null;
@@ -94,7 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ImmutableArray<ReferenceMethodDescriptor>?>(
                         solution,
                         (service, solutionInfo, cancellationToken) => service.FindReferenceMethodsAsync(solutionInfo, documentId, syntaxNode.Span, cancellationToken),
-                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     return result.HasValue ? result.Value : null;
@@ -120,7 +122,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, string>(
                         solution,
                         (service, solutionInfo, cancellationToken) => service.GetFullyQualifiedNameAsync(solutionInfo, documentId, syntaxNode.Span, cancellationToken),
-                        callbackTarget: null,
                         cancellationToken).ConfigureAwait(false);
 
                     return result.HasValue ? result.Value : null;
@@ -258,7 +259,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ImmutableArray<ReferenceLocationDescriptor>?>(
                     solution,
                     (service, solutionInfo, cancellationToken) => service.FindReferenceLocationsAsync(solutionInfo, documentId, syntaxNode.Span, cancellationToken),
-                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
 
                 return result.HasValue ? result.Value : null;

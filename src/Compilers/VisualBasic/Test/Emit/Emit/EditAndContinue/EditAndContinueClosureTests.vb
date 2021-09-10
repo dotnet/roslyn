@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
@@ -67,6 +66,7 @@ End Class
                     Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                     Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(6, TableIndex.Param, EditAndContinueOperation.Default),
                     Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default))
             End Using
@@ -223,7 +223,8 @@ End Class
                 Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
         End Sub
 
         <Fact>
@@ -275,7 +276,8 @@ End Class
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(1, TableIndex.Param, EditAndContinueOperation.Default))
         End Sub
 
         <Fact>
@@ -359,7 +361,9 @@ End Class
                 Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default))
         End Sub
 
         <Fact>
@@ -436,9 +440,10 @@ End Module
                 Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
         End Sub
 
         <WorkItem(1067140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067140")>
@@ -706,7 +711,17 @@ End Class
                 Row(31, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(32, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(33, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(34, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                Row(34, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(14, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(15, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(16, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(17, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(18, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(19, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(20, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(21, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(22, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(23, TableIndex.Param, EditAndContinueOperation.Default))
         End Sub
 
         <Fact>
@@ -762,7 +777,8 @@ End Class
             CheckEncLogDefinitions(reader1,
                 Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default))
         End Sub
 
         ''' <summary>
@@ -825,7 +841,8 @@ End Class
             CheckEncLogDefinitions(reader1,
                 Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default))
         End Sub
 
         ''' <summary>
@@ -892,7 +909,11 @@ End Class
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(6, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(7, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(8, TableIndex.Param, EditAndContinueOperation.Default))
         End Sub
 
         ' TODO: AggregateClauseCrossMatch

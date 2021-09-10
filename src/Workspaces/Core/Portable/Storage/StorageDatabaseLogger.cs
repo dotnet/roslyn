@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Storage
         private static readonly StorageDatabaseLogger Instance = new();
 
 #pragma warning disable IDE0052 // Remove unread private members - hold onto last exception to make investigation easier
-        private Exception _reportedException;
-        private string _reportedExceptionMessage;
+        private Exception? _reportedException;
+        private string? _reportedExceptionMessage;
 #pragma warning restore IDE0052 // Remove unread private members
 
         private readonly ConcurrentDictionary<Type, Exception> _set = new(concurrencyLevel: 2, capacity: 10);

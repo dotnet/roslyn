@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,9 +18,15 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [Collection(AssemblyLoadTestFixtureCollection.Name)]
     public class AnalyzerFileReferenceTests : TestBase
     {
         private static readonly AnalyzerAssemblyLoader s_analyzerLoader = new DefaultAnalyzerAssemblyLoader();
+        private readonly AssemblyLoadTestFixture _testFixture;
+        public AnalyzerFileReferenceTests(AssemblyLoadTestFixture testFixture)
+        {
+            _testFixture = testFixture;
+        }
 
         public static AnalyzerFileReference CreateAnalyzerFileReference(string fullPath)
         {
@@ -166,9 +170,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestLoadErrors3()
         {
-            var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.Alpha.Path);
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
@@ -177,8 +179,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             reference.AddAnalyzers(builder, LanguageNames.CSharp);
             var analyzers = builder.ToImmutable();
             reference.AnalyzerLoadFailed -= errorHandler;
-
-            File.Delete(alphaDll.Path);
 
             Assert.Equal(0, errors.Count);
         }
@@ -197,9 +197,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ValidAnalyzerReference_DisplayName()
         {
-            var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.Alpha.Path);
 
             Assert.Equal(expected: "Alpha", actual: reference.Display);
         }
@@ -209,9 +207,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
         public void ValidAnalyzerReference_Id()
         {
-            var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
-            AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.Alpha.Path);
 
             AssemblyIdentity.TryParseDisplayName("Alpha, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", out var expectedIdentity);
 
@@ -234,9 +230,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(1032909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032909")]
         public void TestFailedLoadDoesntCauseNoAnalyzersWarning()
         {
-            var directory = Temp.CreateDirectory();
-            var analyzerDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
-            AnalyzerFileReference reference = CreateAnalyzerFileReference(analyzerDll.Path);
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(_testFixture.FaultyAnalyzer.Path);
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
@@ -250,22 +244,80 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, errors.First().ErrorCode);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a framework targeting generator, which these are in desktop")]
         public void TestLoadGenerators()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
-            var generators = reference.GetGenerators();
-            Assert.Equal(5, generators.Length);
+            var generators = reference.GetGeneratorsForAllLanguages();
+            var typeNames = generators.Select(g => g.GetGeneratorType().FullName);
 
-            var typeNames = generators.Select(g => g.GetType().FullName);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.BaseGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator", typeNames);
-            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.TestGeneratorNoAttrib", typeNames);
-            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAGenerator", typeNames);
-            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.NotAGenerator", typeNames);
+            AssertEx.SetEqual(new[]
+            {
+                "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.BaseGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.FSharpGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator"
+            }, typeNames);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestLoadGeneratorsWithoutArgumentOnlyLoadsCSharp()
+        {
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
+            var generators = reference.GetGenerators(LanguageNames.CSharp);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            var generators2 = reference.GetGenerators();
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            Assert.Equal(generators, generators2);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestLoadCSharpGenerators()
+        {
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
+            var generators = reference.GetGenerators(LanguageNames.CSharp);
+
+            var typeNames = generators.Select(g => g.GetGeneratorType().FullName);
+            AssertEx.SetEqual(new[]
+            {
+                "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.BaseGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator"
+            }, typeNames);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestLoadVisualBasicGenerators()
+        {
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
+            var generators = reference.GetGenerators(LanguageNames.VisualBasic);
+
+            var typeNames = generators.Select(g => g.GetGeneratorType().FullName);
+            AssertEx.SetEqual(new[]
+            {
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator"
+            }, typeNames);
         }
 
         // can't load a coreclr targeting generator on net framework / mono
@@ -288,7 +340,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // framework
             errors = buildAndLoadGeneratorAndReturnAnyErrors(".NETFramework,Version=v4.7.2");
-            Assert.Equal(1, errors.Count);
+            Assert.Equal(2, errors.Count);
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework, errors.First().ErrorCode);
 
             List<AnalyzerLoadFailureEventArgs> buildAndLoadGeneratorAndReturnAnyErrors(string? targetFramework)
@@ -310,7 +362,7 @@ public class Generator : ISourceGenerator
  }}";
 
                 var directory = Temp.CreateDirectory();
-                var generatorPath = Path.Combine(directory.Path, "generator.dll");
+                var generatorPath = Path.Combine(directory.Path, $"generator_{targetFramework}.dll");
 
                 var compilation = CSharpCompilation.Create($"generator_{targetFramework}",
                                                            new[] { CSharpSyntaxTree.ParseText(generatorSource) },
@@ -327,12 +379,101 @@ public class Generator : ISourceGenerator
                 reference.AnalyzerLoadFailed += errorHandler;
                 var builder = ImmutableArray.CreateBuilder<ISourceGenerator>();
                 reference.AddGenerators(builder, LanguageNames.CSharp);
-                Assert.Single(builder);
                 reference.AnalyzerLoadFailed -= errorHandler;
 
+                if (errors.Count > 0)
+                {
+                    Assert.Empty(builder);
+                }
+                else
+                {
+                    Assert.Single(builder);
+                }
                 return errors;
             }
         }
+
+        [Fact]
+        [WorkItem(52035, "https://github.com/dotnet/roslyn/issues/52035")]
+        public void TestLoadedAnalyzerOrderIsDeterministic()
+        {
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
+
+            var csharpAnalyzers = reference.GetAnalyzers(LanguageNames.CSharp).Select(a => a.GetType().FullName).ToArray();
+            Assert.Equal(4, csharpAnalyzers.Length);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedAnalyzer", csharpAnalyzers[0]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzer", csharpAnalyzers[1]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzerCS", csharpAnalyzers[2]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerCSVB", csharpAnalyzers[3]);
+
+            var vbAnalyzers = reference.GetAnalyzers(LanguageNames.VisualBasic).Select(a => a.GetType().FullName).ToArray();
+            Assert.Equal(4, vbAnalyzers.Length);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedAnalyzer", vbAnalyzers[0]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzer", vbAnalyzers[1]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzerVB", vbAnalyzers[2]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerCSVB", vbAnalyzers[3]);
+
+            // analyzers return C#, then VB, including duplicates
+            var allAnalyzers = reference.GetAnalyzersForAllLanguages().Select(a => a.GetType().FullName).ToArray();
+            Assert.Equal(8, allAnalyzers.Length);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedAnalyzer", allAnalyzers[0]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzer", allAnalyzers[1]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzerCS", allAnalyzers[2]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerCSVB", allAnalyzers[3]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedAnalyzer", allAnalyzers[4]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzer", allAnalyzers[5]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzerVB", allAnalyzers[6]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerCSVB", allAnalyzers[7]);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a framework targeting generator, which these are in desktop")]
+        [WorkItem(52035, "https://github.com/dotnet/roslyn/issues/52035")]
+        public void TestLoadedGeneratorOrderIsDeterministic()
+        {
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
+
+            var csharpGenerators = reference.GetGenerators(LanguageNames.CSharp).Select(g => g.GetGeneratorType().FullName).ToArray();
+            Assert.Equal(10, csharpGenerators.Length);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator", csharpGenerators[0]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", csharpGenerators[1]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.BaseGenerator", csharpGenerators[2]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator", csharpGenerators[3]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator", csharpGenerators[4]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator", csharpGenerators[5]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestGenerator", csharpGenerators[6]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator", csharpGenerators[7]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator", csharpGenerators[8]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator", csharpGenerators[9]);
+
+            var vbGenerators = reference.GetGenerators(LanguageNames.VisualBasic).Select(g => g.GetGeneratorType().FullName).ToArray();
+            Assert.Equal(5, vbGenerators.Length);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator", vbGenerators[0]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator", vbGenerators[1]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator", vbGenerators[2]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator", vbGenerators[3]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator", vbGenerators[4]);
+
+            // generators load in language order (C#, F#, VB), and *do not* include duplicates
+            var allGenerators = reference.GetGeneratorsForAllLanguages().Select(g => g.GetGeneratorType().FullName).ToArray();
+            Assert.Equal(12, allGenerators.Length);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator", allGenerators[0]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", allGenerators[1]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.BaseGenerator", allGenerators[2]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator", allGenerators[3]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator", allGenerators[4]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator", allGenerators[5]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestGenerator", allGenerators[6]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator", allGenerators[7]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator", allGenerators[8]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator", allGenerators[9]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.FSharpGenerator", allGenerators[10]);
+            Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator", allGenerators[11]);
+        }
+
+        // NOTE: the order in which these are emitted can change the test 'TestLoadedAnalyzerOrderIsDeterministic'
+        //       and other determinism tests in this file.
+        //       Ensure you do not re-arrange them alphabetically, as that will invalidate the tests, without 
+        //       explicitly failing them
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, new string[] { LanguageNames.VisualBasic })]
         public class TestAnalyzer : DiagnosticAnalyzer
@@ -449,4 +590,40 @@ public class Generator : ISourceGenerator
 
     [Generator]
     public class NotAGenerator { }
+
+    [Generator(LanguageNames.CSharp)]
+    public class ExplicitCSharpOnlyGenerator : TestGenerator { }
+
+    [Generator(LanguageNames.VisualBasic)]
+    public class VisualBasicOnlyGenerator : TestGenerator { }
+
+    [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class CSharpAndVisualBasicGenerator : TestGenerator { }
+
+    [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class VisualBasicAndCSharpGenerator : TestGenerator { }
+
+    [Generator(LanguageNames.FSharp)]
+    public class FSharpGenerator : TestGenerator { }
+
+    [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class TestIncrementalGenerator : IIncrementalGenerator
+    {
+        public void Initialize(IncrementalGeneratorInitializationContext context) => throw new NotImplementedException();
+    }
+
+    public class TestIncrementalGeneratorWithNoAttrib : IIncrementalGenerator
+    {
+        public void Initialize(IncrementalGeneratorInitializationContext context) => throw new NotImplementedException();
+    }
+
+    [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class TestSourceAndIncrementalGenerator : IIncrementalGenerator, ISourceGenerator
+    {
+        public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+
+        public void Initialize(IncrementalGeneratorInitializationContext context) => throw new NotImplementedException();
+
+        public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
+    }
 }

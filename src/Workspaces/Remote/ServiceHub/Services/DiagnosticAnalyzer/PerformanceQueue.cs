@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -123,8 +125,8 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             /// </summary>
             private readonly Dictionary<int, double> _performanceMap;
 
-            public Snapshot(IEnumerable<(string analyzerId, TimeSpan timeSpan)> snapshot, int unitCount) :
-                this(Convert(snapshot), unitCount)
+            public Snapshot(IEnumerable<(string analyzerId, TimeSpan timeSpan)> snapshot, int unitCount)
+                : this(Convert(snapshot), unitCount)
             {
             }
 

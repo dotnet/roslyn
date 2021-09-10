@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,14 +17,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(INamespaceSymbol symbol)
             => true;
 
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             INamespaceSymbol symbol,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, findInGlobalSuppressions: true, cancellationToken, GetNamespaceIdentifierName(symbol));
+            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, GetNamespaceIdentifierName(symbol)).ConfigureAwait(false);
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            return documentsWithGlobalAttributes.Concat(documentsWithName);
         }
 
         private static string GetNamespaceIdentifierName(INamespaceSymbol symbol)
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : symbol.Name;
         }
 
-        protected override async Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             INamespaceSymbol symbol,
             Document document,
             SemanticModel semanticModel,
@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
                 document, semanticModel, identifierName, cancellationToken).ConfigureAwait(false);
-            var nonAliasReferences = await FindReferencesInTokensAsync(symbol,
+            var nonAliasReferences = await FindReferencesInTokensAsync(
+                symbol,
                 document,
                 semanticModel,
                 tokens,
@@ -57,12 +58,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var aliasReferences = await FindAliasReferencesAsync(nonAliasReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
-            var suppressionReferences = ShouldFindReferencesInGlobalSuppressions(symbol, out var docCommentId)
-                ? await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel,
-                    syntaxFacts, docCommentId, cancellationToken).ConfigureAwait(false)
-                : ImmutableArray<FinderLocation>.Empty;
-
-            return nonAliasReferences.Concat(aliasReferences).Concat(suppressionReferences);
+            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
+            return nonAliasReferences.Concat(aliasReferences, suppressionReferences);
         }
     }
 }

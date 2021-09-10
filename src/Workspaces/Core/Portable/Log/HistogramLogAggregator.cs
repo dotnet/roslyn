@@ -38,6 +38,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             counter.IncreaseCount(value);
         }
 
+        public HistogramCounter? GetValue(object key)
+        {
+            TryGetCounter(key, out var counter);
+            return counter;
+        }
+
         internal sealed class HistogramCounter
         {
             private readonly int[] _buckets;

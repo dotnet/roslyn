@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Roslyn.Utilities;
 
@@ -20,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         internal const string Prefix = "roslyn";
         internal const string Suffix64 = "64";
+        internal const string SuffixServerGC = "S";
+        internal const string SuffixCoreClr = "Core";
         internal const string IntelliCodeServiceName = "pythia";
         internal const string RazorServiceName = "razorLanguageService";
         internal const string UnitTestingAnalysisServiceName = "UnitTestingAnalysis";
@@ -44,25 +44,25 @@ namespace Microsoft.CodeAnalysis.Remote
             CustomServiceName = customServiceName;
         }
 
-        public string ToString(bool isRemoteHost64Bit)
+        public string ToString(bool isRemoteHostServerGC, bool isRemoteHostCoreClr)
         {
-            return CustomServiceName ?? (WellKnownService, isRemoteHost64Bit) switch
+            if (CustomServiceName is not null)
             {
-                (WellKnownServiceHubService.RemoteHost, false) => Prefix + nameof(WellKnownServiceHubService.RemoteHost),
-                (WellKnownServiceHubService.RemoteHost, true) => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + Suffix64,
-                (WellKnownServiceHubService.LanguageServer, false) => Prefix + nameof(WellKnownServiceHubService.LanguageServer),
-                (WellKnownServiceHubService.LanguageServer, true) => Prefix + nameof(WellKnownServiceHubService.LanguageServer) + Suffix64,
+                return CustomServiceName;
+            }
 
-                (WellKnownServiceHubService.IntelliCode, false) => IntelliCodeServiceName,
-                (WellKnownServiceHubService.IntelliCode, true) => IntelliCodeServiceName + Suffix64,
-                (WellKnownServiceHubService.Razor, false) => RazorServiceName,
-                (WellKnownServiceHubService.Razor, true) => RazorServiceName + Suffix64,
-                (WellKnownServiceHubService.UnitTestingAnalysisService, false) => UnitTestingAnalysisServiceName,
-                (WellKnownServiceHubService.UnitTestingAnalysisService, true) => UnitTestingAnalysisServiceName + Suffix64,
-                (WellKnownServiceHubService.LiveUnitTestingBuildService, false) => LiveUnitTestingBuildServiceName,
-                (WellKnownServiceHubService.LiveUnitTestingBuildService, true) => LiveUnitTestingBuildServiceName + Suffix64,
-                (WellKnownServiceHubService.UnitTestingSourceLookupService, false) => UnitTestingSourceLookupServiceName,
-                (WellKnownServiceHubService.UnitTestingSourceLookupService, true) => UnitTestingSourceLookupServiceName + Suffix64,
+            var suffix = (isRemoteHostServerGC, isRemoteHostCoreClr) switch
+            {
+                (false, false) => Suffix64,
+                (true, false) => Suffix64 + SuffixServerGC,
+                (false, true) => SuffixCoreClr + Suffix64,
+                (true, true) => SuffixCoreClr + Suffix64 + SuffixServerGC,
+            };
+
+            return WellKnownService switch
+            {
+                WellKnownServiceHubService.RemoteHost => Prefix + nameof(WellKnownServiceHubService.RemoteHost) + suffix,
+                WellKnownServiceHubService.IntelliCode => IntelliCodeServiceName + suffix,
 
                 _ => throw ExceptionUtilities.UnexpectedValue(WellKnownService),
             };

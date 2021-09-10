@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
@@ -13,15 +15,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public bool HighPriorityForActiveFile { get; }
         public string Name { get; }
 
-        public IncrementalAnalyzerProviderMetadata(IDictionary<string, object> data) :
-            base(data)
+        public IncrementalAnalyzerProviderMetadata(IDictionary<string, object> data)
+            : base(data)
         {
             this.HighPriorityForActiveFile = (bool)data.GetValueOrDefault("HighPriorityForActiveFile");
             this.Name = (string)data.GetValueOrDefault("Name");
         }
 
-        public IncrementalAnalyzerProviderMetadata(string name, bool highPriorityForActiveFile, params string[] workspaceKinds) :
-            base(workspaceKinds)
+        public IncrementalAnalyzerProviderMetadata(string name, bool highPriorityForActiveFile, params string[] workspaceKinds)
+            : base(workspaceKinds)
         {
             this.HighPriorityForActiveFile = highPriorityForActiveFile;
             this.Name = name;

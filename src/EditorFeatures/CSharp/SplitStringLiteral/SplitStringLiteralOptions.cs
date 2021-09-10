@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
     {
         public static PerLanguageOption2<bool> Enabled =
             new(nameof(SplitStringLiteralOptions), nameof(Enabled), defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
     }
 
     [ExportOptionProvider(LanguageNames.CSharp), Shared]

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Returns all the descendant operations of the given <paramref name="operation"/> in evaluation order.
         /// </summary>
         /// <param name="operation">Operation whose descendants are to be fetched.</param>
-        public static IEnumerable<IOperation> Descendants(this IOperation operation)
+        public static IEnumerable<IOperation> Descendants(this IOperation? operation)
         {
             return Descendants(operation, includeSelf: false);
         }
@@ -68,12 +68,12 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Returns all the descendant operations of the given <paramref name="operation"/> including the given <paramref name="operation"/> in evaluation order.
         /// </summary>
         /// <param name="operation">Operation whose descendants are to be fetched.</param>
-        public static IEnumerable<IOperation> DescendantsAndSelf(this IOperation operation)
+        public static IEnumerable<IOperation> DescendantsAndSelf(this IOperation? operation)
         {
             return Descendants(operation, includeSelf: true);
         }
 
-        private static IEnumerable<IOperation> Descendants(IOperation operation, bool includeSelf)
+        private static IEnumerable<IOperation> Descendants(IOperation? operation, bool includeSelf)
         {
             if (operation == null)
             {
@@ -85,8 +85,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 yield return operation;
             }
 
-            var stack = ArrayBuilder<IEnumerator<IOperation>>.GetInstance();
-            stack.Push(operation.Children.GetEnumerator());
+            var stack = ArrayBuilder<Operation.Enumerator>.GetInstance();
+            stack.Push(((Operation)operation).ChildOperations.GetEnumerator());
 
             while (stack.Any())
             {
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (current != null)
                 {
                     yield return current;
-                    stack.Push(current.Children.GetEnumerator());
+                    stack.Push(((Operation)current).ChildOperations.GetEnumerator());
                 }
             }
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// if the single variable initializer is null.
         /// </summary>
         /// <param name="declarationOperation">Single variable declaration to retrieve initializer for.</param>
-        public static IVariableInitializerOperation GetVariableInitializer(this IVariableDeclaratorOperation declarationOperation)
+        public static IVariableInitializerOperation? GetVariableInitializer(this IVariableDeclaratorOperation declarationOperation)
         {
             if (declarationOperation == null)
             {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IDynamicInvocationOperation dynamicOperation, int index)
+        public static string? GetArgumentName(this IDynamicInvocationOperation dynamicOperation, int index)
         {
             if (dynamicOperation == null)
             {
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IDynamicIndexerAccessOperation dynamicOperation, int index)
+        public static string? GetArgumentName(this IDynamicIndexerAccessOperation dynamicOperation, int index)
         {
             if (dynamicOperation == null)
             {
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
-        public static string GetArgumentName(this IDynamicObjectCreationOperation dynamicOperation, int index)
+        public static string? GetArgumentName(this IDynamicObjectCreationOperation dynamicOperation, int index)
         {
             if (dynamicOperation == null)
             {
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         /// <param name="dynamicOperation">Dynamic or late bound operation.</param>
         /// <param name="index">Argument index.</param>
-        internal static string GetArgumentName(this HasDynamicArgumentsExpression dynamicOperation, int index)
+        internal static string? GetArgumentName(this HasDynamicArgumentsExpression dynamicOperation, int index)
         {
             if (dynamicOperation.Arguments.IsDefaultOrEmpty)
             {
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <returns>The corresponding operation or <c>null</c> in case not found (e.g. no loop or switch syntax, or the branch is not a break or continue)</returns>
         /// <exception cref="ArgumentNullException"><paramref name="operation"/> is null</exception>
         /// <exception cref="InvalidOperationException">The operation is a part of Control Flow Graph</exception>
-        public static IOperation GetCorrespondingOperation(this IBranchOperation operation)
+        public static IOperation? GetCorrespondingOperation(this IBranchOperation operation)
         {
             if (operation == null)
             {
@@ -377,11 +377,9 @@ namespace Microsoft.CodeAnalysis.Operations
             return null;
         }
 
-#nullable enable
         internal static ConstantValue? GetConstantValue(this IOperation operation)
         {
             return ((Operation)operation).OperationConstantValue;
         }
-#nullable restore
     }
 }

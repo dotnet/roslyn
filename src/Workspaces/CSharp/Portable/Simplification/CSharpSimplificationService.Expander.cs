@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -306,6 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             // No duplicate names allowed
                             return false;
                         }
+
                         found = true;
                     }
                 }
@@ -500,6 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                                 {
                                     replacement = replacement.ReplaceToken(firstOriginalToken, tokenWithLeadingWhitespace);
                                 }
+
                                 break;
 
                             case SyntaxKind.QualifiedName:
@@ -1037,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax originalNode)
             {
-                if (this._semanticModel.GetSymbolInfo(originalNode).Symbol.IsLocalFunction())
+                if (_semanticModel.GetSymbolInfo(originalNode).Symbol.IsLocalFunction())
                 {
                     return originalNode;
                 }

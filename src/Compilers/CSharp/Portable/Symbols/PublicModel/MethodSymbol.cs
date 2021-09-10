@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -295,6 +297,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        bool IMethodSymbol.IsPartialDefinition => _underlying.IsPartialDefinition();
+
         INamedTypeSymbol IMethodSymbol.AssociatedAnonymousDelegate
         {
             get
@@ -306,6 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         int IMethodSymbol.Arity => _underlying.Arity;
 
         bool IMethodSymbol.IsExtensionMethod => _underlying.IsExtensionMethod;
+
+        System.Reflection.MethodImplAttributes IMethodSymbol.MethodImplementationFlags => _underlying.ImplementationAttributes;
 
         bool IMethodSymbol.IsVararg => _underlying.IsVararg;
 

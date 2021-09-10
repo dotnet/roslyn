@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISymbol symbol,
             Solution solution,
             IStreamingFindReferencesProgress progress,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // Create a callback that we can pass to the server process to hear about the 
                         // results as it finds them.  When we hear about results we'll forward them to
                         // the 'progress' parameter which will then update the UI.
-                        var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
+                        var serverCallback = new FindReferencesServerCallback(solution, progress);
                         var documentIds = documents?.SelectAsArray(d => d.Id) ?? default;
 
                         await client.TryInvokeAsync<IRemoteSymbolFinderService>(
                             solution,
-                            (service, solutionInfo, cancellationToken) => service.FindReferencesAsync(solutionInfo, serializedSymbol, documentIds, options, cancellationToken),
+                            (service, solutionInfo, callbackId, cancellationToken) => service.FindReferencesAsync(solutionInfo, callbackId, serializedSymbol, documentIds, options, cancellationToken),
                             serverCallback,
                             cancellationToken).ConfigureAwait(false);
 
@@ -61,15 +61,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISymbol symbol,
             Solution solution,
             IStreamingFindReferencesProgress progress,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             var finders = ReferenceFinders.DefaultReferenceFinders;
             progress ??= NoOpStreamingFindReferencesProgress.Instance;
             var engine = new FindReferencesSearchEngine(
-                solution, documents, finders, progress, options, cancellationToken);
-            return engine.FindReferencesAsync(symbol);
+                solution, documents, finders, progress, options);
+            return engine.FindReferencesAsync(symbol, cancellationToken);
         }
     }
 }

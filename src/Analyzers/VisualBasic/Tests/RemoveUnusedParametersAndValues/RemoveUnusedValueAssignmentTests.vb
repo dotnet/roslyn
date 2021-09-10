@@ -97,6 +97,39 @@ $"Class C
 End Class")
         End Function
 
+        <WorkItem(48070, "https://github.com/dotnet/roslyn/issues/48070")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
+        Public Async Function Initialization_ConstantValue_DoNotCopyLeadingTriviaDirectives() As Task
+            Await TestInRegularAndScriptAsync(
+"class C
+    sub M()
+#region """"
+
+        dim value as integer = 3
+
+#end region
+        dim [|x|] as integer? = nothing
+        dim y = value + value
+
+        x = y
+        System.Console.WriteLine(x)
+    end sub
+end class",
+"class C
+    sub M()
+#region """"
+
+        dim value as integer = 3
+
+#end region
+        dim y = value + value
+
+        Dim x As Integer? = y
+        System.Console.WriteLine(x)
+    end sub
+end class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
         Public Async Function Initialization_ConstantValue_UnusedLocal() As Task
             Await TestInRegularAndScriptAsync(

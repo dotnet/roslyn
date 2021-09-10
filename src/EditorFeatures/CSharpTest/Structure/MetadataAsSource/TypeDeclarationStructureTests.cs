@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -72,6 +74,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
 //     This is a doc comment.
 [Bar, Baz]
 |}{|#0:public record $$C|}{|textspan2:
+{
+    void M();
+}|}|#0}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true),
+                Region("textspan2", "#0", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task RecordStructWithCommentsAndAttributes()
+        {
+            const string code = @"
+{|hint:{|textspan:// Summary:
+//     This is a doc comment.
+[Bar, Baz]
+|}{|#0:public record struct $$C|}{|textspan2:
 {
     void M();
 }|}|#0}";

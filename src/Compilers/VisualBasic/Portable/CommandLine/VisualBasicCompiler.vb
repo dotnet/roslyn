@@ -28,6 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _diagnosticFormatter = New CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, AddressOf GetAdditionalTextFiles)
             _additionalTextFiles = Nothing
             _tempDirectory = buildPaths.TempDirectory
+
+            Debug.Assert(Arguments.OutputFileName IsNot Nothing OrElse Arguments.Errors.Length > 0 OrElse parser.IsScriptCommandLineParser)
         End Sub
 
         Private Function GetAdditionalTextFiles() As ImmutableArray(Of AdditionalTextFile)
@@ -63,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim content = TryReadFileContent(file, fileReadDiagnostics)
 
             If content Is Nothing Then
-                ReportDiagnostics(fileReadDiagnostics, consoleOutput, errorLogger)
+                ReportDiagnostics(fileReadDiagnostics, consoleOutput, errorLogger, compilation:=Nothing)
                 fileReadDiagnostics.Clear()
                 hadErrors = True
                 Return Nothing
@@ -145,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim referenceDirectiveResolver As MetadataReferenceResolver = Nothing
             Dim resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, referenceDirectiveResolver)
 
-            If ReportDiagnostics(diagnostics, consoleOutput, errorLogger) Then
+            If ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation:=Nothing) Then
                 Return Nothing
             End If
 
@@ -172,6 +174,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem)).
                      WithSourceReferenceResolver(sourceFileResolver).
                      WithSyntaxTreeOptionsProvider(syntaxTreeOptions))
+        End Function
+
+        Protected Overrides Function GetOutputFileName(compilation As Compilation, cancellationToken As CancellationToken) As String
+            ' The only case this is Nothing is when there are errors during parsing in which case this should never get called
+            Debug.Assert(Arguments.OutputFileName IsNot Nothing)
+            Return Arguments.OutputFileName
         End Function
 
         Private Sub PrintReferences(resolvedReferences As List(Of MetadataReference), consoleOutput As TextWriter)
@@ -289,6 +297,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 embeddedFiles.Add(resolvedPath)
             Next
         End Sub
+
+        Private Protected Overrides Function RunGenerators(input As Compilation, parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText), diagnostics As DiagnosticBag) As Compilation
+            Dim driver = VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), analyzerConfigOptionsProvider)
+            Dim compilationOut As Compilation = Nothing, generatorDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver.RunGeneratorsAndUpdateCompilation(input, compilationOut, generatorDiagnostics)
+            diagnostics.AddRange(generatorDiagnostics)
+            Return compilationOut
+        End Function
+
     End Class
 End Namespace
-

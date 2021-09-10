@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis
         where MethodSymbol : class, Symbol, IMethodSymbolInternal
         where FieldSymbol : class, Symbol, IFieldSymbolInternal
         where Symbol : class, ISymbolInternal
-#nullable restore
+#nullable disable
     {
         public readonly PEModule Module;
 
@@ -975,7 +977,7 @@ tryAgain:
             if (typeCode == SignatureTypeCode.TypeHandle)
             {
                 // TypeDefOrRefOrSpec encoded
-                // From the PortablePDB spec: https://github.com/dotnet/runtime/blob/master/src/libraries/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#localconstant-table-0x34
+                // From the PortablePDB spec: https://github.com/dotnet/runtime/blob/main/src/libraries/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#localconstant-table-0x34
                 // The encoding of the GeneralValue is determined based upon the type expressed by TypeDefOrRefOrSpecEncoded
                 // specified in GeneralConstant. GeneralValue for special types listed in the table below has to be present
                 // and is encoded as specified.
@@ -1759,7 +1761,7 @@ tryAgain:
             attributeCtor = GetMethodSymbolForMethodDefOrMemberRef(ctor, attributeClass);
             return true;
         }
-#nullable restore
+#nullable disable
 
         internal bool GetCustomAttributeWellKnownType(CustomAttributeHandle handle, out WellKnownType wellKnownAttribute)
         {

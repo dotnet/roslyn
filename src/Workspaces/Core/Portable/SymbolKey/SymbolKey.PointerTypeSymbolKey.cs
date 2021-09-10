@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis
 {
     internal partial struct SymbolKey
@@ -23,11 +21,15 @@ namespace Microsoft.CodeAnalysis
                     return default;
                 }
 
+                if (reader.Compilation.Language == LanguageNames.VisualBasic)
+                {
+                    failureReason = $"({nameof(PointerTypeSymbolKey)} is not supported in {LanguageNames.VisualBasic})";
+                    return default;
+                }
+
                 using var result = PooledArrayBuilder<IPointerTypeSymbol>.GetInstance(pointedAtTypeResolution.SymbolCount);
                 foreach (var typeSymbol in pointedAtTypeResolution.OfType<ITypeSymbol>())
-                {
                     result.AddIfNotNull(reader.Compilation.CreatePointerTypeSymbol(typeSymbol));
-                }
 
                 return CreateResolution(result, $"({nameof(PointerTypeSymbolKey)} could not resolve)", out failureReason);
             }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -21,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 foreach (var node in context.InputNodes)
                 {
-                    var symbol = graphBuilder.GetSymbol(node);
+                    var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                     if (symbol is IMethodSymbol ||
                         symbol is IPropertySymbol ||
                         symbol is IEventSymbol)
@@ -29,8 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         var overrides = await SymbolFinder.FindOverridesAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
                         foreach (var o in overrides)
                         {
-                            var symbolNode = await graphBuilder.AddNodeAsync(o, relatedNode: node).ConfigureAwait(false);
-                            graphBuilder.AddLink(symbolNode, RoslynGraphCategories.Overrides, node);
+                            var symbolNode = await graphBuilder.AddNodeAsync(o, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                            graphBuilder.AddLink(symbolNode, RoslynGraphCategories.Overrides, node, cancellationToken);
                         }
                     }
                 }

@@ -14,15 +14,22 @@ namespace Microsoft.CodeAnalysis.PickMembers
         public readonly ImmutableArray<ISymbol> Members;
         public readonly ImmutableArray<PickMembersOption> Options;
 
+        /// <summary>
+        /// <see langword="true"/> if 'Select All' was chosen.  <see langword="false"/> if 'Deselect All' was chosen.
+        /// </summary>
+        public readonly bool SelectedAll;
+
         private PickMembersResult(bool isCanceled)
             => IsCanceled = isCanceled;
 
         public PickMembersResult(
             ImmutableArray<ISymbol> members,
-            ImmutableArray<PickMembersOption> options)
+            ImmutableArray<PickMembersOption> options,
+            bool selectedAll)
         {
             Members = members;
             Options = options;
+            SelectedAll = selectedAll;
         }
     }
 }

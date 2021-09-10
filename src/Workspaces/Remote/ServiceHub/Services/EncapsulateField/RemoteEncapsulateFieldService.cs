@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -35,30 +37,27 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (UserOperationBooster.Boost())
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var document = solution.GetRequiredDocument(documentId);
+
+                using var _ = ArrayBuilder<IFieldSymbol>.GetInstance(out var fields);
+                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                foreach (var key in fieldSymbolKeys)
                 {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var document = solution.GetRequiredDocument(documentId);
+                    var resolved = SymbolKey.ResolveString(key, compilation, cancellationToken: cancellationToken).GetAnySymbol() as IFieldSymbol;
+                    if (resolved == null)
+                        return ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>.Empty;
 
-                    using var _ = ArrayBuilder<IFieldSymbol>.GetInstance(out var fields);
-                    var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                    foreach (var key in fieldSymbolKeys)
-                    {
-                        var resolved = SymbolKey.ResolveString(key, compilation, cancellationToken: cancellationToken).GetAnySymbol() as IFieldSymbol;
-                        if (resolved == null)
-                            return ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>.Empty;
-
-                        fields.Add(resolved);
-                    }
-
-                    var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
-
-                    var newSolution = await service.EncapsulateFieldsAsync(
-                        document, fields.ToImmutable(), updateReferences, cancellationToken).ConfigureAwait(false);
-                    return await RemoteUtilities.GetDocumentTextChangesAsync(
-                        solution, newSolution, cancellationToken).ConfigureAwait(false);
+                    fields.Add(resolved);
                 }
+
+                var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
+
+                var newSolution = await service.EncapsulateFieldsAsync(
+                    document, fields.ToImmutable(), updateReferences, cancellationToken).ConfigureAwait(false);
+                return await RemoteUtilities.GetDocumentTextChangesAsync(
+                    solution, newSolution, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

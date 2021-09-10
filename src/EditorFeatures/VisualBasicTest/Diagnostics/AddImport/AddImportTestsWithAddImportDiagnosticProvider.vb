@@ -33,8 +33,7 @@ End Class", TestHost.InProcess)
         End Function
 
         <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
-        <Theory>
-        <CombinatorialData>
+        <Fact>
         Public Async Function TestUnknownIdentifierGenericName() As Task
             Await TestAsync(
 "Class C
@@ -54,8 +53,7 @@ End Class", TestHost.InProcess)
         End Function
 
         <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
-        <Theory>
-        <CombinatorialData>
+        <Fact>
         Public Async Function TestUnknownIdentifierAddNamespaceImport() As Task
             Await TestAsync(
 "Class Class1
@@ -69,8 +67,7 @@ End Class", TestHost.InProcess)
         End Function
 
         <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>
-        <Theory>
-        <CombinatorialData>
+        <Fact>
         Public Async Function TestUnknownAttributeInModule() As Task
             Await TestAsync(
 "Module Goo
@@ -106,64 +103,6 @@ Class MultiDictionary(Of K, V)
         Dim hs = New HashSet(Of V)([|Comparer|])
     End Sub
 End Class")
-        End Function
-
-        <Theory>
-        <CombinatorialData>
-        <WorkItem(1744, "https://github.com/dotnet/roslyn/issues/1744")>
-        Public Async Function TestImportIncompleteSub() As Task
-            Await TestAsync(
-"Class A
-    Dim a As Action = Sub()
-                          Try
-                          Catch ex As [|TestException|]
- End Sub
-End Class
-Namespace T
-    Class TestException
-        Inherits Exception
-    End Class
-End Namespace",
-                "Imports T
-
-Class A
-    Dim a As Action = Sub()
-                          Try
-                          Catch ex As TestException
- End Sub
-End Class
-Namespace T
-    Class TestException
-        Inherits Exception
-    End Class
-End Namespace", TestHost.InProcess)
-        End Function
-
-        <WorkItem(1239, "https://github.com/dotnet/roslyn/issues/1239")>
-        <Theory>
-        <CombinatorialData>
-        Public Async Function TestImportIncompleteSub2() As Task
-            Await TestAsync(
-"Imports System.Linq
-Namespace X
-    Class Test
-    End Class
-End Namespace
-Class C
-    Sub New()
-        Dim s As Action = Sub()
-                              Dim a = New [|Test|]()",
-                "Imports System.Linq
-Imports X
-
-Namespace X
-    Class Test
-    End Class
-End Namespace
-Class C
-    Sub New()
-        Dim s As Action = Sub()
-                              Dim a = New Test()", TestHost.InProcess)
         End Function
 
         <WorkItem(23667, "https://github.com/dotnet/roslyn/issues/23667")>

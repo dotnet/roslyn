@@ -6,6 +6,7 @@ using System;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
+using Roslyn.Utilities;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -116,7 +117,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
 
-        public void AddFile(ProjectUtils.Project project, string fileName, string contents = null, bool open = false)
+        public void AddFile(ProjectUtils.Project project, string fileName, string? contents = null, bool open = false)
             => _inProc.AddFile(project.Name, fileName, contents, open);
 
         public void SetFileContents(ProjectUtils.Project project, string fileName, string contents)
@@ -165,7 +166,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.SaveFile(project.Name, fileName);
 
         public void ReloadProject(ProjectUtils.Project project)
-            => _inProc.ReloadProject(project.RelativePath);
+        {
+            Contract.ThrowIfNull(project.RelativePath);
+            _inProc.ReloadProject(project.RelativePath);
+        }
 
         public void RestoreNuGetPackages(ProjectUtils.Project project)
             => _inProc.RestoreNuGetPackages(project.Name);

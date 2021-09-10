@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// </summary>
     internal abstract class InProcComponent : MarshalByRefObject
     {
-        private static JoinableTaskFactory _joinableTaskFactory;
+        private static JoinableTaskFactory? _joinableTaskFactory;
 
         protected InProcComponent() { }
 
@@ -112,6 +112,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         // Ensure InProcComponents live forever
-        public override object InitializeLifetimeService() => null;
+        public override object? InitializeLifetimeService() => null;
     }
 }

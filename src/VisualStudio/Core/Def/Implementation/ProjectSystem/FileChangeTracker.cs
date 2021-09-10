@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -109,7 +111,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 try
                 {
-                    return await ((IVsAsyncFileChangeEx)_fileChangeService).AdviseFileChangeAsync(_filePath, _fileChangeFlags, this).ConfigureAwait(false);
+                    // TODO: Should we pass in cancellationToken here insead of CancellationToken.None?
+                    return await ((IVsAsyncFileChangeEx)_fileChangeService).AdviseFileChangeAsync(_filePath, _fileChangeFlags, this, CancellationToken.None).ConfigureAwait(false);
                 }
                 catch (Exception e) when (ReportException(e))
                 {
@@ -141,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // If we got a PathTooLongException there's really nothing we can do about it; we will fail to read the file later which is fine
             if (!(e is PathTooLongException))
             {
-                return FatalError.ReportWithoutCrash(e);
+                return FatalError.ReportAndCatch(e);
             }
 
             // We'll always capture all exceptions regardless. If we don't, then the exception is captured by our lazy and will be potentially rethrown from

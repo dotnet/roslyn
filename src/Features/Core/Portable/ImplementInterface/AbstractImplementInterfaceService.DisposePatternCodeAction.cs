@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -324,7 +322,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-                var accessibilityLevel = requireAccessiblity.Value == AccessibilityModifiersRequired.Never || requireAccessiblity.Value == AccessibilityModifiersRequired.OmitIfDefault
+                var accessibilityLevel = requireAccessiblity.Value is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
                     ? Accessibility.NotApplicable
                     : Accessibility.Private;
 

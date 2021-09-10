@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -531,6 +533,25 @@ namespace N
 x = e switch
 {
     global::$$"));
+        }
+
+        [WorkItem(51431, "https://github.com/dotnet/roslyn/issues/51431")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAtIncompleteSwitchPattern()
+        {
+            await VerifyAbsenceAsync(
+@"
+var goo = Goo.First;
+switch (goo)
+{
+    case Goo.$$
+}
+
+public enum Goo
+{
+    First,
+    Second
+}");
         }
     }
 }

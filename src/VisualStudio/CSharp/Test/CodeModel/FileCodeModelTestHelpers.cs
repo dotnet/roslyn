@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using Microsoft.CodeAnalysis.Editor;
@@ -39,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
                 var visualStudioWorkspaceMock = new MockVisualStudioWorkspace(workspace);
                 var threadingContext = workspace.ExportProvider.GetExportedValue<IThreadingContext>();
-                var notificationService = workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
                 var state = new CodeModelState(
@@ -51,7 +52,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                         visualStudioWorkspaceMock,
                         serviceProvider,
                         threadingContext,
-                        notificationService,
                         listenerProvider));
 
                 var codeModel = FileCodeModel.Create(state, null, document, new MockTextManagerAdapter()).Handle;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 
@@ -9,10 +11,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     public abstract class CSharpSquigglesCommon : AbstractEditorTest
     {
-        public CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
+        protected CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
             : base(instanceFactory, nameof(CSharpSquigglesCommon), projectTemplate)
         {
         }
+
+        protected abstract bool SupportsGlobalUsings { get; }
 
         protected override string LanguageName => LanguageNames.CSharp;
 
@@ -38,8 +42,11 @@ namespace ConsoleApplication1
     }
 }");
 
+            var usingsErrorTags = SupportsGlobalUsings ? "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System;\\r\\nusing System.Collections.Generic;\\r\\nusing System.Text;'[0-68]"
+                : "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\\r\\nusing System.Text;'[15-68]";
+
             VisualStudio.Editor.Verify.ErrorTags(
-              "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\\r\\nusing System.Text;'[15-68]",
+              usingsErrorTags,
               "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\\r'[286-287]",
               "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'}'[354-355]");
         }

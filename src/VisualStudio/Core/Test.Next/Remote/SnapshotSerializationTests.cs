@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -22,14 +24,29 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
+    [CollectionDefinition(Name)]
+    public class AssemblyLoadTestFixtureCollection : ICollectionFixture<AssemblyLoadTestFixture>
+    {
+        public const string Name = nameof(AssemblyLoadTestFixtureCollection);
+        private AssemblyLoadTestFixtureCollection() { }
+    }
+
+    [Collection(AssemblyLoadTestFixtureCollection.Name)]
     [UseExportProvider]
     public class SnapshotSerializationTests
     {
+        private readonly AssemblyLoadTestFixture _testFixture;
+        public SnapshotSerializationTests(AssemblyLoadTestFixture testFixture)
+        {
+            _testFixture = testFixture;
+        }
+
         private static Workspace CreateWorkspace(Type[] additionalParts = null)
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(TestHost.OutOfProcess).GetHostServices());
 
@@ -155,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects).ConfigureAwait(false);
+            await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.ChecksumCollection).ConfigureAwait(false);
 
             Assert.Equal(1, solutionObject.Projects.Count);
             await validator.VerifySnapshotInServiceAsync(validator.ToProjectObjects(solutionObject.Projects)[0], 1, 0, 0, 0, 0).ConfigureAwait(false);
@@ -194,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects).ConfigureAwait(false);
+            await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.ChecksumCollection).ConfigureAwait(false);
 
             Assert.Equal(2, solutionObject.Projects.Count);
 
@@ -515,8 +532,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var dir = temp.CreateDirectory();
 
             // create two analyzer assembly files whose content is identical but path is different:
-            var file1 = dir.CreateFile("analyzer1.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
-            var file2 = dir.CreateFile("analyzer2.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
+            var file1 = dir.CreateFile("analyzer1.dll").CopyContentFrom(_testFixture.FaultyAnalyzer.Path);
+            var file2 = dir.CreateFile("analyzer2.dll").CopyContentFrom(_testFixture.FaultyAnalyzer.Path);
 
             var analyzer1 = new AnalyzerFileReference(file1.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
             var analyzer2 = new AnalyzerFileReference(file2.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
@@ -653,9 +670,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var sourceText = SourceText.From("Hello", Encoding.UTF8);
             using (var stream = SerializableBytes.CreateWritableStream())
             {
+                using var context = SolutionReplicationContext.Create();
+
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
+                    serializer.Serialize(sourceText, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
@@ -670,9 +689,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             sourceText = SourceText.From("Hello", new NotSerializableEncoding());
             using (var stream = SerializableBytes.CreateWritableStream())
             {
+                using var context = SolutionReplicationContext.Create();
+
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(sourceText, objectWriter, CancellationToken.None);
+                    serializer.Serialize(sourceText, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
@@ -699,9 +720,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             void VerifyOptions(CompilationOptions originalOptions)
             {
                 using var stream = SerializableBytes.CreateWritableStream();
+                using var context = SolutionReplicationContext.Create();
+
                 using (var objectWriter = new ObjectWriter(stream, leaveOpen: true))
                 {
-                    serializer.Serialize(originalOptions, objectWriter, CancellationToken.None);
+                    serializer.Serialize(originalOptions, objectWriter, context, CancellationToken.None);
                 }
 
                 stream.Position = 0;
@@ -748,10 +771,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         private static SolutionAsset CloneAsset(ISerializerService serializer, SolutionAsset asset)
         {
             using var stream = SerializableBytes.CreateWritableStream();
+            using var context = SolutionReplicationContext.Create();
 
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                serializer.Serialize(asset.Value, writer, CancellationToken.None);
+                serializer.Serialize(asset.Value, writer, context, CancellationToken.None);
             }
 
             stream.Position = 0;

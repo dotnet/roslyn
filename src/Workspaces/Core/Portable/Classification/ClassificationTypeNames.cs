@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -32,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string WhiteSpace = "whitespace";
         public const string Text = "text";
 
+        internal const string ReassignedVariable = "reassigned variable";
         public const string StaticSymbol = "static symbol";
 
         public const string PreprocessorText = "preprocessor text";
@@ -40,11 +39,13 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string StringEscapeCharacter = "string - escape character";
 
         public const string ClassName = "class name";
+        public const string RecordClassName = "record class name";
         public const string DelegateName = "delegate name";
         public const string EnumName = "enum name";
         public const string InterfaceName = "interface name";
         public const string ModuleName = "module name";
         public const string StructName = "struct name";
+        public const string RecordStructName = "record struct name";
         public const string TypeParameterName = "type parameter name";
 
         public const string FieldName = "field name";

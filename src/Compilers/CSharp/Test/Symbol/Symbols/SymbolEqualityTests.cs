@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,7 +30,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(src, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -68,7 +70,7 @@ class C
         s.StringExt();
     }
 }";
-            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(src, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (17,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void Extensions.StringExt(object o)'.
                 //         s.StringExt();
@@ -111,7 +113,7 @@ class C
         local(s2);
     }
 }";
-            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(src, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -152,7 +154,7 @@ class B
     }
 }
 ";
-            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(src, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -28,7 +30,7 @@ class C
 |]}";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("(int, int)", currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(int, int)", currentParameterIndex: 0, parameterDocumentation: ""));
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
@@ -92,7 +94,7 @@ class C
 |]}";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("(int, int)", currentParameterIndex: 1));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("(int, int)", currentParameterIndex: 1, parameterDocumentation: ""));
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }

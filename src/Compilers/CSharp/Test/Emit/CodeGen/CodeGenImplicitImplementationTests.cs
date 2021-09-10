@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -825,7 +827,7 @@ class C1 : IInterface
 
         [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
         [Fact]
-        public void InterfaceDiamondInheritenceWithNewMember()
+        public void InterfaceDiamondInheritanceWithNewMember()
         {
             var source = @"
 interface IBase

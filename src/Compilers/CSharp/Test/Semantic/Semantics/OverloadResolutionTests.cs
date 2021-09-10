@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -8985,7 +8986,7 @@ public interface IDetail<T>
 
 }
 
-public interface IMaster<T>
+public interface IMain<T>
 {
 
 }
@@ -9016,15 +9017,15 @@ public class Permission : IDetail<Principal>
 
 }
 
-public class Principal : IMaster<Permission>
+public class Principal : IMain<Permission>
 {
 }
 
 public static class Class
 {
-    public static void RemoveDetail<TMaster, TChild>(this TMaster master, TChild child)
-        where TMaster : class, IMaster<TChild>
-        where TChild : class, IDetail<TMaster>
+    public static void RemoveDetail<TMain, TChild>(this TMain main, TChild child)
+        where TMain : class, IMain<TChild>
+        where TChild : class, IDetail<TMain>
     {
         System.Console.WriteLine(""RemoveDetail"");
     }
@@ -11409,6 +11410,62 @@ class Program
                 symbol = symbol.GetLeastOverriddenEvent(accessingTypeOpt: null);
                 Assert.Equal("event D<A, B> Base<A, B>.E", symbol.ToTestDisplayString());
             }
+        }
+
+        [Fact]
+        [WorkItem(52701, "https://github.com/dotnet/roslyn/issues/52701")]
+        public void Issue52701_01()
+        {
+            var source =
+@"
+class A
+{
+    internal void F<T>(T t) where T : class {}
+}
+class B : A
+{
+    internal new void F<T>(T t) where T : struct { }
+    void M()
+    {
+        System.Action<object> d = F<object>;
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,35): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                //         System.Action<object> d = F<object>;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 35)
+                );
+        }
+
+        [Fact]
+        [WorkItem(52701, "https://github.com/dotnet/roslyn/issues/52701")]
+        public void Issue52701_02()
+        {
+            var source =
+@"
+class A
+{
+    internal void F<T>(T t) where T : class {}
+}
+class B : A
+{
+    internal new void F<T>(T t) where T : struct { }
+    void M()
+    {
+        F<object>(default);
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'B.F<T>(T)'
+                //         F<object>(default);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 9)
+                );
         }
     }
 }

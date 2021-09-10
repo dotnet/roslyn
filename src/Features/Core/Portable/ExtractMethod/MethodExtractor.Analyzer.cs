@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable 
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -675,7 +673,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private static bool IsThisParameter(ISymbol localOrParameter)
             {
-                if (!(localOrParameter is IParameterSymbol parameter))
+                if (localOrParameter is not IParameterSymbol parameter)
                 {
                     return false;
                 }
@@ -685,7 +683,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             private static bool IsInteractiveSynthesizedParameter(ISymbol localOrParameter)
             {
-                if (!(localOrParameter is IParameterSymbol parameter))
+                if (localOrParameter is not IParameterSymbol parameter)
                 {
                     return false;
                 }
@@ -855,7 +853,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
                 }
 
-                if (!(type is INamedTypeSymbol constructedType))
+                if (type is not INamedTypeSymbol constructedType)
                 {
                     return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
                 }
@@ -885,7 +883,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    if (!(arguments[i] is INamedTypeSymbol candidate))
+                    if (arguments[i] is not INamedTypeSymbol candidate)
                     {
                         continue;
                     }

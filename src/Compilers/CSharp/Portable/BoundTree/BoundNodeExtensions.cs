@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -67,6 +65,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             node.WasCompilerGenerated = true;
             return node;
+        }
+
+        public static bool ContainsAwaitExpression(this ImmutableArray<BoundExpression> expressions)
+        {
+            var visitor = new ContainsAwaitVisitor();
+            foreach (var expression in expressions)
+            {
+                visitor.Visit(expression);
+                if (visitor.ContainsAwait)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private class ContainsAwaitVisitor : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            public bool ContainsAwait = false;
+
+            public override BoundNode? Visit(BoundNode? node) => ContainsAwait ? null : base.Visit(node);
+
+            public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
+            {
+                ContainsAwait = true;
+                return null;
+            }
         }
     }
 }

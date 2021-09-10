@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -25,16 +27,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.MembersCompleted:
                         {
+                            SingleNamespaceDeclaration targetDeclarationWithImports = null;
+
                             // ensure relevant imports are complete.
                             foreach (var declaration in _mergedDeclaration.Declarations)
                             {
                                 if (locationOpt == null || locationOpt.SourceTree == declaration.SyntaxReference.SyntaxTree)
                                 {
-                                    if (declaration.HasUsings || declaration.HasExternAliases)
+                                    if (declaration.HasGlobalUsings || declaration.HasUsings || declaration.HasExternAliases)
                                     {
-                                        this.DeclaringCompilation.GetImports(declaration).Complete(cancellationToken);
+                                        targetDeclarationWithImports = declaration;
+                                        _aliasesAndUsings[declaration].Complete(this, declaration.SyntaxReference, cancellationToken);
                                     }
                                 }
+                            }
+
+                            if (IsGlobalNamespace && (locationOpt is null || targetDeclarationWithImports is object))
+                            {
+                                GetMergedGlobalAliasesAndUsings(basesBeingResolved: null, cancellationToken).Complete(this, cancellationToken);
                             }
 
                             var members = this.GetMembers();

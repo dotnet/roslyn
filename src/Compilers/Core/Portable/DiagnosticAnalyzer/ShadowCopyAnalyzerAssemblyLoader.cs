@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -96,13 +98,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override Assembly LoadImpl(string fullPath)
+#nullable enable
+        protected override string GetPathToLoad(string fullPath)
         {
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
             string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
-
-            return base.LoadImpl(shadowCopyPath);
+            return shadowCopyPath;
         }
+#nullable disable
 
         private static string CopyFileAndResources(string fullPath, string assemblyDirectory)
         {

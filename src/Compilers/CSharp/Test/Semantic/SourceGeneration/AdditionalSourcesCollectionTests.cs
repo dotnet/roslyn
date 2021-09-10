@@ -16,8 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-
-#nullable enable
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class AdditionalSourcesCollectionTests
@@ -36,13 +34,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData("abc{1}.cs")]
         public void HintName_ValidValues(string hintName)
         {
-            AdditionalSourcesCollection asc = new AdditionalSourcesCollection();
+            AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
             asc.Add(hintName, SourceText.From("public class D{}", Encoding.UTF8));
             Assert.True(asc.Contains(hintName));
 
             var sources = asc.ToImmutableAndFree();
+            Assert.Single(sources);
             Assert.True(sources[0].HintName.EndsWith(".cs"));
 
+        }
+
+        [Theory]
+        [InlineData("abc")] // abc.vb
+        [InlineData("abc.cs")] //abc.cs.vb
+        [InlineData("abc.vb")] // abc.vb
+        public void HintName_WithExtension(string hintName)
+        {
+            AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".vb");
+            asc.Add(hintName, SourceText.From("public class D{}", Encoding.UTF8));
+            Assert.True(asc.Contains(hintName));
+
+            var sources = asc.ToImmutableAndFree();
+            Assert.Single(sources);
+            Assert.True(sources[0].HintName.EndsWith(".vb"));
         }
 
         [Theory]
@@ -59,15 +73,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData("abc\u00A0.cs")] // unicode non-breaking space
         public void HintName_InvalidValues(string hintName)
         {
-            AdditionalSourcesCollection asc = new AdditionalSourcesCollection();
-            Assert.Throws<ArgumentException>(nameof(hintName), () => asc.Add(hintName, SourceText.From("public class D{}", Encoding.UTF8)));
+            AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
+            var exception = Assert.Throws<ArgumentException>(nameof(hintName), () => asc.Add(hintName, SourceText.From("public class D{}", Encoding.UTF8)));
+
+            Assert.Contains(hintName, exception.Message);
         }
 
         [Fact]
         public void AddedSources_Are_Deterministic()
         {
             // a few manual simple ones
-            AdditionalSourcesCollection asc = new AdditionalSourcesCollection();
+            AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
             asc.Add("file3.cs", SourceText.From("", Encoding.UTF8));
             asc.Add("file1.cs", SourceText.From("", Encoding.UTF8));
             asc.Add("file2.cs", SourceText.From("", Encoding.UTF8));
@@ -89,10 +105,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             // generate a long random list, remembering the order we added them
             Random r = new Random();
             string[] names = new string[1000];
-            asc = new AdditionalSourcesCollection();
+            asc = new AdditionalSourcesCollection(".cs");
             for (int i = 0; i < 1000; i++)
             {
-                names[i] = r.NextDouble().ToString() + ".cs";
+                names[i] = CSharpTestBase.GetUniqueName() + ".cs";
                 asc.Add(names[i], SourceText.From("", Encoding.UTF8));
             }
 
@@ -114,9 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData("file", "File")]
         public void Hint_Name_Must_Be_Unique(string hintName1, string hintName2)
         {
-            AdditionalSourcesCollection asc = new AdditionalSourcesCollection();
+            AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
             asc.Add(hintName1, SourceText.From("", Encoding.UTF8));
-            Assert.Throws<ArgumentException>("hintName", () => asc.Add(hintName2, SourceText.From("", Encoding.UTF8)));
+            var exception = Assert.Throws<ArgumentException>("hintName", () => asc.Add(hintName2, SourceText.From("", Encoding.UTF8)));
+
+            Assert.Contains(hintName2, exception.Message);
         }
 
         [Theory]
@@ -131,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData("File.cs", "file.CS")]
         public void Contains(string addHintName, string checkHintName)
         {
-            AdditionalSourcesCollection asc = new AdditionalSourcesCollection();
+            AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
             asc.Add(addHintName, SourceText.From("", Encoding.UTF8));
             Assert.True(asc.Contains(checkHintName));
         }
@@ -143,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData("file.cs", "file")]
         public void Remove(string addHintName, string removeHintName)
         {
-            AdditionalSourcesCollection asc = new AdditionalSourcesCollection();
+            AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
             asc.Add(addHintName, SourceText.From("", Encoding.UTF8));
             asc.RemoveSource(removeHintName);
             var sources = asc.ToImmutableAndFree();
@@ -153,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void SourceTextRequiresEncoding()
         {
-            AdditionalSourcesCollection asc = new AdditionalSourcesCollection();
+            AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
 
             // fine
             asc.Add("file1.cs", SourceText.From("", Encoding.UTF8));
@@ -165,6 +183,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             // explicit null encoding
             Assert.Throws<ArgumentException>(() => asc.Add("file5.cs", SourceText.From("", encoding: null)));
+
+            var exception = Assert.Throws<ArgumentException>(() => asc.Add("file5.cs", SourceText.From("", encoding: null)));
+
+            // check the exception contains the expected hintName
+            Assert.Contains("file5.cs", exception.Message);
         }
     }
 }

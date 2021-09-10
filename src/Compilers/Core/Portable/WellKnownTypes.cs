@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -315,6 +313,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Text_StringBuilder,
 
+        System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
+
         NextAvailable,
 
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -622,6 +622,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.InteropServices.OutAttribute",
 
             "System.Text.StringBuilder",
+            "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

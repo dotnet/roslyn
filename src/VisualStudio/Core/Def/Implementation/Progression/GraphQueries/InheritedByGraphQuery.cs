@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             foreach (var node in context.InputNodes)
             {
-                var symbol = graphBuilder.GetSymbol(node);
+                var symbol = graphBuilder.GetSymbol(node, cancellationToken);
                 if (!(symbol is INamedTypeSymbol namedType))
                     continue;
 
@@ -31,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     foreach (var derivedType in derivedTypes)
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(
-                            derivedType, relatedNode: node).ConfigureAwait(false);
-                        graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node);
+                            derivedType, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                        graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node, cancellationToken);
                     }
                 }
                 else if (namedType.TypeKind == TypeKind.Interface)
@@ -44,8 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     foreach (var derivedType in implementingClassesAndStructs.Concat(derivedInterfaces))
                     {
                         var symbolNode = await graphBuilder.AddNodeAsync(
-                            derivedType, relatedNode: node).ConfigureAwait(false);
-                        graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node);
+                            derivedType, relatedNode: node, cancellationToken).ConfigureAwait(false);
+                        graphBuilder.AddLink(symbolNode, CodeLinkCategories.InheritsFrom, node, cancellationToken);
                     }
                 }
             }

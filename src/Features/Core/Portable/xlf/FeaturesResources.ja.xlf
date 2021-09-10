@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../FeaturesResources.resx">
     <body>
+      <trans-unit id="0_directive">
+        <source>#{0} directive</source>
+        <target state="new">#{0} directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AM_PM_abbreviated">
         <source>AM/PM (abbreviated)</source>
         <target state="translated">AM/PM (短縮)</target>
@@ -34,6 +39,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>A subtraction must be the last element in a character class</source>
         <target state="translated">減算は、文字クラスの最後の要素でなければなりません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
+      </trans-unit>
+      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
+        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
+        <target state="new">Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
@@ -90,19 +100,94 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">タプル要素名 '{0}' を追加します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}' をインターフェイス メソッドに追加すると、デバッグ セッションは続行されません。</target>
+      <trans-unit id="Adding_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Adding {0} around an active statement requires restarting the application.</source>
+        <target state="new">Adding {0} around an active statement requires restarting the application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into an interface will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' をインターフェイスに追加すると、デバッグ セッションは続行されません。</target>
+      <trans-unit id="Adding_0_into_a_1_requires_restarting_the_application">
+        <source>Adding {0} into a {1} requires restarting the application.</source>
+        <target state="new">Adding {0} into a {1} requires restarting the application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
-        <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
-        <target state="translated">明示的なインターフェイス指定子が含まれるメソッドを追加すると、デバッグ セッションを続行できなくなります。</target>
+      <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application">
+        <source>Adding {0} into a class with explicit or sequential layout requires restarting the application.</source>
+        <target state="new">Adding {0} into a class with explicit or sequential layout requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_requires_restarting_the_application">
+        <source>Adding {0} into a generic type requires restarting the application.</source>
+        <target state="new">Adding {0} into a generic type requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_method_requires_restarting_the_application">
+        <source>Adding {0} into an interface method requires restarting the application.</source>
+        <target state="new">Adding {0} into an interface method requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_into_an_interface_requires_restarting_the_application">
+        <source>Adding {0} into an interface requires restarting the application.</source>
+        <target state="new">Adding {0} into an interface requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_requires_restarting_the_application">
+        <source>Adding {0} requires restarting the application.</source>
+        <target state="new">Adding {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
+        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
+        <target state="new">Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
+        <source>Adding {0} with the Handles clause requires restarting the application.</source>
+        <target state="new">Adding {0} with the Handles clause requires restarting the application.</target>
+        <note>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_requires_restarting_the_application">
+        <source>Adding a MustOverride {0} or overriding an inherited {0} requires restarting the application.</source>
+        <target state="new">Adding a MustOverride {0} or overriding an inherited {0} requires restarting the application.</target>
+        <note>{Locked="MustOverride"} "MustOverride" is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_requires_restarting_the_application">
+        <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</source>
+        <target state="new">Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_generic_0_requires_restarting_the_application">
+        <source>Adding a generic {0} requires restarting the application.</source>
+        <target state="new">Adding a generic {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_method_with_an_explicit_interface_specifier_requires_restarting_the_application">
+        <source>Adding a method with an explicit interface specifier requires restarting the application.</source>
+        <target state="new">Adding a method with an explicit interface specifier requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_new_file_requires_restarting_the_application">
+        <source>Adding a new file requires restarting the application.</source>
+        <target state="new">Adding a new file requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_a_user_defined_0_requires_restarting_the_application">
+        <source>Adding a user defined {0} requires restarting the application.</source>
+        <target state="new">Adding a user defined {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application">
+        <source>Adding an abstract {0} or overriding an inherited {0} requires restarting the application.</source>
+        <target state="new">Adding an abstract {0} or overriding an inherited {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_an_extern_0_requires_restarting_the_application">
+        <source>Adding an extern {0} requires restarting the application.</source>
+        <target state="new">Adding an extern {0} requires restarting the application.</target>
+        <note>{Locked="extern"} "extern" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Adding_an_imported_method_requires_restarting_the_application">
+        <source>Adding an imported method requires restarting the application.</source>
+        <target state="new">Adding an imported method requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -124,6 +209,31 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Alternation conditions do not capture and cannot be named</source>
         <target state="translated">選択条件が捕捉されないため、名前を指定できません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_requires_restarting_the_application">
+        <source>An update that causes the return type of the implicit Main method to change requires restarting the application.</source>
+        <target state="new">An update that causes the return type of the implicit Main method to change requires restarting the application.</target>
+        <note>{Locked="Main"} is C# keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="translated">ファイル ヘッダーの基本設定を適用する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_collection_initialization_preferences">
+        <source>Apply object/collection initialization preferences</source>
+        <target state="translated">オブジェクト/コレクションの初期化の基本設定を適用します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
+        <source>Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</source>
+        <target state="new">Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
+        <source>Asynchronously waits for the task to finish.</source>
+        <target state="new">Asynchronously waits for the task to finish.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
@@ -160,9 +270,24 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">キャプチャ番号を 0 にすることはできません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;0&gt;a)</note>
       </trans-unit>
+      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
+        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
+        <target state="new">Capturing variable '{0}' that hasn't been captured before requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
+        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
+        <target state="new">Ceasing to access captured variable '{0}' in {1} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
+        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
+        <target state="new">Ceasing to capture variable '{0}' requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
         <source>&lt;infer&gt;</source>
-        <target state="translated">&lt;infer&gt;</target>
+        <target state="translated">&lt;推測する&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
@@ -172,7 +297,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterOmitValue">
         <source>&lt;omit&gt;</source>
-        <target state="translated">&lt;omit&gt;</target>
+        <target state="translated">&lt;省略&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
@@ -195,14 +320,69 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">プロジェクト '{0}' で行った変更は、アプリケーションの実行中には適用されません</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing">
-        <source>Changing '{0}' from asynchronous to synchronous will prevent the debug session from continuing.</source>
-        <target state="translated">'{0}' を非同期から同期に変更すると、デバッグ セッションは続行されません。</target>
+      <trans-unit id="ChangesRequiredSynthesizedType">
+        <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
+        <target state="new">One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
-        <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
-        <target state="translated">'{0}' から '{1}' に変更すると、ステート マシンの形状が変わるため、デバッグ セッションは続行されません。</target>
+      <trans-unit id="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application">
+        <source>Changing {0} from asynchronous to synchronous requires restarting the application.</source>
+        <target state="new">Changing {0} from asynchronous to synchronous requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
+        <source>Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</source>
+        <target state="new">Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_a_field_to_an_event_or_vice_versa_requires_restarting_the_application">
+        <source>Changing a field to an event or vice versa requires restarting the application.</source>
+        <target state="new">Changing a field to an event or vice versa requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
+        <source>Changing constraints of {0} requires restarting the application.</source>
+        <target state="new">Changing constraints of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
+        <source>Changing parameter types of {0} requires restarting the application.</source>
+        <target state="new">Changing parameter types of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
+        <source>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</source>
+        <target state="new">Changing the declaration scope of a captured variable '{0}' requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_parameters_of_0_requires_restarting_the_application">
+        <source>Changing the parameters of {0} requires restarting the application.</source>
+        <target state="new">Changing the parameters of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_return_type_of_0_requires_restarting_the_application">
+        <source>Changing the return type of {0} requires restarting the application.</source>
+        <target state="new">Changing the return type of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_type_of_0_requires_restarting_the_application">
+        <source>Changing the type of {0} requires restarting the application.</source>
+        <target state="new">Changing the type of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
+        <source>Changing the type of a captured variable '{0}' previously of type '{1}' requires restarting the application.</source>
+        <target state="new">Changing the type of a captured variable '{0}' previously of type '{1}' requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_type_parameters_of_0_requires_restarting_the_application">
+        <source>Changing type parameters of {0} requires restarting the application.</source>
+        <target state="new">Changing type parameters of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_requires_restarting_the_application">
+        <source>Changing visibility of {0} requires restarting the application.</source>
+        <target state="new">Changing visibility of {0} requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -245,6 +425,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">LINQ (呼び出し形式) へ変換</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record">
+        <source>Convert to record</source>
+        <target state="translated">レコードへの変換</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_record_struct">
+        <source>Convert to record struct</source>
+        <target state="translated">レコード構造体に変換する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">構造体に変換</target>
@@ -275,29 +465,19 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">残りをプロパティとして作成して割り当てる</target>
         <note />
       </trans-unit>
-      <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
-        <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
-        <target state="translated">System.IDisposable を実装する型は、IDisposable も実装する型のフィールドを宣言します。フィールドの Dispose メソッドは、宣言する型の Dispose メソッドによって呼び出されません。フィールドが保持する管理されていないリソースの割り当てと解放を自分が担当している場合、このルールの違反を修正するには、IDisposable を実装する型のフィールドに Dispose を呼び出します。</target>
+      <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Deleting {0} around an active statement requires restarting the application.</source>
+        <target state="new">Deleting {0} around an active statement requires restarting the application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Disposable_field_0_is_never_disposed">
-        <source>Disposable field '{0}' is never disposed</source>
-        <target state="translated">破棄可能なフィールド '{0}' が破棄されることはありません</target>
+      <trans-unit id="Deleting_0_requires_restarting_the_application">
+        <source>Deleting {0} requires restarting the application.</source>
+        <target state="new">Deleting {0} requires restarting the application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Disposable_fields_should_be_disposed">
-        <source>Disposable fields should be disposed</source>
-        <target state="translated">破棄可能なフィールドは破棄しなければなりません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
-        <source>Disposable object created by '{0}' is never disposed</source>
-        <target state="translated">'{0}' が作成した破棄可能なオブジェクトが破棄されることはありません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Dispose_objects_before_losing_scope">
-        <source>Dispose objects before losing scope</source>
-        <target state="translated">スコープを失う前にオブジェクトを破棄</target>
+      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
+        <source>Deleting captured variable '{0}' requires restarting the application.</source>
+        <target state="new">Deleting captured variable '{0}' requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -326,13 +506,28 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note />
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
-        <source>Changes made in project '{0}' will prevent the debug session from continuing: {1}</source>
-        <target state="translated">プロジェクト '{0}' で変更を行うと、デバッグ セッションは続行されません。{1}</target>
+        <source>Changes made in project '{0}' require restarting the application: {1}</source>
+        <target state="needs-review-translation">プロジェクト '{0}' で変更を行うと、デバッグ セッションは続行されません。{1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
+        <source>Edit and continue is not supported by the runtime.</source>
+        <target state="translated">編集して続行は、ランタイムでサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">ファイル {0}' の読み取り中にエラーが発生しました: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider">
+        <source>Error creating instance of CodeFixProvider</source>
+        <target state="translated">CodeFixProvider のインスタンスの作成でエラーが発生しました</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
+        <source>Error creating instance of CodeFixProvider '{0}'</source>
+        <target state="translated">CodeFixProvider '{0}' のインスタンスの作成でエラーが発生しました</target>
         <note />
       </trans-unit>
       <trans-unit id="Example">
@@ -345,9 +540,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">例:</target>
         <note>Plural form when we have multiple examples to show.</note>
       </trans-unit>
+      <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
+        <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
+        <target state="translated">明示的に実装されたレコードのメソッドには、コンパイラ生成と同等の '{0}' と一致するパラメーター名が必要です</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Extract_base_class">
         <source>Extract base class...</source>
-        <target state="new">Extract base class...</target>
+        <target state="translated">基底クラスの抽出...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_interface">
@@ -372,12 +572,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Fix_formatting">
         <source>Fix formatting</source>
-        <target state="translated">書式設定を修正します。</target>
+        <target state="translated">書式設定を修正します</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">'{0}' の入力ミスを修正します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="translated">ドキュメントのフォーマット</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -475,6 +680,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}' を通じて実装します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_as_read_only_requires_restarting_the_application">
+        <source>Implementing a record positional parameter '{0}' as read only requires restarting the application,</source>
+        <target state="new">Implementing a record positional parameter '{0}' as read only requires restarting the application,</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application">
+        <source>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</source>
+        <target state="new">Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">不完全な \p{X} 文字エスケープです</target>
@@ -502,12 +717,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Inline_0">
         <source>Inline '{0}'</source>
-        <target state="new">Inline '{0}'</target>
+        <target state="translated">インライン '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_and_keep_0">
         <source>Inline and keep '{0}'</source>
-        <target state="new">Inline and keep '{0}'</target>
+        <target state="translated">インラインおよび '{0}' の保持</target>
         <note />
       </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
@@ -530,6 +745,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">ローカルを導入します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_parameter">
+        <source>Introduce parameter</source>
+        <target state="new">Introduce parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_0">
+        <source>Introduce parameter for '{0}'</source>
+        <target state="new">Introduce parameter for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_parameter_for_all_occurrences_of_0">
+        <source>Introduce parameter for all occurrences of '{0}'</source>
+        <target state="new">Introduce parameter for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_query_variable">
         <source>Introduce query variable</source>
         <target state="translated">クエリ変数を導入します</target>
@@ -540,9 +770,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">無効なグループ名: グループ名は単語文字で始める必要があります</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection.</source>
+        <target state="new">Invalid selection.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
-        <target state="new">Make class 'abstract'</target>
+        <target state="translated">クラスを 'abstract' にしてください</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_static">
@@ -553,6 +788,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="translated">条件を反転します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application">
+        <source>Making a method an iterator requires restarting the application.</source>
+        <target state="new">Making a method an iterator requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application">
+        <source>Making a method asynchronous requires restarting the application.</source>
+        <target state="new">Making a method asynchronous requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -600,24 +845,89 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">コントロール文字がありません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
       </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a switch expression will prevent the debug session from continuing.</source>
-        <target state="translated">switch 式を含む '{0}' を変更すると、デバッグ セッションは続行されません。</target>
+      <trans-unit id="Modifying_0_which_contains_a_static_variable_requires_restarting_the_application">
+        <source>Modifying {0} which contains a static variable requires restarting the application.</source>
+        <target state="new">Modifying {0} which contains a static variable requires restarting the application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements">
-        <source>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</target>
+      <trans-unit id="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_requires_restarting_the_application">
+        <source>Modifying {0} which contains an Aggregate, Group By, or Join query clauses requires restarting the application.</source>
+        <target state="new">Modifying {0} which contains an Aggregate, Group By, or Join query clauses requires restarting the application.</target>
+        <note>{Locked="Aggregate"}{Locked="Group By"}{Locked="Join"} are VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_0_which_contains_the_stackalloc_operator_requires_restarting_the_application">
+        <source>Modifying {0} which contains the stackalloc operator requires restarting the application.</source>
+        <target state="new">Modifying {0} which contains the stackalloc operator requires restarting the application.</target>
+        <note>{Locked="stackalloc"} "stackalloc" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_requires_restarting_the_application">
+        <source>Modifying a catch/finally handler with an active statement in the try block requires restarting the application.</source>
+        <target state="new">Modifying a catch/finally handler with an active statement in the try block requires restarting the application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="new">Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</target>
+      <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_requires_restarting_the_application">
+        <source>Modifying a catch handler around an active statement requires restarting the application.</source>
+        <target state="new">Modifying a catch handler around an active statement requires restarting the application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
-        <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
-        <target state="new">Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</target>
+      <trans-unit id="Modifying_a_generic_method_requires_restarting_the_application">
+        <source>Modifying a generic method requires restarting the application.</source>
+        <target state="new">Modifying a generic method requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_requires_restarting_the_application">
+        <source>Modifying a method inside the context of a generic type requires restarting the application.</source>
+        <target state="new">Modifying a method inside the context of a generic type requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_requires_restarting_the_application">
+        <source>Modifying a try/catch/finally statement when the finally block is active requires restarting the application.</source>
+        <target state="new">Modifying a try/catch/finally statement when the finally block is active requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application">
+        <source>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</source>
+        <target state="new">Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</target>
+        <note>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements">
+        <source>Modifying the body of {0} requires restarting the application because the body has too many statements.</source>
+        <target state="new">Modifying the body of {0} requires restarting the application because the body has too many statements.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_due_to_internal_error_1">
+        <source>Modifying the body of {0} requires restarting the application due to internal error: {1}</source>
+        <target state="new">Modifying the body of {0} requires restarting the application due to internal error: {1}</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don't add any punctation after or around {1}</note>
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big">
+        <source>Modifying source file '{0}' requires restarting the application because the file is too big.</source>
+        <target state="new">Modifying source file '{0}' requires restarting the application because the file is too big.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1">
+        <source>Modifying source file '{0}' requires restarting the application due to internal error: {1}</source>
+        <target state="new">Modifying source file '{0}' requires restarting the application due to internal error: {1}</target>
+        <note>{2} is a multi-line exception message including a stacktrace. Place it at the end of the message and don't add any punctation after or around {1}</note>
+      </trans-unit>
+      <trans-unit id="Modifying_source_with_experimental_language_features_enabled_requires_restarting_the_application">
+        <source>Modifying source with experimental language features enabled requires restarting the application.</source>
+        <target state="new">Modifying source with experimental language features enabled requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_requires_restarting_the_application">
+        <source>Modifying the initializer of {0} in a generic type requires restarting the application.</source>
+        <target state="new">Modifying the initializer of {0} in a generic type requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_requires_restarting_the_application">
+        <source>Modifying whitespace or comments in {0} inside the context of a generic type requires restarting the application.</source>
+        <target state="new">Modifying whitespace or comments in {0} inside the context of a generic type requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Modifying_whitespace_or_comments_in_a_generic_0_requires_restarting_the_application">
+        <source>Modifying whitespace or comments in a generic {0} requires restarting the application.</source>
+        <target state="new">Modifying whitespace or comments in a generic {0} requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -640,9 +950,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">名前空間に移動します...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
-        <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">ソース ファイル {0} を変更すると、デバッグ セッションが内部エラーのため続行できなくなります: {1}。</target>
+      <trans-unit id="Moving_0_requires_restarting_the_application">
+        <source>Moving {0} requires restarting the application.</source>
+        <target state="new">Moving {0} requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -650,10 +960,30 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">入れ子になった量指定子 {0}</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</note>
       </trans-unit>
+      <trans-unit id="No_common_root_node_for_extraction">
+        <source>No common root node for extraction.</source>
+        <target state="new">No common root node for extraction.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_location_to_insert_method_call">
+        <source>No valid location to insert method call.</source>
+        <target state="translated">メソッド呼び出しを挿入する有効な場所がありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_valid_selection_to_perform_extraction">
+        <source>No valid selection to perform extraction.</source>
+        <target state="new">No valid selection to perform extraction.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Not_enough_close_parens">
         <source>Not enough )'s</source>
         <target state="translated">) が足りません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
+      </trans-unit>
+      <trans-unit id="Operators">
+        <source>Operators</source>
+        <target state="translated">演算子</target>
+        <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
@@ -677,7 +1007,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Pull_members_up_to_new_base_class">
         <source>Pull member(s) up to new base class...</source>
-        <target state="new">Pull member(s) up to new base class...</target>
+        <target state="translated">メンバーを新しい基底クラスに引き上げます...</target>
         <note />
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
@@ -1008,7 +1338,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_expression">
         <source>expression</source>
-        <target state="new">expression</target>
+        <target state="translated">式</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_form_feed_character_long">
@@ -1278,7 +1608,7 @@ $ アンカーは、\n に一致しますが、\r\n (復帰文字と改行文字
       </trans-unit>
       <trans-unit id="Regex_name">
         <source>name</source>
-        <target state="new">name</target>
+        <target state="translated">名前</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_name1">
@@ -1378,7 +1708,7 @@ Two or more character ranges can be concatenated. For example, to specify the ra
       </trans-unit>
       <trans-unit id="Regex_no">
         <source>no</source>
-        <target state="new">no</target>
+        <target state="translated">いいえ</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_non_digit_character_long">
@@ -1761,7 +2091,7 @@ ECMAScript 準拠の動作が指定されている場合、\w は [a-zA-Z_0-9] �
       </trans-unit>
       <trans-unit id="Regex_yes">
         <source>yes</source>
-        <target state="new">yes</target>
+        <target state="translated">はい</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_zero_width_negative_lookahead_assertion_long">
@@ -1825,9 +2155,49 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">メタデータ内に検出される関連するメソッド シグネチャは更新されません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removal_of_document_not_supported">
+        <source>Removal of document not supported</source>
+        <target state="translated">ドキュメントの削除はサポートされていません</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_async_modifier">
         <source>Remove 'async' modifier</source>
-        <target state="new">Remove 'async' modifier</target>
+        <target state="translated">'async' 修飾子を削除してください</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_casts">
+        <source>Remove unnecessary casts</source>
+        <target state="translated">不要なキャストを削除する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_variables">
+        <source>Remove unused variables</source>
+        <target state="translated">未使用の変数を削除する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
+        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
+        <target state="new">Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">
+        <source>Removing {0} that contains an active statement requires restarting the application.</source>
+        <target state="new">Removing {0} that contains an active statement requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application">
+        <source>Renaming {0} requires restarting the application.</source>
+        <target state="new">Renaming {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Renaming {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="new">Renaming {0} requires restarting the application because it is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application">
+        <source>Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</source>
+        <target state="new">Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -1843,6 +2213,21 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Rude 編集</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_does_not_contain_a_valid_token">
+        <source>Selection does not contain a valid token.</source>
+        <target state="new">Selection does not contain a valid token.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_not_contained_inside_a_type">
+        <source>Selection not contained inside a type.</source>
+        <target state="new">Selection not contained inside a type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_accessibility_modifiers">
+        <source>Sort accessibility modifiers</source>
+        <target state="translated">アクセシビリティ修飾子を並べ替える</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -1865,6 +2250,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">{0} の非表示</target>
         <note />
       </trans-unit>
+      <trans-unit id="Switching_between_lambda_and_local_function_requires_restarting_the_application">
+        <source>Switching between a lambda and a local function requires restarting the application.</source>
+        <target state="new">Switching between a lambda and a local function requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="translated">TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします</target>
@@ -1878,6 +2268,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">ターゲットの種類が一致します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_assembly_0_containing_type_1_references_NET_Framework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">型 '{1}' を含むアセンブリ '{0}' が .NET Framework を参照しています。これはサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -1975,14 +2370,104 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">パラメーター リストの折り返しを解除します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Updating_a_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">アクティブ ステートメントの前後の '{0}' を更新すると、デバッグ セッションは続行されません。</target>
+      <trans-unit id="Updating_0_requires_restarting_the_application">
+        <source>Updating '{0}' requires restarting the application.</source>
+        <target state="new">Updating '{0}' requires restarting the application.</target>
         <note />
       </trans-unit>
-      <trans-unit id="UseRecommendedDisposePatternDescription">
-        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="translated">推奨される破棄パターンを使用して、ローカル スコープの破棄可能なオブジェクトがすべてのパスで破棄されるようにします。可能なら、'using' ステートメントまたは 'using' 宣言内で作成を折り返します。または、try-finally パターンを、try 領域の前で宣言された専用のローカル変数と、'finally' 領域の非 null 値での条件なしの Dispose の呼び出し (例: 'x?.Dispose()') とともに使用します。オブジェクトが try 領域内で明示的に破棄されるか、dispose の所有権が他のオブジェクトまたはメソッドに移される場合、その操作のすぐ後で 'null' をローカル変数に割り当てて、'finally' 内での dispose の重複を回避します</target>
+      <trans-unit id="Updating_a_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating a {0} around an active statement requires restarting the application.</source>
+        <target state="new">Updating a {0} around an active statement requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_requires_restarting_the_application">
+        <source>Updating a complex statement containing an await expression requires restarting the application.</source>
+        <target state="new">Updating a complex statement containing an await expression requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_an_active_statement_requires_restarting_the_application">
+        <source>Updating an active statement requires restarting the application.</source>
+        <target state="new">Updating an active statement requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
+        <target state="new">Updating async or iterator modifier around an active statement requires restarting the application.</target>
+        <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Updating a reloadable type (marked by {0}) or its member requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Updating a reloadable type (marked by {0}) or its member requires restarting the application because is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_Handles_clause_of_0_requires_restarting_the_application">
+        <source>Updating the Handles clause of {0} requires restarting the application.</source>
+        <target state="new">Updating the Handles clause of {0} requires restarting the application.</target>
+        <note>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_Implements_clause_of_a_0_requires_restarting_the_application">
+        <source>Updating the Implements clause of a {0} requires restarting the application.</source>
+        <target state="new">Updating the Implements clause of a {0} requires restarting the application.</target>
+        <note>{Locked="Implements"} "Implements" is VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_alias_of_Declare_statement_requires_restarting_the_application">
+        <source>Updating the alias of Declare statement requires restarting the application.</source>
+        <target state="new">Updating the alias of Declare statement requires restarting the application.</target>
+        <note>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Updating the attributes of {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="new">Updating the attributes of {0} requires restarting the application because it is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_requires_restarting_the_application">
+        <source>Updating the base class and/or base interface(s) of {0} requires restarting the application.</source>
+        <target state="new">Updating the base class and/or base interface(s) of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_initializer_of_0_requires_restarting_the_application">
+        <source>Updating the initializer of {0} requires restarting the application.</source>
+        <target state="new">Updating the initializer of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_a_property_event_accessor_requires_restarting_the_application">
+        <source>Updating the kind of a property/event accessor requires restarting the application.</source>
+        <target state="new">Updating the kind of a property/event accessor requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_kind_of_a_type_requires_restarting_the_application">
+        <source>Updating the kind of a type requires restarting the application.</source>
+        <target state="new">Updating the kind of a type requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_library_name_of_Declare_statement_requires_restarting_the_application">
+        <source>Updating the library name of Declare statement requires restarting the application.</source>
+        <target state="new">Updating the library name of Declare statement requires restarting the application.</target>
+        <note>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Updating_the_modifiers_of_0_requires_restarting_the_application">
+        <source>Updating the modifiers of {0} requires restarting the application.</source>
+        <target state="new">Updating the modifiers of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_size_of_a_0_requires_restarting_the_application">
+        <source>Updating the size of a {0} requires restarting the application.</source>
+        <target state="new">Updating the size of a {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
+        <source>Updating the type of {0} requires restarting the application.</source>
+        <target state="new">Updating the type of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_underlying_type_of_0_requires_restarting_the_application">
+        <source>Updating the underlying type of {0} requires restarting the application.</source>
+        <target state="new">Updating the underlying type of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_variance_of_0_requires_restarting_the_application">
+        <source>Updating the variance of {0} requires restarting the application.</source>
+        <target state="new">Updating the variance of {0} requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -1999,16 +2484,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Use interpolated verbatim string</source>
         <target state="translated">挿入された逐語的文字列を使用します</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Use_recommended_dispose_pattern">
-        <source>Use recommended dispose pattern</source>
-        <target state="translated">推奨される破棄パターンを使用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
-        <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="translated">推奨された破棄パターンを使用して、'{0}' が作成したオブジェクトがすべてのパスで破棄されるようにします: using ステートメント/宣言または try/finally</target>
-        <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
@@ -2080,24 +2555,34 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">折り返し</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
+        <source>You can use the navigation bar to switch contexts.</source>
+        <target state="translated">ナビゲーション バーを使用してコンテキストを切り替えることができます。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
-        <source>'{0}' cannot be null or empty</source>
-        <target state="translated">'{0}' を null または空にすることはできません</target>
+        <source>'{0}' cannot be null or empty.</source>
+        <target state="translated">'{0}' を NULL または空にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_whitespace">
-        <source>'{0}' cannot be null or whitespace</source>
-        <target state="translated">'{0}' を null または空白にすることはできません</target>
+        <source>'{0}' cannot be null or whitespace.</source>
+        <target state="translated">'{0}' を null または空白にすることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_dash_1">
+        <source>{0} - {1}</source>
+        <target state="translated">{0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
-        <target state="new">'{0}' is not null here.</target>
+        <target state="translated">ここでは、'{0}' は null ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
-        <target state="new">'{0}' may be null here.</target>
+        <target state="translated">ここでは、'{0}' は null である可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
@@ -2262,13 +2747,13 @@ Although it's possible to display the ten thousandths of a second component of a
 
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact, TryParseExact, ParseExact, or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="translated">"f" カスタム書式指定子は、秒の小数部分の有効数字最上位桁を表します。つまり、日時値の秒の小数部分を 10 分の 1 秒単位で表します。
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
+        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
 
-"f" 書式指定子を他の書式指定子なしで使用すると、"f" 標準日時書式指定子として解釈されます。
+If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
-"f" 書式指定子を、ParseExact、TryParseExact、ParseExact、または TryParseExact メソッドに指定する書式文字列の一部として使用した場合、"f" 書式指定子の数は、文字列を正常に解析するために必要な秒の小数点以下の有効桁数を示します。</target>
-        <note />
+When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
+        <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
         <source>10ths of a second (non-zero)</source>
@@ -2334,6 +2819,16 @@ If the "H" format specifier is used without other custom format specifiers, it's
       <trans-unit id="_24_hour_clock_2_digits_description">
         <source>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</source>
         <target state="translated">"HH" カスタム書式指定子 (任意の数の "H" 指定子を追加できます) は、時を 00 から 23 の数字で表します。つまり、午前 0 時からの時間をカウントする、ゼロから始まる 24 時間制で時が表されます。1 桁の時は、先行ゼロ付きで書式設定されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="and_update_call_sites_directly">
+        <source>and update call sites directly</source>
+        <target state="new">and update call sites directly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="code">
+        <source>code</source>
+        <target state="translated">コード</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -2462,9 +2957,24 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <target state="translated">ジェネリック オーバーロード</target>
         <note />
       </trans-unit>
+      <trans-unit id="in_0_1_2">
+        <source>in {0} ({1} - {2})</source>
+        <target state="translated">{0} ({1} - {2}) 内</target>
+        <note />
+      </trans-unit>
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">ソース内 (属性)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
+        <source>into extracted method to invoke at call sites</source>
+        <target state="new">into extracted method to invoke at call sites</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="into_new_overload">
+        <source>into new overload</source>
+        <target state="new">into new overload</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
@@ -2486,6 +2996,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <source>The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</source>
         <target state="translated">"T" 標準書式指定子は、特定のカルチャの DateTimeFormatInfo.LongTimePattern プロパティで定義されているカスタム日時書式指定文字列を表します。たとえば、インバリアント カルチャのカスタム書式指定文字列は "HH:mm:ss" です。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="translated">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
@@ -2692,7 +3207,7 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0">
         <source>Generate constructor in '{0}'</source>
-        <target state="translated">{0}' にコンストラクターを生成します</target>
+        <target state="translated">'{0}' にコンストラクターを生成します</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_all">
@@ -2757,62 +3272,62 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Implement_interface_through_0">
         <source>Implement interface through '{0}'</source>
-        <target state="translated">{0}' を通じてインターフェイスを実装します</target>
+        <target state="translated">'{0}' を通じてインターフェイスを実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
-        <target state="translated">インターフェイスを実装します。</target>
+        <target state="translated">インターフェイスを実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">
         <source>Introduce field for '{0}'</source>
-        <target state="translated">{0}' に対してフィールドを導入します</target>
+        <target state="translated">'{0}' に対してフィールドを導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_for_0">
         <source>Introduce local for '{0}'</source>
-        <target state="translated">{0}' に対してローカルを導入します</target>
+        <target state="translated">'{0}' に対してローカルを導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant_for_0">
         <source>Introduce constant for '{0}'</source>
-        <target state="translated">{0}' に対して定数を導入します</target>
+        <target state="translated">'{0}' に対して定数を導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_constant_for_0">
         <source>Introduce local constant for '{0}'</source>
-        <target state="translated">{0}' に対してローカル定数を導入します</target>
+        <target state="translated">'{0}' に対してローカル定数を導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_all_occurrences_of_0">
         <source>Introduce field for all occurrences of '{0}'</source>
-        <target state="translated">{0}' のすべての発生に対してフィールドを導入します</target>
+        <target state="translated">'{0}' のすべての発生に対してフィールドを導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_for_all_occurrences_of_0">
         <source>Introduce local for all occurrences of '{0}'</source>
-        <target state="translated">{0}' のすべての発生に対してローカルを導入します</target>
+        <target state="translated">'{0}' のすべての発生に対してローカルを導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant_for_all_occurrences_of_0">
         <source>Introduce constant for all occurrences of '{0}'</source>
-        <target state="translated">{0}' のすべての発生に対して定数を導入します</target>
+        <target state="translated">'{0}' のすべての発生に対して定数を導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_local_constant_for_all_occurrences_of_0">
         <source>Introduce local constant for all occurrences of '{0}'</source>
-        <target state="translated">{0}' のすべての発生に対してローカル定数を導入します</target>
+        <target state="translated">'{0}' のすべての発生に対してローカル定数を導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable_for_all_occurrences_of_0">
         <source>Introduce query variable for all occurrences of '{0}'</source>
-        <target state="translated">{0}' のすべての発生に対してクエリ変数を導入します</target>
+        <target state="translated">'{0}' のすべての発生に対してクエリ変数を導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
-        <target state="translated">{0}' に対してクエリ変数を導入します</target>
+        <target state="translated">'{0}' に対してクエリ変数を導入します</target>
         <note />
       </trans-unit>
       <trans-unit id="Anonymous_Types_colon">
@@ -2867,6 +3382,11 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">"g" または "gg" カスタム書式指定子 (任意の数の "g" 指定子を追加可能) は、A.D. などの時代 (年号) を表します。書式設定の対象となる日付に時代 (年号) を表す文字列が関連付けられていない場合、書式設定操作の際、この指定子は無視されます。
 
 他のカスタム書式指定子が使用されていない場合、"g" は標準の日時書式指定子として解釈されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="property_accessor">
+        <source>property accessor</source>
+        <target state="new">property accessor</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
@@ -2927,351 +3447,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="location_unknown">
         <source>location unknown</source>
         <target state="translated">不明な場所</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a complex statement containing an await expression will prevent the debug session from continuing.</source>
-        <target state="translated">Await 式を含む複雑なステートメントを更新すると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">コンストラクターの表示範囲を変更すると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
-        <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
-        <target state="translated">以前にキャプチャされたことのない変数 '{0}' をキャプチャすると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_will_prevent_the_debug_session_from_continuing">
-        <source>Ceasing to capture variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">変数 '{0}' のキャプチャを中止すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting captured variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">キャプチャした変数 '{0}' を削除すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the type of a captured variable '{0}' previously of type '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">キャプチャした変数 '{0}' の型 (以前は型 '{1}') を変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_parameters_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the parameters of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' のパラメーターを変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_return_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the return type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の戻り値の型を変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の型を変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the declaration scope of a captured variable '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">キャプチャした変数 '{0}' の宣言スコープを変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_will_prevent_the_debug_session_from_continuing">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} will prevent the debug session from continuing.</source>
-        <target state="translated">{1} でアクセスしたことのないキャプチャした変数 '{0}' にアクセスすると、デバッグ セッションは続行できません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_will_prevent_the_debug_session_from_continuing">
-        <source>Ceasing to access captured variable '{0}' in {1} will prevent the debug session from continuing.</source>
-        <target state="translated">{1} にあるキャプチャした変数 '{0}' へのアクセスを中止すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' that accesses captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
-        <target state="translated">キャプチャした変数 '{1}' にアクセスする '{0}' および異なるスコープで宣言された '{2}' を追加すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_will_prevent_the_debug_session_from_continuing">
-        <source>Removing '{0}' that accessed captured variables '{1}' and '{2}' declared in different scopes will prevent the debug session from continuing.</source>
-        <target state="translated">キャプチャした変数 '{1}' にアクセスした '{0}' および異なるスコープで宣言された '{2}' を削除すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_into_a_1_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into a '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を '{1}' に追加すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' into a class with explicit or sequential layout will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を明示的なレイアウトまたはシーケンシャル レイアウトがあるクラスに追加すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_modifiers_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the modifiers of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の修飾子を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the Handles clause of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' のHandles 句を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_with_the_Handles_clause_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' with the Handles clause will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' をハンドル句に追加すると、デバッグ セッションが続行できなくなります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_Implements_clause_of_a_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the Implements clause of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の Implements 句を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_the_constraint_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Changing the constraint from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">制約を '{0}' から '{1}' に変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_variance_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the variance of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の変性を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の型を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_initializer_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the initializer of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の初期化子を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_size_of_a_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the size of a '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' のサイズを更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_underlying_type_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the underlying type of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の基になる型を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_base_class_and_or_base_interface_s_of_0_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the base class and/or base interface(s) of '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の基本クラスおよび基底インターフェイスを更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_a_field_to_an_event_or_vice_versa_will_prevent_the_debug_session_from_continuing">
-        <source>Updating a field to an event or vice versa will prevent the debug session from continuing.</source>
-        <target state="translated">フィールドに対してイベントを、またはイベントに対してフィールドを更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_type_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a type will prevent the debug session from continuing.</source>
-        <target state="translated">型の種類を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_an_property_event_accessor_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of an property/event accessor will prevent the debug session from continuing.</source>
-        <target state="translated">プロパティ/イベント アクセサーの種類を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_kind_of_a_method_Sub_Function_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the kind of a method (Sub/Function) will prevent the debug session from continuing.</source>
-        <target state="translated">メソッドの種類 (Sub/Function) を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_library_name_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the library name of Declare Statement will prevent the debug session from continuing.</source>
-        <target state="translated">Declare ステートメントのライブラリ名を更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_the_alias_of_Declare_Statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating the alias of Declare Statement will prevent the debug session from continuing.</source>
-        <target state="translated">Declare ステートメントのエイリアスを更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Renaming_0_will_prevent_the_debug_session_from_continuing">
-        <source>Renaming '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' の名前を変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を追加すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding an abstract '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">要約 '{0}' を追加するか、継承された '{0}' をオーバーライドすると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a MustOverride '{0}' or overriding an inherited '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">MustOverride '{0}' を追加するか、継承された '{0}' をオーバーライドすると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_an_extern_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding an extern '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">extern '{0}' を追加すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_an_imported_method_will_prevent_the_debug_session_from_continuing">
-        <source>Adding an imported method will prevent the debug session from continuing.</source>
-        <target state="translated">インポートしたメソッドを追加すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_user_defined_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a user defined '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">ユーザー定義の '{0}' を追加すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_generic_0_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a generic '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">ジェネリックな '{0}' を追加すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Adding '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">アクティブ ステートメントの前後に '{0}' を追加すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Moving_0_will_prevent_the_debug_session_from_continuing">
-        <source>Moving '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を移動すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">{0}' を削除すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">アクティブ ステートメントの前後の '{0}' を削除すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a method body will prevent the debug session from continuing.</source>
-        <target state="translated">メソッド本体を追加すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting a method body will prevent the debug session from continuing.</source>
-        <target state="translated">メソッド本体を削除すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
-        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="translated">アクティブ ステートメントは元のメソッドから削除されました。変更を元に戻して続行するか、またはデバッグ セッションを再開してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating async or iterator modifier around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">アクティブ ステートメントの前後の async 修飾子または iterator 修飾子を更新すると、デバッグ セッションが継続しなくなります。</target>
-        <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Modifying_a_generic_method_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a generic method will prevent the debug session from continuing.</source>
-        <target state="translated">ジェネリック メソッドを変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_whitespace_or_comments_in_a_generic_0_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying whitespace or comments in a generic '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">ジェネリック '{0}' の空白またはコメントを変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a method inside the context of a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">ジェネリック型のコンテキストの内部にあるメソッドを変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_whitespace_or_comments_in_0_inside_the_context_of_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying whitespace or comments in '{0}' inside the context of a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">ジェネリック型のコンテキストの内部にある '{0}' の空白またはコメントを変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</source>
-        <target state="translated">ジェネリック型の '{0}' の初期化子を変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</source>
-        <target state="translated">部分型の '{0}' の初期化子を変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function will prevent the debug session from continuing.</source>
-        <target state="translated">匿名関数を含むフィールドまたはプロパティの初期化子を持つ型にコンストラクターを追加すると、デバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Renaming_a_captured_variable_from_0_to_1_will_prevent_the_debug_session_from_continuing">
-        <source>Renaming a captured variable, from '{0}' to '{1}' will prevent the debug session from continuing.</source>
-        <target state="translated">キャプチャした変数の名前を '{0}' から '{1}' に変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a catch/finally handler with an active statement in the try block will prevent the debug session from continuing.</source>
-        <target state="translated">try ブロック内のアクティブ ステートメントがある catch/finally ハンドラーを変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a try/catch/finally statement when the finally block is active will prevent the debug session from continuing.</source>
-        <target state="translated">finally ブロックがアクティブのときに try/catch/finally ステートメントを変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying a catch handler around an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">アクティブ ステートメントの前後の catch ハンドラーを変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_the_stackalloc_operator_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains the 'stackalloc' operator will prevent the debug session from continuing.</source>
-        <target state="translated">stackalloc' 演算子を含む '{0}' を変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying an active '{0}' which contains 'On Error' or 'Resume' statements will prevent the debug session from continuing.</source>
-        <target state="translated">On Error' ステートメントまたは 'Resume' ステートメントを含むアクティブな '{0}' を変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains an Aggregate, Group By, or Join query clauses will prevent the debug session from continuing.</source>
-        <target state="translated">Aggregate 句、Group By 句、または Join クエリ句を含む '{0}' を変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_source_with_experimental_language_features_enabled_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying source with experimental language features enabled will prevent the debug session from continuing.</source>
-        <target state="translated">試験段階の言語機能が有効になっているソースを変更すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Updating_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Updating an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">アクティブ ステートメントを更新すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">アクティブ ステートメンを含む '{0}' を削除すると、デバッグ セッションは続行されません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
-        <source>Adding a new file will prevent the debug session from continuing.</source>
-        <target state="translated">新しいファイルを追加するとデバッグ セッションを続行できなくなります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_will_prevent_the_debug_session_from_continuing">
-        <source>Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.</source>
-        <target state="translated">属性 '{0}' がありません。非同期のメソッドまたは反復子を更新すると、デバッグ セッションを続行できなくなります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Unexpected_interface_member_kind_colon_0">
@@ -3386,18 +3561,13 @@ Do you want to continue?</source>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
-        <source>Not Available</source>
-        <target state="translated">無効</target>
+        <source>Not Available ⚠</source>
+        <target state="translated">使用できません ⚠</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
         <target state="translated">{0} - {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_can_use_the_navigation_bar_to_switch_context">
-        <source>You can use the navigation bar to switch context.</source>
-        <target state="translated">ナビゲーション バーを使用してコンテキストを切り替えることができます。</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -3493,11 +3663,6 @@ Do you want to continue?</source>
       <trans-unit id="TODO_colon_set_large_fields_to_null">
         <source>TODO: set large fields to null</source>
         <target state="translated">TODO: 大きなフィールドを null に設定します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying '{0}' which contains a static variable will prevent the debug session from continuing.</source>
-        <target state="translated">静的変数を含む '{0}' を変更すると、デバッグ セッションは続行されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">
@@ -3660,6 +3825,11 @@ When this standard format specifier is used, the formatting or parsing operation
 この標準書式指定子が使用されている場合、書式設定操作または解析操作では常にインバリアント カルチャが使用されます。</target>
         <note />
       </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="translated">静的コンストラクター</target>
+        <note />
+      </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
         <source>'symbol' cannot be a namespace.</source>
         <target state="translated">'symbol' は名前空間にすることはできません。</target>
@@ -3713,6 +3883,11 @@ UTC 時刻の場合 (DateTime.Kind プロパティ値が DateTimeKind.Utc)、書
 他のカスタム書式指定子が使用されていない場合、"K" は標準の日時書式指定子として解釈され、FormatException をスローします。</target>
         <note />
       </trans-unit>
+      <trans-unit id="type">
+        <source>type</source>
+        <target state="new">type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="type_constraint">
         <source>type constraint</source>
         <target state="translated">型制約</target>
@@ -3730,12 +3905,12 @@ UTC 時刻の場合 (DateTime.Kind プロパティ値が DateTimeKind.Utc)、書
       </trans-unit>
       <trans-unit id="Replace_0_and_1_with_property">
         <source>Replace '{0}' and '{1}' with property</source>
-        <target state="translated">{0}' および '{1}' をプロパティと置換する</target>
+        <target state="translated">'{0}' および '{1}' をプロパティと置換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_property">
         <source>Replace '{0}' with property</source>
-        <target state="translated">{0}' をプロパティを置換する</target>
+        <target state="translated">'{0}' をプロパティを置換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Method_referenced_implicitly">
@@ -3755,7 +3930,7 @@ UTC 時刻の場合 (DateTime.Kind プロパティ値が DateTimeKind.Utc)、書
       </trans-unit>
       <trans-unit id="Change_0_to_1">
         <source>Change '{0}' to '{1}'.</source>
-        <target state="translated">{0}' を '{1}' に変更します。</target>
+        <target state="translated">'{0}' を '{1}' に変更します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_invoked_method_cannot_be_replaced_with_property">
@@ -3785,7 +3960,7 @@ UTC 時刻の場合 (DateTime.Kind プロパティ値が DateTimeKind.Utc)、書
       </trans-unit>
       <trans-unit id="Unable_to_load_Analyzer_assembly_0_colon_1">
         <source>Unable to load Analyzer assembly {0}: {1}</source>
-        <target state="translated">アナライザーのアセンブリ {0}: {1} を読み込むことができません。</target>
+        <target state="translated">アナライザーのアセンブリ {0}: {1} を読み込むことができません</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_synchronous">
@@ -3817,7 +3992,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Find_and_install_latest_version_of_0">
         <source>Find and install latest version of '{0}'</source>
-        <target state="translated">{0}' の最新バージョンの検索とインストール</target>
+        <target state="translated">'{0}' の最新バージョンの検索とインストール</target>
         <note />
       </trans-unit>
       <trans-unit id="Install_with_package_manager">
@@ -3922,12 +4097,12 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Replace_0_with_method">
         <source>Replace '{0}' with method</source>
-        <target state="translated">{0}' をメソッドに置換します</target>
+        <target state="translated">'{0}' をメソッドに置換します</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_methods">
         <source>Replace '{0}' with methods</source>
-        <target state="translated">{0}' をメソッドに置換します</target>
+        <target state="translated">'{0}' をメソッドに置換します</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_referenced_implicitly">
@@ -4007,7 +4182,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Remove_reference_to_0">
         <source>Remove reference to '{0}'.</source>
-        <target state="translated">{0}' への参照を削除します。</target>
+        <target state="translated">'{0}' への参照を削除します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Keywords">
@@ -4057,7 +4232,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Take_0">
         <source>Take '{0}'</source>
-        <target state="translated">{0}' を取る</target>
+        <target state="translated">'{0}' を取る</target>
         <note />
       </trans-unit>
       <trans-unit id="Take_both">
@@ -4223,11 +4398,6 @@ This version used in: {2}</source>
       <trans-unit id="Use_0">
         <source>Use {0}</source>
         <target state="translated">{0} を使用します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Switching_between_lambda_and_local_function_will_prevent_the_debug_session_from_continuing">
-        <source>Switching between a lambda and a local function will prevent the debug session from continuing.</source>
-        <target state="translated">ラムダとローカル関数を切り替えると、デバッグ セッションを続行できなくなります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_argument_name_0_including_trailing_arguments">

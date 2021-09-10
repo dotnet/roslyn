@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -3269,6 +3270,21 @@ static class Ex
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyEmitDiagnostics(
                 );
+        }
+
+        [Fact, WorkItem(51930, "https://github.com/dotnet/roslyn/issues/51930")]
+        public void AssignSwitchToRefReturningMethod()
+        {
+            var source = @"
+GetRef() = 1 switch { _ => await System.Threading.Tasks.Task.FromResult(1) };
+ref int GetRef() => throw null;";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.<<Main>$>g__GetRef|0_0()' because it returns by reference
+                // GetRef() = 1 switch { _ => await System.Threading.Tasks.Task.FromResult(1) };
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GetRef()").WithArguments("Program.<<Main>$>g__GetRef|0_0()").WithLocation(2, 1)
+            );
         }
     }
 }

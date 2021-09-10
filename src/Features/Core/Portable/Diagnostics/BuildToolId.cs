@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override bool Equals(object? obj)
             {
-                if (!(obj is Base<T> other))
+                if (obj is not Base<T> other)
                 {
                     return false;
                 }
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override bool Equals(object? obj)
             {
-                if (!(obj is Base<T1, T2> other))
+                if (obj is not Base<T1, T2> other)
                 {
                     return false;
                 }

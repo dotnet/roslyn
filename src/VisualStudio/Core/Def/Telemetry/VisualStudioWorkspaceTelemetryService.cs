@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Diagnostics;
@@ -40,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 CodeMarkerLogger.Instance,
                 new EtwLogger(_optionsService),
                 new VSTelemetryLogger(telemetrySession),
+                new FileLogger(_optionsService),
                 Logger.GetLogger());
 
         protected override void TelemetrySessionInitialized()

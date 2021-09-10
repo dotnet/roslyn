@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -171,6 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 return statements.CastArray<SyntaxNode>();
             }
+
+            protected override bool ShouldLocalFunctionCaptureParameter(SyntaxNode node)
+            => ((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8;
 
             private static bool IsExpressionBodiedMember(SyntaxNode node)
                 => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
@@ -577,14 +582,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             protected override ExpressionSyntax CreateCallSignature()
             {
                 var methodName = CreateMethodNameForInvocation().WithAdditionalAnnotations(Simplifier.Annotation);
-
                 var arguments = new List<ArgumentSyntax>();
+                var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
+
                 foreach (var argument in AnalyzerResult.MethodParameters)
                 {
-                    var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
-                    var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
-
-                    arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
+                    if (!isLocalFunction || !argument.CanBeCapturedByLocalFunction)
+                    {
+                        var modifier = GetParameterRefSyntaxKind(argument.ParameterModifier);
+                        var refOrOut = modifier == SyntaxKind.None ? default : SyntaxFactory.Token(modifier);
+                        arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName(argument.Name)).WithRefOrOutKeyword(refOrOut));
+                    }
                 }
 
                 var invocation = SyntaxFactory.InvocationExpression(methodName,

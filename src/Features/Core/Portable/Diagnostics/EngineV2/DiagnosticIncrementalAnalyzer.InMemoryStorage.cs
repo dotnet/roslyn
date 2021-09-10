@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // make sure key is either documentId or projectId
             private static void AssertKey((object key, string stateKey) key)
-                => Contract.ThrowIfFalse(key.key is DocumentId || key.key is ProjectId);
+                => Contract.ThrowIfFalse(key.key is DocumentId or ProjectId);
         }
 
         // in memory cache entry

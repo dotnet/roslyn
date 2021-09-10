@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -194,15 +196,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             {
                 if (source != null)
                 {
-                    foreach (var kvp in source._reachingWrites)
+                    foreach (var (symbol, operations) in source._reachingWrites)
                     {
-                        if (!result.TryGetValue(kvp.Key, out var values))
+                        if (!result.TryGetValue(symbol, out var values))
                         {
                             values = PooledHashSet<IOperation>.GetInstance();
-                            result.Add(kvp.Key, values);
+                            result.Add(symbol, values);
                         }
 
-                        values.AddRange(kvp.Value);
+                        values.AddRange(operations);
                     }
                 }
             }

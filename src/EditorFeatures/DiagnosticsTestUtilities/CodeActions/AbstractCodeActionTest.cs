@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -174,15 +176,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 #pragma warning restore RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
 
         public PickMembersResult PickMembers(
-            string title, ImmutableArray<ISymbol> members,
-            ImmutableArray<PickMembersOption> options)
+            string title,
+            ImmutableArray<ISymbol> members,
+            ImmutableArray<PickMembersOption> options,
+            bool selectAll)
         {
             OptionsCallback?.Invoke(options);
             return new PickMembersResult(
                 MemberNames.IsDefault
                     ? members
                     : MemberNames.SelectAsArray(n => members.Single(m => m.Name == n)),
-                options);
+                options,
+                selectAll);
         }
     }
 }

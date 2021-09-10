@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -1176,7 +1178,8 @@ static T G<T>(T t, Func<T, Task<T>> f)
 
         #region References
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/53391")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/53391")]
         public void ReferenceDirective_FileWithDependencies()
         {
             var file1 = Temp.CreateFile();

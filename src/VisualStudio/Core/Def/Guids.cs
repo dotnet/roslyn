@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using Microsoft.VisualStudio.Shell;
 
@@ -11,10 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class Guids
     {
-        // Deprecated, and can be removed once https://github.com/dotnet/roslyn/pull/9186 is merged
-        // and the closed solution no longer depends on this.
-        public const string CSharpOptionPageFormattingIdString = "13c3bbb4-f18f-4111-9f54-a0fb010d9194";
-
         public const string CSharpPackageIdString = "13c3bbb4-f18f-4111-9f54-a0fb010d9194";
         public const string CSharpProjectIdString = "fae04ec0-301f-11d3-bf4b-00c04f79efbc";
         public const string CSharpLanguageServiceIdString = "694dd9b6-b865-4c5b-ad85-86356e9c88dc";
@@ -27,11 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string CSharpOrganizeIconIdString = "9420a4b2-b48b-449d-a4c0-335d6e864b82";
         public const string CSharpLibraryIdString = "58F1BAD0-2288-45b9-AC3A-D56398F7781D";
         public const string CSharpReplPackageIdString = "c5edd1ee-c43b-4360-9ce4-6b993ca12897";
-
-        /// <summary>
-        /// <see cref="UIContext"/> that indicates <see cref="VisualStudioWorkspace"/> contains a project that supports Edit and Continue.
-        /// </summary>
-        public const string EncCapableProjectExistsInWorkspaceUIContextString = "0C89AE24-6D19-474C-A3AA-DC3B66FDBB5F";
 
         /// <summary>
         /// A <see cref="UIContext"/> that is set if there is a C# project in the <see cref="VisualStudioWorkspace"/>.
@@ -131,9 +120,17 @@ namespace Microsoft.VisualStudio.LanguageServices
         public static readonly Guid RoslynCommandSetId = new(RoslynCommandSetIdString);
         public static readonly Guid RoslynGroupId = new(RoslynGroupIdString);
 
+        public const string ValueTrackingToolWindowIdString = "60a19d42-2dd7-43f3-be90-c7a9cb7d28f4";
+        public static readonly Guid ValueTrackingToolWindowId = new(ValueTrackingToolWindowIdString);
+
         // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
         // Interactive guids
         public const string InteractiveCommandSetIdString = "00B8868B-F9F5-4970-A048-410B05508506";
         public static readonly Guid InteractiveCommandSetId = new(InteractiveCommandSetIdString);
+
+        /// <summary>
+        /// The package GUID for GlobalHubClientPackage, which proffers ServiceHub brokered services in Visual Studio.
+        /// </summary>
+        public static readonly Guid GlobalHubClientPackageGuid = new("11AD60FC-6D87-4674-8F88-9ABE79176CBE");
     }
 }

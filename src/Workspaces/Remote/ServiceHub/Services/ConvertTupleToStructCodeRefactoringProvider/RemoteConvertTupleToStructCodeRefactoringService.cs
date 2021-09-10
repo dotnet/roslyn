@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -30,27 +32,25 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentId documentId,
             TextSpan span,
             Scope scope,
+            bool isRecord,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (UserOperationBooster.Boost())
-                {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var document = solution.GetDocument(documentId);
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var document = solution.GetDocument(documentId);
 
-                    var service = document.GetLanguageService<IConvertTupleToStructCodeRefactoringProvider>();
-                    var updatedSolution = await service.ConvertToStructAsync(document, span, scope, cancellationToken).ConfigureAwait(false);
+                var service = document.GetLanguageService<IConvertTupleToStructCodeRefactoringProvider>();
+                var updatedSolution = await service.ConvertToStructAsync(document, span, scope, isRecord, cancellationToken).ConfigureAwait(false);
 
-                    var cleanedSolution = await CleanupAsync(solution, updatedSolution, cancellationToken).ConfigureAwait(false);
+                var cleanedSolution = await CleanupAsync(solution, updatedSolution, cancellationToken).ConfigureAwait(false);
 
-                    var documentTextChanges = await RemoteUtilities.GetDocumentTextChangesAsync(
-                        solution, cleanedSolution, cancellationToken).ConfigureAwait(false);
-                    var renamedToken = await GetRenamedTokenAsync(
-                        solution, cleanedSolution, cancellationToken).ConfigureAwait(false);
+                var documentTextChanges = await RemoteUtilities.GetDocumentTextChangesAsync(
+                    solution, cleanedSolution, cancellationToken).ConfigureAwait(false);
+                var renamedToken = await GetRenamedTokenAsync(
+                    solution, cleanedSolution, cancellationToken).ConfigureAwait(false);
 
-                    return new SerializableConvertTupleToStructResult(documentTextChanges, renamedToken);
-                }
+                return new SerializableConvertTupleToStructResult(documentTextChanges, renamedToken);
             }, cancellationToken);
         }
 

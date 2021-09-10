@@ -5,11 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Composition;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -20,28 +21,60 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         internal interface ICallback
         {
-            ValueTask AddItemsAsync(int count);
-            ValueTask ItemCompletedAsync();
-            ValueTask ReportMessageAsync(string message);
-            ValueTask ReportProgressAsync(int current, int maximum);
-            ValueTask SetSearchTitleAsync(string title);
-            ValueTask OnDefinitionFoundAsync(SerializableDefinitionItem definition);
-            ValueTask OnReferenceFoundAsync(SerializableSourceReferenceItem reference);
+            ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
+            ValueTask ItemCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+            ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
+            ValueTask SetSearchTitleAsync(RemoteServiceCallbackId callbackId, string title, CancellationToken cancellationToken);
+            ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableDefinitionItem definition, CancellationToken cancellationToken);
+            ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSourceReferenceItem reference, CancellationToken cancellationToken);
         }
 
         ValueTask FindReferencesAsync(
             PinnedSolutionInfo solutionInfo,
+            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken);
 
         ValueTask FindImplementationsAsync(
             PinnedSolutionInfo solutionInfo,
+            RemoteServiceCallbackId callbackId,
             SerializableSymbolAndProjectId symbolAndProjectId,
             CancellationToken cancellationToken);
     }
 
-    internal sealed class FindUsagesServerCallback : IRemoteFindUsagesService.ICallback
+    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteFindUsagesService)), Shared]
+    internal sealed class FindUsagesServerCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteFindUsagesService.ICallback
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FindUsagesServerCallbackDispatcher()
+        {
+        }
+
+        private new FindUsagesServerCallback GetCallback(RemoteServiceCallbackId callbackId)
+            => (FindUsagesServerCallback)base.GetCallback(callbackId);
+
+        public ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
+            => GetCallback(callbackId).AddItemsAsync(count, cancellationToken);
+
+        public ValueTask ItemCompletedAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+            => GetCallback(callbackId).ItemCompletedAsync(cancellationToken);
+
+        public ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableDefinitionItem definition, CancellationToken cancellationToken)
+            => GetCallback(callbackId).OnDefinitionFoundAsync(definition, cancellationToken);
+
+        public ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSourceReferenceItem reference, CancellationToken cancellationToken)
+            => GetCallback(callbackId).OnReferenceFoundAsync(reference, cancellationToken);
+
+        public ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken)
+            => GetCallback(callbackId).ReportMessageAsync(message, cancellationToken);
+
+        public ValueTask SetSearchTitleAsync(RemoteServiceCallbackId callbackId, string title, CancellationToken cancellationToken)
+            => GetCallback(callbackId).SetSearchTitleAsync(title, cancellationToken);
+    }
+
+    internal sealed class FindUsagesServerCallback
     {
         private readonly Solution _solution;
         private readonly IFindUsagesContext _context;
@@ -53,37 +86,37 @@ namespace Microsoft.CodeAnalysis.FindUsages
             _context = context;
         }
 
-        public ValueTask AddItemsAsync(int count)
-            => _context.ProgressTracker.AddItemsAsync(count);
+        public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
+            => _context.ProgressTracker.AddItemsAsync(count, cancellationToken);
 
-        public ValueTask ItemCompletedAsync()
-            => _context.ProgressTracker.ItemCompletedAsync();
+        public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
+            => _context.ProgressTracker.ItemCompletedAsync(cancellationToken);
 
-        public ValueTask ReportMessageAsync(string message)
-            => _context.ReportMessageAsync(message);
+        public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
+            => _context.ReportMessageAsync(message, cancellationToken);
 
-        [Obsolete]
-        public ValueTask ReportProgressAsync(int current, int maximum)
-            => _context.ReportProgressAsync(current, maximum);
+        public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
+            => _context.SetSearchTitleAsync(title, cancellationToken);
 
-        public ValueTask SetSearchTitleAsync(string title)
-            => _context.SetSearchTitleAsync(title);
-
-        public ValueTask OnDefinitionFoundAsync(SerializableDefinitionItem definition)
+        public async ValueTask OnDefinitionFoundAsync(SerializableDefinitionItem definition, CancellationToken cancellationToken)
         {
             var id = definition.Id;
-            var rehydrated = definition.Rehydrate(_solution);
+            var rehydrated = await definition.RehydrateAsync(_solution, cancellationToken).ConfigureAwait(false);
 
             lock (_idToDefinition)
             {
                 _idToDefinition.Add(id, rehydrated);
             }
 
-            return _context.OnDefinitionFoundAsync(rehydrated);
+            await _context.OnDefinitionFoundAsync(rehydrated, cancellationToken).ConfigureAwait(false);
         }
 
-        public ValueTask OnReferenceFoundAsync(SerializableSourceReferenceItem reference)
-            => _context.OnReferenceFoundAsync(reference.Rehydrate(_solution, GetDefinition(reference.DefinitionId)));
+        public async ValueTask OnReferenceFoundAsync(SerializableSourceReferenceItem reference, CancellationToken cancellationToken)
+        {
+            var rehydrated = await reference.RehydrateAsync(_solution, GetDefinition(reference.DefinitionId), cancellationToken).ConfigureAwait(false);
+
+            await _context.OnReferenceFoundAsync(rehydrated, cancellationToken).ConfigureAwait(false);
+        }
 
         private DefinitionItem GetDefinition(int definitionId)
         {
@@ -113,8 +146,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public static SerializableDocumentSpan Dehydrate(DocumentSpan documentSpan)
             => new(documentSpan.Document.Id, documentSpan.SourceSpan);
 
-        public DocumentSpan Rehydrate(Solution solution)
-            => new(solution.GetDocument(DocumentId), SourceSpan);
+        public async ValueTask<DocumentSpan> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            var document = solution.GetDocument(DocumentId) ??
+                           await solution.GetSourceGeneratedDocumentAsync(DocumentId, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(document);
+            return new DocumentSpan(document, SourceSpan);
+        }
     }
 
     [DataContract]
@@ -180,16 +218,20 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.DisplayableProperties,
                    item.DisplayIfNoReferences);
 
-        public DefinitionItem Rehydrate(Solution solution)
-            => new DefinitionItem.DefaultDefinitionItem(
+        public async ValueTask<DefinitionItem.DefaultDefinitionItem> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
+        {
+            var sourceSpans = await SourceSpans.SelectAsArrayAsync((ss, cancellationToken) => ss.RehydrateAsync(solution, cancellationToken), cancellationToken).ConfigureAwait(false);
+
+            return new DefinitionItem.DefaultDefinitionItem(
                 Tags,
                 DisplayParts,
                 NameDisplayParts,
                 OriginationParts,
-                SourceSpans.SelectAsArray(ss => ss.Rehydrate(solution)),
+                sourceSpans,
                 Properties,
                 DisplayableProperties,
                 DisplayIfNoReferences);
+        }
     }
 
     [DataContract]
@@ -225,9 +267,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
                    item.SymbolUsageInfo,
                    item.AdditionalProperties);
 
-        public SourceReferenceItem Rehydrate(Solution solution, DefinitionItem definition)
+        public async Task<SourceReferenceItem> RehydrateAsync(Solution solution, DefinitionItem definition, CancellationToken cancellationToken)
             => new(definition,
-                   SourceSpan.Rehydrate(solution),
+                   await SourceSpan.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false),
                    SymbolUsageInfo,
                    AdditionalProperties.ToImmutableDictionary(t => t.Key, t => t.Value));
     }

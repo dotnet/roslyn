@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 type = typeParameterSymbol.GetNamedTypeSymbolConstraint();
             }
 
-            if (!(type is INamedTypeSymbol initializedType))
+            if (type is not INamedTypeSymbol initializedType)
             {
                 return;
             }
@@ -82,6 +84,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static bool IsLegalFieldOrProperty(ISymbol symbol)
         {
             return symbol.IsWriteableFieldOrProperty()
+                || symbol.ContainingType.IsAnonymousType
                 || CanSupportObjectInitializer(symbol);
         }
 

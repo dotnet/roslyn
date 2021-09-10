@@ -15,7 +15,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
-    <ExportConfigurationFixProvider(PredefinedCodeFixProviderNames.Suppression, LanguageNames.VisualBasic), [Shared]>
+    <ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.Suppression, LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSuppressionCodeFixProvider
         Inherits AbstractSuppressionCodeFixProvider
 
@@ -43,6 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             If SyntaxFacts.GetKeywordKind(text) <> SyntaxKind.None Then
                 text = "[" & text & "]"
             End If
+
             Return New SeparatedSyntaxList(Of IdentifierNameSyntax)().Add(SyntaxFactory.IdentifierName(text))
         End Function
 

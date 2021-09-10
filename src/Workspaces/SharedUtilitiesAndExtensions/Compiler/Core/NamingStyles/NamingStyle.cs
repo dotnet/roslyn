@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,6 +12,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -429,12 +432,14 @@ namespace Microsoft.CodeAnalysis.NamingStyles
                 if (words.Count() == 1) // Only Split if words have not been split before 
                 {
                     var isWord = true;
-                    var parts = StringBreaker.GetParts(name, isWord);
+                    using var parts = TemporaryArray<TextSpan>.Empty;
+                    StringBreaker.AddParts(name, isWord, ref parts.AsRef());
                     var newWords = new string[parts.Count];
                     for (var i = 0; i < parts.Count; i++)
                     {
                         newWords[i] = name.Substring(parts[i].Start, parts[i].End - parts[i].Start);
                     }
+
                     words = newWords;
                 }
             }

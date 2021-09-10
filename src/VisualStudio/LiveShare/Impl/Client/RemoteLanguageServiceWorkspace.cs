@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
@@ -183,7 +181,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 // The local root is something like tmp\\xxx\\<workspace name>
                 // The external root should be tmp\\xxx\\~external, so replace the workspace name with ~external.
+#pragma warning disable CS8602 // Dereference of a possibly null reference. (Can localRoot be null here?)
                 var splitRoot = localRoot.TrimEnd('\\').Split('\\');
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                 splitRoot[splitRoot.Length - 1] = "~external";
                 var externalPath = string.Join("\\", splitRoot) + "\\";
 
@@ -388,9 +388,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 {
                     return;
                 }
+
                 _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
+#pragma warning disable CS8604 // Possible null reference argument. (Can ConvertLocalPathToSharedUri return null here?)
                     await _session.DownloadFileAsync(_session.ConvertLocalPathToSharedUri(doc.FilePath), CancellationToken.None).ConfigureAwait(true);
+#pragma warning restore CS8604 // Possible null reference argument.
                 });
 
                 var logicalView = Guid.Empty;
@@ -481,7 +484,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                     if (textBuffer == null)
                     {
                         // Text buffer is missing for opened Live Share document.
-                        FatalError.ReportWithoutCrash(new LiveShareTextBufferMissingException());
+                        FatalError.ReportAndCatch(new LiveShareTextBufferMissingException());
                         return;
                     }
 

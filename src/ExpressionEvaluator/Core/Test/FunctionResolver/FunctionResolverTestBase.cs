@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         private static string GetMethodSignature(Module module, int token)
         {
-            var reader = module.GetMetadataInternal();
+            var reader = module.GetMetadataReader();
             return GetMethodSignature(reader, MetadataTokens.MethodDefinitionHandle(token));
         }
 

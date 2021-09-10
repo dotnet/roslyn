@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using System.Linq;
@@ -19,6 +17,7 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
@@ -26,33 +25,50 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// <summary>
     /// Handle a completion resolve request to add description.
     /// </summary>
-    [Shared]
-    [ExportLspMethod(LSP.Methods.TextDocumentCompletionResolveName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
-    internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentCompletionResolveName)]
+    internal class CompletionResolveHandler : AbstractStatelessRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
+        public override string Method => LSP.Methods.TextDocumentCompletionResolveName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionResolveHandler()
         {
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(CompletionItem request) => null;
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(CompletionItem request) => null;
 
-        public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
-            if (!(completionItem.Data is CompletionResolveData data))
+            Contract.ThrowIfNull(context.Solution);
+
+            if (completionItem is not VSInternalCompletionItem vsCompletionItem)
             {
-                data = ((JToken)completionItem.Data).ToObject<CompletionResolveData>();
+                return completionItem;
+            }
+
+            CompletionResolveData data;
+            if (completionItem.Data is JToken token)
+            {
+                data = token.ToObject<CompletionResolveData>();
+            }
+            else
+            {
+                return completionItem;
             }
 
             var documentId = DocumentId.CreateFromSerialized(ProjectId.CreateFromSerialized(data.ProjectGuid), data.DocumentGuid);
-            var document = context.Solution.GetAdditionalDocument(documentId);
+            var document = context.Solution.GetDocument(documentId) ?? context.Solution.GetAdditionalDocument(documentId);
             if (document == null)
             {
                 return completionItem;
             }
 
-            int offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
+            var offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
             var completionService = document.Project.LanguageServices.GetRequiredService<IXamlCompletionService>();
             var symbol = await completionService.GetSymbolAsync(new XamlCompletionContext(document, offset), completionItem.Label, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol == null)
@@ -60,31 +76,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return completionItem;
             }
 
-            var description = await symbol.GetDescriptionAsync(document, offset, cancellationToken).ConfigureAwait(false);
+            var description = await symbol.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var vsCompletionItem = CloneVSCompletionItem(completionItem);
             vsCompletionItem.Description = new ClassifiedTextElement(description.Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
             return vsCompletionItem;
-        }
-
-        private static LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
-        {
-            return new LSP.VSCompletionItem
-            {
-                AdditionalTextEdits = completionItem.AdditionalTextEdits,
-                Command = completionItem.Command,
-                CommitCharacters = completionItem.CommitCharacters,
-                Data = completionItem.Data,
-                Detail = completionItem.Detail,
-                Documentation = completionItem.Documentation,
-                FilterText = completionItem.FilterText,
-                InsertText = completionItem.InsertText,
-                InsertTextFormat = completionItem.InsertTextFormat,
-                Kind = completionItem.Kind,
-                Label = completionItem.Label,
-                SortText = completionItem.SortText,
-                TextEdit = completionItem.TextEdit
-            };
         }
     }
 }

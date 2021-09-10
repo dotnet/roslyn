@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -259,7 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private bool IsPropertyAccessorNameConflict(SyntaxToken token)
                 => IsGetPropertyAccessorNameConflict(token)
-                || IsSetPropertyAccessorNameConflict(token);
+                || IsSetPropertyAccessorNameConflict(token)
+                || IsInitPropertyAccessorNameConflict(token);
 
             private bool IsGetPropertyAccessorNameConflict(SyntaxToken token)
                 => token.IsKind(SyntaxKind.GetKeyword)
@@ -267,6 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private bool IsSetPropertyAccessorNameConflict(SyntaxToken token)
                 => token.IsKind(SyntaxKind.SetKeyword)
+                && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax);
+
+            private bool IsInitPropertyAccessorNameConflict(SyntaxToken token)
+                => token.IsKind(SyntaxKind.InitKeyword)
+                // using "set" here is intentional. The compiler generates set_PropName for both set and init accessors.
                 && IsNameConflictWithProperty("set", token.Parent as AccessorDeclarationSyntax);
 
             private bool IsNameConflictWithProperty(string prefix, AccessorDeclarationSyntax? accessor)
@@ -424,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                     return newToken;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -504,6 +508,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
             {
                 var result = base.VisitInvocationExpression(node);
+                RoslynDebug.AssertNotNull(result);
+
                 if (_invocationExpressionsNeedingConflictChecks.Contains(node))
                 {
                     var renameAnnotation = GetAnnotationForInvocationExpression(node);
@@ -790,24 +796,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         {
             try
             {
-                var conflicts = ArrayBuilder<Location>.GetInstance();
+                using var _ = ArrayBuilder<Location>.GetInstance(out var conflicts);
 
                 // If we're renaming a named type, we can conflict with members w/ our same name.  Note:
                 // this doesn't apply to enums.
-                if (renamedSymbol.Kind == SymbolKind.NamedType &&
-                    ((INamedTypeSymbol)renamedSymbol).TypeKind != TypeKind.Enum)
-                {
-                    var namedType = (INamedTypeSymbol)renamedSymbol;
+                if (renamedSymbol is INamedTypeSymbol { TypeKind: not TypeKind.Enum } namedType)
                     AddSymbolSourceSpans(conflicts, namedType.GetMembers(renamedSymbol.Name), reverseMappedLocations);
-                }
 
                 // If we're contained in a named type (we may be a named type ourself!) then we have a
                 // conflict.  NOTE(cyrusn): This does not apply to enums. 
-                if (renamedSymbol.ContainingSymbol is INamedTypeSymbol &&
-                    renamedSymbol.ContainingType.Name == renamedSymbol.Name &&
-                    renamedSymbol.ContainingType.TypeKind != TypeKind.Enum)
+                if (renamedSymbol.ContainingSymbol is INamedTypeSymbol { TypeKind: not TypeKind.Enum } containingNamedType &&
+                    containingNamedType.Name == renamedSymbol.Name)
                 {
-                    AddSymbolSourceSpans(conflicts, SpecializedCollections.SingletonEnumerable(renamedSymbol.ContainingType), reverseMappedLocations);
+                    AddSymbolSourceSpans(conflicts, SpecializedCollections.SingletonEnumerable(containingNamedType), reverseMappedLocations);
                 }
 
                 if (renamedSymbol.Kind == SymbolKind.Parameter ||
@@ -858,31 +859,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         var property = await RenameLocations.ReferenceProcessing.TryGetPropertyFromAccessorOrAnOverrideAsync(
                             referencedSymbol, baseSolution, cancellationToken).ConfigureAwait(false);
                         if (property != null)
-                        {
                             properties.Add(property);
-                        }
                     }
 
-                    AddConflictingParametersOfProperties(
-                        properties.Distinct(), replacementText, conflicts);
+                    AddConflictingParametersOfProperties(properties.Distinct(), replacementText, conflicts);
                 }
                 else if (renamedSymbol.Kind == SymbolKind.Alias)
                 {
                     // in C# there can only be one using with the same alias name in the same block (top of file of namespace). 
                     // It's ok to redefine the alias in different blocks.
                     var location = renamedSymbol.Locations.Single();
-                    var token = await location.SourceTree!.GetTouchingTokenAsync(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
+                    var tree = location.SourceTree;
+                    Contract.ThrowIfNull(tree);
+
+                    var token = await tree.GetTouchingTokenAsync(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true).ConfigureAwait(false);
                     var currentUsing = (UsingDirectiveSyntax)token.Parent!.Parent!.Parent!;
 
-                    var namespaceDecl = token.Parent.GetAncestorsOrThis(n => n.Kind() == SyntaxKind.NamespaceDeclaration).FirstOrDefault();
+                    var namespaceDecl = token.Parent.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();
                     SyntaxList<UsingDirectiveSyntax> usings;
                     if (namespaceDecl != null)
                     {
-                        usings = ((NamespaceDeclarationSyntax)namespaceDecl).Usings;
+                        usings = namespaceDecl.Usings;
                     }
                     else
                     {
-                        var compilationUnit = (CompilationUnitSyntax)token.Parent.GetAncestorsOrThis(n => n.Kind() == SyntaxKind.CompilationUnit).Single();
+                        var compilationUnit = (CompilationUnitSyntax)await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                         usings = compilationUnit.Usings;
                     }
 
@@ -891,9 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         if (usingDirective.Alias != null && usingDirective != currentUsing)
                         {
                             if (usingDirective.Alias.Name.Identifier.ValueText == currentUsing.Alias!.Name.Identifier.ValueText)
-                            {
                                 conflicts.Add(reverseMappedLocations[usingDirective.Alias.Name.GetLocation()]);
-                            }
                         }
                     }
                 }
@@ -907,9 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         foreach (var typeParameter in ((TypeParameterListSyntax)currentTypeParameter.Parent!).Parameters)
                         {
                             if (typeParameter != currentTypeParameter && token.ValueText == typeParameter.Identifier.ValueText)
-                            {
                                 conflicts.Add(reverseMappedLocations[typeParameter.Identifier.GetLocation()]);
-                            }
                         }
                     }
                 }
@@ -928,9 +925,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     }
                 }
 
-                return conflicts.ToImmutableAndFree();
+                return conflicts.ToImmutable();
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -947,10 +944,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     return property.Language == LanguageNames.VisualBasic ? property : null;
                 }
 
-                if (symbol.IsOverride && symbol.OverriddenMember() != null)
+                if (symbol.IsOverride && symbol.GetOverriddenMember() != null)
                 {
-                    var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol.OverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
-
+                    var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol.GetOverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
                     if (originalSourceSymbol != null)
                     {
                         return await GetVBPropertyFromAccessorOrAnOverrideAsync(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);
@@ -959,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 return null;
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

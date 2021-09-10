@@ -59,6 +59,9 @@ namespace Roslyn.Utilities
 
         private WordSimilarityChecker()
         {
+            // These are initialized by 'Initialize'
+            _source = null!;
+            _editDistance = null!;
         }
 
         private void Initialize(string text, bool substringsAreSimilar)
@@ -72,8 +75,8 @@ namespace Roslyn.Utilities
         public void Free()
         {
             _editDistance?.Dispose();
-            _source = null;
-            _editDistance = null;
+            _source = null!;
+            _editDistance = null!;
             _lastAreSimilarResult = default;
             lock (s_poolGate)
             {

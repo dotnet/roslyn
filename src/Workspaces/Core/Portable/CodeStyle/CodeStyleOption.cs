@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Xml.Linq;
 using Roslyn.Utilities;
@@ -9,7 +11,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     /// <inheritdoc cref="CodeStyleOption2{T}"/>
-    public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
+    public sealed class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
         static CodeStyleOption()
         {
@@ -30,7 +32,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public T Value
         {
             get => _codeStyleOptionImpl.Value;
-            set => _codeStyleOptionImpl.Value = value;
+
+            [Obsolete("Modifying a CodeStyleOption<T> is not supported.", error: true)]
+            set => throw new InvalidOperationException();
         }
 
         bool IObjectWritable.ShouldReuseInSerialization => _codeStyleOptionImpl.ShouldReuseInSerialization;
@@ -45,7 +49,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public NotificationOption Notification
         {
             get => (NotificationOption)_codeStyleOptionImpl.Notification;
-            set => _codeStyleOptionImpl.Notification = (NotificationOption2)(value ?? throw new ArgumentNullException(nameof(value)));
+
+            [Obsolete("Modifying a CodeStyleOption<T> is not supported.", error: true)]
+            set => throw new InvalidOperationException();
         }
 
         internal CodeStyleOption2<T> UnderlyingOption => _codeStyleOptionImpl;

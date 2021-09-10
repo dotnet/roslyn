@@ -57,9 +57,52 @@ Friend Module CompilationUtils
                                             references,
                                             options)
                                       End Function
-        CompilationExtensions.ValidateIOperations(createCompilationLambda)
+        ValidateCompilation(createCompilationLambda)
         Return createCompilationLambda()
     End Function
+
+    Private Sub ValidateCompilation(createCompilationLambda As Func(Of VisualBasicCompilation))
+        CompilationExtensions.ValidateIOperations(createCompilationLambda)
+        VerifyUsedAssemblyReferences(createCompilationLambda)
+    End Sub
+
+    Private Sub VerifyUsedAssemblyReferences(createCompilationLambda As Func(Of VisualBasicCompilation))
+
+        If Not CompilationExtensions.EnableVerifyUsedAssemblies Then
+            Return
+        End If
+
+        Dim comp = createCompilationLambda()
+        Dim used = comp.GetUsedAssemblyReferences()
+
+        Dim compileDiagnostics = comp.GetDiagnostics()
+        Dim emitDiagnostics = comp.GetEmitDiagnostics()
+
+        Dim resolvedReferences = comp.References.Where(Function(r) r.Properties.Kind = MetadataImageKind.Assembly)
+
+        If Not compileDiagnostics.Any(Function(d) d.DefaultSeverity = DiagnosticSeverity.Error) Then
+
+            If resolvedReferences.Count() > used.Length Then
+                AssertSubset(used, resolvedReferences)
+
+                If Not compileDiagnostics.Any(Function(d) d.Code = ERRID.HDN_UnusedImportClause OrElse d.Code = ERRID.HDN_UnusedImportStatement) Then
+                    Dim comp2 = comp.RemoveAllReferences().AddReferences(used.Concat(comp.References.Where(Function(r) r.Properties.Kind = MetadataImageKind.Module)))
+                    comp2.GetEmitDiagnostics().Verify(
+                        emitDiagnostics.Select(Function(d) New DiagnosticDescription(d, errorCodeOnly:=False, includeDefaultSeverity:=False, includeEffectiveSeverity:=False)).ToArray())
+                End If
+            Else
+                AssertEx.Equal(resolvedReferences, used)
+            End If
+        Else
+            AssertSubset(used, resolvedReferences)
+        End If
+    End Sub
+
+    Private Sub AssertSubset(used As ImmutableArray(Of MetadataReference), resolvedReferences As IEnumerable(Of MetadataReference))
+        For Each reference In used
+            Assert.Contains(reference, resolvedReferences)
+        Next
+    End Sub
 
     Public Function CreateEmptyCompilation(
             identity As AssemblyIdentity,
@@ -71,7 +114,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(identity.Name, trees, references, options)
                                       End Function
-        CompilationExtensions.ValidateIOperations(createCompilationLambda)
+        ValidateCompilation(createCompilationLambda)
         Dim c = createCompilationLambda()
         Assert.NotNull(c.Assembly) ' force creation of SourceAssemblySymbol
 
@@ -280,7 +323,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), source, references, options)
                                       End Function
-        CompilationExtensions.ValidateIOperations(createCompilationLambda)
+        ValidateCompilation(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -810,6 +853,9 @@ Friend Module CompilationUtils
     ''' <remarks></remarks>
     <Extension()>
     Public Sub AssertTheseDiagnostics(errors As ImmutableArray(Of Diagnostic), errs As XElement, Optional suppressInfos As Boolean = True)
+        If errs Is Nothing Then
+            errs = <errors/>
+        End If
         Dim expectedText = FilterString(errs.Value)
         AssertTheseDiagnostics(errors, expectedText, suppressInfos)
     End Sub
@@ -1168,11 +1214,11 @@ Friend Module CompilationUtils
         Array.Sort(strings)
         Dim builder = PooledStringBuilderPool.Allocate()
         With builder.Builder
-            For Each str In strings
+            For Each item In strings
                 If .Length > 0 Then
                     .AppendLine()
                 End If
-                .Append(str)
+                .Append(item)
             Next
         End With
         Return builder.ToStringAndFree()

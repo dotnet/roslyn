@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 extern alias InteractiveHost;
 
 using System;
@@ -21,6 +24,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -320,8 +324,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         protected override void CancelBuildProject()
             => _dte.ExecuteCommand("Build.Cancel");
 
-        protected override IWaitIndicator GetWaitIndicator()
-            => _componentModel.GetService<IWaitIndicator>();
+        protected override IUIThreadOperationExecutor GetUIThreadOperationExecutor()
+            => _componentModel.GetService<IUIThreadOperationExecutor>();
 
         /// <summary>
         /// Return namespaces that can be resolved in the latest interactive compilation.

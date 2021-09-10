@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -56,9 +58,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            var change = Utilities.Collapse(newText, changes.ToImmutableArray());
+            var changesArray = changes.ToImmutableArray();
+            var change = Utilities.Collapse(newText, changesArray);
 
-            return CompletionChange.Create(change, newPosition, includesCommitCharacter: true);
+            return CompletionChange.Create(change, changesArray, newPosition, includesCommitCharacter: true);
         }
 
         private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
@@ -209,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 filterCharacterRules: s_filterRules,
                 enterKeyRule: EnterKeyRule.Never);
 
-        internal virtual CompletionItemRules GetRules()
+        protected static CompletionItemRules GetRules()
             => s_defaultRules;
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)

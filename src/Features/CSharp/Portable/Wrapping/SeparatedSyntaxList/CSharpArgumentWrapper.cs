@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             {
                 InvocationExpressionSyntax invocationExpression => invocationExpression.ArgumentList,
                 ElementAccessExpressionSyntax elementAccessExpression => elementAccessExpression.ArgumentList,
-                ObjectCreationExpressionSyntax objectCreationExpression => objectCreationExpression.ArgumentList,
+                BaseObjectCreationExpressionSyntax objectCreationExpression => objectCreationExpression.ArgumentList,
                 ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
                 _ => (BaseArgumentListSyntax)null,
             };
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
 
                 startToken = name == null ? listSyntax.GetFirstToken() : name.GetFirstToken();
             }
-            else if (declaration is ObjectCreationExpressionSyntax)
+            else if (declaration is BaseObjectCreationExpressionSyntax)
             {
                 // allow anywhere in `new Foo(...)`
                 startToken = declaration.GetFirstToken();

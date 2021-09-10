@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -234,6 +232,12 @@ namespace Microsoft.CodeAnalysis
         /// TODO: Avoid using lambdas and display classes for implementation of relaxation stubs and remove this kind.
         /// </summary>
         DelegateRelaxationReceiver = 0x101,
+
+        /// <summary>
+        /// The interpolated string builder, when the interpolated string is being lowered through the builder pattern
+        /// or the interpolated string expression is being converted directly to System.String.
+        /// </summary>
+        InterpolatedStringHandler = 0x102,
     }
 
     internal static class SynthesizedLocalKindExtensions

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -64,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         attributesSyntaxList = ((TypeDeclarationSyntax)typeDecl).AttributeLists;
                         break;
 
@@ -222,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyMemberNames == null)
                 {
-                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames);
+                    var names = UnionCollection<string>.Create(this.Declarations, d => d.MemberNames.Keys);
                     Interlocked.CompareExchange(ref _lazyMemberNames, names, null);
                 }
 

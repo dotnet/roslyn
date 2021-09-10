@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -53,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Classification
             using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var syntacticClassifications);
             using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticClassifications);
 
-            service.AddSyntacticClassifications(semanticModel.SyntaxTree, textSpan, syntacticClassifications, cancellationToken);
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            service.AddSyntacticClassifications(root, textSpan, syntacticClassifications, cancellationToken);
             service.AddSemanticClassifications(semanticModel, textSpan, workspace, getNodeClassifiers, getTokenClassifiers, semanticClassifications, cancellationToken);
 
             var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
@@ -117,6 +116,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 ClassificationTypeNames.Operator => SymbolDisplayPartKind.Operator,
                 ClassificationTypeNames.Punctuation => SymbolDisplayPartKind.Punctuation,
                 ClassificationTypeNames.ClassName => SymbolDisplayPartKind.ClassName,
+                ClassificationTypeNames.RecordClassName => SymbolDisplayPartKind.RecordClassName,
                 ClassificationTypeNames.StructName => SymbolDisplayPartKind.StructName,
                 ClassificationTypeNames.InterfaceName => SymbolDisplayPartKind.InterfaceName,
                 ClassificationTypeNames.DelegateName => SymbolDisplayPartKind.DelegateName,

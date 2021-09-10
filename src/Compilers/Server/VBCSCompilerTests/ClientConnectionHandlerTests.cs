@@ -17,9 +17,6 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
-
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class ClientConnectionHandlerTests
@@ -33,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 ReadBuildRequestFunc = _ => Task.FromResult(ProtocolUtil.EmptyCSharpBuildRequest),
             };
-            var completionData = await clientConnectionHandler.ProcessAsync(Task.FromResult<IClientConnection>(clientConnection)).ConfigureAwait(false);
+            var completionData = await clientConnectionHandler.ProcessAsync(Task.FromResult<IClientConnection>(clientConnection));
             Assert.Equal(CompletionData.RequestError, completionData);
         }
 
@@ -51,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 ReadBuildRequestFunc = _ => throw new Exception(),
             };
 
-            var completionData = await clientConnectionHandler.ProcessAsync(Task.FromResult<IClientConnection>(clientConnection)).ConfigureAwait(false);
+            var completionData = await clientConnectionHandler.ProcessAsync(Task.FromResult<IClientConnection>(clientConnection));
             Assert.Equal(CompletionData.RequestError, completionData);
         }
 
@@ -71,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
             };
 
-            var completionData = await clientConnectionHandler.ProcessAsync(Task.FromResult<IClientConnection>(clientConnection)).ConfigureAwait(false);
+            var completionData = await clientConnectionHandler.ProcessAsync(Task.FromResult<IClientConnection>(clientConnection));
             Assert.Equal(CompletionData.RequestError, completionData);
             Assert.True(threwException);
         }
@@ -105,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var completionData = await clientConnectionHandler.ProcessAsync(
                 Task.FromResult<IClientConnection>(clientConnection),
-                allowCompilationRequests: false).ConfigureAwait(false);
+                allowCompilationRequests: false);
 
             Assert.Equal(CompletionData.RequestCompleted, completionData);
             Assert.True(response is RejectedBuildResponse);
@@ -140,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var completionData = await clientConnectionHandler.ProcessAsync(
                 Task.FromResult<IClientConnection>(clientConnection),
-                allowCompilationRequests: allowCompilationRequests).ConfigureAwait(false);
+                allowCompilationRequests: allowCompilationRequests);
 
             Assert.False(hitCompilation);
             Assert.Equal(new CompletionData(CompletionReason.RequestCompleted, shutdownRequested: true), completionData);
@@ -177,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             buildStartedMre.WaitOne();
             disconnectTaskCompletionSource.TrySetResult(null);
 
-            var completionData = await task.ConfigureAwait(false);
+            var completionData = await task;
             Assert.Equal(CompletionData.RequestError, completionData);
             Assert.True(isDisposed);
 

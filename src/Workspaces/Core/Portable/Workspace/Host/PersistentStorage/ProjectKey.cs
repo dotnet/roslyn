@@ -13,53 +13,40 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
     /// This is useful for cases where acquiring an entire snapshot might be expensive (for example, during 
     /// solution load), but querying the data is still desired.
     /// </summary>
+    [DataContract]
     internal readonly struct ProjectKey
     {
-        public readonly SolutionKey Solution;
-
-        public readonly ProjectId Id;
-        public readonly string FilePath;
-        public readonly string Name;
-
-        public ProjectKey(SolutionKey solution, ProjectId id, string filePath, string name)
-        {
-            Solution = solution;
-            Id = id;
-            FilePath = filePath;
-            Name = name;
-        }
-
-        public static explicit operator ProjectKey(Project project)
-            => new((SolutionKey)project.Solution, project.Id, project.FilePath, project.Name);
-
-        public SerializableProjectKey Dehydrate()
-            => new(Solution.Dehydrate(), Id, FilePath, Name);
-    }
-
-    [DataContract]
-    internal readonly struct SerializableProjectKey
-    {
         [DataMember(Order = 0)]
-        public readonly SerializableSolutionKey Solution;
+        public readonly SolutionKey Solution;
 
         [DataMember(Order = 1)]
         public readonly ProjectId Id;
 
         [DataMember(Order = 2)]
-        public readonly string FilePath;
+        public readonly string? FilePath;
 
         [DataMember(Order = 3)]
         public readonly string Name;
 
-        public SerializableProjectKey(SerializableSolutionKey solution, ProjectId id, string filePath, string name)
+        [DataMember(Order = 4)]
+        public readonly Checksum ParseOptionsChecksum;
+
+        public ProjectKey(SolutionKey solution, ProjectId id, string? filePath, string name, Checksum parseOptionsChecksum)
         {
             Solution = solution;
             Id = id;
             FilePath = filePath;
             Name = name;
+            ParseOptionsChecksum = parseOptionsChecksum;
         }
 
-        public ProjectKey Rehydrate()
-            => new(Solution.Rehydrate(), Id, FilePath, Name);
+        public static ProjectKey ToProjectKey(Project project)
+            => ToProjectKey(project.Solution.State, project.State);
+
+        public static ProjectKey ToProjectKey(SolutionState solutionState, ProjectState projectState)
+            => ToProjectKey(SolutionKey.ToSolutionKey(solutionState), projectState);
+
+        public static ProjectKey ToProjectKey(SolutionKey solutionKey, ProjectState projectState)
+            => new(solutionKey, projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum());
     }
 }
