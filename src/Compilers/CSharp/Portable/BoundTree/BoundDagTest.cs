@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return $"{i.GetOutputTempDebuggerDisplay()} = {i.Input.GetDebuggerDisplay()}[{i.Index}]";
                 case BoundDagIndexerEvaluation i:
                     return $"{i.GetOutputTempDebuggerDisplay()} = {i.Input.GetDebuggerDisplay()}[{i.Index}]";
+                case BoundDagAssignmentEvaluation i:
+                    return $"{i.Target.GetDebuggerDisplay()} <-- {i.Input.GetDebuggerDisplay()}";
                 case BoundDagEvaluation e:
                     return $"{e.GetOutputTempDebuggerDisplay()} = {e.Kind}({e.Input.GetDebuggerDisplay()})";
                 case BoundDagTypeTest b:

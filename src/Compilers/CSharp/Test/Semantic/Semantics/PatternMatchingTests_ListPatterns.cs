@@ -2155,6 +2155,29 @@ class C
                     //             case [42]:
                     Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[42]").WithLocation(9, 18)
                     );
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 != null ? [1] : [9]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [9]
+[3]: t2 = t0[-1]; [4]
+[4]: t2 == 42 ? [5] : [6]
+[5]: leaf `case [..,42]:`
+[6]: t1 == 1 ? [7] : [9]
+[7]: t3 = t0[0]; [8]
+[8]: t3 <-- t2; [9]
+[9]: leaf <break> `switch (a)
+        {
+            case [..,42]:
+            case [42]:
+                break;
+        }`
+", boundSwitch.DecisionDag.Dump());
         }
 
         [Fact]
@@ -2178,6 +2201,42 @@ class C
                 // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case ([42], [43]):
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "([42], [43])").WithLocation(9, 18));
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t1 = t0.a; [1]
+[1]: t1 != null ? [2] : [22]
+[2]: t2 = t1.Length; [3]
+[3]: t2 >= 1 ? [4] : [22]
+[4]: t3 = t1[-1]; [5]
+[5]: t3 == 42 ? [6] : [19]
+[6]: t4 = t0.b; [7]
+[7]: t4 != null ? [8] : [22]
+[8]: t5 = t4.Length; [9]
+[9]: t5 >= 1 ? [10] : [22]
+[10]: t6 = t4[-1]; [11]
+[11]: t6 == 43 ? [12] : [13]
+[12]: leaf `case ([.., 42], [.., 43]):`
+[13]: t2 == 1 ? [14] : [22]
+[14]: t7 = t1[0]; [15]
+[15]: t7 <-- t3; [16]
+[16]: t5 == 1 ? [17] : [22]
+[17]: t9 = t4[0]; [18]
+[18]: t9 <-- t6; [22]
+[19]: t2 == 1 ? [20] : [22]
+[20]: t7 = t1[0]; [21]
+[21]: t7 <-- t3; [22]
+[22]: leaf <break> `switch (a, b)
+        {
+            case ([.., 42], [.., 43]):
+            case ([42], [43]):
+                break;
+        }`
+", boundSwitch.DecisionDag.Dump());
         }
 
         [Fact]
@@ -2235,6 +2294,33 @@ class C
                 //             case [1, 2, 3]:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1, 2, 3]").WithLocation(9, 18)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 != null ? [1] : [13]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 2 ? [3] : [13]
+[3]: t2 = t0[0]; [4]
+[4]: t2 == 1 ? [5] : [13]
+[5]: t3 = t0[-1]; [6]
+[6]: t3 == 3 ? [7] : [8]
+[7]: leaf `case [1, .., 3]:`
+[8]: t1 == 3 ? [9] : [13]
+[9]: t4 = t0[1]; [10]
+[10]: t4 == 2 ? [11] : [13]
+[11]: t5 = t0[2]; [12]
+[12]: t5 <-- t3; [13]
+[13]: leaf <break> `switch (a)
+        {
+            case [1, .., 3]:
+            case [1, 2, 3]:
+                break;
+        }`
+", boundSwitch.DecisionDag.Dump());
         }
 
         [Fact]
@@ -2268,6 +2354,33 @@ class C
             var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 != null ? [1] : [18]
+[1]: t1 = t0.Length; [2]
+[2]: t1 == 3 ? [3] : [12]
+[3]: t2 = t0[0]; [4]
+[4]: t2 == 1 ? [5] : [18]
+[5]: t3 = t0[1]; [6]
+[6]: t3 == 2 ? [7] : [15]
+[7]: t4 = t0[2]; [8]
+[8]: t4 == 3 ? [9] : [10]
+[9]: leaf `case [1, 2, 3]:`
+[10]: t5 = t0[-1]; [11]
+[11]: t5 <-- t4; [18]
+[12]: t1 >= 2 ? [13] : [18]
+[13]: t2 = t0[0]; [14]
+[14]: t2 == 1 ? [15] : [18]
+[15]: t5 = t0[-1]; [16]
+[16]: t5 == 3 ? [17] : [18]
+[17]: leaf `case [1, .., 3]:`
+[18]: leaf `default`
+", boundSwitch.DecisionDag.Dump());
         }
 
         [Fact]
@@ -2301,6 +2414,27 @@ class C
             var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 != null ? [1] : [12]
+[1]: t1 = t0.Length; [2]
+[2]: t1 == 1 ? [3] : [8]
+[3]: t2 = t0[0]; [4]
+[4]: t2 == 42 ? [5] : [6]
+[5]: leaf `case [42]:`
+[6]: t3 = t0[-1]; [7]
+[7]: t3 <-- t2; [12]
+[8]: t1 >= 1 ? [9] : [12]
+[9]: t3 = t0[-1]; [10]
+[10]: t3 == 42 ? [11] : [12]
+[11]: leaf `case [..,42]:`
+[12]: leaf `default`
+", boundSwitch.DecisionDag.Dump());
         }
 
         [Fact]
@@ -2359,6 +2493,32 @@ class C
                 // (17,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [var unreachable]:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(17, 18));
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().First();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 != null ? [1] : [10]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [10]
+[3]: t2 = t0[0]; [4]
+[4]: t2 == null ? [5] : [6]
+[5]: leaf `case [null, ..]:`
+[6]: t3 = t0[-1]; [7]
+[7]: t1 == 1 ? [8] : [9]
+[8]: t3 <-- t2; [11]
+[9]: t3 == null ? [10] : [11]
+[10]: leaf <break> `switch (a)
+        {
+            case [null, ..]:
+            case [.., not null]:
+            case [var unreachable]:
+                    break;
+        }`
+[11]: leaf `case [.., not null]:`
+", boundSwitch.DecisionDag.Dump());
         }
 
         [Fact]
@@ -2388,6 +2548,26 @@ class C
             var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "2");
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 != null ? [1] : [11]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 2 ? [3] : [11]
+[3]: t2 = t0[1]; [4]
+[4]: t2 > 0 ? [5] : [6]
+[5]: leaf `case [_, > 0, ..]:`
+[6]: t3 = t0[-2]; [7]
+[7]: t1 == 3 ? [8] : [9]
+[8]: t3 <-- t2; [10]
+[9]: t3 <= 0 ? [10] : [11]
+[10]: leaf `case [.., <= 0, _]:`
+[11]: leaf `default`
+", boundSwitch.DecisionDag.Dump());
         }
 
         [Fact]
@@ -2491,6 +2671,34 @@ class C
                 // (11,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             [_] => 2, // unreachable
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[_]").WithLocation(11, 13));
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().First();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchExpression)binder.BindExpression(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 != null ? [1] : [13]
+[1]: t1 = t0.Length; [2]
+[2]: t1 == 1 ? [3] : [12]
+[3]: t2 = t0[0]; [4]
+[4]: t2 < 0 ? [5] : [6]
+[5]: leaf <arm> `[<0, ..] => 0`
+[6]: t3 = DagSliceEvaluation(t0); [7]
+[7]: t3 != null ? [8] : [11]
+[8]: t4 = t3.Length; [9]
+[9]: t5 = t3[0]; [10]
+[10]: t5 <-- t2; [11]
+[11]: leaf <arm> `[..[>= 0]] or [..null] => 1`
+[12]: leaf <arm> `{ Length: not 1 }  => 0`
+[13]: leaf <default> `a switch
+        {
+            { Length: not 1 }  => 0,
+            [<0, ..] => 0,
+            [..[>= 0]] or [..null] => 1,
+            [_] => 2, // unreachable
+        }`
+", boundSwitch.DecisionDag.Dump());
         }
 
         [Fact]
@@ -2516,6 +2724,37 @@ class C
                 // (12,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //             [var unreachable] => 5,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[var unreachable]").WithLocation(12, 13));
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchExpression)binder.BindExpression(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 != null ? [1] : [15]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [14]
+[3]: t2 = t0[-1]; [4]
+[4]: t2 > 0 ? [5] : [6]
+[5]: leaf <arm> `[.., >0] => 1`
+[6]: t3 = t0[0]; [7]
+[7]: t1 == 1 ? [8] : [10]
+[8]: t3 <-- t2; [9]
+[9]: t3 < 0 ? [11] : [13]
+[10]: t3 < 0 ? [11] : [12]
+[11]: leaf <arm> `[<0, ..] => 2`
+[12]: t3 == 0 ? [13] : [14]
+[13]: leaf <arm> `[0, ..] => 3`
+[14]: leaf <arm> `{ Length: not 1 } => 4`
+[15]: leaf <default> `a switch
+        {
+            [.., >0] => 1,
+            [<0, ..] => 2,
+            [0, ..] => 3,
+            { Length: not 1 } => 4,
+            [var unreachable] => 5,
+        }`
+", boundSwitch.DecisionDag.Dump());
         }
 
         [Fact]
@@ -2567,6 +2806,47 @@ class C
                 // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
                 //             case [[42]]:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[42]]").WithLocation(9, 18));
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 != null ? [1] : [27]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [27]
+[3]: t2 = t0[-1]; [4]
+[4]: t2 != null ? [5] : [24]
+[5]: t3 = t2.Length; [6]
+[6]: t3 >= 1 ? [7] : [19]
+[7]: t4 = t2[-1]; [8]
+[8]: t4 == 42 ? [9] : [10]
+[9]: leaf `case [.., [.., 42]]:`
+[10]: t1 == 1 ? [11] : [27]
+[11]: t5 = t0[0]; [12]
+[12]: t5 <-- t2; [13]
+[13]: t7 = t5.Length; [14]
+[14]: t7 <-- t3; [15]
+[15]: t7 == 1 ? [16] : [27]
+[16]: t9 = t5[0]; [17]
+[17]: t3 <-- t7; [18]
+[18]: t9 <-- t4; [27]
+[19]: t1 == 1 ? [20] : [27]
+[20]: t5 = t0[0]; [21]
+[21]: t5 <-- t2; [22]
+[22]: t7 = t5.Length; [23]
+[23]: t7 <-- t3; [27]
+[24]: t1 == 1 ? [25] : [27]
+[25]: t5 = t0[0]; [26]
+[26]: t5 <-- t2; [27]
+[27]: leaf <break> `switch (a)
+        {
+            case [.., [.., 42]]:
+            case [[42]]:
+                break;
+        }`
+", boundSwitch.DecisionDag.Dump());
         }
 
         [Fact]

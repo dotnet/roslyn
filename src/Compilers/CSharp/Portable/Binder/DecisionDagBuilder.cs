@@ -847,6 +847,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // if apropos, which has the effect of flowing the remaining values from the other test in the analysis of subsequent states.
                             if (state.RemainingValues.TryGetValue(e.Target, out IValueSet? targetValues))
                             {
+                                // Take the intersection of entries as we have ruled out any impossible
+                                // values for each alias of an element, and now we're dealiasing them.
                                 currentValues = currentValues.Intersect(targetValues);
                             }
                             state.TrueBranch = uniqifyState(RemoveEvaluation(state.Cases, e), state.RemainingValues.SetItem(e.Target, currentValues));
@@ -1638,7 +1640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundDagIndexerEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)}[{e.Index}])";
                         case BoundDagAssignmentEvaluation e:
-                            return $"{e.Kind}({tempName(e.Target)}={tempName(e.Input)})";
+                            return $"{e.Kind}({tempName(e.Target)}<--{tempName(e.Input)})";
                         case BoundDagEvaluation e:
                             return $"t{tempIdentifier(e)}={e.Kind}({tempName(e.Input)})";
                         case BoundDagTypeTest b:
