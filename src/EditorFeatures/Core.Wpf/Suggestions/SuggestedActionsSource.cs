@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -41,14 +42,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public event EventHandler<EventArgs>? SuggestedActionsChanged;
 
+            public readonly IGlobalOptionService GlobalOptions;
+
             protected SuggestedActionsSource(
                 IThreadingContext threadingContext,
+                IGlobalOptionService globalOptions,
                 SuggestedActionsSourceProvider owner,
                 ITextView textView,
                 ITextBuffer textBuffer,
                 ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry)
                 : base(threadingContext)
             {
+                GlobalOptions = globalOptions;
+
                 _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
                 _state = new ReferenceCountedDisposable<State>(new State(this, owner, textView, textBuffer));
 
@@ -177,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         state, supportsFeatureService, requestedActionCategories, workspace, document, range,
                         addOperationScope, CodeActionRequestPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
                     var refactorings = GetRefactoringsAsync(
-                        state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
+                        state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
                         addOperationScope, CodeActionRequestPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
 
                     return ConvertToSuggestedActionSets(state, selection, fixes, refactorings);
@@ -287,6 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ReferenceCountedDisposable<State> state,
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
+                IGlobalOptionService globalOptions,
                 Workspace workspace,
                 Document document,
                 TextSpan? selection,
@@ -302,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
 
-                if (!workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
+                if (!globalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
                     state.Target.Owner._codeRefactoringService == null ||
                     !supportsFeatureService.SupportsRefactorings(state.Target.SubjectBuffer))
                 {

@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     classifiedSpanList.AddRange(classifiedSpans);
                 }
 
-                var tabSize = document.Project.Solution.Workspace.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
+                var tabSize = document.Project.Solution.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpanList.ToImmutableArray(), tabSize);
                 var textRuns = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont));

@@ -13,18 +13,19 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 #if !DOTNET_BUILD_FROM_SOURCE
 using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
+using Roslyn.Utilities;
 #endif
 
 namespace Microsoft.CodeAnalysis.Storage
 {
-    [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Desktop), Shared]
-    internal class DesktopPersistenceStorageServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService)), Shared]
+    internal class DefaultPersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
 #if DOTNET_BUILD_FROM_SOURCE
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DesktopPersistenceStorageServiceFactory()
+        public DefaultPersistenceStorageServiceFactory()
         {
         }
 
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DesktopPersistenceStorageServiceFactory(
+        public DefaultPersistenceStorageServiceFactory(
             SQLiteConnectionPoolService connectionPoolService,
             IAsynchronousOperationListenerProvider asyncOperationListenerProvider)
         {
@@ -50,27 +51,24 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var options = workspaceServices.Workspace.Options;
-            var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
+            var configuration = workspaceServices.GetRequiredService<IPersistentStorageConfiguration>();
 
-            if (locationService != null)
+            var database = GetDatabase(workspaceServices);
+            switch (database)
             {
-                var database = GetDatabase(workspaceServices);
-                switch (database)
-                {
-                    case StorageDatabase.SQLite:
-                        return new SQLitePersistentStorageService(options, _connectionPoolService, locationService, _asyncListener);
+                case StorageDatabase.SQLite:
+                    return new SQLitePersistentStorageService(_connectionPoolService, configuration, _asyncListener);
 
-                    case StorageDatabase.CloudCache:
-                        var factory = workspaceServices.GetService<ICloudCacheStorageServiceFactory>();
+                case StorageDatabase.CloudCache:
+                    var factory = workspaceServices.GetService<ICloudCacheStorageServiceFactory>();
 
-                        return factory == null
-                            ? NoOpPersistentStorageService.GetOrThrow(options)
-                            : factory.Create(locationService);
-                }
+                    return factory == null
+                        ? NoOpPersistentStorageService.GetOrThrow(configuration)
+                        : factory.Create(configuration);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(database);
             }
-
-            return NoOpPersistentStorageService.GetOrThrow(options);
         }
 
         private static StorageDatabase GetDatabase(HostWorkspaceServices workspaceServices)

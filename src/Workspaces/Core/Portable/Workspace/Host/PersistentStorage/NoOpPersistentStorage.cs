@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
-        public static IChecksummedPersistentStorage GetOrThrow(OptionSet optionSet)
-            => optionSet.GetOption(StorageOptions.DatabaseMustSucceed)
+        public static IChecksummedPersistentStorage GetOrThrow(bool throwOnFailure)
+            => throwOnFailure
                 ? throw new InvalidOperationException("Database was not supported")
                 : Instance;
 

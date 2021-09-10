@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyLexicalSortKey;
         }
 
-        public override ImmutableArray<Location> Locations
+        public sealed override ImmutableArray<Location> Locations
         {
             get
             {

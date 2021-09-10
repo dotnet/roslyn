@@ -6143,7 +6143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.DefaultLiteral:
                     case BoundKind.DefaultExpression:
                     case BoundKind.Literal:
-                        return (expr.ConstantValue?.IsNull != false) ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
+                        return expr.ConstantValue == ConstantValue.NotAvailable || !expr.ConstantValue.IsNull || expr.IsSuppressed ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
                     case BoundKind.ExpressionWithNullability:
                         return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                     case BoundKind.MethodGroup:

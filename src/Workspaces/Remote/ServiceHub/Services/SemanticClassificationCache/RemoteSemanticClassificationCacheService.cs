@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (persistenceService == null)
                 return;
 
-            var storage = await persistenceService.GetStorageAsync(solution, cancellationToken).ConfigureAwait(false);
+            var storage = await persistenceService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), checkBranchId: true, cancellationToken).ConfigureAwait(false);
             await using var _1 = storage.ConfigureAwait(false);
             if (storage == null)
                 return;
@@ -255,11 +256,10 @@ namespace Microsoft.CodeAnalysis.Remote
             CancellationToken cancellationToken)
         {
             var workspace = GetWorkspace();
-            var persistenceService = workspace.Services.GetService<IPersistentStorageService>() as IChecksummedPersistentStorageService;
-            if (persistenceService == null)
+            if (workspace.Services.GetService<IPersistentStorageService>() is not IChecksummedPersistentStorageService persistenceService)
                 return default;
 
-            var storage = await persistenceService.GetStorageAsync(workspace, documentKey.Project.Solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
+            var storage = await persistenceService.GetStorageAsync(documentKey.Project.Solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
             await using var _ = storage.ConfigureAwait(false);
             if (storage == null)
                 return default;
