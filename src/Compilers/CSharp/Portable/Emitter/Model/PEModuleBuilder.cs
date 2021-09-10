@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                 }
 
                                 var span = loc.GetLineSpan();
-                                var debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: loc.SourceTree.FilePath);
+                                var debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: null);
 
                                 // We don't need to duplicate the data, if the method debug info would already contain this document
                                 if (debugDocument is not null && !methodDocumentList.Contains(debugDocument))

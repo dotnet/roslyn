@@ -680,7 +680,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                 End If
 
                                 Dim span = loc.GetLineSpan()
-                                Dim debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=loc.SourceTree.FilePath)
+                                Dim debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=Nothing)
 
                                 If debugDocument IsNot Nothing AndAlso Not methodDocumentList.Contains(debugDocument) Then
                                     result.Add(typeDefinition, debugDocument)
