@@ -669,7 +669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     Case SymbolKind.NamedType
                         Dim allMethodsHaveIL As Boolean = False
-                        Dim docList = GetDocumentsForMethods(symbol, context, allMethodsHaveIL)
+                        Dim methodDocumentList = GetDocumentsForMethods(symbol, context, allMethodsHaveIL)
 
                         If Not allMethodsHaveIL Then
                             Dim typeDefinition = DirectCast(symbol.GetCciAdapter(), Cci.ITypeDefinition)
@@ -682,7 +682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                 Dim span = loc.GetLineSpan()
                                 Dim debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=loc.SourceTree.FilePath)
 
-                                If Not docList.Contains(debugDocument) Then
+                                If debugDocument IsNot Nothing AndAlso Not methodDocumentList.Contains(debugDocument) Then
                                     result.Add(typeDefinition, debugDocument)
                                 End If
                             Next
@@ -697,7 +697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Private Shared Function GetDocumentsForMethods(ByVal typeSymbol As NamespaceOrTypeSymbol, ByVal context As EmitContext, <Out> ByRef allMethodsHaveIL As Boolean) As HashSet(Of Cci.DebugSourceDocument)
-            Dim docList = New HashSet(Of Cci.DebugSourceDocument)()
+            Dim documentList = New HashSet(Of Cci.DebugSourceDocument)()
             Dim typeDef = DirectCast(typeSymbol.GetCciAdapter(), Cci.ITypeDefinition)
             Dim typeMethods = typeDef.GetMethods(context)
             Dim foundMethodWithIL = False
@@ -709,7 +709,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     foundMethodWithIL = True
 
                     For Each point In method.GetBody(context).SequencePoints
-                        docList.Add(point.Document)
+                        documentList.Add(point.Document)
                     Next
                 Else
                     foundMethodWithoutIL = True
@@ -717,7 +717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
 
             allMethodsHaveIL = foundMethodWithIL AndAlso Not foundMethodWithoutIL
-            Return docList
+            Return documentList
         End Function
 
         Public Sub SetDisableJITOptimization(methodSymbol As MethodSymbol)

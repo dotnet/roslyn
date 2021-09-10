@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         }
                         break;
                     case SymbolKind.NamedType:
-                        var docList = GetDocumentsForMethods(symbol, context, out var allMethodsHaveIL);
+                        var methodDocumentList = GetDocumentsForMethods(symbol, context, out var allMethodsHaveIL);
 
                         // If all of the methods have IL then the document data we already have is enough, but if not
                         // then we want to add document info for the type.
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                 var debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: loc.SourceTree.FilePath);
 
                                 // We don't need to duplicate the data, if the method debug info would already contain this document
-                                if (!docList.Contains(debugDocument))
+                                if (debugDocument is not null && !methodDocumentList.Contains(debugDocument))
                                 {
                                     result.Add(typeDefinition, debugDocument);
                                 }
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private static HashSet<Cci.DebugSourceDocument> GetDocumentsForMethods(NamespaceOrTypeSymbol typeSymbol, EmitContext context, out bool allMethodsHaveIL)
         {
-            var docList = new HashSet<Cci.DebugSourceDocument>();
+            var documentList = new HashSet<Cci.DebugSourceDocument>();
 
             var typeDef = (Cci.ITypeDefinition)typeSymbol.GetCciAdapter();
             var typeMethods = typeDef.GetMethods(context);
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                     foreach (var point in method.GetBody(context).SequencePoints)
                     {
-                        docList.Add(point.Document);
+                        documentList.Add(point.Document);
                     }
                 }
                 else
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
             }
             allMethodsHaveIL = foundMethodWithIL && !foundMethodWithoutIL;
-            return docList;
+            return documentList;
         }
 
         public sealed override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
