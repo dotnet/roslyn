@@ -464,7 +464,7 @@
       </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
-        <target state="new">Inline Hints</target>
+        <target state="translated">Indicateurs inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -1239,7 +1239,7 @@
       </trans-unit>
       <trans-unit id="Underline_reassigned_variables">
         <source>Underline reassigned variables</source>
-        <target state="new">Underline reassigned variables</target>
+        <target state="translated">Souligner les variables réaffectées</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -2720,7 +2720,7 @@ Informations supplémentaires : {1}</target>
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources</source>
-        <target state="needs-review-translation">Activer la navigation vers des sources décompilées (expérimental)</target>
+        <target state="new">Enable navigation to decompiled sources</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

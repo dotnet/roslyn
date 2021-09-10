@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(_asyncServiceProvider).ConfigureAwait(false);
             var service = serviceContainer.GetFullAccessServiceBroker();
 
-            var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
+            var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, ownsServiceBroker: true, cancellationToken).ConfigureAwait(false);
 
             // Register the default log level as warning to avoid creating log files in the hundreds of GB.
             // This level can be overriden by setting the environment variable 'LogLevel' to the desired source level.

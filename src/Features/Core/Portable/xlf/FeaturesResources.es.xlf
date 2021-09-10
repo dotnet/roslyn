@@ -232,7 +232,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
         <source>Asynchronously waits for the task to finish.</source>
-        <target state="new">Asynchronously waits for the task to finish.</target>
+        <target state="translated">Espera de forma asincrónica a que termine la tarea.</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -517,7 +517,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
-        <target state="needs-review-translation">Los cambios realizados en el proyecto "{0}" impedirán que continúe la sesión de depuración: {1}</target>
+        <target state="new">Changes made in project '{0}' require restarting the application: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
@@ -757,17 +757,17 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Introduce_parameter">
         <source>Introduce parameter</source>
-        <target state="new">Introduce parameter</target>
+        <target state="translated">Introducir parámetro</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">
         <source>Introduce parameter for '{0}'</source>
-        <target state="new">Introduce parameter for '{0}'</target>
+        <target state="translated">Parámetro Introduce para '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter_for_all_occurrences_of_0">
         <source>Introduce parameter for all occurrences of '{0}'</source>
-        <target state="new">Introduce parameter for all occurrences of '{0}'</target>
+        <target state="translated">Parámetro Introduce para todas las repeticiones de '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_query_variable">
@@ -782,7 +782,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
-        <target state="new">Invalid selection.</target>
+        <target state="translated">Selección no válida.</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -972,7 +972,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
-        <target state="new">No common root node for extraction.</target>
+        <target state="translated">No hay nodo raíz común para la extracción.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
@@ -982,7 +982,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="No_valid_selection_to_perform_extraction">
         <source>No valid selection to perform extraction.</source>
-        <target state="new">No valid selection to perform extraction.</target>
+        <target state="translated">Selección no válida para efectuar extracción.</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_enough_close_parens">
@@ -2227,7 +2227,7 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
         <source>Selection does not contain a valid token.</source>
-        <target state="new">Selection does not contain a valid token.</target>
+        <target state="translated">La selección no contiene un token válido</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_not_contained_inside_a_type">
@@ -2758,11 +2758,11 @@ Aunque es posible mostrar la diezmilésima parte de un segundo de un valor de ho
 If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
 
 When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</source>
-        <target state="new">The "f" custom format specifier represents the most significant digit of the seconds fraction; that is, it represents the tenths of a second in a date and time value.
+        <target state="translated">El especificador de formato personalizado "f" representa el dígito más significativo de la fracción de segundos, es decir, las décimas de segundo de un valor de fecha y hora.
 
-If the "f" format specifier is used without other format specifiers, it's interpreted as the "f" standard date and time format specifier.
+Si el especificador de formato "f" se usa sin otros especificadores de formato, se interpreta como el especificador de formato de fecha y hora estándar "f".
 
-When you use "f" format specifiers as part of a format string supplied to the ParseExact or TryParseExact method, the number of "f" format specifiers indicates the number of most significant digits of the seconds fraction that must be present to successfully parse the string.</target>
+Cuando se usan especificadores de formato "f" como parte de una cadena de formato proporcionada al método ParseExact o TryParseExact, el número de especificadores de formato "f" indica el número de dígitos más significativos de la fracción de segundos que deben estar presentes para analizar correctamente la cadena.</target>
         <note>{Locked="ParseExact"}{Locked="TryParseExact"}{Locked=""f""}</note>
       </trans-unit>
       <trans-unit id="_10ths_of_a_second_non_zero">
@@ -2838,7 +2838,7 @@ Si el especificador de formato "H" se usa sin otros especificadores de formato p
       </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
-        <target state="new">and update call sites directly</target>
+        <target state="translated">y actualizar sitios de llamada directamente</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -2984,12 +2984,12 @@ El especificador de formato estándar "f" representa una combinación de los pat
       </trans-unit>
       <trans-unit id="into_extracted_method_to_invoke_at_call_sites">
         <source>into extracted method to invoke at call sites</source>
-        <target state="new">into extracted method to invoke at call sites</target>
+        <target state="translated">en el método extraído para invocar en sitios de llamada</target>
         <note />
       </trans-unit>
       <trans-unit id="into_new_overload">
         <source>into new overload</source>
-        <target state="new">into new overload</target>
+        <target state="translated">a una nueva sobrecarga</target>
         <note />
       </trans-unit>
       <trans-unit id="just_this_anonymous_type">
@@ -3406,7 +3406,7 @@ Si el especificador de formato "g" se usa sin otros especificadores de formato p
       </trans-unit>
       <trans-unit id="property_accessor">
         <source>property accessor</source>
-        <target state="new">property accessor</target>
+        <target state="translated">descriptor de acceso de propiedades</target>
         <note />
       </trans-unit>
       <trans-unit id="range_variable">
