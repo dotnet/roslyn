@@ -2484,11 +2484,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 membersByName = membersAndInitializers.NonTypeMembers.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
 
-                if (!IsTupleType)
-                {
-                    // Merge types into the member dictionary
-                    AddNestedTypesToDictionary(membersByName, GetTypeMembersDictionary());
-                }
+                // Merge types into the member dictionary
+                AddNestedTypesToDictionary(membersByName, GetTypeMembersDictionary());
             }
 
             MergePartialMembers(ref membersByName, diagnostics);

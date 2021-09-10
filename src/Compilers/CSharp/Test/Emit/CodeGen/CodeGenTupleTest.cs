@@ -12739,7 +12739,10 @@ namespace System
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 18),
                 // (10,23): error CS1525: Invalid expression term 'int'
                 //         var y = (int, int).C9;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 23),
+                // (10,28): error CS0572: 'C9': cannot reference a type through an expression; try '(int, int).C9' instead
+                //         var y = (int, int).C9;
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "C9").WithArguments("C9", "(int, int).C9").WithLocation(10, 28)
                 );
 
             var c = comp.GetTypeByMetadataName("C");
@@ -12752,6 +12755,7 @@ namespace System
                 "System.Int32 (System.Int32, System.Int32).Item2",
                 "(System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2)",
                 "System.String (System.Int32, System.Int32).ToString()",
+                "(System.Int32, System.Int32).C9",
                 "(System.Int32, System.Int32)..ctor()");
 
             Assert.True(m9Tuple.Equals(m9Tuple.TupleUnderlyingType, TypeCompareKind.ConsiderEverything));
@@ -12760,6 +12764,79 @@ namespace System
             Assert.Equal("(System.Int32, System.Int32).C9", m9Tuple.GetTypeMembers("C9").Single().ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32).C9", m9Tuple.GetTypeMembers("C9", 0).Single().ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32).C9", m9Tuple.GetTypeMembersUnordered().Single().ToTestDisplayString());
+        }
+
+        [Fact]
+        public void CustomValueTupleWithStrangeThings_01_PE()
+        {
+            var lib_cs = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+
+        public class C9 { }
+    }
+}
+" + tupleattributes_cs;
+
+            var source = @"
+class C
+{
+    static void M()
+    {
+        var y = (int, int).C9;
+
+        System.ValueTuple<int, int>.C9 z = null;
+        System.Console.WriteLine(z);
+    }
+
+    static (int, int) M9()
+    {
+        return (901, 902);
+    }
+}
+";
+
+            var libComp = CreateCompilationWithMscorlib40(lib_cs);
+            libComp.VerifyDiagnostics();
+
+            var comp = CreateCompilationWithMscorlib40(source, references: new[] { libComp.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (6,18): error CS1525: Invalid expression term 'int'
+                //         var y = (int, int).C9;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 18),
+                // (6,23): error CS1525: Invalid expression term 'int'
+                //         var y = (int, int).C9;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 23),
+                // (6,28): error CS0572: 'C9': cannot reference a type through an expression; try '(int, int).C9' instead
+                //         var y = (int, int).C9;
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "C9").WithArguments("C9", "(int, int).C9").WithLocation(6, 28)
+                );
+
+            var c = comp.GetTypeByMetadataName("C");
+            var m9Tuple = (NamedTypeSymbol)c.GetMember<MethodSymbol>("M9").ReturnType;
+
+            AssertTestDisplayString(m9Tuple.GetMembers(),
+                "System.Int32 (System.Int32, System.Int32).Item1",
+                "System.Int32 (System.Int32, System.Int32).Item2",
+                "(System.Int32, System.Int32)..ctor()",
+                "(System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2)",
+                "System.String (System.Int32, System.Int32).ToString()",
+                "(System.Int32, System.Int32).C9");
         }
 
         [Fact]
