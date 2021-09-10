@@ -2156,12 +2156,7 @@ class C
                     Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[42]").WithLocation(9, 18)
                     );
 
-            var tree = comp.SyntaxTrees.First();
-            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var binder = model.GetEnclosingBinder(@switch.SpanStart);
-            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
-            AssertEx.Equal(
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
 @"[0]: t0 != null ? [1] : [9]
 [1]: t1 = t0.Length; [2]
 [2]: t1 >= 1 ? [3] : [9]
@@ -2177,7 +2172,7 @@ class C
             case [42]:
                 break;
         }`
-", boundSwitch.DecisionDag.Dump());
+");
         }
 
         [Fact]
@@ -2202,12 +2197,7 @@ class C
                 //             case ([42], [43]):
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "([42], [43])").WithLocation(9, 18));
 
-            var tree = comp.SyntaxTrees.First();
-            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var binder = model.GetEnclosingBinder(@switch.SpanStart);
-            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
-            AssertEx.Equal(
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
 @"[0]: t1 = t0.a; [1]
 [1]: t1 != null ? [2] : [22]
 [2]: t2 = t1.Length; [3]
@@ -2236,7 +2226,7 @@ class C
             case ([42], [43]):
                 break;
         }`
-", boundSwitch.DecisionDag.Dump());
+");
         }
 
         [Fact]
@@ -2295,12 +2285,7 @@ class C
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1, 2, 3]").WithLocation(9, 18)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var binder = model.GetEnclosingBinder(@switch.SpanStart);
-            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
-            AssertEx.Equal(
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
 @"[0]: t0 != null ? [1] : [13]
 [1]: t1 = t0.Length; [2]
 [2]: t1 >= 2 ? [3] : [13]
@@ -2320,7 +2305,7 @@ class C
             case [1, 2, 3]:
                 break;
         }`
-", boundSwitch.DecisionDag.Dump());
+");
         }
 
         [Fact]
@@ -2355,12 +2340,7 @@ class C
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            var tree = comp.SyntaxTrees.First();
-            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var binder = model.GetEnclosingBinder(@switch.SpanStart);
-            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
-            AssertEx.Equal(
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
 @"[0]: t0 != null ? [1] : [18]
 [1]: t1 = t0.Length; [2]
 [2]: t1 == 3 ? [3] : [12]
@@ -2380,7 +2360,7 @@ class C
 [16]: t5 == 3 ? [17] : [18]
 [17]: leaf `case [1, .., 3]:`
 [18]: leaf `default`
-", boundSwitch.DecisionDag.Dump());
+");
         }
 
         [Fact]
@@ -2415,12 +2395,7 @@ class C
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            var tree = comp.SyntaxTrees.First();
-            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var binder = model.GetEnclosingBinder(@switch.SpanStart);
-            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
-            AssertEx.Equal(
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
 @"[0]: t0 != null ? [1] : [12]
 [1]: t1 = t0.Length; [2]
 [2]: t1 == 1 ? [3] : [8]
@@ -2434,7 +2409,7 @@ class C
 [10]: t3 == 42 ? [11] : [12]
 [11]: leaf `case [..,42]:`
 [12]: leaf `default`
-", boundSwitch.DecisionDag.Dump());
+");
         }
 
         [Fact]
@@ -2494,12 +2469,7 @@ class C
                 //             case [var unreachable]:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(17, 18));
 
-            var tree = comp.SyntaxTrees.First();
-            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().First();
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var binder = model.GetEnclosingBinder(@switch.SpanStart);
-            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
-            AssertEx.Equal(
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
 @"[0]: t0 != null ? [1] : [10]
 [1]: t1 = t0.Length; [2]
 [2]: t1 >= 1 ? [3] : [10]
@@ -2518,7 +2488,7 @@ class C
                     break;
         }`
 [11]: leaf `case [.., not null]:`
-", boundSwitch.DecisionDag.Dump());
+");
         }
 
         [Fact]
@@ -2549,12 +2519,7 @@ class C
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "2");
 
-            var tree = comp.SyntaxTrees.First();
-            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var binder = model.GetEnclosingBinder(@switch.SpanStart);
-            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
-            AssertEx.Equal(
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
 @"[0]: t0 != null ? [1] : [11]
 [1]: t1 = t0.Length; [2]
 [2]: t1 >= 2 ? [3] : [11]
@@ -2567,7 +2532,7 @@ class C
 [9]: t3 <= 0 ? [10] : [11]
 [10]: leaf `case [.., <= 0, _]:`
 [11]: leaf `default`
-", boundSwitch.DecisionDag.Dump());
+");
         }
 
         [Fact]
@@ -2672,12 +2637,8 @@ class C
                 //             [_] => 2, // unreachable
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[_]").WithLocation(11, 13));
 
-            var tree = comp.SyntaxTrees.First();
-            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().First();
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var binder = model.GetEnclosingBinder(@switch.SpanStart);
-            var boundSwitch = (BoundSwitchExpression)binder.BindExpression(@switch, BindingDiagnosticBag.Discarded);
-            AssertEx.Equal(
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+
 @"[0]: t0 != null ? [1] : [13]
 [1]: t1 = t0.Length; [2]
 [2]: t1 == 1 ? [3] : [12]
@@ -2698,7 +2659,7 @@ class C
             [..[>= 0]] or [..null] => 1,
             [_] => 2, // unreachable
         }`
-", boundSwitch.DecisionDag.Dump());
+");
         }
 
         [Fact]
@@ -2725,12 +2686,7 @@ class C
                 //             [var unreachable] => 5,
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[var unreachable]").WithLocation(12, 13));
 
-            var tree = comp.SyntaxTrees.First();
-            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var binder = model.GetEnclosingBinder(@switch.SpanStart);
-            var boundSwitch = (BoundSwitchExpression)binder.BindExpression(@switch, BindingDiagnosticBag.Discarded);
-            AssertEx.Equal(
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
 @"[0]: t0 != null ? [1] : [15]
 [1]: t1 = t0.Length; [2]
 [2]: t1 >= 1 ? [3] : [14]
@@ -2754,7 +2710,7 @@ class C
             { Length: not 1 } => 4,
             [var unreachable] => 5,
         }`
-", boundSwitch.DecisionDag.Dump());
+");
         }
 
         [Fact]
@@ -2807,12 +2763,7 @@ class C
                 //             case [[42]]:
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[42]]").WithLocation(9, 18));
 
-            var tree = comp.SyntaxTrees.First();
-            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var binder = model.GetEnclosingBinder(@switch.SpanStart);
-            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
-            AssertEx.Equal(
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
 @"[0]: t0 != null ? [1] : [27]
 [1]: t1 = t0.Length; [2]
 [2]: t1 >= 1 ? [3] : [27]
@@ -2846,7 +2797,7 @@ class C
             case [[42]]:
                 break;
         }`
-", boundSwitch.DecisionDag.Dump());
+");
         }
 
         [Fact]
