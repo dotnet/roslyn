@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SemanticClassificationCache
 {
-    [ExportWorkspaceService(typeof(ISemanticClassificationCacheService), ServiceLayer.Host), Shared]
+    [ExportWorkspaceService(typeof(ISemanticClassificationCacheService), ServiceLayer.Editor), Shared]
     internal class SemanticClassificationCacheService : ISemanticClassificationCacheService
     {
         [ImportingConstructor]
