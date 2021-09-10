@@ -12219,20 +12219,17 @@ tryAgain:
             var initializers = _pool.AllocateSeparated<ExpressionSyntax>();
             try
             {
-                bool isObjectInitializer;
-                this.ParseObjectOrCollectionInitializerMembers(ref openBrace, initializers, out isObjectInitializer);
+                this.ParseObjectOrCollectionInitializerMembers(ref openBrace, initializers, out var isObjectInitializer);
                 Debug.Assert(initializers.Count > 0 || isObjectInitializer);
 
                 openBrace = CheckFeatureAvailability(openBrace, isObjectInitializer ? MessageID.IDS_FeatureObjectInitializer : MessageID.IDS_FeatureCollectionInitializer);
 
                 var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
-                return _syntaxFactory.InitializerExpression(
-                    isObjectInitializer ?
-                        SyntaxKind.ObjectInitializerExpression :
-                        SyntaxKind.CollectionInitializerExpression,
-                    openBrace,
-                    initializers,
-                    closeBrace);
+                var kind = isObjectInitializer
+                    ? SyntaxKind.ObjectInitializerExpression
+                    : SyntaxKind.CollectionInitializerExpression;
+
+                return _syntaxFactory.InitializerExpression(kind, openBrace, initializers, closeBrace);
             }
             finally
             {
@@ -12307,7 +12304,7 @@ tryAgain:
                 initializer = CheckFeatureAvailability(initializer, MessageID.IDS_FeatureDictionaryInitializer);
                 return initializer;
             }
-            else if (this.IsNamedAssignment())
+            else if (IsObjectInitializerNamedAssignment())
             {
                 isObjectInitializer = true;
                 return this.ParseObjectInitializerNamedAssignment();
@@ -12327,21 +12324,24 @@ tryAgain:
                 expected);
         }
 
+        private bool IsObjectInitializerNamedAssignment()
+            => IsTrueIdentifier() && this.PeekToken(1).Kind is SyntaxKind.EqualsToken or SyntaxKind.PlusEqualsToken;
+
         private ExpressionSyntax ParseObjectInitializerNamedAssignment()
         {
+            Debug.Assert(IsObjectInitializerNamedAssignment());
             var identifier = this.ParseIdentifierName();
-            var equal = this.EatToken(SyntaxKind.EqualsToken);
-            ExpressionSyntax expression;
-            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-            {
-                expression = this.ParseObjectOrCollectionInitializer();
-            }
-            else
-            {
-                expression = this.ParseExpressionCore();
-            }
 
-            return _syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, identifier, equal, expression);
+            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.EqualsToken or SyntaxKind.PlusEqualsToken);
+            var operatorToken = this.EatToken();
+
+            // TODO(cyrusn): For parsing error recovery, we could always allow object/collection initializers after the `+=`,
+            // reporting a binding error later.
+            var expression = operatorToken.Kind is SyntaxKind.EqualsToken && CurrentToken.Kind == SyntaxKind.OpenBraceToken
+                ? this.ParseObjectOrCollectionInitializer()
+                : this.ParseExpressionCore();
+            var kind = operatorToken.Kind is SyntaxKind.EqualsToken ? SyntaxKind.SimpleAssignmentExpression : SyntaxKind.AddAssignmentExpression;
+            return _syntaxFactory.AssignmentExpression(kind, identifier, operatorToken, expression);
         }
 
         private ExpressionSyntax ParseDictionaryInitializer()

@@ -4629,21 +4629,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (spec 7.17.1) to the field or property.
 
-            if (memberInitializer.Kind() == SyntaxKind.SimpleAssignmentExpression)
+            var isObjectInitializer = memberInitializer.Parent.Kind() == SyntaxKind.ObjectInitializerExpression;
+            var isAddAssignment = isObjectInitializer && memberInitializer.Kind() == SyntaxKind.AddAssignmentExpression;
+
+            if (memberInitializer.Kind() == SyntaxKind.SimpleAssignmentExpression ||
+                isAddAssignment)
             {
                 var initializer = (AssignmentExpressionSyntax)memberInitializer;
 
                 // Bind member initializer identifier, i.e. left part of assignment
-                BoundExpression boundLeft = null;
+                BoundExpression boundLeft;
                 var leftSyntax = initializer.Left;
 
                 if (initializerType.IsDynamic() && leftSyntax.Kind() == SyntaxKind.IdentifierName)
                 {
-                    {
-                        // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
-                        var memberName = ((IdentifierNameSyntax)leftSyntax).Identifier.Text;
-                        boundLeft = new BoundDynamicObjectInitializerMember(leftSyntax, memberName, implicitReceiver.Type, initializerType, hasErrors: false);
-                    }
+                    // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
+                    var memberName = ((IdentifierNameSyntax)leftSyntax).Identifier.Text;
+                    boundLeft = new BoundDynamicObjectInitializerMember(leftSyntax, memberName, implicitReceiver.Type, initializerType, hasErrors: false);
                 }
                 else
                 {
@@ -4660,17 +4662,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (boundLeft != null)
                 {
-                    Debug.Assert((object)boundLeft.Type != null);
+                    Debug.Assert(boundLeft.Type is not null);
 
-                    // Bind member initializer value, i.e. right part of assignment
-                    BoundExpression boundRight = BindInitializerExpressionOrValue(
-                        syntax: initializer.Right,
-                        type: boundLeft.Type,
-                        typeSyntax: boundLeft.Syntax,
-                        diagnostics: diagnostics);
+                    if (isAddAssignment && boundLeft is BoundEventAccess boundEventAccess)
+                    {
+                        var boundRight = BindValue(initializer.Right, diagnostics, BindValueKind.RValue);
+                        BindEventAssignment(initializer, boundEventAccess, boundRight, BinaryOperatorKind.Addition, diagnostics);
+                    }
+                    else
+                    {
+                        // Bind member initializer value, i.e. right part of assignment
+                        BoundExpression boundRight = BindInitializerExpressionOrValue(
+                            syntax: initializer.Right,
+                            type: boundLeft.Type,
+                            typeSyntax: boundLeft.Syntax,
+                            diagnostics: diagnostics);
 
-                    // Bind member initializer assignment expression
-                    return BindAssignment(initializer, boundLeft, boundRight, isRef: false, diagnostics);
+                        // Bind member initializer assignment expression
+                        return BindAssignment(initializer, boundLeft, boundRight, isRef: false, diagnostics);
+                    }
                 }
             }
 
@@ -4753,33 +4763,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundKind boundMemberKind = boundMember.Kind;
             SyntaxKind rhsKind = namedAssignment.Right.Kind();
             bool isRhsNestedInitializer = rhsKind == SyntaxKind.ObjectInitializerExpression || rhsKind == SyntaxKind.CollectionInitializerExpression;
-            BindValueKind valueKind = isRhsNestedInitializer ? BindValueKind.RValue : BindValueKind.Assignable;
+            var isAddAssignment = namedAssignment.Kind() is SyntaxKind.AddAssignmentExpression;
+            BindValueKind valueKind = isAddAssignment
+                ? BindValueKind.CompoundAssignment
+                : isRhsNestedInitializer
+                    ? BindValueKind.RValue
+                    : BindValueKind.Assignable;
 
             ImmutableArray<BoundExpression> arguments = ImmutableArray<BoundExpression>.Empty;
-            ImmutableArray<string> argumentNamesOpt = default(ImmutableArray<string>);
-            ImmutableArray<int> argsToParamsOpt = default(ImmutableArray<int>);
-            ImmutableArray<RefKind> argumentRefKindsOpt = default(ImmutableArray<RefKind>);
-            BitVector defaultArguments = default(BitVector);
+            ImmutableArray<string> argumentNamesOpt = default;
+            ImmutableArray<int> argsToParamsOpt = default;
+            ImmutableArray<RefKind> argumentRefKindsOpt = default;
+            BitVector defaultArguments = default;
             bool expanded = false;
+
+
+            if (!hasErrors)
+            {
+                // Events only allowed in the += case.
+                if (isAddAssignment && boundMemberKind != BoundKind.EventAccess)
+                {
+                    hasErrors = true;
+                    Error(diagnostics, ErrorCode.ERR_PlusEqualsMustReferToEvent, namedAssignment.Left);
+                }
+                else if (!isAddAssignment && boundMemberKind == BoundKind.EventAccess)
+                {
+                    hasErrors = true;
+                    Error(diagnostics, ErrorCode.ERR_EventCanOnlyBeReferencedWithPlusEquals, namedAssignment.OperatorToken);
+                }
+            }
 
             switch (boundMemberKind)
             {
                 case BoundKind.FieldAccess:
-                    {
-                        var fieldSymbol = ((BoundFieldAccess)boundMember).FieldSymbol;
-                        if (isRhsNestedInitializer && fieldSymbol.IsReadOnly && fieldSymbol.Type.IsValueType)
-                        {
-                            if (!hasErrors)
-                            {
-                                // TODO: distinct error code for collection initializers?  (Dev11 doesn't have one.)
-                                Error(diagnostics, ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, namedAssignment.Left, fieldSymbol, fieldSymbol.Type);
-                                hasErrors = true;
-                            }
 
-                            resultKind = LookupResultKind.NotAValue;
+                    var fieldSymbol = ((BoundFieldAccess)boundMember).FieldSymbol;
+                    if (isRhsNestedInitializer && fieldSymbol.IsReadOnly && fieldSymbol.Type.IsValueType)
+                    {
+                        if (!hasErrors)
+                        {
+                            // TODO: distinct error code for collection initializers?  (Dev11 doesn't have one.)
+                            Error(diagnostics, ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, namedAssignment.Left, fieldSymbol, fieldSymbol.Type);
+                            hasErrors = true;
                         }
-                        break;
+
+                        resultKind = LookupResultKind.NotAValue;
                     }
+                    break;
 
                 case BoundKind.EventAccess:
                     break;
@@ -4826,7 +4856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // CheckValueKind to generate possible diagnostics for invalid initializers non-viable member lookup result:
                 //      1) CS0154 (ERR_PropertyLacksGet)
                 //      2) CS0200 (ERR_AssgReadonlyProp)
-                if (!CheckValueKind(boundMember.Syntax, boundMember, valueKind, checkingReceiver: false, diagnostics: diagnostics))
+                if (!CheckValueKind(boundMember.Syntax, boundMember, valueKind, checkingReceiver: false, diagnostics))
                 {
                     hasErrors = true;
                     resultKind = isRhsNestedInitializer ? LookupResultKind.NotAValue : LookupResultKind.NotAVariable;
@@ -4845,7 +4875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind,
                 implicitReceiver.Type,
                 type: boundMember.Type,
-                hasErrors: hasErrors);
+                hasErrors);
         }
 
         private static bool CheckNestedObjectInitializerPropertySymbol(
