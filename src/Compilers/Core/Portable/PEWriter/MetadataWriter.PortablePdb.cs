@@ -994,10 +994,10 @@ namespace Microsoft.Cci
 
             foreach (var (definition, documents) in module.GetTypeToDebugDocumentMap(Context))
             {
-                foreach (var val in documents)
+                foreach (var document in documents)
                 {
-                    var rowid = GetOrAddDocument(val, _documentIndex);
-                    builder.WriteCompressedInteger(MetadataTokens.GetRowNumber(rowid));
+                    var handle = GetOrAddDocument(document, _documentIndex);
+                    builder.WriteCompressedInteger(MetadataTokens.GetRowNumber(handle));
                 }
                 _debugMetadataOpt.AddCustomDebugInformation(
                     parent: GetTypeDefinitionHandle(definition),
