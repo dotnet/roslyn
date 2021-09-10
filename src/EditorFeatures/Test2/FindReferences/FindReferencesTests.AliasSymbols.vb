@@ -228,5 +228,51 @@ namespace N
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestGlobalAlias1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$D = System.[|DateTime|];
+        partial class C
+        {
+            [|D|] date;
+
+            void Goo()
+            {
+            }
+        }
+        </Document>
+        <Document>
+        partial class C
+        {
+            [|D|] date;
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestGlobalAlias2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$D = System.[|DateTime|];
+        </Document>
+        <Document>
+        partial class C
+        {
+            [|D|] date;
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

@@ -37,10 +37,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
+            var containingType = symbol.ContainingType;
             var typeName = symbol.ContainingType.Name;
 
+            using var _ = ArrayBuilder<Document>.GetInstance(out var result);
+
+            // Named types might be referenced through global aliases, which themselves are then referenced elsewhere.
+            var allMatchingGlobalAliasNames = await NamedTypeSymbolReferenceFinder.GetAllMatchingGlobalAliasNamesAsync(
+                project, typeName, containingType.Arity, cancellationToken).ConfigureAwait(false);
+            foreach (var globalAliasName in allMatchingGlobalAliasNames)
+                result.AddRange(await FindDocumentsAsync(project, documents, cancellationToken, globalAliasName).ConfigureAwait(false));
+
             var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, typeName).ConfigureAwait(false);
-            var documentsWithType = await FindDocumentsAsync(project, documents, symbol.ContainingType.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
+            var documentsWithType = await FindDocumentsAsync(project, documents, containingType.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
 
             var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(typeName, project.LanguageServices.GetRequiredService<ISyntaxFactsService>(), out var simpleName)
                 ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
@@ -51,7 +60,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : ImmutableArray<Document>.Empty;
 
             var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
-            return documentsWithName.Concat(documentsWithType, documentsWithImplicitObjectCreations, documentsWithAttribute, documentsWithGlobalAttributes);
+
+            result.AddRange(documentsWithName);
+            result.AddRange(documentsWithType);
+            result.AddRange(documentsWithImplicitObjectCreations);
+            result.AddRange(documentsWithAttribute);
+            result.AddRange(documentsWithGlobalAttributes);
+
+            return result.ToImmutable();
         }
 
         private static bool IsPotentialReference(
@@ -83,12 +99,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var findParentNode = GetNamedTypeOrConstructorFindParentNodeFunction(document, methodSymbol);
 
             var normalReferences = await FindReferencesInDocumentWorkerAsync(methodSymbol, document, semanticModel, findParentNode, cancellationToken).ConfigureAwait(false);
-            var nonAliasTypeReferences = await NamedTypeSymbolReferenceFinder.FindNonAliasReferencesAsync(methodSymbol.ContainingType, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
-            var aliasReferences = await FindAliasReferencesAsync(
-                nonAliasTypeReferences, methodSymbol, document, semanticModel, findParentNode, cancellationToken).ConfigureAwait(false);
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var typeReferences);
+            await NamedTypeSymbolReferenceFinder.AddReferencesToTypeOrGlobalAliasToItAsync(
+                methodSymbol.ContainingType, document, semanticModel, typeReferences, cancellationToken).ConfigureAwait(false);
 
             var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, methodSymbol, cancellationToken).ConfigureAwait(false);
+
+            var aliasReferences = await FindLocalAliasReferencesAsync(
+                typeReferences, methodSymbol, document, semanticModel, findParentNode, cancellationToken).ConfigureAwait(false);
+
             return normalReferences.Concat(aliasReferences, suppressionReferences);
         }
 
