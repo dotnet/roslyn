@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Threading;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -36,13 +35,12 @@ namespace Microsoft.CodeAnalysis.AnalyzerUtilities.FlowAnalysis.Analysis.Invocat
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
             bool pessimisticAnalysis,
-            ImmutableArray<string> trackingMethodNames,
-            CancellationToken cancellationToken)
+            ImmutableArray<string> trackingMethodNames)
         {
             // TODO: Add Inter-procedural ability.
             // TODO: PointToAnalysis ability should be added here.
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                analyzerOptions, rule, cfg, wellKnownTypeProvider.Compilation, InterproceduralAnalysisKind.None, cancellationToken);
+                analyzerOptions, rule, cfg, wellKnownTypeProvider.Compilation, InterproceduralAnalysisKind.None);
 
             var context = new InvocationCountAnalysisContext(
                 InvocationCountValueDomain.Instance,
