@@ -6,8 +6,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.StackTraceExplorer"
              xmlns:utils="clr-namespace:Microsoft.VisualStudio.LanguageServices.Utilities"
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </UserControl.Resources>
+    <UserControl.CommandBindings>
+        <CommandBinding Command="{x:Static ApplicationCommands.Paste}" Executed="CommandBinding_Executed"/>
+    </UserControl.CommandBindings>
     <Grid>
         <Grid.CommandBindings>
             <CommandBinding Command="{x:Static ApplicationCommands.Paste}" Executed="CommandBinding_Executed"/>
@@ -15,12 +22,17 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <ListView ItemsSource="{Binding CallstackLines}" Grid.Row="0" SelectedItem="{Binding Selection, Mode=TwoWay}" MouseDoubleClick="ListViewItem_MouseDoubleClick">
+        <ListView ItemsSource="{Binding CallstackLines}" Grid.Row="0" SelectedItem="{Binding Selection, Mode=TwoWay}" MouseDoubleClick="ListViewItem_MouseDoubleClick" Visibility="{Binding IsListVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <ListView.ItemTemplate>
                 <DataTemplate DataType="{x:Type local:StackTraceLineViewModel}">
                     <utils:BindableTextBlock InlineCollection="{Binding Inlines}" />
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+        <TextBlock Grid.Row="0" Visibility="{Binding IsInstructionTextVisible, Converter={StaticResource BooleanToVisibilityConverter}}" Text="{Binding InstructionText}" Margin="5" Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}">
+            <TextBlock.CommandBindings>
+                <CommandBinding Command="{x:Static ApplicationCommands.Paste}" Executed="CommandBinding_Executed" />
+            </TextBlock.CommandBindings>
+        </TextBlock>
     </Grid>
 </UserControl>

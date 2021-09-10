@@ -4,12 +4,13 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
-    [Guid(Guids.CallstackExplorerToolWindowIdString)]
+    [Guid(Guids.StackTraceExplorerToolWindowIdString)]
     internal class StackTraceExplorerToolWindow : ToolWindowPane
     {
         private readonly StackTraceExplorerRoot _root = new();
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         }
         public StackTraceExplorerToolWindow() : base(null)
         {
-            Caption = "Callstack Explorer";
+            Caption = ServicesVSResources.Stack_Trace_Explorer;
             Content = _root;
         }
 

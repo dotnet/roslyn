@@ -25,11 +25,32 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     /// </summary>
     internal partial class StackTraceExplorerRoot : UserControl
     {
-        public string EmptyText => "Paste into the window to get started";
+        public string EmptyText => ServicesVSResources.Paste_valid_stack_trace;
 
         public StackTraceExplorerRoot()
         {
             InitializeComponent();
+            DataObject.AddPastingHandler(this, OnPaste);
+        }
+
+        private void CommandBinding_OnPaste(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+            => OnPaste();
+
+        private void OnPaste(object sender, DataObjectPastingEventArgs e)
+            => OnPaste();
+
+        private void OnPaste()
+        {
+            if (RootGrid.Children.Count == 0)
+            {
+                return;
+            }
+
+            var content = RootGrid.Children[0];
+            if (content is StackTraceExplorer explorer)
+            {
+                explorer.OnPaste();
+            }
         }
 
         public void SetChild(FrameworkElement? child)
@@ -43,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             }
             else
             {
+                Grid.SetRow(child, 0);
                 EmptyTextMessage.Visibility = Visibility.Collapsed;
                 RootGrid.Children.Add(child);
             }

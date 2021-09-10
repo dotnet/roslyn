@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         private void CommandBinding_Executed(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
             => OnPaste();
 
-        private void OnPaste()
+        public void OnPaste()
         {
             _viewModel.OnPaste();
         }

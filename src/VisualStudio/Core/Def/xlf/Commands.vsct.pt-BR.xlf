@@ -7,9 +7,19 @@
         <target state="translated">Executar &amp;Análise de Código na Seleção</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdIdShowCallstackExplorer|ButtonText">
-        <source>Callstack Explorer</source>
-        <target state="new">Callstack Explorer</target>
+      <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
+        <source>Stack Trace Explorer</source>
+        <target state="new">Stack Trace Explorer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|CommandName">
+        <source>ShowStackTraceExplorerCommandName</source>
+        <target state="new">ShowStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
+        <source>ShowStackTraceExplorer</source>
+        <target state="new">ShowStackTraceExplorer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">

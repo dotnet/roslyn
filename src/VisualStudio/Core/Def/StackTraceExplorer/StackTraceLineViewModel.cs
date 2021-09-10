@@ -69,7 +69,9 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             yield return classLink;
 
             // +1 to the argspan end because we want to include the closing paren
-            var methodText = _line.OriginalLine[_line.MethodSpan.Start..(_line.ArgsSpan.End + 1)];
+            var argEndIndex = _line.ArgsSpan.End + 1;
+
+            var methodText = _line.OriginalLine[_line.MethodSpan.Start..argEndIndex];
             var methodLink = new Hyperlink();
             var methodClassifiedText = new ClassifiedText(ClassificationTypeNames.MethodName, methodText);
             methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, methodText));
@@ -79,8 +81,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
             if (_line is FileLineResult fileLineResult)
             {
-                var textBetweenLength = fileLineResult.FileSpan.Start - _line.ArgsSpan.End;
-                var textBetweenSpan = new TextSpan(_line.ArgsSpan.End, textBetweenLength);
+                var textBetweenLength = fileLineResult.FileSpan.Start - argEndIndex;
+                var textBetweenSpan = new TextSpan(argEndIndex, textBetweenLength);
                 if (textBetweenSpan.Length > 0)
                 {
                     var textBetween = _line.OriginalLine.Substring(textBetweenSpan.Start, textBetweenSpan.Length);
@@ -102,10 +104,9 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             }
             else
             {
-                var end = _line.ArgsSpan.End;
-                if (end < _line.OriginalLine.Length)
+                if (argEndIndex < _line.OriginalLine.Length)
                 {
-                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _line.OriginalLine[..end]);
+                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _line.OriginalLine[argEndIndex..]);
                 }
             }
         }

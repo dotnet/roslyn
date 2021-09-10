@@ -937,6 +937,11 @@
         <target state="translated">Preferencias de paréntesis:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste_valid_stack_trace">
+        <source>Paste a valid stack trace to view and navigate it's values</source>
+        <target state="new">Paste a valid stack trace to view and navigate it's values</target>
+        <note>"Stack Trace" is a language term and should be kept the same. </note>
+      </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
         <source>Paused ({0} tasks in queue)</source>
         <target state="translated">En pausa ({0} tareas en cola)</target>
@@ -1216,6 +1221,11 @@
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
         <target state="translated">Algunos de los colores de la combinación se reemplazan por los cambios realizados en la página de opciones de Entorno &gt; Fuentes y colores. Elija "Usar valores predeterminados" en la página Fuentes y colores para revertir todas las personalizaciones.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace_Explorer">
+        <source>Stack Trace Explorer</source>
+        <target state="new">Stack Trace Explorer</target>
+        <note>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</note>
       </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>

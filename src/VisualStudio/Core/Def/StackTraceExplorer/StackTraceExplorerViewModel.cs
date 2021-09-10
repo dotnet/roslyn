@@ -38,6 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             set => SetProperty(ref _selection, value);
         }
 
+        public bool IsListVisible => CallstackLines.Count > 0;
+        public bool IsInstructionTextVisible => CallstackLines.Count == 0;
+        public string InstructionText => ServicesVSResources.Paste_valid_stack_trace;
+
         public StackTraceExplorerViewModel(IThreadingContext threadingContext, Workspace workspace, ClassificationTypeMap classificationTypeMap, IClassificationFormatMap formatMap)
         {
             _threadingContext = threadingContext;
@@ -46,6 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
             _classificationTypeMap = classificationTypeMap;
             _formatMap = formatMap;
+
+            CallstackLines.CollectionChanged += CallstackLines_CollectionChanged;
+        }
+
+        private void CallstackLines_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            NotifyPropertyChanged(nameof(IsListVisible));
+            NotifyPropertyChanged(nameof(IsInstructionTextVisible));
         }
 
         private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)

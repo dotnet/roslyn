@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             // Initialize the window on startup
             _instance.GetOrInitializeWindow();
 
-            var menuCommandId = new CommandID(Guids.CallstackExplorerCommandId, 0x0100);
+            var menuCommandId = new CommandID(Guids.StackTraceExplorerCommandId, 0x0100);
             var menuItem = new MenuCommand(_instance.Execute, menuCommandId);
             menuCommandService.AddCommand(menuItem);
         }
