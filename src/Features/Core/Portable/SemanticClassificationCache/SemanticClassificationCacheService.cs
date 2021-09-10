@@ -13,14 +13,14 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
+namespace Microsoft.CodeAnalysis.SemanticClassificationCache
 {
     [ExportWorkspaceService(typeof(ISemanticClassificationCacheService), ServiceLayer.Host), Shared]
-    internal class EditorSemanticClassificationCacheService : ISemanticClassificationCacheService
+    internal class SemanticClassificationCacheService : ISemanticClassificationCacheService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorSemanticClassificationCacheService()
+        public SemanticClassificationCacheService()
         {
         }
 
