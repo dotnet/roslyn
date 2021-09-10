@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
@@ -33,6 +34,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 return null;
 
             return new UnitTestingRemoteHostClient((ServiceHubRemoteHostClient)client, serviceDescriptors, callbackDispatchers);
+        }
+
+        public static bool IsServiceHubProcessCoreClr(HostWorkspaceServices services)
+        {
+            var optionServices = services.GetRequiredService<IOptionService>();
+            return optionServices.GetOption(RemoteHostOptions.OOPCoreClr) || optionServices.GetOption(RemoteHostOptions.OOPCoreClrFeatureFlag);
         }
 
         public UnitTestingRemoteServiceConnectionWrapper<TService> CreateConnection<TService>(object? callbackTarget) where TService : class
