@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ' TODO(cyrusn): Should we provide some way to disable this special case?
 
             ' If the type is actually an array, then we place the array specifier on the identifier,
-            ' not on the type syntax.
+            ' not on the type syntax.  
 
             If parameter.Type.IsArrayType() Then
                 Dim arrayType = DirectCast(parameter.Type, IArrayTypeSymbol)

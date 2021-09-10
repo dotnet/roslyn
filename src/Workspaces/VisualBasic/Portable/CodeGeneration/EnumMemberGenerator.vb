@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         Return Nothing
                     End If
                 Else
-                    ' if nothing in the enum has any initializers and our value is appropriate for
+                    ' if nothing in the enum has any initializers and our value is appropriate for 
                     ' the end, then don't generate a value.
                     If destinationOpt.Members.Count = value AndAlso
                         destinationOpt.Members.OfType(Of EnumMemberDeclarationSyntax).All(Function(m) m.Initializer Is Nothing) Then
