@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
     internal sealed class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
     {
         [ExportWorkspaceService(typeof(ISQLiteStorageServiceFactory)), Shared]
-        internal sealed class Factory : IWorkspaceService
+        internal sealed class Factory : ISQLiteStorageServiceFactory
         {
             private readonly SQLiteConnectionPoolService _connectionPoolService;
             private readonly IAsynchronousOperationListener _asyncListener;
