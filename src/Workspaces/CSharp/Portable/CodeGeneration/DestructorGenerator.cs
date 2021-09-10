@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<DestructorDeclarationSyntax>(destructor, options);
             if (reusableSyntax != null)
             {
-                return RemoveLeadingDirectiveTrivia(reusableSyntax);
+                return reusableSyntax;
             }
 
             var hasNoBody = !options.GenerateMethodBodies;

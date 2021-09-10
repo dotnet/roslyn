@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of EnumMemberDeclarationSyntax)(enumMember, options)
             If reusableSyntax IsNot Nothing Then
-                Return RemoveLeadingDirectiveTrivia(reusableSyntax)
+                Return reusableSyntax
             End If
 
             Dim value = CreateEnumMemberValue(enumDeclarationOpt, enumMember)

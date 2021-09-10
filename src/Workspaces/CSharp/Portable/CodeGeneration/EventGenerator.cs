@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MemberDeclarationSyntax>(@event, options);
             if (reusableSyntax != null)
             {
-                return RemoveLeadingDirectiveTrivia(reusableSyntax);
+                return reusableSyntax;
             }
 
             var declaration = !options.GenerateMethodBodies || @event.IsAbstract || @event.AddMethod == null || @event.RemoveMethod == null

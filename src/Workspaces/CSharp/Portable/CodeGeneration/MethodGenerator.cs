@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<MethodDeclarationSyntax>(method, options);
             if (reusableSyntax != null)
             {
-                return RemoveLeadingDirectiveTrivia(reusableSyntax);
+                return reusableSyntax;
             }
 
             var declaration = GenerateMethodDeclarationWorker(
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<LocalFunctionStatementSyntax>(method, options);
             if (reusableSyntax != null)
             {
-                return RemoveLeadingDirectiveTrivia(reusableSyntax);
+                return reusableSyntax;
             }
 
             var declaration = GenerateLocalFunctionDeclarationWorker(

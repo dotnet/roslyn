@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return GenerateNamedTypeDeclarationWorker(namedType, options)
             End If
 
-            Return RemoveLeadingDirectiveTrivia(RemoveAllMembers(reusableDeclarationSyntax))
+            Return RemoveAllMembers(reusableDeclarationSyntax)
         End Function
 
         Private Function RemoveAllMembers(declaration As StatementSyntax) As StatementSyntax

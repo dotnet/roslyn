@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConversionOperatorDeclarationSyntax>(method, options);
             if (reusableSyntax != null)
             {
-                return RemoveLeadingDirectiveTrivia(reusableSyntax);
+                return reusableSyntax;
             }
 
             var keyword = method.MetadataName == WellKnownMemberNames.ImplicitConversionName

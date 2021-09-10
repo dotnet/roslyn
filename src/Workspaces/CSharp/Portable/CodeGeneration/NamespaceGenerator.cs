@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<SyntaxNode>(@namespace, options);
             return reusableSyntax == null
                 ? GenerateNamespaceDeclarationWorker(name, innermostNamespace, destination, options, parseOptions)
-                : RemoveLeadingDirectiveTrivia(RemoveAllMembers(reusableSyntax));
+                : RemoveAllMembers(reusableSyntax);
         }
 
         private static SyntaxNode RemoveAllMembers(SyntaxNode declaration)

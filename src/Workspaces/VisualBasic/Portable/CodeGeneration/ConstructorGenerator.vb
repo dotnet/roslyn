@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                               options As CodeGenerationOptions) As StatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)(constructor, options)
             If reusableSyntax IsNot Nothing Then
-                Return RemoveLeadingDirectiveTrivia(reusableSyntax)
+                Return reusableSyntax
             End If
 
             Dim constructorStatement =

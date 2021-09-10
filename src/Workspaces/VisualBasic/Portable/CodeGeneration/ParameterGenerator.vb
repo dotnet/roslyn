@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Shared Function GenerateParameter(parameter As IParameterSymbol, seenOptional As Boolean, options As CodeGenerationOptions) As ParameterSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of ParameterSyntax)(parameter, options)
             If reusableSyntax IsNot Nothing Then
-                Return RemoveLeadingDirectiveTrivia(reusableSyntax)
+                Return reusableSyntax
             End If
 
             ' TODO(cyrusn): Should we provide some way to disable this special case?
