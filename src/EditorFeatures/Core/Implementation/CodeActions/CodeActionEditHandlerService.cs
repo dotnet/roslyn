@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 return null;
             }
 
-            if (!(operationsList.Single() is ApplyChangesOperation applyOperation))
+            if (operationsList.Single() is not ApplyChangesOperation applyOperation)
             {
                 return null;
             }

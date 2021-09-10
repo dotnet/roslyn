@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 }
 
                 var memberDeclarationNode = FindParentMemberDeclarationNode(returnStatement, out var declaredSymbol);
-                if (!(declaredSymbol is IMethodSymbol methodSymbol))
+                if (declaredSymbol is not IMethodSymbol methodSymbol)
                 {
                     documentUpdateInfo = null;
                     return false;
@@ -880,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     }
 
                     // GroupClause is not supported by the conversion
-                    if (!(queryBody.SelectOrGroup is SelectClauseSyntax selectClause))
+                    if (queryBody.SelectOrGroup is not SelectClauseSyntax selectClause)
                     {
                         return false;
                     }

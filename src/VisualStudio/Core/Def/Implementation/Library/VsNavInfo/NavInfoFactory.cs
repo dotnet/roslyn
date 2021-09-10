@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         {
             var result = project.Name;
 
-            if (!(project.Solution.Workspace is VisualStudioWorkspace workspace))
+            if (project.Solution.Workspace is not VisualStudioWorkspace workspace)
             {
                 return result;
             }
