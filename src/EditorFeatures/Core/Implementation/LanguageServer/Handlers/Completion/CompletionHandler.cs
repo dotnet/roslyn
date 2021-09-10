@@ -26,6 +26,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
     /// Handle a completion request.
+    ///
+    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once the
+    /// references to VS Icon types are removed.
+    /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
@@ -48,9 +52,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
 
             _csharpTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).SelectMany(
-                lz => GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
+                lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
             _vbTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.VisualBasic).SelectMany(
-                lz => GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
+                lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
 
             _completionListCache = completionListCache;
         }
@@ -539,16 +543,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // An item should be preselcted for LSP when the match priority is preselect and the item is hard selected.
             // LSP does not support soft preselection, so we do not preselect in that scenario to avoid interfering with typing.
             return completionItem.Rules.MatchPriority == MatchPriority.Preselect && completionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection;
-        }
-
-        internal static ImmutableHashSet<char> GetTriggerCharacters(CompletionProvider provider)
-        {
-            if (provider is LSPCompletionProvider lspProvider)
-            {
-                return lspProvider.TriggerCharacters;
-            }
-
-            return ImmutableHashSet<char>.Empty;
         }
 
         internal static async Task<OptionSet> GetCompletionOptionsAsync(Document document, CancellationToken cancellationToken)

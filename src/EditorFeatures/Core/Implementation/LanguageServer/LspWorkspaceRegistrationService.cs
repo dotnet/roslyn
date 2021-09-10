@@ -5,23 +5,22 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
+namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
     [Export(typeof(ILspWorkspaceRegistrationService)), Shared]
-    internal class VisualStudioLspWorkspaceRegistrationService : ILspWorkspaceRegistrationService
+    internal class LspWorkspaceRegistrationService : ILspWorkspaceRegistrationService
     {
         private readonly object _gate = new();
         private ImmutableArray<Workspace> _registrations = ImmutableArray.Create<Workspace>();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioLspWorkspaceRegistrationService()
+        public LspWorkspaceRegistrationService()
         {
         }
 

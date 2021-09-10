@@ -19,6 +19,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
+    /// <summary>
+    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once it
+    /// no longer references VS icon or classified text run types.
+    /// See https://github.com/dotnet/roslyn/issues/55142
+    /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(Methods.TextDocumentHoverName)]
     internal class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>

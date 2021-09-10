@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// TO-DO: Currently, any ApplyChangesOperation that adds or removes a document must also be
     /// applied as a command due to an LSP bug (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/).
     /// Commands must be applied from the UI thread in VS.
+    /// 
+    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once the
+    /// UI thread dependencies are resolved and <see cref="IThreadingContext"/> references are removed.
+    /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
     internal class RunCodeActionHandler : AbstractExecuteWorkspaceCommandHandler
     {

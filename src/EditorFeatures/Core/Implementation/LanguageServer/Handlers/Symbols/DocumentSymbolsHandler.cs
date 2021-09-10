@@ -8,19 +8,21 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
+    /// <summary>
+    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once
+    /// we no longer reference VS icon types.
+    /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(Methods.TextDocumentDocumentSymbolName)]
     internal class DocumentSymbolsHandler : AbstractStatelessRequestHandler<DocumentSymbolParams, object[]>
@@ -94,7 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 },
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                 ContainerName = containerName,
-                Icon = ProtocolConversions.GetImageIdFromGlyph(item.Glyph),
+                Icon = VSLspExtensionConversions.GetImageIdFromGlyph(item.Glyph),
             };
         }
 

@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
+namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
     /// <summary>
     /// Language client responsible for handling C# / VB / F# LSP requests in any scenario (both local and codespaces).
