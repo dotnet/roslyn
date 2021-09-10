@@ -564,5 +564,34 @@ partial interface I2
                 ("I1", "1.cs"),
                 ("I2", "1.cs, 2.cs"));
         }
+
+        [Fact]
+        public void TypeDocument_Record()
+        {
+            string source = @"
+record R(int X);
+";
+
+            // The compiler synthesized methods have document info so we don't expect a type document
+            TestTypeDocuments(new[] { source, IsExternalInitTypeDefinition },
+                ("IsExternalInit", "2.cs"));
+        }
+
+        [Fact]
+        public void TypeDocument_Record_SynthesizedMember()
+        {
+            string source = @"
+record R(int X)
+{
+    protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+    {
+        return true;
+    }
+}
+";
+
+            TestTypeDocuments(new[] { source, IsExternalInitTypeDefinition },
+                ("IsExternalInit", "2.cs"));
+        }
     }
 }

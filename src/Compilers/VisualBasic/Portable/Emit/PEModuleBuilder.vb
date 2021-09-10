@@ -705,12 +705,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             For Each method In typeMethods
 
-                If Cci.Extensions.HasBody(method) AndAlso Not method.GetBody(context).SequencePoints.IsEmpty Then
-                    foundMethodWithIL = True
+                If Cci.Extensions.HasBody(method) Then
+                    Dim body = method.GetBody(context)
+                    If body IsNot Nothing AndAlso Not body.SequencePoints.IsEmpty Then
 
-                    For Each point In method.GetBody(context).SequencePoints
-                        documentList.Add(point.Document)
-                    Next
+                        foundMethodWithIL = True
+
+                        For Each point In body.SequencePoints
+                            documentList.Add(point.Document)
+                        Next
+                    Else
+                        foundMethodWithoutIL = True
+                    End If
                 Else
                     foundMethodWithoutIL = True
                 End If

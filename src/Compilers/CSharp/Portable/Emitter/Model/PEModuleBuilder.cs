@@ -290,11 +290,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var foundMethodWithoutIL = false;
             foreach (var method in typeMethods)
             {
-                if (Cci.Extensions.HasBody(method) && !method.GetBody(context).SequencePoints.IsEmpty)
+                if (Cci.Extensions.HasBody(method) &&
+                    method.GetBody(context) is { } body &&
+                    !body.SequencePoints.IsEmpty)
                 {
                     foundMethodWithIL = true;
 
-                    foreach (var point in method.GetBody(context).SequencePoints)
+                    foreach (var point in body.SequencePoints)
                     {
                         documentList.Add(point.Document);
                     }
