@@ -22,39 +22,41 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 
         internal static Task<StackTraceAnalysisResult> AnalyzeAsync(string callstack, CancellationToken _)
         {
-            var parsedLines = ParseLines(callstack);
+            var parsedFrames = Parse(callstack);
 
             return Task.FromResult(new StackTraceAnalysisResult(
-                parsedLines.ToImmutableArray()));
+                parsedFrames.ToImmutableArray()));
         }
 
-        private static IEnumerable<StackTraceLine> ParseLines(string callstack)
+        private static IEnumerable<ParsedFrame> Parse(string callstack)
         {
             foreach (var line in callstack.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 var trimmedLine = line.Trim();
 
-                if (TryParseDebugWindowStack(trimmedLine, out var parsedLine))
+                if (TryParseDebugWindowStack(trimmedLine, out var parsedFrame))
                 {
-                    yield return parsedLine;
+                    yield return parsedFrame;
                     continue;
                 }
 
-                if (TryParseStackTraceLine(trimmedLine, out parsedLine))
+                if (TryParseStackTraceLine(trimmedLine, out parsedFrame))
                 {
-                    yield return parsedLine;
+                    yield return parsedFrame;
                     continue;
                 }
+
+                yield return new IgnoredFrame(trimmedLine);
             }
         }
 
-        private static bool TryParseDebugWindowStack(string line, [NotNullWhen(returnValue: true)] out StackTraceLine? result)
+        private static bool TryParseDebugWindowStack(string line, [NotNullWhen(returnValue: true)] out ParsedStackFrame? parsedFrame)
         {
             // Example line:
             // ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#
             //                |--------------------------------|
             //                     Symbol data we care about
-            result = null;
+            parsedFrame = null;
 
             var startPoint = line.IndexOf('!');
             if (startPoint == -1)
@@ -69,13 +71,13 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                 return false;
             }
 
-            result = new StackTraceLine(line, classSpan, methodSpan, argsSpan);
+            parsedFrame = new ParsedStackFrame(line, classSpan, methodSpan, argsSpan);
             return true;
         }
 
-        private static bool TryParseStackTraceLine(string line, [NotNullWhen(returnValue: true)] out StackTraceLine? parsedLine)
+        private static bool TryParseStackTraceLine(string line, [NotNullWhen(returnValue: true)] out ParsedStackFrame? parsedFrame)
         {
-            parsedLine = null;
+            parsedFrame = null;
             var success = TryParseMethodSignature(line, skipCharacters: 0, out var classSpan, out var methodSpan, out var argsSpan);
 
             if (!success)
@@ -89,11 +91,11 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                 var fileInformationStart = line.IndexOf(StackTraceSymbolAndFileSplit) + StackTraceSymbolAndFileSplit.Length;
                 var fileInformationSpan = new TextSpan(fileInformationStart, line.Length - fileInformationStart);
 
-                parsedLine = new FileLineResult(line, classSpan, methodSpan, argsSpan, fileInformationSpan);
+                parsedFrame = new ParsedFrameWithFile(line, classSpan, methodSpan, argsSpan, fileInformationSpan);
                 return true;
             }
 
-            parsedLine = new StackTraceLine(line, classSpan, methodSpan, argsSpan);
+            parsedFrame = new ParsedStackFrame(line, classSpan, methodSpan, argsSpan);
             return true;
         }
 

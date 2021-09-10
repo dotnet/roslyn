@@ -81,6 +81,14 @@ namespace ConsoleApp4
             return method;
         }
 
+        private Task<ISymbol?> GetSymbolAsync(ParsedFrame parsedFrame, Solution solution, CancellationToken cancellationToken)
+        {
+            var stackFrame = parsedFrame as ParsedStackFrame;
+            Assert.NotNull(stackFrame);
+
+            return stackFrame!.ResolveSymbolAsync(solution, cancellationToken);
+        }
+
         private static TestWorkspace CreateWorkspace()
         {
             return TestWorkspace.CreateCSharp(BaseCode);
@@ -94,9 +102,9 @@ namespace ConsoleApp4
         {
             var workspace = CreateWorkspace();
             var result = await StackTraceAnalyzer.AnalyzeAsync(inputLine, CancellationToken.None);
-            Assert.Single(result.ParsedLines);
+            Assert.Single(result.ParsedFrames);
 
-            var symbol = await result.ParsedLines[0].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            var symbol = await GetSymbolAsync(result.ParsedFrames[0], workspace.CurrentSolution, CancellationToken.None);
             var method = await GetSymbolAsync(symbolText, workspace);
             Assert.Equal(method, symbol);
         }
@@ -115,25 +123,25 @@ namespace ConsoleApp4
 ";
 
             var result = await StackTraceAnalyzer.AnalyzeAsync(callstack, CancellationToken.None);
-            Assert.Equal(5, result.ParsedLines.Length);
+            Assert.Equal(5, result.ParsedFrames.Length);
 
-            var symbol = await result.ParsedLines[0].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            var symbol = await GetSymbolAsync(result.ParsedFrames[0], workspace.CurrentSolution, CancellationToken.None);
             var method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowAtOne", workspace);
             Assert.Equal(method, symbol);
 
-            symbol = await result.ParsedLines[1].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            symbol = await GetSymbolAsync(result.ParsedFrames[1], workspace.CurrentSolution, CancellationToken.None);
             method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowReferenceOne", workspace);
             Assert.Equal(method, symbol);
 
-            symbol = await result.ParsedLines[2].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            symbol = await GetSymbolAsync(result.ParsedFrames[2], workspace.CurrentSolution, CancellationToken.None);
             method = await GetSymbolAsync("ConsoleApp4.MyClass.ToString", workspace);
             Assert.Equal(method, symbol);
 
-            symbol = await result.ParsedLines[3].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            symbol = await GetSymbolAsync(result.ParsedFrames[3], workspace.CurrentSolution, CancellationToken.None);
             method = await GetSymbolAsync("ConsoleApp4.MyOtherClass.ThrowForNewMyClass", workspace);
             Assert.Equal(method, symbol);
 
-            symbol = await result.ParsedLines[4].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            symbol = await GetSymbolAsync(result.ParsedFrames[4], workspace.CurrentSolution, CancellationToken.None);
             method = await GetSymbolAsync("ConsoleApp4.Program.Main", workspace);
             Assert.Equal(method, symbol);
         }
@@ -152,28 +160,28 @@ namespace ConsoleApp4
 ";
 
             var result = await StackTraceAnalyzer.AnalyzeAsync(callstack, CancellationToken.None);
-            Assert.Equal(5, result.ParsedLines.Length);
+            Assert.Equal(5, result.ParsedFrames.Length);
 
-            var fileLineResults = result.ParsedLines.OfType<FileLineResult>().ToImmutableArray();
-            AssertEx.SetEqual(result.ParsedLines, fileLineResults);
+            var fileLineResults = result.ParsedFrames.OfType<ParsedFrameWithFile>().ToImmutableArray();
+            AssertEx.SetEqual(result.ParsedFrames, fileLineResults);
 
-            var symbol = await fileLineResults[0].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            var symbol = await GetSymbolAsync(fileLineResults[0], workspace.CurrentSolution, CancellationToken.None);
             var method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowAtOne", workspace);
             Assert.Equal(method, symbol);
 
-            symbol = await fileLineResults[1].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            symbol = await GetSymbolAsync(fileLineResults[1], workspace.CurrentSolution, CancellationToken.None);
             method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowReferenceOne", workspace);
             Assert.Equal(method, symbol);
 
-            symbol = await fileLineResults[2].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            symbol = await GetSymbolAsync(fileLineResults[2], workspace.CurrentSolution, CancellationToken.None);
             method = await GetSymbolAsync("ConsoleApp4.MyClass.ToString", workspace);
             Assert.Equal(method, symbol);
 
-            symbol = await fileLineResults[3].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            symbol = await GetSymbolAsync(fileLineResults[3], workspace.CurrentSolution, CancellationToken.None);
             method = await GetSymbolAsync("ConsoleApp4.MyOtherClass.ThrowForNewMyClass", workspace);
             Assert.Equal(method, symbol);
 
-            symbol = await fileLineResults[4].ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            symbol = await GetSymbolAsync(fileLineResults[4], workspace.CurrentSolution, CancellationToken.None);
             method = await GetSymbolAsync("ConsoleApp4.Program.Main", workspace);
             Assert.Equal(method, symbol);
         }
@@ -186,7 +194,10 @@ namespace ConsoleApp4
         public async Task TestFailureCases(string line)
         {
             var result = await StackTraceAnalyzer.AnalyzeAsync(line, CancellationToken.None);
-            Assert.Empty(result.ParsedLines);
+            Assert.Equal(1, result.ParsedFrames.Length);
+
+            var ignoredFrames = result.ParsedFrames.OfType<IgnoredFrame>();
+            AssertEx.SetEqual(result.ParsedFrames, ignoredFrames);
         }
     }
 }

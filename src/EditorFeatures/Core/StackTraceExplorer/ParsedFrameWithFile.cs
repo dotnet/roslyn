@@ -7,11 +7,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
-    internal class FileLineResult : StackTraceLine
+    internal class ParsedFrameWithFile : ParsedStackFrame
     {
         public TextSpan FileSpan { get; set; }
 
-        public FileLineResult(
+        public ParsedFrameWithFile(
             string originalLine,
             TextSpan classSpan,
             TextSpan methodSpan,

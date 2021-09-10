@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
     /// A line of text that was parsed by <see cref="StackTraceAnalyzer" />
     /// to provide metadata bout the line. 
     /// </summary>
-    internal class StackTraceLine
+    internal class ParsedStackFrame : ParsedFrame
     {
-        public StackTraceLine(string originalLine, TextSpan classSpan, TextSpan methodSpan, TextSpan argsSpan)
+        public ParsedStackFrame(string originalLine, TextSpan classSpan, TextSpan methodSpan, TextSpan argsSpan)
         {
             Contract.ThrowIfTrue(classSpan.IsEmpty);
             Contract.ThrowIfTrue(methodSpan.IsEmpty);

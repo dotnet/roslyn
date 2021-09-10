@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
     internal class StackTraceAnalysisResult
     {
         public StackTraceAnalysisResult(
-            ImmutableArray<StackTraceLine> parsedLines)
+            ImmutableArray<ParsedFrame> parsedLines)
         {
-            ParsedLines = parsedLines;
+            ParsedFrames = parsedLines;
         }
 
-        public ImmutableArray<StackTraceLine> ParsedLines { get; }
+        public ImmutableArray<ParsedFrame> ParsedFrames { get; }
     }
 }

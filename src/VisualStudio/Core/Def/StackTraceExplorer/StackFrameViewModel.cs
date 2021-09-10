@@ -27,94 +27,27 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
-    internal class StackTraceLineViewModel
+    internal class StackFrameViewModel : FrameViewModel
     {
-        private readonly StackTraceLine _line;
+        private readonly ParsedStackFrame _frame;
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
-        private readonly IClassificationFormatMap _formatMap;
-        private readonly ClassificationTypeMap _classificationTypeMap;
 
         private ISymbol? _cachedSymbol;
         private Document? _cachedDocument;
         private int _cachedLineNumber;
 
-        public StackTraceLineViewModel(
-            StackTraceLine line,
+        public StackFrameViewModel(
+            ParsedStackFrame frame,
             IThreadingContext threadingContext,
             Workspace workspace,
             IClassificationFormatMap formatMap,
-            ClassificationTypeMap classificationTypeMap)
+            ClassificationTypeMap typeMap)
+            : base(formatMap, typeMap)
         {
-            _line = line;
+            _frame = frame;
             _threadingContext = threadingContext;
             _workspace = workspace;
-            _formatMap = formatMap;
-            _classificationTypeMap = classificationTypeMap;
-        }
-
-        public ImmutableArray<Inline> Inlines => CalculateInlines().ToImmutableArray();
-
-        private IEnumerable<Inline> CalculateInlines()
-        {
-            var textUntilSymbol = _line.OriginalLine[.._line.ClassSpan.Start];
-            yield return MakeClassifiedRun(ClassificationTypeNames.Text, textUntilSymbol);
-
-            var classText = _line.OriginalLine[_line.ClassSpan.Start.._line.ClassSpan.End];
-
-            var classLink = new Hyperlink();
-            classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, classText));
-            classLink.Click += (s, a) => NavigateToClass();
-            classLink.RequestNavigate += (s, a) => NavigateToClass();
-            yield return classLink;
-
-            // +1 to the argspan end because we want to include the closing paren
-            var argEndIndex = _line.ArgsSpan.End + 1;
-
-            var methodText = _line.OriginalLine[_line.MethodSpan.Start..argEndIndex];
-            var methodLink = new Hyperlink();
-            var methodClassifiedText = new ClassifiedText(ClassificationTypeNames.MethodName, methodText);
-            methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, methodText));
-            methodLink.Click += (s, a) => NavigateToSymbol();
-            methodLink.RequestNavigate += (s, a) => NavigateToSymbol();
-            yield return methodLink;
-
-            if (_line is FileLineResult fileLineResult)
-            {
-                var textBetweenLength = fileLineResult.FileSpan.Start - argEndIndex;
-                var textBetweenSpan = new TextSpan(argEndIndex, textBetweenLength);
-                if (textBetweenSpan.Length > 0)
-                {
-                    var textBetween = _line.OriginalLine.Substring(textBetweenSpan.Start, textBetweenSpan.Length);
-                    yield return new Run(textBetween);
-                }
-
-                var fileText = _line.OriginalLine[fileLineResult.FileSpan.Start..fileLineResult.FileSpan.End];
-                var fileHyperlink = new Hyperlink();
-                fileHyperlink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileText));
-                fileHyperlink.RequestNavigate += (s, e) => NavigateToFile();
-                fileHyperlink.Click += (s, e) => NavigateToFile();
-                yield return fileHyperlink;
-
-                var end = fileLineResult.FileSpan.End;
-                if (end < _line.OriginalLine.Length)
-                {
-                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _line.OriginalLine[..end]);
-                }
-            }
-            else
-            {
-                if (argEndIndex < _line.OriginalLine.Length)
-                {
-                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _line.OriginalLine[argEndIndex..]);
-                }
-            }
-        }
-
-        private Run MakeClassifiedRun(string classificationName, string text)
-        {
-            var classifiedText = new ClassifiedText(classificationName, text);
-            return classifiedText.ToRun(_formatMap, _classificationTypeMap);
         }
 
         public void NavigateToClass()
@@ -176,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             try
             {
-                var symbol = await _line.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+                var symbol = await _frame.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
 
                 if (symbol is null)
                 {
@@ -250,6 +183,62 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             }
         }
 
+        protected override IEnumerable<Inline> CreateInlines()
+        {
+            var textUntilSymbol = _frame.OriginalLine[.._frame.ClassSpan.Start];
+            yield return MakeClassifiedRun(ClassificationTypeNames.Text, textUntilSymbol);
+
+            var classText = _frame.OriginalLine[_frame.ClassSpan.Start.._frame.ClassSpan.End];
+
+            var classLink = new Hyperlink();
+            classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, classText));
+            classLink.Click += (s, a) => NavigateToClass();
+            classLink.RequestNavigate += (s, a) => NavigateToClass();
+            yield return classLink;
+
+            // +1 to the argspan end because we want to include the closing paren
+            var argEndIndex = _frame.ArgsSpan.End + 1;
+
+            var methodText = _frame.OriginalLine[_frame.MethodSpan.Start..argEndIndex];
+            var methodLink = new Hyperlink();
+            var methodClassifiedText = new ClassifiedText(ClassificationTypeNames.MethodName, methodText);
+            methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, methodText));
+            methodLink.Click += (s, a) => NavigateToSymbol();
+            methodLink.RequestNavigate += (s, a) => NavigateToSymbol();
+            yield return methodLink;
+
+            if (_frame is ParsedFrameWithFile frameWithFile)
+            {
+                var textBetweenLength = frameWithFile.FileSpan.Start - argEndIndex;
+                var textBetweenSpan = new TextSpan(argEndIndex, textBetweenLength);
+                if (textBetweenSpan.Length > 0)
+                {
+                    var textBetween = _frame.OriginalLine.Substring(textBetweenSpan.Start, textBetweenSpan.Length);
+                    yield return new Run(textBetween);
+                }
+
+                var fileText = _frame.OriginalLine[frameWithFile.FileSpan.Start..frameWithFile.FileSpan.End];
+                var fileHyperlink = new Hyperlink();
+                fileHyperlink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileText));
+                fileHyperlink.RequestNavigate += (s, e) => NavigateToFile();
+                fileHyperlink.Click += (s, e) => NavigateToFile();
+                yield return fileHyperlink;
+
+                var end = frameWithFile.FileSpan.End;
+                if (end < _frame.OriginalLine.Length)
+                {
+                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.OriginalLine[..end]);
+                }
+            }
+            else
+            {
+                if (argEndIndex < _frame.OriginalLine.Length)
+                {
+                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.OriginalLine[argEndIndex..]);
+                }
+            }
+        }
+
         private Document? GetDocument(out int lineNumber)
         {
             if (_cachedDocument is not null)
@@ -275,16 +264,16 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 return _cachedSymbol;
             }
 
-            _cachedSymbol = await _line.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+            _cachedSymbol = await _frame.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
             return _cachedSymbol;
         }
 
         private ImmutableArray<Document> GetFileMatches(out int lineNumber)
         {
-            var fileLineResult = _line as FileLineResult;
+            var fileLineResult = _frame as ParsedFrameWithFile;
             Contract.ThrowIfNull(fileLineResult);
 
-            var fileText = _line.OriginalLine.Substring(fileLineResult.FileSpan.Start, fileLineResult.FileSpan.Length);
+            var fileText = _frame.OriginalLine.Substring(fileLineResult.FileSpan.Start, fileLineResult.FileSpan.Length);
             Debug.Assert(fileText.Contains(':'));
 
             var splitIndex = fileText.LastIndexOf(':');

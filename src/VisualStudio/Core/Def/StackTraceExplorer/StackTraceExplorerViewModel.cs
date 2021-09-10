@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.StackTraceExplorer;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
@@ -19,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
 
-        public ObservableCollection<StackTraceLineViewModel> CallstackLines { get; } = new();
+        public ObservableCollection<FrameViewModel> Frames { get; } = new();
 
         private bool _isLoading;
         private readonly ClassificationTypeMap _classificationTypeMap;
@@ -31,15 +32,15 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             set => SetProperty(ref _isLoading, value);
         }
 
-        private StackTraceLineViewModel? _selection;
-        public StackTraceLineViewModel? Selection
+        private StackFrameViewModel? _selection;
+        public StackFrameViewModel? Selection
         {
             get => _selection;
             set => SetProperty(ref _selection, value);
         }
 
-        public bool IsListVisible => CallstackLines.Count > 0;
-        public bool IsInstructionTextVisible => CallstackLines.Count == 0;
+        public bool IsListVisible => Frames.Count > 0;
+        public bool IsInstructionTextVisible => Frames.Count == 0;
         public string InstructionText => ServicesVSResources.Paste_valid_stack_trace;
 
         public StackTraceExplorerViewModel(IThreadingContext threadingContext, Workspace workspace, ClassificationTypeMap classificationTypeMap, IClassificationFormatMap formatMap)
@@ -51,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             _classificationTypeMap = classificationTypeMap;
             _formatMap = formatMap;
 
-            CallstackLines.CollectionChanged += CallstackLines_CollectionChanged;
+            Frames.CollectionChanged += CallstackLines_CollectionChanged;
         }
 
         private void CallstackLines_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -65,13 +66,13 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             if (e.Kind == WorkspaceChangeKind.SolutionChanged)
             {
                 Selection = null;
-                CallstackLines.Clear();
+                Frames.Clear();
             }
         }
 
         internal void OnPaste()
         {
-            CallstackLines.Clear();
+            Frames.Clear();
             var textObject = Clipboard.GetData(DataFormats.Text);
 
             if (textObject is string text)
@@ -87,16 +88,16 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 try
                 {
                     var result = await StackTraceAnalyzer.AnalyzeAsync(text, _threadingContext.DisposalToken).ConfigureAwait(false);
-                    var viewModels = result.ParsedLines.Select(l => new StackTraceLineViewModel(l, _threadingContext, _workspace, _formatMap, _classificationTypeMap));
+                    var viewModels = result.ParsedFrames.Select(l => GetViewModel(l));
 
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
                     Selection = null;
-                    CallstackLines.Clear();
+                    Frames.Clear();
 
                     foreach (var vm in viewModels)
                     {
-                        CallstackLines.Add(vm);
+                        Frames.Add(vm);
                     }
                 }
                 finally
@@ -106,5 +107,13 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 }
             }, _threadingContext.DisposalToken);
         }
+
+        private FrameViewModel GetViewModel(ParsedFrame frame)
+            => frame switch
+            {
+                IgnoredFrame ignoredFrame => new IgnoredFrameViewModel(ignoredFrame, _formatMap, _classificationTypeMap),
+                ParsedStackFrame stackFrame => new StackFrameViewModel(stackFrame, _threadingContext, _workspace, _formatMap, _classificationTypeMap),
+                _ => throw ExceptionUtilities.UnexpectedValue(frame)
+            };
     }
 }

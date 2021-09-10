@@ -22,9 +22,9 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <ListView ItemsSource="{Binding CallstackLines}" Grid.Row="0" SelectedItem="{Binding Selection, Mode=TwoWay}" MouseDoubleClick="ListViewItem_MouseDoubleClick" Visibility="{Binding IsListVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <ListView ItemsSource="{Binding Frames}" Grid.Row="0" SelectedItem="{Binding Selection, Mode=TwoWay}" MouseDoubleClick="ListViewItem_MouseDoubleClick" Visibility="{Binding IsListVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <ListView.ItemTemplate>
-                <DataTemplate DataType="{x:Type local:StackTraceLineViewModel}">
+                <DataTemplate DataType="{x:Type local:FrameViewModel}">
                     <utils:BindableTextBlock InlineCollection="{Binding Inlines}" />
                 </DataTemplate>
             </ListView.ItemTemplate>

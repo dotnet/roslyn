@@ -1,0 +1,35 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Documents;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.StackTraceExplorer;
+using Microsoft.VisualStudio.Text.Classification;
+
+namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
+{
+    internal class IgnoredFrameViewModel : FrameViewModel
+    {
+        private readonly IgnoredFrame _frame;
+
+        public IgnoredFrameViewModel(IgnoredFrame frame, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
+            : base(formatMap, typeMap)
+        {
+            _frame = frame;
+        }
+
+        protected override IEnumerable<Inline> CreateInlines()
+        {
+            var run = MakeClassifiedRun(ClassificationTypeNames.ExcludedCode, _frame.Text);
+            yield return run;
+        }
+    }
+}
