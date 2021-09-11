@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.OperationProgress;
@@ -228,8 +229,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public string? GetWorkingFolder()
         {
-            var service = _visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageLocationService>();
-            return service.TryGetStorageLocation(_visualStudioWorkspace.CurrentSolution);
+            var service = _visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageConfiguration>();
+            return service.TryGetStorageLocation(SolutionKey.ToSolutionKey(_visualStudioWorkspace.CurrentSolution));
         }
     }
 }

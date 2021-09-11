@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             return true;
         }
 
-        protected AbstractSQLitePersistentStorageService(IPersistentStorageLocationService locationService)
-            : base(locationService)
+        protected AbstractSQLitePersistentStorageService(IPersistentStorageConfiguration configuration)
+            : base(configuration)
         {
         }
     }
