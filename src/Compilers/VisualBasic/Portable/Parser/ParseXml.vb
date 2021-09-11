@@ -1966,7 +1966,7 @@ TryResync:
                         ' TODO: is this ok?
                         Dim endQuote = HandleUnexpectedToken(startQuote.Kind)
 
-                        Return SyntaxFactory.XmlString(startQuote,  _pool.ToListAndFree(list), DirectCast(endQuote, PunctuationSyntax))
+                        Return SyntaxFactory.XmlString(startQuote, _pool.ToListAndFree(list), DirectCast(endQuote, PunctuationSyntax))
 
                 End Select
                 GetNextToken(state)
@@ -2006,7 +2006,7 @@ TryResync:
                     endXmlEmbedded = DirectCast(HandleUnexpectedToken(SyntaxKind.PercentGreaterThanToken), PunctuationSyntax)
                 End If
 
-                Dim unexpectedSyntax =  _pool.ToListAndFree(skippedTokens)
+                Dim unexpectedSyntax = _pool.ToListAndFree(skippedTokens)
 
                 If unexpectedSyntax.Node IsNot Nothing Then
                     endXmlEmbedded = AddLeadingSyntax(endXmlEmbedded, unexpectedSyntax, ERRID.ERR_Syntax)
@@ -2416,7 +2416,7 @@ TryResync:
         Public Function CreateElement(endElement As XmlElementEndTagSyntax) As XmlNodeSyntax
             Debug.Assert(endElement IsNot Nothing)
 
-            Dim contentList =  _pool.ToListAndFree(_content)
+            Dim contentList = _pool.ToListAndFree(_content)
 
             Return InternalSyntaxFactory.XmlElement(_start, contentList, endElement)
         End Function
@@ -2424,7 +2424,7 @@ TryResync:
         Public Function CreateElement(endElement As XmlElementEndTagSyntax, diagnostic As DiagnosticInfo) As XmlNodeSyntax
             Debug.Assert(endElement IsNot Nothing)
 
-            Dim contentList =  _pool.ToListAndFree(_content)
+            Dim contentList = _pool.ToListAndFree(_content)
             Return InternalSyntaxFactory.XmlElement(DirectCast(_start.AddError(diagnostic), XmlElementStartTagSyntax), contentList, endElement)
         End Function
 
