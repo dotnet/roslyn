@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return IsTupleType ? TupleData!.GetTupleMemberSymbolForUnderlyingMember(underlyingMemberOpt) : null;
         }
 
-        protected ArrayBuilder<Symbol> MakeSynthesizedTupleMembers(ImmutableArray<Symbol> currentMembers, HashSet<Symbol>? fieldsToRemove = null)
+        protected ArrayBuilder<Symbol> MakeSynthesizedTupleMembers(ImmutableArray<Symbol> currentMembers, HashSet<Symbol>? replacedFields = null)
         {
             Debug.Assert(IsTupleType);
             Debug.Assert(currentMembers.All(m => !(m is TupleVirtualElementFieldSymbol)));
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 // In a long tuple situation where the nested tuple has names, we don't care about those names.
                                 // We will re-add all necessary virtual element field symbols below.
-                                fieldsToRemove?.Add(field);
+                                replacedFields?.Add(field);
                                 continue;
                             }
 
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (underlyingField is TupleErrorFieldSymbol)
                             {
                                 // We will re-add all necessary error field symbols below.
-                                fieldsToRemove?.Add(field);
+                                replacedFields?.Add(field);
                                 continue;
                             }
                             else if (tupleFieldIndex >= 0)
@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                                 else
                                 {
-                                    fieldsToRemove?.Add(field);
+                                    replacedFields?.Add(field);
                                 }
 
                                 var providedName = elementNames.IsDefault ? null : elementNames[tupleFieldIndex];

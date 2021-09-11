@@ -12718,6 +12718,7 @@ namespace System
 
         public ValueTuple(T1 item1, T2 item2)
         {
+            _ = new C9();
             this.Item1 = item1;
             this.Item2 = item2;
         }
@@ -13103,6 +13104,73 @@ partial class C
 
             var m10E2 = m10Tuple.GetMember<EventSymbol>("E2");
             Assert.Equal("System.ObsoleteAttribute", m10E2.GetAttributes().Single().ToString());
+        }
+
+        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_RecordStruct()
+        {
+            var source = @"
+
+namespace System
+{
+    public record struct ValueTuple<T1, T2>(T1 Item1, T2 Item2)
+    {
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_RecordStructWithConstructor()
+        {
+            var source = @"
+
+namespace System
+{
+    public record struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(string s) { }
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(7, 16),
+                // (7,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(7, 16)
+                );
+        }
+
+        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_StructWithConstructor()
+        {
+            var source = @"
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(string s) { }
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(7, 16),
+                // (7,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(7, 16)
+                );
         }
 
         private void AssertTupleNonElementField(FieldSymbol sym)

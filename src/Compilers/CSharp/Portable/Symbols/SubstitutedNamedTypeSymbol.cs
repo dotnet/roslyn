@@ -230,17 +230,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsTupleType)
             {
                 var existingMembers = builder.ToImmutableAndFree();
-                var fieldsToRemove = PooledHashSet<Symbol>.GetInstance();
-                builder = MakeSynthesizedTupleMembers(existingMembers, fieldsToRemove);
+                var replacedFields = new HashSet<Symbol>(ReferenceEqualityComparer.Instance);
+                builder = MakeSynthesizedTupleMembers(existingMembers, replacedFields);
                 foreach (var existingMember in existingMembers)
                 {
                     // Note: fields for tuple elements have a tuple field symbol instead of a substituted field symbol
-                    if (!fieldsToRemove.Contains(existingMember))
+                    if (!replacedFields.Contains(existingMember))
                     {
                         builder.Add(existingMember);
                     }
                 }
-                fieldsToRemove.Free();
                 Debug.Assert(builder is object);
             }
 
@@ -272,17 +271,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsTupleType)
             {
                 var existingMembers = builder.ToImmutableAndFree();
-                var fieldsToRemove = PooledHashSet<Symbol>.GetInstance();
-                builder = MakeSynthesizedTupleMembers(existingMembers, fieldsToRemove);
+                var replacedFields = new HashSet<Symbol>(ReferenceEqualityComparer.Instance);
+                builder = MakeSynthesizedTupleMembers(existingMembers, replacedFields);
                 foreach (var existingMember in existingMembers)
                 {
                     // Note: fields for tuple elements have a tuple field symbol instead of a substituted field symbol
-                    if (!fieldsToRemove.Contains(existingMember))
+                    if (!replacedFields.Contains(existingMember))
                     {
                         builder.Add(existingMember);
                     }
                 }
-                fieldsToRemove.Free();
                 Debug.Assert(builder is object);
             }
 
