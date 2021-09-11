@@ -1634,24 +1634,6 @@ outerDefault:
             worse.Free();
         }
 
-        // Merge upstream/dev15.6.x
-#if false
-        // Return the parameter type corresponding to the given argument index.
-        private TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
-        {
-            RefKind discarded;
-            return GetParameterType(argIndex, result, parameters, out discarded);
-        }
-
-        // Return the parameter type corresponding to the given argument index.
-        private TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, out RefKind refKind)
-        {
-            int paramIndex = result.ParameterFromArgument(argIndex);
-            ParameterSymbol parameter = parameters[paramIndex];
-            refKind = parameter.RefKind;
-            var type = _binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter).TypeSymbol;
-
-#endif
         /// <summary>
         /// Returns the parameter type (considering params).
         /// </summary>
@@ -1678,6 +1660,7 @@ outerDefault:
             return parameters[paramIndex];
         }
 
+#nullable enable
         private BetterResult BetterFunctionMember<TMember>(
             MemberResolutionResult<TMember> m1,
             MemberResolutionResult<TMember> m2,
@@ -2229,6 +2212,7 @@ outerDefault:
                     _ => false
                 };
         }
+#nullable disable
 
         private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, out int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
         {

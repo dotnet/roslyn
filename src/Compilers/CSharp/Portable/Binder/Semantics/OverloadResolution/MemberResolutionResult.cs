@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Represents the results of overload resolution for a single member.
     /// </summary>
     [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
-    internal struct MemberResolutionResult<TMember> where TMember : Symbol
+    internal readonly struct MemberResolutionResult<TMember> where TMember : Symbol
     {
         private readonly TMember _member;
         private readonly TMember _leastOverriddenMember;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return _result; }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             throw new NotSupportedException();
         }

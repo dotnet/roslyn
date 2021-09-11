@@ -2948,7 +2948,7 @@ class Program
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
 @"System.Func`1[System.Func`1[System.Object]]");
 
-            // Breaking change from C#9 which binds to F(Func<Func<object>>, int).
+            // Breaking change from C#9 which binds calls to F(Func<Func<object>>, int).
             var expectedDiagnostics = new[]
             {
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Func<Func<object>>, int)' and 'Program.F(Func<Func<int>>, object)'
