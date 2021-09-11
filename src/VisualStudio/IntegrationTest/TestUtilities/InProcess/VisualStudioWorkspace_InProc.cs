@@ -112,9 +112,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private void SetOption(OptionKey optionKey, object? result)
             => _visualStudioWorkspace.SetOptions(_visualStudioWorkspace.Options.WithChangedOption(optionKey, result));
 
-        private static TestingOnly_WaitingService GetWaitingService()
-            => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
-
         public void WaitForAsyncOperations(TimeSpan timeout, string featuresToWaitFor, bool waitForWorkspaceFirst = true)
         {
             if (waitForWorkspaceFirst || featuresToWaitFor == FeatureAttribute.Workspace)
