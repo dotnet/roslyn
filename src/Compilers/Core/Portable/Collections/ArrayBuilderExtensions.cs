@@ -218,6 +218,18 @@ namespace Microsoft.CodeAnalysis
             return builder[builder.Count - 1];
         }
 
+        public static bool TryPeek<T>(this ArrayBuilder<T> builder, [MaybeNullWhen(false)] out T result)
+        {
+            if (builder.Count > 0)
+            {
+                result = builder.Peek();
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
         public static ImmutableArray<T> ToImmutableOrEmptyAndFree<T>(this ArrayBuilder<T>? builder)
         {
             return builder?.ToImmutableAndFree() ?? ImmutableArray<T>.Empty;

@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leaveUnconvertedIfInterpolatedString
                 && kind == BinaryOperatorKind.Addition
                 && left is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
-                && right is BoundUnconvertedInterpolatedString)
+                && right is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true })
             {
                 Debug.Assert(right.Type.SpecialType == SpecialType.System_String);
                 var stringConstant = FoldBinaryOperator(node, BinaryOperatorKind.StringConcatenation, left, right, right.Type, diagnostics);
@@ -727,7 +727,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? left = null;
             while (stack.TryPop(out current))
             {
-                Debug.Assert(current.Right is BoundUnconvertedInterpolatedString);
+                var right = current.Right switch
+                {
+                    BoundUnconvertedInterpolatedString s => s,
+                    BoundBinaryOperator b => RebindSimpleBinaryOperatorAsConverted(b, diagnostics),
+                    _ => throw ExceptionUtilities.UnexpectedValue(current.Right.Kind)
+                };
                 left = BindSimpleBinaryOperator((BinaryExpressionSyntax)current.Syntax, diagnostics, left ?? current.Left, current.Right, leaveUnconvertedIfInterpolatedString: false);
             }
 

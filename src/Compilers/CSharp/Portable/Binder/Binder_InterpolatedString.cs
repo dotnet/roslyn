@@ -230,70 +230,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool isConstant = true;
-            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+            // The constant value is folded as part of creating the unconverted operator. If there is a constant value, then the top-level binary operator
+            // will have one.
+            bool isConstant = binaryOperator.ConstantValue is not null;
             var partsArrayBuilder = ArrayBuilder<ImmutableArray<BoundExpression>>.GetInstance();
-            int partsCount = 0;
 
-            BoundBinaryOperator? current = binaryOperator;
-
-            while (current != null)
-            {
-                Debug.Assert(current.IsUnconvertedInterpolatedStringAddition);
-                stack.Push(current);
-                isConstant = isConstant && current.Right.ConstantValue is not null;
-                var rightInterpolatedString = (BoundUnconvertedInterpolatedString)current.Right;
-
-                if (!ValidateInterpolatedStringParts(rightInterpolatedString))
+            if (!binaryOperator.VisitBinaryOperatorInterpolatedString(partsArrayBuilder, static (BoundUnconvertedInterpolatedString unconvertedInterpolatedString, ArrayBuilder<ImmutableArray<BoundExpression>> partsArrayBuilder) =>
                 {
-                    // Exception to case 3. Delegate to standard binding.
-                    stack.Free();
-                    partsArrayBuilder.Free();
-                    return false;
-                }
+                    if (!ValidateInterpolatedStringParts(unconvertedInterpolatedString))
+                    {
+                        return false;
+                    }
 
-                partsCount += rightInterpolatedString.Parts.Length;
-                partsArrayBuilder.Add(rightInterpolatedString.Parts);
-
-                switch (current.Left)
-                {
-                    case BoundBinaryOperator leftOperator:
-                        current = leftOperator;
-                        continue;
-                    case BoundUnconvertedInterpolatedString interpolatedString:
-                        isConstant = isConstant && interpolatedString.ConstantValue is not null;
-
-                        if (!ValidateInterpolatedStringParts(interpolatedString))
-                        {
-                            // Exception to case 3. Delegate to standard binding.
-                            stack.Free();
-                            partsArrayBuilder.Free();
-                            return false;
-                        }
-
-                        partsCount += interpolatedString.Parts.Length;
-                        partsArrayBuilder.Add(interpolatedString.Parts);
-                        current = null;
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(current.Left.Kind);
-                }
-            }
-
-            Debug.Assert(partsArrayBuilder.Count == stack.Count + 1);
-            Debug.Assert(partsArrayBuilder.Count >= 2);
-
-            if (isConstant ||
-                (partsCount <= 4 && partsArrayBuilder.All(static parts => AllInterpolatedStringPartsAreStrings(parts))))
+                    partsArrayBuilder.Add(unconvertedInterpolatedString.Parts);
+                    return true;
+                }))
             {
-                // This is case 1 and 2. Let the standard machinery handle it
-                stack.Free();
                 partsArrayBuilder.Free();
                 return false;
             }
 
-            // Parts were added to the array from right to left, but lexical order is left to right.
-            partsArrayBuilder.ReverseContents();
+            Debug.Assert(partsArrayBuilder.Count >= 2);
+
+            if (isConstant ||
+                (partsArrayBuilder.Count <= 4 && partsArrayBuilder.All(static parts => AllInterpolatedStringPartsAreStrings(parts))))
+            {
+                // This is case 1 and 2. Let the standard machinery handle it
+                partsArrayBuilder.Free();
+                return false;
+            }
 
             // Case 3. Bind as handler.
             var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
@@ -306,32 +271,81 @@ namespace Microsoft.CodeAnalysis.CSharp
                 additionalConstructorRefKinds: default);
 
             // Now that the parts have been bound, reconstruct the binary operators.
-            convertedBinaryOperator = UpdateBinaryOperatorWithInterpolatedContents(stack, appendCalls, data, binaryOperator.Syntax, diagnostics);
-            stack.Free();
+            convertedBinaryOperator = UpdateBinaryOperatorWithInterpolatedContents(binaryOperator, appendCalls, data, binaryOperator.Syntax, diagnostics);
             return true;
         }
 
-        private BoundBinaryOperator UpdateBinaryOperatorWithInterpolatedContents(ArrayBuilder<BoundBinaryOperator> stack, ImmutableArray<ImmutableArray<BoundExpression>> appendCalls, InterpolatedStringHandlerData data, SyntaxNode rootSyntax, BindingDiagnosticBag diagnostics)
+        private BoundBinaryOperator UpdateBinaryOperatorWithInterpolatedContents(BoundBinaryOperator originalOperator, ImmutableArray<ImmutableArray<BoundExpression>> appendCalls, InterpolatedStringHandlerData data, SyntaxNode rootSyntax, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(appendCalls.Length == stack.Count + 1);
+            var originalStack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+            var rewrittenLefts = ArrayBuilder<(BoundExpression original, BoundExpression rewritten)>.GetInstance();
+            (BoundBinaryOperator? original, BoundBinaryOperator? rewritten) result = default;
+
+            pushLeftNodes(originalOperator, originalStack);
             var @string = GetSpecialType(SpecialType.System_String, diagnostics, rootSyntax);
 
-            var bottomOperator = stack.Pop();
-            var result = createBinaryOperator(bottomOperator, createInterpolation(bottomOperator.Left, appendCalls[0]), rightIndex: 1);
-
-            for (int i = 2; i < appendCalls.Length; i++)
+            int i = 0;
+            while (originalStack.TryPeek(out var currentBinary))
             {
-                result = createBinaryOperator(stack.Pop(), result, rightIndex: i);
+                Debug.Assert(currentBinary.Left is BoundUnconvertedInterpolatedString || rewrittenLefts.Count != 0 || currentBinary.Left == result.original);
+
+                if (currentBinary.Left is BoundUnconvertedInterpolatedString originalLeft)
+                {
+                    if (rewrittenLefts.TryPeek(out var rewrittenLeftTuple) && rewrittenLeftTuple.original == originalLeft)
+                    {
+                        // Leave it alone, we've already rewritten on the first pass.
+                        Debug.Assert(currentBinary.Right.Kind == BoundKind.BinaryOperator);
+                    }
+                    else
+                    {
+                        Debug.Assert(appendCalls.Length > i);
+                        rewrittenLefts.Push((originalLeft, createInterpolation(originalLeft, appendCalls[i++])));
+                    }
+                }
+                else if (currentBinary.Left == result.original)
+                {
+                    Debug.Assert(result.rewritten != null);
+                    rewrittenLefts.Push((currentBinary.Left, result.rewritten));
+                }
+
+                switch (currentBinary.Right)
+                {
+                    case BoundUnconvertedInterpolatedString originalRightString:
+                        Debug.Assert(appendCalls.Length > i);
+                        var rewrittenLeft = rewrittenLefts.Pop().rewritten;
+                        BoundExpression rewrittenRight = createInterpolation(originalRightString, appendCalls[i++]);
+                        result = (currentBinary, createBinaryOperator(currentBinary, rewrittenLeft, rewrittenRight));
+                        originalStack.Pop();
+                        break;
+
+                    case BoundBinaryOperator originalRightOperator when result.original == originalRightOperator:
+                        // If result.original is originalRightOperator, then this is the second time we're visiting
+                        // this node and can rewrite it. Otherwise, we need to push all the left nodes, visit them,
+                        // then come back again.
+                        Debug.Assert(result.rewritten != null);
+                        rewrittenLeft = rewrittenLefts.Pop().rewritten;
+                        rewrittenRight = result.rewritten;
+                        result = (currentBinary, createBinaryOperator(currentBinary, rewrittenLeft, rewrittenRight));
+                        originalStack.Pop();
+                        break;
+
+                    case BoundBinaryOperator originalRightOperator:
+                        pushLeftNodes(originalRightOperator, originalStack);
+                        break;
+                }
             }
 
-            return result.Update(BoundBinaryOperator.UncommonData.InterpolatedStringHandlerAddition(data));
+            Debug.Assert(result.rewritten != null);
+            Debug.Assert(i == appendCalls.Length);
 
-            BoundBinaryOperator createBinaryOperator(BoundBinaryOperator original, BoundExpression left, int rightIndex)
+            return result.rewritten.Update(BoundBinaryOperator.UncommonData.InterpolatedStringHandlerAddition(data));
+
+            BoundBinaryOperator createBinaryOperator(BoundBinaryOperator original, BoundExpression left, BoundExpression right)
                 => new BoundBinaryOperator(
                     original.Syntax,
                     BinaryOperatorKind.StringConcatenation,
                     left,
-                    createInterpolation(original.Right, appendCalls[rightIndex]),
+                    right,
                     original.ConstantValue,
                     methodOpt: null,
                     constrainedToTypeOpt: null,
@@ -350,6 +364,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expression.ConstantValue,
                     expression.Type,
                     expression.HasErrors);
+            }
+
+            static void pushLeftNodes(BoundBinaryOperator binary, ArrayBuilder<BoundBinaryOperator> stack)
+            {
+                BoundBinaryOperator? current = binary;
+                while (current != null)
+                {
+                    Debug.Assert(current.IsUnconvertedInterpolatedStringAddition);
+                    stack.Push(current);
+                    current = current.Left as BoundBinaryOperator;
+                }
             }
         }
 
@@ -408,32 +433,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(binaryOperator.IsUnconvertedInterpolatedStringAddition);
 
-            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
             var partsArrayBuilder = ArrayBuilder<ImmutableArray<BoundExpression>>.GetInstance();
 
-            BoundBinaryOperator? current = binaryOperator;
-
-            while (current != null)
+            binaryOperator.VisitBinaryOperatorInterpolatedString(partsArrayBuilder, (BoundUnconvertedInterpolatedString unconvertedInterpolatedString, ArrayBuilder<ImmutableArray<BoundExpression>> partsArrayBuilder) =>
             {
-                stack.Push(current);
-                partsArrayBuilder.Add(((BoundUnconvertedInterpolatedString)current.Right).Parts);
-
-                if (current.Left is BoundBinaryOperator next)
-                {
-                    current = next;
-                }
-                else
-                {
-                    partsArrayBuilder.Add(((BoundUnconvertedInterpolatedString)current.Left).Parts);
-                    current = null;
-                }
-            }
-
-            // Parts are added in right to left order, but lexical is left to right.
-            partsArrayBuilder.ReverseContents();
-
-            Debug.Assert(partsArrayBuilder.Count == stack.Count + 1);
-            Debug.Assert(partsArrayBuilder.Count >= 2);
+                partsArrayBuilder.Add(unconvertedInterpolatedString.Parts);
+                return true;
+            });
 
             var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
                 binaryOperator.Syntax,
@@ -444,8 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 additionalConstructorArguments,
                 additionalConstructorRefKinds);
 
-            var result = UpdateBinaryOperatorWithInterpolatedContents(stack, appendCalls, data, binaryOperator.Syntax, diagnostics);
-            stack.Free();
+            var result = UpdateBinaryOperatorWithInterpolatedContents(binaryOperator, appendCalls, data, binaryOperator.Syntax, diagnostics);
             return result;
         }
 

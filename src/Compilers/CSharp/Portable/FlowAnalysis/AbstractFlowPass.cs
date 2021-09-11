@@ -2505,10 +2505,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var stack = ArrayBuilder<BoundInterpolatedString>.GetInstance();
             var data = node.InterpolatedStringHandlerData.GetValueOrDefault();
 
-            while (PushBinaryOperatorInterpolatedStringChildren(node, stack) is { } next)
-            {
-                node = next;
-            }
+            node.VisitBinaryOperatorInterpolatedString(
+                (stack, @this: this),
+                visitor: (BoundInterpolatedString interpolatedString, (ArrayBuilder<BoundInterpolatedString> stack, AbstractFlowPass<TLocalState, TLocalFunctionState> @this) arg) =>
+                {
+                    arg.stack.Push(interpolatedString);
+                    return true;
+                },
+                binaryOperatorCallback: (op, arg) => arg.@this.OnPushBinaryOperatorInterpolatedStringChildren(op));
 
             Debug.Assert(stack.Count >= 2);
 
@@ -2532,20 +2536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             stack.Free();
         }
 
-        protected virtual BoundBinaryOperator? PushBinaryOperatorInterpolatedStringChildren(BoundBinaryOperator node, ArrayBuilder<BoundInterpolatedString> stack)
-        {
-            stack.Push((BoundInterpolatedString)node.Right);
-            switch (node.Left)
-            {
-                case BoundBinaryOperator next:
-                    return next;
-                case BoundInterpolatedString @string:
-                    stack.Push(@string);
-                    return null;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Left.Kind);
-            }
-        }
+        protected virtual void OnPushBinaryOperatorInterpolatedStringChildren(BoundBinaryOperator node) { }
 
         protected virtual bool VisitInterpolatedStringHandlerParts(BoundInterpolatedStringBase node, bool usesBoolReturns, bool firstPartIsConditional, ref TLocalState? shortCircuitState)
         {

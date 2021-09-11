@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -92,6 +95,68 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ContainsAwait = true;
                 return null;
+            }
+        }
+
+        public static bool VisitBinaryOperatorInterpolatedString<TArg, TInterpolatedStringType>(
+            this BoundBinaryOperator binary,
+            TArg arg, 
+            Func<TInterpolatedStringType, TArg, bool> visitor,
+            Action<BoundBinaryOperator, TArg>? binaryOperatorCallback = null)
+            where TInterpolatedStringType : BoundExpression
+        {
+            Debug.Assert(typeof(TInterpolatedStringType) == typeof(BoundUnconvertedInterpolatedString) || typeof(TInterpolatedStringType) == typeof(BoundInterpolatedString));
+            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+
+            pushLeftNodes(binary, stack);
+
+            while (stack.TryPop(out BoundBinaryOperator? current))
+            {
+                switch (current.Left)
+                {
+                    case BoundBinaryOperator op:
+                        binaryOperatorCallback?.Invoke(op, arg);
+                        break;
+                    case TInterpolatedStringType interpolatedString:
+                        if (!visitor(interpolatedString, arg))
+                        {
+                            return false;
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(current.Left.Kind);
+                }
+
+                switch (current.Right)
+                {
+                    case BoundBinaryOperator rightOperator:
+                        binaryOperatorCallback?.Invoke(rightOperator, arg);
+                        pushLeftNodes(rightOperator, stack);
+                        break;
+                    case TInterpolatedStringType interpolatedString:
+                        if (!visitor(interpolatedString, arg))
+                        {
+                            return false;
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(current.Right.Kind);
+                }
+            }
+
+            Debug.Assert(stack.Count == 0);
+            stack.Free();
+            return true;
+
+            static void pushLeftNodes(BoundBinaryOperator binary, ArrayBuilder<BoundBinaryOperator> stack)
+            {
+                Debug.Assert(typeof(TInterpolatedStringType) == typeof(BoundInterpolatedString) || binary.IsUnconvertedInterpolatedStringAddition);
+                BoundBinaryOperator? current = binary;
+                while (current != null)
+                {
+                    stack.Push(current);
+                    current = current.Left as BoundBinaryOperator;
+                }
             }
         }
     }
