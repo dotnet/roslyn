@@ -845,10 +845,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 optionalAsClause = SyntaxFactory.SimpleAsClause([As], Nothing, Type)
             End If ' Else if "As" is not present, the error falls out as a "Syntax error" IN the caller
 
-            Dim names = _pool.AllocateSeparated(Of ModifiedIdentifierSyntax)
-            names.Add(Declarator)
+            Dim names = _pool.ToListAndFree(
+                            _pool.AllocateSeparated(Of ModifiedIdentifierSyntax).Add(Declarator))
 
-            Dim result = SyntaxFactory.VariableDeclarator(_pool.ToListAndFree(names), optionalAsClause, Nothing)
+            Dim result = SyntaxFactory.VariableDeclarator(names, optionalAsClause, Nothing)
 
             Return result
         End Function
