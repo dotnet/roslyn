@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 var solution = GetCurrentCompileTimeSolution();
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                var (updates, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+                var (updates, _, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
                 _pendingUpdatedSolution = solution;
                 return updates;
             }

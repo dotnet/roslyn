@@ -2,22 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SemanticClassificationCache;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -58,16 +55,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         private readonly LinkedList<(DocumentId id, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)> _cachedData = new();
 
-        private static async Task<Checksum> GetChecksumAsync(Document document, CancellationToken cancellationToken)
-        {
-            // We only checksum off of the contents of the file.  During load, we can't really compute any other
-            // information since we don't necessarily know about other files, metadata, or dependencies.  So during
-            // load, we allow for the previous semantic classifications to be used as long as the file contents match.
-            var checksums = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var textChecksum = checksums.Text;
-            return textChecksum;
-        }
-
         public ValueTask CacheSemanticClassificationsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
@@ -107,10 +94,9 @@ namespace Microsoft.CodeAnalysis.Remote
             // Very intentionally do our lookup with a special document key.  This doc key stores info independent of
             // project config.  So we can still lookup data regardless of things like if the project is in DEBUG or
             // RELEASE mode.
-            var documentKey = SemanticClassificationCacheUtilities.GetDocumentKeyForCaching(document);
+            var (documentKey, checksum) = await SemanticClassificationCacheUtilities.GetDocumentKeyAndChecksumAsync(
+                document, cancellationToken).ConfigureAwait(false);
 
-            // Don't need to do anything if the information we've persisted matches the checksum of this doc.
-            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
             var matches = await storage.ChecksumMatchesAsync(documentKey, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
             if (matches)
                 return;

@@ -1118,7 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken)
         {
-            if (!(root is CompilationUnitSyntax compilationUnit))
+            if (root is not CompilationUnitSyntax compilationUnit)
             {
                 return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
             }
@@ -2074,7 +2074,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     break;
 
                 case SyntaxKind.Attribute:
-                    if (!(declaration.Parent is AttributeListSyntax parentList) || parentList.Attributes.Count > 1)
+                    if (declaration.Parent is not AttributeListSyntax parentList || parentList.Attributes.Count > 1)
                     {
                         return DeclarationKind.Attribute;
                     }

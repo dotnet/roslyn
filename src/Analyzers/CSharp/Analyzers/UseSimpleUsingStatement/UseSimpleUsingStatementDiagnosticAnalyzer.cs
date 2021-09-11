@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 return;
             }
 
-            if (!(outermostUsing.Parent is BlockSyntax parentBlock))
+            if (outermostUsing.Parent is not BlockSyntax parentBlock)
             {
                 // Don't offer on a using statement that is parented by another using statement.
                 // We'll just offer on the topmost using statement.
