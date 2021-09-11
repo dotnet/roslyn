@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interactive
                 GetActiveProject(out var project, out var frameworkName);
                 var available = ResetInteractiveCommand != null
                     && project != null && project.Kind == ProjectKind
-                    && frameworkName != null && frameworkName.Identifier == ".NETFramework";
+                    && frameworkName != null && frameworkName.Identifier.StartsWith(".NET", StringComparison.CurrentCultureIgnoreCase);
 
                 resetInteractiveFromProjectCommand.Enabled = available;
                 resetInteractiveFromProjectCommand.Supported = available;
