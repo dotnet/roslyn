@@ -163,34 +163,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // For the purpose of constraint checks we use error type symbol in place of type arguments that we couldn't infer from the first argument.
             // This prevents constraint checking from failing for corresponding type parameters.
-            int firstNullInTypeArgs = -1;
-            var notInferredTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+            PooledHashSet<TypeParameterSymbol> notInferredTypeParameters = null;
             var typeParams = method.TypeParameters;
-            var typeArgsForConstraintsCheck = typeArgs;
-            for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
+            var typeArgsForConstraintsCheck = typeArgs.SelectAsArray(static t => t.Type.HasType ? t.Type : TypeWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType));
+            bool hasMissingTypes = typeArgs.Any(t => !t.Type.HasType);
+
+            if (hasMissingTypes)
             {
-                if (!typeArgsForConstraintsCheck[i].HasType)
+                notInferredTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+                for (int i = 0; i < typeArgs.Length; i++)
                 {
-                    firstNullInTypeArgs = i;
-                    var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                    builder.AddRange(typeArgsForConstraintsCheck, firstNullInTypeArgs);
-
-                    for (; i < typeArgsForConstraintsCheck.Length; i++)
+                    if (!typeArgs[i].Type.HasType)
                     {
-                        var typeArg = typeArgsForConstraintsCheck[i];
-                        if (!typeArg.HasType)
-                        {
-                            notInferredTypeParameters.Add(typeParams[i]);
-                            builder.Add(TypeWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType));
-                        }
-                        else
-                        {
-                            builder.Add(typeArg);
-                        }
+                        notInferredTypeParameters.Add(typeParams[i]);
                     }
-
-                    typeArgsForConstraintsCheck = builder.ToImmutableAndFree();
-                    break;
                 }
             }
 
@@ -201,9 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var success = method.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo)),
                                                   substitution, typeParams, typeArgsForConstraintsCheck, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
                                                   ref useSiteDiagnosticsBuilder,
-                                                  ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters.Count > 0 ? notInferredTypeParameters : null);
+                                                  ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters);
             diagnosticsBuilder.Free();
-            notInferredTypeParameters.Free();
+            notInferredTypeParameters?.Free();
 
             if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
             {
@@ -219,12 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
-            ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = typeArgs;
-            if (typeArgs.Any(t => !t.HasType))
+            var typeArgsForConstruct = typeArgsForConstraintsCheck;
+            if (hasMissingTypes)
             {
                 typeArgsForConstruct = typeArgs.ZipAsArray(
                     method.TypeParameters,
-                    (t, tp) => t.HasType ? t : TypeWithAnnotations.Create(tp));
+                    static (t, tp) => t.Type.HasType ? t.Type : TypeWithAnnotations.Create(tp));
             }
 
             return method.Construct(typeArgsForConstruct);

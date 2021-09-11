@@ -2369,6 +2369,9 @@ M<T>(T x, T y)
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
             CompileAndVerify(source, expectedOutput: expectedOutput);
+
+            // PROTOTYPE: Test cases where both overloads are from function type
+            // conversions and where neither overload is.
         }
 
         [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 
@@ -18,12 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly TMember _member;
         private readonly TMember _leastOverriddenMember;
         private readonly MemberAnalysisResult _result;
+        // PROTOTYPE: This is not a great name because it implies the member was
+        // determined from function type regardless of whether method type
+        // inference was involved which is not correct.
+        internal readonly bool FromFunctionType;
 
-        internal MemberResolutionResult(TMember member, TMember leastOverriddenMember, MemberAnalysisResult result)
+        internal MemberResolutionResult(TMember member, TMember leastOverriddenMember, MemberAnalysisResult result, bool fromFunctionType = false)
         {
             _member = member;
             _leastOverriddenMember = leastOverriddenMember;
             _result = result;
+            FromFunctionType = fromFunctionType;
         }
 
         internal bool IsNull

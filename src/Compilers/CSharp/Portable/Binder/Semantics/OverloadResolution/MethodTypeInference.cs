@@ -69,12 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     // Method type inference can fail, but we still might have some best guesses. 
     internal struct MethodTypeInferenceResult
     {
-        public readonly ImmutableArray<TypeWithAnnotations> InferredTypeArguments;
+        public readonly ImmutableArray<(TypeWithAnnotations Type, bool FromFunctionType)> InferredTypeArguments;
         public readonly bool Success;
 
         public MethodTypeInferenceResult(
             bool success,
-            ImmutableArray<TypeWithAnnotations> inferredTypeArguments)
+            ImmutableArray<(TypeWithAnnotations Type, bool FromFunctionType)> inferredTypeArguments)
         {
             this.Success = success;
             this.InferredTypeArguments = inferredTypeArguments;
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<BoundExpression> _arguments;
         private readonly Extensions _extensions;
 
-        private readonly TypeWithAnnotations[] _fixedResults;
+        private readonly (TypeWithAnnotations Type, bool FromFunctionType)[] _fixedResults;
         private readonly HashSet<TypeWithAnnotations>[] _exactBounds;
         private readonly HashSet<TypeWithAnnotations>[] _upperBounds;
         private readonly HashSet<TypeWithAnnotations>[] _lowerBounds;
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Early out: if the method has no formal parameters then we know that inference will fail.
             if (formalParameterTypes.Length == 0)
             {
-                return new MethodTypeInferenceResult(false, default(ImmutableArray<TypeWithAnnotations>));
+                return new MethodTypeInferenceResult(false, default);
 
                 // UNDONE: OPTIMIZATION: We could check to see whether there is a type
                 // UNDONE: parameter which is never used in any formal parameter; if
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _formalParameterRefKinds = formalParameterRefKinds;
             _arguments = arguments;
             _extensions = extensions ?? Extensions.Default;
-            _fixedResults = new TypeWithAnnotations[methodTypeParameters.Length];
+            _fixedResults = new (TypeWithAnnotations, bool)[methodTypeParameters.Length];
             _exactBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _upperBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _lowerBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 sb.AppendFormat("Method type parameter {0}: ", _methodTypeParameters[i].Name);
 
-                var fixedType = _fixedResults[i];
+                var fixedType = _fixedResults[i].Type;
 
                 if (!fixedType.HasType)
                 {
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _formalParameterRefKinds.IsDefault ? RefKind.None : _formalParameterRefKinds[index];
         }
 
-        private ImmutableArray<TypeWithAnnotations> GetResults()
+        private ImmutableArray<(TypeWithAnnotations Type, bool FromFunctionType)> GetResults()
         {
             // Anything we didn't infer a type for, give the error type.
             // Note: the error type will have the same name as the name
@@ -439,24 +439,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < _methodTypeParameters.Length; i++)
             {
-                if (_fixedResults[i].HasType)
+                var fixedResultType = _fixedResults[i].Type;
+                if (fixedResultType.HasType)
                 {
-                    if (!_fixedResults[i].Type.IsErrorType())
+                    if (!fixedResultType.Type.IsErrorType())
                     {
                         if (_conversions.IncludeNullability && _nullableAnnotationLowerBounds[i].IsAnnotated())
                         {
-                            _fixedResults[i] = _fixedResults[i].AsAnnotated();
+                            _fixedResults[i] = _fixedResults[i] with { Type = fixedResultType.AsAnnotated() };
                         }
                         continue;
                     }
 
-                    var errorTypeName = _fixedResults[i].Type.Name;
+                    var errorTypeName = fixedResultType.Type.Name;
                     if (errorTypeName != null)
                     {
                         continue;
                     }
                 }
-                _fixedResults[i] = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(_constructedContainingTypeOfMethod, _methodTypeParameters[i].Name, 0, null, false));
+                _fixedResults[i] = (TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(_constructedContainingTypeOfMethod, _methodTypeParameters[i].Name, 0, null, false)), false);
             }
 
             return _fixedResults.AsImmutable();
@@ -470,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsUnfixed(int methodTypeParameterIndex)
         {
             Debug.Assert(ValidIndex(methodTypeParameterIndex));
-            return !_fixedResults[methodTypeParameterIndex].HasType;
+            return !_fixedResults[methodTypeParameterIndex].Type.HasType;
         }
 
         private bool IsUnfixedTypeParameter(TypeWithAnnotations type)
@@ -532,13 +533,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or there may be input parameters fixed to _unfixed_ method type variables.
             // Both of those scenarios are legal.)
 
-            var fixedArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(_methodTypeParameters.Length);
-            for (int iParam = 0; iParam < _methodTypeParameters.Length; iParam++)
-            {
-                fixedArguments.Add(IsUnfixed(iParam) ? TypeWithAnnotations.Create(_methodTypeParameters[iParam]) : _fixedResults[iParam]);
-            }
-
-            TypeMap typeMap = new TypeMap(_constructedContainingTypeOfMethod, _methodTypeParameters, fixedArguments.ToImmutableAndFree());
+            var fixedArguments = _methodTypeParameters.SelectAsArray(
+                static (typeParameter, i, self) => self.IsUnfixed(i) ? TypeWithAnnotations.Create(typeParameter) : self._fixedResults[i].Type,
+                this);
+            TypeMap typeMap = new TypeMap(_constructedContainingTypeOfMethod, _methodTypeParameters, fixedArguments);
             return typeMap.SubstituteType(delegateOrFunctionPointerType).Type;
         }
 
@@ -2569,7 +2567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var upper = _upperBounds[iParam];
 
             var best = Fix(_compilation, _conversions, typeParameter, exact, lower, upper, ref useSiteInfo);
-            if (!best.HasType)
+            if (!best.Type.HasType)
             {
                 return false;
             }
@@ -2580,10 +2578,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the first attempt succeeded, the result should be the same as
                 // the second attempt, although perhaps with different nullability.
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                var withoutNullability = Fix(_compilation, _conversions.WithNullability(false), typeParameter, exact, lower, upper, ref discardedUseSiteInfo);
+                var withoutNullability = Fix(_compilation, _conversions.WithNullability(false), typeParameter, exact, lower, upper, ref discardedUseSiteInfo).Type;
                 // https://github.com/dotnet/roslyn/issues/27961 Results may differ by tuple names or dynamic.
                 // See NullableReferenceTypesTests.TypeInference_TupleNameDifferences_01 for example.
-                Debug.Assert(best.Type.Equals(withoutNullability.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
+                Debug.Assert(best.Type.Type.Equals(withoutNullability.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
             }
 #endif
 
@@ -2592,7 +2590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static TypeWithAnnotations Fix(
+        private static (TypeWithAnnotations Type, bool FromFunctionType) Fix(
             CSharpCompilation compilation,
             ConversionsBase conversions,
             TypeParameterSymbol typeParameter,
@@ -2712,6 +2710,7 @@ OuterBreak:
 
             initialCandidates.Free();
 
+            bool fromFunctionType = false;
             if (isFunctionType(best, out var functionType))
             {
                 // Realize the type as TDelegate, or Expression<TDelegate> if the type parameter
@@ -2723,9 +2722,10 @@ OuterBreak:
                     resultType = expressionOfTType.Construct(resultType);
                 }
                 best = TypeWithAnnotations.Create(resultType, best.NullableAnnotation);
+                fromFunctionType = true;
             }
 
-            return best;
+            return (best, fromFunctionType);
 
             static bool containsFunctionTypes([NotNullWhen(true)] HashSet<TypeWithAnnotations>? types)
             {
@@ -2937,7 +2937,7 @@ OuterBreak:
         // extension method of x, at least until we have more information.
         //
         // Clearly it is pointless to run multiple phases
-        public static ImmutableArray<TypeWithAnnotations> InferTypeArgumentsFromFirstArgument(
+        public static ImmutableArray<(TypeWithAnnotations Type, bool FromFunctionType)> InferTypeArgumentsFromFirstArgument(
             CSharpCompilation compilation,
             ConversionsBase conversions,
             MethodSymbol method,
@@ -2951,7 +2951,7 @@ OuterBreak:
             // We need at least one formal parameter type and at least one argument.
             if ((method.ParameterCount < 1) || (arguments.Length < 1))
             {
-                return default(ImmutableArray<TypeWithAnnotations>);
+                return default;
             }
 
             Debug.Assert(!method.GetParameterType(0).IsDynamic());
@@ -2970,7 +2970,7 @@ OuterBreak:
 
             if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteInfo))
             {
-                return default(ImmutableArray<TypeWithAnnotations>);
+                return default;
             }
 
             return inferrer.GetInferredTypeArguments();
@@ -3016,7 +3016,7 @@ OuterBreak:
         /// Return the inferred type arguments using null
         /// for any type arguments that were not inferred.
         /// </summary>
-        private ImmutableArray<TypeWithAnnotations> GetInferredTypeArguments()
+        private ImmutableArray<(TypeWithAnnotations Type, bool FromFunctionType)> GetInferredTypeArguments()
         {
             return _fixedResults.AsImmutable();
         }

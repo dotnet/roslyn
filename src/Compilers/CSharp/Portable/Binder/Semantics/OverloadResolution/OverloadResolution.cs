@@ -1701,10 +1701,18 @@ outerDefault:
             {
                 return hasAnyRefOmittedArgument1 ? BetterResult.Right : BetterResult.Left;
             }
-            else
+
+            // PROTOTYPE: Where in the order of checks does this
+            // belong? Before the checks below?
+            switch (m1.FromFunctionType, m2.FromFunctionType)
             {
-                return BetterFunctionMember(m1, m2, arguments, considerRefKinds: hasAnyRefOmittedArgument1, useSiteInfo: ref useSiteInfo);
+                case (false, true):
+                    return BetterResult.Left;
+                case (true, false):
+                    return BetterResult.Right;
             }
+
+            return BetterFunctionMember(m1, m2, arguments, considerRefKinds: hasAnyRefOmittedArgument1, useSiteInfo: ref useSiteInfo);
         }
 
         private BetterResult BetterFunctionMember<TMember>(
@@ -3453,6 +3461,7 @@ outerDefault:
             bool ignoreOpenTypes;
             MethodSymbol method;
             EffectiveParameters effectiveParameters;
+            bool fromFunctionType = false;
             if (member.Kind == SymbolKind.Method && (method = (MethodSymbol)(Symbol)member).Arity > 0)
             {
                 if (typeArgumentsBuilder.Count == 0 && arguments.HasDynamicArgument && !inferWithDynamic)
@@ -3483,16 +3492,18 @@ outerDefault:
                     {
                         // infer generic type arguments:
                         MemberAnalysisResult inferenceError;
-                        typeArguments = InferMethodTypeArguments(method,
+                        var typeArgumentsPlus = InferMethodTypeArguments(method,
                                             leastOverriddenMethod.ConstructedFrom.TypeParameters,
                                             arguments,
                                             originalEffectiveParameters,
                                             out inferenceError,
                                             ref useSiteInfo);
-                        if (typeArguments.IsDefault)
+                        if (typeArgumentsPlus.IsDefault)
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, inferenceError);
                         }
+                        typeArguments = typeArgumentsPlus.SelectAsArray(t => t.Type);
+                        fromFunctionType = typeArgumentsPlus.Any(t => t.FromFunctionType);
                     }
 
                     member = (TMember)(Symbol)method.Construct(typeArguments);
@@ -3565,10 +3576,10 @@ outerDefault:
                 ignoreOpenTypes: ignoreOpenTypes,
                 completeResults: completeResults,
                 useSiteInfo: ref useSiteInfo);
-            return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult);
+            return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult, fromFunctionType);
         }
 
-        private ImmutableArray<TypeWithAnnotations> InferMethodTypeArguments(
+        private ImmutableArray<(TypeWithAnnotations Type, bool FromFunctionType)> InferMethodTypeArguments(
             MethodSymbol method,
             ImmutableArray<TypeParameterSymbol> originalTypeParameters,
             AnalyzedArguments arguments,
@@ -3610,12 +3621,12 @@ outerDefault:
                 if (inferredFromFirstArgument.IsDefault)
                 {
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();
-                    return default(ImmutableArray<TypeWithAnnotations>);
+                    return default;
                 }
             }
 
             error = MemberAnalysisResult.TypeInferenceFailed();
-            return default(ImmutableArray<TypeWithAnnotations>);
+            return default;
         }
 
         private MemberAnalysisResult IsApplicable(
