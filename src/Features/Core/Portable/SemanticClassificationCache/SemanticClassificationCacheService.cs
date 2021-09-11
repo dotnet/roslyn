@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.SemanticClassificationCache
             var (documentKey, checksum) = await SemanticClassificationCacheUtilities.GetDocumentKeyAndChecksumAsync(
                 document, cancellationToken).ConfigureAwait(false);
 
+            var database = document.Project.Solution.Options.GetPersistentStorageDatabase();
+
             var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService, SerializableClassifiedSpans?>(
                 (service, cancellationToken) => service.GetCachedSemanticClassificationsAsync(documentKey, textSpan, checksum, database, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
