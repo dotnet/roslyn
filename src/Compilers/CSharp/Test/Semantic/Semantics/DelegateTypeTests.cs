@@ -2335,7 +2335,96 @@ class Program
 
             var expectedOutput = "M(Action<string> a)";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
-            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [Fact]
+        public void OverloadResolution_01A()
+        {
+            var source =
+@"using System;
+class A { }
+class B : A { }
+class Program
+{
+    static void M<T>(T x, T y) { Console.WriteLine(""M<T>(T x, T y)""); }
+    static void M(Func<object> x, Func<object> y) { Console.WriteLine(""M(Func<object> x, Func<object> y)""); }
+    static void Main()
+    {
+        Func<object> fo = () => new A();
+        Func<A> fa = () => new A();
+        M(() => new A(), () => new B());
+        M(fo, () => new B());
+        M(fa, () => new B());
+    }
+}";
+
+            var expectedOutput =
+@"M(Func<object> x, Func<object> y)
+M(Func<object> x, Func<object> y)
+M<T>(T x, T y)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [Fact]
+        public void OverloadResolution_01B()
+        {
+            var source =
+@"using System;
+ using System.Linq.Expressions;
+class Program
+{
+    static void M<T>(T t) { Console.WriteLine(""M<T>(T t)""); }
+    static void M(Expression<Func<object>> e) { Console.WriteLine(""M(Expression<Func<object>> e)""); }
+    static void Main()
+    {
+        M(() => string.Empty);
+    }
+}";
+
+            var expectedOutput = "M(Expression<Func<object>> e)";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [Fact]
+        public void OverloadResolution_01C()
+        {
+            var source =
+@"using System;
+ using System.Linq.Expressions;
+class A { }
+class B : A { }
+class Program
+{
+    static void M<T>(T x, T y) { Console.WriteLine(""M<T>(T x, T y)""); }
+    static void M(Expression<Func<object>> x, Expression<Func<object>> y) { Console.WriteLine(""M(Expression<Func<object>> x, Expression<Func<object>> y)""); }
+    static void Main()
+    {
+        Expression<Func<object>> fo = () => new A();
+        Expression<Func<A>> fa = () => new A();
+        M(() => new A(), () => new B());
+        M(fo, () => new B());
+        M(fa, () => new B());
+    }
+}";
+
+            var expectedOutput =
+@"M(Expression<Func<object>> x, Expression<Func<object>> y)
+M(Expression<Func<object>> x, Expression<Func<object>> y)
+M<T>(T x, T y)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
