@@ -1152,7 +1152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode SetAccess(SyntaxNode node, EnvDTE.vsCMAccess newAccess)
         {
-            if (!(node is MemberDeclarationSyntax member))
+            if (node is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -1407,7 +1407,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 throw Exceptions.ThrowEInvalidArg();
             }
 
-            if (!(xmlDocument.FirstNode is XElement docElement) ||
+            if (xmlDocument.FirstNode is not XElement docElement ||
                 docElement.Name.ToString().ToLower() != "doc")
             {
                 throw Exceptions.ThrowEInvalidArg();
@@ -1898,7 +1898,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode SetParameterKind(SyntaxNode node, EnvDTE80.vsCMParameterKind kind)
         {
-            if (!(node is ParameterSyntax parameter))
+            if (node is not ParameterSyntax parameter)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2009,7 +2009,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is MemberDeclarationSyntax);
 
-            if (!(memberNode is MemberDeclarationSyntax member))
+            if (memberNode is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2028,7 +2028,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is MemberDeclarationSyntax);
 
-            if (!(memberNode is MemberDeclarationSyntax member))
+            if (memberNode is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2095,7 +2095,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return EnvDTE80.vsCMConstKind.vsCMConstKindConst;
             }
 
-            if (!(GetNodeWithModifiers(variableNode) is MemberDeclarationSyntax member))
+            if (GetNodeWithModifiers(variableNode) is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2247,7 +2247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is MemberDeclarationSyntax);
 
-            if (!(memberNode is MemberDeclarationSyntax member))
+            if (memberNode is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2268,7 +2268,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                          memberNode is BasePropertyDeclarationSyntax ||
                          memberNode is EventFieldDeclarationSyntax);
 
-            if (!(memberNode is MemberDeclarationSyntax member))
+            if (memberNode is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2383,7 +2383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(typeNode is ClassDeclarationSyntax);
 
-            if (!(typeNode is MemberDeclarationSyntax member))
+            if (typeNode is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2524,7 +2524,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is MemberDeclarationSyntax);
 
-            if (!(memberNode is MemberDeclarationSyntax member))
+            if (memberNode is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2553,7 +2553,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return true;
             }
 
-            if (!(GetNodeWithModifiers(variableNode) is MemberDeclarationSyntax member))
+            if (GetNodeWithModifiers(variableNode) is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2576,7 +2576,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return variableNode;
             }
 
-            if (!(variableNode is MemberDeclarationSyntax member))
+            if (variableNode is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2604,7 +2604,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(propertyNode is BasePropertyDeclarationSyntax);
 
-            if (!(propertyNode is BasePropertyDeclarationSyntax property))
+            if (propertyNode is not BasePropertyDeclarationSyntax property)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2622,7 +2622,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is MemberDeclarationSyntax);
 
-            if (!(GetNodeWithModifiers(memberNode) is MemberDeclarationSyntax member))
+            if (GetNodeWithModifiers(memberNode) is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2643,7 +2643,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             Debug.Assert(memberNode is MemberDeclarationSyntax ||
                          memberNode is VariableDeclaratorSyntax);
 
-            if (!(GetNodeWithModifiers(memberNode) is MemberDeclarationSyntax member))
+            if (GetNodeWithModifiers(memberNode) is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2655,7 +2655,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is MemberDeclarationSyntax);
 
-            if (!(memberNode is MemberDeclarationSyntax member))
+            if (memberNode is not MemberDeclarationSyntax member)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2678,7 +2678,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             Debug.Assert(memberNode is BasePropertyDeclarationSyntax);
 
-            if (!(memberNode is BasePropertyDeclarationSyntax property))
+            if (memberNode is not BasePropertyDeclarationSyntax property)
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -2881,7 +2881,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override string GetMethodXml(SyntaxNode node, SemanticModel semanticModel)
         {
-            if (!(node is MethodDeclarationSyntax methodDeclaration))
+            if (node is not MethodDeclarationSyntax methodDeclaration)
             {
                 throw Exceptions.ThrowEUnexpected();
             }

@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var info = SemanticModel.GetTypeInfo(creation, CancellationToken);
 
-                if (!(info.Type is INamedTypeSymbol type))
+                if (info.Type is not INamedTypeSymbol type)
                 {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }

@@ -424,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         private bool IsExpandableType(uint index)
         {
-            if (!(GetListItem(index) is TypeListItem typeListItem))
+            if (GetListItem(index) is not TypeListItem typeListItem)
             {
                 return false;
             }
@@ -844,12 +844,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 if (data.type == VSCOMPONENTTYPE.VSCOMPONENTTYPE_ComPlus)
                 {
-                    if (!(listItem is ReferenceListItem referenceListItem))
+                    if (listItem is not ReferenceListItem referenceListItem)
                     {
                         continue;
                     }
 
-                    if (!(referenceListItem.MetadataReference is PortableExecutableReference metadataReference))
+                    if (referenceListItem.MetadataReference is not PortableExecutableReference metadataReference)
                     {
                         continue;
                     }
@@ -870,7 +870,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                         continue;
                     }
 
-                    if (!(this.LibraryManager.ServiceProvider.GetService(typeof(SVsSolution)) is IVsSolution vsSolution))
+                    if (this.LibraryManager.ServiceProvider.GetService(typeof(SVsSolution)) is not IVsSolution vsSolution)
                     {
                         return false;
                     }
@@ -903,7 +903,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     return false;
                 }
 
-                if (!(this.LibraryManager.ServiceProvider.GetService(typeof(SVsSolution)) is IVsSolution vsSolution))
+                if (this.LibraryManager.ServiceProvider.GetService(typeof(SVsSolution)) is not IVsSolution vsSolution)
                 {
                     return false;
                 }
@@ -926,12 +926,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             }
             else
             {
-                if (!(listItem is ReferenceListItem referenceListItem))
+                if (listItem is not ReferenceListItem referenceListItem)
                 {
                     return false;
                 }
 
-                if (!(referenceListItem.MetadataReference is PortableExecutableReference portableExecutableReference))
+                if (referenceListItem.MetadataReference is not PortableExecutableReference portableExecutableReference)
                 {
                     return false;
                 }
