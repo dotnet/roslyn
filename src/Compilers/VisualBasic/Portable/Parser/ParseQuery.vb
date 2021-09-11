@@ -984,9 +984,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = _pool.ToListAndFree(exprs)
-
-            Return result
+            Return _pool.ToListAndFree(exprs)
         End Function
 
         ' File: Parser.cpp
@@ -1160,8 +1158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             operators.Add(ParseFromOperator(fromKw))
             ParseMoreQueryOperators(operators)
 
-            Dim result = _pool.ToListAndFree(operators)
-            Return SyntaxFactory.QueryExpression(result)
+            Return SyntaxFactory.QueryExpression(_pool.ToListAndFree(operators))
         End Function
 
         Private Function ParseAggregateQueryExpression(AggregateKw As KeywordSyntax) As QueryExpressionSyntax
