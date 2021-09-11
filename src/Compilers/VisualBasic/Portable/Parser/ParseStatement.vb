@@ -848,9 +848,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim names = _pool.ToListAndFree(
                             _pool.AllocateSeparated(Of ModifiedIdentifierSyntax).Add(Declarator))
 
-            Dim result = SyntaxFactory.VariableDeclarator(names, optionalAsClause, Nothing)
-
-            Return result
+            Return SyntaxFactory.VariableDeclarator(names, optionalAsClause, Nothing)
         End Function
 
         ' Parse a reference to a label, which can be an identifier or a line number.
