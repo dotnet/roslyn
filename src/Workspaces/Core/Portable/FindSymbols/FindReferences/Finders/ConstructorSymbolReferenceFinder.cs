@@ -162,7 +162,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return result.ToImmutable();
         }
 
-        private async static Task AddReferencesInDocumentWorkerAsync(
+        /// <summary>
+        /// Finds references to <paramref name="symbol"/> in this <paramref name="document"/>, but
+        /// only if it referenced though <paramref name="name"/> (which might be the actual name
+        /// of the type, or a global alias to it).
+        /// </summary>
+        private static async Task AddReferencesInDocumentWorkerAsync(
             IMethodSymbol symbol,
             string name,
             Document document,

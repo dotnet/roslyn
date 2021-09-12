@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
 
             await AddReferencesAsync(
-                symbol, document, semanticModel, namespaceName,
+                symbol, namespaceName, document, semanticModel,
                 initialReferences, cancellationToken).ConfigureAwait(false);
 
             if (globalAliases != null)
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                         continue;
 
                     await AddReferencesAsync(
-                        symbol, document, semanticModel, globalAlias,
+                        symbol, globalAlias, document, semanticModel,
                         initialReferences, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -102,25 +102,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return initialReferences.ToImmutable();
         }
 
+        /// <summary>
+        /// Finds references to <paramref name="symbol"/> in this <paramref name="document"/>, but
+        /// only if it referenced though <paramref name="name"/> (which might be the actual name
+        /// of the type, or a global alias to it).
+        /// </summary>
         private static async Task AddReferencesAsync(
             INamespaceSymbol symbol,
+            string name,
             Document document,
             SemanticModel semanticModel,
-            string identifierName,
             ArrayBuilder<FinderLocation> initialReferences,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
-                document, semanticModel, identifierName, cancellationToken).ConfigureAwait(false);
+                document, semanticModel, name, cancellationToken).ConfigureAwait(false);
 
             initialReferences.AddRange(await FindReferencesInTokensAsync(
                 symbol,
                 document,
                 semanticModel,
                 tokens,
-                t => syntaxFacts.TextMatch(t.ValueText, identifierName),
+                t => syntaxFacts.TextMatch(t.ValueText, name),
                 cancellationToken).ConfigureAwait(false));
         }
     }
