@@ -1020,13 +1020,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
                 foreach (var alias in index.GetGlobalAliases(name, arity))
-                {
-                    // don't bother returning aliase if it already matches the name we're looking for (for example, if
-                    // there is `global using Console = System.Console`.  We'll already have found all matches when
-                    // searching for 'Console' above.  
-                    if (!syntaxFacts.StringComparer.Equals(alias, name))
-                        result.Add(alias);
-                }
+                    result.Add(alias);
             }
 
             return result.ToImmutableAndClear();

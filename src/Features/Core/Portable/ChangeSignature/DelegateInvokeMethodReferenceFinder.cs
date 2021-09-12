@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
             IImmutableSet<Document> documents,
             FindReferencesSearchOptions options,
@@ -72,6 +74,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol methodSymbol,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
