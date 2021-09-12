@@ -66,11 +66,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     await AddDocumentsToSearchAsync(alias, project, documents, result, cancellationToken).ConfigureAwait(false);
             }
 
-            var documentsWithSpecialType = await FindDocumentsAsync(project, documents, symbol.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
-            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            result.AddRange(await FindDocumentsAsync(
+                project, documents, symbol.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false));
 
-            result.AddRange(documentsWithSpecialType);
-            result.AddRange(documentsWithGlobalAttributes);
+            result.AddRange(await FindDocumentsWithGlobalAttributesAsync(
+                project, documents, cancellationToken).ConfigureAwait(false));
 
             return result.ToImmutable();
         }
