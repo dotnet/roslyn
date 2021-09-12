@@ -118,9 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                     }
                 }
 
-                // Order can be different in net472 vs net5 :(
-                result.Sort();
-
                 return string.Join(", ", result);
             }
         }

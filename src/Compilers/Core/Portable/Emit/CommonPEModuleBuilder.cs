@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public abstract MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap();
 
-        public abstract MultiDictionary<Cci.ITypeDefinition, Cci.DebugSourceDocument> GetTypeToDebugDocumentMap(EmitContext context);
+        public abstract List<(Cci.ITypeDefinition, Cci.DebugSourceDocument[])> GetTypeToDebugDocumentMap(EmitContext context);
 
         /// <summary>
         /// Number of debug documents in the module. 

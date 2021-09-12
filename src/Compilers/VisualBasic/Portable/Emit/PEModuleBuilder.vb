@@ -637,8 +637,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return container.GetSynthesizedNestedTypes()
         End Function
 
-        Public Overrides Function GetTypeToDebugDocumentMap(context As EmitContext) As MultiDictionary(Of Cci.ITypeDefinition, Cci.DebugSourceDocument)
-            Dim result = New MultiDictionary(Of Cci.ITypeDefinition, Cci.DebugSourceDocument)(DirectCast(Cci.SymbolEquivalentEqualityComparer.Instance, IEqualityComparer(Of Cci.IReference)))
+        Public Overrides Function GetTypeToDebugDocumentMap(context As EmitContext) As List(Of (Cci.ITypeDefinition, Cci.DebugSourceDocument()))
+            Dim result = New List(Of (Cci.ITypeDefinition, Cci.DebugSourceDocument()))
 
             Dim namespacesAndTypesToProcess = New Stack(Of NamespaceOrTypeSymbol)()
             namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace)
@@ -668,11 +668,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         End If
 
                     Case SymbolKind.NamedType
+                        Dim typeDefinition = DirectCast(symbol.GetCciAdapter(), Cci.ITypeDefinition)
                         Dim allMethodsHaveIL As Boolean = False
-                        Dim methodDocumentList = GetDocumentsForMethods(symbol, context, allMethodsHaveIL)
+                        Dim methodDocumentList = PooledHashSet(Of Cci.DebugSourceDocument).GetInstance()
+                        GetDocumentsForMethods(methodDocumentList, typeDefinition, context, allMethodsHaveIL)
 
                         If Not allMethodsHaveIL Then
-                            Dim typeDefinition = DirectCast(symbol.GetCciAdapter(), Cci.ITypeDefinition)
+                            Dim debugDocuments = ArrayBuilder(Of Cci.DebugSourceDocument).GetInstance()
 
                             For Each loc In symbol.Locations
                                 If Not loc.IsInSource Then
@@ -683,11 +685,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                 Dim debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=Nothing)
 
                                 If debugDocument IsNot Nothing AndAlso Not methodDocumentList.Contains(debugDocument) Then
-                                    result.Add(typeDefinition, debugDocument)
+                                    debugDocuments.Add(debugDocument)
                                 End If
                             Next
+                            result.Add((typeDefinition, debugDocuments.ToArrayAndFree()))
                         End If
-
+                        methodDocumentList.Free()
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(symbol.Kind)
                 End Select
@@ -696,10 +699,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return result
         End Function
 
-        Private Shared Function GetDocumentsForMethods(ByVal typeSymbol As NamespaceOrTypeSymbol, ByVal context As EmitContext, <Out> ByRef allMethodsHaveIL As Boolean) As HashSet(Of Cci.DebugSourceDocument)
-            Dim documentList = New HashSet(Of Cci.DebugSourceDocument)()
-            Dim typeDef = DirectCast(typeSymbol.GetCciAdapter(), Cci.ITypeDefinition)
-            Dim typeMethods = typeDef.GetMethods(context)
+        Private Shared Sub GetDocumentsForMethods(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typeDefinition As Cci.ITypeDefinition, context As EmitContext, <Out> ByRef allMethodsHaveIL As Boolean)
+            Dim typeMethods = typeDefinition.GetMethods(context)
             Dim foundMethodWithIL = False
             Dim foundMethodWithoutIL = False
 
@@ -708,7 +709,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 If Cci.Extensions.HasBody(method) Then
                     Dim body = method.GetBody(context)
                     If body IsNot Nothing AndAlso Not body.SequencePoints.IsEmpty Then
-
                         foundMethodWithIL = True
 
                         For Each point In body.SequencePoints
@@ -723,8 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Next
 
             allMethodsHaveIL = foundMethodWithIL AndAlso Not foundMethodWithoutIL
-            Return documentList
-        End Function
+        End Sub
 
         Public Sub SetDisableJITOptimization(methodSymbol As MethodSymbol)
             Debug.Assert(methodSymbol.ContainingModule Is Me.SourceModule AndAlso methodSymbol Is methodSymbol.OriginalDefinition)
