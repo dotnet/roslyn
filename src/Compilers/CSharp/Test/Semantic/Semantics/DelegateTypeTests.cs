@@ -2369,9 +2369,6 @@ M<T>(T x, T y)
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
             CompileAndVerify(source, expectedOutput: expectedOutput);
-
-            // PROTOTYPE: Test cases where both overloads are from function type
-            // conversions and where neither overload is.
         }
 
         [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
@@ -2426,6 +2423,83 @@ M(Expression<Func<object>> x, Expression<Func<object>> y)
 M<T>(T x, T y)
 ";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [Fact]
+        public void OverloadResolution_01D()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M<T>(object x, T y) { Console.WriteLine(""M<T>(object x, T y)""); }
+    static void M<T, U>(T x, U y) { Console.WriteLine(""M<T, U>(T x, U y)""); }
+    static void Main()
+    {
+        Func<int> f = () => 0;
+        M(() => 1, () => 2);
+        M(() => 1, f);
+        M(f, () => 2);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'Program.M<T>(object, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(() => 1, () => 2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(object, T)").WithLocation(9, 9),
+                // (10,11): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                //         M(() => 1, f);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "object").WithLocation(10, 11),
+                // (11,9): error CS0411: The type arguments for method 'Program.M<T>(object, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(f, () => 2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(object, T)").WithLocation(11, 9));
+
+            var expectedOutput =
+@"M<T, U>(T x, U y)
+M<T, U>(T x, U y)
+M<T, U>(T x, U y)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [Fact]
+        public void OverloadResolution_01E()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M(Delegate x, Func<int> y) { Console.WriteLine(""M(Delegate x, Func<int> y)""); }
+    static void M<T, U>(T x, U y) { Console.WriteLine(""M<T, U>(T x, U y)""); }
+    static void Main()
+    {
+        Func<int> f = () => 0;
+        M(() => 1, () => 2);
+        M(() => 1, f);
+        M(f, () => 2);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,11): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                //         M(() => 1, () => 2);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 11),
+                // (10,11): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                //         M(() => 1, f);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(10, 11));
+
+            var expectedOutput =
+@"M<T, U>(T x, U y)
+M<T, U>(T x, U y)
+M(Delegate x, Func<int> y)
+";
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }

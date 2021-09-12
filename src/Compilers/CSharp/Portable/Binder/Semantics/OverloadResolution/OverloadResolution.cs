@@ -1685,9 +1685,9 @@ outerDefault:
                 return hasAnyRefOmittedArgument1 ? BetterResult.Right : BetterResult.Left;
             }
 
-            // PROTOTYPE: Where in the order of checks does this
-            // belong? Before the checks below?
-            switch (m1.FromFunctionType, m2.FromFunctionType)
+            // Prefer overloads that did not use the inferred type of lambdas or method groups
+            // to infer generic method type arguments or to convert arguments.
+            switch (RequiredFunctionType(m1), RequiredFunctionType(m2))
             {
                 case (false, true):
                     return BetterResult.Left;
@@ -1960,12 +1960,6 @@ outerDefault:
                     }
                 }
 
-                result = PreferAnonymousFunctionConversionsOverFunctionTypeConversions(arguments, m1, m2);
-                if (result is BetterResult.Left or BetterResult.Right)
-                {
-                    return result;
-                }
-
                 return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
             }
 
@@ -2110,43 +2104,27 @@ outerDefault:
             return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
         }
 
-        private static BetterResult PreferAnonymousFunctionConversionsOverFunctionTypeConversions<TMember>(
-            ArrayBuilder<BoundExpression> arguments,
-            MemberResolutionResult<TMember> m1,
-            MemberResolutionResult<TMember> m2)
+        /// <summary>
+        /// Returns true if the overload required a function type conversion to infer
+        /// generic method type arguments or to convert to parameter types.
+        /// </summary>
+        private static bool RequiredFunctionType<TMember>(MemberResolutionResult<TMember> m)
             where TMember : Symbol
         {
-            Debug.Assert(m1.Result.IsValid);
-            Debug.Assert(m2.Result.IsValid);
+            Debug.Assert(m.Result.IsValid);
 
-            BetterResult result = BetterResult.Neither;
-            for (int i = 0; i < arguments.Count; ++i)
+            if (m.TypeArgumentsFromFunctionType)
             {
-                if (arguments[i].Kind == BoundKind.ArgListOperator)
-                {
-                    continue;
-                }
-                switch (m1.Result.ConversionForArg(i).Kind, m2.Result.ConversionForArg(i).Kind)
-                {
-                    case (ConversionKind.FunctionType, ConversionKind.FunctionType):
-                        break;
-                    case (_, ConversionKind.FunctionType):
-                        if (result == BetterResult.Right)
-                        {
-                            return BetterResult.Neither;
-                        }
-                        result = BetterResult.Left;
-                        break;
-                    case (ConversionKind.FunctionType, _):
-                        if (result == BetterResult.Left)
-                        {
-                            return BetterResult.Neither;
-                        }
-                        result = BetterResult.Right;
-                        break;
-                }
+                return true;
             }
-            return result;
+
+            var conversionsOpt = m.Result.ConversionsOpt;
+            if (conversionsOpt.IsDefault)
+            {
+                return false;
+            }
+
+            return conversionsOpt.Any(c => c.Kind == ConversionKind.FunctionType);
         }
 
         private static BetterResult PreferValOverInOrRefInterpolatedHandlerParameters<TMember>(

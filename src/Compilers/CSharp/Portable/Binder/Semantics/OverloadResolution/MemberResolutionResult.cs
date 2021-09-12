@@ -16,17 +16,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly TMember _member;
         private readonly TMember _leastOverriddenMember;
         private readonly MemberAnalysisResult _result;
-        // PROTOTYPE: This is not a great name because it implies the member was
-        // determined from function type regardless of whether method type
-        // inference was involved which is not correct.
-        internal readonly bool FromFunctionType;
+        internal readonly bool TypeArgumentsFromFunctionType;
 
         internal MemberResolutionResult(TMember member, TMember leastOverriddenMember, MemberAnalysisResult result, bool fromFunctionType = false)
         {
             _member = member;
             _leastOverriddenMember = leastOverriddenMember;
             _result = result;
-            FromFunctionType = fromFunctionType;
+            TypeArgumentsFromFunctionType = fromFunctionType;
         }
 
         internal bool IsNull
