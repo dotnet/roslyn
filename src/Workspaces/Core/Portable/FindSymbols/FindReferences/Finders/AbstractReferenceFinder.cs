@@ -26,14 +26,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public const string ContainingTypeInfoPropertyName = "ContainingTypeInfo";
         public const string ContainingMemberInfoPropertyName = "ContainingMemberInfo";
 
+        public abstract Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
+            ISymbol symbol, Project project, CancellationToken cancellationToken);
+
         public abstract Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
             ISymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         public abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ISymbol symbol, Project project, IImmutableSet<Document>? documents, FindReferencesSearchOptions options, CancellationToken cancellationToken);
+            ISymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         public abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            ISymbol symbol, Document document, SemanticModel semanticModel, FindReferencesSearchOptions options, CancellationToken cancellationToken);
+            ISymbol symbol, HashSet<string>? globalAliases, Document document, SemanticModel semanticModel, FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         protected static bool TryGetNameWithoutAttributeSuffix(
             string name,
@@ -867,28 +870,42 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected abstract bool CanFind(TSymbol symbol);
 
         protected abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            TSymbol symbol, Project project, IImmutableSet<Document>? documents,
+            TSymbol symbol, HashSet<string>? globalAliases, Project project, IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
         protected abstract ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            TSymbol symbol, Document document, SemanticModel semanticModel,
+            TSymbol symbol, HashSet<string>? globalAliases, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken);
 
-        public override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ISymbol symbol, Project project, IImmutableSet<Document>? documents,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+        protected virtual Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
+            TSymbol symbol, Project project, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyImmutableArray<string>();
+        }
+
+        public sealed override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
-                ? DetermineDocumentsToSearchAsync(typedSymbol, project, documents, options, cancellationToken)
+                ? DetermineGlobalAliasesAsync(typedSymbol, project, cancellationToken)
+                : SpecializedTasks.EmptyImmutableArray<string>();
+        }
+
+        public sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+            ISymbol symbol, HashSet<string>? globalAliases, Project project,
+            IImmutableSet<Document>? documents, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+        {
+            return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
+                ? DetermineDocumentsToSearchAsync(typedSymbol, globalAliases, project, documents, options, cancellationToken)
                 : SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
-        public override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            ISymbol symbol, Document document, SemanticModel semanticModel,
+        public sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+            ISymbol symbol, HashSet<string>? globalAliases, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return symbol is TSymbol typedSymbol && CanFind(typedSymbol)
-                ? FindReferencesInDocumentAsync(typedSymbol, document, semanticModel, options, cancellationToken)
+                ? FindReferencesInDocumentAsync(typedSymbol, globalAliases, document, semanticModel, options, cancellationToken)
                 : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
 

@@ -30,6 +30,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 _ => false,
             };
 
+        protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(IMethodSymbol symbol, Project project, CancellationToken cancellationToken)
+        {
+            var containingType = symbol.ContainingType;
+            return GetAllMatchingGlobalAliasNamesAsync(project, containingType.Name, containingType.Arity, cancellationToken);
+        }
+
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
             Project project,
