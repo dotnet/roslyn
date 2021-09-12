@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             INamespaceSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
             IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
@@ -32,14 +34,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
 
-            // Namespaces might be referenced through global aliases, which themselves are then referenced elsewhere.
-            var allMatchingGlobalAliasNames = await GetAllMatchingGlobalAliasNamesAsync(project, symbol.Name, arity: 0, cancellationToken).ConfigureAwait(false);
-            foreach (var globalAliasName in allMatchingGlobalAliasNames)
-                result.AddRange(await FindDocumentsAsync(project, documents, cancellationToken, globalAliasName).ConfigureAwait(false));
+            var namespaceName = GetNamespaceIdentifierName(symbol);
+            result.AddRange(await FindDocumentsAsync(
+                project, documents, cancellationToken, namespaceName).ConfigureAwait(false));
 
-            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, GetNamespaceIdentifierName(symbol)).ConfigureAwait(false);
+            if (globalAliases != null)
+            {
+                foreach (var globalAlias in globalAliases)
+                {
+                    result.AddRange(await FindDocumentsAsync(
+                        project, documents, cancellationToken, globalAlias).ConfigureAwait(false));
+                }
+            }
+
             var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
-            return documentsWithGlobalAttributes.Concat(documentsWithName);
+            result.AddRange(documentsWithGlobalAttributes);
+
+            return result.ToImmutable();
         }
 
         private static string GetNamespaceIdentifierName(INamespaceSymbol symbol)
@@ -51,18 +62,59 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             INamespaceSymbol symbol,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var identifierName = GetNamespaceIdentifierName(symbol);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var namespaceName = GetNamespaceIdentifierName(symbol);
+
+            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
+
+            await AddReferencesAsync(
+                symbol, document, semanticModel, namespaceName,
+                initialReferences, cancellationToken).ConfigureAwait(false);
+
+            if (globalAliases != null)
+            {
+                foreach (var globalAlias in globalAliases)
+                {
+                    // ignore the cases where the global alias might match the namespace name (i.e.
+                    // global alias Collections = System.Collections).  We'll already find those references
+                    // above.
+                    if (syntaxFacts.StringComparer.Equals(namespaceName, globalAlias))
+                        continue;
+
+                    await AddReferencesAsync(
+                        symbol, document, semanticModel, globalAlias,
+                        initialReferences, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            initialReferences.AddRange(await FindLocalAliasReferencesAsync(
+                initialReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false));
+
+            initialReferences.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
+                document, semanticModel, symbol, cancellationToken).ConfigureAwait(false));
+
+            return initialReferences.ToImmutable();
+        }
+
+        private static async Task AddReferencesAsync(
+            INamespaceSymbol symbol,
+            Document document,
+            SemanticModel semanticModel,
+            string identifierName,
+            ArrayBuilder<FinderLocation> initialReferences,
+            CancellationToken cancellationToken)
+        {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
                 document, semanticModel, identifierName, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
             initialReferences.AddRange(await FindReferencesInTokensAsync(
                 symbol,
                 document,
@@ -70,32 +122,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 tokens,
                 t => syntaxFacts.TextMatch(t.ValueText, identifierName),
                 cancellationToken).ConfigureAwait(false));
-
-            var allMatchingGlobalAliasNames = await GetAllMatchingGlobalAliasNamesAsync(document.Project, symbol.Name, arity: 0, cancellationToken).ConfigureAwait(false);
-            foreach (var globalAliasName in allMatchingGlobalAliasNames)
-            {
-                tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
-                    document, semanticModel, identifierName, cancellationToken).ConfigureAwait(false);
-
-                initialReferences.AddRange(await FindReferencesInTokensAsync(
-                    symbol,
-                    document,
-                    semanticModel,
-                    tokens,
-                    t => syntaxFacts.TextMatch(t.ValueText, identifierName),
-                    cancellationToken).ConfigureAwait(false));
-            }
-
-            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-                document, semanticModel, symbol, cancellationToken).ConfigureAwait(false);
-
-            var aliasReferences = await FindLocalAliasReferencesAsync(
-                initialReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
-
-            initialReferences.AddRange(suppressionReferences);
-            initialReferences.AddRange(aliasReferences);
-
-            return initialReferences.ToImmutable();
         }
     }
 }

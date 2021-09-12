@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -50,35 +51,48 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             INamedTypeSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
             IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
-
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
 
-            // Named types might be referenced through global aliases, which themselves are then referenced elsewhere.
-            var allMatchingGlobalAliasNames = await GetAllMatchingGlobalAliasNamesAsync(project, symbol.Name, symbol.Arity, cancellationToken).ConfigureAwait(false);
-            foreach (var globalAliasName in allMatchingGlobalAliasNames)
-                result.AddRange(await FindDocumentsAsync(project, documents, cancellationToken, globalAliasName).ConfigureAwait(false));
+            await AddDocumentsToSearchAsync(symbol.Name, project, documents, result, cancellationToken).ConfigureAwait(false);
+            if (globalAliases != null)
+            {
+                foreach (var alias in globalAliases)
+                    await AddDocumentsToSearchAsync(alias, project, documents, result, cancellationToken).ConfigureAwait(false);
+            }
 
-            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
-            var documentsWithType = await FindDocumentsAsync(project, documents, symbol.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
-
-            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(symbol.Name, syntaxFacts, out var simpleName)
-                ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
-                : ImmutableArray<Document>.Empty;
-
+            var documentsWithSpecialType = await FindDocumentsAsync(project, documents, symbol.SpecialType.ToPredefinedType(), cancellationToken).ConfigureAwait(false);
             var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
 
-            result.AddRange(documentsWithName);
-            result.AddRange(documentsWithType);
-            result.AddRange(documentsWithAttribute);
+            result.AddRange(documentsWithSpecialType);
             result.AddRange(documentsWithGlobalAttributes);
 
             return result.ToImmutable();
+        }
+
+        private static async Task AddDocumentsToSearchAsync(
+            string throughName,
+            Project project,
+            IImmutableSet<Document>? documents,
+            ArrayBuilder<Document> result,
+            CancellationToken cancellationToken)
+        {
+            var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+
+            var documentsWithName = await FindDocumentsAsync(
+                project, documents, cancellationToken, throughName).ConfigureAwait(false);
+
+            var documentsWithAttribute = TryGetNameWithoutAttributeSuffix(throughName, syntaxFacts, out var simpleName)
+                ? await FindDocumentsAsync(project, documents, cancellationToken, simpleName).ConfigureAwait(false)
+                : ImmutableArray<Document>.Empty;
+
+            result.AddRange(documentsWithName);
+            result.AddRange(documentsWithAttribute);
         }
 
         private static bool IsPotentialReference(
@@ -93,6 +107,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             INamedTypeSymbol namedType,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
@@ -101,7 +116,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
 
-            await AddReferencesToTypeOrGlobalAliasToItAsync(namedType, document, semanticModel, initialReferences, cancellationToken).ConfigureAwait(false);
+            await AddReferencesToTypeOrGlobalAliasToItAsync(namedType, globalAliases, document, semanticModel, initialReferences, cancellationToken).ConfigureAwait(false);
 
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode: null, document.Project.Solution, cancellationToken);
             var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, namedType, cancellationToken).ConfigureAwait(false);
@@ -116,19 +131,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
         internal static async ValueTask AddReferencesToTypeOrGlobalAliasToItAsync(
             INamedTypeSymbol namedType,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             ArrayBuilder<FinderLocation> nonAliasReferences,
             CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             nonAliasReferences.AddRange(await FindNonAliasReferencesAsync(
                 namedType, namedType.Name, document, semanticModel, cancellationToken).ConfigureAwait(false));
 
-            var globalAliases = await GetAllMatchingGlobalAliasNamesAsync(document.Project, namedType.Name, namedType.Arity, cancellationToken).ConfigureAwait(false);
-            foreach (var globalAlias in globalAliases)
+            if (globalAliases != null)
             {
-                nonAliasReferences.AddRange(await FindNonAliasReferencesAsync(
-                    namedType, globalAlias, document, semanticModel, cancellationToken).ConfigureAwait(false));
+                foreach (var globalAlias in globalAliases)
+                {
+                    // ignore the cases where the global alias might match the type name (i.e.
+                    // global alias Console = System.Console).  We'll already find those references
+                    // above.
+                    if (syntaxFacts.StringComparer.Equals(namedType.Name, globalAlias))
+                        continue;
+
+                    nonAliasReferences.AddRange(await FindNonAliasReferencesAsync(
+                        namedType, globalAlias, document, semanticModel, cancellationToken).ConfigureAwait(false));
+                }
             }
         }
 
