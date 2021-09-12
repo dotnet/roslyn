@@ -116,11 +116,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var findParentNode = GetNamedTypeOrConstructorFindParentNodeFunction(document, methodSymbol);
 
+            // First just look for this normal constructor references using the name of it's containing type.
             var name = methodSymbol.ContainingType.Name;
             await AddReferencesInDocumentWorkerAsync(
                 methodSymbol, name, document, semanticModel,
                 findParentNode, result, cancellationToken).ConfigureAwait(false);
 
+            // Next, look for constructor references through a global alias to our containing type.
             if (globalAliases != null)
             {
                 foreach (var globalAlias in globalAliases)
@@ -137,6 +139,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
             }
 
+            // Nest, our containing type might itself have local aliases to it in this particular file.
+            // If so, see what the local aliases are and then search for constructor references to that.
             using var _2 = ArrayBuilder<FinderLocation>.GetInstance(out var typeReferences);
             await NamedTypeSymbolReferenceFinder.AddReferencesToTypeOrGlobalAliasToItAsync(
                 methodSymbol.ContainingType, globalAliases, document, semanticModel, typeReferences, cancellationToken).ConfigureAwait(false);
@@ -144,6 +148,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var aliasReferences = await FindLocalAliasReferencesAsync(
                 typeReferences, methodSymbol, document, semanticModel, findParentNode, cancellationToken).ConfigureAwait(false);
 
+            // Finally, look for constructor references to predefined types (like `new int()`),
+            // implicit object references, and inside global suppression attributes.
             result.AddRange(await FindPredefinedTypeReferencesAsync(
                 methodSymbol, document, semanticModel, cancellationToken).ConfigureAwait(false));
 
