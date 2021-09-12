@@ -119,12 +119,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             await AddReferencesToTypeOrGlobalAliasToItAsync(namedType, globalAliases, document, semanticModel, initialReferences, cancellationToken).ConfigureAwait(false);
 
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode: null, document.Project.Solution, cancellationToken);
-            var suppressionReferences = await FindReferencesInDocumentInsideGlobalSuppressionsAsync(document, semanticModel, namedType, cancellationToken).ConfigureAwait(false);
-
             var aliasReferences = await FindLocalAliasReferencesAsync(initialReferences, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false);
 
-            initialReferences.AddRange(suppressionReferences);
             initialReferences.AddRange(aliasReferences);
+
+            initialReferences.AddRange(await FindPredefinedTypeReferencesAsync(
+                namedType, document, semanticModel, cancellationToken).ConfigureAwait(false));
+
+            initialReferences.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
+                document, semanticModel, namedType, cancellationToken).ConfigureAwait(false));
 
             return initialReferences.ToImmutable();
         }
@@ -138,8 +141,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            nonAliasReferences.AddRange(await FindNonAliasReferencesAsync(
-                namedType, namedType.Name, document, semanticModel, cancellationToken).ConfigureAwait(false));
+            await AddNonAliasReferencesAsync(
+                namedType, namedType.Name, document, semanticModel,
+                nonAliasReferences, cancellationToken).ConfigureAwait(false);
 
             if (globalAliases != null)
             {
@@ -151,24 +155,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     if (syntaxFacts.StringComparer.Equals(namedType.Name, globalAlias))
                         continue;
 
-                    nonAliasReferences.AddRange(await FindNonAliasReferencesAsync(
-                        namedType, globalAlias, document, semanticModel, cancellationToken).ConfigureAwait(false));
+                    await AddNonAliasReferencesAsync(
+                        namedType, globalAlias, document, semanticModel,
+                        nonAliasReferences, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
 
-        private static async ValueTask<ImmutableArray<FinderLocation>> FindNonAliasReferencesAsync(
+        private static async ValueTask AddNonAliasReferencesAsync(
             INamedTypeSymbol symbol,
             string name,
             Document document,
             SemanticModel semanticModel,
+            ArrayBuilder<FinderLocation> nonAliasesReferences,
             CancellationToken cancellationToken)
         {
-            var ordinaryRefs = await FindOrdinaryReferencesAsync(symbol, name, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            var attributeRefs = await FindAttributeReferencesAsync(symbol, name, document, semanticModel, cancellationToken).ConfigureAwait(false);
-            var predefinedTypeRefs = await FindPredefinedTypeReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
+            nonAliasesReferences.AddRange(await FindOrdinaryReferencesAsync(
+                symbol, name, document, semanticModel, cancellationToken).ConfigureAwait(false));
 
-            return ordinaryRefs.Concat(attributeRefs).Concat(predefinedTypeRefs);
+            nonAliasesReferences.AddRange(await FindAttributeReferencesAsync(
+                symbol, name, document, semanticModel, cancellationToken).ConfigureAwait(false));
         }
 
         private static ValueTask<ImmutableArray<FinderLocation>> FindOrdinaryReferencesAsync(
