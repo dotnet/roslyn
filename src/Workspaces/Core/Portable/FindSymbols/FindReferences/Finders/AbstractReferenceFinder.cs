@@ -1015,7 +1015,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         {
             using var result = TemporaryArray<string>.Empty;
 
-            var syntaxFacts = project.GetRequiredLanguageService<ISyntaxFactsService>();
             foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
             {
                 var index = await SyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
