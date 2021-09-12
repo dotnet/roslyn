@@ -350,5 +350,29 @@ namespace N
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestGlobalAlias7(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        global using $$D = System.[|DateTime|];
+
+        </Document>
+        <Document>
+        namespace Outer
+        {
+            using D2 = [|D|];
+            partial class C
+            {
+                [|D2|] date;
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

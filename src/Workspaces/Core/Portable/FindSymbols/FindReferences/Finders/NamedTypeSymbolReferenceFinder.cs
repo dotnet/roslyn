@@ -113,15 +113,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
 
+            // First find all references to this type, either with it's actual name, or through potential
+            // global alises to it.
             await AddReferencesToTypeOrGlobalAliasToItAsync(namedType, globalAliases, document, semanticModel, initialReferences, cancellationToken).ConfigureAwait(false);
 
+            // This named type may end up being locally aliased as well.  If so, now find all the references
+            // to the local alias.
             var symbolsMatch = GetStandardSymbolsMatchFunction(namedType, findParentNode: null, document.Project.Solution, cancellationToken);
-            var aliasReferences = await FindLocalAliasReferencesAsync(initialReferences, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false);
 
-            initialReferences.AddRange(aliasReferences);
+            initialReferences.AddRange(await FindLocalAliasReferencesAsync(
+                initialReferences, document, semanticModel, symbolsMatch, cancellationToken).ConfigureAwait(false));
 
             initialReferences.AddRange(await FindPredefinedTypeReferencesAsync(
                 namedType, document, semanticModel, cancellationToken).ConfigureAwait(false));
