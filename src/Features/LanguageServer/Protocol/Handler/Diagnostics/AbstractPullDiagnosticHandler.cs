@@ -140,44 +140,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             if (diagnosticsParams is VSInternalWorkspaceDiagnosticsParams workspaceDiagnosticsParams && workspaceDiagnosticsParams.ProjectId is not null)
             {
-                // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
-                // last time we notified the client.  Report back either to the client so they can update accordingly.
-                (var orderedDocuments, var projectRental) = await GetOrderedDocumentsForProjectAsync(context, diagnosticsParams, cancellationToken).ConfigureAwait(false);
-                context.TraceInformation($"Processing {orderedDocuments.Length} documents requested for a project");
-
-                try
-                {
-                    foreach (var document in orderedDocuments)
-                    {
-                        context.TraceInformation($"Processing: {document.FilePath}");
-
-                        if (!IncludeDocument(document, context.ClientName))
-                        {
-                            context.TraceInformation($"Ignoring document '{document.FilePath}' because of razor/client-name mismatch");
-                            continue;
-                        }
-
-                        if (HaveDiagnosticsChanged(documentToPreviousDiagnosticParams, document, out var newResultId))
-                        {
-                            context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
-                            progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
-                        }
-                        else
-                        {
-                            context.TraceInformation($"Diagnostics were unchanged for document: {document.FilePath}");
-
-                            // Nothing changed between the last request and this one.  Report a (null-diagnostics,
-                            // same-result-id) response to the client as that means they should just preserve the current
-                            // diagnostics they have for this file.
-                            var previousParams = documentToPreviousDiagnosticParams[document];
-                            progress.Report(CreateReport(previousParams.TextDocument, diagnostics: null, previousParams.PreviousResultId));
-                        }
-                    }
-                }
-                finally
-                {
-                    projectRental?.Dispose();
-                }
+                await HandlePerProjectRequestAsync(diagnosticsParams, context, progress, documentToPreviousDiagnosticParams, cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -218,6 +181,46 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // collecting and return that.
             context.TraceInformation($"{this.GetType()} finished getting diagnostics");
             return progress.GetValues();
+        }
+
+        private async Task HandlePerProjectRequestAsync(TDiagnosticsParams diagnosticsParams, RequestContext context, BufferedProgress<TReport> progress, Dictionary<Document, VSInternalDiagnosticParams> documentToPreviousDiagnosticParams, CancellationToken cancellationToken)
+        {
+            (var orderedDocuments, var projectRental) = await GetOrderedDocumentsForProjectAsync(context, diagnosticsParams, cancellationToken).ConfigureAwait(false);
+            context.TraceInformation($"Processing {orderedDocuments.Length} documents requested for a project");
+
+            try
+            {
+                foreach (var document in orderedDocuments)
+                {
+                    context.TraceInformation($"Processing: {document.FilePath}");
+
+                    if (!IncludeDocument(document, context.ClientName))
+                    {
+                        context.TraceInformation($"Ignoring document '{document.FilePath}' because of razor/client-name mismatch");
+                        continue;
+                    }
+
+                    if (HaveDiagnosticsChanged(documentToPreviousDiagnosticParams, document, out var newResultId))
+                    {
+                        context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
+                        progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
+                    }
+                    else
+                    {
+                        context.TraceInformation($"Diagnostics were unchanged for document: {document.FilePath}");
+
+                        // Nothing changed between the last request and this one.  Report a (null-diagnostics,
+                        // same-result-id) response to the client as that means they should just preserve the current
+                        // diagnostics they have for this file.
+                        var previousParams = documentToPreviousDiagnosticParams[document];
+                        progress.Report(CreateReport(previousParams.TextDocument, diagnostics: null, previousParams.PreviousResultId));
+                    }
+                }
+            }
+            finally
+            {
+                projectRental?.Dispose();
+            }
         }
 
         private static bool IncludeDocument(Document document, string? clientName)
