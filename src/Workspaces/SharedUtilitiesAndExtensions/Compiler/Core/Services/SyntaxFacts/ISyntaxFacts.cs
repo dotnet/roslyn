@@ -17,6 +17,54 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
+    /// <summary>
+    /// Contains helpers to allow features and other algorithms to run over C# and Visual Basic code in a uniform fashion.
+    /// It should be thought of a generalized way to apply type-pattern-matching and syntax-deconstruction in a uniform
+    /// fashoin over the language. Helpers in this type should only be one of the following forms:
+    /// <list type="bullet">
+    /// <item>
+    /// 'IsXXX' where 'XXX' exactly matches one of the same named Syntax (node, token, trivia, list, etc.) constructs that 
+    /// both C# and VB have. For example 'IsSimpleName' to correspond to C# and VB's SimpleNameSyntax node.  These 'checking' 
+    /// methods should never fail.
+    /// </item>
+    /// <item>
+    /// 'GetXxxOfYYY' where 'XXX' matches the name of a property on a 'YYY' Syntax construct that both C# and VB have.  For
+    /// example 'GetExpressionOfMemberAccessExpression' corresponding to MemberAcessExpressionsyntax.Expression in both C# and
+    /// VB.  These functions should throw if passed a node that the corresponding 'IsYYY' did not return <see langword="true"/> for.
+    /// </item>
+    /// <item>
+    /// 'GetPartsOfXXX(SyntaxNode node, out SyntaxNode/SyntaxToken part1, ...)' where 'XXX' one of the same named Syntax constructs
+    /// that both C# and VB have, and where the returned parts correspond to the members those nodes have in common across the 
+    /// languages.  For example 'GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken dotToken, out SyntaxNode right)'
+    /// VB.  These functions should throw if passed a node that the corresponding 'IsXXX' did not return <see langword="true"/> for.
+    /// </item>
+    /// </list>
+    /// Importantly avoid:
+    /// <list type="bullet">
+    /// <item>
+    /// Functions that attempt to blur the lines between similar constructs in the same language.  For example, a QualifiedName
+    /// is not the same as a MemberAccessExpression (despite A.B being representable as either depending on context). 
+    /// Features that need to handle both should make it clear that they are doing so, showing that they're doing the right
+    /// thing for the contexts each can arise in (for the above example in 'type' vs 'expression' contexts).
+    /// </item>
+    /// <item>
+    /// Functions which are effectively specific to a single feature are are just trying to find a place to place complex
+    /// feature logic in a place such that it can run over VB or C#.  For example, a function to determine if a position
+    /// is on the 'header' of a node.  a 'header' is a not a well defined syntax concept that can be trivially asked of
+    /// nodes in either language.  It is an excapsulation of a feature (or set of features) level idea that should be in
+    /// its own dedicated service.
+    /// </item>
+    /// <item>
+    /// Functions that mutate or update syntax constructs for example 'WithXXX'.  These should be on <see cref="SyntaxGenerator"/>
+    /// or some other feature specific service.
+    /// </item>
+    /// </list>
+    /// </summary>
+    /// <remarks>
+    /// Many helpers in this type currently violate the above 'dos' and 'do nots'.  They should be removed and either 
+    /// inlined directly into the feature that needs if (if only a single feature), or moved into a dedicated service
+    /// for that purpose if needed by multiple features.
+    /// </remarks>
     internal interface ISyntaxFacts
     {
         bool IsCaseSensitive { get; }
