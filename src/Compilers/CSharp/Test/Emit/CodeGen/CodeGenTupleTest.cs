@@ -13120,7 +13120,7 @@ namespace System
 " + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib40(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
@@ -13138,7 +13138,7 @@ namespace System
 " + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib40(source);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (7,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
                 //         public ValueTuple(string s) { }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(7, 16),
@@ -13163,7 +13163,7 @@ namespace System
 " + tupleattributes_cs;
 
             var comp = CreateCompilationWithMscorlib40(source);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (7,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
                 //         public ValueTuple(string s) { }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(7, 16),
