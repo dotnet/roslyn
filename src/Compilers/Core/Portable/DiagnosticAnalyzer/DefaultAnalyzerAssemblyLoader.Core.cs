@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis
                     // assembly we're trying to load here is netstandard or a similar framework
                     // assembly. We assume that if that is not the case, then the parent ALC will
                     // fail to load this.
-                    return s_compilerLoadContext.LoadFromAssemblyName(assemblyName); ;
+                    return null;
                 }
 
                 var pathToLoad = _loader.GetPathToLoad(assemblyPath);
