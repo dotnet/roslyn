@@ -829,5 +829,48 @@ static class Program
 }}
 ", LanguageVersion.CSharp9);
         }
+
+        [Theory]
+        [InlineData("c!.SomeTask.$$")]
+        [InlineData("c.SomeTask!.$$")]
+
+        [InlineData("c.M()!.SomeTask.$$")]
+        [InlineData("c.Pro!.SomeTask.$$")]
+
+        [InlineData("c!.M().SomeTask.$$")]
+        [InlineData("c!.Pro.SomeTask.$$")]
+
+        [InlineData("c!.M()!.SomeTask.$$")]
+        [InlineData("c!.Pro!.SomeTask.$$")]
+
+        [InlineData("c.M()!.Pro.SomeTask.$$")]
+        [InlineData("c.Pro!.M().SomeTask.$$")]
+
+        [InlineData("c.M()!.M().M()!.M().SomeTask.$$")]
+        [InlineData("new C().M()!.Pro.M()!.M().SomeTask.$$")]
+        public async Task TestDotAwaitAfterNullForgivingOperatorAccessChain(string nullForgivingAccess)
+        {
+            await VerifyKeywordAsync($@"
+#nullable enable
+
+using System.Threading.Tasks;
+public class C
+{{
+    public Task? SomeTask => Task.CompletedTask;
+    
+    public C? Pro => this;
+    public C? M() => this;
+}}
+
+static class Program
+{{
+    public static async Task Main(params string[] args)
+    {{
+        var c =  args[1] == string.Empty ? new C() : null;
+        {nullForgivingAccess}
+    }}
+}}
+", LanguageVersion.CSharp9, dotAwait: true, dotAwaitf: true);
+        }
     }
 }
