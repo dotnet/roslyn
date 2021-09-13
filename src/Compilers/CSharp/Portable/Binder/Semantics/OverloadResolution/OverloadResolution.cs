@@ -3585,13 +3585,13 @@ outerDefault:
                 {
                     fromFunctionType = false;
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();
-                    return default;
+                    return default(ImmutableArray<TypeWithAnnotations>);
                 }
             }
 
             fromFunctionType = false;
             error = MemberAnalysisResult.TypeInferenceFailed();
-            return default;
+            return default(ImmutableArray<TypeWithAnnotations>);
         }
 
         private MemberAnalysisResult IsApplicable(
