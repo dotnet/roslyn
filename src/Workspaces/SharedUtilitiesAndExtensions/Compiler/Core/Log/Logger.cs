@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// given arguments will be passed to the messageGetter so that it can create the context message without requiring lifted locals
         /// </summary>
         public static IDisposable LogBlock<TArg0, TArg1, TArg2>(FunctionId functionId, Func<TArg0, TArg1, TArg2, string> messageGetter, TArg0 arg0, TArg1 arg1, TArg2 arg2, CancellationToken token, LogLevel logLevel = LogLevel.Trace)
-            => TryGetActiveLogger(functionId, out _) ? 
+            => TryGetActiveLogger(functionId, out _) ?
                 CreateLogBlock(functionId, LogMessage.Create(messageGetter, arg0, arg1, arg2, logLevel), GetNextUniqueBlockId(), token) :
                 EmptyLogBlock.Instance;
 
