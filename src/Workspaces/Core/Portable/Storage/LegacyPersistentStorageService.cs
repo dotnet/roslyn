@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Storage
     /// </summary>
     internal sealed class LegacyPersistentStorageService : IPersistentStorageService
     {
-        [ExportWorkspaceService(typeof(IPersistentStorageService)), Shared]
+        [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService)), Shared]
         internal sealed class Factory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
