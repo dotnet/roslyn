@@ -3279,9 +3279,33 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(56319, "https://github.com/dotnet/roslyn/issues/56319")]
+        [WorkItem(56167, "https://github.com/dotnet/roslyn/issues/56167")]
         [Fact]
         public void OverloadResolution_27()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void F(Action action) => Console.WriteLine(""Action"");
+    static void F(Expression expression) => Console.WriteLine(""Expression"");
+    static int GetValue() => 0;
+    static void Main()
+    {
+        F(() => GetValue());
+    }
+}";
+
+            string expectedOutput = "Action";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(56319, "https://github.com/dotnet/roslyn/issues/56319")]
+        [Fact]
+        public void OverloadResolution_28()
         {
             var source =
 @"using System;

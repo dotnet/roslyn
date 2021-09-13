@@ -2955,7 +2955,7 @@ OuterBreak:
             // We need at least one formal parameter type and at least one argument.
             if ((method.ParameterCount < 1) || (arguments.Length < 1))
             {
-                return default;
+                return default(ImmutableArray<TypeWithAnnotations>);
             }
 
             Debug.Assert(!method.GetParameterType(0).IsDynamic());
@@ -2974,7 +2974,7 @@ OuterBreak:
 
             if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteInfo))
             {
-                return default;
+                return default(ImmutableArray<TypeWithAnnotations>);
             }
 
             return inferrer.GetInferredTypeArguments(out _);

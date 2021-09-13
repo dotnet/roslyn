@@ -6113,7 +6113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return method;
             }
 
-            return definition.Construct(result.InferredTypeArguments.SelectAsArray(pair => pair.Type));
+            return definition.Construct(result.InferredTypeArguments);
         }
 
         private sealed class MethodInferenceExtensions : MethodTypeInferrer.Extensions
