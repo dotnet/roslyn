@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-        - ubuntu-18.04
+        - ubuntu-20.04
         - macos-latest
         - windows-latest
 
@@ -61,9 +61,8 @@ jobs:
     - name: Upload variables
       uses: actions/upload-artifact@v1
       with:
-        name: variables
+        name: variables-${{ runner.os }}
         path: obj/_artifacts/variables
-      if: runner.os == 'Windows'
       continue-on-error: true
     - name: Upload build_logs
       if: always()
@@ -89,16 +88,15 @@ jobs:
     - name: Upload symbols
       uses: actions/upload-artifact@v1
       with:
-        name: symbols
+        name: symbols-${{ runner.os }}
         path: obj/_artifacts/symbols
-      if: runner.os == 'Windows'
       continue-on-error: true
     - name: Upload deployables
       uses: actions/upload-artifact@v1
       with:
-        name: deployables
+        name: deployables-${{ runner.os }}
         path: obj/_artifacts/deployables
-      if: always() && runner.os == 'Windows'
+      if: always()
     - name: Publish code coverage results to codecov.io
       run: bash <(curl -s https://codecov.io/bash)
       shell: bash
