@@ -965,5 +965,61 @@ class C
                 Await state.AssertLineTextAroundCaret("        var z = from i1 in await arrayTask2.ConfigureAwait(false)", "")
             End Using
         End Function
+
+        <WpfFact>
+        Public Async Function DotAwaitCompletionNullForgivingOperatorIsKept() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+#nullable enable
+
+using System.Threading.Tasks;
+public class C
+{
+    public Task? SomeTask => Task.CompletedTask;
+    
+    public C? Pro => this;
+    public C? M() => this;
+}
+
+static class Program
+{
+    public static async Task Main(params string[] args)
+    {
+        var c =  args[1] == string.Empty ? new C() : null;
+        c!.SomeTask!.$$;
+    }
+}
+]]>
+                </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("await", "awaitf")
+                state.SendTypeChars("af")
+                Await state.AssertSelectedCompletionItem(displayText:="awaitf", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+#nullable enable
+
+using System.Threading.Tasks;
+public class C
+{
+    public Task? SomeTask => Task.CompletedTask;
+    
+    public C? Pro => this;
+    public C? M() => this;
+}
+
+static class Program
+{
+    public static async Task Main(params string[] args)
+    {
+        var c =  args[1] == string.Empty ? new C() : null;
+        await c!.SomeTask!.ConfigureAwait(false);
+    }
+}
+", state.GetDocumentText())
+                Await state.AssertLineTextAroundCaret("        await c!.SomeTask!.ConfigureAwait(false)", ";")
+            End Using
+        End Function
     End Class
 End Namespace
