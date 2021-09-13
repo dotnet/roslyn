@@ -75,6 +75,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return result.ToImmutable();
         }
 
+        /// <summary>
+        /// Looks for documents likely containing <paramref name="throughName"/> in them.  That name will either be the actual
+        /// name of the named type we're looking for, or it might be a global alias to it.
+        /// </summary>
         private static async Task AddDocumentsToSearchAsync(
             string throughName,
             Project project,
