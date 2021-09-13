@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             {
                 foreach (var document in project.Documents)
                 {
-                    var changeSignatureService = document.GetLanguageService<AbstractChangeSignatureService>();
+                    var changeSignatureService = document.GetRequiredLanguageService<AbstractChangeSignatureService>();
                     var cascaded = await changeSignatureService.DetermineCascadedSymbolsFromDelegateInvokeAsync(
                         symbol, document, cancellationToken).ConfigureAwait(false);
                     result.AddRange(cascaded);
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             IMethodSymbol symbol,
             HashSet<string>? globalAliases,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -82,10 +80,10 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             // FAR on the Delegate type and use those results to find Invoke calls
 
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var semanticFactsService = document.GetRequiredLanguageService<ISemanticFactsService>();
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var nodes = root.DescendantNodes();
 
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var convertedAnonymousFunctions);
@@ -94,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 if (!syntaxFactsService.IsAnonymousFunction(node))
                     continue;
 
-                var convertedType = (ISymbol)semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
+                var convertedType = (ISymbol?)semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
                 if (convertedType != null)
                 {
                     convertedType = await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).ConfigureAwait(false)
@@ -106,7 +104,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             }
 
             var invocations = nodes.Where(n => syntaxFactsService.IsInvocationExpression(n))
-                .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);
+                .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol?.OriginalDefinition == methodSymbol);
 
             return invocations.Concat(convertedAnonymousFunctions).SelectAsArray(
                   node => new FinderLocation(
