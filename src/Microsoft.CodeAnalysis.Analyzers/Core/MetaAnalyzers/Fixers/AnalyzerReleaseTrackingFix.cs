@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
 ";
 
-        public override ImmutableArray<string> FixableDiagnosticIds =>
+        public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(DiagnosticIds.DeclareDiagnosticIdInAnalyzerReleaseRuleId, DiagnosticIds.UpdateDiagnosticIdInAnalyzerReleaseRuleId, DiagnosticIds.EnableAnalyzerReleaseTrackingRuleId);
 
         public override FixAllProvider GetFixAllProvider()

@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    using static RoslynDiagnosticsAnalyzersResources;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class RelaxTestNamingSuppressor : DiagnosticSuppressor
     {
@@ -18,10 +20,8 @@ namespace Roslyn.Diagnostics.Analyzers
         // https://github.com/microsoft/vs-threading/blob/main/doc/analyzers/VSTHRD200.md
         private const string SuppressedDiagnosticId = "VSTHRD200";
 
-        private static readonly LocalizableString s_localizableJustification = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.RelaxTestNamingSuppressorJustification), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
-
         internal static readonly SuppressionDescriptor Rule =
-            new(Id, SuppressedDiagnosticId, s_localizableJustification);
+            new(Id, SuppressedDiagnosticId, CreateLocalizableResourceString(nameof(RelaxTestNamingSuppressorJustification)));
 
         public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions { get; } = ImmutableArray.Create(Rule);
 

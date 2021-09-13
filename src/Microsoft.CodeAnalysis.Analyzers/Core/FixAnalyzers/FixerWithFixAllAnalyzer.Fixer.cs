@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = nameof(FixerWithFixAllFix)), Shared]
     public sealed class FixerWithFixAllFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.OverrideGetFixAllProviderRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(DiagnosticIds.OverrideGetFixAllProviderRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
