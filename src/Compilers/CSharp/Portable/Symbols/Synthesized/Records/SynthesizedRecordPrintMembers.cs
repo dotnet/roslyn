@@ -119,11 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
             try
             {
-                ArrayBuilder<Symbol> printableMembersBuilder = ArrayBuilder<Symbol>.GetInstance();
-                printableMembersBuilder.AddRange(ContainingType.GetFieldsToEmit());
-                printableMembersBuilder.AddRange(ContainingType.GetPropertiesToEmit());
-                var printableMembers = printableMembersBuilder.Where(m => isPrintable(m)).AsImmutable();
-                printableMembersBuilder.Free();
+                ImmutableArray<Symbol> printableMembers = ContainingType.GetMembers().WhereAsArray(m => isPrintable(m));
 
                 if (ReturnType.IsErrorType() ||
                     printableMembers.Any(m => m.GetTypeOrReturnType().Type.IsErrorType()))
@@ -249,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                if (m.Kind is SymbolKind.Field)
+                if (m.Kind is SymbolKind.Field && m is not TupleErrorFieldSymbol)
                 {
                     return true;
                 }
