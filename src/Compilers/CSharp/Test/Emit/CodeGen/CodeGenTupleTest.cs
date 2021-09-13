@@ -13110,11 +13110,54 @@ partial class C
         public void CustomValueTuple_RecordStruct()
         {
             var source = @"
-
 namespace System
 {
     public record struct ValueTuple<T1, T2>(T1 Item1, T2 Item2)
     {
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyEmitDiagnostics();
+
+            var valuetuple = comp.GetTypeByMetadataName("System.ValueTuple`2");
+
+            AssertTestDisplayString(valuetuple.GetMembers(),
+                "(T1, T2)..ctor(T1 Item1, T2 Item2)",
+                "T1 (T1, T2).<Item1>k__BackingField",
+                "readonly T1 (T1, T2).Item1.get",
+                "void (T1, T2).Item1.set",
+                "T1 (T1, T2).Item1 { get; set; }",
+                "T2 (T1, T2).<Item2>k__BackingField",
+                "readonly T2 (T1, T2).Item2.get",
+                "void (T1, T2).Item2.set",
+                "T2 (T1, T2).Item2 { get; set; }",
+                "readonly System.String (T1, T2).ToString()",
+                "readonly System.Boolean (T1, T2).PrintMembers(System.Text.StringBuilder builder)",
+                "System.Boolean (T1, T2).op_Inequality((T1, T2) left, (T1, T2) right)",
+                "System.Boolean (T1, T2).op_Equality((T1, T2) left, (T1, T2) right)",
+                "readonly System.Int32 (T1, T2).GetHashCode()",
+                "readonly System.Boolean (T1, T2).Equals(System.Object obj)",
+                "readonly System.Boolean (T1, T2).Equals((T1, T2) other)",
+                "readonly void (T1, T2).Deconstruct(out T1 Item1, out T2 Item2)",
+                "(T1, T2)..ctor()",
+                "T1 (T1, T2).Item1",
+                "T2 (T1, T2).Item2"
+                );
+        }
+
+        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_Properties()
+        {
+            var source = @"
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1 { get; set; }
+        public T2 Item2 { get; set; }
     }
 }
 " + tupleattributes_cs;
