@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetExpressionOfArgument(SyntaxNode node)
             => ((ArgumentSyntax)node).Expression;
 
-        public RefKind GetRefKindOfArgument(SyntaxNode? node)
+        public RefKind GetRefKindOfArgument(SyntaxNode node)
             => ((ArgumentSyntax)node).GetRefKind();
 
         public bool IsArgument([NotNullWhen(true)] SyntaxNode? node)
