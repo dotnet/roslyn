@@ -40,6 +40,10 @@
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
     <ProjectReference Include="..\Impl\Microsoft.VisualStudio.LanguageServices.LiveShare.csproj" />
+
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol.Internal\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol.Extensions\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
   </ItemGroup>
 
   <ItemGroup>

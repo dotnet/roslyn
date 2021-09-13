@@ -8,6 +8,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
@@ -16,17 +17,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     internal class WorkspacePullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly IDiagnosticService _diagnosticService;
+        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
+        private readonly IAsyncServiceProvider _serviceProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspacePullDiagnosticHandlerProvider(IDiagnosticService diagnosticService)
+        public WorkspacePullDiagnosticHandlerProvider(IDiagnosticService diagnosticService, SVsServiceProvider serviceProvider, ILspWorkspaceRegistrationService workspaceRegistrationService)
         {
             _diagnosticService = diagnosticService;
+            _workspaceRegistrationService = workspaceRegistrationService;
+            _serviceProvider = (IAsyncServiceProvider)serviceProvider;
         }
 
         public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
         {
-            return ImmutableArray.Create<IRequestHandler>(new WorkspacePullDiagnosticHandler(_diagnosticService));
+            return ImmutableArray.Create<IRequestHandler>(new WorkspacePullDiagnosticHandler(_diagnosticService, _serviceProvider, _workspaceRegistrationService));
         }
     }
 }

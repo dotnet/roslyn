@@ -17,14 +17,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(MicrosoftVisualStudioLanguageServerProtocolInternalVersion)" />
+    <!--<PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion)" />-->
+    <!--<PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(MicrosoftVisualStudioLanguageServerProtocolInternalVersion)" />-->
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="$(MicrosoftVisualStudioCoreUtilityVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
+    <!--<PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />-->
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsVersion)" />
+
+    <Reference Include="C:\Program Files\Microsoft Visual Studio\2022\Fluid\Common7\IDE\Microsoft.VisualStudio.Utilities.dll" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol.Internal\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol.Extensions\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
   </ItemGroup>
 
   <ItemGroup>

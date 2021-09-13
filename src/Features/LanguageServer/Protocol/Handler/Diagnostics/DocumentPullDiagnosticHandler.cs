@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
             => ConvertTags(diagnosticData, potentialDuplicate: false);
 
-        protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+        protected override Task<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, VSInternalDocumentDiagnosticsParams? @params, CancellationToken cancellationToken)
         {
             // For the single document case, that is the only doc we want to process.
             //
@@ -65,16 +65,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (context.Document == null)
             {
                 context.TraceInformation("Ignoring diagnostics request because no document was provided");
-                return ImmutableArray<Document>.Empty;
+                return Task.FromResult(ImmutableArray<Document>.Empty);
             }
 
             if (!context.IsTracking(context.Document.GetURI()))
             {
                 context.TraceInformation($"Ignoring diagnostics request for untracked document: {context.Document.GetURI()}");
-                return ImmutableArray<Document>.Empty;
+                return Task.FromResult(ImmutableArray<Document>.Empty);
             }
 
-            return ImmutableArray.Create(context.Document);
+            return Task.FromResult(ImmutableArray.Create(context.Document));
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
@@ -85,6 +85,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // it will be computed on demand.  Because it is always accurate as per this snapshot, all spans are correct
             // and do not need to be adjusted.
             return _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
+        }
+
+        protected override Task<(ImmutableArray<Document> Documents, IDisposable? ProjectRental)> GetOrderedDocumentsForProjectAsync(RequestContext context, VSInternalDocumentDiagnosticsParams diagnosticsParams, CancellationToken cancellationToken)
+        {
+            return Task.FromResult((Documents: ImmutableArray<Document>.Empty, ProjectRental: (IDisposable?)null));
         }
     }
 }

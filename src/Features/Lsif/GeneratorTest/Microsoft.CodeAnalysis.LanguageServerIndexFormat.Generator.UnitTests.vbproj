@@ -40,6 +40,9 @@
     <ProjectReference Include="..\..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\..\..\Scripting\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj" />
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol.Internal\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol.Extensions\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />

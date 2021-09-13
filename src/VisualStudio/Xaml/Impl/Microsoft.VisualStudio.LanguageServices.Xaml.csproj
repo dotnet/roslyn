@@ -30,6 +30,11 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\LanguageServer.Client.Definition\Debug\net472\Microsoft.VisualStudio.LanguageServer.Client.dll" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol.Internal\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol.Extensions\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Resources.resx" GenerateSource="true" />

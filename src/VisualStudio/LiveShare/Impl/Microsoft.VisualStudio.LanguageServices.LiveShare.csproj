@@ -36,6 +36,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Workspace.VSIntegration" Version="$(MicrosoftVisualStudioWorkspaceVSIntegrationVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol.Internal\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
+    <Reference Include="D:\repos\VSLanguageServerClient\bin\product\Protocol\LanguageServer.Protocol.Extensions\Debug\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests" />

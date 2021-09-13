@@ -78,7 +78,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
         /// </summary>
-        protected abstract ImmutableArray<Document> GetOrderedDocuments(RequestContext context);
+        protected abstract Task<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, TDiagnosticsParams? diagnosticsParams, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Returns all the documents that should be processed in the desired order to process them in.
+        /// </summary>
+        protected abstract Task<(ImmutableArray<Document> Documents, IDisposable? ProjectRental)> GetOrderedDocumentsForProjectAsync(RequestContext context, TDiagnosticsParams diagnosticsParams, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates the <see cref="VSInternalDiagnosticReport"/> instance we'll report back to clients to let them know our
@@ -133,35 +138,79 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // the updated diagnostics are.
             var documentToPreviousDiagnosticParams = GetDocumentToPreviousDiagnosticParams(context, previousResults);
 
-            // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
-            // last time we notified the client.  Report back either to the client so they can update accordingly.
-            var orderedDocuments = GetOrderedDocuments(context);
-            context.TraceInformation($"Processing {orderedDocuments.Length} documents");
-
-            foreach (var document in orderedDocuments)
+            if (diagnosticsParams is VSInternalWorkspaceDiagnosticsParams workspaceDiagnosticsParams && workspaceDiagnosticsParams.ProjectId is not null)
             {
-                context.TraceInformation($"Processing: {document.FilePath}");
+                // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
+                // last time we notified the client.  Report back either to the client so they can update accordingly.
+                (var orderedDocuments, var projectRental) = await GetOrderedDocumentsForProjectAsync(context, diagnosticsParams, cancellationToken).ConfigureAwait(false);
+                context.TraceInformation($"Processing {orderedDocuments.Length} documents requested for a project");
 
-                if (!IncludeDocument(document, context.ClientName))
+                try
                 {
-                    context.TraceInformation($"Ignoring document '{document.FilePath}' because of razor/client-name mismatch");
-                    continue;
+                    foreach (var document in orderedDocuments)
+                    {
+                        context.TraceInformation($"Processing: {document.FilePath}");
+
+                        if (!IncludeDocument(document, context.ClientName))
+                        {
+                            context.TraceInformation($"Ignoring document '{document.FilePath}' because of razor/client-name mismatch");
+                            continue;
+                        }
+
+                        if (HaveDiagnosticsChanged(documentToPreviousDiagnosticParams, document, out var newResultId))
+                        {
+                            context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
+                            progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
+                        }
+                        else
+                        {
+                            context.TraceInformation($"Diagnostics were unchanged for document: {document.FilePath}");
+
+                            // Nothing changed between the last request and this one.  Report a (null-diagnostics,
+                            // same-result-id) response to the client as that means they should just preserve the current
+                            // diagnostics they have for this file.
+                            var previousParams = documentToPreviousDiagnosticParams[document];
+                            progress.Report(CreateReport(previousParams.TextDocument, diagnostics: null, previousParams.PreviousResultId));
+                        }
+                    }
                 }
-
-                if (HaveDiagnosticsChanged(documentToPreviousDiagnosticParams, document, out var newResultId))
+                finally
                 {
-                    context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
-                    progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
+                    projectRental?.Dispose();
                 }
-                else
-                {
-                    context.TraceInformation($"Diagnostics were unchanged for document: {document.FilePath}");
+            }
+            else
+            {
+                // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
+                // last time we notified the client.  Report back either to the client so they can update accordingly.
+                var orderedDocuments = await GetOrderedDocumentsAsync(context, diagnosticsParams, cancellationToken).ConfigureAwait(false);
+                context.TraceInformation($"Processing {orderedDocuments.Length} documents");
 
-                    // Nothing changed between the last request and this one.  Report a (null-diagnostics,
-                    // same-result-id) response to the client as that means they should just preserve the current
-                    // diagnostics they have for this file.
-                    var previousParams = documentToPreviousDiagnosticParams[document];
-                    progress.Report(CreateReport(previousParams.TextDocument, diagnostics: null, previousParams.PreviousResultId));
+                foreach (var document in orderedDocuments)
+                {
+                    context.TraceInformation($"Processing: {document.FilePath}");
+
+                    if (!IncludeDocument(document, context.ClientName))
+                    {
+                        context.TraceInformation($"Ignoring document '{document.FilePath}' because of razor/client-name mismatch");
+                        continue;
+                    }
+
+                    if (HaveDiagnosticsChanged(documentToPreviousDiagnosticParams, document, out var newResultId))
+                    {
+                        context.TraceInformation($"Diagnostics were changed for document: {document.FilePath}");
+                        progress.Report(await ComputeAndReportCurrentDiagnosticsAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
+                    }
+                    else
+                    {
+                        context.TraceInformation($"Diagnostics were unchanged for document: {document.FilePath}");
+
+                        // Nothing changed between the last request and this one.  Report a (null-diagnostics,
+                        // same-result-id) response to the client as that means they should just preserve the current
+                        // diagnostics they have for this file.
+                        var previousParams = documentToPreviousDiagnosticParams[document];
+                        progress.Report(CreateReport(previousParams.TextDocument, diagnostics: null, previousParams.PreviousResultId));
+                    }
                 }
             }
 

@@ -11,17 +11,25 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.NoDelay;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport>
     {
+        private readonly IAsyncServiceProvider _serviceProvider;
+        private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+
         public override string Method => VSInternalMethods.WorkspacePullDiagnosticName;
 
-        public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService)
+        public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService, IAsyncServiceProvider serviceProvider, ILspWorkspaceRegistrationService lspWorkspaceRegistrationService)
             : base(diagnosticService)
         {
+            _serviceProvider = serviceProvider;
+            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
         }
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalWorkspaceDiagnosticsParams request)
@@ -51,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return ConvertTags(diagnosticData, potentialDuplicate: true);
         }
 
-        protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+        protected override async Task<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, VSInternalWorkspaceDiagnosticsParams? workspaceDiagnosticsParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -64,7 +72,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
 
             var solution = context.Solution;
-
             var documentTrackingService = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
             // Collect all the documents from the solution in the order we'd like to get diagnostics for.  This will
@@ -75,56 +82,56 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
 
             // Now, prioritize the projects related to the active/visible files.
-            AddDocumentsFromProject(activeDocument?.Project, context.SupportedLanguages, isOpen: true);
+            AddDocumentsFromProject(activeDocument?.Project, context.SupportedLanguages, isOpen: true, context, result, solution);
             foreach (var doc in visibleDocuments)
-                AddDocumentsFromProject(doc.Project, context.SupportedLanguages, isOpen: true);
+                AddDocumentsFromProject(doc.Project, context.SupportedLanguages, isOpen: true, context, result, solution);
 
             // finally, add the remainder of all documents.
             foreach (var project in solution.Projects)
-                AddDocumentsFromProject(project, context.SupportedLanguages, isOpen: false);
+                AddDocumentsFromProject(project, context.SupportedLanguages, isOpen: false, context, result, solution);
 
             // Ensure that we only process documents once.
             result.RemoveDuplicates();
             return result.ToImmutable();
+        }
 
-            void AddDocumentsFromProject(Project? project, ImmutableArray<string> supportedLanguages, bool isOpen)
+        private static void AddDocumentsFromProject(Project? project, ImmutableArray<string> supportedLanguages, bool isOpen, RequestContext context, ArrayBuilder<Document>? result, Solution? solution)
+        {
+            if (project == null)
+                return;
+
+            if (!supportedLanguages.Contains(project.Language))
             {
-                if (project == null)
+                // This project is for a language not supported by the LSP server making the request.
+                // Do not report diagnostics for these projects.
+                return;
+            }
+
+            // if the project doesn't necessarily have an open file in it, then only include it if the user has full
+            // solution analysis on.
+            if (!isOpen)
+            {
+                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(solution.Workspace.Options, project.Language);
+                if (analysisScope != BackgroundAnalysisScope.FullSolution)
+                {
+                    context.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");
                     return;
+                }
+            }
 
-                if (!supportedLanguages.Contains(project.Language))
+            // Otherwise, if the user has an open file from this project, or FSA is on, then include all the
+            // documents from it.
+            foreach (var document in project.Documents)
+            {
+                // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
+                // Each handler treats those as separate worlds that they are responsible for.
+                if (context.IsTracking(document.GetURI()))
                 {
-                    // This project is for a language not supported by the LSP server making the request.
-                    // Do not report diagnostics for these projects.
-                    return;
+                    context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
+                    continue;
                 }
 
-                // if the project doesn't necessarily have an open file in it, then only include it if the user has full
-                // solution analysis on.
-                if (!isOpen)
-                {
-                    var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(solution.Workspace.Options, project.Language);
-                    if (analysisScope != BackgroundAnalysisScope.FullSolution)
-                    {
-                        context.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");
-                        return;
-                    }
-                }
-
-                // Otherwise, if the user has an open file from this project, or FSA is on, then include all the
-                // documents from it.
-                foreach (var document in project.Documents)
-                {
-                    // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
-                    // Each handler treats those as separate worlds that they are responsible for.
-                    if (context.IsTracking(document.GetURI()))
-                    {
-                        context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
-                        continue;
-                    }
-
-                    result.Add(document);
-                }
+                result.Add(document);
             }
         }
 
@@ -135,6 +142,73 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
             // any deviations in the spans of diagnostics shouldn't be impactful for the user.
             return DiagnosticService.GetPullDiagnosticsAsync(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken).AsTask();
+        }
+
+        private static Project? TryFindLSPProject(ILspWorkspaceRegistrationService lspWorkspaceRegistrationService, string fullPath)
+        {
+            foreach (var workspaceRegistration in lspWorkspaceRegistrationService.GetAllRegistrations())
+            {
+                foreach (var project in workspaceRegistration.CurrentSolution.Projects)
+                {
+                    if (project.FilePath.Equals(fullPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return project;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        protected override async Task<(ImmutableArray<Document> Documents, IDisposable? ProjectRental)> GetOrderedDocumentsForProjectAsync(RequestContext context, VSInternalWorkspaceDiagnosticsParams workspaceDiagnosticsParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(context.Solution);
+
+            // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
+            // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
+            // document-diagnostics instead.
+            if (context.ClientName != null)
+                return (Documents: ImmutableArray<Document>.Empty, ProjectRental: null);
+
+            using var _ = ArrayBuilder<Document>.GetInstance(out var result);
+
+            if (workspaceDiagnosticsParams?.ProjectId is not null)
+            {
+                var serviceContainer = await _serviceProvider.GetServiceAsync(typeof(SVsBrokeredServiceContainer)).ConfigureAwait(false) as IBrokeredServiceContainer;
+                var serviceBroker = serviceContainer?.GetFullAccessServiceBroker();
+                if (serviceBroker is object)
+                {
+                    var solutionService = await serviceBroker.GetProxyAsync<IEnvironmentService>(FluidServiceDescriptors.EnvironmentService, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    using (solutionService as IDisposable)
+                    {
+                        if (solutionService is object)
+                        {
+                            var projectData = await solutionService.GetProjectByGuidAsync(workspaceDiagnosticsParams.ProjectId.Value, cancellationToken).ConfigureAwait(false);
+                            if (projectData != null)
+                            {
+                                var projectService = await serviceBroker.GetProxyAsync<IProjectService>(projectData.ProjectRequestParameters.GetDescriptor(), projectData.ProjectRequestParameters.Options, cancellationToken).ConfigureAwait(false);
+                                using (projectService as IDisposable)
+                                {
+                                    if (projectService is object)
+                                    {
+                                        var projectRental = await projectService.RequireLanguageServiceAsync(isPrimaryProject: false, cancellationToken).ConfigureAwait(false);
+                                        var project = TryFindLSPProject(_lspWorkspaceRegistrationService, projectData.FullPath);
+                                        if (project is object)
+                                        {
+                                            AddDocumentsFromProject(project, context.SupportedLanguages, isOpen: false, context, result, project.Solution);
+                                            // Ensure that we only process documents once.
+                                            result.RemoveDuplicates();
+                                            return (Documents: result.ToImmutable(), projectRental);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return (Documents: ImmutableArray<Document>.Empty, ProjectRental: null);
         }
     }
 }
