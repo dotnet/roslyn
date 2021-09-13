@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return ConvertTags(diagnosticData, potentialDuplicate: true);
         }
 
-        protected override async Task<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, VSInternalWorkspaceDiagnosticsParams? workspaceDiagnosticsParams, CancellationToken cancellationToken)
+        protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
         {
             Contract.ThrowIfNull(context.Solution);
 

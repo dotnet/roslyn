@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
             => ConvertTags(diagnosticData, potentialDuplicate: false);
 
-        protected override Task<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, VSInternalDocumentDiagnosticsParams? @params, CancellationToken cancellationToken)
+        protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
         {
             // For the single document case, that is the only doc we want to process.
             //
@@ -65,16 +65,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             if (context.Document == null)
             {
                 context.TraceInformation("Ignoring diagnostics request because no document was provided");
-                return Task.FromResult(ImmutableArray<Document>.Empty);
+                return ImmutableArray<Document>.Empty;
             }
 
             if (!context.IsTracking(context.Document.GetURI()))
             {
                 context.TraceInformation($"Ignoring diagnostics request for untracked document: {context.Document.GetURI()}");
-                return Task.FromResult(ImmutableArray<Document>.Empty);
+                return ImmutableArray<Document>.Empty;
             }
 
-            return Task.FromResult(ImmutableArray.Create(context.Document));
+            return ImmutableArray.Create(context.Document);
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(

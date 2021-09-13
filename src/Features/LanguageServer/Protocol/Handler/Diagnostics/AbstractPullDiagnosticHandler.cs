@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
         /// </summary>
-        protected abstract Task<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, TDiagnosticsParams? diagnosticsParams, CancellationToken cancellationToken);
+        protected abstract ImmutableArray<Document> GetOrderedDocuments(RequestContext context);
 
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             {
                 // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
                 // last time we notified the client.  Report back either to the client so they can update accordingly.
-                var orderedDocuments = await GetOrderedDocumentsAsync(context, diagnosticsParams, cancellationToken).ConfigureAwait(false);
+                var orderedDocuments = GetOrderedDocuments(context);
                 context.TraceInformation($"Processing {orderedDocuments.Length} documents");
 
                 foreach (var document in orderedDocuments)
