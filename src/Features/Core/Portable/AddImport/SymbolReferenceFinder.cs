@@ -422,26 +422,23 @@ namespace Microsoft.CodeAnalysis.AddImport
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForCollectionInitializerMethodsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
-                    _syntaxFacts.IsSimpleName(_node))
+                if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out _) &&
+                    !_syntaxFacts.IsSimpleName(_node) &&
+                    _owner.IsAddMethodContext(_node, _semanticModel))
                 {
-                    _syntaxFacts.GetNameAndArityOfSimpleName(_node, out var name, out var arity);
-                    if (name == null && _owner.IsAddMethodContext(_node, _semanticModel))
-                    {
-                        var symbols = await searchScope.FindDeclarationsAsync(
-                            nameof(IList.Add), nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
+                    var symbols = await searchScope.FindDeclarationsAsync(
+                        nameof(IList.Add), nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
 
-                        // Note: there is no desiredName for these search results.  We're searching for
-                        // extension methods called "Add", but we have no intention of renaming any 
-                        // of the existing user code to that name.
-                        var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
+                    // Note: there is no desiredName for these search results.  We're searching for
+                    // extension methods called "Add", but we have no intention of renaming any 
+                    // of the existing user code to that name.
+                    var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
 
-                        var viableMethods = GetViableExtensionMethods(
-                            methodSymbols, _node.Parent, searchScope.CancellationToken);
+                    var viableMethods = GetViableExtensionMethods(
+                        methodSymbols, _node.Parent, searchScope.CancellationToken);
 
-                        return GetNamespaceSymbolReferences(searchScope,
-                            viableMethods.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
-                    }
+                    return GetNamespaceSymbolReferences(searchScope,
+                        viableMethods.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
                 }
 
                 return ImmutableArray<SymbolReference>.Empty;
