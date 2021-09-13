@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// <summary>
     /// Contains helpers to allow features and other algorithms to run over C# and Visual Basic code in a uniform fashion.
     /// It should be thought of a generalized way to apply type-pattern-matching and syntax-deconstruction in a uniform
-    /// fashoin over the language. Helpers in this type should only be one of the following forms:
+    /// fashion over the languages. Helpers in this type should only be one of the following forms:
     /// <list type="bullet">
     /// <item>
     /// 'IsXXX' where 'XXX' exactly matches one of the same named Syntax (node, token, trivia, list, etc.) constructs that 
