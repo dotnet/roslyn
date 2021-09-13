@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 options.AssociatePropertyReferencesWithSpecificAccessor)
             {
                 var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
-                    property,globalAliases,  document, semanticModel,
+                    property, globalAliases, document, semanticModel,
                     options.With(associatePropertyReferencesWithSpecificAccessor: false),
                     cancellationToken).ConfigureAwait(false);
 
