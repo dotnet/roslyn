@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return null;
             }
 
-            if (!(implementation.ContainingType.GenerateTypeSyntax() is NameSyntax name))
+            if (implementation.ContainingType.GenerateTypeSyntax() is not NameSyntax name)
             {
                 return null;
             }

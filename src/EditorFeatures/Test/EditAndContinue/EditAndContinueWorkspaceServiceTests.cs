@@ -3921,9 +3921,12 @@ class C
         [Fact]
         public async Task WatchHotReloadServiceTest()
         {
+            // See https://github.com/dotnet/sdk/blob/main/src/BuiltInTools/dotnet-watch/HotReload/CompilationHandler.cs#L125
+
             var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
             var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
             var source3 = "class C { void X() { System.Console.WriteLine(2); } }";
+            var source4 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
 
             var dir = Temp.CreateDirectory();
             var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1);
@@ -3956,6 +3959,7 @@ class C
                 "(A, MatchesBuildOutput)"
             }, matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
 
+            // Valid update:
             solution = solution.WithDocumentText(documentIdA, SourceText.From(source2, Encoding.UTF8));
 
             var result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
@@ -3963,6 +3967,7 @@ class C
             Assert.Equal(1, result.updates.Length);
             AssertEx.Equal(new[] { 0x02000002 }, result.updates[0].UpdatedTypes);
 
+            // Rude edit:
             solution = solution.WithDocumentText(documentIdA, SourceText.From(source3, Encoding.UTF8));
 
             result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
@@ -3970,6 +3975,13 @@ class C
                 new[] { "ENC0020: " + string.Format(FeaturesResources.Renaming_0_requires_restarting_the_application, FeaturesResources.method) },
                 result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
+            Assert.Empty(result.updates);
+
+            // Syntax error (not reported in diagnostics):
+            solution = solution.WithDocumentText(documentIdA, SourceText.From(source4, Encoding.UTF8));
+
+            result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
+            Assert.Empty(result.diagnostics);
             Assert.Empty(result.updates);
 
             hotReload.EndSession();
@@ -3981,6 +3993,7 @@ class C
             var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
             var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
             var source3 = "class C { void X() { System.Console.WriteLine(2); } }";
+            var source4 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
 
             var dir = Temp.CreateDirectory();
             var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1);
@@ -4013,19 +4026,28 @@ class C
                 "(A, MatchesBuildOutput)"
             }, matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
 
+            // Valid change
             solution = solution.WithDocumentText(documentIdA, SourceText.From(source2, Encoding.UTF8));
 
-            var result = await hotReload.EmitSolutionUpdateAsync(solution, true, CancellationToken.None);
+            var result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
             Assert.Empty(result.diagnostics);
             Assert.Equal(1, result.updates.Length);
 
             solution = solution.WithDocumentText(documentIdA, SourceText.From(source3, Encoding.UTF8));
 
-            result = await hotReload.EmitSolutionUpdateAsync(solution, true, CancellationToken.None);
+            // Rude edit
+            result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
             AssertEx.Equal(
                 new[] { "ENC0020: " + string.Format(FeaturesResources.Renaming_0_requires_restarting_the_application, FeaturesResources.method) },
                 result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
+            Assert.Empty(result.updates);
+
+            // Syntax error (not reported in diagnostics):
+            solution = solution.WithDocumentText(documentIdA, SourceText.From(source4, Encoding.UTF8));
+
+            result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
+            Assert.Empty(result.diagnostics);
             Assert.Empty(result.updates);
 
             hotReload.EndSession();

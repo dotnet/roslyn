@@ -401,12 +401,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 {
                     foreach (var expression in objectCreationExpressionOpt.Initializer.Expressions)
                     {
-                        if (!(expression is AssignmentExpressionSyntax simpleAssignmentExpression))
+                        if (expression is not AssignmentExpressionSyntax simpleAssignmentExpression)
                         {
                             continue;
                         }
 
-                        if (!(simpleAssignmentExpression.Left is SimpleNameSyntax name))
+                        if (simpleAssignmentExpression.Left is not SimpleNameSyntax name)
                         {
                             continue;
                         }

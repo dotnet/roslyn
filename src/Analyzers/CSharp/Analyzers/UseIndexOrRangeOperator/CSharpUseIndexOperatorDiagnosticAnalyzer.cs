@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 return;
             }
 
-            if (!(subtraction.Syntax is BinaryExpressionSyntax binaryExpression))
+            if (subtraction.Syntax is not BinaryExpressionSyntax binaryExpression)
             {
                 return;
             }

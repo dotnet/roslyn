@@ -1033,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return false;
             }
 
-            if (!(nameToken.Parent is NameSyntax name))
+            if (nameToken.Parent is not NameSyntax name)
             {
                 return false;
             }
@@ -2358,7 +2358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.Parent.IsKind(SyntaxKind.ConditionalExpression, out ConditionalExpressionSyntax? conditionalExpression))
             {
                 // If the condition is simply a TypeSyntax that binds to a type, treat this as a nullable type.
-                return !(conditionalExpression.Condition is TypeSyntax type)
+                return conditionalExpression.Condition is not TypeSyntax type
                     || !type.IsPotentialTypeName(semanticModelOpt, cancellationToken);
             }
 

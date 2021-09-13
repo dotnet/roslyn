@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             if (argument.Type == null ||
                 argument.Type.SpecialType != SpecialType.System_String ||
                 argument.IsNull ||
-                !(argument.Value is string stringValue))
+                argument.Value is not string stringValue)
             {
                 return null;
             }

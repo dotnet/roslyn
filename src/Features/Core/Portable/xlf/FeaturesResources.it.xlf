@@ -225,6 +225,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Applica le preferenze di inizializzazione di oggetti/raccolte</target>
         <note />
       </trans-unit>
+      <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
+        <source>Applying source changes while the application is running is not supported by the runtime.</source>
+        <target state="new">Applying source changes while the application is running is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
         <source>Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</source>
         <target state="new">Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</target>
@@ -518,11 +523,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
         <target state="needs-review-translation">Le modifiche apportate al progetto '{0}' impediranno la continuazione della sessione di debug: {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
-        <source>Edit and continue is not supported by the runtime.</source>
-        <target state="translated">La funzione Modifica e continuazione non è supportata dal runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">

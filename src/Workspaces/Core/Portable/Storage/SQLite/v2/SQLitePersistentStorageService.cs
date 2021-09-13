@@ -21,28 +21,24 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         private readonly SQLiteConnectionPoolService _connectionPoolService;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly OptionSet _options;
         private readonly IPersistentStorageFaultInjector? _faultInjector;
 
         public SQLitePersistentStorageService(
-            OptionSet options,
             SQLiteConnectionPoolService connectionPoolService,
-            IPersistentStorageLocationService locationService,
+            IPersistentStorageConfiguration configuration,
             IAsynchronousOperationListener asyncListener)
-            : base(locationService)
+            : base(configuration)
         {
-            _options = options;
             _connectionPoolService = connectionPoolService;
             _asyncListener = asyncListener;
         }
 
         public SQLitePersistentStorageService(
-            OptionSet options,
             SQLiteConnectionPoolService connectionPoolService,
-            IPersistentStorageLocationService locationService,
+            IPersistentStorageConfiguration configuration,
             IAsynchronousOperationListener asyncListener,
             IPersistentStorageFaultInjector? faultInjector)
-            : this(options, connectionPoolService, locationService, asyncListener)
+            : this(connectionPoolService, configuration, asyncListener)
         {
             _faultInjector = faultInjector;
         }
@@ -63,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             if (solutionKey.FilePath == null)
-                return new(NoOpPersistentStorage.GetOrThrow(_options));
+                return new(NoOpPersistentStorage.GetOrThrow(Configuration.ThrowOnFailure));
 
             return new(SQLitePersistentStorage.TryCreate(
                 _connectionPoolService,

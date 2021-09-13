@@ -11,6 +11,13 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Xaml
 {
+    /// <summary>
+    /// TODO: move this to Microsoft.VisualStudio.LanguageServices.Xaml.
+    /// https://github.com/dotnet/roslyn/issues/56324
+    /// 
+    /// Currently GlobalOptionService.CreateLazySerializableOptionsByLanguage loads all IOptionProvider types eagerly to determine whether or not they contribute to solution options.
+    /// This is causing RPS regression.
+    /// </summary>
     [ExportOptionProvider, Shared]
     internal sealed class XamlOptions : IOptionProvider
     {

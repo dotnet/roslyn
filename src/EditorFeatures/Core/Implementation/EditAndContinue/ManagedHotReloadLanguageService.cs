@@ -132,12 +132,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             try
             {
                 var solution = GetCurrentCompileTimeSolution();
-                var (moduleUpdates, diagnosticData, rudeEdits) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+                var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
 
                 var updates = moduleUpdates.Updates.SelectAsArray(
                     update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta));
 
-                var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, cancellationToken).ConfigureAwait(false);
+                var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, cancellationToken).ConfigureAwait(false);
                 _pendingUpdatedSolution = solution;
                 return new ManagedHotReloadUpdates(updates, diagnostics);
             }

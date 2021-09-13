@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                     var symbol = semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol();
                     if (local.Equals(symbol))
                     {
-                        if (!(identifierName.Parent is MemberAccessExpressionSyntax memberAccess))
+                        if (identifierName.Parent is not MemberAccessExpressionSyntax memberAccess)
                         {
                             // We referenced the local in a location where we're not accessing a 
                             // field off of it.  i.e. Console.WriteLine(tupleLocal);
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                         }
 
                         var member = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol();
-                        if (!(member is IFieldSymbol field))
+                        if (member is not IFieldSymbol field)
                         {
                             // Accessed some non-field member of it (like .ToString()).
                             return false;

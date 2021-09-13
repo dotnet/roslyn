@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            if (!(localDeclaration.Parent is BlockSyntax block))
+            if (localDeclaration.Parent is not BlockSyntax block)
             {
                 return;
             }

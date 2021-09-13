@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position, findInsideTrivia: true);
 
-            if (!(token.Parent is TDirectiveTriviaSyntax directive))
+            if (token.Parent is not TDirectiveTriviaSyntax directive)
             {
                 return null;
             }

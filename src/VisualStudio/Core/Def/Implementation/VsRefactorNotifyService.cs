@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            if (!(workspace is VisualStudioWorkspace visualStudioWorkspace))
+            if (workspace is not VisualStudioWorkspace visualStudioWorkspace)
             {
                 return false;
             }

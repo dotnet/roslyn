@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
             conditionPartToCheck = null;
             isEquals = true;
 
-            if (!(conditionNode is IsPatternExpressionSyntax patternExpression))
+            if (conditionNode is not IsPatternExpressionSyntax patternExpression)
             {
                 return false;
             }
 
-            if (!(patternExpression.Pattern is ConstantPatternSyntax constantPattern))
+            if (patternExpression.Pattern is not ConstantPatternSyntax constantPattern)
             {
                 return false;
             }

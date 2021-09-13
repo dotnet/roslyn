@@ -333,7 +333,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             VisualStudioNavigateToLinkService.StartBrowser(e.Uri);
             e.Handled = true;
 
-            if (!(sender is Hyperlink hyperlink))
+            if (sender is not Hyperlink hyperlink)
             {
                 return;
             }

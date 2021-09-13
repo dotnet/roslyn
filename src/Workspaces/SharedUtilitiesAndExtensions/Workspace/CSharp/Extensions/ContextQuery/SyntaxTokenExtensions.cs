@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsNumericTypeContext(this SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (!(token.Parent is MemberAccessExpressionSyntax memberAccessExpression))
+            if (token.Parent is not MemberAccessExpressionSyntax memberAccessExpression)
             {
                 return false;
             }

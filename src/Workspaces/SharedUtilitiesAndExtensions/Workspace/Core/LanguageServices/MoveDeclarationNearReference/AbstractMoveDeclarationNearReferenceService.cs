@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 
         private async Task<State> ComputeStateAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            if (!(node is TLocalDeclarationStatementSyntax statement))
+            if (node is not TLocalDeclarationStatementSyntax statement)
             {
                 return null;
             }

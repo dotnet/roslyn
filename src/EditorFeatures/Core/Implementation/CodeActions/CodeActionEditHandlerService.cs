@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             CancellationToken cancellationToken)
         {
             // Much of the work we're going to do will be on the UI thread, so switch there preemptively.
-            // When we get to the expensive parts we can do in the BG then we'll switch over to relinquish 
+            // When we get to the expensive parts we can do in the BG then we'll switch over to relinquish
             // the UI thread.
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -125,13 +125,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             var applied = false;
 
             // Determine if we're making a simple text edit to a single file or not.
-            // If we're not, then we need to make a linked global undo to wrap the 
-            // application of these operations.  This way we should be able to undo 
+            // If we're not, then we need to make a linked global undo to wrap the
+            // application of these operations.  This way we should be able to undo
             // them all with one user action.
             //
             // The reason we don't always create a global undo is that a global undo
-            // forces all files to save.  And that's rather a heavyweight and 
-            // unexpected experience for users (for the common case where a single 
+            // forces all files to save.  And that's rather a heavyweight and
+            // unexpected experience for users (for the common case where a single
             // file got edited).
             var singleChangedDocument = TryGetSingleChangedText(oldSolution, operations);
             if (singleChangedDocument != null)
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
             else
             {
-                // More than just a single document changed.  Make a global undo to run 
+                // More than just a single document changed.  Make a global undo to run
                 // all the changes under.
                 using var transaction = workspace.OpenGlobalUndoTransaction(title);
 
