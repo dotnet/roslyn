@@ -3454,18 +3454,17 @@ outerDefault:
                     {
                         // infer generic type arguments:
                         MemberAnalysisResult inferenceError;
-                        var typeArgumentsPlus = InferMethodTypeArguments(method,
+                        typeArguments = InferMethodTypeArguments(method,
                                             leastOverriddenMethod.ConstructedFrom.TypeParameters,
                                             arguments,
                                             originalEffectiveParameters,
+                                            out fromFunctionType,
                                             out inferenceError,
                                             ref useSiteInfo);
-                        if (typeArgumentsPlus.IsDefault)
+                        if (typeArguments.IsDefault)
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, inferenceError);
                         }
-                        typeArguments = typeArgumentsPlus.SelectAsArray(t => t.Type);
-                        fromFunctionType = typeArgumentsPlus.Any(t => t.FromFunctionType);
                     }
 
                     member = (TMember)(Symbol)method.Construct(typeArguments);
@@ -3541,11 +3540,12 @@ outerDefault:
             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult, fromFunctionType);
         }
 
-        private ImmutableArray<(TypeWithAnnotations Type, bool FromFunctionType)> InferMethodTypeArguments(
+        private ImmutableArray<TypeWithAnnotations> InferMethodTypeArguments(
             MethodSymbol method,
             ImmutableArray<TypeParameterSymbol> originalTypeParameters,
             AnalyzedArguments arguments,
             EffectiveParameters originalEffectiveParameters,
+            out bool fromFunctionType,
             out MemberAnalysisResult error,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -3568,6 +3568,7 @@ outerDefault:
 
             if (inferenceResult.Success)
             {
+                fromFunctionType = inferenceResult.InferredFromFunctionType;
                 error = default(MemberAnalysisResult);
                 return inferenceResult.InferredTypeArguments;
             }
@@ -3582,11 +3583,13 @@ outerDefault:
                     useSiteInfo: ref useSiteInfo);
                 if (inferredFromFirstArgument.IsDefault)
                 {
+                    fromFunctionType = false;
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();
                     return default;
                 }
             }
 
+            fromFunctionType = false;
             error = MemberAnalysisResult.TypeInferenceFailed();
             return default;
         }

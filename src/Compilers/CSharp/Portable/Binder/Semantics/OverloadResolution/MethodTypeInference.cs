@@ -67,17 +67,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     // Method type inference can fail, but we still might have some best guesses. 
-    internal struct MethodTypeInferenceResult
+    internal readonly struct MethodTypeInferenceResult
     {
-        public readonly ImmutableArray<(TypeWithAnnotations Type, bool FromFunctionType)> InferredTypeArguments;
+        public readonly ImmutableArray<TypeWithAnnotations> InferredTypeArguments;
+        public readonly bool InferredFromFunctionType;
         public readonly bool Success;
 
         public MethodTypeInferenceResult(
             bool success,
-            ImmutableArray<(TypeWithAnnotations Type, bool FromFunctionType)> inferredTypeArguments)
+            ImmutableArray<TypeWithAnnotations> inferredTypeArguments,
+            bool inferredFromFunctionType)
         {
             this.Success = success;
             this.InferredTypeArguments = inferredTypeArguments;
+            this.InferredFromFunctionType = inferredFromFunctionType;
         }
     }
 
@@ -276,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Early out: if the method has no formal parameters then we know that inference will fail.
             if (formalParameterTypes.Length == 0)
             {
-                return new MethodTypeInferenceResult(false, default);
+                return new MethodTypeInferenceResult(false, default, false);
 
                 // UNDONE: OPTIMIZATION: We could check to see whether there is a type
                 // UNDONE: parameter which is never used in any formal parameter; if
@@ -419,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _formalParameterRefKinds.IsDefault ? RefKind.None : _formalParameterRefKinds[index];
         }
 
-        private ImmutableArray<(TypeWithAnnotations Type, bool FromFunctionType)> GetResults()
+        private ImmutableArray<TypeWithAnnotations> GetResults(out bool inferredFromFunctionType)
         {
             // Anything we didn't infer a type for, give the error type.
             // Note: the error type will have the same name as the name
@@ -460,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _fixedResults[i] = (TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(_constructedContainingTypeOfMethod, _methodTypeParameters[i].Name, 0, null, false)), false);
             }
 
-            return _fixedResults.AsImmutable();
+            return GetInferredTypeArguments(out inferredFromFunctionType);
         }
 
         private bool ValidIndex(int index)
@@ -554,7 +557,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: bounds. The second phase may have to be repeated a number of times.
             InferTypeArgsFirstPhase(ref useSiteInfo);
             bool success = InferTypeArgsSecondPhase(binder, ref useSiteInfo);
-            return new MethodTypeInferenceResult(success, GetResults());
+            var inferredTypeArguments = GetResults(out bool inferredFromFunctionType);
+            return new MethodTypeInferenceResult(success, inferredTypeArguments, inferredFromFunctionType);
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -2937,7 +2941,7 @@ OuterBreak:
         // extension method of x, at least until we have more information.
         //
         // Clearly it is pointless to run multiple phases
-        public static ImmutableArray<(TypeWithAnnotations Type, bool FromFunctionType)> InferTypeArgumentsFromFirstArgument(
+        public static ImmutableArray<TypeWithAnnotations> InferTypeArgumentsFromFirstArgument(
             CSharpCompilation compilation,
             ConversionsBase conversions,
             MethodSymbol method,
@@ -2973,7 +2977,7 @@ OuterBreak:
                 return default;
             }
 
-            return inferrer.GetInferredTypeArguments();
+            return inferrer.GetInferredTypeArguments(out _);
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -3016,9 +3020,19 @@ OuterBreak:
         /// Return the inferred type arguments using null
         /// for any type arguments that were not inferred.
         /// </summary>
-        private ImmutableArray<(TypeWithAnnotations Type, bool FromFunctionType)> GetInferredTypeArguments()
+        private ImmutableArray<TypeWithAnnotations> GetInferredTypeArguments(out bool inferredFromFunctionType)
         {
-            return _fixedResults.AsImmutable();
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance(_fixedResults.Length);
+            inferredFromFunctionType = false;
+            foreach (var fixedResult in _fixedResults)
+            {
+                builder.Add(fixedResult.Type);
+                if (fixedResult.FromFunctionType)
+                {
+                    inferredFromFunctionType = true;
+                }
+            }
+            return builder.ToImmutableAndFree();
         }
 
         private static bool IsReallyAType(TypeSymbol? type)
