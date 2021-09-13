@@ -21,6 +21,8 @@ function Capture-Screenshot($path) {
         0, `
         $bitmap.Size, `
         [System.Drawing.CopyPixelOperation]::SourceCopy)
+    } catch {
+      Write-Warning $Error[0]
     } finally {
       $graphics.Dispose()
     }
