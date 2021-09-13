@@ -688,7 +688,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                     debugDocuments.Add(debugDocument)
                                 End If
                             Next
-                            result.Add((typeDefinition, debugDocuments.ToArrayAndFree()))
+
+                            If debugDocuments.Count > 0 Then
+                                result.Add((typeDefinition, debugDocuments.ToArrayAndFree()))
+                            End If
                         End If
                         methodDocumentList.Free()
                     Case Else
