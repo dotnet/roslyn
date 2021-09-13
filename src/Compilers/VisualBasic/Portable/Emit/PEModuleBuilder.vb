@@ -669,29 +669,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     Case SymbolKind.NamedType
                         Dim typeDefinition = DirectCast(symbol.GetCciAdapter(), Cci.ITypeDefinition)
-                        Dim allMethodsHaveIL As Boolean = False
                         Dim methodDocumentList = PooledHashSet(Of Cci.DebugSourceDocument).GetInstance()
-                        GetDocumentsForMethods(methodDocumentList, typeDefinition, context, allMethodsHaveIL)
+                        GetDocumentsForMethods(methodDocumentList, typeDefinition, context)
 
-                        If Not allMethodsHaveIL Then
-                            Dim debugDocuments = ArrayBuilder(Of Cci.DebugSourceDocument).GetInstance()
+                        Dim debugDocuments = ArrayBuilder(Of Cci.DebugSourceDocument).GetInstance()
 
-                            For Each loc In symbol.Locations
-                                If Not loc.IsInSource Then
-                                    Continue For
-                                End If
-
-                                Dim span = loc.GetLineSpan()
-                                Dim debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=Nothing)
-
-                                If debugDocument IsNot Nothing AndAlso Not methodDocumentList.Contains(debugDocument) Then
-                                    debugDocuments.Add(debugDocument)
-                                End If
-                            Next
-
-                            If debugDocuments.Count > 0 Then
-                                result.Add((typeDefinition, debugDocuments.ToArrayAndFree()))
+                        For Each loc In symbol.Locations
+                            If Not loc.IsInSource Then
+                                Continue For
                             End If
+
+                            Dim span = loc.GetLineSpan()
+                            Dim debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=Nothing)
+
+                            If debugDocument IsNot Nothing AndAlso Not methodDocumentList.Contains(debugDocument) Then
+                                debugDocuments.Add(debugDocument)
+                            End If
+                        Next
+
+                        If debugDocuments.Count > 0 Then
+                            result.Add((typeDefinition, debugDocuments.ToArrayAndFree()))
                         End If
                         methodDocumentList.Free()
                     Case Else
@@ -702,30 +699,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return result
         End Function
 
-        Private Shared Sub GetDocumentsForMethods(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typeDefinition As Cci.ITypeDefinition, context As EmitContext, <Out> ByRef allMethodsHaveIL As Boolean)
+        Private Shared Sub GetDocumentsForMethods(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typeDefinition As Cci.ITypeDefinition, context As EmitContext)
             Dim typeMethods = typeDefinition.GetMethods(context)
-            Dim foundMethodWithIL = False
-            Dim foundMethodWithoutIL = False
 
             For Each method In typeMethods
-
-                If Cci.Extensions.HasBody(method) Then
-                    Dim body = method.GetBody(context)
-                    If body IsNot Nothing AndAlso Not body.SequencePoints.IsEmpty Then
-                        foundMethodWithIL = True
-
-                        For Each point In body.SequencePoints
-                            documentList.Add(point.Document)
-                        Next
-                    Else
-                        foundMethodWithoutIL = True
-                    End If
-                Else
-                    foundMethodWithoutIL = True
+                Dim body = method.GetBody(context)
+                If body Is Nothing OrElse body.SequencePoints.IsEmpty Then
+                    Continue For
                 End If
-            Next
 
-            allMethodsHaveIL = foundMethodWithIL AndAlso Not foundMethodWithoutIL
+                For Each point In body.SequencePoints
+                    documentList.Add(point.Document)
+                Next
+            Next
         End Sub
 
         Public Sub SetDisableJITOptimization(methodSymbol As MethodSymbol)

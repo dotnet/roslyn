@@ -471,6 +471,44 @@ partial class C
         }
 
         [Fact]
+        public void TypeDocument_PartialClasses2()
+        {
+            string source1 = @"
+partial class C
+{
+}
+";
+            string source2 = @"
+partial class C
+{
+    int x = 1;
+    void M() { }
+}
+";
+            TestTypeDocuments(new[] { source1, source2 },
+                ("C", "1.cs"));
+        }
+
+        [Fact]
+        public void TypeDocument_PartialClasses3()
+        {
+            string source1 = @"
+partial class C
+{
+}
+";
+            string source2 = @"
+partial class C
+{
+    int x;
+    void M() { }
+}
+";
+            TestTypeDocuments(new[] { source1, source2 },
+                ("C", "1.cs"));
+        }
+
+        [Fact]
         public void TypeDocument_Property()
         {
             string source = @"

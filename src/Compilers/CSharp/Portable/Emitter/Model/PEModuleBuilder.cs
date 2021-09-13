@@ -244,37 +244,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     case SymbolKind.NamedType:
                         var typeDefinition = (Cci.ITypeDefinition)symbol.GetCciAdapter();
                         var methodDocumentList = PooledHashSet<Cci.DebugSourceDocument>.GetInstance();
-                        GetDocumentsForMethods(methodDocumentList, typeDefinition, context, out var allMethodsHaveIL);
+                        GetDocumentsForMethods(methodDocumentList, typeDefinition, context);
 
-                        // If all of the methods have IL then the document data we already have is enough, but if not
-                        // then we want to add document info for the type.
-                        if (!allMethodsHaveIL)
+                        var debugDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
+                        foreach (var loc in symbol.Locations)
                         {
-                            var debugDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
-
-                            foreach (var loc in symbol.Locations)
+                            if (!loc.IsInSource)
                             {
-                                if (!loc.IsInSource)
-                                {
-                                    continue;
-                                }
-
-                                var span = loc.GetLineSpan();
-                                var debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: null);
-
-                                // We don't need to duplicate the data, if the method debug info would already contain this document
-                                if (debugDocument is not null && !methodDocumentList.Contains(debugDocument))
-                                {
-                                    debugDocuments.Add(debugDocument);
-                                }
+                                continue;
                             }
 
-                            if (debugDocuments.Count > 0)
+                            var span = loc.GetLineSpan();
+                            var debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: null);
+
+                            // We don't need to duplicate the data, if the method debug info would already contain this document
+                            if (debugDocument is not null && !methodDocumentList.Contains(debugDocument))
                             {
-                                result.Add((typeDefinition, debugDocuments.ToArray()));
+                                debugDocuments.Add(debugDocument);
                             }
-                            debugDocuments.Free();
                         }
+
+                        if (debugDocuments.Count > 0)
+                        {
+                            result.Add((typeDefinition, debugDocuments.ToArray()));
+                        }
+                        debugDocuments.Free();
                         methodDocumentList.Free();
                         break;
                     default:
@@ -288,31 +282,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// Gets a list of documents from the method definitions in this type, and also outputs whether there are
         /// any methods that don't have document info (ie don't have any IL)
         /// </summary>
-        private static void GetDocumentsForMethods(PooledHashSet<Cci.DebugSourceDocument> documentList, Cci.ITypeDefinition typeDefinition, EmitContext context, out bool allMethodsHaveIL)
+        private static void GetDocumentsForMethods(PooledHashSet<Cci.DebugSourceDocument> documentList, Cci.ITypeDefinition typeDefinition, EmitContext context)
         {
             var typeMethods = typeDefinition.GetMethods(context);
 
-            var foundMethodWithIL = false;
-            var foundMethodWithoutIL = false;
             foreach (var method in typeMethods)
             {
-                if (Cci.Extensions.HasBody(method) &&
-                    method.GetBody(context) is { } body &&
-                    !body.SequencePoints.IsEmpty)
+                var body = method.GetBody(context);
+                if (body is null || body.SequencePoints.IsEmpty)
                 {
-                    foundMethodWithIL = true;
-
-                    foreach (var point in body.SequencePoints)
-                    {
-                        documentList.Add(point.Document);
-                    }
+                    continue;
                 }
-                else
+
+                foreach (var point in body.SequencePoints)
                 {
-                    foundMethodWithoutIL = true;
+                    documentList.Add(point.Document);
                 }
             }
-            allMethodsHaveIL = foundMethodWithIL && !foundMethodWithoutIL;
         }
 
         public sealed override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()

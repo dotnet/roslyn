@@ -339,6 +339,42 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TypeDocument_PartialClasses2()
+            Dim source1 As String = "
+Partial Class C
+End Class
+"
+            Dim source2 As String = "
+Partial Class C
+    Private x As Integer
+
+    Sub M()
+    End Sub
+End Class
+"
+            TestTypeDocuments({source1, source2},
+                              ("C", "1.vb"))
+        End Sub
+
+        <Fact>
+        Public Sub TypeDocument_PartialClasses3()
+            Dim source1 As String = "
+Partial Class C
+End Class
+"
+            Dim source2 As String = "
+Partial Class C
+    Private x As Integer = 1
+
+    Sub M()
+    End Sub
+End Class
+"
+            TestTypeDocuments({source1, source2},
+                              ("C", "1.vb"))
+        End Sub
+
+        <Fact>
         Public Sub TypeDocument_Property()
             Dim source As String = "
 Class C
