@@ -20,16 +20,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// <summary>
     /// Contains helpers to allow features and other algorithms to run over C# and Visual Basic code in a uniform fashion.
     /// It should be thought of a generalized way to apply type-pattern-matching and syntax-deconstruction in a uniform
-    /// fashoin over the language. Helpers in this type should only be one of the following forms:
+    /// fashion over the languages. Helpers in this type should only be one of the following forms:
     /// <list type="bullet">
     /// <item>
-    /// 'IsXXX' where 'XXX' exactly matches one of the same named Syntax (node, token, trivia, list, etc.) constructs that 
+    /// 'IsXXX' where 'XXX' exactly matches one of the same named syntax (node, token, trivia, list, etc.) constructs that 
     /// both C# and VB have. For example 'IsSimpleName' to correspond to C# and VB's SimpleNameSyntax node.  These 'checking' 
     /// methods should never fail.
     /// </item>
     /// <item>
-    /// 'GetXxxOfYYY' where 'XXX' matches the name of a property on a 'YYY' Syntax construct that both C# and VB have.  For
-    /// example 'GetExpressionOfMemberAccessExpression' corresponding to MemberAcessExpressionsyntax.Expression in both C# and
+    /// 'GetXxxOfYYY' where 'XXX' matches the name of a property on a 'YYY' syntax construct that both C# and VB have.  For
+    /// example 'GetExpressionOfMemberAccessExpression' corresponding to MemberAccessExpressionsyntax.Expression in both C# and
     /// VB.  These functions should throw if passed a node that the corresponding 'IsYYY' did not return <see langword="true"/> for.
     /// </item>
     /// <item>

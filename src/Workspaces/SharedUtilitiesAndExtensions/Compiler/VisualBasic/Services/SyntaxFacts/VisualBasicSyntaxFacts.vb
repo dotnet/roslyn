@@ -1313,7 +1313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetArgumentsOfObjectCreationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfObjectCreationExpression
-            Return GetArgumentsOfArgumentList(TryCast(node, ObjectCreationExpressionSyntax).ArgumentList)
+            Return GetArgumentsOfArgumentList(DirectCast(node, ObjectCreationExpressionSyntax).ArgumentList)
         End Function
 
         Public Function GetArgumentsOfArgumentList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfArgumentList
