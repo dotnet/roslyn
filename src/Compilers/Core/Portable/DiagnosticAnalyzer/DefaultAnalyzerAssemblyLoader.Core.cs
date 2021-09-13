@@ -70,6 +70,9 @@ namespace Microsoft.CodeAnalysis
                "System.Xml.XDocument",
                "System.Xml.XPath.XDocument");
 
+        // This is the default context where compiler (and some of its dependencies) are being loaded into, which might be differernt from AssemblyLoadContext.Default.
+        private static readonly AssemblyLoadContext s_compilerLoadContext = AssemblyLoadContext.GetLoadContext(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
+
         private readonly object _guard = new object();
         private readonly Dictionary<string, DirectoryLoadContext> _loadContextByDirectory = new Dictionary<string, DirectoryLoadContext>(StringComparer.Ordinal);
 
@@ -117,7 +120,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // Delegate to the compiler's load context to load the compiler or anything
                     // referenced by the compiler
-                    return null;
+                    return s_compilerLoadContext.LoadFromAssemblyName(assemblyName);
                 }
 
                 var assemblyPath = Path.Combine(Directory, simpleName + ".dll");
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis
                     // assembly we're trying to load here is netstandard or a similar framework
                     // assembly. We assume that if that is not the case, then the parent ALC will
                     // fail to load this.
-                    return null;
+                    return s_compilerLoadContext.LoadFromAssemblyName(assemblyName); ;
                 }
 
                 var pathToLoad = _loader.GetPathToLoad(assemblyPath);
