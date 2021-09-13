@@ -955,6 +955,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Sposta il file nella cartella radice del progetto</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type">
+        <source>Move static members to another type...</source>
+        <target state="new">Move static members to another type...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
         <target state="translated">Sposta nello spazio dei nomi...</target>
@@ -1156,11 +1161,11 @@ Questa opzione è consigliata solo se si è certi che il backtracking avrà esit
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
         <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">Una definizione di gruppo di bilanciamento elimina la definizione di un gruppo precedentemente definito e archivia nel gruppo corrente l'intervallo tra il gruppo precedentemente definito e il gruppo corrente.
+        <target state="needs-review-translation">Una definizione di gruppo di bilanciamento elimina la definizione di un gruppo precedentemente definito e archivia nel gruppo corrente l'intervallo tra il gruppo precedentemente definito e il gruppo corrente.
     
 'name1' è il gruppo corrente (facoltativo), 'name2' è un gruppo precedentemente definito e 'subexpression' è qualsiasi criterio di ricerca di espressioni regolari valido. La definizione di gruppo di bilanciamento elimina la definizione di name2 e archivia l'intervallo tra name2 e name1 in name1. Se non è definito alcun gruppo name2, viene eseguito il backtracking della corrispondenza. Dal momento che l'eliminazione dell'ultima definizione di name2 rivela la definizione precedente di name2, questo costrutto consente di usare lo stack di acquisizioni per il gruppo name2 come contatore per tenere traccia dei costrutti annidati, come ad esempio le parentesi o le parentesi quadre di apertura e chiusura.
 
@@ -2300,6 +2305,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Troppe parentesi di chiusura</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="new">Types:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Non è possibile leggere il file di origine '{0}' o il file PDB compilato per il progetto contenitore. Tutte le modifiche apportate a questo file durante il debug non verranno applicate finché il relativo contenuto non corrisponde al codice sorgente compilato.</target>
@@ -3348,11 +3358,6 @@ Se l'identificatore di formato "M" viene usato senza altri identificatori di for
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">Introduce la variabile di query per '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">Tipi anonimi:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">

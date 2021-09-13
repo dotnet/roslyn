@@ -573,6 +573,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => simpleName.IsKind(SyntaxKind.GenericName) ||
                simpleName.GetLastToken().GetNextToken().Kind() == SyntaxKind.LessThanToken;
 
+        public SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfGenericName(SyntaxNode? genericName)
+            => (genericName as GenericNameSyntax)?.TypeArgumentList.Arguments ?? default;
+
         public SyntaxNode? GetTargetOfMemberBinding(SyntaxNode? node)
             => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
 

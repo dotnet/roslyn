@@ -619,14 +619,14 @@ class Program
                 new SignatureHelpTestItem(
 $@"void List<'a>.Add('a item)
 
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ string Name, int Age }}",
                     methodDocumentation: string.Empty,
                     parameterDocumentation: string.Empty,
                     currentParameterIndex: 0,
                     description: $@"
 
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ string Name, int Age }}")
             };
 
