@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// methods should never fail.
     /// </item>
     /// <item>
-    /// 'GetXxxOfYYY' where 'XXX' matches the name of a property on a 'YYY' Syntax construct that both C# and VB have.  For
+    /// 'GetXxxOfYYY' where 'XXX' matches the name of a property on a 'YYY' syntax construct that both C# and VB have.  For
     /// example 'GetExpressionOfMemberAccessExpression' corresponding to MemberAcessExpressionsyntax.Expression in both C# and
     /// VB.  These functions should throw if passed a node that the corresponding 'IsYYY' did not return <see langword="true"/> for.
     /// </item>
