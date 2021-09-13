@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             Contract.ThrowIfNull(symbol);
 
-            if (options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
+            if (options != null && options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
             {
                 var reusableSyntaxNode = symbol.DeclaringSyntaxReferences[0].GetSyntax();
                 return removeLeadingDirectiveTrivia
