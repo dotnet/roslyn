@@ -38,6 +38,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// languages.  For example 'GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken dotToken, out SyntaxNode right)'
     /// VB.  These functions should throw if passed a node that the corresponding 'IsXXX' did not return <see langword="true"/> for.
     /// </item>
+    /// <item>
+    /// Absolutely trivial questions that relate to syntax and can be asked sensibly of each language.  For example,
+    /// if certain constructs (like 'patterns') are supported in that language or not.
+    /// </item>
     /// </list>
     /// Importantly avoid:
     /// <list type="bullet">
@@ -57,6 +61,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// <item>
     /// Functions that mutate or update syntax constructs for example 'WithXXX'.  These should be on <see cref="SyntaxGenerator"/>
     /// or some other feature specific service.
+    /// </item>
+    /// <item>
+    /// Functions that a single item when one language may allow for multiple.  For example 'GetIdentifierOfVariableDeclarator'.
+    /// In VB a VariableDeclarator can itself have several names, so calling code must be written to check for that and handle
+    /// it apropriately.  Functions like this make it seem like that doesn't need to be considered, easily allowing for bugs
+    /// to creep in.
     /// </item>
     /// </list>
     /// </summary>
