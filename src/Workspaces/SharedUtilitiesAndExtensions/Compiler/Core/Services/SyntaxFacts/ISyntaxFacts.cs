@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLeftSideOfAnyAssignment([NotNullWhen(true)] SyntaxNode? node);
         // Left side of compound assignment (for example ??= or *=  or += )
         bool IsLeftSideOfCompoundAssignment([NotNullWhen(true)] SyntaxNode? node);
-        SyntaxNode? GetRightHandSideOfAssignment(SyntaxNode? node);
+        SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node);
 
         bool IsInferredAnonymousObjectMemberDeclarator([NotNullWhen(true)] SyntaxNode? node);
         bool IsOperandOfIncrementExpression([NotNullWhen(true)] SyntaxNode? node);
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// off of.  For example, in VB, if you have a member-access-expression of the form ".Length" then this
         /// may return the expression in the surrounding With-statement.
         /// </summary>
-        SyntaxNode? GetExpressionOfMemberAccessExpression(SyntaxNode? node, bool allowImplicitTarget = false);
+        SyntaxNode? GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget = false);
         void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name);
 
         SyntaxNode? GetTargetOfMemberBinding(SyntaxNode? node);
@@ -239,17 +239,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNamedArgument([NotNullWhen(true)] SyntaxNode? node);
         bool IsNameOfNamedArgument([NotNullWhen(true)] SyntaxNode? node);
         SyntaxToken? GetNameOfParameter([NotNullWhen(true)] SyntaxNode? node);
-        SyntaxNode? GetDefaultOfParameter(SyntaxNode? node);
+        SyntaxNode? GetDefaultOfParameter(SyntaxNode node);
         SyntaxNode? GetParameterList(SyntaxNode node);
         bool IsParameterList([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia);
 
-        void GetPartsOfElementAccessExpression(SyntaxNode? node, out SyntaxNode? expression, out SyntaxNode? argumentList);
+        void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
 
-        [return: NotNullIfNotNull("node")]
-        SyntaxNode? GetExpressionOfArgument(SyntaxNode? node);
-        SyntaxNode? GetExpressionOfInterpolation(SyntaxNode? node);
+        SyntaxNode GetExpressionOfArgument(SyntaxNode node);
+        SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
 
         void GetPartsOfConditionalAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull);
@@ -273,7 +272,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         bool IsSimpleArgument([NotNullWhen(true)] SyntaxNode? node);
         bool IsArgument([NotNullWhen(true)] SyntaxNode? node);
-        RefKind GetRefKindOfArgument(SyntaxNode? node);
+        RefKind GetRefKindOfArgument(SyntaxNode node);
 
         bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node);
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
@@ -281,9 +280,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
 
-        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode? node);
-        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode? node);
-        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode? node);
+        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode node);
+        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode node);
+        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode node);
         SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode node);
         SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode node);
 
@@ -317,7 +316,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         bool IsMethodBody([NotNullWhen(true)] SyntaxNode? node);
 
-        SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode? node);
+        SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node);
 
         bool IsLocalFunctionStatement([NotNullWhen(true)] SyntaxNode? node);
 
@@ -405,7 +404,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsClassDeclaration([NotNullWhen(true)] SyntaxNode? node);
         bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node);
-        SyntaxNode? GetNameOfNamespaceDeclaration(SyntaxNode? node);
+        SyntaxNode GetNameOfNamespaceDeclaration(SyntaxNode node);
         List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode? root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
