@@ -213,7 +213,9 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 // Looking for IEndOfLineTags and seeing if they exist on the same line as where the
                 // diagnostic would be drawn. If they are the same, then we do not want to draw
                 // the diagnostic.
-                if (_endLineTagAggregator.GetTags(lineView.Extent).Any())
+
+                var obstructingTags = _endLineTagAggregator.GetTags(lineView.Extent);
+                if (obstructingTags.Where(tag => tag.Tag.Type is not "Inline Diagnostics").Any())
                 {
                     continue;
                 }
