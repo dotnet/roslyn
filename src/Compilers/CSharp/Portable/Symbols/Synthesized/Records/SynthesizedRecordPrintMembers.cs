@@ -119,7 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
             try
             {
-
                 ArrayBuilder<Symbol> printableMembersBuilder = ArrayBuilder<Symbol>.GetInstance();
                 printableMembersBuilder.AddRange(ContainingType.GetFieldsToEmit());
                 printableMembersBuilder.AddRange(ContainingType.GetPropertiesToEmit());
