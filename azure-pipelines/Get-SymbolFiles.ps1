@@ -17,7 +17,7 @@ $WindowsPdbSubDirName = "symstore"
 
 $ActivityName = "Collecting symbols from $Path"
 Write-Progress -Activity $ActivityName -CurrentOperation "Discovery PDB files"
-$PDBs = Get-ChildItem -rec "$Path\*.pdb" |? { $_.FullName -notmatch "\W$WindowsPdbSubDirName\W" }
+$PDBs = Get-ChildItem -rec "$Path/*.pdb" |? { $_.FullName -notmatch "\W$WindowsPdbSubDirName\W" }
 
 # Filter PDBs to product OR test related.
 $testregex = "unittest|tests"
@@ -44,8 +44,8 @@ $PDBs |% {
     }
 } |% {
     # Collect the DLLs/EXEs as well.
-    $dllPath = "$($_.Directory)\$($_.BaseName).dll"
-    $exePath = "$($_.Directory)\$($_.BaseName).exe"
+    $dllPath = "$($_.Directory)/$($_.BaseName).dll"
+    $exePath = "$($_.Directory)/$($_.BaseName).exe"
     if (Test-Path $dllPath) {
         $BinaryImagePath = $dllPath
     } elseif (Test-Path $exePath) {
@@ -54,14 +54,16 @@ $PDBs |% {
 
     Write-Output $BinaryImagePath
 
-    # Convert the PDB to legacy Windows PDBs
-    Write-Host "Converting PDB for $_" -ForegroundColor DarkGray
-    $WindowsPdbDir = "$($_.Directory.FullName)\$WindowsPdbSubDirName"
-    if (!(Test-Path $WindowsPdbDir)) { mkdir $WindowsPdbDir | Out-Null }
-    & "$PSScriptRoot\Convert-PDB.ps1" -DllPath $BinaryImagePath -PdbPath $_ -OutputPath "$WindowsPdbDir\$($_.BaseName).pdb"
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warning "PDB conversion of `"$_`" failed."
-    }
+    if (-not ($IsMacOS -or $IsLinux)) {
+        # Convert the PDB to legacy Windows PDBs
+        Write-Host "Converting PDB for $_" -ForegroundColor DarkGray
+        $WindowsPdbDir = "$($_.Directory.FullName)\$WindowsPdbSubDirName"
+        if (!(Test-Path $WindowsPdbDir)) { mkdir $WindowsPdbDir | Out-Null }
+        & "$PSScriptRoot\Convert-PDB.ps1" -DllPath $BinaryImagePath -PdbPath $_ -OutputPath "$WindowsPdbDir\$($_.BaseName).pdb"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "PDB conversion of `"$_`" failed."
+        }
 
-    Write-Output "$WindowsPdbDir\$($_.BaseName).pdb"
+        Write-Output "$WindowsPdbDir\$($_.BaseName).pdb"
+    }
 }
