@@ -11,7 +11,7 @@ $ErrorActionPreference="Stop"
 function Run-Tool($projectFilePath, $toolArgs, $targetFramework) {
   $toolName = Split-Path -leaf $projectFilePath
   Write-Host "Running $toolName $toolArgs"
-  Exec-Console $dotnet "run -p $projectFilePath --framework $targetFramework $toolArgs"
+  Exec-Console $dotnet "run --project $projectFilePath --framework $targetFramework $toolArgs"
 }
 
 function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProject, $errorFactsProject, $generatedDir, $generatedTestDir) {
