@@ -4056,6 +4056,135 @@ System.Action");
             Assert.True(HaveMatchingSignatures(((INamedTypeSymbol)typeInfo.Type!).DelegateInvokeMethod!, method));
         }
 
+        [WorkItem(55320, "https://github.com/dotnet/roslyn/issues/55320")]
+        [Fact]
+        public void InferredReturnType_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(() => { return; });
+        Report((bool b) => { if (b) return; });
+        Report((bool b) => { if (b) return; else return; });
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Action
+System.Action`1[System.Boolean]
+System.Action`1[System.Boolean]
+");
+        }
+
+        [Fact]
+        public void InferredReturnType_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(async () => { return; });
+        Report(async (bool b) => { if (b) return; });
+        Report(async (bool b) => { if (b) return; else return; });
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Func`1[System.Threading.Tasks.Task]
+System.Func`2[System.Boolean,System.Threading.Tasks.Task]
+System.Func`2[System.Boolean,System.Threading.Tasks.Task]
+");
+        }
+
+        [WorkItem(55320, "https://github.com/dotnet/roslyn/issues/55320")]
+        [Fact]
+        public void InferredReturnType_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report((bool b) => { if (b) return null; });
+        Report((bool b) => { if (b) return; else return null; });
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS8917: The delegate type could not be inferred.
+                //         Report((bool b) => { if (b) return null; });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(bool b) => { if (b) return null; }").WithLocation(6, 16),
+                // (7,16): error CS8917: The delegate type could not be inferred.
+                //         Report((bool b) => { if (b) return; else return null; });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(bool b) => { if (b) return; else return null; }").WithLocation(7, 16),
+                // (7,50): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
+                //         Report((bool b) => { if (b) return; else return null; });
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(7, 50));
+        }
+
+        [WorkItem(55320, "https://github.com/dotnet/roslyn/issues/55320")]
+        [Fact]
+        public void InferredReturnType_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report((bool b) => { if (b) return default; });
+        Report((bool b) => { if (b) return; else return default; });
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS8917: The delegate type could not be inferred.
+                //         Report((bool b) => { if (b) return default; });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(bool b) => { if (b) return default; }").WithLocation(6, 16),
+                // (7,16): error CS8917: The delegate type could not be inferred.
+                //         Report((bool b) => { if (b) return; else return default; });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(bool b) => { if (b) return; else return default; }").WithLocation(7, 16),
+                // (7,50): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
+                //         Report((bool b) => { if (b) return; else return default; });
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(7, 50));
+        }
+
+        [Fact]
+        public void ExplicitReturnType_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Report(object () => { return; });
+        Report(object (bool b) => { if (b) return null; });
+        Report(object (bool b) => { if (b) return; else return default; });
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,31): error CS0126: An object of a type convertible to 'object' is required
+                //         Report(object () => { return; });
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("object").WithLocation(6, 31),
+                // (7,32): error CS1643: Not all code paths return a value in lambda expression of type 'Func<bool, object>'
+                //         Report(object (bool b) => { if (b) return null; });
+                Diagnostic(ErrorCode.ERR_AnonymousReturnExpected, "=>").WithArguments("lambda expression", "System.Func<bool, object>").WithLocation(7, 32),
+                // (8,44): error CS0126: An object of a type convertible to 'object' is required
+                //         Report(object (bool b) => { if (b) return; else return default; });
+                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("object").WithLocation(8, 44));
+        }
+
         [Fact]
         public void TypeInference_Constraints_01()
         {
