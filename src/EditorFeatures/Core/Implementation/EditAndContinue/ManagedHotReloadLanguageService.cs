@@ -19,9 +19,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     [Shared]
+    [Export(typeof(IEditAndContinueSolutionProvider))]
     [Export(typeof(IManagedHotReloadLanguageService))]
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
-    internal sealed class ManagedHotReloadLanguageService : IManagedHotReloadLanguageService
+    internal sealed class ManagedHotReloadLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
         private sealed class DebuggerService : IManagedEditAndContinueDebuggerService
         {
@@ -54,6 +55,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private readonly DebuggerService _debuggerService;
 
         private RemoteDebuggingSessionProxy? _debuggingSession;
+
+        private Solution? _pendingUpdatedSolution;
+        public event Action<Solution>? SolutionCommitted;
+
         private bool _disabled;
 
         /// <summary>
@@ -127,13 +132,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             try
             {
                 var solution = GetCurrentCompileTimeSolution();
-                var (moduleUpdates, diagnosticData, rudeEdits) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+                var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
 
                 var updates = moduleUpdates.Updates.SelectAsArray(
                     update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta));
 
-                var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, cancellationToken).ConfigureAwait(false);
-
+                var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, cancellationToken).ConfigureAwait(false);
+                _pendingUpdatedSolution = solution;
                 return new ManagedHotReloadUpdates(updates, diagnostics);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -161,6 +166,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             try
             {
+                var committedSolution = Interlocked.Exchange(ref _pendingUpdatedSolution, null);
+                Contract.ThrowIfNull(committedSolution);
+                SolutionCommitted?.Invoke(committedSolution);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            {
+            }
+
+            try
+            {
+
                 await GetDebuggingSession().CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
@@ -175,6 +191,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             {
                 return;
             }
+
+            _pendingUpdatedSolution = null;
 
             try
             {

@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
-
     <[UseExportProvider]>
     Public Class CompilationTests
         Private Shared Function GetProject(snapshot As Solution, assemblyName As String) As Project
@@ -35,10 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
                 Assert.Null(Await project.GetCompilationAsync())
 
                 Assert.Null(Await project.GetCompilationAsync())
-                Assert.False(Await project.ContainsSymbolsWithNameAsync(Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None))
-                Assert.Empty(Await project.GetDocumentsWithNameAsync(Function(dummy) True, SymbolFilter.TypeAndMember, CancellationToken.None))
             End Using
         End Function
     End Class
-
 End Namespace

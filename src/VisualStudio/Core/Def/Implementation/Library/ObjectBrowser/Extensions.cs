@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         public static bool IsVenus(this Project project)
         {
-            if (!(project.Solution.Workspace is VisualStudioWorkspaceImpl workspace))
+            if (project.Solution.Workspace is not VisualStudioWorkspaceImpl workspace)
             {
                 return false;
             }
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             var result = project.Name;
 
-            if (!(project.Solution.Workspace is VisualStudioWorkspace workspace))
+            if (project.Solution.Workspace is not VisualStudioWorkspace workspace)
             {
                 return result;
             }

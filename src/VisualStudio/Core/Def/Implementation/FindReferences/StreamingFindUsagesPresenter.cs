@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
@@ -43,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public readonly IClassificationFormatMap ClassificationFormatMap;
 
         private readonly Workspace _workspace;
+        private readonly IGlobalOptionService _optionService;
 
         private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
             new();
@@ -53,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public StreamingFindUsagesPresenter(
             IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
+            IGlobalOptionService optionService,
             Shell.SVsServiceProvider serviceProvider,
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
@@ -62,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             : this(workspace,
                    threadingContext,
                    serviceProvider,
+                   optionService,
                    typeMap,
                    formatMapService,
                    classificationFormatMapService,
@@ -78,6 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             : this(workspace,
                   exportProvider.GetExportedValue<IThreadingContext>(),
                   exportProvider.GetExportedValue<Shell.SVsServiceProvider>(),
+                  exportProvider.GetExportedValue<IGlobalOptionService>(),
                   exportProvider.GetExportedValue<ClassificationTypeMap>(),
                   exportProvider.GetExportedValue<IEditorFormatMapService>(),
                   exportProvider.GetExportedValue<IClassificationFormatMapService>(),
@@ -91,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             Workspace workspace,
             IThreadingContext threadingContext,
             Shell.SVsServiceProvider serviceProvider,
+            IGlobalOptionService optionService,
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
             IClassificationFormatMapService classificationFormatMapService,
@@ -99,6 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             : base(threadingContext, assertIsForeground: false)
         {
             _workspace = workspace;
+            _optionService = optionService;
             _serviceProvider = serviceProvider;
             TypeMap = typeMap;
             FormatMapService = formatMapService;
@@ -177,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             // We need this because we disable the Definition column when we're not showing references
             // (i.e. GoToImplementation/GoToDef).  However, we want to restore the user's choice if they
             // then do another FindAllReferences.
-            var desiredGroupingPriority = _workspace.Options.GetOption(FindUsagesOptions.DefinitionGroupingPriority);
+            var desiredGroupingPriority = _optionService.GetOption(FindUsagesOptions.DefinitionGroupingPriority);
             if (desiredGroupingPriority < 0)
             {
                 StoreCurrentGroupingPriority(window);
@@ -219,9 +226,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)
         {
-            var definitionColumn = window.GetDefinitionColumn();
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(FindUsagesOptions.DefinitionGroupingPriority, definitionColumn.GroupingPriority)));
+            _optionService.SetGlobalOption(FindUsagesOptions.DefinitionGroupingPriority, window.GetDefinitionColumn().GroupingPriority);
         }
 
         private void SetDefinitionGroupingPriority(IFindAllReferencesWindow window, int priority)

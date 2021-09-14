@@ -172,6 +172,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 DirectCast(node.Parent, AttributeSyntax).Name Is node
         End Function
 
+        Public Sub GetPartsOfQualifiedName(node As SyntaxNode, ByRef left As SyntaxNode, ByRef dotToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfQualifiedName
+            Dim qualifiedName = DirectCast(node, QualifiedNameSyntax)
+            left = qualifiedName.Left
+            dotToken = qualifiedName.DotToken
+            right = qualifiedName.Right
+        End Sub
+
         Public Function IsRightSideOfQualifiedName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsRightSideOfQualifiedName
             Dim vbNode = TryCast(node, SimpleNameSyntax)
             Return vbNode IsNot Nothing AndAlso vbNode.IsRightSideOfQualifiedName()
@@ -540,12 +547,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function IsSimpleName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleName
+            Return TypeOf node Is SimpleNameSyntax
+        End Function
+
         Public Sub GetNameAndArityOfSimpleName(node As SyntaxNode, ByRef name As String, ByRef arity As Integer) Implements ISyntaxFacts.GetNameAndArityOfSimpleName
-            Dim simpleName = TryCast(node, SimpleNameSyntax)
-            If simpleName IsNot Nothing Then
-                name = simpleName.Identifier.ValueText
-                arity = simpleName.Arity
-            End If
+            Dim simpleName = DirectCast(node, SimpleNameSyntax)
+            name = simpleName.Identifier.ValueText
+            arity = simpleName.Arity
         End Sub
 
         Public Function LooksGeneric(name As SyntaxNode) As Boolean Implements ISyntaxFacts.LooksGeneric
@@ -1486,6 +1495,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, ParameterSyntax).Identifier.Identifier
         End Function
 
+        Public Function GetIdentifierOfTypeDeclaration(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfTypeDeclaration
+            Select Case node.Kind()
+                Case SyntaxKind.EnumStatement,
+                     SyntaxKind.StructureStatement,
+                     SyntaxKind.InterfaceStatement,
+                     SyntaxKind.ClassStatement,
+                     SyntaxKind.ModuleStatement
+                    Return DirectCast(node, TypeStatementSyntax).Identifier
+
+                Case SyntaxKind.DelegateSubStatement,
+                     SyntaxKind.DelegateFunctionStatement
+                    Return DirectCast(node, DelegateStatementSyntax).Identifier
+            End Select
+
+            Throw ExceptionUtilities.UnexpectedValue(node)
+        End Function
+
         Public Function GetIdentifierOfIdentifierName(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfIdentifierName
             Return DirectCast(node, IdentifierNameSyntax).Identifier
         End Function
@@ -1977,6 +2003,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
             Return False
         End Function
+
+        Public Sub GetPartsOfUsingAliasDirective(
+                node As SyntaxNode,
+                ByRef globalKeyword As SyntaxToken,
+                ByRef [alias] As SyntaxToken,
+                ByRef name As SyntaxNode) Implements ISyntaxFacts.GetPartsOfUsingAliasDirective
+            Dim importStatement = DirectCast(node, ImportsStatementSyntax)
+            For Each importsClause In importStatement.ImportsClauses
+
+                If importsClause.Kind = SyntaxKind.SimpleImportsClause Then
+                    Dim simpleImportsClause = DirectCast(importsClause, SimpleImportsClauseSyntax)
+
+                    If simpleImportsClause.Alias IsNot Nothing Then
+                        globalKeyword = Nothing
+                        [alias] = simpleImportsClause.Alias.Identifier
+                        name = simpleImportsClause.Name
+                        Return
+                    End If
+                End If
+            Next
+
+            Throw ExceptionUtilities.Unreachable
+        End Sub
 
         Public Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParameterNameXmlElementSyntax
             Dim xmlElement = TryCast(node, XmlElementSyntax)

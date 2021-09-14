@@ -232,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(parentListItem is TypeListItem);
             Debug.Assert(compilation != null);
 
-            if (!(parentListItem is TypeListItem parentTypeItem))
+            if (parentListItem is not TypeListItem parentTypeItem)
             {
                 return ImmutableArray<ObjectListItem>.Empty;
             }
@@ -394,7 +394,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Debug.Assert(parentListItem is TypeListItem);
             Debug.Assert(compilation != null);
 
-            if (!(parentListItem is TypeListItem parentTypeItem))
+            if (parentListItem is not TypeListItem parentTypeItem)
             {
                 return ImmutableArray<ObjectListItem>.Empty;
             }

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static bool HasVisualStudioLspCapability(this ClientCapabilities? clientCapabilities)
         {
-            if (clientCapabilities is VSClientCapabilities vsClientCapabilities)
+            if (clientCapabilities is VSInternalClientCapabilities vsClientCapabilities)
             {
                 return vsClientCapabilities.SupportsVisualStudioExtensions;
             }
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     return "vb";
                 case LanguageNames.FSharp:
                     return "fsharp";
-                case "TypeScript":
+                case InternalLanguageNames.TypeScript:
                     return "typescript";
                 default:
                     throw new ArgumentException(string.Format("Document project language {0} is not valid", document.Project.Language));
@@ -193,9 +193,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return spanMapper != null;
         }
 
-        private static bool TryGetVSCompletionListSetting(ClientCapabilities clientCapabilities, [NotNullWhen(returnValue: true)] out VSCompletionListSetting? completionListSetting)
+        private static bool TryGetVSCompletionListSetting(ClientCapabilities clientCapabilities, [NotNullWhen(returnValue: true)] out VSInternalCompletionListSetting? completionListSetting)
         {
-            if (clientCapabilities is not VSClientCapabilities vsClientCapabilities)
+            if (clientCapabilities is not VSInternalClientCapabilities vsClientCapabilities)
             {
                 completionListSetting = null;
                 return false;
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return false;
             }
 
-            if (textDocumentCapability.Completion is not VSCompletionSetting vsCompletionSetting)
+            if (textDocumentCapability.Completion is not VSInternalCompletionSetting vsCompletionSetting)
             {
                 completionListSetting = null;
                 return false;

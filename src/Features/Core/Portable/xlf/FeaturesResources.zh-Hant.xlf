@@ -225,6 +225,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">套用物件/集合初始設定喜好設定</target>
         <note />
       </trans-unit>
+      <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
+        <source>Applying source changes while the application is running is not supported by the runtime.</source>
+        <target state="new">Applying source changes while the application is running is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
         <source>Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</source>
         <target state="new">Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</target>
@@ -320,6 +325,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">將不會在應用程式執行時套用在專案 '{0}' 中所做的變更</target>
         <note />
       </trans-unit>
+      <trans-unit id="ChangesRequiredSynthesizedType">
+        <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
+        <target state="new">One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application">
         <source>Changing {0} from asynchronous to synchronous requires restarting the application.</source>
         <target state="new">Changing {0} from asynchronous to synchronous requires restarting the application.</target>
@@ -343,6 +353,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
         <source>Changing parameter types of {0} requires restarting the application.</source>
         <target state="new">Changing parameter types of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application">
+        <source>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</source>
+        <target state="new">Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
@@ -435,6 +450,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">轉換為結構</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="new">Convert to tuple</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
         <target state="translated">將類型轉換為 '{0}'</target>
@@ -503,11 +523,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
         <target state="needs-review-translation">在專案 '{0}' 中所做的變更將使偵錯工作階段無法繼續: {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
-        <source>Edit and continue is not supported by the runtime.</source>
-        <target state="translated">執行階段不支援編輯後繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -764,6 +779,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Invalid group name: Group names must begin with a word character</source>
         <target state="translated">群組名稱無效: 群組名稱必須以文字字元開頭</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
+      </trans-unit>
+      <trans-unit id="Invalid_selection">
+        <source>Invalid selection.</source>
+        <target state="new">Invalid selection.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
@@ -2180,6 +2200,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="new">Renaming {0} requires restarting the application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Renaming {0} requires restarting the application because it is not supported by the runtime.</source>
+        <target state="new">Renaming {0} requires restarting the application because it is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application">
         <source>Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</source>
         <target state="new">Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</target>
@@ -2806,6 +2831,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">"HH" 自訂格式規範 (加上任意數目的其他 "H" 規範) 代表小時，以數字 00 到 23 表示; 換句話說，小時即為自午夜起所經過的時數，是以零開始的 24 小時制。單一數字的小時格式，開頭不會出現零。</target>
         <note />
       </trans-unit>
+      <trans-unit id="all_anonymous_types_in_container">
+        <source>all anonymous types in container</source>
+        <target state="new">all anonymous types in container</target>
+        <note />
+      </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
         <target state="new">and update call sites directly</target>
@@ -2960,6 +2990,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="into_new_overload">
         <source>into new overload</source>
         <target state="new">into new overload</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="just_this_anonymous_type">
+        <source>just this anonymous type</source>
+        <target state="new">just this anonymous type</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

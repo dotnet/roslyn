@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             string desiredSetMethodName,
             CancellationToken cancellationToken)
         {
-            if (!(propertyDeclarationNode is PropertyDeclarationSyntax propertyDeclaration))
+            if (propertyDeclarationNode is not PropertyDeclarationSyntax propertyDeclaration)
                 return ImmutableArray<SyntaxNode>.Empty;
 
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);

@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 switch (name)
                 {
                     case null:
-                    case "" when !ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor }:
+                    case "" when !ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke }:
                         // Invalid data, bail
                         builder.Free();
                         return default;

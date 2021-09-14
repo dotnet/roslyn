@@ -3227,9 +3227,6 @@ class Test : Base
                 // (11,21): error CS0122: 'Base.P' is inaccessible due to its protection level
                 //         object o = (P p) => 0;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P").WithArguments("Base.P"),
-                // (11,20): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
-                //         object o = (P p) => 0;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(P p) => 0").WithArguments("lambda expression", "object"),
                 // (12,17): error CS0122: 'Base.P' is inaccessible due to its protection level
                 //         int x = P.X;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P").WithArguments("Base.P"),
@@ -18130,6 +18127,29 @@ public class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,25): error CS1962: The typeof operator cannot be used on the dynamic type
                 Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)"));
+        }
+
+        [Fact]
+        [WorkItem(54804, "https://github.com/dotnet/roslyn/issues/54804")]
+        public void BadNestedTypeof()
+        {
+            var source = @"
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+var x = typeof(List<dynamic>); // 1
+x = typeof(nint); // 2
+x = typeof(List<nint>); // 3
+x = typeof(List<string?>); // 4
+x = typeof((int a, int b)); // 5
+x = typeof((int a, string? b)); // 6
+x = typeof(ValueTuple<int, int>); // ok
+";
+            CreateCompilation(source).VerifyDiagnostics();
+
+            CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(5)).VerifyDiagnostics();
         }
 
         // CS1963ERR_ExpressionTreeContainsDynamicOperation --> SyntaxBinderTests

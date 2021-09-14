@@ -6127,7 +6127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal override TypeWithAnnotations GetTypeWithAnnotations(BoundExpression expr)
             {
-                return TypeWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr));
+                return TypeWithAnnotations.Create(expr.GetTypeOrFunctionType(), GetNullableAnnotation(expr));
             }
 
             /// <summary>
@@ -6143,7 +6143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.DefaultLiteral:
                     case BoundKind.DefaultExpression:
                     case BoundKind.Literal:
-                        return (expr.ConstantValue?.IsNull != false) ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
+                        return expr.ConstantValue == ConstantValue.NotAvailable || !expr.ConstantValue.IsNull || expr.IsSuppressed ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
                     case BoundKind.ExpressionWithNullability:
                         return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                     case BoundKind.MethodGroup:
@@ -6974,9 +6974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             NamedTypeSymbol { TypeKind: TypeKind.Delegate, DelegateInvokeMethod: { Parameters: { } parameters } signature } => (signature, parameters),
                             FunctionPointerTypeSymbol { Signature: { Parameters: { } parameters } signature } => (signature, parameters),
-                            { SpecialType: SpecialType.System_Delegate } => (null, ImmutableArray<ParameterSymbol>.Empty),
-                            ErrorTypeSymbol => (null, ImmutableArray<ParameterSymbol>.Empty),
-                            _ => throw ExceptionUtilities.UnexpectedValue(targetType)
+                            _ => (null, ImmutableArray<ParameterSymbol>.Empty),
                         };
 
                 case ConversionKind.AnonymousFunction:
@@ -6993,6 +6991,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return TypeWithState.Create(targetType, NullableFlowState.NotNull);
                     }
+                    break;
+
+                case ConversionKind.FunctionType:
+                    resultState = NullableFlowState.NotNull;
                     break;
 
                 case ConversionKind.InterpolatedString:
@@ -9784,7 +9786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // https://github.com/dotnet/roslyn/issues/54583
-        // Better handle the constructor propogation
+        // Better handle the constructor propagation
         //public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
         //{
         //}

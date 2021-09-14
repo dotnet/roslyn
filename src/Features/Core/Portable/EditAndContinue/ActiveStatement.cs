@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Flags = flags;
             FileSpan = span;
             InstructionId = instructionId;
+
+            // IsStale implies !IsMethodUpToDate
+            Debug.Assert(!IsStale || !IsMethodUpToDate);
         }
 
         public ActiveStatement WithSpan(LinePositionSpan span)
@@ -74,8 +77,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public bool IsNonLeaf
             => (Flags & ActiveStatementFlags.IsNonLeafFrame) != 0;
 
+        /// <summary>
+        /// True if the active statement is located in a version of the method that's not the latest version of the method.
+        /// </summary>
         public bool IsMethodUpToDate
             => (Flags & ActiveStatementFlags.MethodUpToDate) != 0;
+
+        /// <summary>
+        /// True if the active statement is located in a version of the method that precedes a later version that was created by Hot Reload update.
+        /// </summary>
+        public bool IsStale
+            => (Flags & ActiveStatementFlags.IsStale) != 0;
 
         private string GetDebuggerDisplay()
             => $"{Ordinal}: {Span}";

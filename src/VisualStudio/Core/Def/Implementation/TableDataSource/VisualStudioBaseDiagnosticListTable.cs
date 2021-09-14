@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override bool Equals(object obj)
             {
-                if (!(obj is AggregatedKey other))
+                if (obj is not AggregatedKey other)
                 {
                     return false;
                 }

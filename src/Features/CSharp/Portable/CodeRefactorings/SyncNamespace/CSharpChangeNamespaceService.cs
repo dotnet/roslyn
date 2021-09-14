@@ -358,7 +358,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
 
                 var node = compilationUnit.FindNode(span, getInnermostNodeForTie: true);
 
-                var namespaceDecl = node.AncestorsAndSelf().OfType<BaseNamespaceDeclarationSyntax>().SingleOrDefault();
+                var namespaceDecls = node.AncestorsAndSelf().OfType<BaseNamespaceDeclarationSyntax>().ToImmutableArray();
+                if (namespaceDecls.Length != 1)
+                    return null;
+
+                var namespaceDecl = namespaceDecls[0];
                 if (namespaceDecl == null)
                     return null;
 

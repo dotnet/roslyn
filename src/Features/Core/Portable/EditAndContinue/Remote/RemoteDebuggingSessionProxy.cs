@@ -41,19 +41,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private IEditAndContinueWorkspaceService GetLocalService()
             => _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
-        public async ValueTask BreakStateEnteredAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
+        public async ValueTask BreakStateChangedAsync(IDiagnosticAnalyzerService diagnosticService, bool inBreakState, CancellationToken cancellationToken)
         {
             ImmutableArray<DocumentId> documentsToReanalyze;
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                GetLocalService().BreakStateEntered(_sessionId, out documentsToReanalyze);
+                GetLocalService().BreakStateChanged(_sessionId, inBreakState, out documentsToReanalyze);
             }
             else
             {
                 var documentsToReanalyzeOpt = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DocumentId>>(
-                    (service, cancallationToken) => service.BreakStateEnteredAsync(_sessionId, cancellationToken),
+                    (service, cancallationToken) => service.BreakStateChangedAsync(_sessionId, inBreakState, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : ImmutableArray<DocumentId>.Empty;
@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public async ValueTask<(
                 ManagedModuleUpdates updates,
                 ImmutableArray<DiagnosticData> diagnostics,
-                ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>)> EmitSolutionUpdateAsync(
+                ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
+                DiagnosticData? syntaxError)> EmitSolutionUpdateAsync(
             Solution solution,
             ActiveStatementSpanProvider activeStatementSpanProvider,
             IDiagnosticAnalyzerService diagnosticService,
@@ -123,6 +124,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ManagedModuleUpdates moduleUpdates;
             ImmutableArray<DiagnosticData> diagnosticData;
             ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits;
+            DiagnosticData? syntaxError;
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -131,6 +133,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 moduleUpdates = results.ModuleUpdates;
                 diagnosticData = results.GetDiagnosticData(solution);
                 rudeEdits = results.RudeEdits;
+                syntaxError = results.GetSyntaxErrorData(solution);
             }
             else
             {
@@ -145,12 +148,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     moduleUpdates = result.Value.ModuleUpdates;
                     diagnosticData = result.Value.Diagnostics;
                     rudeEdits = result.Value.RudeEdits;
+                    syntaxError = result.Value.SyntaxError;
                 }
                 else
                 {
                     moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
                     diagnosticData = ImmutableArray<DiagnosticData>.Empty;
                     rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
+                    syntaxError = null;
                 }
             }
 
@@ -163,7 +168,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // report emit/apply diagnostics:
             diagnosticUpdateSource.ReportDiagnostics(_workspace, solution, diagnosticData);
 
-            return (moduleUpdates, diagnosticData, rudeEdits);
+            return (moduleUpdates, diagnosticData, rudeEdits, syntaxError);
         }
 
         public async ValueTask CommitSolutionUpdateAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)

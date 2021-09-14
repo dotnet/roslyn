@@ -5336,7 +5336,7 @@ class C
         }
 
         [Fact]
-        public void LocalFunction_DontEmitNullableAttribute()
+        public void LocalFunction_EmitNullableAttribute()
         {
             var source = @"
 #nullable enable
@@ -5359,14 +5359,14 @@ class C
                 var cClass = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 var localFn1 = cClass.GetMethod("<M>g__local1|0_0");
                 var attrs1 = localFn1.GetAttributes();
-                Assert.Equal("CompilerGeneratedAttribute", attrs1.Single().AttributeClass.Name);
+                AssertEx.Equal(new[] { "NullableContextAttribute", "CompilerGeneratedAttribute" }, attrs1.Select(a => a.AttributeClass.Name));
 
                 Assert.Empty(localFn1.GetReturnTypeAttributes());
-                Assert.Equal(NullableAnnotation.Oblivious, localFn1.ReturnTypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Annotated, localFn1.ReturnTypeWithAnnotations.NullableAnnotation);
 
                 var param = localFn1.Parameters.Single();
                 Assert.Empty(param.GetAttributes());
-                Assert.Equal(NullableAnnotation.Oblivious, param.TypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Annotated, param.TypeWithAnnotations.NullableAnnotation);
             }
         }
 

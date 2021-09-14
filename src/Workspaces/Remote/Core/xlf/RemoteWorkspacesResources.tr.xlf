@@ -87,6 +87,11 @@
         <target state="translated">Gezinti çubuğu</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="new">Process telemetry</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
         <source>Project telemetry collection</source>
         <target state="translated">Proje telemetri koleksiyonu</target>
@@ -129,7 +134,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">
         <source>Unused reference analysis</source>
-        <target state="new">Unused reference analysis</target>
+        <target state="translated">Kullanılmayan başvuru analizi</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ValueTracking">

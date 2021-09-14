@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -42,6 +44,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 
+        protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
+
         /// <summary>
         /// Gets the name of the language client (displayed in yellow bars).
         /// </summary>
@@ -51,14 +55,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorInProcLanguageClient(
             RequestDispatcherFactory csharpVBRequestDispatcherFactory,
-            VisualStudioWorkspace workspace,
+            IGlobalOptionService globalOptions,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             IThreadingContext threadingContext,
             ILspLoggerFactory lspLoggerFactory)
-            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, ClientName)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, ClientName)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
@@ -70,13 +74,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;
 
-            if (capabilities is VSServerCapabilities vsServerCapabilities)
+            if (capabilities is VSInternalServerCapabilities vsServerCapabilities)
             {
-                vsServerCapabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
+                vsServerCapabilities.SupportsDiagnosticRequests = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
                 return vsServerCapabilities;
             }
 
             return capabilities;
         }
+
+        /// <summary>
+        /// If the razor server is activated then any failures are catastrophic as no razor c# features will work.
+        /// </summary>
+        public override bool ShowNotificationOnInitializeFailed => true;
     }
 }

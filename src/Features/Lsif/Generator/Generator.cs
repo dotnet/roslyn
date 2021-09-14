@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             return generator;
         }
 
-        public void GenerateForCompilation(Compilation compilation, string projectPath, HostLanguageServices languageServices, OptionSet options)
+        public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, HostLanguageServices languageServices, OptionSet options)
         {
             var projectVertex = new Graph.LsifProject(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
             _lsifJsonWriter.Write(projectVertex);
@@ -71,23 +71,29 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             workspace.SetOptions(workspace.Options.WithChangedOption(
                 QuickInfoOptions.IncludeNavigationHintsInQuickInfo, false));
 
-            Parallel.ForEach(compilation.SyntaxTrees, syntaxTree =>
+            var tasks = new List<Task>();
+            foreach (var syntaxTree in compilation.SyntaxTrees)
             {
-                var semanticModel = compilation.GetSemanticModel(syntaxTree);
+                tasks.Add(Task.Run(async () =>
+                {
+                    var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
-                // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
-                // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
-                // LSIF file. Because of the rule that vertices must be written before they're used by an edge, we'll flush any top-
-                // level symbol result sets made first, since the document contents will point to that. Parallel calls to CopyAndEmpty
-                // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
-                // is preserved.
-                var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
-                var documentId = GenerateForDocument(semanticModel, languageServices, options, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
-                topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
-                documentWriter.FlushToUnderlyingAndEmpty();
+                    // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
+                    // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
+                    // LSIF file. Because of the rule that vertices must be written before they're used by an edge, we'll flush any top-
+                    // level symbol result sets made first, since the document contents will point to that. Parallel calls to CopyAndEmpty
+                    // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
+                    // is preserved.
+                    var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
+                    var documentId = await GenerateForDocumentAsync(semanticModel, languageServices, options, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
+                    topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
+                    documentWriter.FlushToUnderlyingAndEmpty();
 
-                documentIds.Add(documentId);
-            });
+                    documentIds.Add(documentId);
+                }));
+            }
+
+            await Task.WhenAll(tasks);
 
             _lsifJsonWriter.Write(Edge.Create("contains", projectVertex.GetId(), documentIds.ToArray(), _idFactory));
 
@@ -105,7 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// lets us link symbols across files, and will only talk about "top level" symbols that aren't things like locals that can't
         /// leak outside a file.
         /// </remarks>
-        private static Id<Graph.LsifDocument> GenerateForDocument(
+        private static async Task<Id<Graph.LsifDocument>> GenerateForDocumentAsync(
             SemanticModel semanticModel,
             HostLanguageServices languageServices,
             OptionSet options,
@@ -228,8 +234,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#resultset for an example.
                     if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(symbolForLinkedResultSet, Methods.TextDocumentHoverName))
                     {
-                        // TODO: Can we avoid the WaitAndGetResult_CanCallOnBackground call by adding a sync method to compute hover?
-                        var hover = HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, languageServices, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                        var hover = await HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, languageServices, CancellationToken.None);
                         if (hover != null)
                         {
                             var hoverResult = new HoverResult(hover, idFactory);

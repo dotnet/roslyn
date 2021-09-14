@@ -483,6 +483,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                 case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
+                case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
+                case ErrorCode.WRN_CompileTimeCheckedOverflow:
                     return 1;
                 default:
                     return 0;

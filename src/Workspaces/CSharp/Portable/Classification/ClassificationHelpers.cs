@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 case SyntaxKind.InterpolatedStringTextToken:
                     {
-                        if (!(token.Parent is InterpolatedStringTextSyntax interpolatedStringText))
+                        if (token.Parent is not InterpolatedStringTextSyntax interpolatedStringText)
                         {
                             return false;
                         }

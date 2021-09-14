@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_boolean_expressions">
         <source>Prefer simplified boolean expressions</source>
-        <target state="translated">간단한 부울 식을 기본으로 사용</target>
+        <target state="translated">단순화된 부울 식을 기본으로 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
@@ -1587,6 +1587,51 @@ Do you want to proceed?</source>
       <trans-unit id="Rename_Tracking_Cancellation">
         <source>Rename Tracking Cancellation</source>
         <target state="translated">추적 이름 바꾸기 취소</target>
+        <note />
+      </trans-unit>
+            <trans-unit id="Regex_Comment">
+        <source>Regex - Comment</source>
+        <target state="translated">Regex - 주석</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_Class">
+        <source>Regex - Character Class</source>
+        <target state="translated">Regex - 문자 클래스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Alternation">
+        <source>Regex - Alternation</source>
+        <target state="translated">Regex - 교체</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Anchor">
+        <source>Regex - Anchor</source>
+        <target state="translated">Regex - 앵커</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Quantifier">
+        <source>Regex - Quantifier</source>
+        <target state="translated">Regex - 수량자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_SelfEscapedCharacter">
+        <source>Regex - Self Escaped Character</source>
+        <target state="translated">Regex - 자체 이스케이프한 문자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Grouping">
+        <source>Regex - Grouping</source>
+        <target state="translated">Regex - 그룹화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Text">
+        <source>Regex - Text</source>
+        <target state="translated">Regex - 텍스트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_OtherEscape">
+        <source>Regex - Other Escape</source>
+        <target state="translated">Regex - 기타 이스케이프</target>
         <note />
       </trans-unit>
       <trans-unit id="Signature_Help">

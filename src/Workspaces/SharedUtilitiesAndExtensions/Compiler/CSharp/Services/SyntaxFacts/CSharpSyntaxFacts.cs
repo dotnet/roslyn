@@ -152,6 +152,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return name.IsRightSideOfQualifiedName();
         }
 
+        public void GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
+        {
+            var qualifiedName = (QualifiedNameSyntax)node;
+            left = qualifiedName.Left;
+            operatorToken = qualifiedName.DotToken;
+            right = qualifiedName.Right;
+        }
+
         public bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
         {
             var name = node as SimpleNameSyntax;
@@ -222,6 +230,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node)
             => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
+
+        public void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name)
+        {
+            var usingDirective = (UsingDirectiveSyntax)node;
+            globalKeyword = usingDirective.GlobalKeyword;
+            alias = usingDirective.Alias!.Name.Identifier;
+            name = usingDirective.Name;
+        }
 
         public bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node)
             => node is ForEachVariableStatementSyntax;
@@ -557,16 +573,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsPointerMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.PointerMemberAccessExpression;
 
-        public void GetNameAndArityOfSimpleName(SyntaxNode? node, out string? name, out int arity)
-        {
-            name = null;
-            arity = 0;
+        public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
+            => node is SimpleNameSyntax;
 
-            if (node is SimpleNameSyntax simpleName)
-            {
-                name = simpleName.Identifier.ValueText;
-                arity = simpleName.Arity;
-            }
+        public void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity)
+        {
+            var simpleName = (SimpleNameSyntax)node;
+            name = simpleName.Identifier.ValueText;
+            arity = simpleName.Arity;
         }
 
         public bool LooksGeneric(SyntaxNode simpleName)
@@ -1118,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken)
         {
-            if (!(root is CompilationUnitSyntax compilationUnit))
+            if (root is not CompilationUnitSyntax compilationUnit)
             {
                 return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
             }
@@ -1424,6 +1438,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxToken GetIdentifierOfParameter(SyntaxNode node)
             => ((ParameterSyntax)node).Identifier;
+
+        public SyntaxToken GetIdentifierOfTypeDeclaration(SyntaxNode node)
+            => node switch
+            {
+                BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
+                DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
+                _ => throw ExceptionUtilities.UnexpectedValue(node),
+            };
 
         public SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node)
             => ((IdentifierNameSyntax)node).Identifier;
@@ -2066,7 +2088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     break;
 
                 case SyntaxKind.Attribute:
-                    if (!(declaration.Parent is AttributeListSyntax parentList) || parentList.Attributes.Count > 1)
+                    if (declaration.Parent is not AttributeListSyntax parentList || parentList.Attributes.Count > 1)
                     {
                         return DeclarationKind.Attribute;
                     }

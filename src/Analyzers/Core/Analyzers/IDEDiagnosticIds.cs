@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -83,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string PreferBuiltInOrFrameworkTypeDiagnosticId = "IDE0049";
 
-        public const string ConvertAnonymousTypeToTupleDiagnosticId = "IDE0050";
+        // public const string ConvertAnonymousTypeToTupleDiagnosticId = "IDE0050";
 
         public const string RemoveUnusedMembersDiagnosticId = "IDE0051";
         public const string RemoveUnreadMembersDiagnosticId = "IDE0052";

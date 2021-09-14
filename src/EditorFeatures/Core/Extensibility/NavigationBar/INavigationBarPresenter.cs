@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor
         event EventHandler<EventArgs> ViewFocused;
         event EventHandler<CaretPositionChangedEventArgs> CaretMoved;
 
-        event EventHandler DropDownFocused;
         event EventHandler<NavigationBarItemSelectedEventArgs> ItemSelected;
     }
 }
