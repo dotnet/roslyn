@@ -7,8 +7,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var solution = project.Solution;
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
+            var database = solution.Options.GetPersistentStorageDatabase();
 
             var documentKeys = project.Documents.Select(d => DocumentKey.ToDocumentKey(d)).ToImmutableArray();
             var priorityDocumentKeys = priorityDocuments.SelectAsArray(d => DocumentKey.ToDocumentKey(d));
@@ -151,14 +152,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var callback = new NavigateToSearchServiceCallback(onItemFound);
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     (service, callbackId, cancellationToken) =>
-                        service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                        service.SearchCachedDocumentsAsync(documentKeys, priorityDocumentKeys, database, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);
 
                 return;
             }
 
             await SearchCachedDocumentsInCurrentProcessAsync(
-                solution.Workspace, documentKeys, priorityDocumentKeys, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
+                solution.Workspace.Services, documentKeys, priorityDocumentKeys, database, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
     }
 }

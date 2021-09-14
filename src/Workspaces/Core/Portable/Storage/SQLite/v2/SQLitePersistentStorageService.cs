@@ -3,19 +3,38 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
-    internal class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
+    internal sealed class SQLitePersistentStorageService : AbstractSQLitePersistentStorageService
     {
+        [ExportWorkspaceService(typeof(ISQLiteStorageServiceFactory)), Shared]
+        internal sealed class Factory : ISQLiteStorageServiceFactory
+        {
+            private readonly SQLiteConnectionPoolService _connectionPoolService;
+            private readonly IAsynchronousOperationListener _asyncListener;
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Factory(SQLiteConnectionPoolService connectionPoolService, IAsynchronousOperationListenerProvider asyncOperationListenerProvider)
+            {
+                _connectionPoolService = connectionPoolService;
+                _asyncListener = asyncOperationListenerProvider.GetListener(FeatureAttribute.PersistentStorage);
+            }
+
+            public IChecksummedPersistentStorageService Create(IPersistentStorageConfiguration configuration)
+                => new SQLitePersistentStorageService(_connectionPoolService, configuration, _asyncListener);
+        }
+
         private const string StorageExtension = "sqlite3";
         private const string PersistentStorageFileName = "storage.ide";
 
