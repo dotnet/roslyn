@@ -45,6 +45,9 @@ namespace Test.Utilities
         public static ReferenceAssemblies DefaultWithMELogging { get; } = Default
             .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.Extensions.Logging", "5.0.0")));
 
+        public static ReferenceAssemblies DefaultWithWilson { get; } = Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.IdentityModel.Tokens", "6.12.0")));
+
         public static ReferenceAssemblies DefaultWithWinForms { get; } = ReferenceAssemblies.NetFramework.Net472.WindowsForms;
 
         public static ReferenceAssemblies DefaultWithWinHttpHandler { get; } = ReferenceAssemblies.NetStandard.NetStandard20
