@@ -170,32 +170,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private async Task ProcessProjectAsync(Project project, ImmutableArray<ISymbol> allSymbols, CancellationToken cancellationToken)
         {
-            using var _1 = PooledDictionary<Document, PooledHashSet<ISymbol>>.GetInstance(out var documentToSymbols);
+            using var _1 = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
+            using var _2 = PooledDictionary<Document, PooledHashSet<ISymbol>>.GetInstance(out var documentToSymbols);
             try
             {
                 foreach (var symbol in allSymbols)
                 {
                     foreach (var finder in _finders)
                     {
+                        var aliases = await finder.DetermineGlobalAliasesAsync(
+                            symbol, project, cancellationToken).ConfigureAwait(false);
+                        if (aliases.Length > 0)
+                        {
+                            var globalAliases = Get(symbolToGlobalAliases, symbol);
+                            globalAliases.AddRange(aliases);
+                        }
+                    }
+                }
+
+                foreach (var symbol in allSymbols)
+                {
+                    var globalAliases = TryGet(symbolToGlobalAliases, symbol);
+
+                    foreach (var finder in _finders)
+                    {
                         var documents = await finder.DetermineDocumentsToSearchAsync(
-                            symbol, project, _documents, _options, cancellationToken).ConfigureAwait(false);
+                            symbol, globalAliases, project, _documents, _options, cancellationToken).ConfigureAwait(false);
 
                         foreach (var document in documents)
                         {
-                            if (!documentToSymbols.TryGetValue(document, out var docSymbols))
-                            {
-                                docSymbols = PooledHashSet<ISymbol>.GetInstance();
-                                documentToSymbols.Add(document, docSymbols);
-                            }
-
+                            var docSymbols = Get(documentToSymbols, document);
                             docSymbols.Add(symbol);
                         }
                     }
                 }
 
-                using var _2 = ArrayBuilder<Task>.GetInstance(out var tasks);
+                using var _3 = ArrayBuilder<Task>.GetInstance(out var tasks);
                 foreach (var (document, docSymbols) in documentToSymbols)
-                    tasks.Add(CreateWorkAsync(() => ProcessDocumentAsync(document, docSymbols, cancellationToken), cancellationToken));
+                {
+                    tasks.Add(CreateWorkAsync(() => ProcessDocumentAsync(
+                        document, docSymbols, symbolToGlobalAliases, cancellationToken), cancellationToken));
+                }
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
@@ -204,12 +219,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var (_, symbols) in documentToSymbols)
                     symbols.Free();
 
+                foreach (var (_, globalAliases) in symbolToGlobalAliases)
+                    globalAliases.Free();
+
                 await _progressTracker.ItemCompletedAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            static PooledHashSet<U> Get<T, U>(PooledDictionary<T, PooledHashSet<U>> dictionary, T key) where T : notnull
+            {
+                if (!dictionary.TryGetValue(key, out var set))
+                {
+                    set = PooledHashSet<U>.GetInstance();
+                    dictionary.Add(key, set);
+                }
+
+                return set;
             }
         }
 
+        private static PooledHashSet<U>? TryGet<T, U>(Dictionary<T, PooledHashSet<U>> dictionary, T key) where T : notnull
+            => dictionary.TryGetValue(key, out var set) ? set : null;
+
         private async Task ProcessDocumentAsync(
-            Document document, HashSet<ISymbol> symbols, CancellationToken cancellationToken)
+            Document document, HashSet<ISymbol> symbols,
+            Dictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
+            CancellationToken cancellationToken)
         {
             await _progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
 
@@ -222,7 +256,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 FindReferenceCache.Start(model);
 
                 foreach (var symbol in symbols)
-                    await ProcessDocumentAsync(document, model, symbol, cancellationToken).ConfigureAwait(false);
+                {
+                    var globalAliases = TryGet(symbolToGlobalAliases, symbol);
+                    await ProcessDocumentAsync(document, model, symbol, globalAliases, cancellationToken).ConfigureAwait(false);
+                }
             }
             finally
             {
@@ -233,7 +270,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private async Task ProcessDocumentAsync(
-            Document document, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
+            Document document, SemanticModel semanticModel, ISymbol symbol,
+            HashSet<string>? globalAliases, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, cancellationToken))
             {
@@ -243,7 +281,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 foreach (var finder in _finders)
                 {
                     var references = await finder.FindReferencesInDocumentAsync(
-                        symbol, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
+                        symbol, globalAliases, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
                     foreach (var (_, location) in references)
                         await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
                 }
