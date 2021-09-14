@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// if certain constructs (like 'patterns') are supported in that language or not.
     /// </item>
     /// </list>
-    /// Importantly avoid:
+    ///
+    /// <para>Importantly, avoid:</para>
+    ///
     /// <list type="bullet">
     /// <item>
     /// Functions that attempt to blur the lines between similar constructs in the same language.  For example, a QualifiedName
