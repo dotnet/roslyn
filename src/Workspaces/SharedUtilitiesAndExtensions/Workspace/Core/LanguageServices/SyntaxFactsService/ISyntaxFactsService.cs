@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    /// <inheritdoc cref="ISyntaxFacts"/>
     internal interface ISyntaxFactsService : ISyntaxFacts, ILanguageService
     {
         bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
