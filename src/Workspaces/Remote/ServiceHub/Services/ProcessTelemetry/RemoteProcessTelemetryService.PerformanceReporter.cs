@@ -19,7 +19,7 @@ using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal partial class RemoteHostService
+    internal partial class RemoteProcessTelemetryService
     {
         /// <summary>
         /// Track when last time report has sent and send new report if there is update after given internal
@@ -38,12 +38,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 TelemetrySession telemetrySession,
                 IPerformanceTrackerService diagnosticAnalyzerPerformanceTracker,
                 IGlobalOperationNotificationService globalOperationNotificationService,
-                TimeSpan reportingInterval,
                 CancellationToken shutdownToken)
                 : base(
                     AsynchronousOperationListenerProvider.NullListener,
                     globalOperationNotificationService,
-                    reportingInterval,
+                    backOffTimeSpan: TimeSpan.FromMinutes(2),
                     shutdownToken)
             {
                 _event = new SemaphoreSlim(initialCount: 0);

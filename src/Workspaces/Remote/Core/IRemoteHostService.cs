@@ -12,14 +12,5 @@ namespace Microsoft.CodeAnalysis.Remote
     internal interface IRemoteHostService
     {
         void InitializeGlobalState(int uiCultureLCID, int cultureLCID, CancellationToken cancellationToken);
-
-        void InitializeTelemetrySession(int hostProcessId, string serializedSession, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// This is only for debugging
-        /// 
-        /// this lets remote side to set same logging options as VS side
-        /// </summary>
-        void SetLoggingFunctionIds(List<string> loggerTypes, List<string> functionIds, CancellationToken cancellationToken);
     }
 }
