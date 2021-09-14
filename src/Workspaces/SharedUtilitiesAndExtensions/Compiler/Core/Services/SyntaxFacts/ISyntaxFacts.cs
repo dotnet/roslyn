@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// </item>
     /// <item>
     /// Functions that mutate or update syntax constructs for example 'WithXXX'.  These should be on
-    /// <see cref="Microsoft.CodeAnalysis.Editing.SyntaxGenerator"/>
+    /// <see cref="T:Microsoft.CodeAnalysis.Editing.SyntaxGenerator"/>
     /// or some other feature specific service.
     /// </item>
     /// <item>
