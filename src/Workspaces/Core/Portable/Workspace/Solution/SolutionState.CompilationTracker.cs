@@ -472,74 +472,54 @@ namespace Microsoft.CodeAnalysis
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                try
+                var state = ReadState();
+
+                // if we already have a compilation, we must be already done!  This can happen if two
+                // threads were waiting to build, and we came in after the other succeeded.
+                var compilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                if (compilation != null)
                 {
-                    return await BuildCompilationInfoWorkerAsync().ConfigureAwait(false);
-                }
-                catch
-                {
-                    // Explicitly force a yield point here.  This addresses a problem on .net framework where it's
-                    // possible that cancelling this task chain ends up stack overflowing as the TPL attempts to
-                    // synchronously recurse through the tasks to execute antecedent work.  This will force continuations
-                    // here to run asynchronously preventing the stack overflow.
-                    // See https://github.com/dotnet/roslyn/issues/56356 for more details.
-                    await Task.Yield();
-                    throw;
+                    RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
+                    return new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo.Documents);
                 }
 
-                // local functions
+                compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
 
-                async Task<CompilationInfo> BuildCompilationInfoWorkerAsync()
+                // If we have already reached FinalState in the past but the compilation was garbage collected, we still have the generated documents
+                // so we can pass those to FinalizeCompilationAsync to avoid the recomputation. This is necessary for correctness as otherwise
+                // we'd be reparsing trees which could result in generated documents changing identity.
+                var authoritativeGeneratedDocuments = state.GeneratorInfo.DocumentsAreFinal ? state.GeneratorInfo.Documents : (TextDocumentStates<SourceGeneratedDocumentState>?)null;
+                var nonAuthoritativeGeneratedDocuments = state.GeneratorInfo.Documents;
+                var generatorDriver = state.GeneratorInfo.Driver;
+
+                if (compilation == null)
                 {
-                    var state = ReadState();
+                    // We've got nothing.  Build it from scratch :(
+                    return await BuildCompilationInfoFromScratchAsync(
+                        solution,
+                        authoritativeGeneratedDocuments,
+                        nonAuthoritativeGeneratedDocuments,
+                        generatorDriver,
+                        cancellationToken).ConfigureAwait(false);
+                }
 
-                    // if we already have a compilation, we must be already done!  This can happen if two
-                    // threads were waiting to build, and we came in after the other succeeded.
-                    var compilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
-                    if (compilation != null)
-                    {
-                        RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                        return new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo.Documents);
-                    }
-
-                    compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
-
-                    // If we have already reached FinalState in the past but the compilation was garbage collected, we still have the generated documents
-                    // so we can pass those to FinalizeCompilationAsync to avoid the recomputation. This is necessary for correctness as otherwise
-                    // we'd be reparsing trees which could result in generated documents changing identity.
-                    var authoritativeGeneratedDocuments = state.GeneratorInfo.DocumentsAreFinal ? state.GeneratorInfo.Documents : (TextDocumentStates<SourceGeneratedDocumentState>?)null;
-                    var nonAuthoritativeGeneratedDocuments = state.GeneratorInfo.Documents;
-                    var generatorDriver = state.GeneratorInfo.Driver;
-
-                    if (compilation == null)
-                    {
-                        // We've got nothing.  Build it from scratch :(
-                        return await BuildCompilationInfoFromScratchAsync(
-                            solution,
-                            authoritativeGeneratedDocuments,
-                            nonAuthoritativeGeneratedDocuments,
-                            generatorDriver,
-                            cancellationToken).ConfigureAwait(false);
-                    }
-
-                    if (state is AllSyntaxTreesParsedState or FinalState)
-                    {
-                        // We have a declaration compilation, use it to reconstruct the final compilation
-                        return await FinalizeCompilationAsync(
-                            solution,
-                            compilation,
-                            authoritativeGeneratedDocuments,
-                            nonAuthoritativeGeneratedDocuments,
-                            compilationWithStaleGeneratedTrees: null,
-                            generatorDriver,
-                            cancellationToken).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        // We must have an in progress compilation. Build off of that.
-                        return await BuildFinalStateFromInProgressStateAsync(
-                            solution, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
-                    }
+                if (state is AllSyntaxTreesParsedState or FinalState)
+                {
+                    // We have a declaration compilation, use it to reconstruct the final compilation
+                    return await FinalizeCompilationAsync(
+                        solution,
+                        compilation,
+                        authoritativeGeneratedDocuments,
+                        nonAuthoritativeGeneratedDocuments,
+                        compilationWithStaleGeneratedTrees: null,
+                        generatorDriver,
+                        cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    // We must have an in progress compilation. Build off of that.
+                    return await BuildFinalStateFromInProgressStateAsync(
+                        solution, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -941,6 +921,18 @@ namespace Microsoft.CodeAnalysis
                     this.WriteState(finalState, solution.Services);
 
                     return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatedDocuments);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Explicitly force a yield point here.  This addresses a problem on .net framework where it's
+                    // possible that cancelling this task chain ends up stack overflowing as the TPL attempts to
+                    // synchronously recurse through the tasks to execute antecedent work.  This will force continuations
+                    // here to run asynchronously preventing the stack overflow.
+                    // See https://github.com/dotnet/roslyn/issues/56356 for more details.
+                    // note: this can be removed if this code only needs to run on .net core (as the stack overflow issue
+                    // does not exist there).
+                    await Task.Yield().ConfigureAwait(false);
+                    throw;
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
