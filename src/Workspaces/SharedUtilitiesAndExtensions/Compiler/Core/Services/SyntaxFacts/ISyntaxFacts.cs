@@ -94,11 +94,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent);
         bool IsTypeNamedDynamic(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent);
         bool IsUsingOrExternOrImport([NotNullWhen(true)] SyntaxNode? node);
-        bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node);
         bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node);
         bool IsGlobalModuleAttribute([NotNullWhen(true)] SyntaxNode? node);
         bool IsDeclaration(SyntaxNode node);
         bool IsTypeDeclaration(SyntaxNode node);
+
+        bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node);
+        void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name);
 
         bool IsRegularComment(SyntaxTrivia trivia);
         bool IsDocumentationComment(SyntaxTrivia trivia);
@@ -191,6 +193,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsRightSideOfQualifiedName([NotNullWhen(true)] SyntaxNode? node);
         bool IsLeftSideOfExplicitInterfaceSpecifier([NotNullWhen(true)] SyntaxNode? node);
+        void GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken dotToken, out SyntaxNode right);
 
         bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsNameOfAnyMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
@@ -272,7 +275,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsArgument([NotNullWhen(true)] SyntaxNode? node);
         RefKind GetRefKindOfArgument(SyntaxNode? node);
 
-        void GetNameAndArityOfSimpleName(SyntaxNode? node, out string? name, out int arity);
+        bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node);
+        void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         bool LooksGeneric(SyntaxNode simpleName);
 
         SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfGenericName(SyntaxNode? genericName);
