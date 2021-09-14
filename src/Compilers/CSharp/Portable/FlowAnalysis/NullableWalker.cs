@@ -5317,7 +5317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < results.Length; i++)
                 {
                     var argumentNoConversion = argumentsNoConversions[i];
-                    var argument = i < arguments.Length ? arguments[i] : argumentsNoConversions[i];
+                    var argument = i < arguments.Length ? arguments[i] : argumentNoConversion;
 
                     if (argument is not BoundConversion && argumentNoConversion is BoundLambda lambda)
                     {
@@ -5336,7 +5336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If this assert fails, we are missing necessary info to visit the
                         // conversion of a target typed conditional or switch.
                         Debug.Assert(argumentNoConversion is not (BoundConditionalOperator { WasTargetTyped: true } or BoundConvertedSwitchExpression { WasTargetTyped: true })
-                            && !ConditionalInfoForConversion.ContainsKey(argumentNoConversion));
+                            && _conditionalInfoForConversionOpt?.ContainsKey(argumentNoConversion) is null or false);
 
                         // If this assert fails, it means we failed to visit a lambda for error recovery above.
                         Debug.Assert(argumentNoConversion is not BoundLambda);
