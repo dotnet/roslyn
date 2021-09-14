@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
@@ -49,6 +50,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public RemoteWorkspace GetWorkspace()
             => WorkspaceManager.GetWorkspace();
+
+        public HostWorkspaceServices GetWorkspaceServices()
+            => GetWorkspace().Services;
 
         protected void Log(TraceEventType errorType, string message)
             => _logger.TraceEvent(errorType, 0, $"{GetType()}: {message}");
