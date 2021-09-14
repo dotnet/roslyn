@@ -35,7 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         private void ListViewItem_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            _viewModel.Selection?.NavigateToSymbol();
+            if (_viewModel.Selection is StackFrameViewModel stackFrameViewModel)
+            {
+                stackFrameViewModel.NavigateToSymbol();
+            }
         }
     }
 }

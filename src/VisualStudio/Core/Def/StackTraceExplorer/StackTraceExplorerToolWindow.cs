@@ -5,13 +5,14 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Windows;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
     [Guid(Guids.StackTraceExplorerToolWindowIdString)]
-    internal class StackTraceExplorerToolWindow : ToolWindowPane
+    internal class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommandTarget
     {
         private readonly StackTraceExplorerRoot _root = new();
 
@@ -48,6 +49,22 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 // If we're not initialized don't show the frame
                 windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
             }
+        }
+
+        int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
+        {
+            if ((nCmdID & (uint)OLECMDID.OLECMDID_PASTE) != 0 ||
+                (nCmdID & (uint)OLECMDID.OLECMDID_PASTESPECIAL) != 0)
+            {
+                ViewModel?.OnPaste();
+            }
+
+            return VSConstants.S_OK;
+        }
+
+        int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
+        {
+            return VSConstants.S_OK;
         }
     }
 }

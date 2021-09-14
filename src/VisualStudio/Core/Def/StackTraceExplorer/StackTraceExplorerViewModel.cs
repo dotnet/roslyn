@@ -32,8 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             set => SetProperty(ref _isLoading, value);
         }
 
-        private StackFrameViewModel? _selection;
-        public StackFrameViewModel? Selection
+        private FrameViewModel? _selection;
+        public FrameViewModel? Selection
         {
             get => _selection;
             set => SetProperty(ref _selection, value);

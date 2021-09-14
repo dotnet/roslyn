@@ -81,7 +81,7 @@ namespace ConsoleApp4
             return method;
         }
 
-        private Task<ISymbol?> GetSymbolAsync(ParsedFrame parsedFrame, Solution solution, CancellationToken cancellationToken)
+        private static Task<ISymbol?> GetSymbolAsync(ParsedFrame parsedFrame, Solution solution, CancellationToken cancellationToken)
         {
             var stackFrame = parsedFrame as ParsedStackFrame;
             Assert.NotNull(stackFrame);
