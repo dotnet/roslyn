@@ -472,12 +472,30 @@ namespace Microsoft.CodeAnalysis
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // Explicitly force a yield point here.  This addresses a problem on .net framework where it's possible that cancelling
-                // this task chain ends up stack overflowing as the TPL attempts to synchronously recurse through the tasks to execute
-                // antecedent work.  This will force continuations here to run asynchronously preventing the stack overflow.
-                // See https://github.com/dotnet/roslyn/issues/56356 for more details.
-                await Task.Yield().ConfigureAwait(false);
+                try
+                {
+                    await BuildCompilationInfoWorkerAsync(solution, cancellationToken).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // Explicitly force a yield point here.  This addresses a problem on .net framework where it's
+                    // possible that cancelling this task chain ends up stack overflowing as the TPL attempts to
+                    // synchronously recurse through the tasks to execute antecedent work.  This will force continuations
+                    // here to run asynchronously preventing the stack overflow.
+                    // See https://github.com/dotnet/roslyn/issues/56356 for more details.
+                    await Task.Yield();
+                    throw;
+                }
+            }
 
+            /// <summary>
+            /// Builds the compilation matching the project state. In the process of building, also
+            /// produce in progress snapshots that can be accessed from other threads.
+            /// </summary>
+            private async Task<CompilationInfo> BuildCompilationInfoWorkerAsync(
+                SolutionState solution,
+                CancellationToken cancellationToken)
+            {
                 var state = ReadState();
 
                 // if we already have a compilation, we must be already done!  This can happen if two
