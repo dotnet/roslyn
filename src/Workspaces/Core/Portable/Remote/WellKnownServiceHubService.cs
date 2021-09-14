@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
         // obsolete: RemoteProjectTelemetryService = 5,
         // obsolete: RemoteTodoCommentsService = 6,
         // obsolete: RemoteLanguageServer = 7,
-        IntelliCode = 8,
+        // obsolete: IntelliCode = 8,
         // obsolete: Razor = 9,
 
         // owned by Unit Testing team:

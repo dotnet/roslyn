@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis
             public ICompilationTracker Fork(
                 ProjectState newProject,
                 CompilationAndGeneratorDriverTranslationAction? translate = null,
-                bool clone = false,
                 CancellationToken cancellationToken = default)
             {
                 var state = ReadState();
@@ -122,11 +121,6 @@ namespace Microsoft.CodeAnalysis
                 var baseCompilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
                 if (baseCompilation != null)
                 {
-                    // We have some pre-calculated state to incrementally update
-                    var newInProgressCompilation = clone
-                        ? baseCompilation.Clone()
-                        : baseCompilation;
-
                     var intermediateProjects = state is InProgressState inProgressState
                         ? inProgressState.IntermediateProjects
                         : ImmutableArray.Create<(ProjectState oldState, CompilationAndGeneratorDriverTranslationAction action)>();
@@ -155,7 +149,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    var newState = State.Create(newInProgressCompilation, state.GeneratedDocuments, state.GeneratorDriver, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
+                    var newState = State.Create(baseCompilation, state.GeneratedDocuments, state.GeneratorDriver, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
 
                     return new CompilationTracker(newProject, newState);
                 }
@@ -176,12 +170,6 @@ namespace Microsoft.CodeAnalysis
                 // to rebuild its compilation from scratch if anyone asks for it.
                 return new CompilationTracker(newProject);
             }
-
-            /// <summary>
-            /// Creates a fork with the same final project.
-            /// </summary>
-            public ICompilationTracker Clone()
-                => this.Fork(this.ProjectState, clone: true);
 
             public ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
@@ -1103,24 +1091,6 @@ namespace Microsoft.CodeAnalysis
                 return state.DeclarationOnlyCompilation == null
                     ? (bool?)null
                     : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
-            }
-
-            /// <summary>
-            /// get all syntax trees that contain declaration node with the given name
-            /// </summary>
-            public IEnumerable<SyntaxTree>? GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-            {
-                var state = this.ReadState();
-                if (state.DeclarationOnlyCompilation == null)
-                {
-                    return null;
-                }
-
-                // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
-
-                // use cloned compilation since this will cause symbols to be created.
-                var clone = state.DeclarationOnlyCompilation.Clone();
-                return clone.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree));
             }
 
             public Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken)

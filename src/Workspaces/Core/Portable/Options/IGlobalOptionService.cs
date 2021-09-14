@@ -45,9 +45,30 @@ namespace Microsoft.CodeAnalysis.Options
         object? GetOption(OptionKey optionKey);
 
         /// <summary>
-        /// Applies a set of options, invoking serializers if needed.
+        /// Gets the current values of specified options.
+        /// All options are read atomically.
+        /// </summary>
+        ImmutableArray<object?> GetOptions(ImmutableArray<OptionKey> optionKeys);
+
+        /// <summary>
+        /// Applies a set of options.
+        /// If any option changed its value invokes registered option persisters, updates current solutions of all registered workspaces and triggers <see cref="OptionChanged"/>.
         /// </summary>
         void SetOptions(OptionSet optionSet);
+
+        /// <summary>
+        /// Sets and persists the value of a global option.
+        /// Does not update any workspace (since this option is not a solution option).
+        /// Does not trigger <see cref="OptionChanged"/>.
+        /// </summary>
+        void SetGlobalOption(OptionKey optionKey, object? value);
+
+        /// <summary>
+        /// Atomically sets the values of specified global options. The option values are persisted.
+        /// Does not update any workspace (since this option is not a solution option).
+        /// Does not trigger <see cref="OptionChanged"/>.
+        /// </summary>
+        void SetGlobalOptions(ImmutableArray<OptionKey> optionKeys, ImmutableArray<object?> values);
 
         /// <summary>
         /// Gets force computed serializable options snapshot with prefetched values for the registered options applicable to the given <paramref name="languages"/> by quering the option persisters.

@@ -6872,4 +6872,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters_Title" xml:space="preserve">
     <value>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</value>
   </data>
+  <data name="ERR_LambdaWithAttributesToExpressionTree" xml:space="preserve">
+    <value>A lambda expression with attributes cannot be converted to an expression tree</value>
+  </data>
 </root>
