@@ -2464,6 +2464,16 @@ outerDefault:
                 }
             }
 
+            switch ((conv1.Kind, conv2.Kind))
+            {
+                case (ConversionKind.FunctionType, ConversionKind.FunctionType):
+                    break;
+                case (_, ConversionKind.FunctionType):
+                    return BetterResult.Left;
+                case (ConversionKind.FunctionType, _):
+                    return BetterResult.Right;
+            }
+
             // Given an implicit conversion C1 that converts from an expression E to a type T1, 
             // and an implicit conversion C2 that converts from an expression E to a type T2,
             // C1 is a better conversion than C2 if E does not exactly match T2 and one of the following holds:

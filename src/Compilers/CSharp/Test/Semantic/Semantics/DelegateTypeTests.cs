@@ -3540,6 +3540,87 @@ class Program
         }
 
         [Fact]
+        public void OverloadResolution_39()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C
+{
+    static void M(Expression e) { Console.WriteLine(""M(Expression e)""); }
+    static void M(object o) { Console.WriteLine(""M(object o)""); }
+    static int F() => 0;
+    static void Main()
+    {
+        M(F);
+        M(() => 1);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (10,11): error CS1503: Argument 1: cannot convert from 'method group' to 'Expression'
+                //         M(F);
+                Diagnostic(ErrorCode.ERR_BadArgType, "F").WithArguments("1", "method group", "System.Linq.Expressions.Expression").WithLocation(10, 11),
+                // (11,11): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                //         M(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(11, 11));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,11): error CS0428: Cannot convert method group 'F' to non-delegate type 'Expression'. Did you intend to invoke the method?
+                //         M(F);
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(10, 11)
+            };
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void OverloadResolution_40()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C
+{
+    static void M(Expression e) { Console.WriteLine(""M(Expression e)""); }
+    static void M(Delegate d) { Console.WriteLine(""M(Delegate d)""); }
+    static int F() => 0;
+    static void Main()
+    {
+        M(F);
+        M(() => 1);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (10,11): error CS1503: Argument 1: cannot convert from 'method group' to 'Expression'
+                //         M(F);
+                Diagnostic(ErrorCode.ERR_BadArgType, "F").WithArguments("1", "method group", "System.Linq.Expressions.Expression").WithLocation(10, 11),
+                // (11,11): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                //         M(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(11, 11));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Expression)' and 'C.M(Delegate)'
+                //         M(F);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Linq.Expressions.Expression)", "C.M(System.Delegate)").WithLocation(10, 9),
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(Expression)' and 'C.M(Delegate)'
+                //         M(() => 1);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Linq.Expressions.Expression)", "C.M(System.Delegate)").WithLocation(11, 9)
+            };
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
         public void BestCommonType_01()
         {
             var source =
@@ -5459,38 +5540,31 @@ class C
         {
             var source =
 @"using System;
-using System.Linq.Expressions;
 class C
 {
     public static C operator+(C c, Delegate d) { Console.WriteLine(""operator+(C c, Delegate d)""); return c; }
     public static C operator+(C c, object o) { Console.WriteLine(""operator+(C c, object o)""); return c; }
-    public static C operator-(C c, Expression e) { Console.WriteLine(""operator-(C c, Expression e)""); return c; }
-    public static C operator-(C c, object o) { Console.WriteLine(""operator-(C c, object o)""); return c; }
+    static int F() => 0;
     static void Main()
     {
         var c = new C();
-        _ = c + Main;
+        _ = c + F;
         _ = c + (() => 1);
-        _ = c - (() => 2);
     }
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (12,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'method group'
-                //         _ = c + Main;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + Main").WithArguments("+", "C", "method group").WithLocation(12, 13),
-                // (13,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'lambda expression'
+                // (10,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'method group'
+                //         _ = c + F;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + F").WithArguments("+", "C", "method group").WithLocation(10, 13),
+                // (11,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'lambda expression'
                 //         _ = c + (() => 1);
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + (() => 1)").WithArguments("+", "C", "lambda expression").WithLocation(13, 13),
-                // (14,13): error CS0019: Operator '-' cannot be applied to operands of type 'C' and 'lambda expression'
-                //         _ = c - (() => 2);
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c - (() => 2)").WithArguments("-", "C", "lambda expression").WithLocation(14, 13));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + (() => 1)").WithArguments("+", "C", "lambda expression").WithLocation(11, 13));
 
             var expectedOutput =
 @"operator+(C c, Delegate d)
 operator+(C c, Delegate d)
-operator-(C c, Expression e)
 ";
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
             CompileAndVerify(source, expectedOutput: expectedOutput);
@@ -5501,16 +5575,56 @@ operator-(C c, Expression e)
         {
             var source =
 @"using System;
+using System.Linq.Expressions;
 class C
 {
-    public static C operator+(C c, Delegate d) { Console.WriteLine(""operator+(C c, Delegate d)""); return c; }
-    public static C operator+(C c, Func<object> f) { Console.WriteLine(""operator+(C c, Func<object> f)""); return c; }
-    static int F() => 1;
+    public static C operator+(C c, Expression e) { Console.WriteLine(""operator+(C c, Expression e)""); return c; }
+    public static C operator+(C c, object o) { Console.WriteLine(""operator+(C c, object o)""); return c; }
+    static int F() => 0;
     static void Main()
     {
         var c = new C();
         _ = c + F;
-        _ = c + (() => 2);
+        _ = c + (() => 1);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'method group'
+                //         _ = c + F;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + F").WithArguments("+", "C", "method group").WithLocation(11, 13),
+                // (12,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'lambda expression'
+                //         _ = c + (() => 1);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + (() => 1)").WithArguments("+", "C", "lambda expression").WithLocation(12, 13));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,17): error CS0428: Cannot convert method group 'F' to non-delegate type 'Expression'. Did you intend to invoke the method?
+                //         _ = c + F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(11, 17)
+            };
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void BinaryOperator_05()
+        {
+            var source =
+@"using System;
+class C
+{
+    public static C operator+(C c, Delegate d) { Console.WriteLine(""operator+(C c, Delegate d)""); return c; }
+    public static C operator+(C c, Func<object> f) { Console.WriteLine(""operator+(C c, Func<object> f)""); return c; }
+    static int F() => 0;
+    static void Main()
+    {
+        var c = new C();
+        _ = c + F;
+        _ = c + (() => 1);
     }
 }";
 
@@ -5529,7 +5643,70 @@ operator+(C c, Func<object> f)
         }
 
         [Fact]
-        public void BinaryOperator_05()
+        public void BinaryOperator_06()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C
+{
+    public static C operator+(C c, Expression e) { Console.WriteLine(""operator+(C c, Expression e)""); return c; }
+    public static C operator+(C c, Func<object> f) { Console.WriteLine(""operator+(C c, Func<object> f)""); return c; }
+    static void Main()
+    {
+        var c = new C();
+        _ = c + (() => new object());
+        _ = c + (() => 1);
+    }
+}";
+
+            var expectedOutput =
+@"operator+(C c, Func<object> f)
+operator+(C c, Func<object> f)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void BinaryOperator_07()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C
+{
+    public static C operator+(C c, Expression e) { Console.WriteLine(""operator+(C c, Expression e)""); return c; }
+    public static C operator+(C c, Func<object> f) { Console.WriteLine(""operator+(C c, Func<object> f)""); return c; }
+    static int F() => 0;
+    static void Main()
+    {
+        var c = new C();
+        _ = c + F;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'method group'
+                //         _ = c + F;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + F").WithArguments("+", "C", "method group").WithLocation(11, 13));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,17): error CS0428: Cannot convert method group 'F' to non-delegate type 'Expression'. Did you intend to invoke the method?
+                //         _ = c + F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(11, 17)
+            };
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void BinaryOperator_08()
         {
             var source =
 @"using System;
