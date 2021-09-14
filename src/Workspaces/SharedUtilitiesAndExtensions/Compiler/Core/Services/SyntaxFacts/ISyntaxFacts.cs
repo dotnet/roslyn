@@ -59,9 +59,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// its own dedicated service.
     /// </item>
     /// <item>
-    /// Functions that mutate or update syntax constructs for example 'WithXXX'.  These should be on
-    /// <see cref="T:Microsoft.CodeAnalysis.Editing.SyntaxGenerator"/>
-    /// or some other feature specific service.
+    /// Functions that mutate or update syntax constructs for example 'WithXXX'.  These should be on SyntaxGenerator or
+    /// some other feature specific service.
     /// </item>
     /// <item>
     /// Functions that a single item when one language may allow for multiple.  For example 'GetIdentifierOfVariableDeclarator'.
