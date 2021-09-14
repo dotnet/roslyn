@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundPattern pattern = subpattern.Pattern;
                     BoundDagTemp currentInput = input;
-                    if (!tryMakeSubpatternMemberTests(subpattern.Member, ref currentInput, subpattern.IsLengthOrCount))
+                    if (!tryMakeTestsForSubpatternMember(subpattern.Member, ref currentInput, subpattern.IsLengthOrCount))
                     {
                         Debug.Assert(recursive.HasAnyErrors);
                         tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
@@ -565,13 +565,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Tests.AndSequence.Create(tests);
 
-            bool tryMakeSubpatternMemberTests([NotNullWhen(true)] BoundPropertySubpatternMember? member, ref BoundDagTemp input, bool isLengthOrCount)
+            bool tryMakeTestsForSubpatternMember([NotNullWhen(true)] BoundPropertySubpatternMember? member, ref BoundDagTemp input, bool isLengthOrCount)
             {
                 if (member is null)
                     return false;
 
                 // int doesn't have a property, so isLengthOrCount could never be true
-                if (tryMakeSubpatternMemberTests(member.Receiver, ref input, isLengthOrCount: false))
+                if (tryMakeTestsForSubpatternMember(member.Receiver, ref input, isLengthOrCount: false))
                 {
                     // If this is not the first member, add null test, unwrap nullables, and continue.
                     input = MakeConvertToType(input, member.Syntax, member.Receiver.Type.StrippedType(), isExplicitTest: false, tests);
