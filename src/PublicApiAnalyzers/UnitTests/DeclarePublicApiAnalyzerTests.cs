@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #nullable enable
 #pragma warning disable CA1305
@@ -1685,6 +1685,7 @@ C.C(int value) -> void";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
+        [Fact]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
         public async Task AnalyzerFileMissing_Both_Fix()
         {

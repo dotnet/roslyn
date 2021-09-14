@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -36,6 +36,9 @@ namespace Test.Utilities
 
         public static ReferenceAssemblies DefaultWithNewtonsoftJson12 { get; } = Default
             .AddPackages(ImmutableArray.Create(new PackageIdentity("Newtonsoft.Json", "12.0.1")));
+
+        public static ReferenceAssemblies DefaultWithWilson { get; } = Default
+            .AddPackages(ImmutableArray.Create(new PackageIdentity("Microsoft.IdentityModel.Tokens", "6.12.0")));
 
         public static ReferenceAssemblies DefaultWithWinForms { get; } = ReferenceAssemblies.NetFramework.Net472.WindowsForms;
 

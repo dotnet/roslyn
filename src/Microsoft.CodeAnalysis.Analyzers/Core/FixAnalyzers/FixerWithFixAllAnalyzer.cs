@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 {
+    using static CodeAnalysisDiagnosticsResources;
+
     /// <summary>
     /// A <see cref="CodeFixProvider"/> that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer.
     /// This enables the <see cref="FixAllProvider"/> to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.
@@ -26,22 +28,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         internal const string CodeFixProviderMetadataName = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
         internal const string GetFixAllProviderMethodName = "GetFixAllProvider";
 
-        private static readonly LocalizableString s_localizableCreateCodeActionWithEquivalenceKeyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableCreateCodeActionWithEquivalenceKeyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableOverrideCodeActionEquivalenceKeyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableOverrideCodeActionEquivalenceKeyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableOverrideGetFixAllProviderTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideGetFixAllProviderTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableOverrideGetFixAllProviderMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideGetFixAllProviderMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableCodeActionNeedsEquivalenceKeyDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CodeActionNeedsEquivalenceKeyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableOverrideGetFixAllProviderDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideGetFixAllProviderDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableCodeActionNeedsEquivalenceKeyDescription = CreateLocalizableResourceString(nameof(CodeActionNeedsEquivalenceKeyDescription));
 
         internal static readonly DiagnosticDescriptor CreateCodeActionEquivalenceKeyRule = new(
             DiagnosticIds.CreateCodeActionWithEquivalenceKeyRuleId,
-            s_localizableCreateCodeActionWithEquivalenceKeyTitle,
-            s_localizableCreateCodeActionWithEquivalenceKeyMessage,
+            CreateLocalizableResourceString(nameof(CreateCodeActionWithEquivalenceKeyTitle)),
+            CreateLocalizableResourceString(nameof(CreateCodeActionWithEquivalenceKeyMessage)),
             "Correctness",
             DiagnosticSeverity.Warning,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
@@ -50,8 +42,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
         internal static readonly DiagnosticDescriptor OverrideCodeActionEquivalenceKeyRule = new(
             DiagnosticIds.OverrideCodeActionEquivalenceKeyRuleId,
-            s_localizableOverrideCodeActionEquivalenceKeyTitle,
-            s_localizableOverrideCodeActionEquivalenceKeyMessage,
+            CreateLocalizableResourceString(nameof(OverrideCodeActionEquivalenceKeyTitle)),
+            CreateLocalizableResourceString(nameof(OverrideCodeActionEquivalenceKeyMessage)),
             "Correctness",
             DiagnosticSeverity.Warning,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
@@ -60,15 +52,15 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
         internal static readonly DiagnosticDescriptor OverrideGetFixAllProviderRule = new(
             DiagnosticIds.OverrideGetFixAllProviderRuleId,
-            s_localizableOverrideGetFixAllProviderTitle,
-            s_localizableOverrideGetFixAllProviderMessage,
+            CreateLocalizableResourceString(nameof(OverrideGetFixAllProviderTitle)),
+            CreateLocalizableResourceString(nameof(OverrideGetFixAllProviderMessage)),
             "Correctness",
             DiagnosticSeverity.Warning,
-            description: s_localizableOverrideGetFixAllProviderDescription,
+            description: CreateLocalizableResourceString(nameof(OverrideGetFixAllProviderDescription)),
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
             ImmutableArray.Create(CreateCodeActionEquivalenceKeyRule, OverrideCodeActionEquivalenceKeyRule, OverrideGetFixAllProviderRule);
 
         public override void Initialize(AnalysisContext context)
