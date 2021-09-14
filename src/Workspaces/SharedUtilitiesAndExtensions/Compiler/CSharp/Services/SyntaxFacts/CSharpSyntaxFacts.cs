@@ -1750,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.IsKind(SyntaxKind.Block);
 
         public bool IsExecutableBlock([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection, SyntaxKind.CompilationUnit, SyntaxKind.GlobalStatement);
+            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection, SyntaxKind.CompilationUnit);
 
         public IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode? node)
         {
@@ -1759,7 +1759,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 BlockSyntax block => block.Statements,
                 SwitchSectionSyntax switchSection => switchSection.Statements,
                 CompilationUnitSyntax compilationUnit => compilationUnit.Members.OfType<GlobalStatementSyntax>().SelectAsArray(globalStatement => globalStatement.Statement),
-                GlobalStatementSyntax globalStatement => SpecializedCollections.SingletonReadOnlyList(globalStatement.Statement),
                 _ => throw ExceptionUtilities.UnexpectedValue(node),
             };
         }
