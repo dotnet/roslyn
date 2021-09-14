@@ -12711,15 +12711,17 @@ o3.ToString();
             );
         }
 
-        [Fact]
-        public void ParenthesizedAdditiveExpression_01()
+        [Theory]
+        [InlineData(@"($""{i1}"" + $""{i2}"") + $""{i3}""")]
+        [InlineData(@"$""{i1}"" + ($""{i2}"" + $""{i3}"")")]
+        public void ParenthesizedAdditiveExpression_01(string expression)
         {
             var code = @"
 int i1 = 1;
 int i2 = 2;
 int i3 = 3;
 
-CustomHandler c = ($""{i1}"" + $""{i2}"") + $""{i3}"";
+CustomHandler c = " + expression + @";
 System.Console.WriteLine(c.ToString());";
 
             var comp = CreateCompilation(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
@@ -12785,77 +12787,6 @@ format:
 
         [Fact]
         public void ParenthesizedAdditiveExpression_02()
-        {
-            var code = @"
-int i1 = 1;
-int i2 = 2;
-int i3 = 3;
-
-CustomHandler c = $""{i1}"" + ($""{i2}"" + $""{i3}"");
-System.Console.WriteLine(c.ToString());";
-
-            var verifier = CompileAndVerify(new[] { code, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) }, expectedOutput: @"
-value:1
-alignment:0
-format:
-value:2
-alignment:0
-format:
-value:3
-alignment:0
-format:");
-            verifier.VerifyDiagnostics();
-
-            verifier.VerifyIL("<top-level-statements-entry-point>", @"
-{
-  // Code size       82 (0x52)
-  .maxstack  4
-  .locals init (int V_0, //i1
-                int V_1, //i2
-                int V_2, //i3
-                CustomHandler V_3, //c
-                CustomHandler V_4)
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  ldc.i4.2
-  IL_0003:  stloc.1
-  IL_0004:  ldc.i4.3
-  IL_0005:  stloc.2
-  IL_0006:  ldloca.s   V_4
-  IL_0008:  ldc.i4.0
-  IL_0009:  ldc.i4.3
-  IL_000a:  call       ""CustomHandler..ctor(int, int)""
-  IL_000f:  ldloca.s   V_4
-  IL_0011:  ldloc.0
-  IL_0012:  box        ""int""
-  IL_0017:  ldc.i4.0
-  IL_0018:  ldnull
-  IL_0019:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_001e:  ldloca.s   V_4
-  IL_0020:  ldloc.1
-  IL_0021:  box        ""int""
-  IL_0026:  ldc.i4.0
-  IL_0027:  ldnull
-  IL_0028:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_002d:  ldloca.s   V_4
-  IL_002f:  ldloc.2
-  IL_0030:  box        ""int""
-  IL_0035:  ldc.i4.0
-  IL_0036:  ldnull
-  IL_0037:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_003c:  ldloc.s    V_4
-  IL_003e:  stloc.3
-  IL_003f:  ldloca.s   V_3
-  IL_0041:  constrained. ""CustomHandler""
-  IL_0047:  callvirt   ""string object.ToString()""
-  IL_004c:  call       ""void System.Console.WriteLine(string)""
-  IL_0051:  ret
-}
-");
-        }
-
-        [Fact]
-        public void ParenthesizedAdditiveExpression_03()
         {
             var code = @"
 int i1 = 1;
