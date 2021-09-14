@@ -172,22 +172,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                             }).ToList();
         }
 
-        public static T? GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CodeGenerationOptions options, bool removeLeadingDirectiveTrivia = true)
-            where T : SyntaxNode
-        {
-            Contract.ThrowIfNull(symbol);
-
-            if (options != null && options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
-            {
-                var reusableSyntaxNode = symbol.DeclaringSyntaxReferences[0].GetSyntax();
-                return removeLeadingDirectiveTrivia
-                    ? RemoveLeadingDirectiveTrivia(reusableSyntaxNode) as T
-                    : reusableSyntaxNode as T;
-            }
-
-            return null;
-        }
-
         public static T RemoveLeadingDirectiveTrivia<T>(T node) where T : SyntaxNode
         {
             var leadingTrivia = node.GetLeadingTrivia().Where(trivia => !trivia.IsDirective);

@@ -62,9 +62,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function GenerateEventDeclaration([event] As IEventSymbol,
                                                  destination As CodeGenerationDestination,
                                                  options As CodeGenerationOptions) As DeclarationStatementSyntax
-            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([event], options, removeLeadingDirectiveTrivia := False)
+            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([event], options)
             If reusableSyntax IsNot Nothing Then
-                Return RemoveLeadingDirectiveTrivia(reusableSyntax.GetDeclarationBlockFromBegin())
+                Return reusableSyntax
             End If
 
             Dim declaration = GenerateEventDeclarationWorker([event], destination, options)

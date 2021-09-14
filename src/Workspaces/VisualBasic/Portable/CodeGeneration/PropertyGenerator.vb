@@ -46,9 +46,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function GeneratePropertyDeclaration([property] As IPropertySymbol,
                                                            destination As CodeGenerationDestination,
                                                            options As CodeGenerationOptions) As StatementSyntax
-            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([property], options, removeLeadingDirectiveTrivia := False)
+            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([property], options)
             If reusableSyntax IsNot Nothing Then
-                Return RemoveLeadingDirectiveTrivia(reusableSyntax.GetDeclarationBlockFromBegin())
+                Return reusableSyntax
             End If
 
             Dim declaration = GeneratePropertyDeclarationWorker([property], destination, options)

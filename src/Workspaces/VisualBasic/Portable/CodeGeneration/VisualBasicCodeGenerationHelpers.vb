@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -208,6 +207,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                 .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker),
                             node)
             Return result
+        End Function
+
+        Public Function GetReuseableSyntaxNodeForSymbol(Of T As SyntaxNode)(symbol as ISymbol, options As CodeGenerationOptions) As T
+            Contract.ThrowIfNull(symbol)
+            If options IsNot Nothing AndAlso options.ReuseSyntax AndAlso symbol.DeclaringSyntaxReferences.Length = 1
+                Dim reusableSyntaxNode = symbol.DeclaringSyntaxReferences(0).GetSyntax()
+                Dim declarationStatementNode = TryCast(reusableSyntaxNode, DeclarationStatementSyntax)
+                If declarationStatementNode IsNot Nothing
+                    Return TryCast(RemoveLeadingDirectiveTrivia(declarationStatementNode.GetDeclarationBlockFromBegin()), T)
+                End If
+
+                Dim modifiedIdentifierNode = TryCast(reusableSyntaxNode, ModifiedIdentifierSyntax)
+                If modifiedIdentifierNode IsNot Nothing Then
+                    Dim variableDeclarator = TryCast(modifiedIdentifierNode.Parent, VariableDeclaratorSyntax)
+                    If variableDeclarator IsNot Nothing Then
+                        Dim names = (New SeparatedSyntaxList(Of ModifiedIdentifierSyntax)).Add(modifiedIdentifierNode)
+                        Dim newVariableDeclarator = variableDeclarator.WithNames(names)
+                        Dim fieldDecl = TryCast(variableDeclarator.Parent, FieldDeclarationSyntax)
+                        If fieldDecl IsNot Nothing Then
+                            Return TryCast(RemoveLeadingDirectiveTrivia(fieldDecl.WithDeclarators((New SeparatedSyntaxList(Of VariableDeclaratorSyntax)).Add(newVariableDeclarator))), T)
+                        End If
+                    End If
+                End If
+            End If
+
+            Return Nothing
         End Function
     End Module
 End Namespace

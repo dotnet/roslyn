@@ -82,18 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static FieldDeclarationSyntax GenerateFieldDeclaration(
             IFieldSymbol field, CodeGenerationOptions options)
         {
-            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<VariableDeclaratorSyntax>(field, options, removeLeadingDirectiveTrivia: false);
+            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<FieldDeclarationSyntax>(field, options);
             if (reusableSyntax != null)
             {
-                if (reusableSyntax.Parent is VariableDeclarationSyntax variableDeclaration)
-                {
-                    var newVariableDeclaratorsList = new SeparatedSyntaxList<VariableDeclaratorSyntax>().Add(reusableSyntax);
-                    var newVariableDeclaration = variableDeclaration.WithVariables(newVariableDeclaratorsList);
-                    if (variableDeclaration.Parent is FieldDeclarationSyntax fieldDecl)
-                    {
-                        return RemoveLeadingDirectiveTrivia(fieldDecl.WithDeclaration(newVariableDeclaration));
-                    }
-                }
+                return reusableSyntax;
             }
 
             var initializer = CodeGenerationFieldInfo.GetInitializer(field) is ExpressionSyntax initializerNode
