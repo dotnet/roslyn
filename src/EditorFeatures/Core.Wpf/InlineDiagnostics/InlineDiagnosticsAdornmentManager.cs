@@ -208,7 +208,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     continue;
                 }
 
-                var lineView = TextView.GetTextViewLineContainingBufferPosition(point.Value);
+                var lineView = viewLines.GetTextViewLineContainingBufferPosition(point.Value);
+
+                if (lineView is null)
+                {
+                    continue;
+                }
 
                 // Looking for IEndOfLineTags and seeing if they exist on the same line as where the
                 // diagnostic would be drawn. If they are the same, then we do not want to draw
@@ -240,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 
                 AdornmentLayer.AddAdornment(
                     behavior: AdornmentPositioningBehavior.TextRelative,
-                    visualSpan: span,
+                    visualSpan: lineView.Extent,
                     tag: tag,
                     adornment: visualElement,
                     removedCallback: delegate { graphicsResult.Dispose(); });
