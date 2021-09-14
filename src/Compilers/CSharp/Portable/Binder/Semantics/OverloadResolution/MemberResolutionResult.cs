@@ -16,14 +16,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly TMember _member;
         private readonly TMember _leastOverriddenMember;
         private readonly MemberAnalysisResult _result;
-        internal readonly bool TypeArgumentsFromFunctionType;
 
-        internal MemberResolutionResult(TMember member, TMember leastOverriddenMember, MemberAnalysisResult result, bool fromFunctionType = false)
+        /// <summary>
+        /// At least one type argument was inferred from a function type.
+        /// </summary>
+        internal readonly bool HasTypeArgumentInferredFromFunctionType;
+
+        internal MemberResolutionResult(TMember member, TMember leastOverriddenMember, MemberAnalysisResult result, bool hasTypeArgumentInferredFromFunctionType = false)
         {
             _member = member;
             _leastOverriddenMember = leastOverriddenMember;
             _result = result;
-            TypeArgumentsFromFunctionType = fromFunctionType;
+            HasTypeArgumentInferredFromFunctionType = hasTypeArgumentInferredFromFunctionType;
         }
 
         internal bool IsNull

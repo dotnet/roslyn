@@ -70,17 +70,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal readonly struct MethodTypeInferenceResult
     {
         public readonly ImmutableArray<TypeWithAnnotations> InferredTypeArguments;
-        public readonly bool InferredFromFunctionType;
+        /// <summary>
+        /// At least one type argument was inferred from a function type.
+        /// </summary>
+        public readonly bool HasTypeArgumentInferredFromFunctionType;
         public readonly bool Success;
 
         public MethodTypeInferenceResult(
             bool success,
             ImmutableArray<TypeWithAnnotations> inferredTypeArguments,
-            bool inferredFromFunctionType)
+            bool hasTypeArgumentInferredFromFunctionType)
         {
             this.Success = success;
             this.InferredTypeArguments = inferredTypeArguments;
-            this.InferredFromFunctionType = inferredFromFunctionType;
+            this.HasTypeArgumentInferredFromFunctionType = hasTypeArgumentInferredFromFunctionType;
         }
     }
 
@@ -279,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Early out: if the method has no formal parameters then we know that inference will fail.
             if (formalParameterTypes.Length == 0)
             {
-                return new MethodTypeInferenceResult(false, default, false);
+                return new MethodTypeInferenceResult(success: false, inferredTypeArguments: default, hasTypeArgumentInferredFromFunctionType: false);
 
                 // UNDONE: OPTIMIZATION: We could check to see whether there is a type
                 // UNDONE: parameter which is never used in any formal parameter; if

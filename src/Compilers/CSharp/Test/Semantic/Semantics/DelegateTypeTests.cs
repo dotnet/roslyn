@@ -2909,11 +2909,19 @@ interface IRouteBuilder
 }
 static class AppBuilderExtensions
 {
-    public static IAppBuilder Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback) => app;
+    public static IAppBuilder Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)
+    {
+        Console.WriteLine(""AppBuilderExtensions.Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)"");
+        return app;
+    }
 }
 static class RouteBuilderExtensions
 {
-    public static IRouteBuilder Map(this IRouteBuilder routes, string path, Delegate callback) => routes;
+    public static IRouteBuilder Map(this IRouteBuilder routes, string path, Delegate callback)
+    {
+        Console.WriteLine(""RouteBuilderExtensions.Map(this IRouteBuilder routes, string path, Delegate callback)"");
+        return routes;
+    }
 }
 struct PathSring
 {
@@ -2926,9 +2934,13 @@ struct PathSring
     public static implicit operator string?(PathSring path) => path.Path;
 }";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(source);
+            var expectedOutput =
+@"AppBuilderExtensions.Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)
+AppBuilderExtensions.Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(55691, "https://github.com/dotnet/roslyn/issues/55691")]
@@ -2944,13 +2956,17 @@ class Program
         F(1, () => { });
         F(2, Main);
     }
-    static void F(object obj, Action a) { }
-    static void F(int i, Delegate d) { }
+    static void F(object obj, Action a) { Console.WriteLine(""F(object obj, Action a)""); }
+    static void F(int i, Delegate d) { Console.WriteLine(""F(int i, Delegate d)""); }
 }";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(source);
+            var expectedOutput =
+@"F(object obj, Action a)
+F(object obj, Action a)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(55691, "https://github.com/dotnet/roslyn/issues/55691")]
@@ -2966,13 +2982,14 @@ class Program
     {
         F(() => 1, 2);
     }
-    static void F(Expression<Func<object>> f, object obj) { }
-    static void F(Expression e, int i) { }
+    static void F(Expression<Func<object>> f, object obj) { Console.WriteLine(""F(Expression<Func<object>> f, object obj)""); }
+    static void F(Expression e, int i) { Console.WriteLine(""F(Expression e, int i)""); }
 }";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9);
-            CompileAndVerify(source, parseOptions: TestOptions.Regular10);
-            CompileAndVerify(source);
+            var expectedOutput = @"F(Expression<Func<object>> f, object obj)";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]

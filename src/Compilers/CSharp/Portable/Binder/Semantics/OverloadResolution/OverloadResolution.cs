@@ -2113,7 +2113,7 @@ outerDefault:
         {
             Debug.Assert(m.Result.IsValid);
 
-            if (m.TypeArgumentsFromFunctionType)
+            if (m.HasTypeArgumentInferredFromFunctionType)
             {
                 return true;
             }
@@ -3423,7 +3423,7 @@ outerDefault:
             bool ignoreOpenTypes;
             MethodSymbol method;
             EffectiveParameters effectiveParameters;
-            bool fromFunctionType = false;
+            bool hasTypeArgumentsInferredFromFunctionType = false;
             if (member.Kind == SymbolKind.Method && (method = (MethodSymbol)(Symbol)member).Arity > 0)
             {
                 if (typeArgumentsBuilder.Count == 0 && arguments.HasDynamicArgument && !inferWithDynamic)
@@ -3458,7 +3458,7 @@ outerDefault:
                                             leastOverriddenMethod.ConstructedFrom.TypeParameters,
                                             arguments,
                                             originalEffectiveParameters,
-                                            out fromFunctionType,
+                                            out hasTypeArgumentsInferredFromFunctionType,
                                             out inferenceError,
                                             ref useSiteInfo);
                         if (typeArguments.IsDefault)
@@ -3537,7 +3537,7 @@ outerDefault:
                 ignoreOpenTypes: ignoreOpenTypes,
                 completeResults: completeResults,
                 useSiteInfo: ref useSiteInfo);
-            return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult, fromFunctionType);
+            return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult, hasTypeArgumentsInferredFromFunctionType);
         }
 
         private ImmutableArray<TypeWithAnnotations> InferMethodTypeArguments(
@@ -3545,7 +3545,7 @@ outerDefault:
             ImmutableArray<TypeParameterSymbol> originalTypeParameters,
             AnalyzedArguments arguments,
             EffectiveParameters originalEffectiveParameters,
-            out bool fromFunctionType,
+            out bool hasTypeArgumentsInferredFromFunctionType,
             out MemberAnalysisResult error,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -3568,7 +3568,7 @@ outerDefault:
 
             if (inferenceResult.Success)
             {
-                fromFunctionType = inferenceResult.InferredFromFunctionType;
+                hasTypeArgumentsInferredFromFunctionType = inferenceResult.HasTypeArgumentInferredFromFunctionType;
                 error = default(MemberAnalysisResult);
                 return inferenceResult.InferredTypeArguments;
             }
@@ -3583,13 +3583,13 @@ outerDefault:
                     useSiteInfo: ref useSiteInfo);
                 if (inferredFromFirstArgument.IsDefault)
                 {
-                    fromFunctionType = false;
+                    hasTypeArgumentsInferredFromFunctionType = false;
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();
                     return default(ImmutableArray<TypeWithAnnotations>);
                 }
             }
 
-            fromFunctionType = false;
+            hasTypeArgumentsInferredFromFunctionType = false;
             error = MemberAnalysisResult.TypeInferenceFailed();
             return default(ImmutableArray<TypeWithAnnotations>);
         }
