@@ -2339,9 +2339,8 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
-        public void OverloadResolution_01A()
+        public void OverloadResolution_29()
         {
             var source =
 @"using System;
@@ -2371,9 +2370,49 @@ M<T>(T x, T y)
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
-        public void OverloadResolution_01B()
+        public void OverloadResolution_30()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M<T>(T t, Func<object> f) { Console.WriteLine(""M<T>(T t, Func<object> f)""); }
+    static void M<T>(Func<object> f, T t) { Console.WriteLine(""M<T>(Func<object> f, T t)""); }
+    static object F() => null;
+    static void Main()
+    {
+        M(F, F);
+        M(() => 1, () => 2);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'Program.M<T>(T, Func<object>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(F, F);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, System.Func<object>)").WithLocation(9, 9),
+                // (10,9): error CS0411: The type arguments for method 'Program.M<T>(T, Func<object>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(() => 1, () => 2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, System.Func<object>)").WithLocation(10, 9));
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<T>(T, Func<object>)' and 'Program.M<T>(Func<object>, T)'
+                //         M(F, F);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, System.Func<object>)", "Program.M<T>(System.Func<object>, T)").WithLocation(9, 9),
+                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<T>(T, Func<object>)' and 'Program.M<T>(Func<object>, T)'
+                //         M(() => 1, () => 2);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, System.Func<object>)", "Program.M<T>(System.Func<object>, T)").WithLocation(10, 9)
+            };
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void OverloadResolution_31()
         {
             var source =
 @"using System;
@@ -2394,9 +2433,8 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
-        public void OverloadResolution_01C()
+        public void OverloadResolution_32()
         {
             var source =
 @"using System;
@@ -2427,9 +2465,8 @@ M<T>(T x, T y)
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
-        public void OverloadResolution_01D()
+        public void OverloadResolution_33()
         {
             var source =
 @"using System;
@@ -2467,9 +2504,44 @@ M<T, U>(T x, U y)
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
-        public void OverloadResolution_01E()
+        public void OverloadResolution_34()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M<T, U>(Func<T> x, U y) { Console.WriteLine(""M<T, U>(Func<T> x, U y)""); }
+    static void M<T, U>(T x, U y) { Console.WriteLine(""M<T, U>(T x, U y)""); }
+    static void Main()
+    {
+        Func<int> f = () => 0;
+        M(() => 1, () => 2);
+        M(() => 1, f);
+        M(f, () => 2);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'Program.M<T, U>(Func<T>, U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(() => 1, () => 2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T, U>(System.Func<T>, U)").WithLocation(9, 9),
+                // (11,9): error CS0411: The type arguments for method 'Program.M<T, U>(Func<T>, U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(f, () => 2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T, U>(System.Func<T>, U)").WithLocation(11, 9));
+
+            var expectedOutput =
+@"M<T, U>(Func<T> x, U y)
+M<T, U>(Func<T> x, U y)
+M<T, U>(Func<T> x, U y)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_35()
         {
             var source =
 @"using System;
@@ -3361,6 +3433,110 @@ static class Extensions
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
             CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_36()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T>(T t) { Console.WriteLine(""F<{0}>({0} t)"", typeof(T).Name); }
+    static void F(Delegate d) { Console.WriteLine(""F(Delegate d)""); }
+    static void Main()
+    {
+        F(Main);
+        F(() => 1);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,11): error CS1503: Argument 1: cannot convert from 'method group' to 'Delegate'
+                //         F(Main);
+                Diagnostic(ErrorCode.ERR_BadArgType, "Main").WithArguments("1", "method group", "System.Delegate").WithLocation(8, 11),
+                // (9,11): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                //         F(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 11));
+
+            var expectedOutput =
+@"F<Action>(Action t)
+F<Func`1>(Func`1 t)";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_37()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F(object o) { Console.WriteLine(""F(object o)""); }
+    static void F(Delegate d) { Console.WriteLine(""F(Delegate d)""); }
+    static void Main()
+    {
+        F(Main);
+        F(() => 1);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,11): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
+                //         F(Main);
+                Diagnostic(ErrorCode.ERR_BadArgType, "Main").WithArguments("1", "method group", "object").WithLocation(8, 11),
+                // (9,11): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                //         F(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "object").WithLocation(9, 11));
+
+            var expectedOutput =
+@"F(Delegate d)
+F(Delegate d)";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_38()
+        {
+            var source =
+@"using System;
+class MyString
+{
+    public static implicit operator MyString(string s) => new MyString();
+}
+class Program
+{
+    static void F(Delegate d1, Delegate d2, string s) { Console.WriteLine(""F(Delegate d1, Delegate d2, string s)""); }
+    static void F(Func<int> f, Delegate d, MyString s) { Console.WriteLine(""F(Func<int> f, Delegate d, MyString s)""); }
+    static void Main()
+    {
+        F(() => 1, () => 2, string.Empty);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (12,11): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                //         F(() => 1, () => 2, string.Empty);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(12, 11),
+                // (12,20): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                //         F(() => 1, () => 2, string.Empty);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Delegate").WithLocation(12, 20));
+
+            var expectedDiagnostics = new[]
+            {
+                // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(Delegate, Delegate, string)' and 'Program.F(Func<int>, Delegate, MyString)'
+                //         F(() => 1, () => 2, string.Empty);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(System.Delegate, System.Delegate, string)", "Program.F(System.Func<int>, System.Delegate, MyString)").WithLocation(12, 9)
+            };
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -5204,7 +5380,7 @@ class Program
         }
 
         [Fact]
-        public void BinaryOperator()
+        public void BinaryOperator_01()
         {
             var source =
 @"using System;
@@ -5231,11 +5407,160 @@ class Program
                 //         var b3 = Main == (() => { });
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "Main == (() => { })").WithArguments("==", "method group", "lambda expression").WithLocation(8, 18));
 
-            comp = CreateCompilation(source);
+            var expectedOutput = @"(False, False, False)";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void BinaryOperator_02()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C
+{
+    public static C operator+(C c, Delegate d) { Console.WriteLine(""operator+(C c, Delegate d)""); return c; }
+    public static C operator+(C c, Expression e) { Console.WriteLine(""operator=(C c, Expression e)""); return c; }
+    static void Main()
+    {
+        var c = new C();
+        _ = c + Main;
+        _ = c + (() => 1);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (8,18): error CS0034: Operator '==' is ambiguous on operands of type 'method group' and 'lambda expression'
-                //         var b3 = Main == (() => { });
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "Main == (() => { })").WithArguments("==", "method group", "lambda expression").WithLocation(8, 18));
+                // (10,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'method group'
+                //         _ = c + Main;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + Main").WithArguments("+", "C", "method group").WithLocation(10, 13),
+                // (11,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'lambda expression'
+                //         _ = c + (() => 1);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + (() => 1)").WithArguments("+", "C", "lambda expression").WithLocation(11, 13));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,13): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'method group'
+                //         _ = c + Main;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c + Main").WithArguments("+", "C", "method group").WithLocation(10, 13),
+                // (11,13): error CS0034: Operator '+' is ambiguous on operands of type 'C' and 'lambda expression'
+                //         _ = c + (() => 1);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c + (() => 1)").WithArguments("+", "C", "lambda expression").WithLocation(11, 13)
+            };
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void BinaryOperator_03()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C
+{
+    public static C operator+(C c, Delegate d) { Console.WriteLine(""operator+(C c, Delegate d)""); return c; }
+    public static C operator+(C c, object o) { Console.WriteLine(""operator+(C c, object o)""); return c; }
+    public static C operator-(C c, Expression e) { Console.WriteLine(""operator-(C c, Expression e)""); return c; }
+    public static C operator-(C c, object o) { Console.WriteLine(""operator-(C c, object o)""); return c; }
+    static void Main()
+    {
+        var c = new C();
+        _ = c + Main;
+        _ = c + (() => 1);
+        _ = c - (() => 2);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (12,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'method group'
+                //         _ = c + Main;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + Main").WithArguments("+", "C", "method group").WithLocation(12, 13),
+                // (13,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'lambda expression'
+                //         _ = c + (() => 1);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + (() => 1)").WithArguments("+", "C", "lambda expression").WithLocation(13, 13),
+                // (14,13): error CS0019: Operator '-' cannot be applied to operands of type 'C' and 'lambda expression'
+                //         _ = c - (() => 2);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c - (() => 2)").WithArguments("-", "C", "lambda expression").WithLocation(14, 13));
+
+            var expectedOutput =
+@"operator+(C c, Delegate d)
+operator+(C c, Delegate d)
+operator-(C c, Expression e)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void BinaryOperator_04()
+        {
+            var source =
+@"using System;
+class C
+{
+    public static C operator+(C c, Delegate d) { Console.WriteLine(""operator+(C c, Delegate d)""); return c; }
+    public static C operator+(C c, Func<object> f) { Console.WriteLine(""operator+(C c, Func<object> f)""); return c; }
+    static int F() => 1;
+    static void Main()
+    {
+        var c = new C();
+        _ = c + F;
+        _ = c + (() => 2);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (10,13): error CS0019: Operator '+' cannot be applied to operands of type 'C' and 'method group'
+                //         _ = c + F;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "c + F").WithArguments("+", "C", "method group").WithLocation(10, 13));
+
+            var expectedOutput =
+@"operator+(C c, Delegate d)
+operator+(C c, Func<object> f)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void BinaryOperator_05()
+        {
+            var source =
+@"using System;
+class A
+{
+    public static A operator+(A a, Func<int> f) { Console.WriteLine(""operator+(A a, Func<int> f)""); return a; }
+}
+class B : A
+{
+    public static B operator+(B b, Delegate d) { Console.WriteLine(""operator+(B b, Delegate d)""); return b; }
+    static int F() => 1;
+    static void Main()
+    {
+        var b = new B();
+        _ = b + F;
+        _ = b + (() => 2);
+    }
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+@"operator+(A a, Func<int> f)
+operator+(A a, Func<int> f)
+");
+
+            // Breaking change from C#9.
+            string expectedOutput =
+@"operator+(B b, Delegate d)
+operator+(B b, Delegate d)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         /// <summary>
