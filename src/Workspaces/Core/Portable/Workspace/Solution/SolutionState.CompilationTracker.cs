@@ -472,6 +472,12 @@ namespace Microsoft.CodeAnalysis
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                // Explicitly force a yield point here.  This addresses a problem on .net framework where it's possible that cancelling
+                // this task chain ends up stack overflowing as the TPL attempts to synchronously recurse through the tasks to execute
+                // antecedent work.  This will force continuations here to run asynchronously preventing the stack overflow.
+                // See https://github.com/dotnet/roslyn/issues/56356 for more details.
+                await Task.Yield().ConfigureAwait(false);
+
                 var state = ReadState();
 
                 // if we already have a compilation, we must be already done!  This can happen if two
