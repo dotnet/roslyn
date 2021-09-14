@@ -212,7 +212,7 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       </trans-unit>
       <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_requires_restarting_the_application">
         <source>An update that causes the return type of the implicit Main method to change requires restarting the application.</source>
-        <target state="new">An update that causes the return type of the implicit Main method to change requires restarting the application.</target>
+        <target state="translated">Uma atualização que faz com que o tipo de retorno do método Main implícito seja alterado requer a reinicialização do aplicativo.</target>
         <note>{Locked="Main"} is C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
@@ -2397,7 +2397,7 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
-        <target state="new">Updating async or iterator modifier around an active statement requires restarting the application.</target>
+        <target state="translated">Atualizar o modificador async ou iterator em torno de uma instrução ativa requer a reinicialização do aplicativo.</target>
         <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
