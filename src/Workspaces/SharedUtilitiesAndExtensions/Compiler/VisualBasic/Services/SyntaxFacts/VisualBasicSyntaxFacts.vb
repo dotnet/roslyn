@@ -1314,7 +1314,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetArgumentsOfObjectCreationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfObjectCreationExpression
-            Return GetArgumentsOfArgumentList(DirectCast(node, ObjectCreationExpressionSyntax).ArgumentList)
+            Dim argumentList = DirectCast(node, ObjectCreationExpressionSyntax).ArgumentList
+            Return If(argumentList Is Nothing, Nothing, GetArgumentsOfArgumentList(argumentList))
         End Function
 
         Public Function GetArgumentsOfArgumentList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfArgumentList
