@@ -6,8 +6,6 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 

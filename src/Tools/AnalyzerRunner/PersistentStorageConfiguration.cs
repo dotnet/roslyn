@@ -8,7 +8,7 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace AnalyzerRunner
 {

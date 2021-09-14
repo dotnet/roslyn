@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SemanticClassificationCache;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -77,11 +76,8 @@ namespace Microsoft.CodeAnalysis.Remote
         private static async Task CacheSemanticClassificationsAsync(Document document, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var workspace = solution.Workspace;
-            var persistenceService = workspace.Services.GetService<IPersistentStorageService>() as IChecksummedPersistentStorageService;
-            if (persistenceService == null)
-                return;
-
+            var services = solution.Workspace.Services;
+            var persistenceService = services.GetPersistentStorageService(solution.Options);
             var storage = await persistenceService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), checkBranchId: true, cancellationToken).ConfigureAwait(false);
             await using var _1 = storage.ConfigureAwait(false);
             if (storage == null)
@@ -162,12 +158,12 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
-            DocumentKey documentKey, TextSpan textSpan, Checksum checksum, CancellationToken cancellationToken)
+            DocumentKey documentKey, TextSpan textSpan, Checksum checksum, StorageDatabase database, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
-                    documentKey, checksum, cancellationToken).ConfigureAwait(false);
+                    documentKey, checksum, database, cancellationToken).ConfigureAwait(false);
                 if (classifiedSpans.IsDefault)
                     return null;
 
@@ -178,6 +174,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task<ImmutableArray<ClassifiedSpan>> TryGetOrReadCachedSemanticClassificationsAsync(
             DocumentKey documentKey,
             Checksum checksum,
+            StorageDatabase database,
             CancellationToken cancellationToken)
         {
             // See if we've loaded this into memory first.
@@ -186,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Otherwise, attempt to read in classifications from persistence store.
             classifiedSpans = await TryReadCachedSemanticClassificationsAsync(
-                documentKey, checksum, cancellationToken).ConfigureAwait(false);
+                documentKey, checksum, database, cancellationToken).ConfigureAwait(false);
             if (classifiedSpans.IsDefault)
                 return default;
 
@@ -239,12 +236,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private async Task<ImmutableArray<ClassifiedSpan>> TryReadCachedSemanticClassificationsAsync(
             DocumentKey documentKey,
             Checksum checksum,
+            StorageDatabase database,
             CancellationToken cancellationToken)
         {
-            var workspace = GetWorkspace();
-            if (workspace.Services.GetService<IPersistentStorageService>() is not IChecksummedPersistentStorageService persistenceService)
-                return default;
-
+            var services = GetWorkspaceServices();
+            var persistenceService = services.GetPersistentStorageService(database);
             var storage = await persistenceService.GetStorageAsync(documentKey.Project.Solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
             await using var _ = storage.ConfigureAwait(false);
             if (storage == null)
