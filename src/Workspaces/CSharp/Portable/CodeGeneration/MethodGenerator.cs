@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 method, GetDestination(destination), options,
                 destination?.SyntaxTree.Options ?? options.ParseOptions);
 
-            // Create a clone of the original type with the new method inserted.
+            // Create a clone of the original type with the new method inserted. 
             var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastMethod);
 
             return AddMembersTo(destination, members);
@@ -106,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             CodeGenerationOptions options, ParseOptions parseOptions)
         {
             // Don't rely on destination to decide if method body should be generated.
-            // Users of this service need to express their intention explicitly, either by
-            // setting `CodeGenerationOptions.GenerateMethodBodies` to true, or making
+            // Users of this service need to express their intention explicitly, either by  
+            // setting `CodeGenerationOptions.GenerateMethodBodies` to true, or making 
             // `method` abstract. This would provide more flexibility.
             var hasNoBody = !options.GenerateMethodBodies || method.IsAbstract;
 

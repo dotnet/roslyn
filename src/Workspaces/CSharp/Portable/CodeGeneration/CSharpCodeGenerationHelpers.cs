@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -260,31 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                       .WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)
                 : node;
             return result;
-        }
-
-        public static T GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CodeGenerationOptions options) where T : SyntaxNode
-        {
-            Contract.ThrowIfNull(symbol);
-
-            if (options is { ReuseSyntax: true } && symbol.DeclaringSyntaxReferences.Length == 1)
-            {
-                var reusableSyntaxNode = symbol.DeclaringSyntaxReferences[0].GetSyntax();
-
-                if (symbol is IFieldSymbol
-                    && reusableSyntaxNode is VariableDeclaratorSyntax reusableVariableDeclaratorNode
-                    && reusableSyntaxNode.Parent is VariableDeclarationSyntax variableDeclarationNode)
-                {
-                    var newDeclaration = variableDeclarationNode.WithVariables(new SeparatedSyntaxList<VariableDeclaratorSyntax>().Add(reusableVariableDeclaratorNode));
-                    if (variableDeclarationNode.Parent is FieldDeclarationSyntax fieldDeclarationNode)
-                    {
-                        return RemoveLeadingDirectiveTrivia(fieldDeclarationNode.WithDeclaration(newDeclaration)) as T;
-                    }
-                }
-
-                return RemoveLeadingDirectiveTrivia(reusableSyntaxNode) as T;
-            }
-
-            return null;
         }
     }
 }
