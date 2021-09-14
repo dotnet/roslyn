@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 Assert.Equal(expectedLastBuildWithSkipAnalyzers, items.Single().EvaluatedInclude);
             }
 
-            var expectedUpToDateCheckInput = lastBuildWithSkipAnalyzersFileExists;
+            var expectedUpToDateCheckInput = lastBuildWithSkipAnalyzersFileExists && !skipAnalyzers;
             items = instance.GetItems("UpToDateCheckInput");
             expectedItemCount = expectedUpToDateCheckInput ? 1 : 0;
             Assert.Equal(expectedItemCount, items.Count);
