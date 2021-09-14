@@ -75,7 +75,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains abstract shared 'Sub M1()'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Sub M1()'.
     Implements I1
                ~~
 </errors>
@@ -116,7 +116,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains abstract shared 'Sub M1()'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Sub M1()'.
     Implements I1
                ~~
 BC30401: 'M1' cannot implement 'M1' because there is no matching sub on interface 'I1'.
@@ -160,7 +160,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains abstract shared 'Sub M1()'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Sub M1()'.
     Implements I1
                ~~
 BC30505: Methods or events that implement interface members cannot be declared 'Shared'.
@@ -224,13 +224,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.M01()
         ~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.M01()
         ~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.M01()
         ~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -374,13 +374,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = AddressOf I1.M01
                        ~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _d = AddressOf x.M01
              ~~~~~~~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = AddressOf x.M01
                        ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -457,13 +457,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = DirectCast(AddressOf I1.M01, System.Action)
                                   ~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _d = DirectCast(AddressOf x.M01, System.Action)
                         ~~~~~~~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = DirectCast(AddressOf x.M01, System.Action)
                                   ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -540,13 +540,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = TryCast(AddressOf I1.M01, System.Action)
                                ~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _d = TryCast(AddressOf x.M01, System.Action)
                      ~~~~~~~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = TryCast(AddressOf x.M01, System.Action)
                                ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -623,13 +623,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = CType(AddressOf I1.M01, System.Action)
                              ~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _d = CType(AddressOf x.M01, System.Action)
                    ~~~~~~~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = CType(AddressOf x.M01, System.Action)
                              ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -706,13 +706,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = New System.Action(AddressOf I1.M01)
                                          ~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _d = New System.Action(AddressOf x.M01)
                                ~~~~~~~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _d = New System.Action(AddressOf x.M01)
                                          ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -791,7 +791,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains abstract shared 'Property P1 As Integer'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Property P1 As Integer'.
     Implements I1
                ~~
 </errors>
@@ -835,7 +835,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains abstract shared 'Property P1 As Integer'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Property P1 As Integer'.
     Implements I1
                ~~
 BC30401: 'P1' cannot implement 'P1' because there is no matching property on interface 'I1'.
@@ -882,7 +882,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains abstract shared 'Property P1 As Integer'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Property P1 As Integer'.
     Implements I1
                ~~
 BC30505: Methods or events that implement interface members cannot be declared 'Shared'.
@@ -948,10 +948,10 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = I1.P01
              ~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = x.P01
              ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -1025,13 +1025,13 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.P01 = 1
         ~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.P01 = 1
         ~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.P01 = 1
         ~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -1105,19 +1105,19 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.P01 += 1
         ~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.P01 += 1
         ~~~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.P01 += 1
         ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.P01 += 1
         ~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.P01 += 1
         ~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -1280,37 +1280,37 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={CreateReferenceFromIlCode(ilSource)})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = I1.Item(0)
              ~~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.Item(0) = 1
         ~~~~~~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.Item(0) += 1
         ~~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.Item(0) += 1
         ~~~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _i = x.Item(0)
              ~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = x.Item(0)
              ~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.Item(0) = 1
         ~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.Item(0) = 1
         ~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.Item(0) += 1
         ~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.Item(0) += 1
         ~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.Item(0) += 1
         ~~~~~~~~~~~~~~
 BC32098: Type parameters cannot be used as qualifiers.
@@ -1367,22 +1367,22 @@ BC30111: 'I1' is an interface type and cannot be used as an expression.
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _i = x(0)
              ~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = x(0)
              ~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x(0) = 1
         ~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x(0) = 1
         ~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x(0) += 1
         ~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x(0) += 1
         ~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x(0) += 1
         ~~~~~~~~~
 BC30108: 'T' is a type and cannot be used as an expression.
@@ -1436,22 +1436,22 @@ BC30111: 'I1' is an interface type and cannot be used as an expression.
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _i = x!a
              ~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = x!a
              ~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x!a = 1
         ~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x!a = 1
         ~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x!a += 1
         ~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x!a += 1
         ~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x!a += 1
         ~~~~~~~~
 BC30108: 'T' is a type and cannot be used as an expression.
@@ -1533,37 +1533,37 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={CreateReferenceFromIlCode(ilSource)})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = I1.Item(0)
              ~~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.Item(0) = 1
         ~~~~~~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.Item(0) += 1
         ~~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         I1.Item(0) += 1
         ~~~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         _i = x.Item(0)
              ~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         _i = x.Item(0)
              ~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.Item(0) = 1
         ~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.Item(0) = 1
         ~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
         x.Item(0) += 1
         ~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.Item(0) += 1
         ~~~~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         x.Item(0) += 1
         ~~~~~~~~~~~~~~
 BC32098: Type parameters cannot be used as qualifiers.
@@ -1634,7 +1634,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains abstract shared 'Event E1 As Action'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Event E1 As Action'.
     Implements I1
                ~~
 </errors>
@@ -1678,7 +1678,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains abstract shared 'Event E1 As Action'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Event E1 As Action'.
     Implements I1
                ~~
 BC30401: 'E1' cannot implement 'E1' because there is no matching event on interface 'I1'.
@@ -1725,7 +1725,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'C' cannot implement interface 'I1' because it contains abstract shared 'Event E1 As Action'.
+BC37315: Class 'C' cannot implement interface 'I1' because it contains shared abstract 'Event E1 As Action'.
     Implements I1
                ~~
 BC30505: Methods or events that implement interface members cannot be declared 'Shared'.
@@ -1791,10 +1791,10 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         AddHandler I1.P01, Nothing
                    ~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         AddHandler x.P01, Nothing
                    ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -1870,10 +1870,10 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         RemoveHandler I1.P01, Nothing
                       ~~~~~~
-BC37314: A static abstract interface member cannot be accessed.
+BC37314: A shared abstract interface member cannot be accessed.
         RemoveHandler x.P01, Nothing
                       ~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
@@ -2044,7 +2044,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'Test' cannot implement interface 'I1' because it contains abstract shared 'Operator -(x As I1) As I1'.
+BC37315: Class 'Test' cannot implement interface 'I1' because it contains shared abstract 'Operator -(x As I1) As I1'.
     Implements I1
                ~~
 </errors>
@@ -2075,7 +2075,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'Test' cannot implement interface 'I1' because it contains abstract shared 'Operator -(x As I1, y As I1) As I1'.
+BC37315: Class 'Test' cannot implement interface 'I1' because it contains shared abstract 'Operator -(x As I1, y As I1) As I1'.
     Implements I1
                ~~
 </errors>
@@ -2250,7 +2250,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, targetFramework:=_supportingFramework, references:={csCompilation})
             comp1.AssertTheseDiagnostics(
 <errors>
-BC37315: Class 'Test' cannot implement interface 'I1(Of T)' because it contains abstract shared 'Function op_Implicit(x As T) As Integer'.
+BC37315: Class 'Test' cannot implement interface 'I1(Of T)' because it contains shared abstract 'Function op_Implicit(x As T) As Integer'.
     Implements I1(Of T)
                ~~~~~~~~
 </errors>
