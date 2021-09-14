@@ -1148,8 +1148,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="other"></param>
         /// <param name="whenTrueValues">The possible values of test.Input when <paramref name="test"/> has succeeded.</param>
         /// <param name="whenFalseValues">The possible values of test.Input when <paramref name="test"/> has failed.</param>
-        /// <param name="precondition">The pre-condition that the implied status of the <paramref name="other"/> test is dependent upon.</param>
-        /// <param name="sideeffect">An assignment node which will correspond two non-identical but related test inputs.</param>
         /// <param name="trueTestPermitsTrueOther">set if <paramref name="test"/> being true would permit <paramref name="other"/> to succeed</param>
         /// <param name="falseTestPermitsTrueOther">set if a false result on <paramref name="test"/> would permit <paramref name="other"/> to succeed</param>
         /// <param name="trueTestImpliesTrueOther">set if <paramref name="test"/> being true means <paramref name="other"/> has been proven true</param>
@@ -1157,12 +1155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckConsistentDecision(
             BoundDagTest test,
             BoundDagTest other,
-            DagState state,
             IValueSet? whenTrueValues,
             IValueSet? whenFalseValues,
             SyntaxNode syntax,
-            out Tests precondition,
-            out Tests sideeffect,
             out bool trueTestPermitsTrueOther,
             out bool falseTestPermitsTrueOther,
             out bool trueTestImpliesTrueOther,
@@ -1174,90 +1169,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             falseTestPermitsTrueOther = true;
             trueTestImpliesTrueOther = false;
             falseTestImpliesTrueOther = false;
-            precondition = Tests.True.Instance;
-            sideeffect = Tests.True.Instance;
-
-            // if the tests are for unrelated things, there is no implication from one to the other
-            BoundDagTemp s1Input = test.Input;
-            BoundDagTemp s2Input = other.Input;
-            if (!s1Input.Equals(s2Input))
-            {
-                var preconditions = ArrayBuilder<Tests>.GetInstance();
-                // Loop through the input chain for both tests at the same time and check if there's
-                // any pair of indexers in the path that could relate depending on the length value.
-                do
-                {
-                    switch (s1Input.Source, s2Input.Source)
-                    {
-                        // Even though the two tests appear unrelated (with different inputs),
-                        // it is possible that they are in fact related under certain conditions.
-                        // For instance, the inputs [0] and [^1] point to the same element when length is 1.
-                        case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
-                            // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
-                            // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
-                            (s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
-                            (s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
-                            Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
-                            Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
-                            // Ignore input source as it will be matched in the subsequent iterations.
-                            if (s1Input.IsEquivalentTo(s2Input) &&
-                                // We don't want to pair two indices within the same pattern.
-                                s1LengthTemp.Syntax != s2LengthTemp.Syntax)
-                            {
-                                Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
-                                Debug.Assert(s1LengthTemp.Equals(s2LengthTemp) == s1Input.Equals(s2Input));
-                                if (s1Index == s2Index)
-                                {
-                                    continue;
-                                }
-
-                                if (s1Index < 0 != s2Index < 0)
-                                {
-                                    Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
-                                    var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
-                                    // We do not expect an empty set here because an indexer evaluation is always preceded by
-                                    // a length test of which an impossible match would have made the rest of the tests unreachable.
-                                    Debug.Assert(!lengthValues.IsEmpty);
-
-                                    // Compute the length value that would make these two indices point to the same element.
-                                    int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
-                                    if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
-                                    {
-                                        // If the length is known to be exact, the two are considered to point to the same element.
-                                        continue;
-                                    }
-
-                                    if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
-                                    {
-                                        // Otherwise, we add a test to make the result conditional on the length value.
-                                        preconditions.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
-                                        continue;
-                                    }
-                                }
-                            }
-                            break;
-
-                        // If the sources are equivalent (ignoring their input), it's still possible to find a pair of indexers that could relate.
-                        // For example, the subpatterns in `[.., { E: subpat }] or [{ E: subpat }]` are being applied to the same element in the list.
-                        // To account for this scenario, we walk up all the inputs as long as we see equivalent evaluation nodes in the path.
-                        case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2) && s1Input.IsEquivalentTo(s2Input):
-                            s1Input = s1.Input;
-                            s2Input = s2.Input;
-                            continue;
-                    }
-
-                    // tests are unrelated
-                    preconditions.Free();
-                    return;
-                }
-                while (!s1Input.Equals(s2Input)); // if we have found two identical input fragments, there's no point to continue.
-
-                precondition = Tests.AndSequence.Create(preconditions);
-                // At this point, we have determined that two non-identical inputs refer to the same element.
-                // We represent this correspondence with an assignment node in order to merge the remaining values.
-                sideeffect = new Tests.One(new BoundDagAssignmentEvaluation(syntax, target: other.Input, input: test.Input));
-                // PROTOTYPE(list-patterns): Do we still need to add this node if there's no preconditions?
-            }
 
             switch (test)
             {
@@ -1404,6 +1315,106 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
             }
+        }
+
+        /// <summary>Returns true if the tests are related i.e. they have the same input, otherwise false.</summary>
+        /// <param name="relationCondition">The pre-condition under which these tests are related.</param>
+        /// <param name="relationEffect">A possible assignment node which will correspond two non-identical but related test inputs.</param>
+        private static bool CheckInputRelation(
+            SyntaxNode syntax,
+            DagState state,
+            BoundDagTest test,
+            BoundDagTest other,
+            out Tests relationCondition,
+            out Tests relationEffect)
+        {
+            relationCondition = Tests.True.Instance;
+            relationEffect = Tests.True.Instance;
+
+            BoundDagTemp s1Input = test.Input;
+            BoundDagTemp s2Input = other.Input;
+            if (s1Input.Equals(s2Input))
+            {
+                return true;
+            }
+
+            var conditions = ArrayBuilder<Tests>.GetInstance();
+            // Loop through the input chain for both tests at the same time and check if there's
+            // any pair of indexers in the path that could relate depending on the length value.
+            do
+            {
+                switch (s1Input.Source, s2Input.Source)
+                {
+                    // Even though the two tests appear unrelated (with different inputs),
+                    // it is possible that they are in fact related under certain conditions.
+                    // For instance, the inputs [0] and [^1] point to the same element when length is 1.
+                    case (BoundDagIndexerEvaluation s1, BoundDagIndexerEvaluation s2):
+                        // Take the top-level input and normalize indices to account for indexer accesses inside a slice.
+                        // For instance [0] in nested list pattern [ 0, ..[$$], 2 ] refers to [1] in the containing list.
+                        (s1Input, BoundDagTemp s1LengthTemp, int s1Index) = GetCanonicalInput(s1);
+                        (s2Input, BoundDagTemp s2LengthTemp, int s2Index) = GetCanonicalInput(s2);
+                        Debug.Assert(s1LengthTemp.Syntax is ListPatternSyntax);
+                        Debug.Assert(s2LengthTemp.Syntax is ListPatternSyntax);
+                        // Ignore input source as it will be matched in the subsequent iterations.
+                        if (s1Input.IsEquivalentTo(s2Input) &&
+                            // We don't want to pair two indices within the same pattern.
+                            s1LengthTemp.Syntax != s2LengthTemp.Syntax)
+                        {
+                            Debug.Assert(s1LengthTemp.IsEquivalentTo(s2LengthTemp));
+                            Debug.Assert(s1LengthTemp.Equals(s2LengthTemp) == s1Input.Equals(s2Input));
+                            if (s1Index == s2Index)
+                            {
+                                continue;
+                            }
+
+                            if (s1Index < 0 != s2Index < 0)
+                            {
+                                Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
+                                var lengthValues = (IValueSet<int>)state.RemainingValues[s1LengthTemp];
+                                // We do not expect an empty set here because an indexer evaluation is always preceded by
+                                // a length test of which an impossible match would have made the rest of the tests unreachable.
+                                Debug.Assert(!lengthValues.IsEmpty);
+
+                                // Compute the length value that would make these two indices point to the same element.
+                                int lengthValue = s1Index < 0 ? s2Index - s1Index : s1Index - s2Index;
+                                if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
+                                {
+                                    // If the length is known to be exact, the two are considered to point to the same element.
+                                    continue;
+                                }
+
+                                if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
+                                {
+                                    // Otherwise, we add a test to make the result conditional on the length value.
+                                    conditions.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
+                                    continue;
+                                }
+                            }
+                        }
+
+                        break;
+
+                    // If the sources are equivalent (ignoring their input), it's still possible to find a pair of indexers that could relate.
+                    // For example, the subpatterns in `[.., { E: subpat }] or [{ E: subpat }]` are being applied to the same element in the list.
+                    // To account for this scenario, we walk up all the inputs as long as we see equivalent evaluation nodes in the path.
+                    case (BoundDagEvaluation s1, BoundDagEvaluation s2) when s1.IsEquivalentTo(s2) && s1Input.IsEquivalentTo(s2Input):
+                        s1Input = s1.Input;
+                        s2Input = s2.Input;
+                        continue;
+                }
+
+                // tests are unrelated
+                conditions.Free();
+                return false;
+            }
+            while (!s1Input.Equals(s2Input)); // if we have found two identical input fragments, there's no point to continue.
+
+            relationCondition = Tests.AndSequence.Create(conditions);
+            // At this point, we have determined that two non-identical inputs refer to the same element.
+            // We represent this correspondence with an assignment node in order to merge the remaining values.
+            relationEffect = new Tests.One(new BoundDagAssignmentEvaluation(syntax, target: other.Input, input: test.Input));
+            // PROTOTYPE(list-patterns): Do we still need to add this node if there's no preconditions?
+            return true;
         }
 
         /// <summary>
@@ -1922,28 +1933,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out Tests whenFalse,
                     ref bool foundExplicitNullTest)
                 {
-                    if (Test is BoundDagEvaluation)
+                    SyntaxNode syntax = test.Syntax;
+                    BoundDagTest other = Test;
+                    if (other is BoundDagEvaluation ||
+                        !CheckInputRelation(syntax, state, test, other,
+                            relationCondition: out Tests relationCondition,
+                            relationEffect: out Tests relationEffect))
                     {
-                        // there cannot be any implication for an evaluation node.
+                        // if this is an evaluation or the tests are for unrelated things,
+                        // there cannot be any implications from one to the other.
                         whenTrue = whenFalse = this;
                         return;
                     }
 
                     builder.CheckConsistentDecision(
                         test: test,
-                        other: Test,
-                        state: state,
+                        other: other,
                         whenTrueValues: whenTrueValues,
                         whenFalseValues: whenFalseValues,
-                        syntax: test.Syntax,
-                        precondition: out Tests precondition,
-                        sideeffect: out Tests sideeffect,
+                        syntax: syntax,
                         trueTestPermitsTrueOther: out bool trueDecisionPermitsTrueOther,
                         falseTestPermitsTrueOther: out bool falseDecisionPermitsTrueOther,
                         trueTestImpliesTrueOther: out bool trueDecisionImpliesTrueOther,
                         falseTestImpliesTrueOther: out bool falseDecisionImpliesTrueOther,
                         foundExplicitNullTest: ref foundExplicitNullTest);
-                    Debug.Assert(sideeffect is True or One(BoundDagAssignmentEvaluation));
+
+                    Debug.Assert(relationEffect is True or One(BoundDagAssignmentEvaluation));
 
                     // Given:
                     //
@@ -1966,18 +1981,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //    because we have determined that there were no logical implications from one to the other on this branch.
                     //    Note: If there is no pre-condition, i.e. P is True, "other" is not rewritten which means the two are considered independent.
                     //
-                    whenTrue = rewrite(trueDecisionImpliesTrueOther, trueDecisionPermitsTrueOther, precondition, sideeffect, this);
+                    whenTrue = rewrite(trueDecisionImpliesTrueOther, trueDecisionPermitsTrueOther, relationCondition, relationEffect, this);
 
                     // Similarly for the opposite branch when "test" is false.
-                    whenFalse = rewrite(falseDecisionImpliesTrueOther, falseDecisionPermitsTrueOther, precondition, sideeffect, this);
+                    whenFalse = rewrite(falseDecisionImpliesTrueOther, falseDecisionPermitsTrueOther, relationCondition, relationEffect, this);
 
-                    static Tests rewrite(bool decisionImpliesTrueOther, bool decisionPermitsTrueOther, Tests precondition, Tests sideeffect, Tests other)
+                    static Tests rewrite(bool decisionImpliesTrueOther, bool decisionPermitsTrueOther, Tests relationCondition, Tests relationEffect, Tests other)
                     {
                         return decisionImpliesTrueOther
-                            ? OrSequence.Create(AndSequence.Create(precondition, sideeffect), other)
+                            ? OrSequence.Create(AndSequence.Create(relationCondition, relationEffect), other)
                             : !decisionPermitsTrueOther
-                                ? AndSequence.Create(Not.Create(AndSequence.Create(precondition, sideeffect)), other)
-                                : AndSequence.Create(OrSequence.Create(Not.Create(precondition), sideeffect), other);
+                                ? AndSequence.Create(Not.Create(AndSequence.Create(relationCondition, relationEffect)), other)
+                                : AndSequence.Create(OrSequence.Create(Not.Create(relationCondition), relationEffect), other);
                     }
                 }
                 public override BoundDagTest ComputeSelectedTest() => this.Test;
