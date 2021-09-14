@@ -9521,5 +9521,22 @@ namespace ConsoleApp5
         {
             await TestMissingAsync("[|Console|].WriteLine();", new TestParameters(Options.Regular));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [WorkItem(47586, "https://github.com/dotnet/roslyn/issues/47586")]
+        public async Task TestMissingOfferParameterInLambda()
+        {
+            await TestMissingAsync(
+@"using System;
+using System.Diagnostics;
+
+class Class
+{
+    private static void AssertSomething()
+    {
+        Action<int> call = _ => Debug.Assert([|expected|]);
+    }
+}");
+        }
     }
 }

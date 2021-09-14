@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
                 // Workaround: The compiler returns IsImplicitlyDeclared = false for <Main>$.
                 return ContainingMethod is { IsImplicitlyDeclared: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointMethodName }
-                    && !IsInMemberContext && !IsConstant;
+                    && !IsInMemberContext && !IsConstant && !ContainingMethod.IsAnonymousFunction();
             }
 
             private bool TryInitializeExplicitInterface(
