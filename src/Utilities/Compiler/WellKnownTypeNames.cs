@@ -66,6 +66,10 @@ namespace Analyzer.Utilities
         public const string MicrosoftExtensionsLoggingILogger = "Microsoft.Extensions.Logging.ILogger";
         public const string MicrosoftExtensionsLoggingLoggerExtensions = "Microsoft.Extensions.Logging.LoggerExtensions";
         public const string MicrosoftExtensionsLoggingLoggerMessage = "Microsoft.Extensions.Logging.LoggerMessage";
+        public const string MicrosoftIdentityModelTokensAudienceValidator = "Microsoft.IdentityModel.Tokens.AudienceValidator";
+        public const string MicrosoftIdentityModelTokensLifetimeValidator = "Microsoft.IdentityModel.Tokens.LifetimeValidator";
+        public const string MicrosoftIdentityModelTokensSecurityToken = "Microsoft.IdentityModel.Tokens.SecurityToken";
+        public const string MicrosoftIdentityModelTokensTokenValidationParameters = "Microsoft.IdentityModel.Tokens.TokenValidationParameters";
         public const string MicrosoftSecurityApplicationAntiXss = "Microsoft.Security.Application.AntiXss";
         public const string MicrosoftSecurityApplicationAntiXssEncoder = "Microsoft.Security.Application.AntiXssEncoder";
         public const string MicrosoftSecurityApplicationEncoder = "Microsoft.Security.Application.Encoder";
