@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Dim fullSpan = TextSpan.FromBounds(startPos, endPos)
 
             Dim maxBannerLength = optionProvider.GetOption(BlockStructureOptions.MaximumBannerLength, LanguageNames.VisualBasic)
-            Dim bannerText = VisualBasicSyntaxFacts.Instance.GetBannerText(
+            Dim bannerText = VisualBasicFileBanner.Instance.GetBannerText(
                 documentationComment, maxBannerLength, cancellationToken)
 
             spans.AddIfNotNull(CreateBlockSpan(

@@ -49,9 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public override ISyntaxKinds SyntaxKinds { get; } = CSharpSyntaxKinds.Instance;
 
-        protected override IDocumentationCommentService DocumentationCommentService
-            => CSharpDocumentationCommentService.Instance;
-
         public bool SupportsIndexingInitializer(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
 
@@ -1515,21 +1512,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxNode? GetNextExecutableStatement(SyntaxNode statement)
             => ((StatementSyntax)statement).GetNextStatement();
-
-        public override bool IsSingleLineCommentTrivia(SyntaxTrivia trivia)
-            => trivia.IsSingleLineComment();
-
-        public override bool IsMultiLineCommentTrivia(SyntaxTrivia trivia)
-            => trivia.IsMultiLineComment();
-
-        public override bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia)
-            => trivia.IsSingleLineDocComment();
-
-        public override bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia)
-            => trivia.IsMultiLineDocComment();
-
-        public override bool IsShebangDirectiveTrivia(SyntaxTrivia trivia)
-            => trivia.IsShebangDirective();
 
         public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
             => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());

@@ -105,6 +105,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsElastic(SyntaxTrivia trivia);
         bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes);
 
+        bool IsSingleLineCommentTrivia(SyntaxTrivia trivia);
+        bool IsMultiLineCommentTrivia(SyntaxTrivia trivia);
+        bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia);
+        bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia);
+        bool IsShebangDirectiveTrivia(SyntaxTrivia trivia);
+        bool IsPreprocessorDirective(SyntaxTrivia trivia);
+
         bool IsDocumentationComment(SyntaxNode node);
         bool IsNumericLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
@@ -489,16 +496,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode? GetNextExecutableStatement(SyntaxNode statement);
 
-        ImmutableArray<SyntaxTrivia> GetLeadingBlankLines(SyntaxNode node);
-        TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode;
-
-        ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
-        ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxToken firstToken);
-
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
-
-        string GetBannerText(SyntaxNode? documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken);
 
         SyntaxTokenList GetModifiers(SyntaxNode? node);
 
