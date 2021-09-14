@@ -4,12 +4,6 @@
 
 Imports Microsoft.CodeAnalysis.LanguageServices
 
-#If CODE_STYLE Then
-Imports Microsoft.CodeAnalysis.Internal.Editing
-#Else
-Imports Microsoft.CodeAnalysis.Editing
-#End If
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
     Friend Class VisualBasicFileBanner
         Inherits AbstractFileBanner

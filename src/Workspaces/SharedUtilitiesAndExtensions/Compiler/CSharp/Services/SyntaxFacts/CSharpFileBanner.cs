@@ -4,12 +4,6 @@
 
 using Microsoft.CodeAnalysis.LanguageServices;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
     internal class CSharpFileBanner : AbstractFileBanner
