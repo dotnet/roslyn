@@ -178,8 +178,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool TryGetPredefinedOperator(SyntaxToken token, out PredefinedOperator op);
         bool TryGetExternalSourceInfo([NotNullWhen(true)] SyntaxNode? directive, out ExternalSourceInfo info);
 
+        // Violation.  Should be named IsTypeOfObjectCreationExpression
         bool IsObjectCreationExpressionType([NotNullWhen(true)] SyntaxNode? node);
+        // Violation.  Should be named GetInitializerOfObjectCreationExpression
         SyntaxNode? GetObjectCreationInitializer(SyntaxNode node);
+        // Violation.  Should be named GetTypeOfObjectCreationExpression
         SyntaxNode GetObjectCreationType(SyntaxNode node);
 
         bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node);
@@ -318,6 +321,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
 
+        // Violation.  Parameter shoudl not nullable.
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode? node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfParameter(SyntaxNode node);
@@ -343,12 +347,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode node);
+
+        // Violation.  Return value should be nullable as VB has invocations without an argument list node.
         SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode node);
         SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode node);
 
         bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsAttributeName(SyntaxNode node);
+        // Violation.  Doesn't correspond to any shared structure for vb/c#
         SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode? node);
 
         bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node);
@@ -405,11 +412,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         bool IsTypeCharacter(char c);
 
+        // Violation.  This is a feature level API for QuickInfo.
         bool IsBindableToken(SyntaxToken token);
 
         bool IsInStaticContext(SyntaxNode node);
         bool IsUnsafeContext(SyntaxNode node);
 
+        // Violation.  This is a feature level API.
         bool IsInNamespaceOrTypeContext([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsBaseTypeList([NotNullWhen(true)] SyntaxNode? node);
@@ -432,15 +441,19 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// In VB, this includes all block statements such as a MultiLineIfBlockSyntax.
         /// </summary>
         bool IsExecutableBlock([NotNullWhen(true)] SyntaxNode? node);
+        // Violation.  This should return a SyntaxList
         IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode? node);
+        // Violation.  This is a feature level API.
         SyntaxNode? FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
 
         /// <summary>
         /// A node that can host a list of statements or a single statement. In addition to
         /// every "executable block", this also includes C# embedded statement owners.
         /// </summary>
+        // Violation.  This is a feature level API.
         bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node);
 
+        // Violation.  This is a feature level API.
         IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode? node);
 
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
@@ -448,6 +461,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         string GetDisplayName(SyntaxNode? node, DisplayNameOptions options, string? rootNamespace = null);
 
+        // Violation.  This is a feature level API.  How 'position' relates to 'containment' is not defined.
         SyntaxNode? GetContainingTypeDeclaration(SyntaxNode? root, int position);
         SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true);
         SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node);
@@ -459,13 +473,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         [return: NotNullIfNotNull("node")]
         SyntaxNode? WalkDownParentheses(SyntaxNode? node);
 
+        // Violation.  This is a feature level API.
         [return: NotNullIfNotNull("node")]
         SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false);
 
         bool IsClassDeclaration([NotNullWhen(true)] SyntaxNode? node);
         bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node);
         SyntaxNode GetNameOfNamespaceDeclaration(SyntaxNode node);
+        // Violation.  This is a feature level API.
         List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
+        // Violation.  This is a feature level API.
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode? root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
         SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
@@ -473,7 +490,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxList<SyntaxNode> GetImportsOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
         SyntaxList<SyntaxNode> GetImportsOfCompilationUnit(SyntaxNode compilationUnit);
 
+        // Violation.  This is a feature level API.
         bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span);
+        // Violation.  This is a feature level API.
         TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
         /// <summary>
@@ -482,6 +501,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// used in performance-critical typing scenarios. Note: if this method fails to find a relevant span, it returns
         /// an empty <see cref="TextSpan"/> at position 0.
         /// </summary>
+        // Violation.  This is a feature level API.
         TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node);
 
         /// <summary>
@@ -489,21 +509,26 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// All References. For example, if the token is part of the type of an object creation, the parenting object
         /// creation expression is returned so that binding will return constructor symbols.
         /// </summary>
+        // Violation.  This is a feature level API.
         SyntaxNode? TryGetBindableParent(SyntaxToken token);
 
+        // Violation.  This is a feature level API.
         IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken);
+        // Violation.  This is a feature level API.
         bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace);
 
         /// <summary>
         /// Given a <see cref="SyntaxNode"/>, that represents and argument return the string representation of
         /// that arguments name.
         /// </summary>
+        // Violation.  This is a feature level API.
         string GetNameForArgument(SyntaxNode? argument);
 
         /// <summary>
         /// Given a <see cref="SyntaxNode"/>, that represents an attribute argument return the string representation of
         /// that arguments name.
         /// </summary>
+        // Violation.  This is a feature level API.
         string GetNameForAttributeArgument(SyntaxNode? argument);
 
         bool IsNameOfSubpattern([NotNullWhen(true)] SyntaxNode? node);
@@ -538,6 +563,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// langword="false"/> only the span up through the type name will be considered.  If <see langword="true"/>
         /// then the span through the base-list will be considered.
         /// </summary>
+        // Violation.  This is a feature level API.
         bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
 
         bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? propertyDeclaration);
@@ -550,26 +576,36 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsOnForeachHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? foreachStatement);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
 
+        // Violation.  This is a feature level API.
         SyntaxNode? GetNextExecutableStatement(SyntaxNode statement);
 
+        // Violation.  This is a feature level API.
         ImmutableArray<SyntaxTrivia> GetLeadingBlankLines(SyntaxNode node);
+        // Violation.  This is a feature level API.
         TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode;
 
+        // Violation.  This is a feature level API.
         ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
+        // Violation.  This is a feature level API.
         ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxToken firstToken);
 
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
 
+        // Violation.  This is a feature level API.
         string GetBannerText(SyntaxNode? documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken);
 
+        // Violation.  This is not concept shared by the syntax structure of C# or VB.
         SyntaxTokenList GetModifiers(SyntaxNode? node);
 
+        // Violation.  WithXXX methods should not be here, but should be in SyntaxGenerator.
         [return: NotNullIfNotNull("node")]
         SyntaxNode? WithModifiers(SyntaxNode? node, SyntaxTokenList modifiers);
 
+        // Violation.  This is a feature level API.
         Location GetDeconstructionReferenceLocation(SyntaxNode node);
 
+        // Violation.  This is a feature level API.
         SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
 
         bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes);
@@ -583,6 +619,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// <summary>
         /// Gets the accessibility of the declaration.
         /// </summary>
+        // Violation.  This is a not a concrete syntactic concept over C#/VB syntax nodes.  This should be on SyntaxGenerator
+        // (which provide syntactic abstractions like 'Accessibility' questions).
         Accessibility GetAccessibility(SyntaxNode declaration);
 
         void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault);
