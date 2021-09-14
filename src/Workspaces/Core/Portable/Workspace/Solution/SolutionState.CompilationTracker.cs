@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-                    await BuildCompilationInfoWorkerAsync(solution, cancellationToken).ConfigureAwait(false);
+                    return await BuildCompilationInfoWorkerAsync().ConfigureAwait(false);
                 }
                 catch
                 {
@@ -486,64 +486,60 @@ namespace Microsoft.CodeAnalysis
                     await Task.Yield();
                     throw;
                 }
-            }
 
-            /// <summary>
-            /// Builds the compilation matching the project state. In the process of building, also
-            /// produce in progress snapshots that can be accessed from other threads.
-            /// </summary>
-            private async Task<CompilationInfo> BuildCompilationInfoWorkerAsync(
-                SolutionState solution,
-                CancellationToken cancellationToken)
-            {
-                var state = ReadState();
+                // local functions
 
-                // if we already have a compilation, we must be already done!  This can happen if two
-                // threads were waiting to build, and we came in after the other succeeded.
-                var compilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
-                if (compilation != null)
+                async Task<CompilationInfo> BuildCompilationInfoWorkerAsync()
                 {
-                    RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                    return new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo.Documents);
-                }
+                    var state = ReadState();
 
-                compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                    // if we already have a compilation, we must be already done!  This can happen if two
+                    // threads were waiting to build, and we came in after the other succeeded.
+                    var compilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                    if (compilation != null)
+                    {
+                        RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
+                        return new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo.Documents);
+                    }
 
-                // If we have already reached FinalState in the past but the compilation was garbage collected, we still have the generated documents
-                // so we can pass those to FinalizeCompilationAsync to avoid the recomputation. This is necessary for correctness as otherwise
-                // we'd be reparsing trees which could result in generated documents changing identity.
-                var authoritativeGeneratedDocuments = state.GeneratorInfo.DocumentsAreFinal ? state.GeneratorInfo.Documents : (TextDocumentStates<SourceGeneratedDocumentState>?)null;
-                var nonAuthoritativeGeneratedDocuments = state.GeneratorInfo.Documents;
-                var generatorDriver = state.GeneratorInfo.Driver;
+                    compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
 
-                if (compilation == null)
-                {
-                    // We've got nothing.  Build it from scratch :(
-                    return await BuildCompilationInfoFromScratchAsync(
-                        solution,
-                        authoritativeGeneratedDocuments,
-                        nonAuthoritativeGeneratedDocuments,
-                        generatorDriver,
-                        cancellationToken).ConfigureAwait(false);
-                }
+                    // If we have already reached FinalState in the past but the compilation was garbage collected, we still have the generated documents
+                    // so we can pass those to FinalizeCompilationAsync to avoid the recomputation. This is necessary for correctness as otherwise
+                    // we'd be reparsing trees which could result in generated documents changing identity.
+                    var authoritativeGeneratedDocuments = state.GeneratorInfo.DocumentsAreFinal ? state.GeneratorInfo.Documents : (TextDocumentStates<SourceGeneratedDocumentState>?)null;
+                    var nonAuthoritativeGeneratedDocuments = state.GeneratorInfo.Documents;
+                    var generatorDriver = state.GeneratorInfo.Driver;
 
-                if (state is AllSyntaxTreesParsedState or FinalState)
-                {
-                    // We have a declaration compilation, use it to reconstruct the final compilation
-                    return await FinalizeCompilationAsync(
-                        solution,
-                        compilation,
-                        authoritativeGeneratedDocuments,
-                        nonAuthoritativeGeneratedDocuments,
-                        compilationWithStaleGeneratedTrees: null,
-                        generatorDriver,
-                        cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    // We must have an in progress compilation. Build off of that.
-                    return await BuildFinalStateFromInProgressStateAsync(
-                        solution, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
+                    if (compilation == null)
+                    {
+                        // We've got nothing.  Build it from scratch :(
+                        return await BuildCompilationInfoFromScratchAsync(
+                            solution,
+                            authoritativeGeneratedDocuments,
+                            nonAuthoritativeGeneratedDocuments,
+                            generatorDriver,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+
+                    if (state is AllSyntaxTreesParsedState or FinalState)
+                    {
+                        // We have a declaration compilation, use it to reconstruct the final compilation
+                        return await FinalizeCompilationAsync(
+                            solution,
+                            compilation,
+                            authoritativeGeneratedDocuments,
+                            nonAuthoritativeGeneratedDocuments,
+                            compilationWithStaleGeneratedTrees: null,
+                            generatorDriver,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // We must have an in progress compilation. Build off of that.
+                        return await BuildFinalStateFromInProgressStateAsync(
+                            solution, (InProgressState)state, compilation, cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
 
