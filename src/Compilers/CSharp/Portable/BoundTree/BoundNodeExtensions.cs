@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool VisitBinaryOperatorInterpolatedString<TArg, TInterpolatedStringType>(
             this BoundBinaryOperator binary,
-            TArg arg, 
+            TArg arg,
             Func<TInterpolatedStringType, TArg, bool> visitor,
             Action<BoundBinaryOperator, TArg>? binaryOperatorCallback = null)
             where TInterpolatedStringType : BoundExpression
