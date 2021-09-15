@@ -11,211 +11,192 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class NamedTypeTests : CSharpTestBase
     {
-        [Fact]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType1()
+        public static readonly object[][] TestData =
         {
-            var compilation = CreateCompilation("[System.CLSCompliant(false)] struct C { }");
+            new [] { "struct C { }" },
+            new [] { "enum C { }" },
+            new [] { "interface C { }" },
+            new [] { "delegate void C();" },
+        };
+
+        [Theory, MemberData(nameof(TestData))]
+        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
+        public void IsExplicitDefinitionOfNoPiaLocalType1(string type)
+        {
+            var compilation = CreateCompilation($"[System.CLSCompliant(false)] {type}");
             var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.False(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType2_struct()
+        public void IsExplicitDefinitionOfNoPiaLocalType2(string type)
         {
-            var compilation = CreateCompilation("[System.Runtime.InteropServices.TypeIdentifierAttribute] struct C { }");
+            var compilation = CreateCompilation($"[System.Runtime.InteropServices.TypeIdentifierAttribute] {type}");
             var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType2_enum()
+        public void IsExplicitDefinitionOfNoPiaLocalType3(string type)
         {
-            var compilation = CreateCompilation("[System.Runtime.InteropServices.TypeIdentifierAttribute] enum C { }");
+            var compilation = CreateCompilation($"[System.Runtime.InteropServices.TypeIdentifier] {type}");
             var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType2_interface()
+        public void IsExplicitDefinitionOfNoPiaLocalType4(string type)
         {
-            var compilation = CreateCompilation("[System.Runtime.InteropServices.TypeIdentifierAttribute] interface C { }");
-            var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
-        }
-
-        [Fact]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType2_delegate()
-        {
-            var compilation = CreateCompilation("[System.Runtime.InteropServices.TypeIdentifierAttribute] delegate void C();");
-            var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
-        }
-
-        [Fact]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType3()
-        {
-            var compilation = CreateCompilation("[System.Runtime.InteropServices.TypeIdentifier] struct C { }");
-            var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
-        }
-
-        [Fact]
-        [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType4()
-        {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateCompilation(@$"
 using System.Runtime.InteropServices;
 
-[TypeIdentifierAttribute] struct C { }");
+[TypeIdentifierAttribute] {type}");
             var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType5()
+        public void IsExplicitDefinitionOfNoPiaLocalType5(string type)
         {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateCompilation(@$"
 using System.Runtime.InteropServices;
 
-[TypeIdentifier] struct C { }");
+[TypeIdentifier] {type}");
             var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType6()
+        public void IsExplicitDefinitionOfNoPiaLocalType6(string type)
         {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateCompilation(@$"
 using TI = System.Runtime.InteropServices.TypeIdentifierAttribute;
 
-[TI] struct C { }");
+[TI] {type}");
             var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType7()
+        public void IsExplicitDefinitionOfNoPiaLocalType7(string type)
         {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateCompilation(@$"
 using TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute;
 
-[TIAttribute] struct C { }");
+[TIAttribute] {type}");
             var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType8()
+        public void IsExplicitDefinitionOfNoPiaLocalType8(string type)
         {
-            var compilation = CreateCompilation(@"
+            var compilation = CreateCompilation(@$"
 using TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute;
 
-[TI] struct C { }");
+[TI] {type}");
             var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType9()
+        public void IsExplicitDefinitionOfNoPiaLocalType9(string type)
         {
             var compilation = CreateCompilation(new[]
             {
                 @"global using TI = System.Runtime.InteropServices.TypeIdentifierAttribute;",
-                @"
-[TI] struct C { }"
+                @$"
+[TI] {type}"
 });
             var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType10()
+        public void IsExplicitDefinitionOfNoPiaLocalType10(string type)
         {
             var compilation = CreateCompilation(new[]
             {
                 @"global using TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute;",
-                @"
-[TIAttribute] struct C { }"
+                @$"
+[TIAttribute] {type}"
 });
             var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType11()
+        public void IsExplicitDefinitionOfNoPiaLocalType11(string type)
         {
             var compilation = CreateCompilation(new[]
             {
                 @"global using TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute;",
-                @"
-[TI] struct C { }"
+                @$"
+[TI] {type}"
 });
             var namedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType12()
+        public void IsExplicitDefinitionOfNoPiaLocalType12(string type)
         {
             var compilation = CreateCompilation(new[]
             {
                 @"global using TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute;",
-                @"
+                @$"
 namespace N
-{
+{{
     using X = TIAttribute;
-    [X] struct C { }
-}"
+    [X] {type}
+}}"
 });
             var namedType = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("N").GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType13()
+        public void IsExplicitDefinitionOfNoPiaLocalType13(string type)
         {
             var compilation = CreateCompilation(new[]
             {
                 @"global using TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute;",
-                @"
+                @$"
 namespace N
-{
+{{
     using XAttribute = TIAttribute;
-    [XAttribute] struct C { }
-}"
+    [XAttribute] {type}
+}}"
 });
             var namedType = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("N").GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
         }
 
-        [Fact]
+        [Theory, MemberData(nameof(TestData))]
         [WorkItem(1393763, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1393763")]
-        public void IsExplicitDefinitionOfNoPiaLocalType14()
+        public void IsExplicitDefinitionOfNoPiaLocalType14(string type)
         {
             var compilation = CreateCompilation(new[]
             {
                 @"global using TIAttribute = System.Runtime.InteropServices.TypeIdentifierAttribute;",
-                @"
+                @$"
 namespace N
-{
+{{
     using XAttribute = TIAttribute;
-    [X] struct C { }
-}"
+    [X] {type}
+}}"
 });
             var namedType = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("N").GetMember<NamedTypeSymbol>("C");
             Assert.True(namedType.IsExplicitDefinitionOfNoPiaLocalType);
