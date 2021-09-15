@@ -642,6 +642,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Added for C# 7.1
                 case ConversionKind.DefaultLiteral:
+
+                // Added for C# 10.
+                case ConversionKind.FunctionType:
                     return true;
 
                 default:
