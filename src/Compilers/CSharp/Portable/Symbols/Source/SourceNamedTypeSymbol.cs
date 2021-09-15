@@ -761,7 +761,7 @@ next:;
 
         internal ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            return declaration.GetAttributeDeclarations();
+            return declaration.GetAttributeDeclarations(quickAttributes: null);
         }
 
         internal ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations(QuickAttributes quickAttributes)

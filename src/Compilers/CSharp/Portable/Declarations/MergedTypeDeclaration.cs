@@ -46,49 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
-        {
-            var attributeSyntaxListBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
-
-            foreach (var decl in _declarations)
-            {
-                if (!decl.HasAnyAttributes)
-                {
-                    continue;
-                }
-
-                var syntaxRef = decl.SyntaxReference;
-                var typeDecl = syntaxRef.GetSyntax();
-                SyntaxList<AttributeListSyntax> attributesSyntaxList;
-                switch (typeDecl.Kind())
-                {
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.InterfaceDeclaration:
-                    case SyntaxKind.RecordDeclaration:
-                    case SyntaxKind.RecordStructDeclaration:
-                        attributesSyntaxList = ((TypeDeclarationSyntax)typeDecl).AttributeLists;
-                        break;
-
-                    case SyntaxKind.DelegateDeclaration:
-                        attributesSyntaxList = ((DelegateDeclarationSyntax)typeDecl).AttributeLists;
-                        break;
-
-                    case SyntaxKind.EnumDeclaration:
-                        attributesSyntaxList = ((EnumDeclarationSyntax)typeDecl).AttributeLists;
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(typeDecl.Kind());
-                }
-
-                attributeSyntaxListBuilder.Add(attributesSyntaxList);
-            }
-
-            return attributeSyntaxListBuilder.ToImmutableAndFree();
-        }
-
-        public ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations(QuickAttributes quickAttributes)
+        public ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations(QuickAttributes? quickAttributes)
         {
             var attributeSyntaxListBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
 
@@ -97,8 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!decl.HasAnyAttributes)
                     continue;
 
-                if ((decl.QuickAttributes & quickAttributes) == 0)
-                    continue;
+                if (quickAttributes != null)
+                {
+                    if ((decl.QuickAttributes & quickAttributes.Value) == 0)
+                        continue;
+                }
 
                 var syntaxRef = decl.SyntaxReference;
                 var typeDecl = syntaxRef.GetSyntax();
