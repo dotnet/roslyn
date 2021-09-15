@@ -48,6 +48,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 Process.GetCurrentProcess().TrySetPriorityClass(ProcessPriorityClass.BelowNormal);
             }
 
+            // Make encodings that is by default present in desktop framework but not in corefx available to runtime.
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
 #if DEBUG
             // Make sure debug assertions in ServiceHub result in exceptions instead of the assertion UI
             Trace.Listeners.Clear();
