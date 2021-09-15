@@ -284,11 +284,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (directive.Alias == null)
                     continue;
 
-                var isGlobal = !directive.GlobalKeyword.IsMissing;
+                var isGlobal = directive.GlobalKeyword.Kind() != SyntaxKind.None;
                 if (isGlobal != global)
                     continue;
 
-                result |= GetQuickAttributes(directive.Alias.Name.GetUnqualifiedName().Identifier.ValueText);
+                result |= GetQuickAttributes(directive.Name.GetUnqualifiedName().Identifier.ValueText);
             }
 
             return result;
