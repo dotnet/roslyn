@@ -1655,7 +1655,7 @@ value:1,alignment:2:format:Y";
 ",
                 (useDefaultParameters: false, useBoolReturns: false, constructorBoolArg: true) => @"
 {
-  // Code size       89 (0x59)
+  // Code size       84 (0x54)
   .maxstack  4
   .locals init (int V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
@@ -1668,7 +1668,7 @@ value:1,alignment:2:format:Y";
   IL_0006:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int, out bool)""
   IL_000b:  stloc.1
   IL_000c:  ldloc.2
-  IL_000d:  brfalse.s  IL_004a
+  IL_000d:  brfalse.s  IL_0047
   IL_000f:  ldloca.s   V_1
   IL_0011:  ldstr      ""base""
   IL_0016:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
@@ -1688,19 +1688,15 @@ value:1,alignment:2:format:Y";
   IL_003c:  ldc.i4.2
   IL_003d:  ldstr      ""Y""
   IL_0042:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
-  IL_0047:  ldc.i4.1
-  IL_0048:  br.s       IL_004b
-  IL_004a:  ldc.i4.0
-  IL_004b:  pop
-  IL_004c:  ldloca.s   V_1
-  IL_004e:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_0053:  call       ""void System.Console.WriteLine(string)""
-  IL_0058:  ret
+  IL_0047:  ldloca.s   V_1
+  IL_0049:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_004e:  call       ""void System.Console.WriteLine(string)""
+  IL_0053:  ret
 }
 ",
                 (useDefaultParameters: true, useBoolReturns: false, constructorBoolArg: true) => @"
 {
-  // Code size       93 (0x5d)
+  // Code size       88 (0x58)
   .maxstack  4
   .locals init (int V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
@@ -1713,7 +1709,7 @@ value:1,alignment:2:format:Y";
   IL_0006:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int, out bool)""
   IL_000b:  stloc.1
   IL_000c:  ldloc.2
-  IL_000d:  brfalse.s  IL_004e
+  IL_000d:  brfalse.s  IL_004b
   IL_000f:  ldloca.s   V_1
   IL_0011:  ldstr      ""base""
   IL_0016:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
@@ -1737,14 +1733,10 @@ value:1,alignment:2:format:Y";
   IL_0040:  ldc.i4.2
   IL_0041:  ldstr      ""Y""
   IL_0046:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)""
-  IL_004b:  ldc.i4.1
-  IL_004c:  br.s       IL_004f
-  IL_004e:  ldc.i4.0
-  IL_004f:  pop
-  IL_0050:  ldloca.s   V_1
-  IL_0052:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_0057:  call       ""void System.Console.WriteLine(string)""
-  IL_005c:  ret
+  IL_004b:  ldloca.s   V_1
+  IL_004d:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_0052:  call       ""void System.Console.WriteLine(string)""
+  IL_0057:  ret
 }
 ",
                 (useDefaultParameters: false, useBoolReturns: true, constructorBoolArg: true) => @"
@@ -2083,7 +2075,7 @@ value:1,alignment:2:format:Y";
 ",
                 (useDefaultParameters: false, useBoolReturns: false, constructorBoolArg: true) => @"
 {
-  // Code size       98 (0x62)
+  // Code size       93 (0x5d)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
@@ -2097,7 +2089,7 @@ value:1,alignment:2:format:Y";
   IL_000f:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int, out bool)""
   IL_0014:  stloc.1
   IL_0015:  ldloc.2
-  IL_0016:  brfalse.s  IL_0053
+  IL_0016:  brfalse.s  IL_0050
   IL_0018:  ldloca.s   V_1
   IL_001a:  ldstr      ""base""
   IL_001f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
@@ -2117,14 +2109,10 @@ value:1,alignment:2:format:Y";
   IL_0045:  ldc.i4.2
   IL_0046:  ldstr      ""Y""
   IL_004b:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_0050:  ldc.i4.1
-  IL_0051:  br.s       IL_0054
-  IL_0053:  ldc.i4.0
-  IL_0054:  pop
-  IL_0055:  ldloca.s   V_1
-  IL_0057:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_005c:  call       ""void System.Console.WriteLine(string)""
-  IL_0061:  ret
+  IL_0050:  ldloca.s   V_1
+  IL_0052:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_0057:  call       ""void System.Console.WriteLine(string)""
+  IL_005c:  ret
 }
 ",
                 (useDefaultParameters: false, useBoolReturns: true, constructorBoolArg: true) => @"
@@ -2178,7 +2166,7 @@ value:1,alignment:2:format:Y";
 ",
                 (useDefaultParameters: true, useBoolReturns: false, constructorBoolArg: true) => @"
 {
-  // Code size      102 (0x66)
+  // Code size       97 (0x61)
   .maxstack  4
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
@@ -2192,7 +2180,7 @@ value:1,alignment:2:format:Y";
   IL_000f:  newobj     ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int, out bool)""
   IL_0014:  stloc.1
   IL_0015:  ldloc.2
-  IL_0016:  brfalse.s  IL_0057
+  IL_0016:  brfalse.s  IL_0054
   IL_0018:  ldloca.s   V_1
   IL_001a:  ldstr      ""base""
   IL_001f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
@@ -2216,14 +2204,10 @@ value:1,alignment:2:format:Y";
   IL_0049:  ldc.i4.2
   IL_004a:  ldstr      ""Y""
   IL_004f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(System.ReadOnlySpan<char>, int, string)""
-  IL_0054:  ldc.i4.1
-  IL_0055:  br.s       IL_0058
-  IL_0057:  ldc.i4.0
-  IL_0058:  pop
-  IL_0059:  ldloca.s   V_1
-  IL_005b:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_0060:  call       ""void System.Console.WriteLine(string)""
-  IL_0065:  ret
+  IL_0054:  ldloca.s   V_1
+  IL_0056:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_005b:  call       ""void System.Console.WriteLine(string)""
+  IL_0060:  ret
 }
 ",
                 (useDefaultParameters: true, useBoolReturns: true, constructorBoolArg: true) => @"
@@ -9816,60 +9800,56 @@ format:
 ",
                 (useBoolReturns: false, validityParameter: true) => @"
 {
-  // Code size       96 (0x60)
+  // Code size       95 (0x5f)
   .maxstack  6
   .locals init (int V_0, //i
-                int V_1,
-                C V_2,
+                CustomHandler V_1,
+                bool V_2,
                 int V_3,
-                CustomHandler V_4,
-                CustomHandler V_5,
-                bool V_6)
+                C V_4,
+                int V_5,
+                CustomHandler V_6)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
-  IL_0007:  stloc.2
-  IL_0008:  ldc.i4.1
-  IL_0009:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
-  IL_0010:  stloc.3
-  IL_0011:  ldc.i4.7
-  IL_0012:  ldc.i4.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloc.2
-  IL_0015:  ldloca.s   V_6
-  IL_0017:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
-  IL_001c:  stloc.s    V_5
-  IL_001e:  ldloc.s    V_6
-  IL_0020:  brfalse.s  IL_0040
-  IL_0022:  ldloca.s   V_5
-  IL_0024:  ldstr      ""literal""
-  IL_0029:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_002e:  ldloca.s   V_5
-  IL_0030:  ldloc.0
-  IL_0031:  box        ""int""
-  IL_0036:  ldc.i4.0
-  IL_0037:  ldnull
-  IL_0038:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_003d:  ldc.i4.1
-  IL_003e:  br.s       IL_0041
-  IL_0040:  ldc.i4.0
-  IL_0041:  pop
-  IL_0042:  ldloc.s    V_5
-  IL_0044:  stloc.s    V_4
-  IL_0046:  ldloc.2
-  IL_0047:  ldloc.3
-  IL_0048:  ldloc.s    V_4
-  IL_004a:  ldloc.2
-  IL_004b:  ldloc.3
-  IL_004c:  ldloc.s    V_4
-  IL_004e:  callvirt   ""int C.this[int, CustomHandler].get""
-  IL_0053:  ldc.i4.2
-  IL_0054:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_0059:  add
-  IL_005a:  callvirt   ""void C.this[int, CustomHandler].set""
-  IL_005f:  ret
+  IL_0007:  stloc.s    V_4
+  IL_0009:  ldc.i4.1
+  IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
+  IL_000f:  stloc.3
+  IL_0010:  ldloc.3
+  IL_0011:  stloc.s    V_5
+  IL_0013:  ldc.i4.7
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldloc.3
+  IL_0016:  ldloc.s    V_4
+  IL_0018:  ldloca.s   V_2
+  IL_001a:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.2
+  IL_0021:  brfalse.s  IL_003e
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldstr      ""literal""
+  IL_002a:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_002f:  ldloca.s   V_1
+  IL_0031:  ldloc.0
+  IL_0032:  box        ""int""
+  IL_0037:  ldc.i4.0
+  IL_0038:  ldnull
+  IL_0039:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_003e:  ldloc.1
+  IL_003f:  stloc.s    V_6
+  IL_0041:  ldloc.s    V_4
+  IL_0043:  ldloc.s    V_5
+  IL_0045:  ldloc.s    V_6
+  IL_0047:  ldloc.s    V_4
+  IL_0049:  ldloc.s    V_5
+  IL_004b:  ldloc.s    V_6
+  IL_004d:  callvirt   ""int C.this[int, CustomHandler].get""
+  IL_0052:  ldc.i4.2
+  IL_0053:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
+  IL_0058:  add
+  IL_0059:  callvirt   ""void C.this[int, CustomHandler].set""
+  IL_005e:  ret
 }
 ",
                 (useBoolReturns: true, validityParameter: false) => @"
@@ -10105,13 +10085,14 @@ GetInt2
 ",
                 (useBoolReturns: false, validityParameter: true) => @"
 {
-  // Code size       82 (0x52)
-  .maxstack  7
+  // Code size       81 (0x51)
+  .maxstack  6
   .locals init (int V_0, //i
                 int V_1,
                 C V_2,
-                CustomHandler V_3,
-                bool V_4)
+                int V_3,
+                CustomHandler V_4,
+                bool V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
@@ -10121,37 +10102,35 @@ GetInt2
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
-  IL_0011:  ldc.i4.7
-  IL_0012:  ldc.i4.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloc.2
-  IL_0015:  ldloca.s   V_4
-  IL_0017:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
-  IL_001c:  stloc.3
-  IL_001d:  ldloc.s    V_4
-  IL_001f:  brfalse.s  IL_003f
-  IL_0021:  ldloca.s   V_3
-  IL_0023:  ldstr      ""literal""
-  IL_0028:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_002d:  ldloca.s   V_3
-  IL_002f:  ldloc.0
-  IL_0030:  box        ""int""
-  IL_0035:  ldc.i4.0
-  IL_0036:  ldnull
-  IL_0037:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_003c:  ldc.i4.1
-  IL_003d:  br.s       IL_0040
-  IL_003f:  ldc.i4.0
-  IL_0040:  pop
-  IL_0041:  ldloc.3
-  IL_0042:  callvirt   ""ref int C.this[int, CustomHandler].get""
-  IL_0047:  dup
-  IL_0048:  ldind.i4
-  IL_0049:  ldc.i4.2
-  IL_004a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_004f:  add
-  IL_0050:  stind.i4
-  IL_0051:  ret
+  IL_0011:  stloc.3
+  IL_0012:  ldc.i4.7
+  IL_0013:  ldc.i4.1
+  IL_0014:  ldloc.1
+  IL_0015:  ldloc.2
+  IL_0016:  ldloca.s   V_5
+  IL_0018:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
+  IL_001d:  stloc.s    V_4
+  IL_001f:  ldloc.s    V_5
+  IL_0021:  brfalse.s  IL_003e
+  IL_0023:  ldloca.s   V_4
+  IL_0025:  ldstr      ""literal""
+  IL_002a:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_002f:  ldloca.s   V_4
+  IL_0031:  ldloc.0
+  IL_0032:  box        ""int""
+  IL_0037:  ldc.i4.0
+  IL_0038:  ldnull
+  IL_0039:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_003e:  ldloc.3
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  callvirt   ""ref int C.this[int, CustomHandler].get""
+  IL_0046:  dup
+  IL_0047:  ldind.i4
+  IL_0048:  ldc.i4.2
+  IL_0049:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
+  IL_004e:  add
+  IL_004f:  stind.i4
+  IL_0050:  ret
 }
 ",
                 (useBoolReturns: true, validityParameter: false) => @"
@@ -10370,13 +10349,14 @@ GetInt2
 ",
                 (useBoolReturns: false, validityParameter: true) => @"
 {
-  // Code size       82 (0x52)
-  .maxstack  7
+  // Code size       81 (0x51)
+  .maxstack  6
   .locals init (int V_0, //i
                 int V_1,
                 C V_2,
-                CustomHandler V_3,
-                bool V_4)
+                int V_3,
+                CustomHandler V_4,
+                bool V_5)
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  call       ""C Program.<<Main>$>g__GetC|0_0()""
@@ -10386,37 +10366,35 @@ GetInt2
   IL_000a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
   IL_000f:  stloc.1
   IL_0010:  ldloc.1
-  IL_0011:  ldc.i4.7
-  IL_0012:  ldc.i4.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloc.2
-  IL_0015:  ldloca.s   V_4
-  IL_0017:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
-  IL_001c:  stloc.3
-  IL_001d:  ldloc.s    V_4
-  IL_001f:  brfalse.s  IL_003f
-  IL_0021:  ldloca.s   V_3
-  IL_0023:  ldstr      ""literal""
-  IL_0028:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_002d:  ldloca.s   V_3
-  IL_002f:  ldloc.0
-  IL_0030:  box        ""int""
-  IL_0035:  ldc.i4.0
-  IL_0036:  ldnull
-  IL_0037:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_003c:  ldc.i4.1
-  IL_003d:  br.s       IL_0040
-  IL_003f:  ldc.i4.0
-  IL_0040:  pop
-  IL_0041:  ldloc.3
-  IL_0042:  callvirt   ""ref int C.M(int, CustomHandler)""
-  IL_0047:  dup
-  IL_0048:  ldind.i4
-  IL_0049:  ldc.i4.2
-  IL_004a:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
-  IL_004f:  add
-  IL_0050:  stind.i4
-  IL_0051:  ret
+  IL_0011:  stloc.3
+  IL_0012:  ldc.i4.7
+  IL_0013:  ldc.i4.1
+  IL_0014:  ldloc.1
+  IL_0015:  ldloc.2
+  IL_0016:  ldloca.s   V_5
+  IL_0018:  newobj     ""CustomHandler..ctor(int, int, int, C, out bool)""
+  IL_001d:  stloc.s    V_4
+  IL_001f:  ldloc.s    V_5
+  IL_0021:  brfalse.s  IL_003e
+  IL_0023:  ldloca.s   V_4
+  IL_0025:  ldstr      ""literal""
+  IL_002a:  call       ""void CustomHandler.AppendLiteral(string)""
+  IL_002f:  ldloca.s   V_4
+  IL_0031:  ldloc.0
+  IL_0032:  box        ""int""
+  IL_0037:  ldc.i4.0
+  IL_0038:  ldnull
+  IL_0039:  call       ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_003e:  ldloc.3
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  callvirt   ""ref int C.M(int, CustomHandler)""
+  IL_0046:  dup
+  IL_0047:  ldind.i4
+  IL_0048:  ldc.i4.2
+  IL_0049:  call       ""int Program.<<Main>$>g__GetInt|0_1(int)""
+  IL_004e:  add
+  IL_004f:  stind.i4
+  IL_0050:  ret
 }
 ",
                 (useBoolReturns: true, validityParameter: false) => @"
@@ -10767,7 +10745,7 @@ format:
 ",
                 (useBoolReturns: false, validityParameter: true) => @"
 {
-  // Code size       87 (0x57)
+  // Code size       77 (0x4d)
   .maxstack  6
   .locals init (int V_0,
                 CustomHandler V_1,
@@ -10785,7 +10763,7 @@ format:
   IL_0008:  newobj     ""CustomHandler..ctor(int, int, int, out bool)""
   IL_000d:  stloc.1
   IL_000e:  ldloc.2
-  IL_000f:  brfalse.s  IL_004e
+  IL_000f:  brfalse.s  IL_0046
   IL_0011:  ldloc.1
   IL_0012:  stloc.3
   IL_0013:  ldloc.3
@@ -10796,29 +10774,21 @@ format:
   IL_001a:  newobj     ""CustomHandler..ctor(int, int, CustomHandler, out bool)""
   IL_001f:  stloc.s    V_4
   IL_0021:  ldloc.s    V_5
-  IL_0023:  brfalse.s  IL_0034
+  IL_0023:  brfalse.s  IL_0031
   IL_0025:  ldloc.s    V_4
   IL_0027:  ldstr      ""Inner string""
   IL_002c:  callvirt   ""void CustomHandler.AppendLiteral(string)""
-  IL_0031:  ldc.i4.1
-  IL_0032:  br.s       IL_0035
-  IL_0034:  ldc.i4.0
-  IL_0035:  pop
-  IL_0036:  ldloc.s    V_4
-  IL_0038:  callvirt   ""void CustomHandler.AppendFormatted(CustomHandler)""
-  IL_003d:  ldloc.1
-  IL_003e:  ldc.i4.2
-  IL_003f:  box        ""int""
-  IL_0044:  ldc.i4.0
-  IL_0045:  ldnull
-  IL_0046:  callvirt   ""void CustomHandler.AppendFormatted(object, int, string)""
-  IL_004b:  ldc.i4.1
-  IL_004c:  br.s       IL_004f
-  IL_004e:  ldc.i4.0
-  IL_004f:  pop
-  IL_0050:  ldloc.1
-  IL_0051:  call       ""void C.M(int, CustomHandler)""
-  IL_0056:  ret
+  IL_0031:  ldloc.s    V_4
+  IL_0033:  callvirt   ""void CustomHandler.AppendFormatted(CustomHandler)""
+  IL_0038:  ldloc.1
+  IL_0039:  ldc.i4.2
+  IL_003a:  box        ""int""
+  IL_003f:  ldc.i4.0
+  IL_0040:  ldnull
+  IL_0041:  callvirt   ""void CustomHandler.AppendFormatted(object, int, string)""
+  IL_0046:  ldloc.1
+  IL_0047:  call       ""void C.M(int, CustomHandler)""
+  IL_004c:  ret
 }
 ",
                 (useBoolReturns: true, validityParameter: false) => @"
@@ -13345,7 +13315,7 @@ partial struct CustomHandler
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       38 (0x26)
+  // Code size       33 (0x21)
   .maxstack  4
   .locals init (CustomHandler V_0,
                 bool V_1)
@@ -13356,17 +13326,13 @@ partial struct CustomHandler
   IL_0005:  newobj     ""CustomHandler..ctor(int, int, out bool, int)""
   IL_000a:  stloc.0
   IL_000b:  ldloc.1
-  IL_000c:  brfalse.s  IL_001d
+  IL_000c:  brfalse.s  IL_001a
   IL_000e:  ldloca.s   V_0
   IL_0010:  ldstr      ""Literal""
   IL_0015:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_001a:  ldc.i4.1
-  IL_001b:  br.s       IL_001e
-  IL_001d:  ldc.i4.0
-  IL_001e:  pop
-  IL_001f:  ldloc.0
-  IL_0020:  call       ""void C.M(CustomHandler)""
-  IL_0025:  ret
+  IL_001a:  ldloc.0
+  IL_001b:  call       ""void C.M(CustomHandler)""
+  IL_0020:  ret
 }
 ");
         }
@@ -13446,7 +13412,7 @@ partial struct CustomHandler
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       37 (0x25)
   .maxstack  6
   .locals init (int V_0,
                 CustomHandler V_1,
@@ -13462,17 +13428,13 @@ partial struct CustomHandler
   IL_0009:  newobj     ""CustomHandler..ctor(int, int, int, out bool, int)""
   IL_000e:  stloc.1
   IL_000f:  ldloc.2
-  IL_0010:  brfalse.s  IL_0021
+  IL_0010:  brfalse.s  IL_001e
   IL_0012:  ldloca.s   V_1
   IL_0014:  ldstr      ""Literal""
   IL_0019:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_001e:  ldc.i4.1
-  IL_001f:  br.s       IL_0022
-  IL_0021:  ldc.i4.0
-  IL_0022:  pop
-  IL_0023:  ldloc.1
-  IL_0024:  call       ""void C.M(int, CustomHandler)""
-  IL_0029:  ret
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""void C.M(int, CustomHandler)""
+  IL_0024:  ret
 }
 ");
         }

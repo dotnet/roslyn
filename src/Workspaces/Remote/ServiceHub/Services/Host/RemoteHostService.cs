@@ -38,18 +38,6 @@ namespace Microsoft.CodeAnalysis.Remote
     [Obsolete("Supports non-brokered services")]
     internal partial class RemoteHostService : ServiceBase, IRemoteHostService, IAssetSource
     {
-        private static readonly TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
-        private readonly CancellationTokenSource _shutdownCancellationSource;
-
-        // it is saved here more on debugging purpose.
-        private static Func<FunctionId, bool> s_logChecker = _ => false;
-
-#if DEBUG
-#pragma warning disable IDE0052 // Remove unread private members
-        private PerformanceReporter? _performanceReporter;
-#pragma warning restore
-#endif
-
         static RemoteHostService()
         {
             if (GCSettings.IsServerGC)
@@ -59,10 +47,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 // priority when using server GC.
                 Process.GetCurrentProcess().TrySetPriorityClass(ProcessPriorityClass.BelowNormal);
             }
-
-            // this is the very first service which will be called from client (VS)
-            // we set up logger here
-            RoslynLogger.SetLogger(new EtwLogger(s_logChecker));
 
             // Make encodings that is by default present in desktop framework but not in corefx available to runtime.
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -79,8 +63,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteHostService(Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
-            _shutdownCancellationSource = new CancellationTokenSource();
-
             // this service provide a way for client to make sure remote host is alive
             StartService();
         }
@@ -102,41 +84,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        /// <summary>
-        /// Remote API. Initializes ServiceHub process global state.
-        /// </summary>
-        public void InitializeTelemetrySession(int hostProcessId, string serializedSession, CancellationToken cancellationToken)
-        {
-            RunService(() =>
-            {
-                var services = GetWorkspace().Services;
-
-                var telemetryService = (RemoteWorkspaceTelemetryService)services.GetRequiredService<IWorkspaceTelemetryService>();
-                var telemetrySession = new TelemetrySession(serializedSession);
-                telemetrySession.Start();
-
-                telemetryService.InitializeTelemetrySession(telemetrySession);
-                telemetryService.RegisterUnexpectedExceptionLogger(Logger);
-
-                // log telemetry that service hub started
-                RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m =>
-                {
-                    m["Host"] = hostProcessId;
-                    m["InstanceId"] = InstanceId;
-                }));
-
-#if DEBUG
-                // start performance reporter
-                var diagnosticAnalyzerPerformanceTracker = services.GetService<IPerformanceTrackerService>();
-                if (diagnosticAnalyzerPerformanceTracker != null)
-                {
-                    var globalOperationNotificationService = services.GetService<IGlobalOperationNotificationService>();
-                    _performanceReporter = new PerformanceReporter(Logger, telemetrySession, diagnosticAnalyzerPerformanceTracker, globalOperationNotificationService, s_reportInterval, _shutdownCancellationSource.Token);
-                }
-#endif
-            }, cancellationToken);
-        }
-
         async ValueTask<ImmutableArray<(Checksum, object)>> IAssetSource.GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             return await RunServiceAsync(() =>
@@ -150,57 +97,6 @@ namespace Microsoft.CodeAnalysis.Remote
                         cancellationToken);
                 }
             }, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Remote API.
-        /// </summary>
-        public void SetLoggingFunctionIds(List<string> loggerTypes, List<string> functionIds, CancellationToken cancellationToken)
-        {
-            RunService(() =>
-            {
-                var functionIdType = typeof(FunctionId);
-
-                var set = new HashSet<FunctionId>();
-                foreach (var functionIdString in functionIds)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    try
-                    {
-                        set.Add((FunctionId)Enum.Parse(functionIdType, functionIdString.Trim(), ignoreCase: true));
-                    }
-                    catch
-                    {
-                        // unknown functionId, move on
-                        continue;
-                    }
-                }
-
-                Func<FunctionId, bool> logChecker = id => set.Contains(id);
-                lock (s_logChecker)
-                {
-                    // holding onto it for debugging purpose
-                    s_logChecker = logChecker;
-                }
-
-                // we only support 2 types of loggers
-                SetRoslynLogger(loggerTypes, () => new EtwLogger(logChecker));
-                SetRoslynLogger(loggerTypes, () => new TraceLogger(logChecker));
-
-            }, cancellationToken);
-        }
-
-        private static void SetRoslynLogger<T>(List<string> loggerTypes, Func<T> creator) where T : ILogger
-        {
-            if (loggerTypes.Contains(typeof(T).Name))
-            {
-                RoslynLogger.SetLogger(AggregateLogger.AddOrReplace(creator(), RoslynLogger.GetLogger(), l => l is T));
-            }
-            else
-            {
-                RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
-            }
         }
 
         private static void EnsureCulture(int uiCultureLCID, int cultureLCID)
