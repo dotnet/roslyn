@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
         {
             Contract.ThrowIfFalse(_threadingContext.JoinableTaskContext.IsOnMainThread);
 
+            // We won't listen to caret changes in the code definition window itself, since navigations there would cause it to
+            // keep refreshing itself.
             if (!_subscribedViews.Contains(textView) && !textView.Roles.Contains(PredefinedTextViewRoles.CodeDefinitionView))
             {
                 _subscribedViews.Add(textView);
