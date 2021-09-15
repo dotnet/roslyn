@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (isGlobal != global)
                     continue;
 
-                result |= GetQuickAttributes(directive.Name.GetUnqualifiedName().Identifier.ValueText);
+                result |= GetQuickAttributes(directive.Name.GetUnqualifiedName().Identifier.ValueText, inAttribute: false);
             }
 
             return result;
@@ -692,39 +692,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var attributeList in attributeLists)
             {
                 foreach (var attribute in attributeList.Attributes)
-                    result |= GetQuickAttributes(attribute.Name.GetUnqualifiedName().Identifier.ValueText);
+                    result |= GetQuickAttributes(attribute.Name.GetUnqualifiedName().Identifier.ValueText, inAttribute: true);
             }
 
             return result;
 
         }
 
-        private static QuickAttributes GetQuickAttributes(string name)
+        private static QuickAttributes GetQuickAttributes(string name, bool inAttribute)
         {
             var result = QuickAttributes.None;
-            if (Matches(name, AttributeDescription.TypeIdentifierAttribute))
+            if (Matches(AttributeDescription.TypeIdentifierAttribute))
                 result |= QuickAttributes.TypeIdentifier;
 
-            if (Matches(name, AttributeDescription.TypeForwardedToAttribute))
+            if (Matches(AttributeDescription.TypeForwardedToAttribute))
                 result |= QuickAttributes.TypeForwardedTo;
 
-            if (Matches(name, AttributeDescription.AssemblyKeyNameAttribute))
+            if (Matches(AttributeDescription.AssemblyKeyNameAttribute))
                 result |= QuickAttributes.AssemblyKeyName;
 
-            if (Matches(name, AttributeDescription.AssemblyKeyFileAttribute))
+            if (Matches(AttributeDescription.AssemblyKeyFileAttribute))
                 result |= QuickAttributes.AssemblyKeyFile;
 
-            if (Matches(name, AttributeDescription.AssemblySignatureKeyAttribute))
+            if (Matches(AttributeDescription.AssemblySignatureKeyAttribute))
                 result |= QuickAttributes.AssemblySignatureKey;
 
             return result;
 
-            static bool Matches(string name, AttributeDescription attributeDescription)
+            bool Matches(AttributeDescription attributeDescription)
             {
+                Debug.Assert(attributeDescription.Name.EndsWith(nameof(System.Attribute)));
+
                 if (name == attributeDescription.Name)
                     return true;
 
-                if ((name.Length + nameof(System.Attribute).Length) == attributeDescription.Name.Length &&
+                // In an attribute context the name might be referenced as the full name (like 'TypeForwardedToAttribute')
+                // or the short name (like 'TypeForwardedTo').
+                if (inAttribute &&
+                    (name.Length + nameof(System.Attribute).Length) == attributeDescription.Name.Length &&
                     attributeDescription.Name.StartsWith(name))
                 {
                     return true;
