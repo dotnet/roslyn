@@ -204,12 +204,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             // 3. There are no locations from source, so we'll try to generate a metadata as source file and use that
             var symbolNavigationService = solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
             var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: false);
-            var result = await symbolNavigationService.WouldNavigateToSymbolAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+            var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
 
             var results = new ArrayBuilder<CodeDefinitionWindowLocation>();
             if (result != null)
             {
-                results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), result.Value.filePath, new LinePosition(result.Value.lineNumber, result.Value.charOffset)));
+                results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), result.Value.filePath, result.Value.linePosition));
             }
             else
             {

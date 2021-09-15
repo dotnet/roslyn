@@ -187,17 +187,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return returnCode == VSConstants.S_OK && navigationHandled == 1;
         }
 
-        public async Task<(string filePath, int lineNumber, int charOffset)?> WouldNavigateToSymbolAsync(
+        public async Task<(string filePath, LinePosition linePosition)?> GetExternalNavigationSymbolLocationAsync(
             DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName1);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey2, out var rqName2);
 
-            return await WouldNotifyToSpecificSymbolAsync(definitionItem, rqName1, cancellationToken).ConfigureAwait(false) ??
-                   await WouldNotifyToSpecificSymbolAsync(definitionItem, rqName2, cancellationToken).ConfigureAwait(false);
+            return await GetExternalNavigationLocationForSpecificSymbolAsync(definitionItem, rqName1, cancellationToken).ConfigureAwait(false) ??
+                   await GetExternalNavigationLocationForSpecificSymbolAsync(definitionItem, rqName2, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<(string filePath, int lineNumber, int charOffset)?> WouldNotifyToSpecificSymbolAsync(
+        public async Task<(string filePath, LinePosition linePosition)?> GetExternalNavigationLocationForSpecificSymbolAsync(
             DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken)
         {
             if (rqName == null)
@@ -228,7 +228,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var lineNumber = navigateToTextSpan[0].iStartLine;
             var charOffset = navigateToTextSpan[0].iStartIndex;
 
-            return (filePath, lineNumber, charOffset);
+            return (filePath, new LinePosition(lineNumber, charOffset));
         }
 
         private async Task<(IVsHierarchy hierarchy, uint itemId, IVsSymbolicNavigationNotify navigationNotify)?> TryGetNavigationAPIRequiredArgumentsAsync(
