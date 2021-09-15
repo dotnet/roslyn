@@ -8739,7 +8739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var accessType = access.Type;
 
             // access cannot have no type
-            if ((object)accessType == null)
+            if (accessType is null)
             {
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
@@ -8904,22 +8904,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverType = receiver.Type;
 
             // Can't dot into the null literal or anything that has no type
-            if ((object)receiverType == null)
+            if (receiverType is null)
             {
                 Error(diagnostics, ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), operatorToken.Text, receiver.Display);
                 return BadExpression(receiverSyntax, receiver);
             }
 
-            // No member accesses on void
-            if (receiverType.IsVoidType())
+            // No member accesses on void, void pointers of any depth or function pointers
+            if (receiverType.IsVoidType() || receiverType.IsMultipleVoidPointer() || receiverType.IsFunctionPointer())
             {
                 Error(diagnostics, ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), operatorToken.Text, receiverType);
                 return BadExpression(receiverSyntax, receiver);
             }
 
-            if (receiverType.IsValueType && !receiverType.IsNullableType())
+            if (receiverType.IsValueType && !receiverType.IsNullableType() && !receiverType.IsPointerType())
             {
-                // must be nullable or reference type
+                // Must be either of the following:
+                // - nullable value
+                // - pointer (not function pointer)
+                // - reference
                 Error(diagnostics, ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), operatorToken.Text, receiverType);
                 return BadExpression(receiverSyntax, receiver);
             }

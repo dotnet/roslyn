@@ -1334,6 +1334,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type is PointerTypeSymbol p && p.PointedAtType.IsVoidType();
         }
 
+        internal static bool IsMultipleVoidPointer(this TypeSymbol type)
+        {
+            var current = type;
+            while (current is PointerTypeSymbol p)
+            {
+                var next = p.PointedAtType;
+                if (next.IsVoidType())
+                {
+                    return true;
+                }
+
+                current = next;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// These special types are structs that contain fields of the same type
         /// (e.g. <see cref="System.Int32"/> contains an instance field of type <see cref="System.Int32"/>).
