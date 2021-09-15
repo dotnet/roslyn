@@ -759,11 +759,21 @@ next:;
 
         #region Attributes
 
+        /// <summary>
+        /// Gets all the attribute lists for this named type.  This will go back to syntax if the type had any
+        /// attributes on it.
+        /// </summary>
         internal ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
             return declaration.GetAttributeDeclarations(quickAttributes: null);
         }
 
+        /// <summary>
+        /// Gets all the attribute lists for this named type, as long as there is reasonable belief that 
+        /// the type has one of the attributes specified by <paramref name="quickAttributes"/> on it. 
+        /// This can avoid going back to syntax if we know the type definitely doesn't have an attribute
+        /// on it that could be the one specified by <paramref name="quickAttributes"/>.
+        /// </summary>
         internal ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations(QuickAttributes quickAttributes)
         {
             // if the compilation has any global aliases to these quick attributes, then we have to return
