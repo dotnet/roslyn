@@ -321,18 +321,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             SyntaxKind otherModifier,
             CancellationToken cancellationToken)
         {
-            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            if (syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken))
-                return true;
-
             var modifierTokens = syntaxTree.GetPrecedingModifiers(position, cancellationToken, out position);
-            if (modifierTokens.Count == 1 && modifierTokens.Contains(otherModifier))
-            {
-                leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-                return syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken);
-            }
+            if (modifierTokens.Count >= 2)
+                return false;
 
-            return false;
+            if (modifierTokens.Count == 1)
+                return modifierTokens.Contains(otherModifier) && IsLambdaDeclarationContext(syntaxTree, position, SyntaxKind.None, cancellationToken);
+
+            var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            return syntaxTree.IsExpressionContext(position, leftToken, attributes: false, cancellationToken);
         }
 
         public static bool IsLocalFunctionDeclarationContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)

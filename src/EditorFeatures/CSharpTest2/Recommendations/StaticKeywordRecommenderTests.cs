@@ -521,21 +521,21 @@ M(param: $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCallAfterRef()
         {
-            await VerifyKeywordAsync(AddInsideMethod(@"
+            await VerifyAbsenceAsync(AddInsideMethod(@"
 M(ref $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCallAfterIn()
         {
-            await VerifyKeywordAsync(AddInsideMethod(@"
+            await VerifyAbsenceAsync(AddInsideMethod(@"
 M(in $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCallAfterOut()
         {
-            await VerifyKeywordAsync(AddInsideMethod(@"
+            await VerifyAbsenceAsync(AddInsideMethod(@"
 M(in $$"));
         }
 
