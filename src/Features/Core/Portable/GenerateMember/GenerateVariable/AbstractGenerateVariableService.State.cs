@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
                 // Workaround: The compiler returns IsImplicitlyDeclared = false for <Main>$.
                 return ContainingMethod is { IsImplicitlyDeclared: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointMethodName }
-                    && !IsInMemberContext && !IsConstant && !ContainingMethod.IsAnonymousFunction();
+                    && !IsInMemberContext && !IsConstant;
             }
 
             private bool TryInitializeExplicitInterface(
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                     simpleName != SimpleNameOrMemberAccessExpressionOpt ||
                     syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(SimpleNameOrMemberAccessExpressionOpt);
 
-                ContainingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(IdentifierToken.SpanStart, cancellationToken);
+                ContainingMethod = FindContainingMethodSymbol(IdentifierToken.SpanStart, semanticModel, cancellationToken);
 
                 CheckSurroundingContext(semanticDocument, SymbolKind.Field, cancellationToken);
                 CheckSurroundingContext(semanticDocument, SymbolKind.Property, cancellationToken);
@@ -357,6 +357,22 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                             }
                         }
                     }
+                }
+
+                return null;
+            }
+
+            private static IMethodSymbol FindContainingMethodSymbol(int position, SemanticModel semanticModel, CancellationToken cancellationToken)
+            {
+                var symbol = semanticModel.GetEnclosingSymbol(position, cancellationToken);
+                while (symbol != null)
+                {
+                    if (symbol is IMethodSymbol method && !method.IsAnonymousFunction())
+                    {
+                        return method;
+                    }
+
+                    symbol = symbol.ContainingSymbol;
                 }
 
                 return null;

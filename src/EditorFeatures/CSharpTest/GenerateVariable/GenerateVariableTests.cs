@@ -9524,9 +9524,9 @@ namespace ConsoleApp5
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         [WorkItem(47586, "https://github.com/dotnet/roslyn/issues/47586")]
-        public async Task TestMissingOfferParameterInLambda()
+        public async Task TestGenerateParameterFromLambda()
         {
-            await TestMissingAsync(
+            await TestInRegularAndScriptAsync(
 @"using System;
 using System.Diagnostics;
 
@@ -9536,7 +9536,51 @@ class Class
     {
         Action<int> call = _ => Debug.Assert([|expected|]);
     }
-}");
+}",
+@"using System;
+using System.Diagnostics;
+
+class Class
+{
+    private static void AssertSomething(bool expected)
+    {
+        Action<int> call = _ => Debug.Assert(expected);
+    }
+}", index: Parameter);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [WorkItem(47586, "https://github.com/dotnet/roslyn/issues/47586")]
+        public async Task TestGenerateParameterFromLambdaInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Diagnostics;
+
+class Class
+{
+    private static void AssertSomething()
+    {
+        void M()
+        {
+            Action<int> call = _ => Debug.Assert([|expected|]);
+        }
+    }
+}",
+@"using System;
+using System.Diagnostics;
+
+class Class
+{
+    private static void AssertSomething()
+    {
+        void M(bool expected)
+        {
+            Action<int> call = _ => Debug.Assert(expected);
+        }
+    }
+}", index: Parameter);
+        }
+
     }
 }
