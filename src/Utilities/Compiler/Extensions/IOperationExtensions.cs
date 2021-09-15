@@ -988,18 +988,16 @@ namespace Analyzer.Utilities.Extensions
             {
                 return ValueUsageInfo.Write;
             }
-            else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation)
+            else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation &&
+                variableInitializerOperation.Parent is IVariableDeclaratorOperation variableDeclaratorOperation)
             {
-                if (variableInitializerOperation.Parent is IVariableDeclaratorOperation variableDeclaratorOperation)
+                switch (variableDeclaratorOperation.Symbol.RefKind)
                 {
-                    switch (variableDeclaratorOperation.Symbol.RefKind)
-                    {
-                        case RefKind.Ref:
-                            return ValueUsageInfo.ReadableWritableReference;
+                    case RefKind.Ref:
+                        return ValueUsageInfo.ReadableWritableReference;
 
-                        case RefKind.RefReadOnly:
-                            return ValueUsageInfo.ReadableReference;
-                    }
+                    case RefKind.RefReadOnly:
+                        return ValueUsageInfo.ReadableReference;
                 }
             }
 
