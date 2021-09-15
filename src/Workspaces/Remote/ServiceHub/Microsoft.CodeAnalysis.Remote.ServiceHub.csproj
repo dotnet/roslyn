@@ -40,14 +40,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\UnusedReferences\ProjectAssets\ProjectAssetsFileReader.cs" Link="Services\UnusedReferences\ProjectAssets\ProjectAssetsFileReader.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonExtensions.cs" Link="Services\WorkspaceTelemetry\WatsonExtensions.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonReporter.cs" Link="Services\WorkspaceTelemetry\WatsonReporter.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonExtensions.cs" Link="Services\ProcessTelemetry\WatsonExtensions.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonReporter.cs" Link="Services\ProcessTelemetry\WatsonReporter.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\AbstractCloudCachePersistentStorageService.cs" Link="Host\Storage\AbstractCloudCachePersistentStorageService.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\CloudCachePersistentStorage.cs" Link="Host\Storage\CloudCachePersistentStorage.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\ProjectContainerKeyCache.cs" Link="Host\Storage\ProjectContainerKeyCache.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryCache.cs" Link="Services\WorkspaceTelemetry\VSTelemetryCache.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs" Link="Services\WorkspaceTelemetry\VSTelemetryLogger.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AbstractWorkspaceTelemetryService.cs" Link="Services\WorkspaceTelemetry\AbstractWorkspaceTelemetryService.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryCache.cs" Link="Services\ProcessTelemetry\VSTelemetryCache.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VSTelemetryLogger.cs" Link="Services\ProcessTelemetry\VSTelemetryLogger.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AbstractWorkspaceTelemetryService.cs" Link="Services\ProcessTelemetry\AbstractWorkspaceTelemetryService.cs" />
   </ItemGroup>
   <ItemGroup>
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" Key="$(UnitTestingKey)" />
