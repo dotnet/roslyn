@@ -846,7 +846,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If ' Else if "As" is not present, the error falls out as a "Syntax error" IN the caller
 
             Dim names = _pool.ToListAndFree(
-                            _pool.AllocateSeparated(Of ModifiedIdentifierSyntax).Add(Declarator))
+                            _pool.AllocateSeparated(Of ModifiedIdentifierSyntax)().Add(Declarator))
 
             Return SyntaxFactory.VariableDeclarator(names, optionalAsClause, Nothing)
         End Function
