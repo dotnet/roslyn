@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -21,14 +21,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public readonly Checksum? Checksum;
 
         private static Task<SyntaxTreeIndex?> LoadAsync(Document document, Checksum checksum, CancellationToken cancellationToken)
-            => LoadAsync(document.Project.Solution.Workspace, DocumentKey.ToDocumentKey(document), checksum, GetStringTable(document.Project), cancellationToken);
+        {
+            var solution = document.Project.Solution;
+            var database = solution.Options.GetPersistentStorageDatabase();
+            return LoadAsync(solution.Workspace.Services, DocumentKey.ToDocumentKey(document), checksum, database, GetStringTable(document.Project), cancellationToken);
+        }
 
         public static async Task<SyntaxTreeIndex?> LoadAsync(
-            Workspace workspace, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
+            HostWorkspaceServices services, DocumentKey documentKey, Checksum? checksum, StorageDatabase database, StringTable stringTable, CancellationToken cancellationToken)
         {
             try
             {
-                var persistentStorageService = (IChecksummedPersistentStorageService)workspace.Services.GetRequiredService<IPersistentStorageService>();
+                var persistentStorageService = services.GetPersistentStorageService(database);
 
                 var storage = await persistentStorageService.GetStorageAsync(documentKey.Project.Solution, checkBranchId: false, cancellationToken).ConfigureAwait(false);
                 await using var _ = storage.ConfigureAwait(false);
@@ -70,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetRequiredService<IPersistentStorageService>();
+            var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService(solution.Options);
 
             try
             {
@@ -98,7 +102,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var persistentStorageService = (IChecksummedPersistentStorageService)solution.Workspace.Services.GetRequiredService<IPersistentStorageService>();
+            var persistentStorageService = solution.Workspace.Services.GetPersistentStorageService(solution.Options);
 
             // check whether we already have info for this document
             try
