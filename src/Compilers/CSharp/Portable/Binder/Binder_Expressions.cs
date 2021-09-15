@@ -8717,7 +8717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundConditionalAccess BindConditionalAccessExpression(ConditionalAccessExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
-            BoundExpression receiver = BindConditionalAccessReceiver(node, diagnostics);
+            var receiver = BindConditionalAccessReceiver(node, diagnostics);
 
             var conditionalAccessBinder = new BinderWithConditionalReceiver(this, receiver);
             var access = conditionalAccessBinder.BindValue(node.WhenNotNull, diagnostics, BindValueKind.RValue);
@@ -8728,7 +8728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var receiverType = receiver.Type;
-            Debug.Assert((object)receiverType != null);
+            Debug.Assert(receiverType is not null);
 
             // access cannot be a method group
             if (access.Kind == BoundKind.MethodGroup)
@@ -8744,12 +8744,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
             }
 
-            // The resulting type must be either a reference type T or Nullable<T>
+            // The resulting type must be a reference type T, Nullable<T> or a pointer or function pointer
             // Therefore we must reject cases resulting in types that are not reference types and cannot be lifted into nullable.
             // - access cannot have unconstrained generic type
-            // - access cannot be a pointer
             // - access cannot be a restricted type
-            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerOrFunctionPointer() || accessType.IsRestrictedType())
+            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsRestrictedType())
             {
                 // Result type of the access is void when result value cannot be made nullable.
                 // For improved diagnostics we detect the cases where the value will be used and produce a
@@ -8797,7 +8796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if access has value type, the type of the conditional access is nullable of that
             // https://github.com/dotnet/roslyn/issues/35075: The test `accessType.IsValueType && !accessType.IsNullableType()`
             // should probably be `accessType.IsNonNullableValueType()`
-            if (accessType.IsValueType && !accessType.IsNullableType() && !accessType.IsVoidType())
+            if (accessType.IsValueType && !accessType.IsNullableType() && !accessType.IsVoidType() && !accessType.IsPointerOrFunctionPointer())
             {
                 accessType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(accessType);
             }
