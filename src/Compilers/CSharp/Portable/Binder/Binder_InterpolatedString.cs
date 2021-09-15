@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -277,70 +278,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBinaryOperator UpdateBinaryOperatorWithInterpolatedContents(BoundBinaryOperator originalOperator, ImmutableArray<ImmutableArray<BoundExpression>> appendCalls, InterpolatedStringHandlerData data, SyntaxNode rootSyntax, BindingDiagnosticBag diagnostics)
         {
-            var originalStack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
-            var rewrittenLefts = ArrayBuilder<(BoundExpression original, BoundExpression rewritten)>.GetInstance();
-            (BoundBinaryOperator? original, BoundBinaryOperator? rewritten) result = default;
-
-            pushLeftNodes(originalOperator, originalStack);
             var @string = GetSpecialType(SpecialType.System_String, diagnostics, rootSyntax);
 
-            int i = 0;
-            while (originalStack.TryPeek(out var currentBinary))
-            {
-                Debug.Assert(currentBinary.Left is BoundUnconvertedInterpolatedString || rewrittenLefts.Count != 0 || currentBinary.Left == result.original);
+            Func<(ImmutableArray<ImmutableArray<BoundExpression>>, TypeSymbol), BoundUnconvertedInterpolatedString, int, BoundExpression> interpolationFactory =
+                createInterpolation;
+            Func<(ImmutableArray<ImmutableArray<BoundExpression>>, TypeSymbol), BoundBinaryOperator, BoundExpression, BoundExpression, BoundExpression> binaryOperatorFactory =
+                createBinaryOperator;
 
-                if (currentBinary.Left is BoundUnconvertedInterpolatedString originalLeft)
-                {
-                    if (rewrittenLefts.TryPeek(out var rewrittenLeftTuple) && rewrittenLeftTuple.original == originalLeft)
-                    {
-                        // Leave it alone, we've already rewritten on the first pass.
-                        Debug.Assert(currentBinary.Right.Kind == BoundKind.BinaryOperator);
-                    }
-                    else
-                    {
-                        Debug.Assert(appendCalls.Length > i);
-                        rewrittenLefts.Push((originalLeft, createInterpolation(originalLeft, appendCalls[i++])));
-                    }
-                }
-                else if (currentBinary.Left == result.original)
-                {
-                    Debug.Assert(result.rewritten != null);
-                    rewrittenLefts.Push((currentBinary.Left, result.rewritten));
-                }
+            var rewritten = (BoundBinaryOperator)originalOperator.RewriteInterpolatedStringAddition((appendCalls, @string), interpolationFactory, binaryOperatorFactory);
 
-                switch (currentBinary.Right)
-                {
-                    case BoundUnconvertedInterpolatedString originalRightString:
-                        Debug.Assert(appendCalls.Length > i);
-                        var rewrittenLeft = rewrittenLefts.Pop().rewritten;
-                        BoundExpression rewrittenRight = createInterpolation(originalRightString, appendCalls[i++]);
-                        result = (currentBinary, createBinaryOperator(currentBinary, rewrittenLeft, rewrittenRight));
-                        originalStack.Pop();
-                        break;
+            return rewritten.Update(BoundBinaryOperator.UncommonData.InterpolatedStringHandlerAddition(data));
 
-                    case BoundBinaryOperator originalRightOperator when result.original == originalRightOperator:
-                        // If result.original is originalRightOperator, then this is the second time we're visiting
-                        // this node and can rewrite it. Otherwise, we need to push all the left nodes, visit them,
-                        // then come back again.
-                        Debug.Assert(result.rewritten != null);
-                        rewrittenLeft = rewrittenLefts.Pop().rewritten;
-                        rewrittenRight = result.rewritten;
-                        result = (currentBinary, createBinaryOperator(currentBinary, rewrittenLeft, rewrittenRight));
-                        originalStack.Pop();
-                        break;
-
-                    case BoundBinaryOperator originalRightOperator:
-                        pushLeftNodes(originalRightOperator, originalStack);
-                        break;
-                }
-            }
-
-            Debug.Assert(result.rewritten != null);
-            Debug.Assert(i == appendCalls.Length);
-
-            return result.rewritten.Update(BoundBinaryOperator.UncommonData.InterpolatedStringHandlerAddition(data));
-
-            BoundBinaryOperator createBinaryOperator(BoundBinaryOperator original, BoundExpression left, BoundExpression right)
+            static BoundBinaryOperator createBinaryOperator((ImmutableArray<ImmutableArray<BoundExpression>> _, TypeSymbol @string) arg, BoundBinaryOperator original, BoundExpression left, BoundExpression right)
                 => new BoundBinaryOperator(
                     original.Syntax,
                     BinaryOperatorKind.StringConcatenation,
@@ -351,30 +300,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constrainedToTypeOpt: null,
                     LookupResultKind.Viable,
                     originalUserDefinedOperatorsOpt: default,
-                    @string,
+                    arg.@string,
                     original.HasErrors);
 
-            static BoundInterpolatedString createInterpolation(BoundExpression expression, ImmutableArray<BoundExpression> parts)
+            static BoundInterpolatedString createInterpolation((ImmutableArray<ImmutableArray<BoundExpression>> AppendCalls, TypeSymbol _) arg, BoundExpression expression, int i)
             {
+                Debug.Assert(arg.AppendCalls.Length > i);
                 Debug.Assert(expression is BoundUnconvertedInterpolatedString);
                 return new BoundInterpolatedString(
                     expression.Syntax,
                     interpolationData: null,
-                    parts,
+                    arg.AppendCalls[i],
                     expression.ConstantValue,
                     expression.Type,
                     expression.HasErrors);
-            }
-
-            static void pushLeftNodes(BoundBinaryOperator binary, ArrayBuilder<BoundBinaryOperator> stack)
-            {
-                BoundBinaryOperator? current = binary;
-                while (current != null)
-                {
-                    Debug.Assert(current.IsUnconvertedInterpolatedStringAddition);
-                    stack.Push(current);
-                    current = current.Left as BoundBinaryOperator;
-                }
             }
         }
 
