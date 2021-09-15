@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis
 {
     internal interface ISyntaxInputNode
     {
-        ISyntaxInputBuilder GetBuilder(DriverStateTable table);
+        ISyntaxInputBuilder GetBuilder(DriverStateTable table, bool trackIncrementalSteps);
     }
 
     internal interface ISyntaxInputBuilder
     {
         ISyntaxInputNode SyntaxInputNode { get; }
 
-        void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken);
+        void VisitTree(Lazy<SyntaxNode> root, EntryState state, int syntaxTreeIndex, IncrementalGeneratorRunStep? inputStepInfo, GeneratorRunStateTable.Builder runStateTableBuilder, SemanticModel? model, CancellationToken cancellationToken);
 
         void SaveStateAndFree(ImmutableSegmentedDictionary<object, IStateTable>.Builder tables);
     }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using TOutput = System.ValueTuple<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.GeneratedSourceText>, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>>;
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis
 
         private readonly IncrementalGeneratorOutputKind _outputKind;
 
+        private readonly string _name;
+
         private readonly string _sourceExtension;
 
         public SourceOutputNode(IIncrementalGeneratorNode<TInput> source, Action<SourceProductionContext, TInput> action, IncrementalGeneratorOutputKind outputKind, string sourceExtension)
@@ -31,6 +34,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(outputKind == IncrementalGeneratorOutputKind.Source || outputKind == IncrementalGeneratorOutputKind.Implementation);
             _outputKind = outputKind;
             _sourceExtension = sourceExtension;
+            _name = outputKind == IncrementalGeneratorOutputKind.Source ? WellKnownGeneratorOutputs.SourceOutput : WellKnownGeneratorOutputs.ImplementationSourceOutput;
         }
 
         public IncrementalGeneratorOutputKind Kind => _outputKind;
@@ -40,17 +44,28 @@ namespace Microsoft.CodeAnalysis
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
             if (sourceTable.IsCached)
             {
+                if (graphState.DriverState.TrackIncrementalSteps)
+                {
+                    return previousTable.RecordStepsForCachedTable(sourceTable, _name);
+                }
                 return previousTable;
             }
 
-            var nodeTable = previousTable.ToBuilder();
+            var nodeTable = previousTable.ToBuilder(graphState.DriverState.TrackIncrementalSteps);
             foreach (var entry in sourceTable)
             {
-                if (entry.state == EntryState.Removed)
+                if (entry.State == EntryState.Removed)
                 {
-                    nodeTable.RemoveEntries();
+                    if (nodeTable.TryRemoveEntries() && nodeTable.TrackIncrementalSteps)
+                    {
+                        nodeTable.RecordStepInfoForLastEntry(_name, TimeSpan.Zero, ImmutableArray.Create((entry.Step!, entry.OutputIndex)), entry.State);
+                    }
                 }
-                else if (entry.state != EntryState.Cached || !nodeTable.TryUseCachedEntries())
+                else if (entry.State == EntryState.Cached && nodeTable.TryUseCachedEntries() && nodeTable.TrackIncrementalSteps)
+                {
+                    nodeTable.RecordStepInfoForLastEntry(_name, TimeSpan.Zero, ImmutableArray.Create((entry.Step!, entry.OutputIndex)), entry.State);
+                }
+                else
                 {
                     // we don't currently handle modified any differently than added at the output
                     // we just run the action and mark the new source as added. In theory we could compare
@@ -63,15 +78,23 @@ namespace Microsoft.CodeAnalysis
                     SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics, cancellationToken);
                     try
                     {
-                        _action(context, entry.item);
-                        nodeTable.AddEntry((sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly()), EntryState.Added);
+
+                        // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
+                        _ = SharedStopwatch.StartNew();
+                        var stopwatch = SharedStopwatch.StartNew();
+                        _action(context, entry.Item);
+                        var sourcesAndDiagnostics = (sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly());
+                        nodeTable.AddEntry(sourcesAndDiagnostics, EntryState.Added);
+                        if (nodeTable.TrackIncrementalSteps)
+                        {
+                            nodeTable.RecordStepInfoForLastEntry(_name, stopwatch.Elapsed, ImmutableArray.Create((entry.Step!, entry.OutputIndex)), EntryState.Added);
+                        }
                     }
                     finally
                     {
                         sourcesBuilder.Free();
                         diagnostics.Free();
                     }
-
                 }
             }
 
@@ -80,16 +103,18 @@ namespace Microsoft.CodeAnalysis
 
         IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable;
 
+        public IIncrementalGeneratorNode<(IEnumerable<GeneratedSourceText>, IEnumerable<Diagnostic>)> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable;
+
         void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable;
 
         public void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken)
         {
             // get our own state table
-            Debug.Assert(context.TableBuilder is object);
+            Debug.Assert(context.TableBuilder is not null);
             var table = context.TableBuilder.GetLatestStateTableForNode(this);
 
             // add each non-removed entry to the context
-            foreach (var ((sources, diagnostics), state) in table)
+            foreach (var ((sources, diagnostics), state, _, _) in table)
             {
                 if (state != EntryState.Removed)
                 {
@@ -106,6 +131,11 @@ namespace Microsoft.CodeAnalysis
                     }
                     context.Diagnostics.AddRange(diagnostics);
                 }
+            }
+
+            if (context.GeneratorRunStateBuilder.RecordingExecutedSteps)
+            {
+                context.GeneratorRunStateBuilder.RecordStepsFromOutputNodeUpdate(table);
             }
         }
     }

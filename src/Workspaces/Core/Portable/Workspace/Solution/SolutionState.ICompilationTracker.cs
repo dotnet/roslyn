@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis
         private interface ICompilationTracker
         {
             ProjectState ProjectState { get; }
+            GeneratorDriver? GeneratorDriver { get; }
 
             /// <summary>
             /// Returns <see langword="true"/> if this <see cref="Project"/>/<see cref="Compilation"/> could produce the

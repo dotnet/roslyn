@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis
                 _replacedGeneratedDocumentState = replacementDocumentState;
             }
 
+            public GeneratorDriver? GeneratorDriver => _underlyingTracker.GeneratorDriver;
+
             public ProjectState ProjectState => _underlyingTracker.ProjectState;
 
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)

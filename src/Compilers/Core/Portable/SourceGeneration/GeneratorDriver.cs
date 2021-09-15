@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis
     /// </remarks>
     public abstract class GeneratorDriver
     {
+        private static readonly IIncrementalGeneratorNode<SyntaxTree> SyntaxTreesInputNode = SharedInputNodes.SyntaxTrees.WithTrackingName(WellKnownGeneratorInputs.SyntaxTrees);
+
         internal readonly GeneratorDriverState _state;
 
         internal GeneratorDriver(GeneratorDriverState state)
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
         {
             (var filteredGenerators, var incrementalGenerators) = GetIncrementalGenerators(generators, SourceExtension);
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[filteredGenerators.Length]), DriverStateTable.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[filteredGenerators.Length]), DriverStateTable.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero, driverOptions.TrackIncrementalGeneratorSteps);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -136,7 +138,9 @@ namespace Microsoft.CodeAnalysis
                                                           diagnostics: generatorState.Diagnostics,
                                                           exception: generatorState.Exception,
                                                           generatedSources: getGeneratorSources(generatorState),
-                                                          elapsedTime: generatorState.ElapsedTime));
+                                                          elapsedTime: generatorState.ElapsedTime,
+                                                          namedSteps: generatorState.ExecutedSteps,
+                                                          outputSteps: generatorState.OutputSteps));
             return new GeneratorDriverRunResult(results, _state.RunTime);
 
             static ImmutableArray<GeneratedSourceResult> getGeneratorSources(GeneratorState generatorState)
@@ -201,7 +205,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         try
                         {
-                            IncrementalExecutionContext context = UpdateOutputs(outputNodes, IncrementalGeneratorOutputKind.PostInit, cancellationToken);
+                            IncrementalExecutionContext context = UpdateOutputs(outputNodes, IncrementalGeneratorOutputKind.PostInit, new GeneratorRunStateTable.Builder(false), cancellationToken);
                             postInitSources = ParseAdditionalSources(sourceGenerator, context.ToImmutableAndFree().sources, cancellationToken);
                         }
                         catch (UserFunctionException e)
@@ -237,7 +241,7 @@ namespace Microsoft.CodeAnalysis
             }
             constantSourcesBuilder.Free();
 
-            var driverStateBuilder = new DriverStateTable.Builder(compilation, _state, syntaxInputNodes.ToImmutableAndFree(), cancellationToken);
+            var driverStateBuilder = new DriverStateTable.Builder(compilation, _state, syntaxInputNodes.ToImmutableAndFree(), SyntaxTreesInputNode, cancellationToken);
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
                 var generatorState = stateBuilder[i];
@@ -249,11 +253,14 @@ namespace Microsoft.CodeAnalysis
                 using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i]);
                 try
                 {
-                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation, cancellationToken, driverStateBuilder);
-                    (var sources, var generatorDiagnostics) = context.ToImmutableAndFree();
+                    // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
+                    // TODO: Re-enable this for testability
+                    bool trackIncrementalSteps = state.TrackIncrementalSteps && state.IncrementalGenerators[i] is not SourceGeneratorAdaptor;
+                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation, new GeneratorRunStateTable.Builder(trackIncrementalSteps), cancellationToken, driverStateBuilder);
+                    (var sources, var generatorDiagnostics, var generatorRunStateTable) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
-                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.InputNodes, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorTimer.Elapsed);
+                    stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatorState.InputNodes, generatorState.OutputNodes, ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorRunStateTable.ExecutedSteps, generatorRunStateTable.OutputSteps, generatorTimer.Elapsed);
                 }
                 catch (UserFunctionException ufe)
                 {
@@ -265,10 +272,10 @@ namespace Microsoft.CodeAnalysis
             return state;
         }
 
-        private IncrementalExecutionContext UpdateOutputs(ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, IncrementalGeneratorOutputKind outputKind, CancellationToken cancellationToken, DriverStateTable.Builder? driverStateBuilder = null)
+        private IncrementalExecutionContext UpdateOutputs(ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, IncrementalGeneratorOutputKind outputKind, GeneratorRunStateTable.Builder generatorRunStateBuilder, CancellationToken cancellationToken, DriverStateTable.Builder? driverStateBuilder = null)
         {
             Debug.Assert(outputKind != IncrementalGeneratorOutputKind.None);
-            IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, new AdditionalSourcesCollection(SourceExtension));
+            IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, generatorRunStateBuilder, new AdditionalSourcesCollection(SourceExtension));
             foreach (var outputNode in outputNodes)
             {
                 // if we're looking for this output kind, and it has not been explicitly disabled

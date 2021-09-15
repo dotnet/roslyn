@@ -79,6 +79,15 @@ namespace Microsoft.CodeAnalysis
                 Volatile.Write(ref _stateDoNotAccessDirectly, state);
             }
 
+            public GeneratorDriver? GeneratorDriver
+            {
+                get
+                {
+                    var state = this.ReadState();
+                    return state.GeneratorInfo.Driver;
+                }
+            }
+
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
                 Debug.Assert(symbol.Kind == SymbolKind.Assembly ||

@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -33,7 +35,13 @@ namespace Microsoft.CodeAnalysis
             throw ExceptionUtilities.Unreachable;
         }
 
-        public ISyntaxInputBuilder GetBuilder(DriverStateTable table) => new Builder(this, table);
+        public IIncrementalGeneratorNode<ISyntaxContextReceiver?> WithTrackingName(string name)
+        {
+            // we don't expose this node to end users
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public ISyntaxInputBuilder GetBuilder(DriverStateTable table, bool trackIncrementalSteps) => new Builder(this, table, trackIncrementalSteps);
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutput(output);
 
@@ -41,13 +49,16 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly SyntaxReceiverInputNode _owner;
             private readonly NodeStateTable<ISyntaxContextReceiver?>.Builder _nodeStateTable;
+            private readonly ArrayBuilder<(IncrementalGeneratorRunStep Step, int OutputIndex)>? _inputSteps;
             private readonly ISyntaxContextReceiver? _receiver;
             private readonly GeneratorSyntaxWalker? _walker;
+            private TimeSpan lastElapsedTime;
 
-            public Builder(SyntaxReceiverInputNode owner, DriverStateTable driverStateTable)
+            public Builder(SyntaxReceiverInputNode owner, DriverStateTable driverStateTable, bool trackIncrementalSteps)
             {
                 _owner = owner;
-                _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_owner).ToBuilder();
+                _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_owner).ToBuilder(trackIncrementalSteps);
+                _inputSteps = trackIncrementalSteps ? ArrayBuilder<(IncrementalGeneratorRunStep, int)>.GetInstance() : null;
                 try
                 {
                     _receiver = owner._receiverCreator();
@@ -65,20 +76,36 @@ namespace Microsoft.CodeAnalysis
 
             public ISyntaxInputNode SyntaxInputNode { get => _owner; }
 
+            [MemberNotNullWhen(true, nameof(_inputSteps))]
+            private bool TrackIncrementalSteps => _nodeStateTable.TrackIncrementalSteps;
+
             public void SaveStateAndFree(ImmutableSegmentedDictionary<object, IStateTable>.Builder tables)
             {
                 _nodeStateTable.AddEntry(_receiver, EntryState.Modified);
+                if (TrackIncrementalSteps)
+                {
+                    _nodeStateTable.RecordStepInfoForLastEntry(null, lastElapsedTime, _inputSteps.ToImmutableAndFree(), EntryState.Modified);
+                }
                 tables[_owner] = _nodeStateTable.ToImmutableAndFree();
             }
 
-            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
+            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, int syntaxTreeIndex, IncrementalGeneratorRunStep? inputStep, GeneratorRunStateTable.Builder runStateTableBuilder, SemanticModel? model, CancellationToken cancellationToken)
             {
-                if (_walker is object && state != EntryState.Removed)
+                if (_walker is not null && state != EntryState.Removed)
                 {
-                    Debug.Assert(model is object);
+                    Debug.Assert(model is not null);
                     try
                     {
+                        // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
+                        _ = SharedStopwatch.StartNew();
+                        var stopwatch = SharedStopwatch.StartNew();
                         _walker.VisitWithModel(model, root.Value);
+                        if (TrackIncrementalSteps)
+                        {
+                            Debug.Assert(inputStep is not null);
+                            _inputSteps.Add((inputStep, syntaxTreeIndex));
+                            lastElapsedTime = stopwatch.Elapsed;
+                        }
                     }
                     catch (Exception e)
                     {

@@ -8,6 +8,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -19,12 +21,13 @@ namespace Microsoft.CodeAnalysis
         private readonly IEqualityComparer<T> _comparer;
         private readonly object _filterKey = new object();
 
-        internal SyntaxInputNode(Func<SyntaxNode, CancellationToken, bool> filterFunc, Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc, Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> registerOutputAndNode, IEqualityComparer<T>? comparer = null)
+        internal SyntaxInputNode(Func<SyntaxNode, CancellationToken, bool> filterFunc, Func<GeneratorSyntaxContext, CancellationToken, T> transformFunc, Action<ISyntaxInputNode, IIncrementalGeneratorOutputNode> registerOutputAndNode, IEqualityComparer<T>? comparer = null, string? name = null)
         {
             _transformFunc = transformFunc;
             _registerOutputAndNode = registerOutputAndNode;
             _filterFunc = filterFunc;
             _comparer = comparer ?? EqualityComparer<T>.Default;
+            Name = name;
         }
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken)
@@ -32,25 +35,28 @@ namespace Microsoft.CodeAnalysis
             return (NodeStateTable<T>)graphState.GetSyntaxInputTable(this);
         }
 
-        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, _registerOutputAndNode, comparer);
+        public IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, _registerOutputAndNode, comparer, Name);
 
-        public ISyntaxInputBuilder GetBuilder(DriverStateTable table) => new Builder(this, table);
+        public IIncrementalGeneratorNode<T> WithTrackingName(string name) => new SyntaxInputNode<T>(_filterFunc, _transformFunc, _registerOutputAndNode, _comparer, name);
+
+        public ISyntaxInputBuilder GetBuilder(DriverStateTable table, bool trackIncrementalSteps) => new Builder(this, table, trackIncrementalSteps);
 
         public void RegisterOutput(IIncrementalGeneratorOutputNode output) => _registerOutputAndNode(this, output);
+
+        private string? Name { get; }
 
         private sealed class Builder : ISyntaxInputBuilder
         {
             private readonly SyntaxInputNode<T> _owner;
-
             private readonly NodeStateTable<SyntaxNode>.Builder _filterTable;
 
             private readonly NodeStateTable<T>.Builder _transformTable;
 
-            public Builder(SyntaxInputNode<T> owner, DriverStateTable table)
+            public Builder(SyntaxInputNode<T> owner, DriverStateTable table, bool trackIncrementalSteps)
             {
                 _owner = owner;
-                _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder();
-                _transformTable = table.GetStateTableOrEmpty<T>(_owner).ToBuilder();
+                _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder(trackIncrementalSteps);
+                _transformTable = table.GetStateTableOrEmpty<T>(_owner).ToBuilder(trackIncrementalSteps);
             }
 
             public ISyntaxInputNode SyntaxInputNode { get => _owner; }
@@ -61,35 +67,73 @@ namespace Microsoft.CodeAnalysis
                 tables[_owner] = _transformTable.ToImmutableAndFree();
             }
 
-            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
+            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, int syntaxTreeIndex, IncrementalGeneratorRunStep? inputStep, GeneratorRunStateTable.Builder runStateTableBuilder, SemanticModel? model, CancellationToken cancellationToken)
             {
                 if (state == EntryState.Removed)
                 {
                     // mark both syntax *and* transform nodes removed
-                    _filterTable.RemoveEntries();
-                    _transformTable.RemoveEntries();
+                    if (_filterTable.TryRemoveEntries(out ImmutableArray<SyntaxNode> removedNodes) && _filterTable.TrackIncrementalSteps)
+                    {
+                        _filterTable.RecordStepInfoForLastEntry(null, TimeSpan.Zero, ImmutableArray.Create((inputStep!, syntaxTreeIndex)), EntryState.Removed);
+                    }
+
+                    for (int i = 0; i < removedNodes.Length; i++)
+                    {
+                        if (_transformTable.TryRemoveEntries() && _transformTable.TrackIncrementalSteps)
+                        {
+                            _transformTable.RecordStepInfoForLastEntry(_owner.Name, TimeSpan.Zero, ImmutableArray.Create((_filterTable.Steps[^1], i)), EntryState.Removed);
+                        }
+                    }
+
                 }
                 else
                 {
                     Debug.Assert(model is object);
 
                     // get the syntax nodes from cache, or a syntax walk using the filter
-                    ImmutableArray<SyntaxNode> nodes;
-                    if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(out nodes))
+                    if (state == EntryState.Cached && _filterTable.TryUseCachedEntries(out ImmutableArray<SyntaxNode> nodes))
                     {
+                        if (_filterTable.TrackIncrementalSteps)
+                        {
+                            _filterTable.RecordStepInfoForLastEntry(null, TimeSpan.Zero, ImmutableArray.Create((inputStep!, syntaxTreeIndex)), EntryState.Cached);
+                        }
+                    }
+                    else
+                    {
+
+                        // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
+                        _ = SharedStopwatch.StartNew();
+                        var stopwatch = SharedStopwatch.StartNew();
                         nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
-                        _filterTable.AddEntries(nodes, EntryState.Added);
+                        _filterTable.AddEntries(nodes, state);
+                        if (_filterTable.TrackIncrementalSteps)
+                        {
+                            _filterTable.RecordStepInfoForLastEntry(null, stopwatch.Elapsed, ImmutableArray.Create((inputStep!, syntaxTreeIndex)), state);
+                        }
                     }
 
                     // now, using the obtained syntax nodes, run the transform
-                    foreach (var node in nodes)
+                    for (int i = 0; i < nodes.Length; i++)
                     {
+                        // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
+                        _ = SharedStopwatch.StartNew();
+                        var stopwatch = SharedStopwatch.StartNew();
+                        var node = nodes[i];
                         var value = new GeneratorSyntaxContext(node, model);
                         var transformed = _owner._transformFunc(value, cancellationToken);
 
                         if (state == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer))
                         {
                             _transformTable.AddEntry(transformed, EntryState.Added);
+                        }
+
+                        if (_transformTable.TrackIncrementalSteps)
+                        {
+                            _transformTable.RecordStepInfoForLastEntry(
+                                _owner.Name,
+                                stopwatch.Elapsed,
+                                ImmutableArray.Create((_filterTable.Steps[^1], i)),
+                                state);
                         }
                     }
                 }
