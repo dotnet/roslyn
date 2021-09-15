@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
     <ExportLanguageService(GetType(IFileBannerFactsService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicFileBannerFactsService
         Inherits VisualBasicFileBannerFacts
+        Implements IFileBannerFactsService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
