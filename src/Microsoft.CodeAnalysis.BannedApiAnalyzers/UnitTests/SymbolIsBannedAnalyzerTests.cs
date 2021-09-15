@@ -752,13 +752,46 @@ namespace N
         }
     }
 }";
-
             var bannedText = @"M:N.C.Banned";
 
             await VerifyCSharpAnalyzerAsync(
                 source,
                 bannedText,
                 GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "C.Banned()", ""));
+        }
+
+        [Fact]
+        public async Task CSharp_NoDiagnosticClass_TypeOfArgument()
+        {
+            var source = @"
+class Banned {  }
+class C
+{
+    void M()
+    {
+        var type = {|#0:typeof(C)|};
+    }
+}
+";
+            var bannedText = @"T:Banned";
+            await VerifyCSharpAnalyzerAsync(source, bannedText);
+        }
+
+        [Fact]
+        public async Task CSharp_BannedClass_TypeOfArgument()
+        {
+            var source = @"
+class Banned {  }
+class C
+{
+    void M()
+    {
+        var type = {|#0:typeof(Banned)|};
+    }
+}
+";
+            var bannedText = @"T:Banned";
+            await VerifyCSharpAnalyzerAsync(source, bannedText, GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
         }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
