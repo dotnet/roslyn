@@ -9,11 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-#endif
-
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal abstract class AbstractFileBannerFacts : IFileBannerFacts

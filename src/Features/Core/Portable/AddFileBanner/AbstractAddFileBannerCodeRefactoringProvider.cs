@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 return;
             }
 
-            var bannerService = document.GetRequiredLanguageService<IFileBannerService>();
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
             var banner = bannerService.GetFileBanner(root);
 
             if (banner.Length > 0)
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
             Document document, SyntaxNode root, CancellationToken cancellationToken)
         {
-            var bannerService = document.GetRequiredLanguageService<IFileBannerService>();
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // If we have a tree already for this document, then just check to see

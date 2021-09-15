@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             if (fieldDocument == propertyDocument)
             {
                 var syntaxFacts = fieldDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-                var bannerService = fieldDocument.GetRequiredLanguageService<IFileBannerService>();
+                var bannerService = fieldDocument.GetRequiredLanguageService<IFileBannerFactsService>();
                 if (WillRemoveFirstFieldInTypeDirectlyAboveProperty(syntaxFacts, property, nodeToRemove) &&
                     bannerService.GetLeadingBlankLines(nodeToRemove).Length == 0)
                 {

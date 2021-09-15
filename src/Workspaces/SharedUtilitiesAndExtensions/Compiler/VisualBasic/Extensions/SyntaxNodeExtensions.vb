@@ -436,32 +436,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function GetLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
-            Return VisualBasicFileBanner.Instance.GetLeadingBlankLines(node)
+            Return VisualBasicFileBannerFacts.Instance.GetLeadingBlankLines(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Return VisualBasicFileBanner.Instance.GetNodeWithoutLeadingBlankLines(node)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBlankLines(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
-            Return VisualBasicFileBanner.Instance.GetNodeWithoutLeadingBlankLines(node, strippedTrivia)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBlankLines(node, strippedTrivia)
         End Function
 
         <Extension()>
         Public Function GetLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As ImmutableArray(Of SyntaxTrivia)
-            Return VisualBasicFileBanner.Instance.GetLeadingBannerAndPreprocessorDirectives(node)
+            Return VisualBasicFileBannerFacts.Instance.GetLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode
-            Return VisualBasicFileBanner.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node)
         End Function
 
         <Extension()>
         Public Function GetNodeWithoutLeadingBannerAndPreprocessorDirectives(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode, ByRef strippedTrivia As ImmutableArray(Of SyntaxTrivia)) As TSyntaxNode
-            Return VisualBasicFileBanner.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, strippedTrivia)
+            Return VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, strippedTrivia)
         End Function
 
         ''' <summary>

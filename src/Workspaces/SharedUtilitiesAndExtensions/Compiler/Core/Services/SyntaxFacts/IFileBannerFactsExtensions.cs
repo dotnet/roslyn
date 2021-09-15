@@ -5,11 +5,6 @@
 using System.Collections.Immutable;
 using System.Linq;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-#endif
-
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal static class IFileBannerFactsExtensions

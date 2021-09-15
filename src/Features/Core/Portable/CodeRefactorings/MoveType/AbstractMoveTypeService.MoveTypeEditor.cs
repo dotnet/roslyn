@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 TTypeDeclarationSyntax currentTypeNode)
             {
                 var syntaxFacts = State.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var bannerService = State.SemanticDocument.Document.GetRequiredLanguageService<IFileBannerService>();
+                var bannerService = State.SemanticDocument.Document.GetRequiredLanguageService<IFileBannerFactsService>();
 
                 var withoutBlankLines = bannerService.GetNodeWithoutLeadingBlankLines(currentTypeNode);
 
