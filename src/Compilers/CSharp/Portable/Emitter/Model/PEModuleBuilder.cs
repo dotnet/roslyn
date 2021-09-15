@@ -210,6 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public sealed override List<(Cci.ITypeDefinition, Cci.DebugSourceDocument[])> GetTypeToDebugDocumentMap(EmitContext context)
         {
+            var debugDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
+            var methodDocumentList = PooledHashSet<Cci.DebugSourceDocument>.GetInstance();
             var result = new List<(Cci.ITypeDefinition, Cci.DebugSourceDocument[])>();
 
             var namespacesAndTypesToProcess = new Stack<NamespaceOrTypeSymbol>();
@@ -243,10 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         break;
                     case SymbolKind.NamedType:
                         var typeDefinition = (Cci.ITypeDefinition)symbol.GetCciAdapter();
-                        var methodDocumentList = PooledHashSet<Cci.DebugSourceDocument>.GetInstance();
                         GetDocumentsForMethods(methodDocumentList, typeDefinition, context);
 
-                        var debugDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
                         foreach (var loc in symbol.Locations)
                         {
                             if (!loc.IsInSource)
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             var span = loc.GetLineSpan();
                             var debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: null);
 
-                            // We don't need to duplicate the data, if the method debug info would already contain this document
+                            // If we have a debug document that is already referenced by method debug info then we don't need to include it
                             if (debugDocument is not null && !methodDocumentList.Contains(debugDocument))
                             {
                                 debugDocuments.Add(debugDocument);
@@ -268,13 +268,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         {
                             result.Add((typeDefinition, debugDocuments.ToArray()));
                         }
-                        debugDocuments.Free();
-                        methodDocumentList.Free();
+
+                        debugDocuments.Clear();
+                        methodDocumentList.Clear();
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                 }
             }
+            debugDocuments.Free();
+            methodDocumentList.Free();
             return result;
         }
 

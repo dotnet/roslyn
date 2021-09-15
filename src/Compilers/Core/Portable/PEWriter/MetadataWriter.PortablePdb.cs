@@ -988,7 +988,7 @@ namespace Microsoft.Cci
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
         }
 
-        private void EmbedTypeDocumentInformation(CommonPEModuleBuilder module)
+        private void EmbedTypeDefinitionDocumentInformation(CommonPEModuleBuilder module)
         {
             var builder = new BlobBuilder();
 
@@ -1001,7 +1001,7 @@ namespace Microsoft.Cci
                 }
                 _debugMetadataOpt.AddCustomDebugInformation(
                     parent: GetTypeDefinitionHandle(definition),
-                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.TypeDocument),
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.TypeDefinitionDocuments),
                     value: _debugMetadataOpt.GetOrAddBlob(builder));
                 builder.Clear();
             }

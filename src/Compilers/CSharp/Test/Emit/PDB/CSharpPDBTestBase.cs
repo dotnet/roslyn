@@ -73,53 +73,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
             return false;
         }
-
-        public static void TestTypeDocuments(string[] sources, params (string typeName, string documentName)[] expected)
-        {
-            var trees = sources.Select((s, i) => SyntaxFactory.ParseSyntaxTree(s, path: $"{i + 1}.cs", encoding: Encoding.UTF8)).ToArray();
-            var compilation = CreateCompilation(trees, options: TestOptions.DebugDll);
-
-            var pdbStream = new MemoryStream();
-            var pe = compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
-            pdbStream.Position = 0;
-
-            var metadata = ModuleMetadata.CreateFromImage(pe);
-            var metadataReader = metadata.GetMetadataReader();
-
-            var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
-            var pdbReader = provider.GetMetadataReader();
-
-            var actual = from handle in pdbReader.CustomDebugInformation
-                         let entry = pdbReader.GetCustomDebugInformation(handle)
-                         where pdbReader.GetGuid(entry.Kind).Equals(PortableCustomDebugInfoKinds.TypeDocument)
-                         select (typeName: GetTypeName(entry.Parent), documentName: GetDocumentNames(entry.Value));
-
-            AssertEx.Equal(expected, actual, itemSeparator: ", ", itemInspector: i => $"(\"{i.typeName}\", \"{i.documentName}\")");
-
-            string GetTypeName(EntityHandle handle)
-            {
-                var typeHandle = (TypeDefinitionHandle)handle;
-                var type = metadataReader.GetTypeDefinition(typeHandle);
-                return metadataReader.GetString(type.Name);
-            }
-
-            string GetDocumentNames(BlobHandle value)
-            {
-                var result = new List<string>();
-
-                var reader = pdbReader.GetBlobReader(value);
-                while (reader.RemainingBytes > 0)
-                {
-                    var documentRow = reader.ReadCompressedInteger();
-                    if (documentRow > 0)
-                    {
-                        var doc = pdbReader.GetDocument(MetadataTokens.DocumentHandle(documentRow));
-                        result.Add(pdbReader.GetString(doc.Name));
-                    }
-                }
-
-                return string.Join(", ", result);
-            }
-        }
     }
 }

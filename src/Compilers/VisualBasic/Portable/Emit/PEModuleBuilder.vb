@@ -639,6 +639,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Overrides Function GetTypeToDebugDocumentMap(context As EmitContext) As List(Of (Cci.ITypeDefinition, Cci.DebugSourceDocument()))
             Dim result = New List(Of (Cci.ITypeDefinition, Cci.DebugSourceDocument()))
+            Dim debugDocuments = ArrayBuilder(Of Cci.DebugSourceDocument).GetInstance()
+            Dim methodDocumentList = PooledHashSet(Of Cci.DebugSourceDocument).GetInstance()
 
             Dim namespacesAndTypesToProcess = New Stack(Of NamespaceOrTypeSymbol)()
             namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace)
@@ -669,10 +671,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     Case SymbolKind.NamedType
                         Dim typeDefinition = DirectCast(symbol.GetCciAdapter(), Cci.ITypeDefinition)
-                        Dim methodDocumentList = PooledHashSet(Of Cci.DebugSourceDocument).GetInstance()
                         GetDocumentsForMethods(methodDocumentList, typeDefinition, context)
 
-                        Dim debugDocuments = ArrayBuilder(Of Cci.DebugSourceDocument).GetInstance()
 
                         For Each loc In symbol.Locations
                             If Not loc.IsInSource Then
@@ -688,13 +688,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         Next
 
                         If debugDocuments.Count > 0 Then
-                            result.Add((typeDefinition, debugDocuments.ToArrayAndFree()))
+                            result.Add((typeDefinition, debugDocuments.ToArray()))
                         End If
-                        methodDocumentList.Free()
+                        debugDocuments.Clear()
+                        methodDocumentList.Clear()
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(symbol.Kind)
                 End Select
             End While
+
+            debugDocuments.Free()
+            methodDocumentList.Free()
 
             Return result
         End Function
