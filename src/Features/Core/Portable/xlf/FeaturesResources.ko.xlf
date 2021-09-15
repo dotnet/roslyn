@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="0_directive">
         <source>#{0} directive</source>
-        <target state="new">#{0} directive</target>
+        <target state="translated">#{0} 지시문</target>
         <note />
       </trans-unit>
       <trans-unit id="AM_PM_abbreviated">
@@ -102,17 +102,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Adding_0_around_an_active_statement_requires_restarting_the_application">
         <source>Adding {0} around an active statement requires restarting the application.</source>
-        <target state="new">Adding {0} around an active statement requires restarting the application.</target>
+        <target state="translated">활성 문 주위에 {0}을(를) 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_a_1_requires_restarting_the_application">
         <source>Adding {0} into a {1} requires restarting the application.</source>
-        <target state="new">Adding {0} into a {1} requires restarting the application.</target>
+        <target state="translated">{0}을(를) {1}에 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application">
         <source>Adding {0} into a class with explicit or sequential layout requires restarting the application.</source>
-        <target state="new">Adding {0} into a class with explicit or sequential layout requires restarting the application.</target>
+        <target state="translated">명시적 또는 순차 레이아웃이 있는 클래스에 {0}을(를) 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_a_generic_type_requires_restarting_the_application">
@@ -122,7 +122,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_requires_restarting_the_application">
         <source>Adding {0} into an interface method requires restarting the application.</source>
-        <target state="new">Adding {0} into an interface method requires restarting the application.</target>
+        <target state="translated">인터페이스 메소드에 {0}을(를) 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_requires_restarting_the_application">
@@ -137,22 +137,22 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
         <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="new">Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</target>
+        <target state="translated">다른 범위에서 선언된 캡처된 변수 '{1}' 및 '{2}'에 액세스하는 {0}을 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
         <source>Adding {0} with the Handles clause requires restarting the application.</source>
-        <target state="new">Adding {0} with the Handles clause requires restarting the application.</target>
+        <target state="translated">Handles 절과 함께 {0}을(를) 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Adding_a_MustOverride_0_or_overriding_an_inherited_0_requires_restarting_the_application">
         <source>Adding a MustOverride {0} or overriding an inherited {0} requires restarting the application.</source>
-        <target state="new">Adding a MustOverride {0} or overriding an inherited {0} requires restarting the application.</target>
+        <target state="translated">MustOverride {0}를 추가하거나 상속된 {0}를 재정의하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note>{Locked="MustOverride"} "MustOverride" is VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_requires_restarting_the_application">
         <source>Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</source>
-        <target state="new">Adding a constructor to a type with a field or property initializer that contains an anonymous function requires restarting the application.</target>
+        <target state="translated">익명 함수가 포함된 필드 또는 속성 이니셜라이저가 있는 형식에 생성자를 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_generic_0_requires_restarting_the_application">
@@ -167,12 +167,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Adding_a_new_file_requires_restarting_the_application">
         <source>Adding a new file requires restarting the application.</source>
-        <target state="new">Adding a new file requires restarting the application.</target>
+        <target state="translated">새 파일을 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_user_defined_0_requires_restarting_the_application">
         <source>Adding a user defined {0} requires restarting the application.</source>
-        <target state="new">Adding a user defined {0} requires restarting the application.</target>
+        <target state="translated">사용자 정의 {0}을(를) 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application">
@@ -187,7 +187,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Adding_an_imported_method_requires_restarting_the_application">
         <source>Adding an imported method requires restarting the application.</source>
-        <target state="new">Adding an imported method requires restarting the application.</target>
+        <target state="translated">가져온 메서드를 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -212,7 +212,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="An_update_that_causes_the_return_type_of_implicit_main_to_change_requires_restarting_the_application">
         <source>An update that causes the return type of the implicit Main method to change requires restarting the application.</source>
-        <target state="new">An update that causes the return type of the implicit Main method to change requires restarting the application.</target>
+        <target state="translated">암시적 Main 메서드의 반환 유형이 변경되도록 하는 업데이트는 응용 프로그램을 다시 시작해야 합니다.</target>
         <note>{Locked="Main"} is C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Apply_file_header_preferences">
@@ -272,17 +272,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
-        <target state="new">Capturing variable '{0}' that hasn't been captured before requires restarting the application.</target>
+        <target state="translated">이전에 캡처되지 않은 '{0}' 변수를 캡처하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
         <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
-        <target state="new">Ceasing to access captured variable '{0}' in {1} requires restarting the application.</target>
+        <target state="translated">{1}에서 캡처된 변수 '{0}'에 대한 액세스를 중지하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
         <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="new">Ceasing to capture variable '{0}' requires restarting the application.</target>
+        <target state="translated">변수 '{0}' 캡처를 중지하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -322,7 +322,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="ChangesRequiredSynthesizedType">
         <source>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</source>
-        <target state="new">One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</target>
+        <target state="translated">하나 이상의 변경으로 인해 컴파일러에서 새 유형이 생성되며 런타임에서 지원하지 않기 때문에 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application">
@@ -357,12 +357,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
         <source>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</source>
-        <target state="new">Changing the declaration scope of a captured variable '{0}' requires restarting the application.</target>
+        <target state="translated">캡처된 변수 '{0}'의 선언 범위를 변경하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_parameters_of_0_requires_restarting_the_application">
         <source>Changing the parameters of {0} requires restarting the application.</source>
-        <target state="new">Changing the parameters of {0} requires restarting the application.</target>
+        <target state="translated">{0}의 매개 변수를 변경하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_return_type_of_0_requires_restarting_the_application">
@@ -372,7 +372,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_the_type_of_0_requires_restarting_the_application">
         <source>Changing the type of {0} requires restarting the application.</source>
-        <target state="new">Changing the type of {0} requires restarting the application.</target>
+        <target state="translated">{0} 유형을 변경하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -382,7 +382,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_type_parameters_of_0_requires_restarting_the_application">
         <source>Changing type parameters of {0} requires restarting the application.</source>
-        <target state="new">Changing type parameters of {0} requires restarting the application.</target>
+        <target state="translated">{0}의 유형 매개 변수를 변경하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_visibility_of_0_requires_restarting_the_application">
@@ -472,7 +472,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
-        <target state="new">Deleting {0} around an active statement requires restarting the application.</target>
+        <target state="translated">활성 문 주변의 {0}을(를) 삭제하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_requires_restarting_the_application">
@@ -482,7 +482,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
         <source>Deleting captured variable '{0}' requires restarting the application.</source>
-        <target state="new">Deleting captured variable '{0}' requires restarting the application.</target>
+        <target state="translated">캡처된 변수 '{0}'을(를) 삭제하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -512,7 +512,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
-        <target state="new">Changes made in project '{0}' require restarting the application: {1}</target>
+        <target state="translated">' {0}' 프로젝트에서 변경한 내용을 적용하려면 응용 프로그램 ‘{1}’을(를) 다시 시작 해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
@@ -692,7 +692,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Implementing_a_record_positional_parameter_0_with_a_set_accessor_requires_restarting_the_application">
         <source>Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</source>
-        <target state="new">Implementing a record positional parameter '{0}' with a set accessor requires restarting the application.</target>
+        <target state="translated">설정된 접근자를 사용하여 레코드 위치 매개 변수 '{0}'를 구현하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -797,12 +797,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application">
         <source>Making a method an iterator requires restarting the application.</source>
-        <target state="new">Making a method an iterator requires restarting the application.</target>
+        <target state="translated">메서드를 반복자로 만들려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application">
         <source>Making a method asynchronous requires restarting the application.</source>
-        <target state="new">Making a method asynchronous requires restarting the application.</target>
+        <target state="translated">메서드를 비동기식으로 만들려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -867,7 +867,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Modifying_a_catch_finally_handler_with_an_active_statement_in_the_try_block_requires_restarting_the_application">
         <source>Modifying a catch/finally handler with an active statement in the try block requires restarting the application.</source>
-        <target state="new">Modifying a catch/finally handler with an active statement in the try block requires restarting the application.</target>
+        <target state="translated">try 블록에서 활성 문으로 catch/finally 처리기를 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_a_catch_handler_around_an_active_statement_requires_restarting_the_application">
@@ -877,7 +877,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Modifying_a_generic_method_requires_restarting_the_application">
         <source>Modifying a generic method requires restarting the application.</source>
-        <target state="new">Modifying a generic method requires restarting the application.</target>
+        <target state="translated">일반 메서드를 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_a_method_inside_the_context_of_a_generic_type_requires_restarting_the_application">
@@ -887,12 +887,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Modifying_a_try_catch_finally_statement_when_the_finally_block_is_active_requires_restarting_the_application">
         <source>Modifying a try/catch/finally statement when the finally block is active requires restarting the application.</source>
-        <target state="new">Modifying a try/catch/finally statement when the finally block is active requires restarting the application.</target>
+        <target state="translated">finally 블록이 활성 상태일 때 try/catch/finally 문을 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_an_active_0_which_contains_On_Error_or_Resume_statements_requires_restarting_the_application">
         <source>Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</source>
-        <target state="new">Modifying an active {0} which contains On Error or Resume statements requires restarting the application.</target>
+        <target state="translated">On Error 또는 Resume 문이 포함된 활성 {0}을 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note>{Locked="On Error"}{Locked="Resume"} is VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Modifying_body_of_0_requires_restarting_the_application_because_the_body_has_too_many_statements">
@@ -912,12 +912,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1">
         <source>Modifying source file '{0}' requires restarting the application due to internal error: {1}</source>
-        <target state="new">Modifying source file '{0}' requires restarting the application due to internal error: {1}</target>
+        <target state="translated">원본 파일 '{0}'을(를) 수정하려면 내부 오류로 인해 응용 프로그램을 다시 시작해야 합니다. {1}</target>
         <note>{2} is a multi-line exception message including a stacktrace. Place it at the end of the message and don't add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Modifying_source_with_experimental_language_features_enabled_requires_restarting_the_application">
         <source>Modifying source with experimental language features enabled requires restarting the application.</source>
-        <target state="new">Modifying source with experimental language features enabled requires restarting the application.</target>
+        <target state="translated">실험 언어 기능이 활성화된 원본를 수정하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_requires_restarting_the_application">
@@ -2187,7 +2187,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">
         <source>Removing {0} that contains an active statement requires restarting the application.</source>
-        <target state="new">Removing {0} that contains an active statement requires restarting the application.</target>
+        <target state="translated">활성 문이 포함된 {0}을(를) 제거하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application">
@@ -2197,12 +2197,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Renaming_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Renaming {0} requires restarting the application because it is not supported by the runtime.</source>
-        <target state="new">Renaming {0} requires restarting the application because it is not supported by the runtime.</target>
+        <target state="translated">런타임에서 지원하지 않기 때문에 {0}의 이름을 바꾸려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Renaming_a_captured_variable_from_0_to_1_requires_restarting_the_application">
         <source>Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</source>
-        <target state="new">Renaming a captured variable, from '{0}' to '{1}' requires restarting the application.</target>
+        <target state="translated">캡처된 변수의 이름을 '{0}'에서 '{1}'(으)로 바꾸려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
@@ -2382,7 +2382,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Updating_a_0_around_an_active_statement_requires_restarting_the_application">
         <source>Updating a {0} around an active statement requires restarting the application.</source>
-        <target state="new">Updating a {0} around an active statement requires restarting the application.</target>
+        <target state="translated">활성 문 주변의 {0}을(를) 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_a_complex_statement_containing_an_await_expression_requires_restarting_the_application">
@@ -2392,12 +2392,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Updating_an_active_statement_requires_restarting_the_application">
         <source>Updating an active statement requires restarting the application.</source>
-        <target state="new">Updating an active statement requires restarting the application.</target>
+        <target state="translated">활성 명령문을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application">
         <source>Updating async or iterator modifier around an active statement requires restarting the application.</source>
-        <target state="new">Updating async or iterator modifier around an active statement requires restarting the application.</target>
+        <target state="translated">활성 문 주변의 async 또는 iterator 수정자를 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Updating_reloadable_type_marked_by_0_attribute_or_its_member_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
@@ -2407,17 +2407,17 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Updating_the_Handles_clause_of_0_requires_restarting_the_application">
         <source>Updating the Handles clause of {0} requires restarting the application.</source>
-        <target state="new">Updating the Handles clause of {0} requires restarting the application.</target>
+        <target state="translated">{0}의 Handles 절을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note>{Locked="Handles"} "Handles" is VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Updating_the_Implements_clause_of_a_0_requires_restarting_the_application">
         <source>Updating the Implements clause of a {0} requires restarting the application.</source>
-        <target state="new">Updating the Implements clause of a {0} requires restarting the application.</target>
+        <target state="translated">{0}의 Implements 절을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note>{Locked="Implements"} "Implements" is VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Updating_the_alias_of_Declare_statement_requires_restarting_the_application">
         <source>Updating the alias of Declare statement requires restarting the application.</source>
-        <target state="new">Updating the alias of Declare statement requires restarting the application.</target>
+        <target state="translated">Declare 문의 별칭을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note>{Locked="Declare"} "Declare" is VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
@@ -2437,7 +2437,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Updating_the_kind_of_a_property_event_accessor_requires_restarting_the_application">
         <source>Updating the kind of a property/event accessor requires restarting the application.</source>
-        <target state="new">Updating the kind of a property/event accessor requires restarting the application.</target>
+        <target state="translated">속성/이벤트 접근자의 종류를 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_kind_of_a_type_requires_restarting_the_application">
@@ -2457,7 +2457,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Updating_the_size_of_a_0_requires_restarting_the_application">
         <source>Updating the size of a {0} requires restarting the application.</source>
-        <target state="new">Updating the size of a {0} requires restarting the application.</target>
+        <target state="translated">{0}의 크기를 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
@@ -2467,12 +2467,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Updating_the_underlying_type_of_0_requires_restarting_the_application">
         <source>Updating the underlying type of {0} requires restarting the application.</source>
-        <target state="new">Updating the underlying type of {0} requires restarting the application.</target>
+        <target state="translated">{0}의 기본 유형을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_variance_of_0_requires_restarting_the_application">
         <source>Updating the variance of {0} requires restarting the application.</source>
-        <target state="new">Updating the variance of {0} requires restarting the application.</target>
+        <target state="translated">{0}의 분산을 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
@@ -3890,7 +3890,7 @@ DateTimeOffset 값의 경우, "K" 형식 지정자는 "zzz" 형식 지정자와 
       </trans-unit>
       <trans-unit id="type">
         <source>type</source>
-        <target state="new">type</target>
+        <target state="translated">유형</target>
         <note />
       </trans-unit>
       <trans-unit id="type_constraint">
