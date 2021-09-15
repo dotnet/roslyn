@@ -30,6 +30,7 @@ using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 using System.Security.Cryptography;
 using static Roslyn.Test.Utilities.TestHelpers;
 using static Roslyn.Test.Utilities.TestMetadata;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -2783,6 +2784,77 @@ public class C { public static FrameworkName Goo() { return null; }}";
             comp = CreateVisualBasicCompilation("");
             typeArguments = ImmutableArray.Create<ITypeSymbol>(comp.GetSpecialType(SpecialType.System_Object), comp.GetSpecialType(SpecialType.System_String));
             Assert.Throws<ArgumentException>(() => genericMethod.Construct(typeArguments, default));
+        }
+
+        [Fact]
+        [WorkItem(37310, "https://github.com/dotnet/roslyn/issues/37310")]
+        public void CompilationAssemblyDoesNotParseAttributes()
+        {
+
+            var comp = CreateCompilation("");
+            var tree = new TestSyntaxTree(
+                ((CSharpTestSource)"[System.CLSCompliant(false)] class C { }").GetSyntaxTrees(CSharpParseOptions.Default).Single());
+
+            comp = comp.ReplaceSyntaxTree(comp.SyntaxTrees.Single(), tree);
+
+            tree.ThrowOnGetRoot = true;
+
+            var assembly = comp.Assembly;
+        }
+
+        private class TestSyntaxTree : CSharpSyntaxTree
+        {
+            private readonly SyntaxTree _underlyingTree;
+            public bool ThrowOnGetRoot;
+
+            public TestSyntaxTree(SyntaxTree underlyingTree)
+            {
+                _underlyingTree = underlyingTree;
+            }
+
+            public override CSharpParseOptions Options => (CSharpParseOptions)_underlyingTree.Options;
+
+            public override CSharpSyntaxNode GetRoot(CancellationToken cancellationToken = default)
+            {
+                //if (ThrowOnGetRoot)
+                //    throw new InvalidOperationException();
+
+                return (CSharpSyntaxNode)_underlyingTree.GetRoot(cancellationToken);
+            }
+
+            public override bool TryGetRoot([NotNullWhen(true)] out CSharpSyntaxNode root)
+            {
+                //if (ThrowOnGetRoot)
+                //    throw new InvalidOperationException();
+
+                var result = _underlyingTree.TryGetRoot(out var value);
+                root = (CSharpSyntaxNode)value;
+                return result;
+            }
+
+            public override string FilePath => _underlyingTree.FilePath;
+
+            public override bool HasCompilationUnitRoot => _underlyingTree.HasCompilationUnitRoot;
+
+            public override int Length => _underlyingTree.Length;
+
+            public override bool TryGetText([NotNullWhen(true)] out SourceText text)
+                => _underlyingTree.TryGetText(out text);
+
+            public override SourceText GetText(CancellationToken cancellationToken = default)
+                => _underlyingTree.GetText(cancellationToken);
+
+            public override Encoding Encoding
+                => _underlyingTree.Encoding;
+
+            public override SyntaxReference GetReference(SyntaxNode node)
+                => _underlyingTree.GetReference(node);
+
+            public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
+                => _underlyingTree.WithRootAndOptions(root, options);
+
+            public override SyntaxTree WithFilePath(string path)
+                => _underlyingTree.WithFilePath(path);
         }
 
         #region Script return values

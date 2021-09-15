@@ -764,6 +764,23 @@ next:;
             return declaration.GetAttributeDeclarations();
         }
 
+        internal ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations(QuickAttributes quickAttributes)
+        {
+            // if the compilation has any global aliases to these quick attributes, then we have to return
+            // all the attributes on the decl.  For example, if there is a `global using X = Y;` and 
+            // then we have to return any attributes on the type as they might say `[Y]`.
+            foreach (var decl in this.DeclaringCompilation.MergedRootDeclaration.Declarations)
+            {
+                if (decl is RootSingleNamespaceDeclaration rootNamespaceDecl)
+                {
+                    if ((rootNamespaceDecl.GlobalAliasedQuickAttributes & quickAttributes) != 0)
+                        return GetAttributeDeclarations();
+                }
+            }
+
+            return declaration.GetAttributeDeclarations(quickAttributes);
+        }
+
         IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner
         {
             get { return this; }
@@ -1142,7 +1159,7 @@ next:;
             // We want this function to be as cheap as possible, it is called for every top level type
             // and we don't want to bind attributes attached to the declaration unless there is a chance
             // that one of them is TypeIdentifier attribute.
-            ImmutableArray<SyntaxList<AttributeListSyntax>> attributeLists = GetAttributeDeclarations();
+            ImmutableArray<SyntaxList<AttributeListSyntax>> attributeLists = GetAttributeDeclarations(QuickAttributes.TypeIdentifier);
 
             foreach (SyntaxList<AttributeListSyntax> list in attributeLists)
             {

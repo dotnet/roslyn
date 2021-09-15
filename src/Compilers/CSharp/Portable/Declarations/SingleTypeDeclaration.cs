@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -19,6 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ushort _arity;
         private readonly DeclarationModifiers _modifiers;
         private readonly ImmutableArray<SingleTypeDeclaration> _children;
+
+        /// <summary>
+        /// Any special attributes we may be referencing directly as an attribute on this type or
+        /// through a using alias in the file. For example
+        /// <c>using X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c> or
+        /// <c>[TypeForwardedToAttribute]</c>.
+        /// </summary>
+        public QuickAttributes QuickAttributes { get; }
 
         [Flags]
         internal enum TypeDeclarationFlags : ushort
@@ -58,7 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceLocation nameLocation,
             ImmutableSegmentedDictionary<string, VoidResult> memberNames,
             ImmutableArray<SingleTypeDeclaration> children,
-            ImmutableArray<Diagnostic> diagnostics)
+            ImmutableArray<Diagnostic> diagnostics,
+            QuickAttributes quickAttributes)
             : base(name, syntaxReference, nameLocation, diagnostics)
         {
             Debug.Assert(kind != DeclarationKind.Namespace);
@@ -69,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberNames = memberNames;
             _children = children;
             _flags = declFlags;
+            QuickAttributes = quickAttributes;
         }
 
         public override DeclarationKind Kind
