@@ -375,45 +375,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // Local functions are always valid in a statement context. They are also valid for top-level statements (as
             // opposed to global functions which are defined in the global statement context of scripts).
-            if (syntaxTree.IsStatementContext(position, leftToken, cancellationToken)
-                || (!syntaxTree.IsScript() && syntaxTree.IsGlobalStatementContext(position, cancellationToken)))
-            {
+            if (IsLocalFunctionDeclarationPosition(syntaxTree, leftToken, position, cancellationToken))
                 return true;
-            }
 
             // Also valid after certain modifiers
-            var modifierTokens = syntaxTree.GetPrecedingModifiers(
-                position, token, out var beforeModifiersPosition);
+            var modifierTokens = syntaxTree.GetPrecedingModifiers(position, token, out position);
 
             if (modifierTokens.IsSubsetOf(validModifiers))
             {
                 if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
                 {
                     // second appearance of "async" not followed by modifier: treat as type
-                    if (syntaxTree.GetPrecedingModifiers(token.SpanStart, token)
-                        .Contains(SyntaxKind.AsyncKeyword))
-                    {
+                    if (syntaxTree.GetPrecedingModifiers(token.SpanStart, token).Contains(SyntaxKind.AsyncKeyword))
                         return false;
-                    }
                 }
 
-                leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
-                token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
+                leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                token = leftToken.GetPreviousTokenIfTouchingWord(position);
 
                 // If one or more attribute lists are present before the caret, check to see if those attribute lists
                 // were written in a local function declaration context.
                 while (token.IsKind(SyntaxKind.CloseBracketToken) && token.Parent.IsKind(SyntaxKind.AttributeList, out AttributeListSyntax? attributeList))
                 {
-                    beforeModifiersPosition = attributeList.OpenBracketToken.SpanStart;
-                    leftToken = syntaxTree.FindTokenOnLeftOfPosition(beforeModifiersPosition, cancellationToken);
-                    token = leftToken.GetPreviousTokenIfTouchingWord(beforeModifiersPosition);
+                    position = attributeList.OpenBracketToken.SpanStart;
+                    leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                    token = leftToken.GetPreviousTokenIfTouchingWord(position);
                 }
 
-                return syntaxTree.IsStatementContext(beforeModifiersPosition, token, cancellationToken)
-                    || (!syntaxTree.IsScript() && syntaxTree.IsGlobalStatementContext(beforeModifiersPosition, cancellationToken));
+                return IsLocalFunctionDeclarationPosition(syntaxTree, leftToken, position, cancellationToken);
             }
 
             return false;
+
+            bool IsLocalFunctionDeclarationPosition(SyntaxTree tree, SyntaxToken token, int position, CancellationToken cancellationToken)
+            {
+                if (syntaxTree.IsStatementContext(position, token, cancellationToken))
+                    return true;
+
+                return !syntaxTree.IsScript() && syntaxTree.IsGlobalStatementContext(position, cancellationToken);
+            }
         }
 
         public static bool IsTypeDeclarationContext(
@@ -758,6 +758,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsDefinitelyNotTypeContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
+            if (syntaxTree.IsPreProcessorDirectiveContext(position, cancellationToken))
+                return true;
+
             return
                 syntaxTree.IsInNonUserCode(position, cancellationToken) ||
                 syntaxTree.IsRightOfDotOrArrow(position, cancellationToken);
@@ -768,9 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             // first do quick exit check
             if (syntaxTree.IsDefinitelyNotTypeContext(position, cancellationToken))
-            {
                 return false;
-            }
 
             // okay, now it is a case where we can't use parse tree (valid or error recovery) to
             // determine whether it is a right place to put type. use lex based one Cyrus created.
@@ -1973,6 +1974,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsGlobalStatementContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
+            if (syntaxTree.IsPreProcessorDirectiveContext(position, cancellationToken))
+                return false;
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
                                   .GetPreviousTokenIfTouchingWord(position);
@@ -1981,8 +1984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 // global statements can't come before usings/externs
                 if (syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit &&
-                    (compilationUnit.Externs.Count > 0 ||
-                    compilationUnit.Usings.Count > 0))
+                    (compilationUnit.Externs.Count > 0 || compilationUnit.Usings.Count > 0))
                 {
                     return false;
                 }

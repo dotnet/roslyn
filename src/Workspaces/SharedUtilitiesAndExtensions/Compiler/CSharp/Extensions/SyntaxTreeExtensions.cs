@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SyntaxToken tokenOnLeftOfPosition,
             out int positionBeforeModifiers)
         {
+            positionBeforeModifiers = position;
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
@@ -55,12 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.OutKeyword:
                     case SyntaxKind.InKeyword:
                         result.Add(token.Kind());
+                        positionBeforeModifiers = token.FullSpan.Start;
                         token = token.GetPreviousToken(includeSkipped: true);
                         continue;
                     case SyntaxKind.IdentifierToken:
                         if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
                         {
                             result.Add(SyntaxKind.AsyncKeyword);
+                            positionBeforeModifiers = token.FullSpan.Start;
                             token = token.GetPreviousToken(includeSkipped: true);
                             continue;
                         }
@@ -71,7 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 break;
             }
 
-            positionBeforeModifiers = token.FullSpan.End;
             return result;
         }
 
