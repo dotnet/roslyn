@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var definitions = await GetDefinitions(document, position, cancellationToken).ConfigureAwait(false);
+            var definitions = await GoToDefinitionHelpers.GetDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (definitions?.Any() == true)
             {
                 foreach (var definition in definitions)
@@ -128,20 +129,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     default:
                         return false;
                 }
-            }
-
-            static async Task<IEnumerable<INavigableItem>?> GetDefinitions(Document document, int position, CancellationToken cancellationToken)
-            {
-                // Try IFindDefinitionService first. Until partners implement this, it could fail to find a service, so fall back if it's null.
-                var findDefinitionService = document.GetLanguageService<IFindDefinitionService>();
-                if (findDefinitionService != null)
-                {
-                    return await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-                }
-
-                // Removal of this codepath is tracked by https://github.com/dotnet/roslyn/issues/50391.
-                var goToDefinitionsService = document.GetRequiredLanguageService<IGoToDefinitionService>();
-                return await goToDefinitionsService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
             }
         }
     }

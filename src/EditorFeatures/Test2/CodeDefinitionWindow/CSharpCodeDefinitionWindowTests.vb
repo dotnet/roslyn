@@ -17,7 +17,7 @@ class $$[|C|]
 {
 }"
 
-            Await VerifyContextLocationAsync(code, "C")
+            Await VerifyContextLocationAsync(code, "class C")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -31,7 +31,7 @@ class [|C|]
     }
 }"
 
-            Await VerifyContextLocationAsync(code, "C")
+            Await VerifyContextLocationAsync(code, "class C")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -44,7 +44,7 @@ class C
     }
 }"
 
-            Await VerifyContextLocationAsync(code, "C.M()")
+            Await VerifyContextLocationAsync(code, "void C.M()")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -58,7 +58,7 @@ class C
     }
 }"
 
-            Await VerifyContextLocationAsync(code, "C.M()")
+            Await VerifyContextLocationAsync(code, "void C.M()")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
@@ -79,7 +79,7 @@ class C
     }
 }"
 
-            Await VerifyContextLocationAsync(code, "Ex.M<T>(System.Collections.Generic.List<T>)")
+            Await VerifyContextLocationAsync(code, "static void Ex.M<T>(List<T>)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>

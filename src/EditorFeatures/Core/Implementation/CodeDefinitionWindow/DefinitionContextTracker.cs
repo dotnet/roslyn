@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -131,108 +132,60 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
             Document document, int position, CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
-            if (!document.SupportsSemanticModel)
+            var navigableItems = await GoToDefinitionHelpers.GetDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            if (navigableItems?.Any() == true)
             {
-                var goToDefinitionService = document.GetRequiredLanguageService<IGoToDefinitionService>();
-                var navigableItems = await goToDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (navigableItems != null)
+                var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+
+                var builder = new ArrayBuilder<CodeDefinitionWindowLocation>();
+                foreach (var item in navigableItems)
                 {
-                    var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-
-                    var builder = new ArrayBuilder<CodeDefinitionWindowLocation>();
-                    foreach (var item in navigableItems)
+                    if (await navigationService.CanNavigateToSpanAsync(workspace, item.Document.Id, item.SourceSpan, cancellationToken).ConfigureAwait(false))
                     {
-                        if (await navigationService.CanNavigateToSpanAsync(workspace, item.Document.Id, item.SourceSpan, cancellationToken).ConfigureAwait(false))
-                        {
-                            var text = await item.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                            var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
+                        var text = await item.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
 
-                            if (item.Document.FilePath != null)
-                            {
-                                builder.Add(new CodeDefinitionWindowLocation(item.DisplayTaggedParts.JoinText(), item.Document.FilePath, linePositionSpan.Start));
-                            }
+                        if (item.Document.FilePath != null)
+                        {
+                            builder.Add(new CodeDefinitionWindowLocation(item.DisplayTaggedParts.JoinText(), item.Document.FilePath, linePositionSpan.Start));
                         }
                     }
-
-                    return builder.ToImmutable();
                 }
 
+                return builder.ToImmutable();
+            }
+
+            // We didn't have regular source references, but possibly:
+            // 1. Another language (like XAML) will take over via ISymbolNavigationService
+            // 2. There are no locations from source, so we'll try to generate a metadata as source file and use that
+            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
+                document,
+                position,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            if (symbol == null)
+            {
                 return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
             }
-            else
-            {
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
-                    semanticModel,
-                    position,
-                    workspace,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                if (symbol == null)
-                {
-                    return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
-                }
-
-                symbol = symbol.GetOriginalUnreducedDefinition();
-
-                // Get the symbol back from the originating workspace
-                var symbolMappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
-                var mappingResult = await symbolMappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
-
-                return mappingResult == null
-                    ? ImmutableArray<CodeDefinitionWindowLocation>.Empty
-                    : await GetLocationsOfSymbolAsync(
-                        mappingResult.Symbol, mappingResult.Project, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        private async Task<ImmutableArray<CodeDefinitionWindowLocation>> GetLocationsOfSymbolAsync(
-            ISymbol symbol, Project project, CancellationToken cancellationToken)
-        {
-            var solution = project.Solution;
-            var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-            if (sourceDefinition != null)
-            {
-                var originatingProject = solution.GetProject(sourceDefinition.ContainingAssembly, cancellationToken);
-                project = originatingProject ?? project;
-                symbol = sourceDefinition;
-            }
-
-            // Three choices here:
-            // 1. Another language (like XAML) will take over via ISymbolNavigationService
-            // 2. There are locations in source, so we'll use those
-            // 3. There are no locations from source, so we'll try to generate a metadata as source file and use that
-            var symbolNavigationService = solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: false);
+            var symbolNavigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(document.Project.Solution, includeHiddenLocations: false);
             var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
 
-            var results = new ArrayBuilder<CodeDefinitionWindowLocation>();
             if (result != null)
             {
-                results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), result.Value.filePath, result.Value.linePosition));
+                return ImmutableArray.Create(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), result.Value.filePath, result.Value.linePosition));
             }
-            else
+            else if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
             {
-                var sourceLocations = symbol.Locations.Where(l => l.IsInSource).ToList();
-                if (sourceLocations.Any())
-                {
-                    foreach (var declaration in sourceLocations)
-                    {
-                        var declarationLocation = declaration.GetLineSpan();
-                        results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declaration.SourceTree!.FilePath, declarationLocation.StartLinePosition));
-                    }
-                }
-                else if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
-                {
-                    // Don't allow decompilation when generating, since we don't have a good way to prompt the user
-                    // without a modal dialog.
-                    var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
-                    var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
-                    results.Add(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
-                }
+                // Don't allow decompilation when generating, since we don't have a good way to prompt the user
+                // without a modal dialog.
+                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
+                var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
+                return ImmutableArray.Create(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
             }
 
-            return results.ToImmutable();
+            return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
         }
     }
 }

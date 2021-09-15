@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
-        Public Async Function CSharpReferencingVisualBasic() As Task
+        Public Async Function VisualBasicReferencingCSharp() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                 </Workspace>,
                 composition:=AbstractCodeDefinitionWindowTests.TestComposition)
 
-                Await AbstractCodeDefinitionWindowTests.VerifyContextLocationAsync("Class1.M()", workspace)
+                Await AbstractCodeDefinitionWindowTests.VerifyContextLocationAsync("void Class1.M()", workspace)
             End Using
         End Function
     End Class
