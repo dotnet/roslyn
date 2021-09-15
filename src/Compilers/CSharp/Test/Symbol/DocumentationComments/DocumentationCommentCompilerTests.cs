@@ -890,7 +890,7 @@ partial class C
             // Files passed in order.
             var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
             var actualA = GetDocumentationCommentText(compA);
-            var expectedA = @"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -903,34 +903,173 @@ partial class C
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expectedA, actualA);
+            Assert.Equal(expected, actualA);
 
             // Files passed in reverse order.
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             var actualB = GetDocumentationCommentText(compB);
-            var expectedB = @"
-<?xml version=""1.0""?>
-<doc>
-    <assembly>
-        <name>Test</name>
-    </assembly>
-    <members>
-        <member name=""M:C.M"">
-            <summary>Summary 1</summary>
-        </member>
-    </members>
-</doc>
-".Trim();
-            Assert.Equal(expectedB, actualB);
+            Assert.Equal(expected, actualB);
         }
 
         [Fact]
         public void ExtendedPartialMethods_MultipleFiles()
         {
             var source1 = @"
-partial class C
+/// <summary>Summary 0</summary>
+public partial class C
 {
     /** <summary>Summary 1</summary>*/
+    public partial int M() => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int M();
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+        <member name=""M:C.M"">
+            <summary>Summary 1</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        [Fact]
+        public void ExtendedPartialMethods_MultipleFiles_DefinitionComment()
+        {
+            var source1 = @"
+/// <summary>Summary 0</summary>
+public partial class C
+{
+    public partial int M() => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int M();
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics();
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+        <member name=""M:C.M"">
+            <summary>Summary 2</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics();
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        [Fact]
+        public void ExtendedPartialMethods_MultipleFiles_ImplementationComment()
+        {
+            var source1 = @"
+/// <summary>Summary 0</summary>
+public partial class C
+{
+    /** <summary>Summary 1</summary>*/
+    public partial int M() => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    public partial int M();
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics();
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+        <member name=""M:C.M"">
+            <summary>Summary 1</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics();
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
+        }
+
+        [Fact]
+        public void ExtendedPartialMethods_MultipleFiles_Overlap()
+        {
+            var source1 = @"
+partial class C
+{
+    /** <remarks>Remarks 1</remarks> */
     public partial int M() => 42;
 }
 ";
@@ -948,39 +1087,84 @@ partial class C
 
             // Files passed in order.
             var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics();
             var actualA = GetDocumentationCommentText(compA);
-            var expectedA = @"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
-    <assembly>
+    <assembly>  
         <name>Test</name>
     </assembly>
     <members>
         <member name=""M:C.M"">
-            <summary>Summary 1</summary>
+            <remarks>Remarks 1</remarks> 
         </member>
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expectedA, actualA);
+            AssertEx.Equal(expected, actualA);
 
             // Files passed in reverse order.
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics();
             var actualB = GetDocumentationCommentText(compB);
-            var expectedB = @"
+            Assert.Equal(expected, actualB);
+        }
+
+        [Fact]
+        public void ExtendedPartialMethods_MultipleFiles_ImplComment_Invalid()
+        {
+            var source1 = @"
+partial class C
+{
+    /// <summary></a></summary>
+    public partial int M() => 42;
+}
+";
+
+            var source2 = @"
+partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    public partial int M();
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,20): warning CS1570: XML comment has badly formed XML -- 'End tag 'a' does not match the start tag 'summary'.'
+                //     /// <summary></a></summary>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "a").WithArguments("a", "summary").WithLocation(4, 20),
+                // (4,22): warning CS1570: XML comment has badly formed XML -- 'End tag was not expected at this location.'
+                //     /// <summary></a></summary>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "<").WithLocation(4, 22)
+            };
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics(expectedDiagnostics);
+            var actualA = GetDocumentationCommentText(compA);
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
         <name>Test</name>
     </assembly>
     <members>
-        <member name=""M:C.M"">
-            <summary>Summary 1</summary>
-        </member>
+        <!-- Badly formed XML comment ignored for member ""M:C.M"" -->
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expectedB, actualB);
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics(expectedDiagnostics);
+            var actualB = GetDocumentationCommentText(compB);
+            Assert.Equal(expected, actualB);
         }
 
         #endregion Partial methods
