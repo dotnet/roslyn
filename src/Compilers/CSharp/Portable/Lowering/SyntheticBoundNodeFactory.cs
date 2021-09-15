@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SynthesizedLocalWithValEscape(
                 CurrentFunction,
                 TypeWithAnnotations.Create(type),
-                SynthesizedLocalKind.InterpolatedStringHandler,
+                SynthesizedLocalKind.LoweringTemp,
                 valEscapeScope,
                 syntax
 #if DEBUG

@@ -123,13 +123,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             if (actions.Value.actions.Length > 0)
             {
                 context.RegisterRefactoring(new CodeActionWithNestedActions(
-                    string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString), actions.Value.actions, isInlinable: false), textSpan);
+                    string.Format(FeaturesResources.Introduce_parameter_for_0, nodeString), actions.Value.actions, isInlinable: false, priority: CodeActionPriority.Low), textSpan);
             }
 
             if (actions.Value.actionsAllOccurrences.Length > 0)
             {
                 context.RegisterRefactoring(new CodeActionWithNestedActions(
-                    string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString), actions.Value.actionsAllOccurrences, isInlinable: false), textSpan);
+                    string.Format(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, nodeString), actions.Value.actionsAllOccurrences, isInlinable: false,
+                    priority: CodeActionPriority.Low), textSpan);
             }
         }
 
