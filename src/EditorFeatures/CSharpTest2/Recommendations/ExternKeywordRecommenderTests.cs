@@ -87,7 +87,7 @@ $$");
 @"switch (c)
 {
     case 0:
-         [Foo]
+         [Goo]
          $$
 }", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
@@ -135,17 +135,28 @@ await bar;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions
         public async Task TestBetweenAttributesAndAssignmentStatement(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"[Foo]
+@"[Goo]
 $$
 y = bar();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [CombinatorialData]
-        public async Task TestBetweenAttributesAndCallStatement(bool topLevelStatement)
+        public async Task TestBetweenAttributesAndCallStatement1(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"[Foo]
+@"[Goo]
+$$
+bar();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [CombinatorialData]
+        public async Task TestBetweenAttributesAndCallStatement2(bool topLevelStatement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[Goo1]
+[Goo2]
 $$
 bar();", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }

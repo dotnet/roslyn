@@ -493,7 +493,7 @@ System.Action x = async $$ (x) => { }"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAsyncLambdaParamInAssignment()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(@"
+            await VerifyKeywordAsync(AddInsideMethod(@"
 System.Action x = async async $$ (x) => { }"));
         }
 
