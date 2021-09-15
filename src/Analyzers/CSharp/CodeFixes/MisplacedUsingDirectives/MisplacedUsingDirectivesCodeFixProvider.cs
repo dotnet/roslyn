@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             AddImportPlacement placement,
             CancellationToken cancellationToken)
         {
-            var bannerService = document.GetRequiredLanguageService<IFileBannerService>();
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
 
             // Expand usings so that they can be properly simplified after they are relocated.
             var compilationUnitWithExpandedUsings = await ExpandUsingDirectivesAsync(document, compilationUnit, allUsingDirectives, cancellationToken).ConfigureAwait(false);
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         }
 
         private static (CompilationUnitSyntax compilationUnitWithoutHeader, ImmutableArray<SyntaxTrivia> header) RemoveFileHeader(
-            CompilationUnitSyntax syntaxRoot, IFileBannerService bannerService)
+            CompilationUnitSyntax syntaxRoot, IFileBannerFactsService bannerService)
         {
             var fileHeader = bannerService.GetFileBanner(syntaxRoot);
             var leadingTrivia = syntaxRoot.GetLeadingTrivia();

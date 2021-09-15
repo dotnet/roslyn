@@ -484,7 +484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim newBlock As SyntaxNode
             If options.BeforeThisLocation IsNot Nothing Then
                 Dim strippedTrivia As ImmutableArray(Of SyntaxTrivia) = Nothing
-                Dim newStatement = VisualBasicFileBanner.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(
+                Dim newStatement = VisualBasicFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(
                     oldStatement, strippedTrivia)
 
                 statementArray(0) = statementArray(0).WithLeadingTrivia(strippedTrivia)
