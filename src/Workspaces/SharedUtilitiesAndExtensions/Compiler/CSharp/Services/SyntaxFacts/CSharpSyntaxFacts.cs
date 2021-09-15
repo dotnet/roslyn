@@ -205,8 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxToken? GetNameOfParameter(SyntaxNode? node)
             => (node as ParameterSyntax)?.Identifier;
 
-        public SyntaxNode? GetDefaultOfParameter(SyntaxNode? node)
-            => (node as ParameterSyntax)?.Default;
+        public SyntaxNode? GetDefaultOfParameter(SyntaxNode node)
+            => ((ParameterSyntax)node).Default;
 
         public SyntaxNode? GetParameterList(SyntaxNode node)
             => node.GetParameterList();
@@ -270,8 +270,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode? node)
-            => (node as ReturnStatementSyntax)?.Expression;
+        public SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node)
+            => ((ReturnStatementSyntax)node).Expression;
 
         public bool IsThisConstructorInitializer(SyntaxToken token)
             => token.Parent.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax? constructorInit) &&
@@ -590,18 +590,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetNameOfMemberBindingExpression(SyntaxNode node)
             => ((MemberBindingExpressionSyntax)node).Name;
 
-        public SyntaxNode? GetExpressionOfMemberAccessExpression(SyntaxNode? node, bool allowImplicitTarget)
-            => (node as MemberAccessExpressionSyntax)?.Expression;
+        public SyntaxNode? GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
+            => ((MemberAccessExpressionSyntax)node).Expression;
 
-        public void GetPartsOfElementAccessExpression(SyntaxNode? node, out SyntaxNode? expression, out SyntaxNode? argumentList)
+        public void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
         {
-            var elementAccess = node as ElementAccessExpressionSyntax;
-            expression = elementAccess?.Expression;
-            argumentList = elementAccess?.ArgumentList;
+            var elementAccess = (ElementAccessExpressionSyntax)node;
+            expression = elementAccess.Expression;
+            argumentList = elementAccess.ArgumentList;
         }
 
-        public SyntaxNode? GetExpressionOfInterpolation(SyntaxNode? node)
-            => (node as InterpolationSyntax)?.Expression;
+        public SyntaxNode GetExpressionOfInterpolation(SyntaxNode node)
+            => ((InterpolationSyntax)node).Expression;
 
         public bool IsInStaticContext(SyntaxNode node)
             => node.IsInStaticContext();
@@ -612,11 +612,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsBaseTypeList([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.BaseList);
 
-        public SyntaxNode? GetExpressionOfArgument(SyntaxNode? node)
-            => (node as ArgumentSyntax)?.Expression;
+        public SyntaxNode GetExpressionOfArgument(SyntaxNode node)
+            => ((ArgumentSyntax)node).Expression;
 
-        public RefKind GetRefKindOfArgument(SyntaxNode? node)
-            => (node as ArgumentSyntax).GetRefKind();
+        public RefKind GetRefKindOfArgument(SyntaxNode node)
+            => ((ArgumentSyntax)node).GetRefKind();
 
         public bool IsArgument([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.Argument);
@@ -961,8 +961,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node)
             => node is BaseNamespaceDeclarationSyntax;
 
-        public SyntaxNode? GetNameOfNamespaceDeclaration(SyntaxNode? node)
-            => (node as BaseNamespaceDeclarationSyntax)?.Name;
+        public SyntaxNode GetNameOfNamespaceDeclaration(SyntaxNode node)
+            => ((BaseNamespaceDeclarationSyntax)node).Name;
 
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
@@ -1250,8 +1250,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsLeftSideOfCompoundAssignment([NotNullWhen(true)] SyntaxNode? node)
             => (node as ExpressionSyntax).IsLeftSideOfCompoundAssignExpression();
 
-        public SyntaxNode? GetRightHandSideOfAssignment(SyntaxNode? node)
-            => (node as AssignmentExpressionSyntax)?.Right;
+        public SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node)
+            => ((AssignmentExpressionSyntax)node).Right;
 
         public bool IsInferredAnonymousObjectMemberDeclarator([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator, out AnonymousObjectMemberDeclaratorSyntax? anonObject) &&
@@ -1284,20 +1284,22 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             argumentList = invocation.ArgumentList;
         }
 
-        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode? invocationExpression)
-            => GetArgumentsOfArgumentList((invocationExpression as InvocationExpressionSyntax)?.ArgumentList);
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
+            => GetArgumentsOfArgumentList(((InvocationExpressionSyntax)invocationExpression).ArgumentList);
 
-        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode? objectCreationExpression)
-            => GetArgumentsOfArgumentList((objectCreationExpression as BaseObjectCreationExpressionSyntax)?.ArgumentList);
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode objectCreationExpression)
+            => ((BaseObjectCreationExpressionSyntax)objectCreationExpression).ArgumentList is { } argumentList
+                ? GetArgumentsOfArgumentList(argumentList)
+                : default;
 
-        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode? argumentList)
-            => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default;
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
+            => ((BaseArgumentListSyntax)argumentList).Arguments;
 
         public SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode invocationExpression)
             => ((InvocationExpressionSyntax)invocationExpression).ArgumentList;
 
         public SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode objectCreationExpression)
-            => ((ObjectCreationExpressionSyntax)objectCreationExpression)!.ArgumentList;
+            => ((ObjectCreationExpressionSyntax)objectCreationExpression).ArgumentList;
 
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();

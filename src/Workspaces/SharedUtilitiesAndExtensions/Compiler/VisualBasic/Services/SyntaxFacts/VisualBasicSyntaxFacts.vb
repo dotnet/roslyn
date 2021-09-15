@@ -217,11 +217,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetNameOfParameter(node As SyntaxNode) As SyntaxToken? Implements ISyntaxFacts.GetNameOfParameter
-            Return TryCast(node, ParameterSyntax)?.Identifier?.Identifier
+            Return DirectCast(node, ParameterSyntax).Identifier?.Identifier
         End Function
 
         Public Function GetDefaultOfParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetDefaultOfParameter
-            Return TryCast(node, ParameterSyntax)?.Default
+            Return DirectCast(node, ParameterSyntax).Default
         End Function
 
         Public Function GetParameterList(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetParameterList
@@ -237,8 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetIdentifierOfGenericName(genericName As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfGenericName
-            Dim vbGenericName = TryCast(genericName, GenericNameSyntax)
-            Return If(vbGenericName IsNot Nothing, vbGenericName.Identifier, Nothing)
+            Return DirectCast(genericName, GenericNameSyntax).Identifier
         End Function
 
         Public Function IsUsingDirectiveName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUsingDirectiveName
@@ -267,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetExpressionOfReturnStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfReturnStatement
-            Return TryCast(node, ReturnStatementSyntax)?.Expression
+            Return DirectCast(node, ReturnStatementSyntax).Expression
         End Function
 
         Public Function IsThisConstructorInitializer(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsThisConstructorInitializer
@@ -582,11 +581,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 Return
             End If
 
-            Return
+            Throw ExceptionUtilities.UnexpectedValue(node.Kind())
         End Sub
 
         Public Function GetExpressionOfInterpolation(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfInterpolation
-            Return TryCast(node, InterpolationSyntax)?.Expression
+            Return DirectCast(node, InterpolationSyntax).Expression
         End Function
 
         Public Function IsInNamespaceOrTypeContext(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsInNamespaceOrTypeContext
@@ -602,7 +601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetExpressionOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFacts.GetExpressionOfArgument
-            Return TryCast(node, ArgumentSyntax).GetArgumentExpression()
+            Return DirectCast(node, ArgumentSyntax).GetArgumentExpression()
         End Function
 
         Public Function GetRefKindOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.RefKind Implements ISyntaxFacts.GetRefKindOfArgument
@@ -1273,7 +1272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetRightHandSideOfAssignment(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetRightHandSideOfAssignment
-            Return TryCast(node, AssignmentStatementSyntax)?.Right
+            Return DirectCast(node, AssignmentStatementSyntax).Right
         End Function
 
         Public Function IsInferredAnonymousObjectMemberDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsInferredAnonymousObjectMemberDeclarator
@@ -1304,16 +1303,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetArgumentsOfInvocationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfInvocationExpression
-            Return GetArgumentsOfArgumentList(TryCast(node, InvocationExpressionSyntax)?.ArgumentList)
+            Dim argumentList = DirectCast(node, InvocationExpressionSyntax).ArgumentList
+            Return If(argumentList Is Nothing, Nothing, GetArgumentsOfArgumentList(argumentList))
         End Function
 
         Public Function GetArgumentsOfObjectCreationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfObjectCreationExpression
-            Return GetArgumentsOfArgumentList(TryCast(node, ObjectCreationExpressionSyntax)?.ArgumentList)
+            Dim argumentList = DirectCast(node, ObjectCreationExpressionSyntax).ArgumentList
+            Return If(argumentList Is Nothing, Nothing, GetArgumentsOfArgumentList(argumentList))
         End Function
 
         Public Function GetArgumentsOfArgumentList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfArgumentList
-            Dim arguments = TryCast(node, ArgumentListSyntax)?.Arguments
-            Return If(arguments.HasValue, arguments.Value, Nothing)
+            Return DirectCast(node, ArgumentListSyntax).Arguments
         End Function
 
         Public Function GetArgumentListOfInvocationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetArgumentListOfInvocationExpression
