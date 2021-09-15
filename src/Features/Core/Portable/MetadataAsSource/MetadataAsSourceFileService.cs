@@ -407,6 +407,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public bool IsNavigableMetadataSymbol(ISymbol symbol)
         {
+            if (!symbol.Locations.Any(l => l.IsInMetadata))
+            {
+                return false;
+            }
+
             switch (symbol.Kind)
             {
                 case SymbolKind.Event:

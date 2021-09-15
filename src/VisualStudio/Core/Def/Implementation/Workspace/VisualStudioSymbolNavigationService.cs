@@ -84,8 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // We don't have a source document, so show the Metadata as Source view in a preview tab.
 
-            var metadataLocation = symbol.Locations.Where(loc => loc.IsInMetadata).FirstOrDefault();
-            if (metadataLocation == null || !_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
+            if (!_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
             {
                 return false;
             }
