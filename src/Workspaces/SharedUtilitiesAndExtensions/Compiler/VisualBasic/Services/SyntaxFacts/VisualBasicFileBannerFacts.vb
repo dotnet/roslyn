@@ -5,10 +5,10 @@
 Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
-    Friend Class VisualBasicFileBanner
-        Inherits AbstractFileBanner
+    Friend Class VisualBasicFileBannerFacts
+        Inherits AbstractFileBannerFacts
 
-        Public Shared ReadOnly Instance As IFileBanner = New VisualBasicFileBanner()
+        Public Shared ReadOnly Instance As IFileBannerFacts = New VisualBasicFileBannerFacts()
 
         Protected Sub New()
         End Sub

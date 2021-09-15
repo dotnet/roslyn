@@ -7,9 +7,9 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
-    <ExportLanguageService(GetType(IFileBannerService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicFileBannerService
-        Inherits VisualBasicFileBanner
+    <ExportLanguageService(GetType(IFileBannerFactsService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicFileBannerFactsService
+        Inherits VisualBasicFileBannerFacts
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

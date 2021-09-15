@@ -12,40 +12,11 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
 #else
-using Microsoft.CodeAnalysis.Editing;
 #endif
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal interface IFileBanner
-    {
-        ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxNode root);
-        ImmutableArray<SyntaxTrivia> GetFileBanner(SyntaxToken firstToken);
-        string GetBannerText(SyntaxNode? documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken);
-
-        ImmutableArray<SyntaxTrivia> GetLeadingBlankLines(SyntaxNode node);
-
-        TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode;
-        TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(
-            TSyntaxNode node, out ImmutableArray<SyntaxTrivia> strippedTrivia) where TSyntaxNode : SyntaxNode;
-
-        ImmutableArray<SyntaxTrivia> GetLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode;
-
-        TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode;
-        TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(TSyntaxNode node, out ImmutableArray<SyntaxTrivia> strippedTrivia) where TSyntaxNode : SyntaxNode;
-    }
-
-    internal static class IFileBannerxtensions
-    {
-        public static ImmutableArray<SyntaxTrivia> GetTriviaAfterLeadingBlankLines(
-            this IFileBanner bannerService, SyntaxNode node)
-        {
-            var leadingBlankLines = bannerService.GetLeadingBlankLines(node);
-            return node.GetLeadingTrivia().Skip(leadingBlankLines.Length).ToImmutableArray();
-        }
-    }
-
-    internal abstract class AbstractFileBanner : IFileBanner
+    internal abstract class AbstractFileBannerFacts : IFileBannerFacts
     {
         // Matches the following:
         //
@@ -62,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // <start-of-file> (whitespace* (single-comment|multi-comment) whitespace* newline)+ blankLine*
         private readonly Matcher<SyntaxTrivia> _fileBannerMatcher;
 
-        protected AbstractFileBanner()
+        protected AbstractFileBannerFacts()
         {
             var whitespace = Matcher.Repeat(
                 Matcher.Single<SyntaxTrivia>(this.SyntaxFacts.IsWhitespaceTrivia, "\\b"));

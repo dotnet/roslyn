@@ -6,11 +6,11 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
-    internal class CSharpFileBanner : AbstractFileBanner
+    internal class CSharpFileBannerFacts : AbstractFileBannerFacts
     {
-        public static readonly IFileBanner Instance = new CSharpFileBanner();
+        public static readonly IFileBannerFacts Instance = new CSharpFileBannerFacts();
 
-        protected CSharpFileBanner()
+        protected CSharpFileBannerFacts()
         {
         }
 

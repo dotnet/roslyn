@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 : explicitDeclarationStatement.WithAdditionalAnnotations(warningAnnotation);
             declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
-            var bannerService = document.GetRequiredLanguageService<IFileBannerService>();
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
 
             var newNextStatement = state.FirstStatementAffectedInInnermostBlock;
             declarationStatement = declarationStatement.WithPrependedLeadingTrivia(
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 ? declarationStatement
                 : declarationStatement.WithAdditionalAnnotations(warningAnnotation);
 
-            var bannerService = document.GetRequiredLanguageService<IFileBannerService>();
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
             declarationStatement = declarationStatement.WithLeadingTrivia(
                 GetMergedTrivia(bannerService, state.DeclarationStatement, state.FirstStatementAffectedInInnermostBlock));
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         }
 
         private static ImmutableArray<SyntaxTrivia> GetMergedTrivia(
-            IFileBannerService bannerService, TStatementSyntax statement1, TStatementSyntax statement2)
+            IFileBannerFactsService bannerService, TStatementSyntax statement1, TStatementSyntax statement2)
         {
             return bannerService.GetLeadingBlankLines(statement2).Concat(
                    bannerService.GetTriviaAfterLeadingBlankLines(statement1)).Concat(

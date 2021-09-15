@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal interface IFileBannerService : IFileBanner, ILanguageService
+    internal interface IFileBannerFactsService : IFileBannerFacts, ILanguageService
     {
     }
 }

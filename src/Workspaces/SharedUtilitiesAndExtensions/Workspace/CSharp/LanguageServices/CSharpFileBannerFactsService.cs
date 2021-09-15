@@ -10,12 +10,12 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    [ExportLanguageService(typeof(IFileBanner), LanguageNames.CSharp), Shared]
-    internal class CSharpFileBannerService : CSharpFileBanner
+    [ExportLanguageService(typeof(IFileBannerFactsService), LanguageNames.CSharp), Shared]
+    internal class CSharpFileBannerFactsService : CSharpFileBannerFacts
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpFileBannerService()
+        public CSharpFileBannerFactsService()
         {
         }
     }
