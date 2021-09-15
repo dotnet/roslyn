@@ -255,8 +255,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool shouldSkipPartialDefinitionComments = false;
             if (symbol.IsPartialDefinition())
             {
-                MethodSymbol implementationPart = ((MethodSymbol)symbol).PartialImplementationPart;
-                if ((object)implementationPart != null)
+                if (symbol is not MethodSymbol { PartialImplementationPart: MethodSymbol implementationPart })
+                {
+                    // The partial method has no implementation. Since it won't be present in the
+                    // output assembly, it shouldn't be included in the documentation file.
+                    shouldSkipPartialDefinitionComments = !_isForSingleSymbol;
+                }
+                else
                 {
                     Visit(implementationPart);
 

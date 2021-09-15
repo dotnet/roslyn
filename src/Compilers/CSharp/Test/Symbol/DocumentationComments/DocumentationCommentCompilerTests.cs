@@ -912,6 +912,34 @@ partial class C
         }
 
         [Fact]
+        public void PartialMethod_NoImplementation()
+        {
+            var source = @"
+partial class C
+{
+    /** <summary>Summary 2</summary>*/
+    partial void M();
+}
+";
+
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.RegularWithDocumentationComments);
+
+            var comp = CreateCompilation(tree, assemblyName: "Test");
+            var actual = GetDocumentationCommentText(comp);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+    </members>
+</doc>
+".Trim();
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
         public void ExtendedPartialMethods_MultipleFiles()
         {
             var source1 = @"
@@ -1092,7 +1120,7 @@ partial class C
             var expected = @"
 <?xml version=""1.0""?>
 <doc>
-    <assembly>  
+    <assembly>
         <name>Test</name>
     </assembly>
     <members>
