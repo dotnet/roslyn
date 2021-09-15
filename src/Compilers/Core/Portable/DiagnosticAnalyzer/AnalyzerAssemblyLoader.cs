@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Roslyn.Utilities;
 
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis
 
         // lock _guard to read/write
         private readonly Dictionary<string, Assembly> _loadedAssembliesByPath = new();
-        private readonly Dictionary<string, AssemblyIdentity> _loadedAssemblyIdentitiesByPath = new();
+        private readonly Dictionary<string, AssemblyIdentity?> _loadedAssemblyIdentitiesByPath = new();
         private readonly Dictionary<AssemblyIdentity, Assembly> _loadedAssembliesByIdentity = new();
 
         // maps file name to a full path (lock _guard to read/write):
@@ -59,12 +58,12 @@ namespace Microsoft.CodeAnalysis
             return LoadFromPathUncheckedCore(fullPath);
         }
 
-        private Assembly LoadFromPathUncheckedCore(string fullPath, AssemblyIdentity identity = null)
+        private Assembly LoadFromPathUncheckedCore(string fullPath, AssemblyIdentity? identity = null)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
 
             // Check if we have already loaded an assembly with the same identity or from the given path.
-            Assembly loadedAssembly = null;
+            Assembly? loadedAssembly = null;
             lock (_guard)
             {
                 if (_loadedAssembliesByPath.TryGetValue(fullPath, out var existingAssembly))
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis
             return AddToCache(loadedAssembly, fullPath, identity);
         }
 
-        private Assembly AddToCache(Assembly assembly, string fullPath, AssemblyIdentity identity)
+        private Assembly AddToCache(Assembly assembly, string fullPath, AssemblyIdentity? identity)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
             Debug.Assert(assembly != null);
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private AssemblyIdentity GetOrAddAssemblyIdentity(string fullPath)
+        private AssemblyIdentity? GetOrAddAssemblyIdentity(string fullPath)
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
 
@@ -136,7 +135,8 @@ namespace Microsoft.CodeAnalysis
             return AddToCache(fullPath, identity);
         }
 
-        private AssemblyIdentity AddToCache(string fullPath, AssemblyIdentity identity)
+        [return: NotNullIfNotNull("identity")]
+        private AssemblyIdentity? AddToCache(string fullPath, AssemblyIdentity? identity)
         {
             lock (_guard)
             {
@@ -153,7 +153,6 @@ namespace Microsoft.CodeAnalysis
             return identity;
         }
 
-#nullable enable
         protected HashSet<string>? GetPaths(string simpleName)
         {
             _knownAssemblyPathsBySimpleName.TryGetValue(simpleName, out var paths);
@@ -169,9 +168,8 @@ namespace Microsoft.CodeAnalysis
         {
             return fullPath;
         }
-#nullable disable
 
-        public Assembly Load(string displayName)
+        public Assembly? Load(string displayName)
         {
             if (!AssemblyIdentity.TryParseDisplayName(displayName, out var requestedIdentity))
             {

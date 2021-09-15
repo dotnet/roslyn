@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var loader = new DefaultAnalyzerAssemblyLoader();
 
-            Assert.Throws<ArgumentNullException>("fullPath", () => loader.AddDependencyLocation(null));
+            Assert.Throws<ArgumentNullException>("fullPath", () => loader.AddDependencyLocation(null!));
             Assert.Throws<ArgumentException>("fullPath", () => loader.AddDependencyLocation("a"));
         }
 
