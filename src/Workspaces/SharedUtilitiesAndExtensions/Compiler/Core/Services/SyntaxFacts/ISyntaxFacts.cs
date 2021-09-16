@@ -565,8 +565,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// Gets the <see cref="DeclarationKind"/> for the declaration.
         /// </summary>
         DeclarationKind GetDeclarationKind(SyntaxNode declaration);
-
-        bool IsImplicitObjectCreation([NotNullWhen(true)] SyntaxNode? node);
         bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node);
 
         #region IsXXX members

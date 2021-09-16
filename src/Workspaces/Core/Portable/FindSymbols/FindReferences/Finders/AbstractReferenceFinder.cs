@@ -602,11 +602,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             void CollectMatchingReferences(
                 SyntaxNode node, ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations)
             {
-                if (!syntaxFacts.IsImplicitObjectCreation(node))
-                {
-                    // Avoid binding unrelated nodes
+                // Avoid binding unrelated nodes
+                if (!syntaxFacts.IsImplicitObjectCreationExpression(node))
                     return;
-                }
 
                 var constructor = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
 

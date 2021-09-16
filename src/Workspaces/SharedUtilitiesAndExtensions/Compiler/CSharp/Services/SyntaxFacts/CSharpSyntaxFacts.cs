@@ -1945,9 +1945,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => ((TypePatternSyntax)node).Type;
 
-        public bool IsImplicitObjectCreation([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsKind(SyntaxKind.ImplicitObjectCreationExpression);
-
         public bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
 

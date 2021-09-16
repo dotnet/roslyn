@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
         public int DefaultLiteralExpression => (int)SyntaxKind.DefaultLiteralExpression;
         public int FalseLiteralExpression => (int)SyntaxKind.FalseLiteralExpression;
+        public int? ImplicitObjectCreationExpression => (int)SyntaxKind.ImplicitObjectCreationExpression;
         public int InvocationExpression => (int)SyntaxKind.InvocationExpression;
         public int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;

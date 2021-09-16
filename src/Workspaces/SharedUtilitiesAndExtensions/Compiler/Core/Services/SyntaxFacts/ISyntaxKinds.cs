@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int BaseExpression { get; }
         int ConditionalAccessExpression { get; }
         int ConditionalExpression { get; }
+        int? ImplicitObjectCreationExpression { get; }
         int InterpolatedStringExpression { get; }
         int InvocationExpression { get; }
         int LogicalAndExpression { get; }
