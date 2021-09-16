@@ -70,6 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property SimpleMemberAccessExpression As Integer = SyntaxKind.SimpleMemberAccessExpression Implements ISyntaxKinds.SimpleMemberAccessExpression
         Public ReadOnly Property TernaryConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.TernaryConditionalExpression
         Public ReadOnly Property ThisExpression As Integer = SyntaxKind.MeExpression Implements ISyntaxKinds.ThisExpression
+        Public ReadOnly Property ThrowExpression As Integer? = Nothing Implements ISyntaxKinds.ThrowExpression
         Public ReadOnly Property TupleExpression As Integer = SyntaxKind.TupleExpression Implements ISyntaxKinds.TupleExpression
 
         Public ReadOnly Property EndOfFileToken As Integer = SyntaxKind.EndOfFileToken Implements ISyntaxKinds.EndOfFileToken

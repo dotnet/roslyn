@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int StringLiteralExpression => (int)SyntaxKind.StringLiteralExpression;
         public int TernaryConditionalExpression => (int)SyntaxKind.ConditionalExpression;
         public int ThisExpression => (int)SyntaxKind.ThisExpression;
+        public int? ThrowExpression => (int)SyntaxKind.ThrowExpression;
         public int TrueLiteralExpression => (int)SyntaxKind.TrueLiteralExpression;
         public int TupleExpression => (int)SyntaxKind.TupleExpression;
 

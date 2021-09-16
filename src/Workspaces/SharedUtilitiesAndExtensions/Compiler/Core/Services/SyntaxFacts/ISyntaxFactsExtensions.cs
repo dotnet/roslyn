@@ -495,6 +495,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsThisExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ThisExpression;
 
+        public static bool IsThrowExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node != null && node.RawKind == syntaxFacts.SyntaxKinds.ThrowExpression;
+
         public static bool IsTupleExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TupleExpression;
 

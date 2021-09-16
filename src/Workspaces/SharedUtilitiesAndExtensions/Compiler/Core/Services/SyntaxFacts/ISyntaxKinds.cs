@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int SimpleMemberAccessExpression { get; }
         int TernaryConditionalExpression { get; }
         int ThisExpression { get; }
+        int? ThrowExpression { get; }
         int TupleExpression { get; }
 
         #endregion

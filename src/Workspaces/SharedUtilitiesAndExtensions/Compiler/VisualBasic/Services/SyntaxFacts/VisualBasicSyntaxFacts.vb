@@ -301,11 +301,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End Select
         End Function
 
-        Public Function IsThrowExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsThrowExpression
-            ' VB does not support throw expressions currently.
-            Return False
-        End Function
-
         Public Function IsPredefinedType(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsPredefinedType
             Dim actualType As PredefinedType = PredefinedType.None
             Return TryGetPredefinedType(token, actualType) AndAlso actualType <> PredefinedType.None
