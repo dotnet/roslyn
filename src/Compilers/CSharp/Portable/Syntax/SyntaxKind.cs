@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExpressionColon = 9069,
         LineDirectivePosition = 9070,
         LineSpanDirectiveTrivia = 9071,
-        
+
         PointerMemberBindingExpression = 9072,
     }
 }
