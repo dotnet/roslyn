@@ -1351,22 +1351,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsIsExpression([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IsExpression);
 
-        public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
-        {
-            var binaryExpression = (BinaryExpressionSyntax)node;
-            left = binaryExpression.Left;
-            operatorToken = binaryExpression.OperatorToken;
-            right = binaryExpression.Right;
-        }
-
-        public void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse)
-        {
-            var conditionalExpression = (ConditionalExpressionSyntax)node;
-            condition = conditionalExpression.Condition;
-            whenTrue = conditionalExpression.WhenTrue;
-            whenFalse = conditionalExpression.WhenFalse;
-        }
-
         [return: NotNullIfNotNull("node")]
         public SyntaxNode? WalkDownParentheses(SyntaxNode? node)
             => (node as ExpressionSyntax)?.WalkDownParentheses() ?? node;
@@ -1908,6 +1892,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         #region GetPartsOfXXX members
 
+        public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
+        {
+            var binaryExpression = (BinaryExpressionSyntax)node;
+            left = binaryExpression.Left;
+            operatorToken = binaryExpression.OperatorToken;
+            right = binaryExpression.Right;
+        }
+
         public void GetPartsOfCompilationUnit(SyntaxNode node, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> attributeLists, out SyntaxList<SyntaxNode> members)
         {
             var compilationUnit = (CompilationUnitSyntax)node;
@@ -1923,6 +1915,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             expression = conditionalAccess.Expression;
             operatorToken = conditionalAccess.OperatorToken;
             whenNotNull = conditionalAccess.WhenNotNull;
+        }
+
+        public void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse)
+        {
+            var conditionalExpression = (ConditionalExpressionSyntax)node;
+            condition = conditionalExpression.Condition;
+            whenTrue = conditionalExpression.WhenTrue;
+            whenFalse = conditionalExpression.WhenFalse;
         }
 
         public void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode? argumentList)
