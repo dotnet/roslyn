@@ -1291,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
             => ((BaseArgumentListSyntax)argumentList).Arguments;
 
-        public SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode invocationExpression)
+        public SyntaxNode? GetArgumentListOfInvocationExpression(SyntaxNode invocationExpression)
             => ((InvocationExpressionSyntax)invocationExpression).ArgumentList;
 
         public SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode objectCreationExpression)

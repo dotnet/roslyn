@@ -351,8 +351,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode node);
 
-        // Violation.  Return value should be nullable as VB has invocations without an argument list node.
-        SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode node);
+        SyntaxNode? GetArgumentListOfInvocationExpression(SyntaxNode node);
         SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode node);
 
         bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node);
