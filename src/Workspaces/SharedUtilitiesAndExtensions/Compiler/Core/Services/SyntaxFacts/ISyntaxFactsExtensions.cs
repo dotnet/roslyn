@@ -145,12 +145,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return pattern;
         }
 
-        public static SyntaxNode GetExpressionOfParenthesizedExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
-        {
-            syntaxFacts.GetPartsOfParenthesizedExpression(node, out _, out var expression, out _);
-            return expression;
-        }
-
         public static SyntaxToken GetOperatorTokenOfBinaryExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfBinaryExpression(node, out _, out var token, out _);
@@ -268,6 +262,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out var argumentList, out _);
             return argumentList;
+        }
+
+        public static SyntaxNode GetExpressionOfParenthesizedExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfParenthesizedExpression(node, out _, out var expression, out _);
+            return expression;
         }
 
         public static SyntaxList<SyntaxNode> GetImportsOfCompilationUnit(this ISyntaxFacts syntaxFacts, SyntaxNode node)

@@ -302,8 +302,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node);
 
-        SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
-
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfParameter(SyntaxNode node);
