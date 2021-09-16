@@ -185,9 +185,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool TryGetPredefinedOperator(SyntaxToken token, out PredefinedOperator op);
         bool TryGetExternalSourceInfo([NotNullWhen(true)] SyntaxNode? directive, out ExternalSourceInfo info);
 
-        SyntaxNode? GetInitializerOfObjectCreationExpression(SyntaxNode node);
-        SyntaxNode GetTypeOfObjectCreationExpression(SyntaxNode node);
-
         bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);

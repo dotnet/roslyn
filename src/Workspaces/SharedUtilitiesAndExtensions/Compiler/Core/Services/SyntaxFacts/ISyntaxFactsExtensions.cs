@@ -262,6 +262,22 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return syntaxFacts.GetRootConditionalAccessExpression(standalone) ?? standalone;
         }
 
+        #region GetXXXOfYYY Members
+
+        public static SyntaxNode? GetInitializerOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out _, out var initializer);
+            return initializer;
+        }
+
+        public static SyntaxNode GetTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfObjectCreationExpression(node, out var type, out _, out _);
+            return type;
+        }
+
+        #endregion
+
         #region IsXXXOfYYY members
 
         public static bool IsTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)

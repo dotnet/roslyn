@@ -1428,14 +1428,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Function GetInitializerOfObjectCreationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetInitializerOfObjectCreationExpression
-            Return DirectCast(node, ObjectCreationExpressionSyntax).Initializer
-        End Function
-
-        Public Function GetTypeOfObjectCreationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetTypeOfObjectCreationExpression
-            Return DirectCast(node, ObjectCreationExpressionSyntax).Type
-        End Function
-
         Public Function IsSimpleAssignmentStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleAssignmentStatement
             Return node.IsKind(SyntaxKind.SimpleAssignmentStatement)
         End Function

@@ -1366,12 +1366,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsTypeDeclaration(SyntaxNode node)
             => SyntaxFacts.IsTypeDeclaration(node.Kind());
 
-        public SyntaxNode? GetInitializerOfObjectCreationExpression(SyntaxNode node)
-            => ((ObjectCreationExpressionSyntax)node).Initializer;
-
-        public SyntaxNode GetTypeOfObjectCreationExpression(SyntaxNode node)
-            => ((ObjectCreationExpressionSyntax)node).Type;
-
         public bool IsSimpleAssignmentStatement([NotNullWhen(true)] SyntaxNode? statement)
             => statement.IsKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax? exprStatement) &&
                exprStatement.Expression.IsKind(SyntaxKind.SimpleAssignmentExpression);
