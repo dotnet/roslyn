@@ -318,7 +318,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsArgument([NotNullWhen(true)] SyntaxNode? node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
 
-        bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node);
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         bool LooksGeneric(SyntaxNode simpleName);
 
@@ -567,6 +566,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node);
 
         #endregion
 

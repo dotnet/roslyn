@@ -533,9 +533,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsPointerMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.PointerMemberAccessExpression;
 
-        public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
-            => node is SimpleNameSyntax;
-
         public void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity)
         {
             var simpleName = (SimpleNameSyntax)node;
@@ -1922,6 +1919,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberAccessExpressionSyntax;
+
+        public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
+            => node is SimpleNameSyntax;
 
         #endregion
 

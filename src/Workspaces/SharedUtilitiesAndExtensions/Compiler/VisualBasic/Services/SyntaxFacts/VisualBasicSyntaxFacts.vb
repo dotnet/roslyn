@@ -507,10 +507,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Function IsSimpleName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleName
-            Return TypeOf node Is SimpleNameSyntax
-        End Function
-
         Public Sub GetNameAndArityOfSimpleName(node As SyntaxNode, ByRef name As String, ByRef arity As Integer) Implements ISyntaxFacts.GetNameAndArityOfSimpleName
             Dim simpleName = DirectCast(node, SimpleNameSyntax)
             name = simpleName.Identifier.ValueText
@@ -2183,6 +2179,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function IsMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberAccessExpression
             Return TypeOf node Is MemberAccessExpressionSyntax
+        End Function
+
+        Public Function IsSimpleName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleName
+            Return TypeOf node Is SimpleNameSyntax
         End Function
 
 #End Region
