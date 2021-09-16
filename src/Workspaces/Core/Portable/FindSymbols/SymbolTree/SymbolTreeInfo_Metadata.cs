@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 keySuffix: "_Metadata_" + filePath,
                 tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(services, solutionKey, checksum, database, filePath, nodes)),
                 cancellationToken: cancellationToken);
-            Contract.ThrowIfNull(result != null);
+            Contract.ThrowIfNull(result);
             return result;
         }
 
