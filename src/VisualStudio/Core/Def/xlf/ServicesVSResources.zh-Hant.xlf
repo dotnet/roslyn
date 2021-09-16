@@ -2578,11 +2578,6 @@ Additional information: {1}</source>
         <target state="translated">選取成員</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio">
-        <source>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</source>
-        <target state="translated">很抱歉，Visual Studio 所使用的處理序遇到無法復原的錯誤。建議您儲存工作進度，然後關閉並重新啟動 Visual Studio。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_a_symbol_specification">
         <source>Add a symbol specification</source>
         <target state="translated">新增符號規格</target>

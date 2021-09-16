@@ -24,15 +24,6 @@ namespace Microsoft.CodeAnalysis.Extensions
 
         void ShowDetailedErrorInfo(Exception exception);
 
-        /// <summary>
-        /// Shows info-bar reporting ServiceHub process crash.
-        /// "Unfortunately a process used by Visual Studio has encountered an unrecoverable error".
-        /// 
-        /// Obsolete - will remove once we remove JsonRpcConnection.
-        /// https://github.com/dotnet/roslyn/issues/45859
-        /// </summary>
-        void ShowRemoteHostCrashedErrorInfo(Exception? exception);
-
         void ShowFeatureNotAvailableErrorInfo(string message, Exception? exception);
     }
 }
