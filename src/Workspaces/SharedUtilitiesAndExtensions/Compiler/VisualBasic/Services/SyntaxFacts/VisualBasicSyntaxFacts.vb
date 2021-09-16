@@ -1631,49 +1631,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return trivia.IsPragmaDirective(isDisable, isActive, errorCodes)
         End Function
 
-        Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer, ByRef typeDeclaration As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBetweenTypeMembers
-            Dim token = root.FindToken(position)
-            Dim typeDecl = token.GetAncestor(Of TypeBlockSyntax)
-            typeDeclaration = typeDecl
-
-            If typeDecl IsNot Nothing Then
-                Dim start = If(typeDecl.Implements.LastOrDefault()?.Span.End,
-                               If(typeDecl.Inherits.LastOrDefault()?.Span.End,
-                                  typeDecl.BlockStatement.Span.End))
-
-                If position >= start AndAlso
-                   position <= typeDecl.EndBlockStatement.Span.Start Then
-
-                    Dim line = sourceText.Lines.GetLineFromPosition(position)
-                    If Not line.IsEmptyOrWhitespace() Then
-                        Return False
-                    End If
-
-                    Dim member = typeDecl.Members.FirstOrDefault(Function(d) d.FullSpan.Contains(position))
-                    If member Is Nothing Then
-                        ' There are no members, Or we're after the last member.
-                        Return True
-                    Else
-                        ' We're within a member.  Make sure we're in the leading whitespace of
-                        ' the member.
-                        If position < member.SpanStart Then
-                            For Each trivia In member.GetLeadingTrivia()
-                                If Not trivia.IsWhitespaceOrEndOfLine() Then
-                                    Return False
-                                End If
-
-                                If trivia.FullSpan.Contains(position) Then
-                                    Return True
-                                End If
-                            Next
-                        End If
-                    End If
-                End If
-            End If
-
-            Return False
-        End Function
-
         Protected Overrides Function ContainsInterleavedDirective(span As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Return token.ContainsInterleavedDirective(span, cancellationToken)
         End Function

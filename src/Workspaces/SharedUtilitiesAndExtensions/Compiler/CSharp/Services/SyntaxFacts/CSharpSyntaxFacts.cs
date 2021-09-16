@@ -1516,60 +1516,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
             => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
-        public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
-        {
-            var token = root.FindToken(position);
-            var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
-            typeDeclaration = typeDecl;
-
-            if (typeDecl == null)
-            {
-                return false;
-            }
-
-            RoslynDebug.AssertNotNull(typeDeclaration);
-            if (position < typeDecl.OpenBraceToken.Span.End ||
-                position > typeDecl.CloseBraceToken.Span.Start)
-            {
-                return false;
-            }
-
-            var line = sourceText.Lines.GetLineFromPosition(position);
-            if (!line.IsEmptyOrWhitespace())
-            {
-                return false;
-            }
-
-            var member = typeDecl.Members.FirstOrDefault(d => d.FullSpan.Contains(position));
-            if (member == null)
-            {
-                // There are no members, or we're after the last member.
-                return true;
-            }
-            else
-            {
-                // We're within a member.  Make sure we're in the leading whitespace of
-                // the member.
-                if (position < member.SpanStart)
-                {
-                    foreach (var trivia in member.GetLeadingTrivia())
-                    {
-                        if (!trivia.IsWhitespaceOrEndOfLine())
-                        {
-                            return false;
-                        }
-
-                        if (trivia.FullSpan.Contains(position))
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
-
         protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
             => token.ContainsInterleavedDirective(span, cancellationToken);
 

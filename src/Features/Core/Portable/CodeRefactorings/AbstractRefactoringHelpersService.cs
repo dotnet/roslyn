@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +21,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         where TArgumentSyntax : SyntaxNode
         where TExpressionStatementSyntax : SyntaxNode
     {
+        protected abstract IHeaderFacts HeaderFacts { get; }
+
+        public abstract bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
+
         public async Task<ImmutableArray<TSyntaxNode>> GetRelevantNodesAsync<TSyntaxNode>(
             Document document, TextSpan selectionRaw,
             CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
@@ -500,5 +505,32 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 resultBuilder.Add(nodeToBeAdded);
             }
         }
+
+        public bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
+            => HeaderFacts.IsOnTypeHeader(root, position, fullHeader, out typeDeclaration);
+
+        public bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? propertyDeclaration)
+            => HeaderFacts.IsOnPropertyDeclarationHeader(root, position, out propertyDeclaration);
+
+        public bool IsOnParameterHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? parameter)
+            => HeaderFacts.IsOnParameterHeader(root, position, out parameter);
+
+        public bool IsOnMethodHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? method)
+            => HeaderFacts.IsOnMethodHeader(root, position, out method);
+
+        public bool IsOnLocalFunctionHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? localFunction)
+            => HeaderFacts.IsOnLocalFunctionHeader(root, position, out localFunction);
+
+        public bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? localDeclaration)
+            => HeaderFacts.IsOnLocalDeclarationHeader(root, position, out localDeclaration);
+
+        public bool IsOnIfStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? ifStatement)
+            => HeaderFacts.IsOnIfStatementHeader(root, position, out ifStatement);
+
+        public bool IsOnWhileStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? whileStatement)
+            => HeaderFacts.IsOnWhileStatementHeader(root, position, out whileStatement);
+
+        public bool IsOnForeachHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? foreachStatement)
+            => HeaderFacts.IsOnForeachHeader(root, position, out foreachStatement);
     }
 }

@@ -556,8 +556,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetTypeOfTypePattern(SyntaxNode node);
 
-        bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
-
         // Violation.  This is a feature level API.
         SyntaxNode? GetNextExecutableStatement(SyntaxNode statement);
 
