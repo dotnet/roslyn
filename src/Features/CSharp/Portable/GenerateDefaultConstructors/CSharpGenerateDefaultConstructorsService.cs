@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors
             // or if we're on the first base-type of a class
 
             var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, out var typeDeclaration) ||
+            var headerFacts = semanticDocument.Document.GetRequiredLanguageService<IHeaderFactsService>();
+            if (headerFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, out var typeDeclaration) ||
                 syntaxFacts.IsBetweenTypeMembers(semanticDocument.Text, semanticDocument.Root, textSpan.Start, out typeDeclaration))
             {
                 classType = semanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;

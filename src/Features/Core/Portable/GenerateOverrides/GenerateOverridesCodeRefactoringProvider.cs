@@ -35,12 +35,13 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
         {
             var (document, textSpan, cancellationToken) = context;
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var headerFacts = document.GetRequiredLanguageService<IHeaderFactsService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
+            if (!headerFacts.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
                 !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
                 return;
