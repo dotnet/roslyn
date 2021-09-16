@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Function IsObjectCreationExpressionType(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectCreationExpressionType
+        Public Function IsTypeOfObjectCreationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTypeOfObjectCreationExpression
             Return node.IsParentKind(SyntaxKind.ObjectCreationExpression) AndAlso
                 DirectCast(node.Parent, ObjectCreationExpressionSyntax).Type Is node
         End Function
@@ -1449,11 +1449,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Function GetObjectCreationInitializer(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetObjectCreationInitializer
+        Public Function GetInitializerOfObjectCreationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetInitializerOfObjectCreationExpression
             Return DirectCast(node, ObjectCreationExpressionSyntax).Initializer
         End Function
 
-        Public Function GetObjectCreationType(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetObjectCreationType
+        Public Function GetTypeOfObjectCreationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetTypeOfObjectCreationExpression
             Return DirectCast(node, ObjectCreationExpressionSyntax).Type
         End Function
 

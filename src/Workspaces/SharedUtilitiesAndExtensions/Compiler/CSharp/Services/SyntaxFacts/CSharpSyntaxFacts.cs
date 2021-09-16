@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node)
             => node.GetRootConditionalAccessExpression();
 
-        public bool IsObjectCreationExpressionType([NotNullWhen(true)] SyntaxNode? node)
+        public bool IsTypeOfObjectCreationExpression([NotNullWhen(true)] SyntaxNode? node)
             => node.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax? objectCreation) &&
                objectCreation.Type == node;
 
@@ -1386,10 +1386,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsTypeDeclaration(SyntaxNode node)
             => SyntaxFacts.IsTypeDeclaration(node.Kind());
 
-        public SyntaxNode? GetObjectCreationInitializer(SyntaxNode node)
+        public SyntaxNode? GetInitializerOfObjectCreationExpression(SyntaxNode node)
             => ((ObjectCreationExpressionSyntax)node).Initializer;
 
-        public SyntaxNode GetObjectCreationType(SyntaxNode node)
+        public SyntaxNode GetTypeOfObjectCreationExpression(SyntaxNode node)
             => ((ObjectCreationExpressionSyntax)node).Type;
 
         public bool IsSimpleAssignmentStatement([NotNullWhen(true)] SyntaxNode? statement)

@@ -185,12 +185,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool TryGetPredefinedOperator(SyntaxToken token, out PredefinedOperator op);
         bool TryGetExternalSourceInfo([NotNullWhen(true)] SyntaxNode? directive, out ExternalSourceInfo info);
 
-        // Violation.  Should be named IsTypeOfObjectCreationExpression
-        bool IsObjectCreationExpressionType([NotNullWhen(true)] SyntaxNode? node);
-        // Violation.  Should be named GetInitializerOfObjectCreationExpression
-        SyntaxNode? GetObjectCreationInitializer(SyntaxNode node);
-        // Violation.  Should be named GetTypeOfObjectCreationExpression
-        SyntaxNode GetObjectCreationType(SyntaxNode node);
+        bool IsTypeOfObjectCreationExpression([NotNullWhen(true)] SyntaxNode? node);
+        SyntaxNode? GetInitializerOfObjectCreationExpression(SyntaxNode node);
+        SyntaxNode GetTypeOfObjectCreationExpression(SyntaxNode node);
 
         bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node);
 
