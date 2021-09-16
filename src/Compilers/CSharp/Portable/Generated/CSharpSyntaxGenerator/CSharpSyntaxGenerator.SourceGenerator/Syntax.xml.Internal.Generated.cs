@@ -3138,6 +3138,109 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
+    /// <summary>Class which represents the syntax node for pointer member binding expression.</summary>
+    internal sealed partial class PointerMemberBindingExpressionSyntax : ExpressionSyntax
+    {
+        internal readonly SyntaxToken operatorToken;
+        internal readonly SimpleNameSyntax name;
+
+        internal PointerMemberBindingExpressionSyntax(SyntaxKind kind, SyntaxToken operatorToken, SimpleNameSyntax name, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+          : base(kind, diagnostics, annotations)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+        }
+
+        internal PointerMemberBindingExpressionSyntax(SyntaxKind kind, SyntaxToken operatorToken, SimpleNameSyntax name, SyntaxFactoryContext context)
+          : base(kind)
+        {
+            this.SetFactoryContext(context);
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+        }
+
+        internal PointerMemberBindingExpressionSyntax(SyntaxKind kind, SyntaxToken operatorToken, SimpleNameSyntax name)
+          : base(kind)
+        {
+            this.SlotCount = 2;
+            this.AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+        }
+
+        /// <summary>SyntaxToken representing minus greater than.</summary>
+        public SyntaxToken OperatorToken => this.operatorToken;
+        /// <summary>SimpleNameSyntax node representing the member being bound to.</summary>
+        public SimpleNameSyntax Name => this.name;
+
+        internal override GreenNode? GetSlot(int index)
+            => index switch
+            {
+                0 => this.operatorToken,
+                1 => this.name,
+                _ => null,
+            };
+
+        internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.PointerMemberBindingExpressionSyntax(this, parent, position);
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPointerMemberBindingExpression(this);
+        public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitPointerMemberBindingExpression(this);
+
+        public PointerMemberBindingExpressionSyntax Update(SyntaxToken operatorToken, SimpleNameSyntax name)
+        {
+            if (operatorToken != this.OperatorToken || name != this.Name)
+            {
+                var newNode = SyntaxFactory.PointerMemberBindingExpression(operatorToken, name);
+                var diags = GetDiagnostics();
+                if (diags?.Length > 0)
+                    newNode = newNode.WithDiagnosticsGreen(diags);
+                var annotations = GetAnnotations();
+                if (annotations?.Length > 0)
+                    newNode = newNode.WithAnnotationsGreen(annotations);
+                return newNode;
+            }
+
+            return this;
+        }
+
+        internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+            => new PointerMemberBindingExpressionSyntax(this.Kind, this.operatorToken, this.name, diagnostics, GetAnnotations());
+
+        internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+            => new PointerMemberBindingExpressionSyntax(this.Kind, this.operatorToken, this.name, GetDiagnostics(), annotations);
+
+        internal PointerMemberBindingExpressionSyntax(ObjectReader reader)
+          : base(reader)
+        {
+            this.SlotCount = 2;
+            var operatorToken = (SyntaxToken)reader.ReadValue();
+            AdjustFlagsAndWidth(operatorToken);
+            this.operatorToken = operatorToken;
+            var name = (SimpleNameSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(name);
+            this.name = name;
+        }
+
+        internal override void WriteTo(ObjectWriter writer)
+        {
+            base.WriteTo(writer);
+            writer.WriteValue(this.operatorToken);
+            writer.WriteValue(this.name);
+        }
+
+        static PointerMemberBindingExpressionSyntax()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(PointerMemberBindingExpressionSyntax), r => new PointerMemberBindingExpressionSyntax(r));
+        }
+    }
+
     /// <summary>Class which represents the syntax node for element binding expression.</summary>
     internal sealed partial class ElementBindingExpressionSyntax : ExpressionSyntax
     {
@@ -33906,6 +34009,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual TResult VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual TResult VisitPointerMemberBindingExpression(PointerMemberBindingExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
         public virtual TResult VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
@@ -34145,6 +34249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public virtual void VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
+        public virtual void VisitPointerMemberBindingExpression(PointerMemberBindingExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
         public virtual void VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
@@ -34436,6 +34541,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => node.Update((ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.OperatorToken), (ExpressionSyntax)Visit(node.WhenNotNull));
 
         public override CSharpSyntaxNode VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
+            => node.Update((SyntaxToken)Visit(node.OperatorToken), (SimpleNameSyntax)Visit(node.Name));
+
+        public override CSharpSyntaxNode VisitPointerMemberBindingExpression(PointerMemberBindingExpressionSyntax node)
             => node.Update((SyntaxToken)Visit(node.OperatorToken), (SimpleNameSyntax)Visit(node.Name));
 
         public override CSharpSyntaxNode VisitElementBindingExpression(ElementBindingExpressionSyntax node)
@@ -35721,6 +35829,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (cached != null) return (MemberBindingExpressionSyntax)cached;
 
             var result = new MemberBindingExpressionSyntax(SyntaxKind.MemberBindingExpression, operatorToken, name, this.context);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
+        public PointerMemberBindingExpressionSyntax PointerMemberBindingExpression(SyntaxToken operatorToken, SimpleNameSyntax name)
+        {
+#if DEBUG
+            if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
+            if (operatorToken.Kind != SyntaxKind.MinusGreaterThanToken) throw new ArgumentException(nameof(operatorToken));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+#endif
+
+            int hash;
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.PointerMemberBindingExpression, operatorToken, name, this.context, out hash);
+            if (cached != null) return (PointerMemberBindingExpressionSyntax)cached;
+
+            var result = new PointerMemberBindingExpressionSyntax(SyntaxKind.PointerMemberBindingExpression, operatorToken, name, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -40702,6 +40831,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
+        public static PointerMemberBindingExpressionSyntax PointerMemberBindingExpression(SyntaxToken operatorToken, SimpleNameSyntax name)
+        {
+#if DEBUG
+            if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
+            if (operatorToken.Kind != SyntaxKind.MinusGreaterThanToken) throw new ArgumentException(nameof(operatorToken));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+#endif
+
+            int hash;
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PointerMemberBindingExpression, operatorToken, name, out hash);
+            if (cached != null) return (PointerMemberBindingExpressionSyntax)cached;
+
+            var result = new PointerMemberBindingExpressionSyntax(SyntaxKind.PointerMemberBindingExpression, operatorToken, name);
+            if (hash >= 0)
+            {
+                SyntaxNodeCache.AddNode(result, hash);
+            }
+
+            return result;
+        }
+
         public static ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)
         {
 #if DEBUG
@@ -45043,6 +45193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 typeof(MemberAccessExpressionSyntax),
                 typeof(ConditionalAccessExpressionSyntax),
                 typeof(MemberBindingExpressionSyntax),
+                typeof(PointerMemberBindingExpressionSyntax),
                 typeof(ElementBindingExpressionSyntax),
                 typeof(RangeExpressionSyntax),
                 typeof(ImplicitElementAccessSyntax),

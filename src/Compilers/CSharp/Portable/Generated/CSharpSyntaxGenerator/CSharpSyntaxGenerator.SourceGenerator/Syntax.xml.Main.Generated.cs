@@ -96,6 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a MemberBindingExpressionSyntax node.</summary>
         public virtual TResult? VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a PointerMemberBindingExpressionSyntax node.</summary>
+        public virtual TResult? VisitPointerMemberBindingExpression(PointerMemberBindingExpressionSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a ElementBindingExpressionSyntax node.</summary>
         public virtual TResult? VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -804,6 +807,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a MemberBindingExpressionSyntax node.</summary>
         public virtual void VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a PointerMemberBindingExpressionSyntax node.</summary>
+        public virtual void VisitPointerMemberBindingExpression(PointerMemberBindingExpressionSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a ElementBindingExpressionSyntax node.</summary>
         public virtual void VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
 
@@ -1510,6 +1516,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update((ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.OperatorToken), (ExpressionSyntax?)Visit(node.WhenNotNull) ?? throw new ArgumentNullException("whenNotNull"));
 
         public override SyntaxNode? VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
+            => node.Update(VisitToken(node.OperatorToken), (SimpleNameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"));
+
+        public override SyntaxNode? VisitPointerMemberBindingExpression(PointerMemberBindingExpressionSyntax node)
             => node.Update(VisitToken(node.OperatorToken), (SimpleNameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"));
 
         public override SyntaxNode? VisitElementBindingExpression(ElementBindingExpressionSyntax node)
@@ -2584,6 +2593,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new MemberBindingExpressionSyntax instance.</summary>
         public static MemberBindingExpressionSyntax MemberBindingExpression(SimpleNameSyntax name)
             => SyntaxFactory.MemberBindingExpression(SyntaxFactory.Token(SyntaxKind.DotToken), name);
+
+        /// <summary>Creates a new PointerMemberBindingExpressionSyntax instance.</summary>
+        public static PointerMemberBindingExpressionSyntax PointerMemberBindingExpression(SyntaxToken operatorToken, SimpleNameSyntax name)
+        {
+            if (operatorToken.Kind() != SyntaxKind.MinusGreaterThanToken) throw new ArgumentException(nameof(operatorToken));
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            return (PointerMemberBindingExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.PointerMemberBindingExpression((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)name.Green).CreateRed();
+        }
+
+        /// <summary>Creates a new PointerMemberBindingExpressionSyntax instance.</summary>
+        public static PointerMemberBindingExpressionSyntax PointerMemberBindingExpression(SimpleNameSyntax name)
+            => SyntaxFactory.PointerMemberBindingExpression(SyntaxFactory.Token(SyntaxKind.MinusGreaterThanToken), name);
 
         /// <summary>Creates a new ElementBindingExpressionSyntax instance.</summary>
         public static ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)

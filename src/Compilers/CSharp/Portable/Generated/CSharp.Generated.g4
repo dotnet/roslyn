@@ -727,6 +727,7 @@ expression
   | make_ref_expression
   | member_access_expression
   | member_binding_expression
+  | pointer_member_binding_expression
   | omitted_array_size_expression
   | parenthesized_expression
   | postfix_unary_expression
@@ -922,6 +923,10 @@ member_access_expression
 
 member_binding_expression
   : '.' simple_name
+  ;
+
+pointer_member_binding_expression
+  : '->' simple_name
   ;
 
 omitted_array_size_expression

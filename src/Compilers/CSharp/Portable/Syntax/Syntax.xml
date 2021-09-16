@@ -625,6 +625,26 @@
       <summary>Creates a MemberBindingExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+    <Node Name="PointerMemberBindingExpressionSyntax" Base="ExpressionSyntax">
+        <Kind Name="PointerMemberBindingExpression"/>
+        <Field Name="OperatorToken" Type="SyntaxToken">
+            <Kind Name="MinusGreaterThanToken"/>
+            <PropertyComment>
+                <summary>SyntaxToken representing minus greater than.</summary>
+            </PropertyComment>
+        </Field>
+        <Field Name="Name" Type="SimpleNameSyntax">
+            <PropertyComment>
+                <summary>SimpleNameSyntax node representing the member being bound to.</summary>
+            </PropertyComment>
+        </Field>
+        <TypeComment>
+            <summary>Class which represents the syntax node for pointer member binding expression.</summary>
+        </TypeComment>
+        <FactoryComment>
+            <summary>Creates a PointerMemberBindingExpressionSyntax node.</summary>
+        </FactoryComment>
+    </Node>
   <Node Name="ElementBindingExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ElementBindingExpression"/>
     <Field Name="ArgumentList" Type="BracketedArgumentListSyntax">

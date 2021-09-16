@@ -782,6 +782,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.WithExpression:
                     return BindWithExpression((WithExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.PointerMemberBindingExpression:
+                    return BindPointerMemberBindingExpression((PointerMemberBindingExpressionSyntax)node, invoked, indexed, diagnostics);
+
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected
@@ -8827,6 +8830,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression receiver = GetReceiverForConditionalBinding(node, diagnostics);
 
+            var memberAccess = BindMemberAccessWithBoundLeft(node, receiver, node.Name, node.OperatorToken, invoked, indexed, diagnostics);
+            return memberAccess;
+        }
+
+        private BoundExpression BindPointerMemberBindingExpression(PointerMemberBindingExpressionSyntax node, bool invoked, bool indexed, BindingDiagnosticBag diagnostics)
+        {
+            BoundExpression receiver = GetReceiverForConditionalBinding(node, diagnostics);
+
+            receiver = new BoundPointerIndirectionOperator(node.Name, receiver, (receiver.Type! as PointerTypeSymbol)!.PointedAtType, receiver.HasErrors)
+            {
+                WasCompilerGenerated = true, // don't interfere with the type info for exprSyntax.
+            };
+            
             var memberAccess = BindMemberAccessWithBoundLeft(node, receiver, node.Name, node.OperatorToken, invoked, indexed, diagnostics);
             return memberAccess;
         }

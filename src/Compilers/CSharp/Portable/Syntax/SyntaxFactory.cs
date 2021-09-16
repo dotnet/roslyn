@@ -2224,8 +2224,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var currentNode = node;
 
-            Debug.Assert(currentNode.Kind() == SyntaxKind.MemberBindingExpression ||
-                         currentNode.Kind() == SyntaxKind.ElementBindingExpression);
+            Debug.Assert(currentNode.Kind()
+                         is SyntaxKind.MemberBindingExpression
+                         or SyntaxKind.ElementBindingExpression
+                         or SyntaxKind.PointerMemberBindingExpression);
 
             // In a well formed tree, the corresponding access node should be one of the ancestors
             // and its "?" token should precede the binding syntax.

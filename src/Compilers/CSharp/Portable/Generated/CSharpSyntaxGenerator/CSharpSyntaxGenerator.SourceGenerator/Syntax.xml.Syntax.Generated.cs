@@ -1475,6 +1475,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public MemberBindingExpressionSyntax WithName(SimpleNameSyntax name) => Update(this.OperatorToken, name);
     }
 
+    /// <summary>Class which represents the syntax node for pointer member binding expression.</summary>
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.PointerMemberBindingExpression"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class PointerMemberBindingExpressionSyntax : ExpressionSyntax
+    {
+        private SimpleNameSyntax? name;
+
+        internal PointerMemberBindingExpressionSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        /// <summary>SyntaxToken representing minus greater than.</summary>
+        public SyntaxToken OperatorToken => new SyntaxToken(this, ((Syntax.InternalSyntax.PointerMemberBindingExpressionSyntax)this.Green).operatorToken, Position, 0);
+
+        /// <summary>SimpleNameSyntax node representing the member being bound to.</summary>
+        public SimpleNameSyntax Name => GetRed(ref this.name, 1)!;
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.name, 1)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.name : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitPointerMemberBindingExpression(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitPointerMemberBindingExpression(this);
+
+        public PointerMemberBindingExpressionSyntax Update(SyntaxToken operatorToken, SimpleNameSyntax name)
+        {
+            if (operatorToken != this.OperatorToken || name != this.Name)
+            {
+                var newNode = SyntaxFactory.PointerMemberBindingExpression(operatorToken, name);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public PointerMemberBindingExpressionSyntax WithOperatorToken(SyntaxToken operatorToken) => Update(operatorToken, this.Name);
+        public PointerMemberBindingExpressionSyntax WithName(SimpleNameSyntax name) => Update(this.OperatorToken, name);
+    }
+
     /// <summary>Class which represents the syntax node for element binding expression.</summary>
     /// <remarks>
     /// <para>This node is associated with the following syntax kinds:</para>
