@@ -194,7 +194,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node);
-        void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression);
 
         bool IsExpressionOfInvocationExpression(SyntaxNode? node);
         void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList);
@@ -596,6 +595,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region GetPartsOfXXX members
 
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
+        void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression);
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
         void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right);
         void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer);
