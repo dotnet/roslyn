@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal abstract partial class BrokeredServiceBase : IDisposable
     {
-        private readonly TraceSource _logger;
+        protected readonly TraceSource TraceLogger;
         protected readonly RemoteWorkspaceManager WorkspaceManager;
 
         protected readonly SolutionAssetSource SolutionAssetSource;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected BrokeredServiceBase(in ServiceConstructionArguments arguments)
         {
-            _logger = (TraceSource)arguments.ServiceProvider.GetService(typeof(TraceSource));
+            TraceLogger = (TraceSource)arguments.ServiceProvider.GetService(typeof(TraceSource));
 
             TestData = (RemoteHostTestData?)arguments.ServiceProvider.GetService(typeof(RemoteHostTestData));
             WorkspaceManager = TestData?.WorkspaceManager ?? RemoteWorkspaceManager.Default;
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
             => GetWorkspace().Services;
 
         protected void Log(TraceEventType errorType, string message)
-            => _logger.TraceEvent(errorType, 0, $"{GetType()}: {message}");
+            => TraceLogger.TraceEvent(errorType, 0, $"{GetType()}: {message}");
 
         protected ValueTask<Solution> GetSolutionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
         {
