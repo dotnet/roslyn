@@ -578,7 +578,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         DeclarationKind GetDeclarationKind(SyntaxNode declaration);
 
         bool IsImplicitObjectCreation([NotNullWhen(true)] SyntaxNode? node);
-        SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression);
         bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node);
 
         #region GetPartsOfXXX members
@@ -603,6 +602,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
+        SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node);
 
         #endregion
     }

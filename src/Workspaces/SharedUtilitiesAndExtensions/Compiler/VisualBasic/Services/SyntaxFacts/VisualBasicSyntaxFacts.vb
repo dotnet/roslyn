@@ -2251,11 +2251,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Throw New NotImplementedException()
         End Function
 
-        Public Function GetExpressionOfThrowExpression(throwExpression As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfThrowExpression
-            ' ThrowExpression doesn't exist in VB
-            Throw New NotImplementedException()
-        End Function
-
         Public Function IsLocalFunction(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLocalFunction
             Return False
         End Function
@@ -2285,6 +2280,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             operatorToken = unaryExpression.OperatorToken
             operand = unaryExpression.Operand
         End Sub
+
+#End Region
+
+#Region "GetXXXOfYYY members"
+
+        Public Function GetExpressionOfThrowExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfThrowExpression
+            ' ThrowExpression doesn't exist in VB
+            Throw New NotImplementedException()
+        End Function
 
 #End Region
     End Class

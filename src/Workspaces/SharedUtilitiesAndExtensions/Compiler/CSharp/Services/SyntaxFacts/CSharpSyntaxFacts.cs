@@ -1982,9 +1982,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsImplicitObjectCreation([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.ImplicitObjectCreationExpression);
 
-        public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression)
-            => ((ThrowExpressionSyntax)throwExpression).Expression;
-
         public bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
 
@@ -2017,6 +2014,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             operatorToken = prefixUnaryExpression.OperatorToken;
             operand = prefixUnaryExpression.Operand;
         }
+
+        #endregion
+
+        #region GetXXXOfYYY members
+
+        public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node)
+            => ((ThrowExpressionSyntax)node).Expression;
 
         #endregion
     }
