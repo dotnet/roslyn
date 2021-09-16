@@ -83,59 +83,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 CancellationToken.None));
         }
 
-        [Fact]
-        public async Task TestSessionClosed()
-        {
-            using var workspace = CreateWorkspace();
-
-            using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
-
-            var serviceName = new RemoteServiceName("Test");
-
-            // register local service
-            TestService testService = null;
-            client.RegisterService(serviceName, (s, p, o) =>
-            {
-                testService = new TestService(s, p);
-                return testService;
-            });
-
-            // create session that stay alive until client alive (ex, SymbolSearchUpdateEngine)
-            using var connection = await client.CreateConnectionAsync(serviceName, callbackTarget: null, CancellationToken.None);
-
-            // mimic unfortunate call that happens to be in the middle of communication.
-            var task = connection.RunRemoteAsync("TestMethodAsync", solution: null, arguments: null, CancellationToken.None);
-
-            // make client to go away
-            client.Dispose();
-
-            // let the service to return
-            testService.Event.Set();
-
-            // make sure task finished gracefully
-            await task;
-        }
-
-        private class TestService : ServiceBase
-        {
-            public TestService(Stream stream, IServiceProvider serviceProvider)
-                : base(serviceProvider, stream)
-            {
-                Event = new ManualResetEvent(false);
-
-                StartService();
-            }
-
-            public readonly ManualResetEvent Event;
-
-            public Task TestMethodAsync()
-            {
-                Event.WaitOne();
-
-                return Task.CompletedTask;
-            }
-        }
-
         private class NullAssemblyAnalyzerLoader : IAnalyzerAssemblyLoader
         {
             public void AddDependencyLocation(string fullPath)
