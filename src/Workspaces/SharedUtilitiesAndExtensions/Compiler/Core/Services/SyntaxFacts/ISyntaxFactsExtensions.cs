@@ -262,6 +262,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return syntaxFacts.GetRootConditionalAccessExpression(standalone) ?? standalone;
         }
 
+        #region IsXXXOfYYY members
+
+        public static bool IsTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        {
+            var parent = node?.Parent;
+            if (!syntaxFacts.IsObjectCreationExpression(parent))
+                return false;
+
+            syntaxFacts.GetPartsOfObjectCreationExpression(parent, out var type, out _, out _);
+            return type == node;
+        }
+
+        #endregion
+
         #region ISyntaxKinds forwarding methods
 
         #region trivia

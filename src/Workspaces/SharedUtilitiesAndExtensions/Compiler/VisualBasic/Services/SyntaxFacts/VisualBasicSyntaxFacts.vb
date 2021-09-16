@@ -151,11 +151,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Function IsTypeOfObjectCreationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTypeOfObjectCreationExpression
-            Return node.IsParentKind(SyntaxKind.ObjectCreationExpression) AndAlso
-                DirectCast(node.Parent, ObjectCreationExpressionSyntax).Type Is node
-        End Function
-
         Public Function IsDeclarationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclarationExpression
             ' VB doesn't support declaration expressions
             Return False
@@ -2311,5 +2306,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Function IsVerbatimInterpolatedStringExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVerbatimInterpolatedStringExpression
             Return False
         End Function
+
+#Region "GetPartsOfXXX members"
+
+        Public Sub GetPartsOfObjectCreationExpression(node As SyntaxNode, ByRef type As SyntaxNode, ByRef argumentList As SyntaxNode, ByRef initializer As SyntaxNode) Implements ISyntaxFacts.GetPartsOfObjectCreationExpression
+            Dim objectCreationExpression = DirectCast(node, ObjectCreationExpressionSyntax)
+            type = objectCreationExpression.Type
+            argumentList = objectCreationExpression.ArgumentList
+            initializer = objectCreationExpression.Initializer
+        End Sub
+
+#End Region
     End Class
 End Namespace

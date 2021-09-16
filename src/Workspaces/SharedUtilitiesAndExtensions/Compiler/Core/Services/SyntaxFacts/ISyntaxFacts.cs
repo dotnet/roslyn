@@ -28,15 +28,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// methods should never fail.
     /// </item>
     /// <item>
-    /// 'GetXxxOfYYY' where 'XXX' matches the name of a property on a 'YYY' syntax construct that both C# and VB have.  For
-    /// example 'GetExpressionOfMemberAccessExpression' corresponding to MemberAccessExpressionsyntax.Expression in both C# and
-    /// VB.  These functions should throw if passed a node that the corresponding 'IsYYY' did not return <see langword="true"/> for.
-    /// </item>
-    /// <item>
     /// 'GetPartsOfXXX(SyntaxNode node, out SyntaxNode/SyntaxToken part1, ...)' where 'XXX' one of the same named Syntax constructs
     /// that both C# and VB have, and where the returned parts correspond to the members those nodes have in common across the 
     /// languages.  For example 'GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken dotToken, out SyntaxNode right)'
     /// VB.  These functions should throw if passed a node that the corresponding 'IsXXX' did not return <see langword="true"/> for.
+    /// </item>
+    /// <item>
+    /// 'GetXxxOfYYY' where 'XXX' matches the name of a property on a 'YYY' syntax construct that both C# and VB have.  For
+    /// example 'GetExpressionOfMemberAccessExpression' corresponding to MemberAccessExpressionsyntax.Expression in both C# and
+    /// VB.  These functions should throw if passed a node that the corresponding 'IsYYY' did not return <see langword="true"/> for.
+    /// Note: these should migrate to <see cref="ISyntaxFactsExtensions"/> and be built off of 'GetPartsOfXXX'.
     /// </item>
     /// <item>
     /// Absolutely trivial questions that relate to syntax and can be asked sensibly of each language.  For example,
@@ -185,7 +186,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool TryGetPredefinedOperator(SyntaxToken token, out PredefinedOperator op);
         bool TryGetExternalSourceInfo([NotNullWhen(true)] SyntaxNode? directive, out ExternalSourceInfo info);
 
-        bool IsTypeOfObjectCreationExpression([NotNullWhen(true)] SyntaxNode? node);
         SyntaxNode? GetInitializerOfObjectCreationExpression(SyntaxNode node);
         SyntaxNode GetTypeOfObjectCreationExpression(SyntaxNode node);
 
@@ -602,6 +602,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression);
         bool IsThrowStatement([NotNullWhen(true)] SyntaxNode? node);
         bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node);
+
+        #region GetPartsOfXXX members
+
+        void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer);
+
+        #endregion
     }
 
     [Flags]

@@ -179,10 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node)
             => node.GetRootConditionalAccessExpression();
 
-        public bool IsTypeOfObjectCreationExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax? objectCreation) &&
-               objectCreation.Type == node;
-
         public bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is DeclarationExpressionSyntax;
 
@@ -2031,5 +2027,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
             => node is InterpolatedStringExpressionSyntax interpolatedString &&
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
+
+        #region GetPartsOfXXX members
+
+        public void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer)
+        {
+            var objectCreationExpression = (ObjectCreationExpressionSyntax)node;
+            type = objectCreationExpression.Type;
+            argumentList = objectCreationExpression.ArgumentList;
+            initializer = objectCreationExpression.Initializer;
+        }
+
+        #endregion
     }
 }
