@@ -1423,9 +1423,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode? WithModifiers(SyntaxNode? node, SyntaxTokenList modifiers)
             => node.WithModifiers(modifiers);
 
-        public bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node is LiteralExpressionSyntax;
-
         public SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node)
             => ((LocalDeclarationStatementSyntax)node).Declaration.Variables;
 
@@ -1922,6 +1919,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is BinaryExpressionSyntax;
+
+        public bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node is LiteralExpressionSyntax;
 
         public bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberAccessExpressionSyntax;

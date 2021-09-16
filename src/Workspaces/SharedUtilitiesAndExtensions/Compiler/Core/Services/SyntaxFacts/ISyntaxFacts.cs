@@ -184,7 +184,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPreprocessorDirective(SyntaxTrivia trivia);
 
         bool IsDocumentationComment(SyntaxNode node);
-        bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
 
         string GetText(int kind);
         bool IsEntirelyWithinStringOrCharOrNumericLiteral([NotNullWhen(true)] SyntaxTree? syntaxTree, int position, CancellationToken cancellationToken);
@@ -568,6 +567,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region IsXXX members
 
         bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
 
         #endregion

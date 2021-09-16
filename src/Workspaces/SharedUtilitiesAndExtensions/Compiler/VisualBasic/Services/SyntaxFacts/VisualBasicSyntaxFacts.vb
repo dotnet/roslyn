@@ -1545,10 +1545,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.WithModifiers(modifiers)
         End Function
 
-        Public Function IsLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLiteralExpression
-            Return TypeOf node Is LiteralExpressionSyntax
-        End Function
-
         Public Function GetVariablesOfLocalDeclarationStatement(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetVariablesOfLocalDeclarationStatement
             Return DirectCast(node, LocalDeclarationStatementSyntax).Declarators
         End Function
@@ -2183,6 +2179,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBinaryExpression
             Return TypeOf node Is BinaryExpressionSyntax
+        End Function
+
+        Public Function IsLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLiteralExpression
+            Return TypeOf node Is LiteralExpressionSyntax
         End Function
 
         Public Function IsMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberAccessExpression
