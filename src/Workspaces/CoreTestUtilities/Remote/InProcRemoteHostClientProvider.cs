@@ -100,6 +100,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         }
 
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
-            => Task<RemoteHostClient?>.FromResult(_lazyClient.Value);
+            => Task.FromResult<RemoteHostClient?>(_lazyClient.Value);
     }
 }
