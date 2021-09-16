@@ -2905,16 +2905,14 @@ public class Derived : Base
         <Document FilePath = ""File1.cs"">
 public class Base
 {
-}
-        </Document>
+}       </Document>
         <Document FilePath = ""File2.cs"">
 using System;
 
 public class Derived : Base
 {
-    public var en[||]dpoint = new Uri(""http://localhost"");
-}
-        </Document>
+    public Uri en[||]dpoint = new Uri(""http://localhost"");
+}       </Document>
     </Project>
 </Workspace>
 ";
@@ -2925,16 +2923,14 @@ public class Derived : Base
 
 public class Base
 {
-    public var endpoint = new Uri(""http://localhost"");
-}
-        </Document>
+    public Uri endpoint = new Uri(""http://localhost"");
+}       </Document>
         <Document FilePath = ""File2.cs"">
 using System;
 
 public class Derived : Base
 {
-}
-        </Document>
+}       </Document>
     </Project>
 </Workspace>
 ";
@@ -2954,12 +2950,14 @@ public class Base
 }
         </Document>
         <Document FilePath = ""File2.cs"">
+<![CDATA[
 using System.Linq;
 
 public class Derived : Base
 {
-    public var ran[||]ge = Enumerable.Range(0, 5);
+    public IEnumerable<int> ran[||]ge = Enumerable.Range(0, 5);
 }
+        ]]>
         </Document>
     </Project>
 </Workspace>
@@ -2967,12 +2965,13 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs"">using System.Linq;
+        <Document FilePath = ""File1.cs""><![CDATA[using System.Linq;
 
 public class Base
 {
-    public var range = Enumerable.Range(0, 5);
+    public IEnumerable<int> range = Enumerable.Range(0, 5);
 }
+        ]]>
         </Document>
         <Document FilePath = ""File2.cs"">
 using System.Linq;

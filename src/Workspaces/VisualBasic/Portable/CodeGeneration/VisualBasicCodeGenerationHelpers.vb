@@ -209,5 +209,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                             node)
             Return result
         End Function
+
+        Public Function GetReuseableSyntaxNodeForSymbol(Of T As SyntaxNode)(symbol As ISymbol, options As CodeGenerationOptions) As T
+            ThrowIfNull(symbol)
+
+            If options IsNot Nothing AndAlso options.ReuseSyntax AndAlso symbol.DeclaringSyntaxReferences.Length = 1
+                Dim reusableSyntaxNode = symbol.DeclaringSyntaxReferences(0).GetSyntax()
+
+                Dim declarationStatementNode = TryCast(reusableSyntaxNode, DeclarationStatementSyntax)
+                If declarationStatementNode IsNot Nothing
+                    Dim declarationBlockFromBegin = declarationStatementNode.GetDeclarationBlockFromBegin()
+                    Return TryCast(RemoveLeadingDirectiveTrivia(declarationBlockFromBegin), T)
+                End If
+
+                Return TryCast(RemoveLeadingDirectiveTrivia(reusableSyntaxNode), T)
+            End If
+
+            Return Nothing
+        End Function
     End Module
 End Namespace

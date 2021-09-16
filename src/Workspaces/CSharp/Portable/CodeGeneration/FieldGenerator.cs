@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
@@ -85,15 +86,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<VariableDeclaratorSyntax>(field, options);
             if (reusableSyntax != null)
             {
-                if (reusableSyntax.Parent is VariableDeclarationSyntax variableDeclaration)
-                {
-                    var newVariableDeclaratorsList = new SeparatedSyntaxList<VariableDeclaratorSyntax>().Add(reusableSyntax);
-                    var newVariableDeclaration = variableDeclaration.WithVariables(newVariableDeclaratorsList);
-                    if (variableDeclaration.Parent is FieldDeclarationSyntax fieldDecl)
-                    {
-                        return fieldDecl.WithDeclaration(newVariableDeclaration);
-                    }
-                }
+                var typeSyntaxNode = field.Type.GenerateTypeSyntax();
+                var declaratorList = SyntaxFactory.SingletonSeparatedList(reusableSyntax);
+                return SyntaxFactory.FieldDeclaration(
+                    AttributeGenerator.GenerateAttributeLists(field.GetAttributes(), options),
+                    GenerateModifiers(field, options),
+                    SyntaxFactory.VariableDeclaration(typeSyntaxNode, declaratorList));
             }
 
             var initializer = CodeGenerationFieldInfo.GetInitializer(field) is ExpressionSyntax initializerNode

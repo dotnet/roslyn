@@ -70,15 +70,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                         options As CodeGenerationOptions) As FieldDeclarationSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of ModifiedIdentifierSyntax)(field, options)
             If reusableSyntax IsNot Nothing Then
-                Dim variableDeclarator = TryCast(reusableSyntax.Parent, VariableDeclaratorSyntax)
-                If variableDeclarator IsNot Nothing Then
-                    Dim names = (New SeparatedSyntaxList(Of ModifiedIdentifierSyntax)).Add(reusableSyntax)
-                    Dim newVariableDeclarator = variableDeclarator.WithNames(names)
-                    Dim fieldDecl = TryCast(variableDeclarator.Parent, FieldDeclarationSyntax)
-                    If fieldDecl IsNot Nothing Then
-                        Return fieldDecl.WithDeclarators((New SeparatedSyntaxList(Of VariableDeclaratorSyntax)).Add(newVariableDeclarator))
-                    End If
-                End If
+                Return SyntaxFactory.FieldDeclaration(
+                    AttributeGenerator.GenerateAttributeBlocks(field.GetAttributes(), options),
+                    GenerateModifiers(field, destination, options),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(reusableSyntax)))
             End If
 
             Dim initializerNode = TryCast(CodeGenerationFieldInfo.GetInitializer(field), ExpressionSyntax)

@@ -262,5 +262,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 : node;
             return result;
         }
+
+        public static T GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CodeGenerationOptions options) where T : SyntaxNode
+        {
+            Contract.ThrowIfNull(symbol);
+
+            if (options is { ReuseSyntax: true } && symbol.DeclaringSyntaxReferences.Length == 1)
+            {
+                var reusableSyntaxNode = symbol.DeclaringSyntaxReferences[0].GetSyntax();
+                return RemoveLeadingDirectiveTrivia(reusableSyntaxNode) as T;
+            }
+
+            return null;
+        }
     }
 }
