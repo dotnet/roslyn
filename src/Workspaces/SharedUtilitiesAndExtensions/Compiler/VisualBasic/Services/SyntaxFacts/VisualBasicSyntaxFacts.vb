@@ -1643,12 +1643,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return MyBase.SpansPreprocessorDirective(tokens)
         End Function
 
-        Public Sub GetPartsOfInvocationExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFacts.GetPartsOfInvocationExpression
-            Dim invocation = DirectCast(node, InvocationExpressionSyntax)
-            expression = invocation.Expression
-            argumentList = invocation.ArgumentList
-        End Sub
-
         Public Function IsPostfixUnaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsPostfixUnaryExpression
             ' Does not exist in VB.
             Return False
@@ -2216,6 +2210,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             expression = conditionalAccess.Expression
             operatorToken = conditionalAccess.QuestionMarkToken
             whenNotNull = conditionalAccess.WhenNotNull
+        End Sub
+
+        Public Sub GetPartsOfInvocationExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFacts.GetPartsOfInvocationExpression
+            Dim invocation = DirectCast(node, InvocationExpressionSyntax)
+            expression = invocation.Expression
+            argumentList = invocation.ArgumentList
         End Sub
 
         Public Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef name As SyntaxNode) Implements ISyntaxFacts.GetPartsOfMemberAccessExpression

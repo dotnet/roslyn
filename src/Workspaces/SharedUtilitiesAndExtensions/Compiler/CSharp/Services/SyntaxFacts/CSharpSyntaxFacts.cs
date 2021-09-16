@@ -1219,13 +1219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsNumericLiteral(SyntaxToken token)
             => token.Kind() == SyntaxKind.NumericLiteralToken;
 
-        public void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
-        {
-            var invocation = (InvocationExpressionSyntax)node;
-            expression = invocation.Expression;
-            argumentList = invocation.ArgumentList;
-        }
-
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
             => GetArgumentsOfArgumentList(((InvocationExpressionSyntax)invocationExpression).ArgumentList);
 
@@ -1953,6 +1946,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             expression = conditionalAccess.Expression;
             operatorToken = conditionalAccess.OperatorToken;
             whenNotNull = conditionalAccess.WhenNotNull;
+        }
+
+        public void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode? argumentList)
+        {
+            var invocation = (InvocationExpressionSyntax)node;
+            expression = invocation.Expression;
+            argumentList = invocation.ArgumentList;
         }
 
         public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name)
