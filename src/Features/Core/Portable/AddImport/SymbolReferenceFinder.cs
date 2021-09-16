@@ -313,10 +313,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                     if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode) ||
                         syntaxFacts.IsNameOfMemberBindingExpression(nameNode))
                     {
-                        var expression =
-                            syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent, allowImplicitTarget: true) ??
-                            syntaxFacts.GetTargetOfMemberBinding(nameNode.Parent);
-                        if (expression is TSimpleNameSyntax)
+                        var expression = syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode)
+                            ? syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent, allowImplicitTarget: true)
+                            : syntaxFacts.GetTargetOfMemberBinding(nameNode.Parent);
+                        if (expression is TSimpleNameSyntax simpleName)
                         {
                             // Check if the expression before the dot binds to a property or field.
                             var symbol = _semanticModel.GetSymbolInfo(expression, searchScope.CancellationToken).GetAnySymbol();
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                                 {
                                     // Try to look up 'Color' as a type.
                                     var symbolResults = await searchScope.FindDeclarationsAsync(
-                                        symbol.Name, (TSimpleNameSyntax)expression, SymbolFilter.Type).ConfigureAwait(false);
+                                        symbol.Name, simpleName, SymbolFilter.Type).ConfigureAwait(false);
 
                                     // Return results that have accessible members.
                                     var namedTypeSymbols = OfType<INamedTypeSymbol>(symbolResults);
@@ -422,30 +422,26 @@ namespace Microsoft.CodeAnalysis.AddImport
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForCollectionInitializerMethodsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (!_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode))
+                if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out _) &&
+                    !_syntaxFacts.IsSimpleName(_node) &&
+                    _owner.IsAddMethodContext(_node, _semanticModel))
                 {
-                    return ImmutableArray<SymbolReference>.Empty;
+                    var symbols = await searchScope.FindDeclarationsAsync(
+                        nameof(IList.Add), nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
+
+                    // Note: there is no desiredName for these search results.  We're searching for
+                    // extension methods called "Add", but we have no intention of renaming any 
+                    // of the existing user code to that name.
+                    var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
+
+                    var viableMethods = GetViableExtensionMethods(
+                        methodSymbols, _node.Parent, searchScope.CancellationToken);
+
+                    return GetNamespaceSymbolReferences(searchScope,
+                        viableMethods.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
                 }
 
-                _syntaxFacts.GetNameAndArityOfSimpleName(_node, out var name, out var arity);
-                if (name != null || !_owner.IsAddMethodContext(_node, _semanticModel))
-                {
-                    return ImmutableArray<SymbolReference>.Empty;
-                }
-
-                var symbols = await searchScope.FindDeclarationsAsync(
-                    nameof(IList.Add), nameNode: null, filter: SymbolFilter.Member).ConfigureAwait(false);
-
-                // Note: there is no desiredName for these search results.  We're searching for
-                // extension methods called "Add", but we have no intention of renaming any 
-                // of the existing user code to that name.
-                var methodSymbols = OfType<IMethodSymbol>(symbols).SelectAsArray(s => s.WithDesiredName(null));
-
-                var viableMethods = GetViableExtensionMethods(
-                    methodSymbols, _node.Parent, searchScope.CancellationToken);
-
-                return GetNamespaceSymbolReferences(searchScope,
-                    viableMethods.SelectAsArray(m => m.WithSymbol(m.Symbol.ContainingNamespace)));
+                return ImmutableArray<SymbolReference>.Empty;
             }
 
             /// <summary>

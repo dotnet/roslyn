@@ -38,6 +38,7 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ValueTracking" ClassName="Microsoft.CodeAnalysis.Remote.RemoteValueTrackingService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.InheritanceMargin" ClassName="Microsoft.CodeAnalysis.Remote.RemoteInheritanceMarginService+Factory" IsBrokered="true" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.UnusedReferenceAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.RemoteUnusedReferenceAnalysisService+Factory" IsBrokered="true" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ProcessTelemetry" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProcessTelemetryService+Factory" IsBrokered="true" />
     <ServiceHubService Include="roslynRemoteLanguageServer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteLanguageServer" />
   </ItemGroup>
 

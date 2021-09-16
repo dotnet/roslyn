@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             out TSyntax expression)
             where TSyntax : SyntaxNode
         {
-            var token = syntaxFacts.FindTokenOnLeftOfPosition(root, position);
+            var token = root.FindTokenOnLeftOfPosition(position);
             if (triggerReason == SignatureHelpTriggerReason.TypeCharCommand)
             {
                 if (isTriggerToken(token) &&
