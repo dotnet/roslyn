@@ -498,6 +498,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         ? _syntaxFacts.GetArgumentListOfObjectCreationExpression(invocation)
                         : _syntaxFacts.GetArgumentListOfInvocationExpression(invocation);
 
+                    if (argumentListSyntax == null)
+                        continue;
+
                     var invocationArguments = _syntaxFacts.GetArgumentsOfArgumentList(argumentListSyntax);
                     parameterToArgumentMap.Clear();
                     MapParameterToArgumentsAtInvocation(parameterToArgumentMap, invocationArguments, invocationSemanticModel, cancellationToken);

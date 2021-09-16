@@ -828,22 +828,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static ImmutableArray<SyntaxTrivia> GetLeadingBlankLines<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
-            => CSharpSyntaxFacts.Instance.GetLeadingBlankLines(node);
+            => CSharpFileBannerFacts.Instance.GetLeadingBlankLines(node);
 
         public static TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
-            => CSharpSyntaxFacts.Instance.GetNodeWithoutLeadingBlankLines(node);
+            => CSharpFileBannerFacts.Instance.GetNodeWithoutLeadingBlankLines(node);
 
         public static TSyntaxNode GetNodeWithoutLeadingBlankLines<TSyntaxNode>(this TSyntaxNode node, out ImmutableArray<SyntaxTrivia> strippedTrivia) where TSyntaxNode : SyntaxNode
-            => CSharpSyntaxFacts.Instance.GetNodeWithoutLeadingBlankLines(node, out strippedTrivia);
+            => CSharpFileBannerFacts.Instance.GetNodeWithoutLeadingBlankLines(node, out strippedTrivia);
 
         public static ImmutableArray<SyntaxTrivia> GetLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
-            => CSharpSyntaxFacts.Instance.GetLeadingBannerAndPreprocessorDirectives(node);
+            => CSharpFileBannerFacts.Instance.GetLeadingBannerAndPreprocessorDirectives(node);
 
         public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node) where TSyntaxNode : SyntaxNode
-            => CSharpSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node);
+            => CSharpFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node);
 
         public static TSyntaxNode GetNodeWithoutLeadingBannerAndPreprocessorDirectives<TSyntaxNode>(this TSyntaxNode node, out ImmutableArray<SyntaxTrivia> strippedTrivia) where TSyntaxNode : SyntaxNode
-            => CSharpSyntaxFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out strippedTrivia);
+            => CSharpFileBannerFacts.Instance.GetNodeWithoutLeadingBannerAndPreprocessorDirectives(node, out strippedTrivia);
 
         public static bool IsVariableDeclaratorValue(this SyntaxNode node)
             => node.IsParentKind(SyntaxKind.EqualsValueClause, out EqualsValueClauseSyntax? equalsValue) &&
