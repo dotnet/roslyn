@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
             List<ProjectId>? totalProjects)
         {
-            Contract.ThrowIfNull(symbols);
+            Contract.ThrowIfTrue(symbols.IsDefault);
 
             SupportedPlatformData? supportedPlatformData = null;
             if (invalidProjectMap != null)
