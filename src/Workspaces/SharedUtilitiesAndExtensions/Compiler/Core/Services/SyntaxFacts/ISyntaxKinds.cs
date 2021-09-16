@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int DefaultLiteralExpression { get; }
         int FalseLiteralExpression { get; }
         int NullLiteralExpression { get; }
+        int NumericLiteralExpression { get; }
         int StringLiteralExpression { get; }
         int TrueLiteralExpression { get; }
 

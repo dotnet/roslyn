@@ -462,9 +462,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token)
             => token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken);
 
-        public bool IsNumericLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node?.IsKind(SyntaxKind.NumericLiteralExpression) == true;
-
         public bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent)
         {
             var typedToken = token;

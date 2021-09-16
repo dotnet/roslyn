@@ -480,6 +480,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsLogicalNotExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.LogicalNotExpression;
 
+        public static bool IsNumericLiteralExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.NumericLiteralExpression;
+
         public static bool IsObjectCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ObjectCreationExpression;
 

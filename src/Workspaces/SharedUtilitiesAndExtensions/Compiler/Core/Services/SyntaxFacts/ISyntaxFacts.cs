@@ -178,7 +178,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPreprocessorDirective(SyntaxTrivia trivia);
 
         bool IsDocumentationComment(SyntaxNode node);
-        bool IsNumericLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
 
         string GetText(int kind);

@@ -504,10 +504,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken)
         End Function
 
-        Public Function IsNumericLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNumericLiteralExpression
-            Return If(node Is Nothing, False, node.IsKind(SyntaxKind.NumericLiteralExpression))
-        End Function
-
         Public Function IsBindableToken(token As Microsoft.CodeAnalysis.SyntaxToken) As Boolean Implements ISyntaxFacts.IsBindableToken
             Return Me.IsWord(token) OrElse
                 Me.IsLiteral(token) OrElse
