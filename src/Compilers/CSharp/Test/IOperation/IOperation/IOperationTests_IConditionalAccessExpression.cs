@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -1746,6 +1747,534 @@ Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
 ", expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConditionalPointerAccess_VoidPtr()
+        {
+            string source = @"
+unsafe class C
+{
+    void* VoidPtr;
+
+    void M(C c)
+    /*<bind>*/{
+        VoidPtr = c?.VoidPtr;
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'VoidPtr')
+              Value:
+                IFieldReferenceOperation: System.Void* C.VoidPtr (OperationKind.FieldReference, Type: System.Void*) (Syntax: 'VoidPtr')
+                  Instance Receiver:
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'VoidPtr')
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+                  Value:
+                    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+            Jump if True (Regular) to Block[B4]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
+                Leaving: {R2}
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.VoidPtr')
+                  Value:
+                    IFieldReferenceOperation: System.Void* C.VoidPtr (OperationKind.FieldReference, Type: System.Void*) (Syntax: '.VoidPtr')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+    }
+    Block[B4] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+              Value:
+                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Void*, IsImplicit) (Syntax: 'c')
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B3] [B4]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'VoidPtr = c?.VoidPtr;')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void*) (Syntax: 'VoidPtr = c?.VoidPtr')
+                  Left:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Void*, IsImplicit) (Syntax: 'VoidPtr')
+                  Right:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Void*, IsImplicit) (Syntax: 'c?.VoidPtr')
+        Next (Regular) Block[B6]
+            Leaving: {R1}
+}
+Block[B6] - Exit
+    Predecessors: [B5]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+        [Fact]
+        public void ConditionalPointerAccess_VoidPtrPtr()
+        {
+            string source = @"
+unsafe class C
+{
+    void** VoidPtrPtr;
+
+    void M(C c)
+    /*<bind>*/{
+        VoidPtrPtr = c?.VoidPtrPtr;
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'VoidPtrPtr')
+              Value:
+                IFieldReferenceOperation: System.Void** C.VoidPtrPtr (OperationKind.FieldReference, Type: System.Void**) (Syntax: 'VoidPtrPtr')
+                  Instance Receiver:
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'VoidPtrPtr')
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+                  Value:
+                    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+            Jump if True (Regular) to Block[B4]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
+                Leaving: {R2}
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.VoidPtrPtr')
+                  Value:
+                    IFieldReferenceOperation: System.Void** C.VoidPtrPtr (OperationKind.FieldReference, Type: System.Void**) (Syntax: '.VoidPtrPtr')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+    }
+    Block[B4] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+              Value:
+                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Void**, IsImplicit) (Syntax: 'c')
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B3] [B4]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'VoidPtrPtr  ... VoidPtrPtr;')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void**) (Syntax: 'VoidPtrPtr  ... .VoidPtrPtr')
+                  Left:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Void**, IsImplicit) (Syntax: 'VoidPtrPtr')
+                  Right:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Void**, IsImplicit) (Syntax: 'c?.VoidPtrPtr')
+        Next (Regular) Block[B6]
+            Leaving: {R1}
+}
+Block[B6] - Exit
+    Predecessors: [B5]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+        [Fact]
+        public void ConditionalPointerAccess_PointerIndexing()
+        {
+            string source = @"
+unsafe class C
+{
+    void M(C c, int* ar)
+    /*<bind>*/{
+        var second = ar?[1];
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.locals {R1}
+{
+    Locals: [System.Int32? second]
+    CaptureIds: [0]
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'ar')
+                  Value:
+                    IParameterReferenceOperation: ar (OperationKind.ParameterReference, Type: System.Int32*) (Syntax: 'ar')
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'ar')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsImplicit) (Syntax: 'ar')
+                Leaving: {R2}
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[1]')
+                  Value:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: '[1]')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitNullable)
+                      Operand:
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsImplicit) (Syntax: 'ar')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'ar')
+              Value:
+                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Int32?, IsImplicit) (Syntax: 'ar')
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?, IsImplicit) (Syntax: 'second = ar?[1]')
+              Left:
+                ILocalReferenceOperation: second (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32?, IsImplicit) (Syntax: 'second = ar?[1]')
+              Right:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'ar?[1]')
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+        [Fact]
+        public void ConditionalPointerAccess_DoublePointerIndexing()
+        {
+            string source = @"
+unsafe class C
+{
+    void M(C c, int** ar)
+    /*<bind>*/{
+        var value = ar?[1]?[1];
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3}
+.locals {R1}
+{
+    Locals: [System.Int32? value]
+    CaptureIds: [0]
+    .locals {R2}
+    {
+        CaptureIds: [2]
+        .locals {R3}
+        {
+            CaptureIds: [1]
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'ar')
+                      Value:
+                        IParameterReferenceOperation: ar (OperationKind.ParameterReference, Type: System.Int32**) (Syntax: 'ar')
+                Jump if True (Regular) to Block[B5]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'ar')
+                      Operand:
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32**, IsImplicit) (Syntax: 'ar')
+                    Leaving: {R3} {R2}
+                Next (Regular) Block[B2]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (1)
+                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[1]')
+                      Value:
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32**, IsImplicit) (Syntax: 'ar')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Next (Regular) Block[B3]
+                    Leaving: {R3}
+        }
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Jump if True (Regular) to Block[B5]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '[1]')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsImplicit) (Syntax: '[1]')
+                Leaving: {R2}
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[1]')
+                  Value:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: '[1]')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitNullable)
+                      Operand:
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsImplicit) (Syntax: '[1]')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            Next (Regular) Block[B6]
+                Leaving: {R2}
+    }
+    Block[B5] - Block
+        Predecessors: [B1] [B3]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'ar?[1]?[1]')
+              Value:
+                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Int32?, IsImplicit) (Syntax: 'ar?[1]?[1]')
+        Next (Regular) Block[B6]
+    Block[B6] - Block
+        Predecessors: [B4] [B5]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?, IsImplicit) (Syntax: 'value = ar?[1]?[1]')
+              Left:
+                ILocalReferenceOperation: value (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32?, IsImplicit) (Syntax: 'value = ar?[1]?[1]')
+              Right:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'ar?[1]?[1]')
+        Next (Regular) Block[B7]
+            Leaving: {R1}
+}
+Block[B7] - Exit
+    Predecessors: [B6]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+        [Fact]
+        public void ConditionalPointerAccess_ArrowAccess()
+        {
+            string source = @"
+unsafe class C
+{
+    void M(C c, int* value)
+    /*<bind>*/{
+        _ = value?->ToString();
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.locals {R1}
+{
+    CaptureIds: [0]
+    .locals {R2}
+    {
+        CaptureIds: [1]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (1)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'value')
+                  Value:
+                    IParameterReferenceOperation: value (OperationKind.ParameterReference, Type: System.Int32*) (Syntax: 'value')
+            Jump if True (Regular) to Block[B3]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'value')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsImplicit) (Syntax: 'value')
+                Leaving: {R2}
+            Next (Regular) Block[B2]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '->ToString()')
+                  Value:
+                    IInvocationOperation (virtual System.String System.Int32.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '->ToString()')
+                      Instance Receiver:
+                        IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'ToString')
+                          Children(1):
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsImplicit) (Syntax: 'value')
+                      Arguments(0)
+            Next (Regular) Block[B4]
+                Leaving: {R2}
+    }
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'value')
+              Value:
+                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'value')
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = value?->ToString();')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: '_ = value?->ToString()')
+                  Left:
+                    IDiscardOperation (Symbol: System.String _) (OperationKind.Discard, Type: System.String) (Syntax: '_')
+                  Right:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'value?->ToString()')
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
+        }
+
+        [Fact]
+        public void ConditionalPointerAccess_ArrowFlow()
+        {
+            string source = @"
+unsafe class C
+{
+    void M(C c, int** value)
+    /*<bind>*/{
+        _ = value?[1]?->ToString();
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2} {R3}
+.locals {R1}
+{
+    CaptureIds: [0]
+    .locals {R2}
+    {
+        CaptureIds: [2]
+        .locals {R3}
+        {
+            CaptureIds: [1]
+            Block[B1] - Block
+                Predecessors: [B0]
+                Statements (1)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'value')
+                      Value:
+                        IParameterReferenceOperation: value (OperationKind.ParameterReference, Type: System.Int32**) (Syntax: 'value')
+                Jump if True (Regular) to Block[B5]
+                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'value')
+                      Operand:
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32**, IsImplicit) (Syntax: 'value')
+                    Leaving: {R3} {R2}
+                Next (Regular) Block[B2]
+            Block[B2] - Block
+                Predecessors: [B1]
+                Statements (1)
+                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[1]')
+                      Value:
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32**, IsImplicit) (Syntax: 'value')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Next (Regular) Block[B3]
+                    Leaving: {R3}
+        }
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (0)
+            Jump if True (Regular) to Block[B5]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '[1]')
+                  Operand:
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsImplicit) (Syntax: '[1]')
+                Leaving: {R2}
+            Next (Regular) Block[B4]
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '->ToString()')
+                  Value:
+                    IInvocationOperation (virtual System.String System.Int32.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: '->ToString()')
+                      Instance Receiver:
+                        IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'ToString')
+                          Children(1):
+                              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsImplicit) (Syntax: '[1]')
+                      Arguments(0)
+            Next (Regular) Block[B6]
+                Leaving: {R2}
+    }
+    Block[B5] - Block
+        Predecessors: [B1] [B3]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'value?[1]?->ToString()')
+              Value:
+                IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'value?[1]?->ToString()')
+        Next (Regular) Block[B6]
+    Block[B6] - Block
+        Predecessors: [B4] [B5]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = value?[ ... ToString();')
+              Expression:
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String) (Syntax: '_ = value?[ ... >ToString()')
+                  Left:
+                    IDiscardOperation (Symbol: System.String _) (OperationKind.Discard, Type: System.String) (Syntax: '_')
+                  Right:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'value?[1]?->ToString()')
+        Next (Regular) Block[B7]
+            Leaving: {R1}
+}
+Block[B7] - Exit
+    Predecessors: [B6]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics, compilationOptions: TestOptions.UnsafeDebugDll);
         }
     }
 }
