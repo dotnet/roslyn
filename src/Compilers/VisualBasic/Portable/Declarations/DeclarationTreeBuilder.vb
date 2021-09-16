@@ -18,6 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _isSubmission As Boolean
         Private ReadOnly _syntaxTree As SyntaxTree
 
+        ' <summary>
+        ' Any special attributes we may be referencing through a using alias in the file.
+        ' For example <c>imports X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c>.
+        ' </summary>
+        Private _aliasedQuickAttributes As QuickAttributes
+
         Public Shared Function ForTree(tree As SyntaxTree, rootNamespace As ImmutableArray(Of String), scriptClassName As String, isSubmission As Boolean) As RootSingleNamespaceDeclaration
             Dim builder = New DeclarationTreeBuilder(tree, rootNamespace, scriptClassName, isSubmission)
             Dim decl = DirectCast(builder.ForDeclaration(tree.GetRoot()), RootSingleNamespaceDeclaration)
@@ -118,7 +124,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 syntaxReference:=parentReference,
                 nameLocation:=parentReference.GetLocation(),
                 memberNames:=memberNames,
-                children:=children)
+                children:=children,
+                quickAttributes:=QuickAttributes.None)
         End Function
 
         Private Function CreateScriptClass(parent As VisualBasicSyntaxNode, children As ImmutableArray(Of SingleTypeDeclaration), memberNames As ImmutableHashSet(Of String), declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As SingleNamespaceOrTypeDeclaration
@@ -138,7 +145,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 syntaxReference:=parentReference,
                 nameLocation:=parentReference.GetLocation(),
                 memberNames:=memberNames,
-                children:=children)
+                children:=children,
+                quickAttributes:=QuickAttributes.None)
 
             For i = fullName.Length - 2 To 0 Step -1
                 decl = New SingleNamespaceDeclaration(
@@ -160,6 +168,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim syntaxRef = _syntaxTree.GetReference(node)
             Dim implicitClass As SingleNamespaceOrTypeDeclaration = Nothing
+
+            _aliasedQuickAttributes = GetAliasedQuickAttributes(node)
 
             Dim referenceDirectives As ImmutableArray(Of ReferenceDirective)
             If _syntaxTree.Options.Kind <> SourceCodeKind.Regular Then
@@ -218,6 +228,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     referenceDirectives:=referenceDirectives,
                     hasAssemblyAttributes:=node.Attributes.Any)
             End If
+        End Function
+
+        Private Shared Function GetAliasedQuickAttributes(compilationUnit As CompilationUnitSyntax) As QuickAttributes
+            Dim result = QuickAttributes.None
+
+            For Each directive In compilationUnit.Imports
+                For Each clause In directive.ImportsClauses
+                    If clause.Kind <> SyntaxKind.SimpleImportsClause Then
+                        Continue For
+                    End If
+
+                    Dim simpleImportsClause = DirectCast(clause, SimpleImportsClauseSyntax)
+                    If simpleImportsClause.Alias Is Nothing Then
+                        Continue For
+                    End If
+
+                    result = result Or GetQuickAttributes(QuickAttributeChecker.GetFinalName(simpleImportsClause.Name), InAttribute:=False)
+                Next
+            Next
+
+            Return result
+        End Function
+
+        Private Shared Function GetQuickAttributes(name As String, inAttribute As Boolean) As QuickAttributes
+            Dim result = QuickAttributes.None
+
+            If Matches(name, inAttribute, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
+                result = result Or QuickAttributes.Extension
+            End If
+
+            If Matches(name, inAttribute, AttributeDescription.ObsoleteAttribute) Then
+                result = result Or QuickAttributes.Obsolete
+            End If
+
+            If Matches(name, inAttribute, AttributeDescription.DeprecatedAttribute) Then
+                result = result Or QuickAttributes.Obsolete
+            End If
+
+            If Matches(name, inAttribute, AttributeDescription.ExperimentalAttribute) Then
+                result = result Or QuickAttributes.Obsolete
+            End If
+
+            If Matches(name, inAttribute, AttributeDescription.MyGroupCollectionAttribute) Then
+                result = result Or QuickAttributes.TypeIdentifier
+            End If
+
+            If Matches(name, inAttribute, AttributeDescription.TypeIdentifierAttribute) Then
+                result = result Or QuickAttributes.MyGroupCollection
+            End If
+
+            Return result
+        End Function
+
+        Private Shared Function Matches(name As String, inAttribute As Boolean, description As AttributeDescription) As Boolean
+            Debug.Assert(description.Name.EndsWith(NameOf(System.Attribute)))
+
+            If IdentifierComparison.Comparer.Equals(name, description.Name) Then
+                Return True
+            End If
+
+            ' In an attribute context the name might be referenced as the full name (Like 'TypeForwardedToAttribute')
+            ' Or the short name (Like 'TypeForwardedTo').
+            If inAttribute AndAlso
+               (name.Length + NameOf(System.Attribute).Length) = description.Name.Length AndAlso
+               description.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase) Then
+
+                Return True
+            End If
+
+            Return False
         End Function
 
         ' Given a set of single declarations, get the sets of global and non-global declarations.
@@ -471,6 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Dim memberNames = GetNonTypeMemberNames(typeBlockSyntax.Members, declFlags)
+                Dim quickAttributes = GetQuickAttributes(typeBlockSyntax.BlockStatement.AttributeLists)
 
                 typeStack(index) = typeEntry.WithDeclaration(
                     New SingleTypeDeclaration(
@@ -482,7 +563,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         syntaxReference:=_syntaxTree.GetReference(typeBlockSyntax),
                         nameLocation:=_syntaxTree.GetLocation(typeBlockSyntax.BlockStatement.Identifier.Span),
                         memberNames:=memberNames,
-                        children:=children))
+                        children:=children,
+                        quickAttributes:=quickAttributes Or _aliasedQuickAttributes))
             End While
             childrenBuilder.Free()
 
@@ -520,6 +602,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim memberNames = GetMemberNames(enumBlockSyntax, declFlags)
+            Dim quickAttributes = GetQuickAttributes(enumBlockSyntax.EnumStatement.AttributeLists)
 
             Return New SingleTypeDeclaration(
                 kind:=GetKind(declarationSyntax.Kind),
@@ -530,7 +613,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 syntaxReference:=_syntaxTree.GetReference(enumBlockSyntax),
                 nameLocation:=_syntaxTree.GetLocation(enumBlockSyntax.EnumStatement.Identifier.Span),
                 memberNames:=memberNames,
-                children:=VisitTypeChildren(enumBlockSyntax.Members))
+                children:=VisitTypeChildren(enumBlockSyntax.Members),
+                quickAttributes:=quickAttributes Or _aliasedQuickAttributes)
+        End Function
+
+
+
+        Private Shared Function GetQuickAttributes(attributeLists As SyntaxList(Of AttributeListSyntax)) As QuickAttributes
+            Dim result = QuickAttributes.None
+            For Each attributeList In attributeLists
+                For Each attribute In attributeList.Attributes
+                    result = result Or GetQuickAttributes(QuickAttributeChecker.GetFinalName(attribute.Name), inAttribute:=True)
+                Next
+            Next
+
+            Return result
         End Function
 
         Private Function VisitTypeChildren(members As SyntaxList(Of StatementSyntax)) As ImmutableArray(Of SingleTypeDeclaration)
@@ -698,6 +795,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     SingleTypeDeclaration.TypeDeclarationFlags.None)
 
             declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers
+            Dim quickAttributes = GetQuickAttributes(node.AttributeLists)
 
             Return New SingleTypeDeclaration(
                 kind:=DeclarationKind.Delegate,
@@ -708,7 +806,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 syntaxReference:=_syntaxTree.GetReference(node),
                 nameLocation:=_syntaxTree.GetLocation(node.Identifier.Span),
                 memberNames:=ImmutableHashSet(Of String).Empty,
-                children:=ImmutableArray(Of SingleTypeDeclaration).Empty)
+                children:=ImmutableArray(Of SingleTypeDeclaration).Empty,
+                quickAttributes:=quickAttributes Or _aliasedQuickAttributes)
         End Function
 
         Public Overrides Function VisitEventStatement(node As EventStatementSyntax) As SingleNamespaceOrTypeDeclaration
@@ -722,6 +821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 SingleTypeDeclaration.TypeDeclarationFlags.None)
 
             declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers
+            Dim quickAttributes = GetQuickAttributes(node.AttributeLists)
 
             Return New SingleTypeDeclaration(
                 kind:=DeclarationKind.EventSyntheticDelegate,
@@ -732,7 +832,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 syntaxReference:=_syntaxTree.GetReference(node),
                 nameLocation:=_syntaxTree.GetLocation(node.Identifier.Span),
                 memberNames:=ImmutableHashSet(Of String).Empty,
-                children:=ImmutableArray(Of SingleTypeDeclaration).Empty)
+                children:=ImmutableArray(Of SingleTypeDeclaration).Empty,
+                quickAttributes:=quickAttributes Or _aliasedQuickAttributes)
         End Function
 
         ' Public because BinderCache uses it also.

@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
-            var quickAttributes = GetQuickAttributes(node.AttributeLists);
+            var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(
                 kind: kind,
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
-            var quickAttributes = GetQuickAttributes(node.AttributeLists);
+            var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Delegate,
@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
-            var quickAttributes = GetQuickAttributes(node.AttributeLists);
+            var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Enum,
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _nonGlobalAliasedQuickAttributes | quickAttributes);
         }
 
-        private QuickAttributes GetQuickAttributes(SyntaxList<AttributeListSyntax> attributeLists)
+        private static QuickAttributes GetQuickAttributes(SyntaxList<AttributeListSyntax> attributeLists)
         {
             var result = QuickAttributes.None;
             foreach (var attributeList in attributeLists)
@@ -696,7 +696,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
-
         }
 
         private static QuickAttributes GetQuickAttributes(string name, bool inAttribute)
