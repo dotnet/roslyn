@@ -190,7 +190,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node);
 
-        bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsIsExpression([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsIsPatternExpression([NotNullWhen(true)] SyntaxNode? node);
@@ -572,6 +571,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region IsXXX members
 
+        bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
 
         #endregion

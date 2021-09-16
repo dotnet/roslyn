@@ -1482,10 +1482,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
 
-        Public Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBinaryExpression
-            Return TypeOf node Is BinaryExpressionSyntax
-        End Function
-
         Public Function IsIsExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsExpression
             Return node.IsKind(SyntaxKind.TypeOfIsExpression)
         End Function
@@ -2235,6 +2231,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
 #Region "IsXXX members"
+
+        Public Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBinaryExpression
+            Return TypeOf node Is BinaryExpressionSyntax
+        End Function
 
         Public Function IsMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberAccessExpression
             Return TypeOf node Is MemberAccessExpressionSyntax

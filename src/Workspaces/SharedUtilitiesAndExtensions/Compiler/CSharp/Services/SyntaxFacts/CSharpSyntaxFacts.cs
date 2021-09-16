@@ -1416,9 +1416,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
             => ((ExpressionStatementSyntax)node).Expression;
 
-        public bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node is BinaryExpressionSyntax;
-
         public bool IsIsExpression([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IsExpression);
 
@@ -1968,6 +1965,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
 
         #region IsXXX members
+
+        public bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node is BinaryExpressionSyntax;
 
         public bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberAccessExpressionSyntax;
