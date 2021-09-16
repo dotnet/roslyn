@@ -663,18 +663,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node)
             => throw ExceptionUtilities.Unreachable;
 
-        public SyntaxToken FindTokenOnLeftOfPosition(
-            SyntaxNode node, int position, bool includeSkipped, bool includeDirectives, bool includeDocumentationComments)
-        {
-            return node.FindTokenOnLeftOfPosition(position, includeSkipped, includeDirectives, includeDocumentationComments);
-        }
-
-        public SyntaxToken FindTokenOnRightOfPosition(
-            SyntaxNode node, int position, bool includeSkipped, bool includeDirectives, bool includeDocumentationComments)
-        {
-            return node.FindTokenOnRightOfPosition(position, includeSkipped, includeDirectives, includeDocumentationComments);
-        }
-
         public bool IsNameOfSubpattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IdentifierName) &&
                node.IsParentKind(SyntaxKind.NameColon) &&

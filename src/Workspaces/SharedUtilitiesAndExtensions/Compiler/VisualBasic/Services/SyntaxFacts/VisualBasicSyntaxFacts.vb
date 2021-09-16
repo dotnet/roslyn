@@ -679,22 +679,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return Nothing
         End Function
 
-        Public Function FindTokenOnLeftOfPosition(node As SyntaxNode,
-                                                  position As Integer,
-                                                  Optional includeSkipped As Boolean = True,
-                                                  Optional includeDirectives As Boolean = False,
-                                                  Optional includeDocumentationComments As Boolean = False) As SyntaxToken Implements ISyntaxFacts.FindTokenOnLeftOfPosition
-            Return node.FindTokenOnLeftOfPosition(position, includeSkipped, includeDirectives, includeDocumentationComments)
-        End Function
-
-        Public Function FindTokenOnRightOfPosition(node As SyntaxNode,
-                                                   position As Integer,
-                                                   Optional includeSkipped As Boolean = True,
-                                                   Optional includeDirectives As Boolean = False,
-                                                   Optional includeDocumentationComments As Boolean = False) As SyntaxToken Implements ISyntaxFacts.FindTokenOnRightOfPosition
-            Return node.FindTokenOnRightOfPosition(position, includeSkipped, includeDirectives, includeDocumentationComments)
-        End Function
-
         Public Function IsMemberInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberInitializerNamedAssignmentIdentifier
             Dim unused As SyntaxNode = Nothing
             Return IsMemberInitializerNamedAssignmentIdentifier(node, unused)
