@@ -325,8 +325,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
 
-        // Violation.  Parameter shoudl not nullable.
-        SyntaxToken GetIdentifierOfGenericName(SyntaxNode? node);
+        SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfParameter(SyntaxNode node);
         SyntaxToken GetIdentifierOfTypeDeclaration(SyntaxNode node);

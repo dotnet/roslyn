@@ -214,12 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsParameterList([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.ParameterList, SyntaxKind.BracketedParameterList);
 
-        public SyntaxToken GetIdentifierOfGenericName(SyntaxNode? genericName)
-        {
-            return genericName is GenericNameSyntax csharpGenericName
-                ? csharpGenericName.Identifier
-                : default;
-        }
+        public SyntaxToken GetIdentifierOfGenericName(SyntaxNode node)
+            => ((GenericNameSyntax)node).Identifier;
 
         public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
             => node.IsParentKind(SyntaxKind.UsingDirective, out UsingDirectiveSyntax? usingDirective) &&
