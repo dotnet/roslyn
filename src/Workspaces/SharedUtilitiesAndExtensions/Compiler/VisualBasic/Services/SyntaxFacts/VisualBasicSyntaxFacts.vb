@@ -863,14 +863,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return list
         End Function
 
-        Public Function IsClassDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsClassDeclaration
-            Return node.IsKind(SyntaxKind.ClassBlock)
-        End Function
-
-        Public Function IsNamespaceDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamespaceDeclaration
-            Return node.IsKind(SyntaxKind.NamespaceBlock)
-        End Function
-
         Public Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfTypeDeclaration
             Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
         End Function

@@ -884,23 +884,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return list;
         }
 
-        public bool IsClassDeclaration([NotNullWhen(true)] SyntaxNode? node)
-            => node?.Kind() == SyntaxKind.ClassDeclaration;
-
-        public bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node)
-            => node is BaseNamespaceDeclarationSyntax;
-
-        public SyntaxNode GetNameOfNamespaceDeclaration(SyntaxNode node)
-            => ((BaseNamespaceDeclarationSyntax)node).Name;
-
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
-
-        public SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
-            => ((BaseNamespaceDeclarationSyntax)namespaceDeclaration).Members;
-
-        public SyntaxList<SyntaxNode> GetImportsOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
-            => ((BaseNamespaceDeclarationSyntax)namespaceDeclaration).Usings;
 
         private void AppendMembers(SyntaxNode? node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
         {

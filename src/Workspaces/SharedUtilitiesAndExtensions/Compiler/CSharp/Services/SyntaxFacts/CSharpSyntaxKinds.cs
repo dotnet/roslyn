@@ -92,6 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int UsingStatement => (int)SyntaxKind.UsingStatement;
 
         public int Attribute => (int)SyntaxKind.Attribute;
+        public int ClassDeclaration => (int)SyntaxKind.ClassDeclaration;
+        public int NamespaceDeclaration => (int)SyntaxKind.NamespaceDeclaration;
         public int Parameter => (int)SyntaxKind.Parameter;
         public int TypeConstraint => (int)SyntaxKind.TypeConstraint;
         public int VariableDeclarator => (int)SyntaxKind.VariableDeclarator;

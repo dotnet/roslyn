@@ -439,8 +439,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         [return: NotNullIfNotNull("node")]
         SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false);
 
-        bool IsClassDeclaration([NotNullWhen(true)] SyntaxNode? node);
-        bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node);
         // Violation.  This is a feature level API.
         List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
         // Violation.  This is a feature level API.

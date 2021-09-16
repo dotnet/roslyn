@@ -134,6 +134,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region members/declarations
 
         int Attribute { get; }
+        int ClassDeclaration { get; }
+        int NamespaceDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }
