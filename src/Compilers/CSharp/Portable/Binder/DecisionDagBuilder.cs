@@ -1164,6 +1164,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out bool falseTestImpliesTrueOther,
             ref bool foundExplicitNullTest)
         {
+            Debug.Assert(test.Input.IsEquivalentTo(other.Input));
+
             // innocent until proven guilty
             trueTestPermitsTrueOther = true;
             falseTestPermitsTrueOther = true;
@@ -1391,7 +1393,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
                         }
-
                         break;
 
                     // If the sources are equivalent (ignoring their input), it's still possible to find a pair of indexers that could relate.
@@ -1934,7 +1935,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref bool foundExplicitNullTest)
                 {
                     SyntaxNode syntax = test.Syntax;
-                    BoundDagTest other = Test;
+                    BoundDagTest other = this.Test;
                     if (other is BoundDagEvaluation ||
                         !CheckInputRelation(syntax, state, test, other,
                             relationCondition: out Tests relationCondition,
