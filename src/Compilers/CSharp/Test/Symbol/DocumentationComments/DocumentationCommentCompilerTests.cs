@@ -1092,6 +1092,60 @@ public partial class C
         }
 
         [Fact]
+        public void ExtendedPartialMethods_MultipleFiles_NoComment()
+        {
+            var source1 = @"
+/// <summary>Summary 0</summary>
+public partial class C
+{
+    public partial int M() => 42;
+}
+";
+
+            var source2 = @"
+public partial class C
+{
+    public partial int M();
+}
+";
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.RegularWithDocumentationComments);
+            var tree2 = SyntaxFactory.ParseSyntaxTree(source2, options: TestOptions.RegularWithDocumentationComments);
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,24): warning CS1591: Missing XML comment for publicly visible type or member 'C.M()'
+                //     public partial int M();
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "M").WithArguments("C.M()").WithLocation(4, 24)
+            };
+
+            // Files passed in order.
+            var compA = CreateCompilation(new[] { tree1, tree2 }, assemblyName: "Test");
+            compA.VerifyDiagnostics(expectedDiagnostics);
+            var actualA = GetDocumentationCommentText(compA, expectedDiagnostics);
+            var expected = @"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>Summary 0</summary>
+        </member>
+    </members>
+</doc>
+".Trim();
+            AssertEx.Equal(expected, actualA);
+
+            // Files passed in reverse order.
+            var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
+            compB.VerifyDiagnostics(expectedDiagnostics);
+            var actualB = GetDocumentationCommentText(compB, expectedDiagnostics);
+            Assert.Equal(expected, actualB);
+        }
+
+        [Fact]
         public void ExtendedPartialMethods_MultipleFiles_Overlap()
         {
             var source1 = @"
