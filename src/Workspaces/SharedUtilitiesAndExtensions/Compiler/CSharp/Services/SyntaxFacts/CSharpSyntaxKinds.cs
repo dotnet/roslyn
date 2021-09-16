@@ -85,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int ExpressionStatement => (int)SyntaxKind.ExpressionStatement;
         public int ForEachStatement => (int)SyntaxKind.ForEachStatement;
         public int LocalDeclarationStatement => (int)SyntaxKind.LocalDeclarationStatement;
+        public int? LocalFunctionStatement => (int)SyntaxKind.LocalFunctionStatement;
         public int LockStatement => (int)SyntaxKind.LockStatement;
         public int ReturnStatement => (int)SyntaxKind.ReturnStatement;
         public int ThrowStatement => (int)SyntaxKind.ThrowStatement;

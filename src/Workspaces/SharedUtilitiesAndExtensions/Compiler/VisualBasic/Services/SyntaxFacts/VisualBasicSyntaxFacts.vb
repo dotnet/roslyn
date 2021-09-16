@@ -1448,11 +1448,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, IdentifierNameSyntax).Identifier
         End Function
 
-        Public Function IsLocalFunctionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLocalFunctionStatement
-            ' VB does not have local functions
-            Return False
-        End Function
-
         Public Function IsDeclaratorOfLocalDeclarationStatement(declarator As SyntaxNode, localDeclarationStatement As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclaratorOfLocalDeclarationStatement
             Return DirectCast(localDeclarationStatement, LocalDeclarationStatementSyntax).Declarators.
                 Contains(DirectCast(declarator, VariableDeclaratorSyntax))
@@ -1464,10 +1459,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function AreEquivalent(node1 As SyntaxNode, node2 As SyntaxNode) As Boolean Implements ISyntaxFacts.AreEquivalent
             Return SyntaxFactory.AreEquivalent(node1, node2)
-        End Function
-
-        Public Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfAwaitExpression
-            Return DirectCast(node, AwaitExpressionSyntax).Expression
         End Function
 
         Public Function IsExpressionOfForeach(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsExpressionOfForeach
@@ -2266,6 +2257,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 #End Region
 
 #Region "GetXXXOfYYY members"
+
+        Public Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfAwaitExpression
+            Return DirectCast(node, AwaitExpressionSyntax).Expression
+        End Function
 
         Public Function GetExpressionOfThrowExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfThrowExpression
             ' ThrowExpression doesn't exist in VB

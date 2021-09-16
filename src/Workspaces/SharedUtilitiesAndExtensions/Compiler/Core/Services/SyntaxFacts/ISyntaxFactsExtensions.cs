@@ -520,6 +520,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsLocalDeclarationStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.LocalDeclarationStatement;
 
+        public static bool IsLocalFunctionStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node != null && node.RawKind == syntaxFacts.SyntaxKinds.LocalFunctionStatement;
+
         public static bool IsLockStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.LockStatement;
 

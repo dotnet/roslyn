@@ -1386,9 +1386,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node)
             => ((IdentifierNameSyntax)node).Identifier;
 
-        public bool IsLocalFunctionStatement([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsKind(SyntaxKind.LocalFunctionStatement);
-
         public bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement)
         {
             return ((LocalDeclarationStatementSyntax)localDeclarationStatement).Declaration.Variables.Contains(
@@ -1403,9 +1400,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public static SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
             => ((InvocationExpressionSyntax)node).Expression;
-
-        public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
-            => ((AwaitExpressionSyntax)node).Expression;
 
         public bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is ForEachStatementSyntax foreachStatement && foreachStatement.Expression == node;
@@ -2004,6 +1998,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         #endregion
 
         #region GetXXXOfYYY members
+
+        public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
+            => ((AwaitExpressionSyntax)node).Expression;
 
         public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node)
             => ((ThrowExpressionSyntax)node).Expression;
