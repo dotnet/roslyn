@@ -280,6 +280,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region IsXXXOfYYY members
 
+        public static bool IsExpressionOfInvocationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        {
+            var parent = node?.Parent;
+            if (!syntaxFacts.IsInvocationExpression(parent))
+                return false;
+
+            syntaxFacts.GetPartsOfInvocationExpression(parent, out var expression, out _);
+            return node == expression;
+        }
+
         public static bool IsTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         {
             var parent = node?.Parent;
