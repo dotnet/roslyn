@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsIsExpression([NotNullWhen(true)] SyntaxNode? node);
-        void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
 
         bool IsIsPatternExpression([NotNullWhen(true)] SyntaxNode? node);
         void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right);
@@ -601,6 +600,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region GetPartsOfXXX members
 
+        void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
         void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer);
         void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name);
 
