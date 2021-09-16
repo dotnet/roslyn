@@ -391,8 +391,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsBaseTypeList([NotNullWhen(true)] SyntaxNode? node);
 
-        bool IsAnonymousFunction([NotNullWhen(true)] SyntaxNode? n);
-
         bool IsInConstantContext([NotNullWhen(true)] SyntaxNode? node);
         bool IsInConstructor(SyntaxNode node);
         bool IsMethodLevelMember([NotNullWhen(true)] SyntaxNode? node);
@@ -563,6 +561,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region IsXXX members
 
+        bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);

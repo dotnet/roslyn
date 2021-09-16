@@ -171,13 +171,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsAttributeName(SyntaxNode node)
             => SyntaxFacts.IsAttributeName(node);
 
-        public bool IsAnonymousFunction([NotNullWhen(true)] SyntaxNode? node)
-        {
-            return node is ParenthesizedLambdaExpressionSyntax ||
-                node is SimpleLambdaExpressionSyntax ||
-                node is AnonymousMethodExpressionSyntax;
-        }
-
         public bool IsNamedArgument([NotNullWhen(true)] SyntaxNode? node)
             => node is ArgumentSyntax arg && arg.NameColon != null;
 
@@ -1910,6 +1903,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
 
         #region IsXXX members
+
+        public bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node is AnonymousFunctionExpressionSyntax;
 
         public bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is BinaryExpressionSyntax;

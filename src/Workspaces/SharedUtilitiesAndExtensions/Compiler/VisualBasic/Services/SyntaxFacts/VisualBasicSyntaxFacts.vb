@@ -179,10 +179,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TryCast(node, ExpressionSyntax).GetRootConditionalAccessExpression()
         End Function
 
-        Public Function IsAnonymousFunction(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnonymousFunction
-            Return TypeOf node Is LambdaExpressionSyntax
-        End Function
-
         Public Function IsNamedArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedArgument
             Dim arg = TryCast(node, SimpleArgumentSyntax)
             Return arg?.NameColonEquals IsNot Nothing
@@ -2168,6 +2164,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
 #Region "IsXXX members"
+
+        Public Function IsAnonymousFunctionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnonymousFunctionExpression
+            Return TypeOf node Is LambdaExpressionSyntax
+        End Function
 
         Public Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBinaryExpression
             Return TypeOf node Is BinaryExpressionSyntax

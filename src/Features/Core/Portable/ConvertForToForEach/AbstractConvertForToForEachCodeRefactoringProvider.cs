@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             bool CrossesFunctionBoundary(SyntaxNode node)
             {
                 var containingFunction = node.AncestorsAndSelf().FirstOrDefault(
-                    n => syntaxFacts.IsLocalFunctionStatement(n) || syntaxFacts.IsAnonymousFunction(n));
+                    n => syntaxFacts.IsLocalFunctionStatement(n) || syntaxFacts.IsAnonymousFunctionExpression(n));
 
                 if (containingFunction == null)
                 {

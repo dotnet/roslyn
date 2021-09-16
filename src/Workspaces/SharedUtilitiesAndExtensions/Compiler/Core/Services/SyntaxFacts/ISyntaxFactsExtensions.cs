@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         public static bool IsAnonymousOrLocalFunction(this ISyntaxFacts syntaxFacts, SyntaxNode node)
-            => syntaxFacts.IsAnonymousFunction(node) ||
+            => syntaxFacts.IsAnonymousFunctionExpression(node) ||
                syntaxFacts.IsLocalFunctionStatement(node);
 
         public static SyntaxNode? GetExpressionOfElementAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
