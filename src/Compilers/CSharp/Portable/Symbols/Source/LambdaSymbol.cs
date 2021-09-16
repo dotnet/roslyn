@@ -287,6 +287,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetReturnTypeAttributes();
 
             AsyncMethodChecks(verifyReturnType: HasExplicitReturnType, DiagnosticLocation, _declarationDiagnostics);
+            if (!HasExplicitReturnType && this.HasAsyncMethodBuilderAttribute(out _))
+            {
+                addTo.Add(ErrorCode.ERR_BuilderAttributeDisallowed, DiagnosticLocation);
+            }
+
             addTo.AddRange(_declarationDiagnostics, allowMismatchInDependencyAccumulation: true);
         }
 

@@ -30,11 +30,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </value>
         int? MultiLineCommentTrivia { get; }
 
+        int SingleLineDocCommentTrivia { get; }
+        int? MultiLineDocCommentTrivia { get; }
+        int? ShebangDirectiveTrivia { get; }
+
         #endregion
 
         #region keywords
 
         int AwaitKeyword { get; }
+        int AsyncKeyword { get; }
         int GlobalKeyword { get; }
         int IfKeyword { get; }
         int? GlobalStatement { get; }

@@ -68,7 +68,7 @@ abstract partial class AbstractGoo : IGoo
     private protected void IGoo.Method14() { }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (22,24): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract void IGoo.Method1() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Method1").WithArguments("abstract").WithLocation(22, 24),
@@ -160,7 +160,7 @@ abstract class AbstractGoo : IGoo
     static int IGoo.Property12 { set { } }
 }";
 
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (20,23): error CS0106: The modifier 'abstract' is not valid for this item
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Property1").WithArguments("abstract"),
                 // (21,22): error CS0106: The modifier 'virtual' is not valid for this item
@@ -305,7 +305,7 @@ abstract class AbstractGoo : IGoo
             // If the other errors are fixed ERR_ExternHasBody is reported. 
             // We report all errors at once since they are unrelated, not cascading.
 
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (20,39): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract event System.Action IGoo.Event1 { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "Event1").WithArguments("abstract"),
@@ -718,7 +718,7 @@ class Derived : Base, Interface
         }
 
         [Fact]
-        public void TestSupressOverrideNotExpectedErrorWhenMethodParameterTypeNotFound()
+        public void TestSuppressOverrideNotExpectedErrorWhenMethodParameterTypeNotFound()
         {
             var text = @"
 class Base
@@ -774,7 +774,7 @@ class Outer<T>
         }
 
         [Fact]
-        public void TestSupressOverrideNotExpectedErrorWhenIndexerParameterTypeNotFound()
+        public void TestSuppressOverrideNotExpectedErrorWhenIndexerParameterTypeNotFound()
         {
             var text = @"
 class Base
@@ -830,7 +830,7 @@ class Outer<T>
         }
 
         [Fact]
-        public void TestSupressCantChangeReturnTypeErrorWhenMethodReturnTypeNotFound()
+        public void TestSuppressCantChangeReturnTypeErrorWhenMethodReturnTypeNotFound()
         {
             var text = @"
 abstract class Base
@@ -890,7 +890,7 @@ class Outer<T>
         }
 
         [Fact]
-        public void TestSupressCantChangeTypeErrorWhenPropertyTypeNotFound()
+        public void TestSuppressCantChangeTypeErrorWhenPropertyTypeNotFound()
         {
             var text = @"
 abstract class Base
@@ -950,7 +950,7 @@ class Outer<T>
         }
 
         [Fact]
-        public void TestSupressCantChangeTypeErrorWhenIndexerTypeNotFound()
+        public void TestSuppressCantChangeTypeErrorWhenIndexerTypeNotFound()
         {
             var text = @"
 abstract class Base
@@ -1024,7 +1024,7 @@ class Outer<T>
         }
 
         [Fact]
-        public void TestSupressCantChangeTypeErrorWhenEventTypeNotFound()
+        public void TestSuppressCantChangeTypeErrorWhenEventTypeNotFound()
         {
             var text = @"
 abstract class Base

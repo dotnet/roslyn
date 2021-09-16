@@ -120,14 +120,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public async ValueTask<RemoteDebuggingSessionProxy?> StartDebuggingSessionAsync(
             Solution solution,
             IManagedEditAndContinueDebuggerService debuggerService,
-            bool captureMatchingDocuments,
+            ImmutableArray<DocumentId> captureMatchingDocuments,
+            bool captureAllMatchingDocuments,
             bool reportDiagnostics,
             CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                var sessionId = await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, captureMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
+                var sessionId = await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
                 return new RemoteDebuggingSessionProxy(Workspace, LocalConnection.Instance, sessionId);
             }
 
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var sessionIdOpt = await connection.TryInvokeAsync(
                 solution,
-                async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
+                async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
 
             if (sessionIdOpt.HasValue)

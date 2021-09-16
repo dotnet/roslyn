@@ -97,28 +97,37 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             foreach (var debuggingSession in GetActiveDebuggingSessions())
             {
                 // fire and forget
-                _ = Task.Run(() => debuggingSession.OnSourceFileUpdatedAsync(document));
+                _ = Task.Run(() => debuggingSession.OnSourceFileUpdatedAsync(document)).ReportNonFatalErrorAsync();
             }
         }
 
-        public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
+        public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(
+            Solution solution,
+            IManagedEditAndContinueDebuggerService debuggerService,
+            ImmutableArray<DocumentId> captureMatchingDocuments,
+            bool captureAllMatchingDocuments,
+            bool reportDiagnostics,
+            CancellationToken cancellationToken)
         {
-            var initialDocumentStates =
-                captureMatchingDocuments ? await CommittedSolution.GetMatchingDocumentsAsync(solution, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false) :
-                SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
+            Contract.ThrowIfTrue(captureAllMatchingDocuments && !captureMatchingDocuments.IsEmpty);
 
-            var runtimeCapabilities = await debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates;
 
-            var capabilities = ParseCapabilities(runtimeCapabilities);
-
-            // For now, runtimes aren't returning capabilities, we just fall back to a known set.
-            if (capabilities == EditAndContinueCapabilities.None)
+            if (captureAllMatchingDocuments || !captureMatchingDocuments.IsEmpty)
             {
-                capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition;
+                var documentsByProject = captureAllMatchingDocuments ?
+                    solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values)) :
+                    GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
+
+                initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                initialDocumentStates = SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
             }
 
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var session = new DebuggingSession(sessionId, solution, debuggerService, capabilities, _compilationOutputsProvider, initialDocumentStates, reportDiagnostics);
+            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, initialDocumentStates, reportDiagnostics);
 
             lock (_debuggingSessions)
             {
@@ -128,31 +137,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return sessionId;
         }
 
-        // internal for testing
-        internal static EditAndContinueCapabilities ParseCapabilities(ImmutableArray<string> capabilities)
-        {
-            var caps = EditAndContinueCapabilities.None;
-
-            foreach (var capability in capabilities)
-            {
-                caps |= capability switch
-                {
-                    "Baseline" => EditAndContinueCapabilities.Baseline,
-                    "AddMethodToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType,
-                    "AddStaticFieldToExistingType" => EditAndContinueCapabilities.AddStaticFieldToExistingType,
-                    "AddInstanceFieldToExistingType" => EditAndContinueCapabilities.AddInstanceFieldToExistingType,
-                    "NewTypeDefinition" => EditAndContinueCapabilities.NewTypeDefinition,
-                    "ChangeCustomAttributes" => EditAndContinueCapabilities.ChangeCustomAttributes,
-
-                    // To make it eaiser for  runtimes to specify more broad capabilities
-                    "AddDefinitionToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
-
-                    _ => EditAndContinueCapabilities.None
-                };
-            }
-
-            return caps;
-        }
+        private static IEnumerable<(Project, IEnumerable<DocumentState>)> GetDocumentStatesGroupedByProject(Solution solution, ImmutableArray<DocumentId> documentIds)
+            => from documentId in documentIds
+               where solution.ContainsDocument(documentId)
+               group documentId by documentId.ProjectId into projectDocumentIds
+               let project = solution.GetRequiredProject(projectDocumentIds.Key)
+               select (project, from documentId in projectDocumentIds select project.State.DocumentStates.GetState(documentId));
 
         public void EndDebuggingSession(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
@@ -167,11 +157,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             debuggingSession.EndSession(out documentsToReanalyze, out var telemetryData);
         }
 
-        public void BreakStateEntered(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void BreakStateChanged(DebuggingSessionId sessionId, bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             var debuggingSession = TryGetDebuggingSession(sessionId);
             Contract.ThrowIfNull(debuggingSession);
-            debuggingSession.BreakStateEntered(out documentsToReanalyze);
+            debuggingSession.BreakStateChanged(inBreakState, out documentsToReanalyze);
         }
 
         public ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
             var variable = declaration.Variables[0];
             var after = forStatement.Incrementors[0];
 
-            if (!(forStatement.Condition is BinaryExpressionSyntax condition))
+            if (forStatement.Condition is not BinaryExpressionSyntax condition)
                 return;
 
             var (document, _, cancellationToken) = context;
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Reverse_for_statement, createChangedDocument)
+                : base(CSharpFeaturesResources.Reverse_for_statement, createChangedDocument, nameof(CSharpFeaturesResources.Reverse_for_statement))
             {
             }
         }

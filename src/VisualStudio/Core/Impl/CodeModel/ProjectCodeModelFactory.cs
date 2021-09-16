@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal IAsynchronousOperationListener Listener { get; }
 
-        private async Task ProcessNextDocumentBatchAsync(
+        private async ValueTask ProcessNextDocumentBatchAsync(
             ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             // This logic preserves the previous behavior we had with IForegroundNotificationService.

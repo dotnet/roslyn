@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly Func<DriverStateTable.Builder, ImmutableArray<T>> _getInput;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
-        private readonly IEqualityComparer<T>? _comparer;
+        private readonly IEqualityComparer<T> _comparer;
 
         public InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput)
             : this(getInput, registerOutput: null, comparer: null)
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         private InputNode(Func<DriverStateTable.Builder, ImmutableArray<T>> getInput, Action<IIncrementalGeneratorOutputNode>? registerOutput, IEqualityComparer<T>? comparer = null)
         {
             _getInput = getInput;
-            _comparer = comparer;
+            _comparer = comparer ?? EqualityComparer<T>.Default;
             _registerOutput = registerOutput ?? (o => throw ExceptionUtilities.Unreachable);
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
             var inputItems = _getInput(graphState);
 
             // create a mutable hashset of the new items we can check against
-            HashSet<T> itemsSet = new HashSet<T>(_comparer);
+            HashSet<T> itemsSet = new HashSet<T>();
             foreach (var item in inputItems)
             {
                 var added = itemsSet.Add(item);
@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis
             var builder = previousTable.ToBuilder();
 
             // for each item in the previous table, check if its still in the new items
+            int itemIndex = 0;
             foreach ((var oldItem, _) in previousTable)
             {
                 if (itemsSet.Remove(oldItem))
@@ -56,10 +57,21 @@ namespace Microsoft.CodeAnalysis
                     var usedCache = builder.TryUseCachedEntries();
                     Debug.Assert(usedCache);
                 }
+                else if (inputItems.Length == previousTable.Count)
+                {
+                    // When the number of items matches the previous iteration, we use a heuristic to mark the input as modified
+                    // This allows us to correctly 'replace' items even when they aren't actually the same. In the case that the
+                    // item really isn't modified, but a new item, we still function correctly as we mostly treat them the same,
+                    // but will perform an extra comparison that is omitted in the pure 'added' case.
+                    var modified = builder.TryModifyEntry(inputItems[itemIndex], _comparer);
+                    Debug.Assert(modified);
+                    itemsSet.Remove(inputItems[itemIndex]);
+                }
                 else
                 {
                     builder.RemoveEntries();
                 }
+                itemIndex++;
             }
 
             // any remaining new items are added

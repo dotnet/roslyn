@@ -158,5 +158,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _notNullIfParameterNotNull = _notNullIfParameterNotNull.Add(parameterName);
             SetDataStored();
         }
+
+        private ImmutableArray<int> _interpolatedStringHandlerArguments = ImmutableArray<int>.Empty;
+        public ImmutableArray<int> InterpolatedStringHandlerArguments
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _interpolatedStringHandlerArguments;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _interpolatedStringHandlerArguments = value;
+                SetDataStored();
+            }
+        }
     }
 }

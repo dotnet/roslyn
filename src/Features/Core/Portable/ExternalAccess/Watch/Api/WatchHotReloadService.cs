@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +18,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
     {
         private sealed class DebuggerService : IManagedEditAndContinueDebuggerService
         {
-            public static readonly DebuggerService Instance = new();
+            private readonly ImmutableArray<string> _capabilities;
+
+            public DebuggerService(ImmutableArray<string> capabilities)
+                => _capabilities = capabilities;
 
             public Task<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
                 => Task.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
@@ -27,9 +29,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             public Task<ManagedEditAndContinueAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
                 => Task.FromResult(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available));
 
-            // TODO: get capabilities from the runtime: https://github.com/dotnet/aspnetcore/issues/33402
-            public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-                => Task.FromResult(ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
+            public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken) => Task.FromResult(_capabilities);
 
             public Task PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
                 => Task.CompletedTask;
@@ -58,9 +58,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
 
         private readonly IEditAndContinueWorkspaceService _encService;
         private DebuggingSessionId _sessionId;
+        private readonly ImmutableArray<string> _capabilities;
 
-        public WatchHotReloadService(HostWorkspaceServices services)
-            => _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>();
+        public WatchHotReloadService(HostWorkspaceServices services, ImmutableArray<string> capabilities)
+            => (_encService, _capabilities) = (services.GetRequiredService<IEditAndContinueWorkspaceService>(), capabilities);
 
         /// <summary>
         /// Starts the watcher.
@@ -69,13 +70,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         /// <param name="cancellationToken">Cancellation token.</param>
         public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var newSessionId = await _encService.StartDebuggingSessionAsync(solution, DebuggerService.Instance, captureMatchingDocuments: true, reportDiagnostics: false, cancellationToken).ConfigureAwait(false);
+            var newSessionId = await _encService.StartDebuggingSessionAsync(
+                solution,
+                new DebuggerService(_capabilities),
+                captureMatchingDocuments: ImmutableArray<DocumentId>.Empty,
+                captureAllMatchingDocuments: true,
+                reportDiagnostics: false,
+                cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(_sessionId == default, "Session already started");
             _sessionId = newSessionId;
         }
 
         /// <summary>
-        /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call or 
+        /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call or
         /// the one passed to <see cref="StartSessionAsync(Solution, CancellationToken)"/> for the first invocation.
         /// </summary>
         /// <param name="solution">Solution snapshot.</param>

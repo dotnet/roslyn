@@ -1101,8 +1101,13 @@ class C
 }
 
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular9);
             var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics(
+                // (9,15): error CS1660: Cannot convert lambda expression to type 'IList<C>' because it is not a delegate type
+                //         tmp.M((a, b) => c.Add);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(a, b) => c.Add").WithArguments("lambda expression", "System.Collections.Generic.IList<C>").WithLocation(9, 15));
+
             var model = comp.GetSemanticModel(tree);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single().Body;
@@ -3537,7 +3542,7 @@ partial class Program
     }
 }";
 
-            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular10, options: TestOptions.ReleaseExe);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var exprs = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>();
@@ -3607,23 +3612,23 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (9,13): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,13): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         a = [A, B] (x, y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A, B]").WithArguments("lambda attributes").WithLocation(9, 13),
-                // (10,14): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[A, B]").WithArguments("lambda attributes", "10.0").WithLocation(9, 13),
+                // (10,14): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         a = ([A] x, [B] y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(10, 14),
-                // (10,21): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[A]").WithArguments("lambda attributes", "10.0").WithLocation(10, 14),
+                // (10,21): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         a = ([A] x, [B] y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(10, 21),
-                // (11,24): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[B]").WithArguments("lambda attributes", "10.0").WithLocation(10, 21),
+                // (11,24): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         a = (object x, [A][B] object y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[A]").WithArguments("lambda attributes").WithLocation(11, 24),
-                // (11,27): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[A]").WithArguments("lambda attributes", "10.0").WithLocation(11, 24),
+                // (11,27): error CS8773: Feature 'lambda attributes' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         a = (object x, [A][B] object y) => { };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[B]").WithArguments("lambda attributes").WithLocation(11, 27));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "[B]").WithArguments("lambda attributes", "10.0").WithLocation(11, 27));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
         }
 
@@ -3662,7 +3667,7 @@ class C
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -4173,6 +4178,30 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 50));
         }
 
+        [WorkItem(55013, "https://github.com/dotnet/roslyn/issues/55013")]
+        [Fact]
+        public void NullableTypeArraySwitchPattern()
+        {
+            var source =
+@"#nullable enable
+class C
+{
+    object? field;
+    string Prop => field switch
+    {
+        string?[] a => ""a""
+    };
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,13): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value null
+                //     object? field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "null").WithLocation(4, 13),
+                // (5,26): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //     string Prop => field switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 26));
+        }
+
         [Fact]
         public void LambdaAttributes_DoesNotReturn()
         {
@@ -4346,17 +4375,17 @@ class Program
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (6,22): error CS8652: The feature 'lambda return type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,22): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         Func<T> f1 = T () => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("lambda return type").WithLocation(6, 22),
-                // (7,25): error CS8652: The feature 'lambda return type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "T").WithArguments("lambda return type", "10.0").WithLocation(6, 22),
+                // (7,25): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         Func<T, T> f2 = T (x) => { return x; };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("lambda return type").WithLocation(7, 25),
-                // (8,25): error CS8652: The feature 'lambda return type' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "T").WithArguments("lambda return type", "10.0").WithLocation(7, 25),
+                // (8,25): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         Func<T, T> f3 = T (T x) => x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "T").WithArguments("lambda return type").WithLocation(8, 25));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "T").WithArguments("lambda return type", "10.0").WithLocation(8, 25));
 
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics();
         }
 
@@ -4654,6 +4683,7 @@ class Program
     {
         Delegate d;
         d = (ref void () => { });
+        d = (ref readonly void () => { });
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
@@ -4663,9 +4693,16 @@ class Program
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ref void () => { }").WithLocation(7, 14),
                 // (7,18): error CS1547: Keyword 'void' cannot be used in this context
                 //         d = (ref void () => { });
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 18));
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 18),
+                // (8,14): error CS8917: The delegate type could not be inferred.
+                //         d = (ref readonly void () => { });
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ref readonly void () => { }").WithLocation(8, 14),
+                // (8,27): error CS1547: Keyword 'void' cannot be used in this context
+                //         d = (ref readonly void () => { });
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 27));
         }
 
+        [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]
         [ConditionalFact(typeof(DesktopOnly))]
         public void LambdaReturnType_12()
         {
@@ -4790,9 +4827,6 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,23): error CS8917: The delegate type could not be inferred.
-                //         Delegate d1 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "async ref Task (string s) => { _ = s.Length; await Task.Yield(); }").WithLocation(8, 23),
                 // (8,29): error CS1073: Unexpected token 'ref'
                 //         Delegate d1 = async ref Task (string s) => { _ = s.Length; await Task.Yield(); };
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(8, 29),
@@ -4943,9 +4977,6 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (8,23): error CS8917: The delegate type could not be inferred.
-                //         Delegate d1 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "async (ref string s) => { _ = s.Length; await Task.Yield(); }").WithLocation(8, 23),
                 // (8,41): error CS1988: Async methods cannot have ref, in or out parameters
                 //         Delegate d1 = async (ref string s) => { _ = s.Length; await Task.Yield(); };
                 Diagnostic(ErrorCode.ERR_BadAsyncArgType, "s").WithLocation(8, 41),
@@ -5163,6 +5194,219 @@ class Program
         private static LambdaSymbol GetLambdaSymbol(SemanticModel model, LambdaExpressionSyntax syntax)
         {
             return model.GetSymbolInfo(syntax).Symbol.GetSymbol<LambdaSymbol>();
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_01()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [A] (x) => x;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [A] (x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[A] (x) => x").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_02()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [A][A] (x) => x;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [A][A] (x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[A][A] (x) => x").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_03()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = ([A] x) => x;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,37): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = ([A] x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "x").WithLocation(5, 37)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_04()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = ([A][A] x) => x;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,40): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = ([A][A] x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "x").WithLocation(5, 40)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_05()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int, int>> e = ([A] x, [A] y) => x + y;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,42): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int, int>> e = ([A] x, [A] y) => x + y;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "x").WithLocation(5, 42)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_06()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [return: A] (x) => x;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [return: A] (x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[return: A] (x) => x").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_07()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [return: A][return: A] (x) => x;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [return: A][return: A] (x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[return: A][return: A] (x) => x").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_08()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [A][return: A] (x) => x;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [A][return: A] (x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[A][return: A] (x) => x").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_09()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [A] ([A] x) => x;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [A] ([A] x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[A] ([A] x) => x").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_10()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [return: A] ([A] x) => x;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [return: A] ([A] x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[return: A] ([A] x) => x").WithLocation(5, 32)
+                );
         }
     }
 }

@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // '<' should not filter the completion list, even though it's in generic items like IList<>
                 var generalBaseline = CompletionItemRules.Default.
-                    WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '<')).
-                    WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '<'));
+                    WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '<'));
 
                 var importDirectiveBaseline = CompletionItemRules.Create(commitCharacterRules:
                     ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));

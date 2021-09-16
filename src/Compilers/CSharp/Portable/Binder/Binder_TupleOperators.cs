@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
             }
 
-            BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right);
+            BoundExpression comparison = BindSimpleBinaryOperator(node, diagnostics, left, right, leaveUnconvertedIfInterpolatedString: false);
             switch (comparison)
             {
                 case BoundLiteral _:
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     PrepareBoolConversionAndTruthOperator(binary.Type, node, kind, diagnostics, out Conversion conversionIntoBoolOperator, out UnaryOperatorSignature boolOperator);
                     CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, boolOperator.Method, boolOperator.ConstrainedToTypeOpt, diagnostics);
 
-                    return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.MethodOpt, binary.ConstrainedToTypeOpt, conversionIntoBoolOperator, boolOperator);
+                    return new TupleBinaryOperatorInfo.Single(binary.Left.Type, binary.Right.Type, binary.OperatorKind, binary.Method, binary.ConstrainedToType, conversionIntoBoolOperator, boolOperator);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(comparison);

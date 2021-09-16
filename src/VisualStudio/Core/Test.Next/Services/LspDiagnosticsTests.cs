@@ -397,7 +397,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             static VisualStudioInProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
             {
-                var dispatcherFactory = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicRequestDispatcherFactory>();
+                var dispatcherFactory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
@@ -407,14 +407,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
 
+                var globalOptions = workspace.GetService<IGlobalOptionService>();
+
                 var languageServer = new VisualStudioInProcLanguageServer(
                     dispatcherFactory,
                     jsonRpc,
                     capabilitiesProvider,
                     lspWorkspaceRegistrationService,
+                    globalOptions,
                     listenerProvider,
                     NoOpLspLogger.Instance,
                     mockDiagnosticService,
+                    ProtocolConstants.RoslynLspLanguages,
                     clientName: null,
                     userVisibleServerName: string.Empty,
                     telemetryServerTypeName: string.Empty);
@@ -478,7 +482,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     diagnostic.DefaultSeverity,
                     diagnostic.Descriptor.IsEnabledByDefault,
                     diagnostic.WarningLevel,
-                    diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                    diagnostic.Descriptor.ImmutableCustomTags(),
                     diagnostic.Properties,
                     document.Project.Id,
                     GetDataLocation(document, mappedFilePath),
@@ -604,7 +608,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             {
             }
 
+            protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
+
             public override string Name => nameof(LspDiagnosticsTests);
+
+            public override bool ShowNotificationOnInitializeFailed => false;
 
             public override LSP.ServerCapabilities GetCapabilities(LSP.ClientCapabilities clientCapabilities) => new();
         }

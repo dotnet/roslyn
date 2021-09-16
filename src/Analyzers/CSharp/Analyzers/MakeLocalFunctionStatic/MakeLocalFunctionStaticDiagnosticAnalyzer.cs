@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(context =>
             {
-                // All trees are expected to have the same language version. So make the check only once in compilation start .
-                if (context.Compilation.SyntaxTrees.FirstOrDefault() is SyntaxTree tree && MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(tree))
+                if (MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(((CSharpCompilation)context.Compilation).LanguageVersion))
                 {
                     context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.LocalFunctionStatement);
                 }

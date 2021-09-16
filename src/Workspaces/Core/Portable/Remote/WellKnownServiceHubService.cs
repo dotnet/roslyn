@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Remote
         // obsolete: RemoteProjectTelemetryService = 5,
         // obsolete: RemoteTodoCommentsService = 6,
         // obsolete: RemoteLanguageServer = 7,
-        IntelliCode = 8,
-        Razor = 9,
+        // obsolete: IntelliCode = 8,
+        // obsolete: Razor = 9,
 
         // owned by Unit Testing team:
-        UnitTestingAnalysisService = 10,
-        LiveUnitTestingBuildService = 11,
-        UnitTestingSourceLookupService = 12,
+        // obsolete: UnitTestingAnalysisService = 10,
+        // obsolete: LiveUnitTestingBuildService = 11,
+        // obsolete: UnitTestingSourceLookupService = 12,
     }
 }

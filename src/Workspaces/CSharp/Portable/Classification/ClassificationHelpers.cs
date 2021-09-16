@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
                 case SyntaxKind.InterpolatedStringTextToken:
                     {
-                        if (!(token.Parent is InterpolatedStringTextSyntax interpolatedStringText))
+                        if (token.Parent is not InterpolatedStringTextSyntax interpolatedStringText)
                         {
                             return false;
                         }
@@ -310,11 +310,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             var parent = identifierSyntax.Parent;
 
             while (parent is QualifiedNameSyntax)
-            {
                 parent = parent.Parent;
-            }
 
-            return parent is NamespaceDeclarationSyntax;
+            return parent is BaseNamespaceDeclarationSyntax;
         }
 
         public static bool IsStaticallyDeclared(SyntaxToken token)

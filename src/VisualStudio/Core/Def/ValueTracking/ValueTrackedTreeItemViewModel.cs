@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }, ThreadingContext.DisposalToken);
         }
 
-        public override void Select()
+        public override void NavigateTo()
         {
             var navigationService = Workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService is null)
@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
 
             // While navigating do not activate the tab, which will change focus from the tool window
-            var options = Workspace.Options
+            var options = Workspace.CurrentSolution.Options
                 .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
                 .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
 

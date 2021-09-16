@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int WhitespaceTrivia => (int)SyntaxKind.WhitespaceTrivia;
         public int SingleLineCommentTrivia => (int)SyntaxKind.SingleLineCommentTrivia;
         public int? MultiLineCommentTrivia => (int)SyntaxKind.MultiLineCommentTrivia;
+        public int SingleLineDocCommentTrivia => (int)SyntaxKind.SingleLineDocumentationCommentTrivia;
+        public int? MultiLineDocCommentTrivia => (int)SyntaxKind.MultiLineDocumentationCommentTrivia;
+        public int? ShebangDirectiveTrivia => (int)SyntaxKind.ShebangDirectiveTrivia;
 
         public int CloseBraceToken => (int)SyntaxKind.CloseBraceToken;
         public int ColonToken => (int)SyntaxKind.ColonToken;
@@ -69,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public int EndOfFileToken => (int)SyntaxKind.EndOfFileToken;
         public int AwaitKeyword => (int)SyntaxKind.AwaitKeyword;
+        public int AsyncKeyword => (int)SyntaxKind.AsyncKeyword;
         public int IdentifierToken => (int)SyntaxKind.IdentifierToken;
         public int GlobalKeyword => (int)SyntaxKind.GlobalKeyword;
         public int IncompleteMember => (int)SyntaxKind.IncompleteMember;

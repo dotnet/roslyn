@@ -106,8 +106,8 @@ namespace Microsoft.CodeAnalysis
 
         public T Single()
         {
-            Debug.Assert(this._states.Length == 1 && this._states[0].Count == 1);
-            return this._states[0].GetItem(0);
+            Debug.Assert((_states.Length == 1 || _states.Length == 2 && _states[0].IsRemoved) && this._states[^1].Count == 1);
+            return this._states[^1].GetItem(0);
         }
 
         public ImmutableArray<T> Batch()
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Debug.Assert(_previous._states[_states.Count].Count == 1);
-                _states.Add(new TableEntry(value, comparer.Equals(_previous._states[0].GetItem(0), value) ? EntryState.Cached : EntryState.Modified));
+                _states.Add(new TableEntry(value, comparer.Equals(_previous._states[_states.Count].GetItem(0), value) ? EntryState.Cached : EntryState.Modified));
                 return true;
             }
 
@@ -205,6 +205,14 @@ namespace Microsoft.CodeAnalysis
                 // - Added when new item position < previousTable.length
 
                 var previousEntry = _previous._states[_states.Count];
+
+                // when both entries have no items, we can short circuit
+                if (previousEntry.Count == 0 && outputs.Length == 0)
+                {
+                    _states.Add(previousEntry);
+                    return true;
+                }
+
                 var modified = new TableEntry.Builder();
                 var sharedCount = Math.Min(previousEntry.Count, outputs.Length);
 
@@ -320,6 +328,35 @@ namespace Microsoft.CodeAnalysis
                 EntryState.Removed => s_allRemovedEntries,
                 _ => throw ExceptionUtilities.Unreachable
             };
+
+#if DEBUG
+            public override string ToString()
+            {
+                if (IsSingle)
+                {
+                    return $"{GetItem(0)}: {GetState(0)}";
+                }
+                else
+                {
+                    var sb = PooledStringBuilder.GetInstance();
+                    sb.Builder.Append("{");
+                    for (int i = 0; i < Count; i++)
+                    {
+                        if (i > 0)
+                        {
+                            sb.Builder.Append(',');
+                        }
+                        sb.Builder.Append(" (");
+                        sb.Builder.Append(GetItem(i));
+                        sb.Builder.Append(':');
+                        sb.Builder.Append(GetState(i));
+                        sb.Builder.Append(')');
+                    }
+                    sb.Builder.Append(" }");
+                    return sb.ToStringAndFree();
+                }
+            }
+#endif
 
             public sealed class Builder
             {

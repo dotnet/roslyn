@@ -34,13 +34,16 @@ namespace Microsoft.CodeAnalysis
             // - Added when the previous table was empty
             // - Modified otherwise
 
-            var source = ImmutableArray.Create(sourceTable.Batch());
+            var source = sourceTable.Batch();
 
             // update the table 
             var newTable = previousTable.ToBuilder();
-            if (!newTable.TryModifyEntries(source, _comparer))
+            if (!sourceTable.IsCached || !newTable.TryUseCachedEntries())
             {
-                newTable.AddEntries(source, EntryState.Added);
+                if (!newTable.TryModifyEntry(source, _comparer))
+                {
+                    newTable.AddEntry(source, EntryState.Added);
+                }
             }
 
             return newTable.ToImmutableAndFree();

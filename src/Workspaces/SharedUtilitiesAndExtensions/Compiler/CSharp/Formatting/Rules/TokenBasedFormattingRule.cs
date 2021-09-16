@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SyntaxToken previousToken, SyntaxToken currentToken)
         {
             // between anything that isn't a using directive, we don't touch newlines after a semicolon
-            if (!(previousToken.Parent is UsingDirectiveSyntax previousUsing))
+            if (previousToken.Parent is not UsingDirectiveSyntax previousUsing)
                 return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
 
             // if the user is separating using-groups, and we're between two usings, and these
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => node switch
             {
                 CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
-                NamespaceDeclarationSyntax namespaceDecl => namespaceDecl.Usings,
+                BaseNamespaceDeclarationSyntax namespaceDecl => namespaceDecl.Usings,
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
             };
 

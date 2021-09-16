@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindValueKind bindValueKind = GetBinaryAssignmentKind(syntaxNode.Kind());
                 BoundExpression left = CheckValue(result, bindValueKind, diagnostics);
                 BoundExpression right = BindValue(syntaxNode.Right, diagnostics, BindValueKind.RValue);
-                BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right);
+                BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right, leaveUnconvertedIfInterpolatedString: true);
                 result = boundOp;
             }
 
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindSimpleBinaryOperator(BinaryExpressionSyntax node, BindingDiagnosticBag diagnostics,
-            BoundExpression left, BoundExpression right)
+            BoundExpression left, BoundExpression right, bool leaveUnconvertedIfInterpolatedString)
         {
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
@@ -534,6 +534,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureTupleEquality, diagnostics);
                 return BindTupleBinaryOperator(node, kind, left, right, diagnostics);
+            }
+
+            if (leaveUnconvertedIfInterpolatedString
+                && kind == BinaryOperatorKind.Addition
+                && left is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
+                && right is BoundUnconvertedInterpolatedString)
+            {
+                Debug.Assert(right.Type.SpecialType == SpecialType.System_String);
+                var stringConstant = FoldBinaryOperator(node, BinaryOperatorKind.StringConcatenation, left, right, right.Type, diagnostics);
+                return new BoundBinaryOperator(node, BinaryOperatorKind.StringConcatenation, BoundBinaryOperator.UncommonData.UnconvertedInterpolatedStringAddition(stringConstant), LookupResultKind.Empty, left, right, right.Type);
             }
 
             // SPEC: For an operation of one of the forms x == null, null == x, x != null, null != x,
@@ -612,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
                 resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
-                resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType.SpecialType, diagnostics);
+                resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType, diagnostics);
             }
             else
             {
@@ -693,6 +703,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return foundOperator;
         }
+
+#nullable enable
+        private BoundExpression RebindSimpleBinaryOperatorAsConverted(BoundBinaryOperator unconvertedBinaryOperator, BindingDiagnosticBag diagnostics)
+        {
+            if (TryBindUnconvertedBinaryOperatorToDefaultInterpolatedStringHandler(unconvertedBinaryOperator, diagnostics, out var convertedBinaryOperator))
+            {
+                return convertedBinaryOperator;
+            }
+
+            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+            BoundBinaryOperator? current = unconvertedBinaryOperator;
+
+            while (current != null)
+            {
+                Debug.Assert(current.IsUnconvertedInterpolatedStringAddition);
+                stack.Push(current);
+                current = current.Left as BoundBinaryOperator;
+            }
+
+            Debug.Assert(stack.Count > 0 && stack.Peek().Left is BoundUnconvertedInterpolatedString);
+
+            BoundExpression? left = null;
+            while (stack.TryPop(out current))
+            {
+                Debug.Assert(current.Right is BoundUnconvertedInterpolatedString);
+                left = BindSimpleBinaryOperator((BinaryExpressionSyntax)current.Syntax, diagnostics, left ?? current.Left, current.Right, leaveUnconvertedIfInterpolatedString: false);
+            }
+
+            Debug.Assert(left != null);
+            Debug.Assert(stack.Count == 0);
+            stack.Free();
+            return left;
+        }
+#nullable disable
 
         private static void ReportUnaryOperatorError(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics, string operatorName, BoundExpression operand, LookupResultKind resultKind)
         {
@@ -813,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)left.Type != null && left.Type.SpecialType == SpecialType.System_Boolean &&
                 (object)right.Type != null && right.Type.SpecialType == SpecialType.System_Boolean)
             {
-                var constantValue = FoldBinaryOperator(node, kind | BinaryOperatorKind.Bool, left, right, SpecialType.System_Boolean, diagnostics);
+                var constantValue = FoldBinaryOperator(node, kind | BinaryOperatorKind.Bool, left, right, left.Type, diagnostics);
 
                 // NOTE: no candidate user-defined operators.
                 return new BoundBinaryOperator(node, kind | BinaryOperatorKind.Bool, constantValue, methodOpt: null, constrainedToTypeOpt: null,
@@ -1553,6 +1597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorKind kind,
             BoundExpression left,
             BoundExpression right,
+            TypeSymbol resultTypeSymbol,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(left != null);
@@ -1585,8 +1630,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorKind newKind = kind.Operator().WithType(newLeftOperand.Type!.SpecialType);
 
-            SpecialType operatorType = SpecialType.None;
-
             switch (newKind.Operator())
             {
                 case BinaryOperatorKind.Addition:
@@ -1594,7 +1637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.And:
                 case BinaryOperatorKind.Or:
                 case BinaryOperatorKind.Xor:
-                    operatorType = operandType.SpecialType;
+                    resultTypeSymbol = operandType;
                     break;
 
                 case BinaryOperatorKind.LessThan:
@@ -1603,16 +1646,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.GreaterThanOrEqual:
                 case BinaryOperatorKind.Equal:
                 case BinaryOperatorKind.NotEqual:
-                    operatorType = SpecialType.System_Boolean;
+                    Debug.Assert(resultTypeSymbol.SpecialType == SpecialType.System_Boolean);
                     break;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(newKind.Operator());
             }
 
-            var constantValue = FoldBinaryOperator(syntax, newKind, newLeftOperand, newRightOperand, operatorType, diagnostics);
+            var constantValue = FoldBinaryOperator(syntax, newKind, newLeftOperand, newRightOperand, resultTypeSymbol, diagnostics);
 
-            if (operatorType != SpecialType.System_Boolean && constantValue != null && !constantValue.IsBad)
+            if (resultTypeSymbol.SpecialType != SpecialType.System_Boolean && constantValue != null && !constantValue.IsBad)
             {
                 TypeSymbol resultType = kind == BinaryOperatorKind.EnumSubtraction ? underlyingType : enumType;
 
@@ -1629,7 +1672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorKind kind,
             BoundExpression left,
             BoundExpression right,
-            SpecialType resultType,
+            TypeSymbol resultTypeSymbol,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(left != null);
@@ -1661,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (kind.IsEnum() && !kind.IsLifted())
             {
-                return FoldEnumBinaryOperator(syntax, kind, left, right, diagnostics);
+                return FoldEnumBinaryOperator(syntax, kind, left, right, resultTypeSymbol, diagnostics);
             }
 
             // Divisions by zero on integral types and decimal always fail even in an unchecked context.
@@ -1672,6 +1715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             object? newValue = null;
+            SpecialType resultType = resultTypeSymbol.SpecialType;
 
             // Certain binary operations never fail; bool & bool, for example. If we are in one of those
             // cases, simply fold the operation and return.
@@ -1722,13 +1766,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (CheckOverflowAtCompileTime)
                 {
-                    Error(diagnostics, ErrorCode.ERR_CheckedOverflow, syntax);
-                    return ConstantValue.Bad;
+                    Error(diagnostics, ErrorCode.WRN_CompileTimeCheckedOverflow, syntax, resultTypeSymbol);
                 }
-                else
-                {
-                    return null;
-                }
+
+                return null;
             }
 
             if (newValue != null)
@@ -2573,7 +2614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resultOperand = CreateConversion(operand.Syntax, operand, best.Conversion, isCast: false, conversionGroupOpt: null, signature.OperandType, diagnostics);
             var resultType = signature.ReturnType;
             UnaryOperatorKind resultOperatorKind = signature.Kind;
-            var resultConstant = FoldUnaryOperator(node, resultOperatorKind, resultOperand, resultType.SpecialType, diagnostics);
+            var resultConstant = FoldUnaryOperator(node, resultOperatorKind, resultOperand, resultType, diagnostics);
 
             CheckNativeIntegerFeatureAvailability(resultOperatorKind, node, diagnostics);
             CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, signature.ConstrainedToTypeOpt, diagnostics);
@@ -2610,7 +2651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             UnaryOperatorKind newKind = kind.Operator().WithType(upconvertSpecialType);
 
-            var constantValue = FoldUnaryOperator(syntax, newKind, operand, upconvertType.SpecialType, diagnostics);
+            var constantValue = FoldUnaryOperator(syntax, newKind, operand, upconvertType, diagnostics);
 
             // Convert back to the underlying type
             if (constantValue != null && !constantValue.IsBad)
@@ -2628,7 +2669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode syntax,
             UnaryOperatorKind kind,
             BoundExpression operand,
-            SpecialType resultType,
+            TypeSymbol resultTypeSymbol,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(operand != null);
@@ -2650,6 +2691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return FoldEnumUnaryOperator(syntax, kind, operand, diagnostics);
             }
 
+            SpecialType resultType = resultTypeSymbol.SpecialType;
             var newValue = FoldNeverOverflowUnaryOperator(kind, value);
             if (newValue != null)
             {
@@ -2664,13 +2706,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (CheckOverflowAtCompileTime)
                 {
-                    Error(diagnostics, ErrorCode.ERR_CheckedOverflow, syntax);
-                    return ConstantValue.Bad;
+                    Error(diagnostics, ErrorCode.WRN_CompileTimeCheckedOverflow, syntax, resultTypeSymbol);
                 }
-                else
-                {
-                    return null;
-                }
+
+                return null;
             }
 
             if (newValue != null)

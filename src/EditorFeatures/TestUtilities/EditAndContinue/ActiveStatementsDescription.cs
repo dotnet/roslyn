@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             OldStatementsMap = new ActiveStatementsMap(
                 documentPathMap: oldDocumentMap.ToImmutableDictionary(e => e.Key, e => e.Value.OrderBy(ActiveStatementsMap.Comparer).ToImmutableArray()),
-                instructionMap: ActiveStatementsMap.Empty.InstructionMap);
+                instructionMap: OldStatements.ToDictionary(s => new ManagedInstructionId(new ManagedMethodId(Guid.NewGuid(), 0x060000001, version: 1), ilOffset: 0), s => s.Statement));
 
             var newActiveStatementMarkers = GetActiveSpans(newMarkedSource).ToArray();
 

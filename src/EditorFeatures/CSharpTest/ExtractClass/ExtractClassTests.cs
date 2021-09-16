@@ -2,174 +2,163 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractClass;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractClass;
 using Microsoft.CodeAnalysis.PullMemberUp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractClass
 {
-    public class ExtractClassTests : AbstractCSharpCodeActionTest
+    [UseExportProvider]
+    public class ExtractClassTests
     {
-        private Task TestAsync(
-            string input,
-            string expected = null,
-            IEnumerable<(string name, bool makeAbstract)> dialogSelection = null,
-            bool sameFile = false,
-            bool isClassDeclarationSelection = false,
-            TestParameters testParameters = default)
+        private class Test : CSharpCodeRefactoringVerifier<CSharpExtractClassCodeRefactoringProvider>.Test
         {
-            var service = new TestExtractClassOptionsService(dialogSelection, sameFile, isClassDeclarationSelection);
-            var parametersWithOptionsService = testParameters.WithFixProviderData(service);
+            public IEnumerable<(string name, bool makeAbstract)>? DialogSelection { get; set; }
+            public bool SameFile { get; set; }
+            public bool IsClassDeclarationSelection { get; set; }
+            public string FileName { get; set; } = "/0/Test1.cs";
+            public string WorkspaceKind { get; set; } = CodeAnalysis.WorkspaceKind.Host;
 
-            if (expected is null)
+            protected override IEnumerable<CodeRefactoringProvider> GetCodeRefactoringProviders()
             {
-                return TestMissingAsync(input, parametersWithOptionsService);
+                var service = new TestExtractClassOptionsService(DialogSelection, SameFile, IsClassDeclarationSelection)
+                {
+                    FileName = FileName
+                };
+
+                return SpecializedCollections.SingletonEnumerable(new CSharpExtractClassCodeRefactoringProvider(service));
             }
 
-            return TestInRegularAndScript1Async(
-                input,
-                expected,
-                parameters: parametersWithOptionsService);
+            protected override Workspace CreateWorkspaceImpl()
+            {
+                return TestWorkspace.Create(WorkspaceKind, LanguageNames.CSharp, this.CreateCompilationOptions(), this.CreateParseOptions());
+            }
         }
-
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-           => new CSharpExtractClassCodeRefactoringProvider((IExtractClassOptionsService)parameters.fixProviderData);
 
         [Fact]
         public async Task TestSingleMethod()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
     int [||]Method()
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestErrorBaseMethod()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+class ErrorBase
+{
+}
+
 class Test : ErrorBase
 {
     int [||]Method()
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
-
-            await TestAsync(input);
+}";
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestMiscellaneousFiles()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
     int [||]Method()
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            TestParameters parameters = default;
-            await TestAsync(input, testParameters: parameters.WithWorkspaceKind(WorkspaceKind.MiscellaneousFiles));
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = input,
+                WorkspaceKind = WorkspaceKind.MiscellaneousFiles
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestPartialClass()
         {
-            var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var input1 = @"
 partial class Test
 {
     int [||]Method()
     {
         return 1 + 1;
     }
-}
-        </Document>
-        <Document FilePath=""Test.Other.cs"">
+}";
+            var input2 = @"
 partial class Test
 {
     int Method2()
     {
         return 5;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 partial class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""Test.Other.cs"">
+}";
+            var expected2 = @"
 partial class Test
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected3 = @"internal class MyBase
 {
     int Method()
     {
@@ -179,23 +168,36 @@ partial class Test
     {
         return 5;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(
-                input,
-                expected,
-                dialogSelection: MakeSelection("Method", "Method2"));
+            await new Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        input1,
+                        input2,
+                    }
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                        expected3,
+                    }
+                },
+                FileName = "/0/Test2.cs",
+                DialogSelection = MakeSelection("Method", "Method2")
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestInNamespace()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 namespace MyNamespace
 {
     class Test
@@ -205,23 +207,16 @@ namespace MyNamespace
             return 1 + 1;
         }
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 namespace MyNamespace
 {
     class Test : MyBase
     {
     }
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">namespace MyNamespace
+}";
+            var expected2 = @"namespace MyNamespace
 {
     internal class MyBase
     {
@@ -230,162 +225,321 @@ namespace MyNamespace
             return 1 + 1;
         }
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestInNamespace_FileScopedNamespace1()
+        {
+            var input = @"
+namespace MyNamespace
+{
+    class Test
+    {
+        int [||]Method()
+        {
+            return 1 + 1;
+        }
+    }
+}";
+
+            var expected1 = @"
+namespace MyNamespace
+{
+    class Test : MyBase
+    {
+    }
+}";
+            var expected2 = @"namespace MyNamespace;
+
+internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestInNamespace_FileScopedNamespace2()
+        {
+            var input = @"
+namespace MyNamespace
+{
+    class Test
+    {
+        int [||]Method()
+        {
+            return 1 + 1;
+        }
+    }
+}";
+
+            var expected1 = @"
+namespace MyNamespace
+{
+    class Test : MyBase
+    {
+    }
+}";
+            var expected2 = @"namespace MyNamespace
+{
+    internal class MyBase
+    {
+        int Method()
+        {
+            return 1 + 1;
+        }
+    }
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestInNamespace_FileScopedNamespace3()
+        {
+            var input = @"
+namespace MyNamespace
+{
+    class Test
+    {
+        int [||]Method()
+        {
+            return 1 + 1;
+        }
+    }
+}";
+
+            var expected1 = @"
+namespace MyNamespace
+{
+    class Test : MyBase
+    {
+    }
+}";
+            var expected2 = @"namespace MyNamespace
+{
+    internal class MyBase
+    {
+        int Method()
+        {
+            return 1 + 1;
+        }
+    }
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestAccessibility()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 public class Test
 {
     int [||]Method()
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 public class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">public class MyBase
+}";
+            var expected2 = @"public class MyBase
 {
     int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestEvent()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 using System;
 
 class Test
 {
-    private event EventHandler [||]Event1;    
-}
-        </Document>
-    </Project>
-</Workspace>";
+    private event EventHandler [||]Event1;
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 using System;
 
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"using System;
+
+internal class MyBase
 {
     private event EventHandler Event1;
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestProperty()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
     int [||]MyProperty { get; set; }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int MyProperty { get; set; }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestField()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
     int [||]MyField;
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int MyField;
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [Fact]
-        public async Task TestFileHeader()
+        public async Task TestFileHeader_FromExistingFile()
         {
-            var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">// this is my document header
+            var input = @"// this is my document header
 // that should be copied over
 
 class Test
@@ -394,22 +548,15 @@ class Test
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">// this is my document header
+            var expected1 = @"// this is my document header
 // that should be copied over
 
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">// this is my document header
+}";
+            var expected2 = @"// this is my document header
 // that should be copied over
 
 internal class MyBase
@@ -418,20 +565,328 @@ internal class MyBase
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFileHeader_FromOption()
+        {
+            var input = @"// this is my document header
+// that should be ignored
+
+class Test
+{
+    int [||]Method()
+    {
+        return 1 + 1;
+    }
+}";
+
+            var expected1 = @"// this is my document header
+// that should be ignored
+
+class Test : MyBase
+{
+}";
+            var expected2 = @"// this is my real document header
+
+internal class MyBase
+{
+    int Method()
+    {
+        return 1 + 1;
+    }
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                Options =
+                {
+                    { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestUsingsInsideNamespace()
+        {
+            var input = @"// this is my document header
+
+using System;
+using System.Collections.Generic;
+
+namespace ConsoleApp185
+{
+    class Program
+    {
+        static void [|Main|](string[] args)
+        {
+            Console.WriteLine(new List<int>());
+        }
+    }
+}";
+
+            var expected1 = @"// this is my document header
+
+using System;
+using System.Collections.Generic;
+
+namespace ConsoleApp185
+{
+    class Program : MyBase
+    {
+    }
+}";
+
+            var expected2 = @"// this is my real document header
+
+namespace ConsoleApp185;
+using System;
+using System.Collections.Generic;
+
+internal class MyBase
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(new List<int>());
+    }
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options = {
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error },
+                    { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" },
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestUsingsInsideNamespace_FileScopedNamespace()
+        {
+            var input = @"// this is my document header
+
+using System;
+using System.Collections.Generic;
+
+namespace ConsoleApp185
+{
+    class Program
+    {
+        static void [|Main|](string[] args)
+        {
+            Console.WriteLine(new List<int>());
+        }
+    }
+}";
+
+            var expected1 = @"// this is my document header
+
+using System;
+using System.Collections.Generic;
+
+namespace ConsoleApp185
+{
+    class Program : MyBase
+    {
+    }
+}";
+
+            var expected2 = @"// this is my real document header
+
+namespace ConsoleApp185
+{
+    using System;
+    using System.Collections.Generic;
+
+    internal class MyBase
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(new List<int>());
+        }
+    }
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options = {
+                    { CodeStyleOptions2.FileHeaderTemplate, "this is my real document header" },
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestUsingsInsideNamespace_NoNamespace()
+        {
+            var input = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void [|Main|](string[] args)
+    {
+        Console.WriteLine(new List<int>());
+    }
+}";
+
+            var expected1 = @"
+using System;
+using System.Collections.Generic;
+
+class Program : MyBase
+{
+}";
+
+            var expected2 = @"using System;
+using System.Collections.Generic;
+
+internal class MyBase
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(new List<int>());
+    }
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options = {
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace }
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestUsingsInsideNamespace_MultipleNamespaces()
+        {
+            var input = @"
+using System;
+using System.Collections.Generic;
+
+namespace N1
+{
+    namespace N2
+    {
+        class Program
+        {
+            static void [|Main|](string[] args)
+            {
+                Console.WriteLine(new List<int>());
+            }
+        }
+    }
+}";
+
+            var expected1 = @"
+using System;
+using System.Collections.Generic;
+
+namespace N1
+{
+    namespace N2
+    {
+        class Program : MyBase
+        {
+        }
+    }
+}";
+
+            var expected2 = @"namespace N1.N2
+{
+    using System;
+    using System.Collections.Generic;
+
+    internal class MyBase
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(new List<int>());
+        }
+    }
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2,
+                    }
+                },
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options = {
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestWithInterface()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 interface ITest 
 {
     int Method();
@@ -439,19 +894,13 @@ interface ITest
 
 class Test : ITest
 {
-    int [||]Method()
+    public int [||]Method()
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 interface ITest 
 {
     int Method();
@@ -459,28 +908,33 @@ interface ITest
 
 class Test : MyBase, ITest
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
-    int Method()
+    public int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45977")]
         public async Task TestRegion()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
     #region MyRegion
@@ -491,15 +945,9 @@ class Test
 
     void OtherMethiod() { }
     #endregion
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
 
@@ -507,9 +955,8 @@ class Test : MyBase
 
     void OtherMethiod() { }
     #endregion
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     #region MyRegion
     int Method()
@@ -517,117 +964,115 @@ class Test : MyBase
         return 1 + 1;
     }
     #endregion
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(
-                input,
-                expected,
-                dialogSelection: MakeSelection("Method"));
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                DialogSelection = MakeSelection("Method")
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestMakeAbstract_SingleMethod()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
-    int [||]Method()
+    public int [||]Method()
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-    override int Method()
+    public override int Method()
     {
         return 1 + 1;
     }
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal abstract class MyBase
+}";
+            var expected2 = @"internal abstract class MyBase
 {
-    private abstract global::System.Int32 Method();
-}</Document>
-    </Project>
-</Workspace>";
+    public abstract int Method();
+}";
 
-            await TestAsync(
-                input,
-                expected,
-                dialogSelection: MakeAbstractSelection("Method"));
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                DialogSelection = MakeAbstractSelection("Method")
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestMakeAbstract_MultipleMethods()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
-    int [||]Method()
+    public int [||]Method()
     {
         return 1 + 1;
     }
 
-    int Method2() => 2;
-    int Method3() => 3;
-}
-        </Document>
-    </Project>
-</Workspace>";
+    public int Method2() => 2;
+    public int Method3() => 3;
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-    override int Method()
+    public override int Method()
     {
         return 1 + 1;
     }
 
-    override int Method2() => 2;
-    override int Method3() => 3;
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal abstract class MyBase
+    public override int Method2() => 2;
+    public override int Method3() => 3;
+}";
+            var expected2 = @"internal abstract class MyBase
 {
-    private abstract global::System.Int32 Method();
-    private abstract global::System.Int32 Method2();
-    private abstract global::System.Int32 Method3();
-}</Document>
-    </Project>
-</Workspace>";
+    public abstract int Method();
+    public abstract int Method2();
+    public abstract int Method3();
+}";
 
-            await TestAsync(
-                input,
-                expected,
-                dialogSelection: MakeAbstractSelection("Method", "Method2", "Method3"));
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                DialogSelection = MakeAbstractSelection("Method", "Method2", "Method3")
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestMultipleMethods()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
     int [||]Method()
@@ -636,20 +1081,13 @@ class Test
     }
 
     int Method2() => 1;
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int Method()
     {
@@ -657,23 +1095,27 @@ class Test : MyBase
     }
 
     int Method2() => 1;
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(
-                input,
-                expected,
-                dialogSelection: MakeSelection("Method", "Method2"));
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                DialogSelection = MakeSelection("Method", "Method2")
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestMultipleMethods_SomeSelected()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
     int [||]Method()
@@ -682,44 +1124,41 @@ class Test
     }
 
     int Method2() => 1;
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
     int Method()
     {
-        return Method2() + 1;
+        return {|CS0122:Method2|}() + 1;
     }
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
 
     int Method2() => 1;
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(
-                input,
-                expected,
-                dialogSelection: MakeSelection("Method2"));
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                DialogSelection = MakeSelection("Method2")
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestSelection_CompleteMethodAndComments()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
     [|/// <summary>
@@ -729,20 +1168,13 @@ class Test
     {
         return 1 + 1;
     }|]
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     /// <summary>
     /// this is a test method
@@ -751,20 +1183,26 @@ class Test : MyBase
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestSelection_PartialMethodAndComments()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
     [|/// <summary>
@@ -774,20 +1212,13 @@ class Test
     {|]
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     /// <summary>
     /// this is a test method
@@ -796,20 +1227,26 @@ class Test : MyBase
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestSelection_PartialMethodAndComments2()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
     /// <summary>
@@ -819,20 +1256,13 @@ class Test
     {|]
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     /// <summary>
     /// this is a test method
@@ -841,20 +1271,26 @@ class Test : MyBase
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestSelection_PartialMethodAndComments3()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
     /// <summary>
@@ -864,20 +1300,13 @@ class Test
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     /// <summary>
     /// this is a test method
@@ -886,20 +1315,26 @@ class Test : MyBase
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestAttributes()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 using System;
 
 class TestAttribute : Attribute { }
@@ -914,24 +1349,17 @@ class Test
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 using System;
 
 class TestAttribute : Attribute { }
 
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     /// <summary>
     /// this is a test method
@@ -941,20 +1369,26 @@ class Test : MyBase
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestAttributes2()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 using System;
 
 class TestAttribute : Attribute { }
@@ -971,15 +1405,9 @@ class Test
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 using System;
 
 class TestAttribute : Attribute { }
@@ -987,9 +1415,8 @@ class TestAttribute2 : Attribute { }
 
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     /// <summary>
     /// this is a test method
@@ -1000,20 +1427,26 @@ class Test : MyBase
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45987")]
         public async Task TestAttributes3()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 using System;
 
 class TestAttribute : Attribute { }
@@ -1030,24 +1463,20 @@ class Test
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 using System;
 
 class TestAttribute : Attribute { }
 
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"
+using System;
+
+internal class MyBase
 {
     /// <summary>
     /// this is a test method
@@ -1058,20 +1487,26 @@ class Test : MyBase
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45987")]
         public async Task TestAttributes4()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 using System;
 
 class TestAttribute : Attribute { }
@@ -1088,24 +1523,17 @@ class Test
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 using System;
 
 class TestAttribute : Attribute { }
 
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     /// <summary>
     /// this is a test method
@@ -1116,33 +1544,33 @@ class Test : MyBase
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                }
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestSameFile()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test
 {
     void Method[||]()
     {
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
             var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 internal class MyBase
 {
     void Method()
@@ -1152,176 +1580,176 @@ internal class MyBase
 
 class Test : MyBase
 {
-}
-        </Document>
-    </Project>
-</Workspace>";
-            await TestAsync(input, expected, sameFile: true);
+}";
+
+            await new Test
+            {
+                TestCode = input,
+                FixedCode = expected,
+                SameFile = true,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestClassDeclaration()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class Test[||]
 {
     int Method()
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                IsClassDeclarationSelection = true,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestClassDeclaration2()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class [||]Test
 {
     int Method()
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                IsClassDeclarationSelection = true,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestClassDeclaration3()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 [||]class Test
 {
     int Method()
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                IsClassDeclarationSelection = true,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestClassDeclaration4()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 class[||] Test
 {
     int Method()
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                IsClassDeclarationSelection = true,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestClassDeclaration_Comment()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 using System;
 
 /// <summary>
@@ -1333,15 +1761,9 @@ class Test|]
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 using System;
 
 /// <summary>
@@ -1349,28 +1771,34 @@ using System;
 /// </summary>
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                IsClassDeclarationSelection = true,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestClassDeclaration_Comment2()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 using System;
 
 /// <summary>
@@ -1382,15 +1810,9 @@ class Test|]
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 using System;
 
 /// <summary>
@@ -1398,28 +1820,34 @@ using System;
 /// </summary>
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                IsClassDeclarationSelection = true,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestClassDeclaration_Comment3()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 using System;
 
 /// <summary>
@@ -1431,15 +1859,9 @@ class|] Test
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 using System;
 
 /// <summary>
@@ -1447,28 +1869,34 @@ using System;
 /// </summary>
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                IsClassDeclarationSelection = true,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestClassDeclaration_Attribute()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 using System;
 
 public class MyAttribute : Attribute { }
@@ -1480,15 +1908,9 @@ class Test
     {
         return 1 + 1;
     }
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 using System;
 
 public class MyAttribute : Attribute { }
@@ -1496,98 +1918,107 @@ public class MyAttribute : Attribute { }
 [MyAttribute]
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">[MyAttribute]
+}";
+            var expected2 = @"[My]
 internal class MyBase
 {
     int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                IsClassDeclarationSelection = true,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestClassDeclaration_SelectWithMembers()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 [|class Test
 {
     int Method()
     {
         return 1 + 1;
     }
-}|]
-        </Document>
-    </Project>
-</Workspace>";
+}|]";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                IsClassDeclarationSelection = true,
+            }.RunAsync();
         }
 
         [Fact]
         public async Task TestClassDeclaration_SelectWithMembers2()
         {
             var input = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
 [|class Test
 {
     int Method()
     {
         return 1 + 1;
     }|]
-}
-        </Document>
-    </Project>
-</Workspace>";
+}";
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"">
-        <Document FilePath=""Test.cs"">
+            var expected1 = @"
 class Test : MyBase
 {
-}
-        </Document>
-        <Document FilePath=""MyBase.cs"">internal class MyBase
+}";
+            var expected2 = @"internal class MyBase
 {
     int Method()
     {
         return 1 + 1;
     }
-}</Document>
-    </Project>
-</Workspace>";
+}";
 
-            await TestAsync(input, expected, isClassDeclarationSelection: true);
+            await new Test
+            {
+                TestCode = input,
+                FixedState =
+                {
+                    Sources =
+                    {
+                        expected1,
+                        expected2
+                    }
+                },
+                IsClassDeclarationSelection = true,
+            }.RunAsync();
         }
 
         private static IEnumerable<(string name, bool makeAbstract)> MakeAbstractSelection(params string[] memberNames)
@@ -1598,11 +2029,11 @@ class Test : MyBase
 
         private class TestExtractClassOptionsService : IExtractClassOptionsService
         {
-            private readonly IEnumerable<(string name, bool makeAbstract)> _dialogSelection;
+            private readonly IEnumerable<(string name, bool makeAbstract)>? _dialogSelection;
             private readonly bool _sameFile;
             private readonly bool isClassDeclarationSelection;
 
-            public TestExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)> dialogSelection = null, bool sameFile = false, bool isClassDeclarationSelection = false)
+            public TestExtractClassOptionsService(IEnumerable<(string name, bool makeAbstract)>? dialogSelection = null, bool sameFile = false, bool isClassDeclarationSelection = false)
             {
                 _dialogSelection = dialogSelection;
                 _sameFile = sameFile;
@@ -1612,7 +2043,7 @@ class Test : MyBase
             public string FileName { get; set; } = "MyBase.cs";
             public string BaseName { get; set; } = "MyBase";
 
-            public Task<ExtractClassOptions> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ISymbol selectedMember)
+            public Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalSymbol, ISymbol? selectedMember)
             {
                 var availableMembers = originalSymbol.GetMembers().Where(member => MemberAndDestinationValidator.IsMemberValid(member));
 
@@ -1642,7 +2073,7 @@ class Test : MyBase
                         s.makeAbstract))
                     .ToImmutableArray();
 
-                return Task.FromResult(new ExtractClassOptions(FileName, BaseName, _sameFile, memberAnalysis));
+                return Task.FromResult<ExtractClassOptions?>(new ExtractClassOptions(FileName, BaseName, _sameFile, memberAnalysis));
             }
         }
     }

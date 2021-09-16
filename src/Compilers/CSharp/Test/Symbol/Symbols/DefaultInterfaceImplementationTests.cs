@@ -7002,8 +7002,8 @@ class Test2 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.Net60);
 
             compilation1.VerifyDiagnostics(
                 // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -7247,14 +7247,22 @@ class Test1 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (9,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // (9,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(9, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(9, 15)
                 );
+
+            ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.Internal);
+
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular10,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, Accessibility.Internal)).VerifyDiagnostics();
 
             ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.Internal);
 
@@ -7266,29 +7274,6 @@ class Test1 : I1
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Internal);
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation3.VerifyDiagnostics(
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
-                // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15)
-                );
-
-            ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.Internal);
-
-            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation4.VerifyDiagnostics(
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
-                // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15)
-                );
-
-            ValidateMethodModifiersImplicit_10(compilation4.SourceModule, Accessibility.Internal);
 
             var source3 =
 @"
@@ -7297,29 +7282,40 @@ class Test2 : I1
 }
 ";
 
-            var compilation5 = CreateCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular9,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation3.VerifyDiagnostics(
+                    // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                    // class Test1 : I1
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 15)
+                    );
+
+                ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.Internal);
+
+                compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular10,
                                                  targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation5.VerifyDiagnostics(
-                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
-                // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M1()").WithLocation(2, 15)
-                );
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, Accessibility.Internal)).VerifyDiagnostics();
 
-            ValidateI1M1NotImplemented(compilation5, "Test2");
+                ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.Internal);
 
-            var compilation6 = CreateCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation6.VerifyDiagnostics(
-                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
-                // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M1()").WithLocation(2, 15)
-                );
+                var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation5.VerifyDiagnostics(
+                    // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
+                    // class Test2 : I1
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M1()").WithLocation(2, 15)
+                    );
 
-            ValidateI1M1NotImplemented(compilation6, "Test2");
+                ValidateI1M1NotImplemented(compilation5, "Test2");
+            }
         }
 
         private static void ValidateI1M1NotImplemented(CSharpCompilation compilation, string className)
@@ -7361,11 +7357,7 @@ class Test2 : I1
             Assert.NotNull(implementation);
             Assert.Same(implementation, test1.FindImplementationForInterfaceMember(m1));
 
-            var i2 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I2").SingleOrDefault();
-            Assert.Equal(implementation.IsVirtual || implementation.IsAbstract || isExplicit ||
-                         (!implementedByBase && (object)i2 != null &&
-                             (object)implementation == test1.FindImplementationForInterfaceMember(i2.GetMember<MethodSymbol>("M1"))),
-                         implementation.IsMetadataVirtual());
+            Assert.True(implementation.IsMetadataVirtual());
         }
 
         private static void ValidateMethodModifiers_10(MethodSymbol m1, Accessibility accessibility)
@@ -7408,27 +7400,34 @@ class Test1 : I1
 
     public virtual void M1() 
     {
-        System.Console.WriteLine(""M1"");
+        System.Console.WriteLine(""Test1.M1"");
     }
 }
 ";
 
             ValidateMethodModifiers_10_02(source1, source2, Accessibility.Internal,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
         private void ValidateMethodModifiers_10_02(string source1, string source2,
                                                   Accessibility accessibility,
-                                                  params DiagnosticDescription[] expected)
+                                                  params DiagnosticDescription[] expectedIn9)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(expected);
+            compilation1.VerifyDiagnostics(expectedIn9);
+
+            ValidateMethodModifiersImplicit_10(compilation1.SourceModule, accessibility);
+
+            compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "Test1.M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, accessibility)).VerifyDiagnostics();
 
             ValidateMethodModifiersImplicit_10(compilation1.SourceModule, accessibility);
 
@@ -7440,21 +7439,23 @@ class Test1 : I1
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), accessibility);
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation3.VerifyDiagnostics(expected);
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular9,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation3.VerifyDiagnostics(expectedIn9);
 
-            ValidateMethodModifiersImplicit_10(compilation3.SourceModule, accessibility);
+                ValidateMethodModifiersImplicit_10(compilation3.SourceModule, accessibility);
 
-            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation4.VerifyDiagnostics(expected);
+                compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "Test1.M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, accessibility)).VerifyDiagnostics();
 
-            ValidateMethodModifiersImplicit_10(compilation4.SourceModule, accessibility);
+                ValidateMethodModifiersImplicit_10(compilation3.SourceModule, accessibility);
+            }
         }
 
         [Fact]
@@ -7565,9 +7566,9 @@ class Test1 : Test2, I1
 }
 ";
             ValidateMethodModifiers_10_02(source1, source2, Accessibility.Internal,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -7611,9 +7612,9 @@ class Test1 : Test2, I1
 }
 ";
             ValidateMethodModifiers_10_02(source1, source2, Accessibility.Internal,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -7657,14 +7658,14 @@ class Test3 : Test1
 {
     public override void M1() 
     {
-        System.Console.WriteLine(""Test3.M1"");
+        System.Console.WriteLine(""Test1.M1"");
     }
 }
 ";
             ValidateMethodModifiers_10_02(source1, source2, Accessibility.Internal,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -7713,9 +7714,9 @@ public interface I2
 }
 ";
             ValidateMethodModifiers_10_02(source1, source2, Accessibility.Internal,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
-                // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                // class Test1 : Test2, I1, I2
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -7823,9 +7824,9 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (9,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // (9,15): error CS0738: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implement 'I1.M1()' because it does not have the matching return type of 'void'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(9, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "void").WithLocation(9, 15)
                 );
 
             ValidateI1M1NotImplemented(compilation1, "Test1");
@@ -7843,9 +7844,9 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implement 'I1.M1()' because it does not have the matching return type of 'void'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "void").WithLocation(2, 15)
                 );
 
             ValidateI1M1NotImplemented(compilation3, "Test1");
@@ -7855,9 +7856,9 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implement 'I1.M1()' because it does not have the matching return type of 'void'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M1()").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "void").WithLocation(2, 15)
                 );
 
             ValidateI1M1NotImplemented(compilation4, "Test1");
@@ -7871,6 +7872,8 @@ class Test1 : I1
 public interface I1
 {
     internal abstract void M1(); 
+
+    void M2() {M1();}
 }
 ";
 
@@ -7886,47 +7889,63 @@ class Test2 : I1
 
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
 }
 ";
-            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (7,15): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member.
+                // (9,15): error CS8704: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()").WithLocation(7, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()", "9.0", "10.0").WithLocation(9, 15)
                 );
 
             ValidateMethodModifiersImplicitInTest2_10(compilation1.SourceModule, Accessibility.Internal);
 
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicitInTest2_10(m, Accessibility.Internal)).VerifyDiagnostics();
+
+            ValidateMethodModifiersImplicitInTest2_10(compilation1.SourceModule, Accessibility.Internal);
+
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
 
             ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Internal);
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular9,
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
-            compilation3.VerifyDiagnostics(
-                // (2,15): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member.
-                // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()")
-                );
+                compilation3.VerifyDiagnostics(
+                    // (2,15): error CS8704: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                    // class Test2 : I1
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()", "9.0", "10.0").WithLocation(2, 15)
+                    );
 
-            ValidateMethodModifiersImplicitInTest2_10(compilation3.SourceModule, Accessibility.Internal);
+                ValidateMethodModifiersImplicitInTest2_10(compilation3.SourceModule, Accessibility.Internal);
 
-            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+                compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
-            compilation4.VerifyDiagnostics(
-                // (2,15): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member.
-                // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()")
-                );
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicitInTest2_10(m, Accessibility.Internal)).VerifyDiagnostics();
 
-            ValidateMethodModifiersImplicitInTest2_10(compilation4.SourceModule, Accessibility.Internal);
+                ValidateMethodModifiersImplicitInTest2_10(compilation3.SourceModule, Accessibility.Internal);
+            }
         }
 
         [Fact]
@@ -7937,6 +7956,8 @@ class Test1 : Test2, I1
 public interface I1
 {
     internal abstract void M1(); 
+
+    void M2() {M1();}
 }
 
 public class Test2 : I1
@@ -7952,30 +7973,35 @@ public class Test2 : I1
 @"
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
 }
 ";
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp,
                                                  assemblyName: "MethodModifiers_10_11");
 
-            compilation2.VerifyDiagnostics(
-                // (7,22): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member.
-                // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()").WithLocation(7, 22)
-                );
+            compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
-            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicitInTest2_10(m, Accessibility.Internal)).VerifyDiagnostics();
 
             ValidateMethodModifiersImplicitInTest2_10(compilation3.SourceModule, Accessibility.Internal);
 
-            var compilation3Ref = compilation3.EmitToImageReference();
-            var compilation4 = CreateCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+            compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
 
-            ValidateMethodModifiersImplicitInTest2_10(compilation4.GetReferencedAssemblySymbol(compilation3Ref).Modules[0], Accessibility.Internal);
+            CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicitInTest2_10(m, Accessibility.Internal)).VerifyDiagnostics();
+
+            ValidateMethodModifiersImplicitInTest2_10(compilation3.SourceModule, Accessibility.Internal);
         }
 
         [Fact]
@@ -8588,7 +8614,7 @@ class Test2 : I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -9738,10 +9764,11 @@ M2",
 public interface I1
 {
     protected abstract void M1(); 
+    public void M2() => M1();
 }
 ";
 
-            var source2 =
+            var source21 =
 @"
 class Test1 : I1
 {
@@ -9757,21 +9784,47 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
+            var compilation1 = CreateCompilation(source21 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             var expected = new DiagnosticDescription[] {
-                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 15),
                 // (7,11): error CS1540: Cannot access protected member 'I1.M1()' via a qualifier of type 'I1'; the qualifier must be of type 'Test1' (or derived from it)
                 //         x.M1();
                 Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M1").WithArguments("I1.M1()", "I1", "Test1").WithLocation(7, 11)
                 };
 
             compilation1.VerifyDiagnostics(expected);
+
+            ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.Protected);
+
+            var source22 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+
+    public void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            compilation1 = CreateCompilation(source22 + source1, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, Accessibility.Protected)).VerifyDiagnostics();
 
             ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.Protected);
 
@@ -9793,12 +9846,20 @@ class Test2 : I1
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
-                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
+                var compilation3 = CreateCompilation(source21, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular9,
                                                      targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation3.VerifyDiagnostics(expected);
 
+                ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.Protected);
+
+                compilation3 = CreateCompilation(source22, new[] { reference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, Accessibility.Protected)).VerifyDiagnostics();
                 ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.Protected);
 
                 var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
@@ -9823,10 +9884,11 @@ class Test2 : I1
 public interface I1
 {
     protected internal abstract void M1(); 
+    public void M2() => M1();
 }
 ";
 
-            var source2 =
+            var source21 =
 @"
 class Test1 : I1
 {
@@ -9842,16 +9904,43 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
+
+            var source22 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+
+    public virtual void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source21 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 15)
                 );
+
+            ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.ProtectedOrInternal);
+
+            compilation1 = CreateCompilation(source21 + source1, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, Accessibility.ProtectedOrInternal)).VerifyDiagnostics();
 
             ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.ProtectedOrInternal);
 
@@ -9873,19 +9962,26 @@ class Test2 : I1
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
-                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
+                var compilation3 = CreateCompilation(source21, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular9,
                                                      targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation3.VerifyDiagnostics(
-                    // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                    // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                     // class Test1 : I1
-                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 15),
                     // (7,11): error CS1540: Cannot access protected member 'I1.M1()' via a qualifier of type 'I1'; the qualifier must be of type 'Test1' (or derived from it)
                     //         x.M1();
                     Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M1").WithArguments("I1.M1()", "I1", "Test1").WithLocation(7, 11)
                     );
 
+                ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.ProtectedOrInternal);
+
+                compilation3 = CreateCompilation(source22, new[] { reference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, Accessibility.ProtectedOrInternal)).VerifyDiagnostics();
                 ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.ProtectedOrInternal);
 
                 var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
@@ -9910,10 +10006,11 @@ class Test2 : I1
 public interface I1
 {
     private protected abstract void M1(); 
+    public void M2() => M1();
 }
 ";
 
-            var source2 =
+            var source21 =
 @"
 class Test1 : I1
 {
@@ -9929,19 +10026,45 @@ class Test1 : I1
     }
 }
 ";
-            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
+
+            var source22 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+
+    public void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            var compilation1 = CreateCompilation(source21 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 15),
                 // (7,11): error CS1540: Cannot access protected member 'I1.M1()' via a qualifier of type 'I1'; the qualifier must be of type 'Test1' (or derived from it)
                 //         x.M1();
                 Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M1").WithArguments("I1.M1()", "I1", "Test1").WithLocation(7, 11)
                 );
+
+            ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.ProtectedAndInternal);
+
+            compilation1 = CreateCompilation(source22 + source1, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, Accessibility.ProtectedAndInternal)).VerifyDiagnostics();
 
             ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.ProtectedAndInternal);
 
@@ -9963,19 +10086,27 @@ class Test2 : I1
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
-                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
+                var compilation3 = CreateCompilation(source21, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular9,
                                                      targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation3.VerifyDiagnostics(
-                    // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                    // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                     // class Test1 : I1
-                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15),
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 15),
                     // (7,11): error CS0122: 'I1.M1()' is inaccessible due to its protection level
                     //         x.M1();
                     Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.M1()").WithLocation(7, 11)
                     );
 
+                ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.ProtectedAndInternal);
+
+                compilation3 = CreateCompilation(source22, new[] { reference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersImplicit_10(m, Accessibility.ProtectedAndInternal)).VerifyDiagnostics();
                 ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.ProtectedAndInternal);
 
                 var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
@@ -10185,6 +10316,7 @@ class Test1 : I1
 public interface I1
 {
     protected abstract void M1(); 
+    public void M2() => M1();
 }
 
 public class Test2 : I1
@@ -10201,17 +10333,20 @@ class Test1 : Test2, I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.M2();
     }
 
     public void M1() 
     {
+        System.Console.WriteLine(""Test1.M1"");
     }
 }
 ";
             ValidateMethodModifiers_10_02(source1, source2, Accessibility.Protected,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -10223,6 +10358,7 @@ class Test1 : Test2, I1
 public interface I1
 {
     protected internal abstract void M1(); 
+    public void M2() => M1();
 }
 
 public class Test2 : I1
@@ -10239,17 +10375,20 @@ class Test1 : Test2, I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.M2();
     }
 
     public void M1() 
     {
+        System.Console.WriteLine(""Test1.M1"");
     }
 }
 ";
             ValidateMethodModifiers_10_02(source1, source2, Accessibility.ProtectedOrInternal,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -10261,6 +10400,7 @@ class Test1 : Test2, I1
 public interface I1
 {
     private protected abstract void M1(); 
+    public void M2() => M1();
 }
 
 public class Test2 : I1
@@ -10277,17 +10417,20 @@ class Test1 : Test2, I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.M2();
     }
 
     public virtual void M1() 
     {
+        System.Console.WriteLine(""Test1.M1"");
     }
 }
 ";
             ValidateMethodModifiers_10_02(source1, source2, Accessibility.ProtectedAndInternal,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -10833,9 +10976,9 @@ public interface I1
             Assert.False(p01.IsOverride);
             Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
 
-            VaidateP01Accessor(p01.GetMethod);
-            VaidateP01Accessor(p01.SetMethod);
-            void VaidateP01Accessor(MethodSymbol accessor)
+            ValidateP01Accessor(p01.GetMethod);
+            ValidateP01Accessor(p01.SetMethod);
+            void ValidateP01Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -12066,8 +12209,8 @@ class Test2 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.Net60);
 
             compilation1.VerifyDiagnostics(
                 // (4,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -12583,12 +12726,12 @@ class Test1 : I1
 
             ValidatePropertyModifiers_11_01(source1, source2, Accessibility.Internal,
                 new DiagnosticDescription[] {
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 15),
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 15)
                 },
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
                 // class Test2 : I1
@@ -12601,10 +12744,22 @@ class Test1 : I1
                                                   params DiagnosticDescription[] expected2)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
+
+            ValidatePropertyModifiers_11(compilation1.SourceModule, accessibility);
+
+            compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidatePropertyModifiers_11(m, accessibility)).VerifyDiagnostics();
 
             ValidatePropertyModifiers_11(compilation1.SourceModule, accessibility);
 
@@ -12625,22 +12780,6 @@ class Test1 : I1
                 ValidatePropertyAccessorModifiers_11(p1set, accessibility);
             }
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation3.VerifyDiagnostics(expected1);
-
-            ValidatePropertyModifiers_11(compilation3.SourceModule, accessibility);
-
-            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation4.VerifyDiagnostics(expected1);
-
-            ValidatePropertyModifiers_11(compilation4.SourceModule, accessibility);
-
             var source3 =
 @"
 class Test2 : I1
@@ -12648,21 +12787,35 @@ class Test2 : I1
 }
 ";
 
-            var compilation5 = CreateCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular9,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation3.VerifyDiagnostics(expected1);
+
+                ValidatePropertyModifiers_11(compilation3.SourceModule, accessibility);
+
+                compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation5.VerifyDiagnostics(expected2);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidatePropertyModifiers_11(m, accessibility)).VerifyDiagnostics();
 
-            ValidatePropertyNotImplemented_11(compilation5, "Test2");
+                ValidatePropertyModifiers_11(compilation3.SourceModule, accessibility);
 
-            var compilation6 = CreateCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation6.VerifyDiagnostics(expected2);
+                var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation5.VerifyDiagnostics(expected2);
 
-            ValidatePropertyNotImplemented_11(compilation6, "Test2");
+                ValidatePropertyNotImplemented_11(compilation5, "Test2");
+            }
         }
 
         private static void ValidatePropertyModifiers_11(ModuleSymbol m, Accessibility accessibility)
@@ -12757,12 +12910,12 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 15),
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -12770,10 +12923,21 @@ class Test1 : I1
                                                   params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
+
+            ValidatePropertyImplementation_11(compilation1.SourceModule);
+
+            compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidatePropertyImplementation_11(m)).VerifyDiagnostics();
 
             ValidatePropertyImplementation_11(compilation1.SourceModule);
 
@@ -12783,21 +12947,27 @@ class Test1 : I1
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular9,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation3.VerifyDiagnostics(expected);
+
+                ValidatePropertyImplementation_11(compilation3.SourceModule);
+
+                compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation3.VerifyDiagnostics(expected);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidatePropertyImplementation_11(m)).VerifyDiagnostics();
 
-            ValidatePropertyImplementation_11(compilation3.SourceModule);
-
-            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation4.VerifyDiagnostics(expected);
-
-            ValidatePropertyImplementation_11(compilation4.SourceModule);
+                ValidatePropertyImplementation_11(compilation3.SourceModule);
+            }
         }
 
         private static void ValidatePropertyImplementation_11(ModuleSymbol m)
@@ -12825,10 +12995,8 @@ class Test1 : I1
             Assert.Same(test1P1.SetMethod, test1.FindImplementationForInterfaceMember(p1set));
 
             var i2 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I2").SingleOrDefault();
-            bool isMetadataVirtual = test1P1.IsVirtual || test1P1.IsAbstract || test1P1.IsExplicitInterfaceImplementation ||
-                (!implementedByBase && (object)i2 != null && (object)test1P1 == test1.FindImplementationForInterfaceMember(GetSingleProperty(i2)));
-            Assert.Equal(isMetadataVirtual, test1P1.GetMethod.IsMetadataVirtual());
-            Assert.Equal(isMetadataVirtual, test1P1.SetMethod.IsMetadataVirtual());
+            Assert.True(test1P1.GetMethod.IsMetadataVirtual());
+            Assert.True(test1P1.SetMethod.IsMetadataVirtual());
         }
 
         [Fact]
@@ -12962,24 +13130,24 @@ class Test1 : Test2, I1
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -13029,24 +13197,24 @@ class Test1 : Test2, I1
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -13101,24 +13269,24 @@ class Test3 : Test1
     {
         get
         {
-            System.Console.WriteLine(""Test3.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test3.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
-                // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
-                // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                // class Test1 : Test2, I1, I2
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                // class Test1 : Test2, I1, I2
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -13168,12 +13336,12 @@ class Test1 : Test2, I1, I2
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
@@ -13185,12 +13353,12 @@ public interface I2
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
-                // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
-                // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                // class Test1 : Test2, I1, I2
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                // class Test1 : Test2, I1, I2
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -13330,9 +13498,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.P1'. 'Test1.P1' cannot implement 'I1.P1' because it does not have the matching return type of 'int'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.P1", "Test1.P1", "int").WithLocation(2, 15)
                 );
         }
 
@@ -13374,6 +13542,11 @@ class Test1 : I1
 public interface I1
 {
     internal abstract int P1 {get; set;} 
+
+    sealed void Test()
+    {
+        P1 = P1;
+    }
 }
 ";
 
@@ -13385,23 +13558,32 @@ public class Test2 : I1
     {
         get
         {
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
-        set {}
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidatePropertyModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.set", "Test2.P1.set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.set", "Test2.P1.set", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.get", "Test2.P1.get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.get", "Test2.P1.get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -13409,30 +13591,51 @@ class Test1 : Test2, I1
                                                      params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(expected);
 
             ValidatePropertyImplementationByBase_11(compilation1.SourceModule);
 
+            compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidatePropertyImplementationByBase_11(m)).VerifyDiagnostics();
+
+            ValidatePropertyImplementationByBase_11(compilation1.SourceModule);
+
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular9,
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
-            compilation3.VerifyDiagnostics(expected);
+                compilation3.VerifyDiagnostics(expected);
 
-            ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
+                ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
 
-            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+                compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
-            compilation4.VerifyDiagnostics(expected);
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidatePropertyImplementationByBase_11(m)).VerifyDiagnostics();
 
-            ValidatePropertyImplementationByBase_11(compilation4.SourceModule);
+                ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
+            }
         }
 
         [Fact]
@@ -13443,6 +13646,11 @@ class Test1 : Test2, I1
 public interface I1
 {
     internal abstract int P1 {get; set;} 
+
+    sealed void Test()
+    {
+        P1 = P1;
+    }
 }
 public class Test2 : I1
 {
@@ -13450,9 +13658,13 @@ public class Test2 : I1
     {
         get
         {
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
-        set {}
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
@@ -13461,16 +13673,21 @@ public class Test2 : I1
 @"
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidatePropertyModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement a non-public member.
+                // (11,22): error CS8704: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.set", "Test2.P1.set").WithLocation(6, 22),
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.get", "Test2.P1.get", "9.0", "10.0").WithLocation(11, 22),
+                // (11,22): error CS8704: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.get", "Test2.P1.get").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.set", "Test2.P1.set", "9.0", "10.0").WithLocation(11, 22)
                 );
         }
 
@@ -13478,23 +13695,29 @@ class Test1 : Test2, I1
                                                      params DiagnosticDescription[] expected)
         {
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
                                                  assemblyName: "PropertyModifiers_11_11");
 
             compilation2.VerifyDiagnostics(expected);
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp,
+                                             assemblyName: "PropertyModifiers_11_11");
 
-            compilation3.VerifyDiagnostics();
+            compilation2.VerifyDiagnostics();
+
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidatePropertyImplementationByBase_11(m)).VerifyDiagnostics();
 
             ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
-
-            var compilation3Ref = compilation3.EmitToImageReference();
-            var compilation4 = CreateCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
-
-            ValidatePropertyImplementationByBase_11(compilation4.GetReferencedAssemblySymbol(compilation3Ref).Modules[0]);
         }
 
         [Fact]
@@ -14775,7 +14998,7 @@ class Test2 : I1, I2, I3, I4, I5
         private void ValidatePropertyModifiers_18(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -15927,6 +16150,8 @@ class Test1 : I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.M2();
     }
 
     public int P1 
@@ -15944,19 +16169,30 @@ class Test1 : I1
 }
 ";
             ValidatePropertyModifiers_23(source1, source2, Accessibility.Internal, Accessibility.Public,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
         private void ValidatePropertyModifiers_23(string source1, string source2, Accessibility getAccess, Accessibility setAccess, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
+
+            Validate1(compilation1.SourceModule);
+
+            compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => Validate1(m)).VerifyDiagnostics();
 
             Validate1(compilation1.SourceModule);
 
@@ -15976,23 +16212,29 @@ class Test1 : I1
 
             ValidateProperty23(GetSingleProperty(compilation2, "I1"), true, getAccess, setAccess);
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() },
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference },
+                                                     options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                     parseOptions: TestOptions.Regular9,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation3.VerifyDiagnostics(expected);
+
+                Validate1(compilation3.SourceModule);
+
+                compilation3 = CreateCompilation(source2, new[] { reference },
                                                  options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation3.VerifyDiagnostics(expected);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => Validate1(m)).VerifyDiagnostics();
 
-            Validate1(compilation3.SourceModule);
-
-            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() },
-                                                 options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation4.VerifyDiagnostics(expected);
-
-            Validate1(compilation4.SourceModule);
+                Validate1(compilation3.SourceModule);
+            }
         }
 
         [Fact]
@@ -16036,9 +16278,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -16135,21 +16377,21 @@ class Test1 : Test2, I1
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -16199,21 +16441,21 @@ class Test1 : Test2, I1
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -16268,21 +16510,21 @@ class Test3 : Test1
     {
         get
         {
-            System.Console.WriteLine(""Test3.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test3.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -16332,12 +16574,12 @@ class Test1 : Test2, I1, I2
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
@@ -16349,9 +16591,9 @@ public interface I2
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
-                // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
+                    // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                    // class Test1 : Test2, I1, I2
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -16456,9 +16698,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.P1'. 'Test1.P1' cannot implement 'I1.P1' because it does not have the matching return type of 'int'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.P1", "Test1.P1", "int").WithLocation(2, 15)
                 );
         }
 
@@ -16470,6 +16712,11 @@ class Test1 : I1
 public interface I1
 {
     abstract int P1 {internal get; set;} 
+
+    sealed void Test()
+    {
+        P1 = P1;
+    }
 }
 ";
 
@@ -16481,20 +16728,29 @@ public class Test2 : I1
     {
         get
         {
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
-        set {}
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidatePropertyModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.get", "Test2.P1.get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.get", "Test2.P1.get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -16506,6 +16762,11 @@ class Test1 : Test2, I1
 public interface I1
 {
     abstract int P1 {internal get; set;} 
+
+    sealed void Test()
+    {
+        P1 = P1;
+    }
 }
 public class Test2 : I1
 {
@@ -16513,9 +16774,13 @@ public class Test2 : I1
     {
         get
         {
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
-        set {}
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
@@ -16524,13 +16789,18 @@ public class Test2 : I1
 @"
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidatePropertyModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement a non-public member.
+                // (11,22): error CS8704: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.get", "Test2.P1.get").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.get", "Test2.P1.get", "9.0", "10.0").WithLocation(11, 22)
                 );
         }
 
@@ -16556,6 +16826,8 @@ class Test1 : I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.M2();
     }
 
     public int P1 
@@ -16573,9 +16845,9 @@ class Test1 : I1
 }
 ";
             ValidatePropertyModifiers_23(source1, source2, Accessibility.Public, Accessibility.Internal,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -16620,9 +16892,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -16719,21 +16991,21 @@ class Test1 : Test2, I1
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -16783,21 +17055,21 @@ class Test1 : Test2, I1
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -16852,21 +17124,21 @@ class Test3 : Test1
     {
         get
         {
-            System.Console.WriteLine(""Test3.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test3.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -16916,12 +17188,12 @@ class Test1 : Test2, I1, I2
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
@@ -16933,9 +17205,9 @@ public interface I2
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1, I2
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -17040,9 +17312,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.P1'. 'Test1.P1' cannot implement 'I1.P1' because it does not have the matching return type of 'int'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.P1", "Test1.P1", "int").WithLocation(2, 15)
                 );
         }
 
@@ -17054,6 +17326,11 @@ class Test1 : I1
 public interface I1
 {
     abstract int P1 {get; internal set;} 
+
+    sealed void Test()
+    {
+        P1 = P1;
+    }
 }
 ";
 
@@ -17065,20 +17342,29 @@ public class Test2 : I1
     {
         get
         {
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
-        set {}
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidatePropertyModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.set", "Test2.P1.set").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.set", "Test2.P1.set", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -17090,6 +17376,11 @@ class Test1 : Test2, I1
 public interface I1
 {
     abstract int P1 {get; internal set;} 
+
+    sealed void Test()
+    {
+        P1 = P1;
+    }
 }
 public class Test2 : I1
 {
@@ -17097,9 +17388,13 @@ public class Test2 : I1
     {
         get
         {
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
-        set {}
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
@@ -17108,13 +17403,18 @@ public class Test2 : I1
 @"
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidatePropertyModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement a non-public member.
+                // (11,22): error CS8704: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.set", "Test2.P1.set").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.set", "Test2.P1.set", "9.0", "10.0").WithLocation(11, 22)
                 );
         }
 
@@ -17881,6 +18181,11 @@ set_P6
 public interface I1
 {
     protected abstract int P1 {get; set;} 
+
+    sealed void Test()
+    {
+        P1 = P1;
+    }
 }
 ";
 
@@ -17890,24 +18195,33 @@ class Test1 : I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.Test();
     }
 
     public int P1 
     {
-        get => 0;
-        set {}
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_01(source1, source2, Accessibility.Protected,
                 new DiagnosticDescription[] {
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 15),
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 15)
                 },
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
                 // class Test2 : I1
@@ -17923,6 +18237,11 @@ class Test1 : I1
 public interface I1
 {
     protected internal abstract int P1 {get; set;} 
+
+    sealed void Test()
+    {
+        P1 = P1;
+    }
 }
 ";
 
@@ -17932,24 +18251,33 @@ class Test1 : I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.Test();
     }
 
     public int P1 
     {
-        get => 0;
-        set {}
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_01(source1, source2, Accessibility.ProtectedOrInternal,
                 new DiagnosticDescription[] {
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 15),
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 15)
                 },
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
                 // class Test2 : I1
@@ -17965,6 +18293,11 @@ class Test1 : I1
 public interface I1
 {
     private protected abstract int P1 {get; set;} 
+
+    sealed void Test()
+    {
+        P1 = P1;
+    }
 }
 ";
 
@@ -17974,24 +18307,33 @@ class Test1 : I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.Test();
     }
 
     public int P1 
     {
-        get => 0;
-        set {}
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_01(source1, source2, Accessibility.ProtectedAndInternal,
                 new DiagnosticDescription[] {
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 15),
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 15)
                 },
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
                 // class Test2 : I1
@@ -18007,6 +18349,11 @@ class Test1 : I1
 public interface I1
 {
     abstract int P1 {protected get; set;} 
+
+    void M2()
+    {
+        P1 = P1;
+    }
 }
 ";
 
@@ -18016,19 +18363,28 @@ class Test1 : I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.M2();
     }
 
     public int P1 
     {
-        get => 0;
-        set {}
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
             ValidatePropertyModifiers_23(source1, source2, Accessibility.Protected, Accessibility.Public,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -18040,6 +18396,11 @@ class Test1 : I1
 public interface I1
 {
     abstract int P1 {protected internal get; set;} 
+
+    void M2()
+    {
+        P1 = P1;
+    }
 }
 ";
 
@@ -18049,19 +18410,28 @@ class Test1 : I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.M2();
     }
 
     public int P1 
     {
-        get => 0;
-        set {}
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
             ValidatePropertyModifiers_23(source1, source2, Accessibility.ProtectedOrInternal, Accessibility.Public,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -18073,6 +18443,11 @@ class Test1 : I1
 public interface I1
 {
     abstract int P1 {get; private protected set;} 
+
+    void M2()
+    {
+        P1 = P1;
+    }
 }
 ";
 
@@ -18082,19 +18457,28 @@ class Test1 : I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.M2();
     }
 
     public int P1 
     {
-        get => 0;
-        set {}
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
             ValidatePropertyModifiers_23(source1, source2, Accessibility.Public, Accessibility.ProtectedAndInternal,
-                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -18824,9 +19208,9 @@ public interface I19{ int this[int x] { get; private protected set;} }
             Assert.False(p01.IsOverride);
             Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
 
-            VaidateP01Accessor(p01.GetMethod);
-            VaidateP01Accessor(p01.SetMethod);
-            void VaidateP01Accessor(MethodSymbol accessor)
+            ValidateP01Accessor(p01.GetMethod);
+            ValidateP01Accessor(p01.SetMethod);
+            void ValidateP01Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -19916,12 +20300,12 @@ class Test1 : I1
 
             ValidatePropertyModifiers_11_01(source1, source2, Accessibility.Internal,
                 new DiagnosticDescription[] {
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(2, 15),
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(2, 15)
                 },
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.this[int]'
                 // class Test2 : I1
@@ -19970,12 +20354,12 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(2, 15),
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -20072,24 +20456,24 @@ class Test1 : Test2, I1
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -20139,24 +20523,24 @@ class Test1 : Test2, I1
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -20211,24 +20595,24 @@ class Test3 : Test1
     {
         get
         {
-            System.Console.WriteLine(""Test3.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test3.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
-                // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
-                // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                // class Test1 : Test2, I1, I2
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                // class Test1 : Test2, I1, I2
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -20278,12 +20662,12 @@ class Test1 : Test2, I1, I2
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
@@ -20295,12 +20679,12 @@ public interface I2
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1, I2
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1, I2
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -20405,9 +20789,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.this[int]'. 'Test1.this[int]' cannot implement 'I1.this[int]' because it does not have the matching return type of 'int'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.this[int]", "Test1.this[int]", "int").WithLocation(2, 15)
                 );
         }
 
@@ -20419,6 +20803,11 @@ class Test1 : I1
 public interface I1
 {
     internal abstract int this[int x] {get; set;} 
+
+    sealed void Test()
+    {
+        this[0] = this[0];
+    }
 }
 ";
 
@@ -20430,23 +20819,32 @@ public class Test2 : I1
     {
         get
         {
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
-        set {}
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidatePropertyModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -20458,6 +20856,11 @@ class Test1 : Test2, I1
 public interface I1
 {
     internal abstract int this[int x] {get; set;} 
+
+    sealed void Test()
+    {
+        this[0] = this[0];
+    }
 }
 public class Test2 : I1
 {
@@ -20465,9 +20868,13 @@ public class Test2 : I1
     {
         get
         {
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
-        set {}
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
@@ -20476,16 +20883,21 @@ public class Test2 : I1
 @"
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidatePropertyModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement a non-public member.
+                // (11,22): error CS8704: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set").WithLocation(6, 22),
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get", "9.0", "10.0").WithLocation(11, 22),
+                // (11,22): error CS8704: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set", "9.0", "10.0").WithLocation(11, 22)
                 );
         }
 
@@ -22268,6 +22680,8 @@ class Test1 : I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.M2();
     }
 
     public int this[int x] 
@@ -22285,9 +22699,9 @@ class Test1 : I1
 }
 ";
             ValidatePropertyModifiers_23(source1, source2, Accessibility.Internal, Accessibility.Public,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -22332,9 +22746,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -22431,21 +22845,21 @@ class Test1 : Test2, I1
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -22495,21 +22909,21 @@ class Test1 : Test2, I1
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -22564,21 +22978,21 @@ class Test3 : Test1
     {
         get
         {
-            System.Console.WriteLine(""Test3.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test3.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -22628,12 +23042,12 @@ class Test1 : Test2, I1, I2
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
@@ -22645,9 +23059,9 @@ public interface I2
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1, I2
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -22752,9 +23166,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.this[int]'. 'Test1.this[int]' cannot implement 'I1.this[int]' because it does not have the matching return type of 'int'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.this[int]", "Test1.this[int]", "int").WithLocation(2, 15)
                 );
         }
 
@@ -22766,6 +23180,11 @@ class Test1 : I1
 public interface I1
 {
     abstract int this[int x] {internal get; set;} 
+
+    sealed void Test()
+    {
+        this[0] = this[0];
+    }
 }
 ";
 
@@ -22777,20 +23196,29 @@ public class Test2 : I1
     {
         get
         {
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
-        set {}
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidatePropertyModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -22802,6 +23230,11 @@ class Test1 : Test2, I1
 public interface I1
 {
     abstract int this[int x] {internal get; set;} 
+
+    sealed void Test()
+    {
+        this[0] = this[0];
+    }
 }
 public class Test2 : I1
 {
@@ -22809,9 +23242,13 @@ public class Test2 : I1
     {
         get
         {
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
-        set {}
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
@@ -22820,13 +23257,18 @@ public class Test2 : I1
 @"
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidatePropertyModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement a non-public member.
+                // (11,22): error CS8704: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get", "9.0", "10.0").WithLocation(11, 22)
                 );
         }
 
@@ -22852,6 +23294,8 @@ class Test1 : I1
 {
     static void Main()
     {
+        I1 x = new Test1();
+        x.M2();
     }
 
     public int this[int x] 
@@ -22869,9 +23313,9 @@ class Test1 : I1
 }
 ";
             ValidatePropertyModifiers_23(source1, source2, Accessibility.Public, Accessibility.Internal,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -22916,9 +23360,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -23015,21 +23459,21 @@ class Test1 : Test2, I1
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -23079,21 +23523,21 @@ class Test1 : Test2, I1
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -23148,21 +23592,21 @@ class Test3 : Test1
     {
         get
         {
-            System.Console.WriteLine(""Test3.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test3.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -23212,12 +23656,12 @@ class Test1 : Test2, I1, I2
     {
         get
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
         set
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
@@ -23229,9 +23673,9 @@ public interface I2
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1, I2
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -23336,9 +23780,9 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int]'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.this[int]'. 'Test1.this[int]' cannot implement 'I1.this[int]' because it does not have the matching return type of 'int'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.this[int]").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.this[int]", "Test1.this[int]", "int").WithLocation(2, 15)
                 );
         }
 
@@ -23350,6 +23794,11 @@ class Test1 : I1
 public interface I1
 {
     abstract int this[int x] {get; internal set;} 
+
+    sealed void Test()
+    {
+        this[0] = this[0];
+    }
 }
 ";
 
@@ -23361,20 +23810,29 @@ public class Test2 : I1
     {
         get
         {
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
-        set {}
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidatePropertyModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -23386,6 +23844,11 @@ class Test1 : Test2, I1
 public interface I1
 {
     abstract int this[int x] {get; internal set;} 
+
+    sealed void Test()
+    {
+        this[0] = this[0];
+    }
 }
 public class Test2 : I1
 {
@@ -23393,9 +23856,13 @@ public class Test2 : I1
     {
         get
         {
+            System.Console.WriteLine(""get_P1"");
             return 0;
         }
-        set {}
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
@@ -23404,13 +23871,18 @@ public class Test2 : I1
 @"
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidatePropertyModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement a non-public member.
+                // (11,22): error CS8704: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set", "9.0", "10.0").WithLocation(11, 22)
                 );
         }
 
@@ -23813,9 +24285,9 @@ public interface I1
             Assert.False(p01.IsOverride);
             Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
 
-            VaidateP01Accessor(p01.AddMethod);
-            VaidateP01Accessor(p01.RemoveMethod);
-            void VaidateP01Accessor(MethodSymbol accessor)
+            ValidateP01Accessor(p01.AddMethod);
+            ValidateP01Accessor(p01.RemoveMethod);
+            void ValidateP01Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -24055,9 +24527,9 @@ public interface I1
             Assert.False(p14.IsOverride);
             Assert.Equal(Accessibility.ProtectedAndInternal, p14.DeclaredAccessibility);
 
-            VaidateP14Accessor(p14.AddMethod);
-            VaidateP14Accessor(p14.RemoveMethod);
-            void VaidateP14Accessor(MethodSymbol accessor)
+            ValidateP14Accessor(p14.AddMethod);
+            ValidateP14Accessor(p14.RemoveMethod);
+            void ValidateP14Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -24906,8 +25378,8 @@ class Test2 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.Net60);
 
             compilation1.VerifyDiagnostics(
                 // (8,46): error CS0073: An add or remove accessor must have a body
@@ -25354,12 +25826,12 @@ class Test1 : I1
             ValidateEventModifiers_11(source1, source2, Accessibility.Internal,
                 new DiagnosticDescription[]
                 {
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(2, 15),
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add", "9.0", "10.0").WithLocation(2, 15)
                 },
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
                 // class Test2 : I1
@@ -25370,10 +25842,21 @@ class Test1 : I1
         private void ValidateEventModifiers_11(string source1, string source2, Accessibility accessibility, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
+
+            Validate1(compilation1.SourceModule);
+
+            compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => Validate1(m)).VerifyDiagnostics();
 
             Validate1(compilation1.SourceModule);
 
@@ -25432,22 +25915,6 @@ class Test1 : I1
                 ValidateMethod(p1.RemoveMethod);
             }
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation3.VerifyDiagnostics(expected1);
-
-            Validate1(compilation3.SourceModule);
-
-            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation4.VerifyDiagnostics(expected1);
-
-            Validate1(compilation4.SourceModule);
-
             var source3 =
 @"
 class Test2 : I1
@@ -25455,21 +25922,35 @@ class Test2 : I1
 }
 ";
 
-            var compilation5 = CreateCompilation(source3, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular9,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation3.VerifyDiagnostics(expected1);
+
+                Validate1(compilation3.SourceModule);
+
+                compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation5.VerifyDiagnostics(expected2);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => Validate1(m)).VerifyDiagnostics();
 
-            ValidateEventNotImplemented_11(compilation5, "Test2");
+                Validate1(compilation3.SourceModule);
 
-            var compilation6 = CreateCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation6.VerifyDiagnostics(expected2);
+                var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation5.VerifyDiagnostics(expected2);
 
-            ValidateEventNotImplemented_11(compilation6, "Test2");
+                ValidateEventNotImplemented_11(compilation5, "Test2");
+            }
         }
 
         private static void ValidateEventNotImplemented_11(CSharpCompilation compilation, string className)
@@ -25526,12 +26007,12 @@ class Test1 : I1
 ";
 
             ValidateEventModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(2, 15),
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add", "9.0", "10.0").WithLocation(2, 15)
                 );
         }
 
@@ -25539,30 +26020,51 @@ class Test1 : I1
                                                   params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(expected);
 
             ValidateEventImplementation_11(compilation1.SourceModule);
 
+            compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateEventImplementation_11(m)).VerifyDiagnostics();
+
+            ValidateEventImplementation_11(compilation1.SourceModule);
+
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular9,
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
-            compilation3.VerifyDiagnostics(expected);
+                compilation3.VerifyDiagnostics(expected);
 
-            ValidateEventImplementation_11(compilation3.SourceModule);
+                ValidateEventImplementation_11(compilation3.SourceModule);
 
-            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
+                compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
-            compilation4.VerifyDiagnostics(expected);
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateEventImplementation_11(m)).VerifyDiagnostics();
 
-            ValidateEventImplementation_11(compilation4.SourceModule);
+                ValidateEventImplementation_11(compilation3.SourceModule);
+            }
         }
 
         private static void ValidateEventImplementation_11(ModuleSymbol m)
@@ -25589,11 +26091,8 @@ class Test1 : I1
             Assert.Same(test1P1.AddMethod, test1.FindImplementationForInterfaceMember(p1Add));
             Assert.Same(test1P1.RemoveMethod, test1.FindImplementationForInterfaceMember(p1Remove));
 
-            var i2 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I2").SingleOrDefault();
-            bool isMetadataVirtual = test1P1.IsVirtual || test1P1.IsAbstract || test1P1.IsExplicitInterfaceImplementation ||
-                (!implementedByBase && (object)i2 != null && (object)test1P1 == test1.FindImplementationForInterfaceMember(GetSingleEvent(i2)));
-            Assert.Equal(isMetadataVirtual, test1P1.AddMethod.IsMetadataVirtual());
-            Assert.Equal(isMetadataVirtual, test1P1.RemoveMethod.IsMetadataVirtual());
+            Assert.True(test1P1.AddMethod.IsMetadataVirtual());
+            Assert.True(test1P1.RemoveMethod.IsMetadataVirtual());
         }
 
         [Fact]
@@ -25729,23 +26228,23 @@ class Test1 : Test2, I1
     {
         add
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
         }
         remove
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidateEventModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -25797,23 +26296,23 @@ class Test1 : Test2, I1
     {
         add
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
         }
         remove
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
 ";
 
             ValidateEventModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -25870,11 +26369,11 @@ class Test3 : Test1
     {
         add
         {
-            System.Console.WriteLine(""Test3.get_P1"");
+            System.Console.WriteLine(""get_P1"");
         }
         remove
         {
-            System.Console.WriteLine(""Test3.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
@@ -25882,12 +26381,12 @@ class Test3 : Test1
 ";
 
             ValidateEventModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -25939,11 +26438,11 @@ class Test1 : Test2, I1, I2
     {
         add
         {
-            System.Console.WriteLine(""Test1.get_P1"");
+            System.Console.WriteLine(""get_P1"");
         }
         remove
         {
-            System.Console.WriteLine(""Test1.set_P1"");
+            System.Console.WriteLine(""set_P1"");
         }
     }
 }
@@ -25955,12 +26454,12 @@ public interface I2
 ";
 
             ValidateEventModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
-                // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
-                // class Test1 : Test2, I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 22)
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                // class Test1 : Test2, I1, I2
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                // class Test1 : Test2, I1, I2
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -26104,9 +26603,9 @@ class Test1 : I1
 ";
 
             ValidateEventModifiers_11_09(source1, source2,
-                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.P1'. 'Test1.P1' cannot implement 'I1.P1' because it does not have the matching return type of 'Action'.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1").WithArguments("Test1", "I1.P1", "Test1.P1", "System.Action").WithLocation(2, 15)
                 );
         }
 
@@ -26148,6 +26647,12 @@ class Test1 : I1
 public interface I1
 {
     internal abstract event System.Action P1; 
+
+    sealed void Test()
+    {
+        P1 += null;
+        P1 -= null;
+    }
 }
 ";
 
@@ -26157,22 +26662,33 @@ public class Test2 : I1
 {
     public event System.Action P1 
     {
-        add {}
-        remove {}
+        add
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidateEventModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.remove'. 'Test2.P1.remove' cannot implicitly implement a non-public member.
+                // (2,22): error CS8704: 'Test2' does not implement interface member 'I1.P1.remove'. 'Test2.P1.remove' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.remove", "Test2.P1.remove").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.add'. 'Test2.P1.add' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.remove", "Test2.P1.remove", "9.0", "10.0").WithLocation(2, 22),
+                // (2,22): error CS8704: 'Test2' does not implement interface member 'I1.P1.add'. 'Test2.P1.add' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.add", "Test2.P1.add").WithLocation(2, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.add", "Test2.P1.add", "9.0", "10.0").WithLocation(2, 22)
                 );
         }
 
@@ -26180,30 +26696,51 @@ class Test1 : Test2, I1
                                                      params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(expected);
 
             ValidateEventImplementationByBase_11(compilation1.SourceModule);
 
+            compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateEventImplementationByBase_11(m)).VerifyDiagnostics();
+
+            ValidateEventImplementationByBase_11(compilation1.SourceModule);
+
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular9,
+                                                     targetFramework: TargetFramework.NetCoreApp);
 
-            compilation3.VerifyDiagnostics(expected);
+                compilation3.VerifyDiagnostics(expected);
 
-            ValidateEventImplementationByBase_11(compilation3.SourceModule);
+                ValidateEventImplementationByBase_11(compilation3.SourceModule);
 
-            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+                compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
 
-            compilation4.VerifyDiagnostics(expected);
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateEventImplementationByBase_11(m)).VerifyDiagnostics();
 
-            ValidateEventImplementationByBase_11(compilation4.SourceModule);
+                ValidateEventImplementationByBase_11(compilation3.SourceModule);
+            }
         }
 
         [Fact]
@@ -26214,13 +26751,25 @@ class Test1 : Test2, I1
 public interface I1
 {
     internal abstract event System.Action P1; 
+
+    sealed void Test()
+    {
+        P1 += null;
+        P1 -= null;
+    }
 }
 public class Test2 : I1
 {
     public event System.Action P1 
     {
-        add {}
-        remove {}
+        add
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
     }
 }
 ";
@@ -26229,16 +26778,21 @@ public class Test2 : I1
 @"
 class Test1 : Test2, I1
 {
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
 }
 ";
 
             ValidateEventModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.remove'. 'Test2.P1.remove' cannot implicitly implement a non-public member.
+                // (12,22): error CS8704: 'Test2' does not implement interface member 'I1.P1.remove'. 'Test2.P1.remove' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.remove", "Test2.P1.remove").WithLocation(6, 22),
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.add'. 'Test2.P1.add' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.remove", "Test2.P1.remove", "9.0", "10.0").WithLocation(12, 22),
+                // (12,22): error CS8704: 'Test2' does not implement interface member 'I1.P1.add'. 'Test2.P1.add' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class Test2 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.add", "Test2.P1.add").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.add", "Test2.P1.add", "9.0", "10.0").WithLocation(12, 22)
                 );
         }
 
@@ -26246,23 +26800,29 @@ class Test1 : Test2, I1
                                                      params DiagnosticDescription[] expected)
         {
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp,
                                                  assemblyName: "EventModifiers_11_11");
 
             compilation2.VerifyDiagnostics(expected);
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+            compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp,
+                                             assemblyName: "EventModifiers_11_11");
 
-            compilation3.VerifyDiagnostics();
+            compilation2.VerifyDiagnostics();
+
+            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1",
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateEventImplementationByBase_11(m)).VerifyDiagnostics();
 
             ValidateEventImplementationByBase_11(compilation3.SourceModule);
-
-            var compilation3Ref = compilation3.EmitToImageReference();
-            var compilation4 = CreateCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
-
-            ValidateEventImplementationByBase_11(compilation4.GetReferencedAssemblySymbol(compilation3Ref).Modules[0]);
         }
 
         [Fact]
@@ -27439,7 +27999,7 @@ class Test2 : I1, I2, I3, I4, I5
         private void ValidateEventModifiers_18(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
+                                                 parseOptions: TestOptions.Regular9,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
@@ -28084,12 +28644,12 @@ class Test1 : I1
             ValidateEventModifiers_11(source1, source2, Accessibility.Protected,
                 new DiagnosticDescription[]
                 {
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(2, 15),
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add", "9.0", "10.0").WithLocation(2, 15)
                 },
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
                 // class Test2 : I1
@@ -28141,12 +28701,12 @@ class Test1 : I1
             ValidateEventModifiers_11(source1, source2, Accessibility.ProtectedOrInternal,
                 new DiagnosticDescription[]
                 {
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(2, 15),
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add", "9.0", "10.0").WithLocation(2, 15)
                 },
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
                 // class Test2 : I1
@@ -28198,12 +28758,12 @@ class Test1 : I1
             ValidateEventModifiers_11(source1, source2, Accessibility.ProtectedAndInternal,
                 new DiagnosticDescription[]
                 {
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove", "9.0", "10.0").WithLocation(2, 15),
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add", "9.0", "10.0").WithLocation(2, 15)
                 },
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
                 // class Test2 : I1
@@ -43753,7 +44313,7 @@ public interface I1
         public void RuntimeFeature_02()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { TestMetadata.NetCoreApp.SystemRuntime },
+                                                 references: new[] { NetCoreApp.SystemRuntime },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -44947,7 +45507,7 @@ public interface ITest33
 " + NoPiaAttributes;
 
             var pia2Compilation = CreateCompilation(pia2, options: TestOptions.ReleaseDll);
-            var pia2Refernce = pia2Compilation.EmitToImageReference();
+            var pia2Reference = pia2Compilation.EmitToImageReference();
 
             foreach (var reference1 in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
@@ -44955,7 +45515,7 @@ public interface ITest33
 
                 foreach (var reference2 in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
                 {
-                    var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Refernce }, targetFramework: TargetFramework.StandardLatest);
+                    var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Reference }, targetFramework: TargetFramework.StandardLatest);
                     CompileAndVerify(compilation2, expectedOutput: "Test.M1");
                 }
             }
@@ -55220,7 +55780,7 @@ class Test : C0, I1
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
 
             var i1M = compilation1.GetMember<MethodSymbol>("I1.M");
             var c0 = compilation1.GetTypeByMetadataName("C0");
@@ -55230,9 +55790,57 @@ class Test : C0, I1
             Assert.Equal("System.String C0.M()", test.FindImplementationForInterfaceMember(i1M).ToTestDisplayString());
 
             compilation1.VerifyDiagnostics(
-                // (15,19): error CS8704: 'C0' does not implement interface member 'I1.M()'. 'C0.M()' cannot implicitly implement a non-public member.
+                // (15,19): error CS8704: 'C0' does not implement interface member 'I1.M()'. 'C0.M()' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
                 // public class C0 : I1
-                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("C0", "I1.M()", "C0.M()").WithLocation(15, 19)
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("C0", "I1.M()", "C0.M()", "9.0", "10.0").WithLocation(15, 19)
+                );
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
+
+            i1M = compilation1.GetMember<MethodSymbol>("I1.M");
+            c0 = compilation1.GetTypeByMetadataName("C0");
+            test = compilation1.GetTypeByMetadataName("Test");
+
+            Assert.Equal("System.String C0.M()", c0.FindImplementationForInterfaceMember(i1M).ToTestDisplayString());
+            Assert.Equal("System.String C0.M()", test.FindImplementationForInterfaceMember(i1M).ToTestDisplayString());
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "C0.M", verify: VerifyOnMonoOrCoreClr).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplicitImplementationOfNonPublicMethod_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    internal int get_P();
+}
+
+public class C0 : I1
+{
+    public virtual int P { get; }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular9,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (7,19): error CS8704: 'C0' does not implement interface member 'I1.get_P()'. 'C0.P.get' cannot implicitly implement a non-public member in C# 9.0. Please use language version '10.0' or greater.
+                // public class C0 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("C0", "I1.get_P()", "C0.P.get", "9.0", "10.0").WithLocation(7, 19),
+                // (9,28): error CS0686: Accessor 'C0.P.get' cannot implement interface member 'I1.get_P()' for type 'C0'. Use an explicit interface implementation.
+                //     public virtual int P { get; }
+                Diagnostic(ErrorCode.ERR_AccessorImplementingMethod, "get").WithArguments("C0.P.get", "I1.get_P()", "C0").WithLocation(9, 28)
+                );
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                             parseOptions: TestOptions.Regular,
+                                             targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (9,28): error CS0686: Accessor 'C0.P.get' cannot implement interface member 'I1.get_P()' for type 'C0'. Use an explicit interface implementation.
+                //     public virtual int P { get; }
+                Diagnostic(ErrorCode.ERR_AccessorImplementingMethod, "get").WithArguments("C0.P.get", "I1.get_P()", "C0").WithLocation(9, 28)
                 );
         }
 
@@ -55278,7 +55886,7 @@ class Test : C0, I1
         {
             var windowsRuntimeRef = CompilationExtensions.CreateWindowsRuntimeMetadataReference();
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 BuildAssemblyExternClause(windowsRuntimeRef) +
 @"
 .class public auto ansi sealed Event
@@ -55528,7 +56136,7 @@ class C1 : I1, Interface
         public void ExplicitlyImplementedViaAccessors_01()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -55858,7 +56466,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_02()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56019,7 +56627,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_03()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56180,7 +56788,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_04()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56479,7 +57087,7 @@ class C3 : C2, I1
         public void ExplicitlyImplementedViaAccessors_06()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56723,7 +57331,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_07()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56834,7 +57442,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_08()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56945,7 +57553,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_09()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57060,7 +57668,7 @@ interface I3 : I2
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_01()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57135,7 +57743,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_02()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57214,7 +57822,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_03()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57288,7 +57896,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_04()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -59581,18 +60189,17 @@ interface I2<out T1, in T2>
                                                  parseOptions: TestOptions.Regular8,
                                                  targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
-                // (15,12): error CS8904: Invalid variance: The type parameter 'T1' must be invariantly valid on 'I2<T1, T2>.P1' unless language version 'preview' or greater is used. 'T1' is covariant.
+                // (15,12): error CS8904: Invalid variance: The type parameter 'T1' must be invariantly valid on 'I2<T1, T2>.P1' unless language version '9.0' or greater is used. 'T1' is covariant.
                 //     static T1 P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.P1", "T1", "covariant", "invariantly", "preview").WithLocation(15, 12),
-                // (16,12): error CS8904: Invalid variance: The type parameter 'T2' must be invariantly valid on 'I2<T1, T2>.P2' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.P1", "T1", "covariant", "invariantly", "9.0").WithLocation(15, 12),
+                // (16,12): error CS8904: Invalid variance: The type parameter 'T2' must be invariantly valid on 'I2<T1, T2>.P2' unless language version '9.0' or greater is used. 'T2' is contravariant.
                 //     static T2 P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.P2", "T2", "contravariant", "invariantly", "preview").WithLocation(16, 12)
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.P2", "T2", "contravariant", "invariantly", "9.0").WithLocation(16, 12)
                 );
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-
+                                                        parseOptions: TestOptions.Regular9,
+                                                        targetFramework: TargetFramework.NetCoreApp);
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a
 b").VerifyDiagnostics();
@@ -59623,17 +60230,17 @@ interface I2<out T1, in T2>
                                                  parseOptions: TestOptions.Regular8,
                                                  targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
-                // (13,18): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version 'preview' or greater is used. 'T1' is covariant.
+                // (13,18): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version '9.0' or greater is used. 'T1' is covariant.
                 //     static T1 M1(T1 x) => x;
-                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.M1(T1)", "T1", "covariant", "contravariantly", "preview").WithLocation(13, 18),
-                // (14,12): error CS8904: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.M2(T2)' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T1").WithArguments("I2<T1, T2>.M1(T1)", "T1", "covariant", "contravariantly", "9.0").WithLocation(13, 18),
+                // (14,12): error CS8904: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.M2(T2)' unless language version '9.0' or greater is used. 'T2' is contravariant.
                 //     static T2 M2(T2 x) => x;
-                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.M2(T2)", "T2", "contravariant", "covariantly", "preview").WithLocation(14, 12)
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "T2").WithArguments("I2<T1, T2>.M2(T2)", "T2", "contravariant", "covariantly", "9.0").WithLocation(14, 12)
                 );
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                            parseOptions: TestOptions.Regular9,
+                                            targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a
@@ -59687,17 +60294,17 @@ interface I2<out T1, in T2>
                                                  parseOptions: TestOptions.Regular8,
                                                  targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics(
-                // (24,53): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.E1' unless language version 'preview' or greater is used. 'T1' is covariant.
+                // (24,53): error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.E1' unless language version '9.0' or greater is used. 'T1' is covariant.
                 //     static event System.Action<System.Func<T1, T1>> E1;
-                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E1").WithArguments("I2<T1, T2>.E1", "T1", "covariant", "contravariantly", "preview").WithLocation(24, 53),
-                // (25,53): error CS8904: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.E2' unless language version 'preview' or greater is used. 'T2' is contravariant.
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E1").WithArguments("I2<T1, T2>.E1", "T1", "covariant", "contravariantly", "9.0").WithLocation(24, 53),
+                // (25,53): error CS8904: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.E2' unless language version '9.0' or greater is used. 'T2' is contravariant.
                 //     static event System.Action<System.Func<T2, T2>> E2;
-                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E2").WithArguments("I2<T1, T2>.E2", "T2", "contravariant", "covariantly", "preview").WithLocation(25, 53)
+                Diagnostic(ErrorCode.ERR_UnexpectedVarianceStaticMember, "E2").WithArguments("I2<T1, T2>.E2", "T2", "contravariant", "covariantly", "9.0").WithLocation(25, 53)
                 );
 
             compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                              parseOptions: TestOptions.Regular9,
+                                              targetFramework: TargetFramework.NetCoreApp);
 
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"a
@@ -60523,6 +61130,146 @@ class Test
             CompileAndVerify(compilation1,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "Test",
                 verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [Fact, WorkItem(53565, "https://github.com/dotnet/roslyn/issues/53565")]
+        public void PartialPropertyImplementation_01()
+        {
+            var source1 =
+@"
+interface I1
+{
+    int P1 {get; set;}
+    int P2 {get => throw null; internal set{}}
+    int P3 {get => throw null; set{}}
+}
+
+class C0 : I1
+{
+    int I1.P1 {get; set;}
+}
+
+class C1 : C0, I1
+{
+    public int P1 
+    {
+        get 
+        {
+            System.Console.WriteLine(""C1.get_P1"");
+            return 0;
+        }
+    }
+    public int P2 
+    {
+        get 
+        {
+            System.Console.WriteLine(""C1.get_P2"");
+            return 0;
+        }
+    }
+    public int P3 
+    {
+        get 
+        {
+            System.Console.WriteLine(""C1.get_P3"");
+            return 0;
+        }
+    }
+
+    static void Main()
+    {
+        I1 x = new C1();
+        _ = x.P1;
+        _ = x.P2;
+        _ = x.P3;
+    }
+}
+";
+            foreach (var parseOptions in new[] { TestOptions.Regular8, TestOptions.Regular9, TestOptions.Regular })
+            {
+                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                     parseOptions: parseOptions,
+                                                     targetFramework: TargetFramework.NetCoreApp);
+
+                CompileAndVerify(compilation1,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"C1.get_P1
+C1.get_P2
+C1.get_P3
+",
+                    verify: VerifyOnMonoOrCoreClr);
+
+                var c1 = compilation1.GetTypeByMetadataName("C1");
+
+                foreach (var p in c1.GetMembers().OfType<PropertySymbol>())
+                {
+                    Assert.True(p.GetMethod.IsMetadataVirtual());
+                    Assert.True(p.GetMethod.IsMetadataFinal);
+                }
+            }
+        }
+
+        [Fact, WorkItem(53565, "https://github.com/dotnet/roslyn/issues/53565")]
+        public void PartialPropertyImplementation_02()
+        {
+            var source1 =
+@"
+interface I1
+{
+    internal int P1 {get; set;}
+    internal int P2 {get => throw null; set{}}
+}
+
+class C0 : I1
+{
+    int I1.P1 {get; set;}
+}
+
+class C1 : C0, I1
+{
+    public int P1 
+    {
+        get 
+        {
+            System.Console.WriteLine(""C1.get_P1"");
+            return 0;
+        }
+    }
+    public int P2 
+    {
+        get 
+        {
+            System.Console.WriteLine(""C1.get_P2"");
+            return 0;
+        }
+    }
+
+    static void Main()
+    {
+        I1 x = new C1();
+        _ = x.P1;
+        _ = x.P2;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1,
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"C1.get_P1
+C1.get_P2
+",
+                verify: VerifyOnMonoOrCoreClr);
+
+            var c1 = compilation1.GetTypeByMetadataName("C1");
+
+            foreach (var p in c1.GetMembers().OfType<PropertySymbol>())
+            {
+                Assert.True(p.GetMethod.IsMetadataVirtual());
+                Assert.True(p.GetMethod.IsMetadataFinal);
+            }
         }
     }
 }

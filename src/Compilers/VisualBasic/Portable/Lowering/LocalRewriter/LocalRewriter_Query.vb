@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim parameterName As String = parameter.Name
                     Dim isReservedName As Boolean = parameterName.StartsWith("$"c, StringComparison.Ordinal)
 
-                    If isReservedName AndAlso String.Equals(parameterName, StringConstants.ItAnonymous, StringComparison.Ordinal) Then
+                    If isReservedName AndAlso String.Equals(parameterName, GeneratedNameConstants.ItAnonymous, StringComparison.Ordinal) Then
                         ' This parameter represents "nameless" range variable, there are no references to it.
                         Continue For
                     End If
@@ -172,9 +172,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Shared Function IsCompoundVariableName(name As String) As Boolean
-            Return name.Equals(StringConstants.It, StringComparison.Ordinal) OrElse
-                   name.Equals(StringConstants.It1, StringComparison.Ordinal) OrElse
-                   name.Equals(StringConstants.It2, StringComparison.Ordinal)
+            Return name.Equals(GeneratedNameConstants.It, StringComparison.Ordinal) OrElse
+                   name.Equals(GeneratedNameConstants.It1, StringComparison.Ordinal) OrElse
+                   name.Equals(GeneratedNameConstants.It2, StringComparison.Ordinal)
         End Function
 
         Friend Shared Function CreateReturnStatementForQueryLambdaBody(

@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             /// the editor.  Calls to <see cref="ProcessChangesAsync"/> are serialized by <see cref="AsyncBatchingWorkQueue{TItem}"/>
             /// so we don't need to worry about multiple calls to this happening concurrently.
             /// </summary>
-            private async Task ProcessChangesAsync(ImmutableArray<ITextSnapshot> snapshots, CancellationToken cancellationToken)
+            private async ValueTask ProcessChangesAsync(ImmutableArray<ITextSnapshot> snapshots, CancellationToken cancellationToken)
             {
                 // We have potentially heard about several changes to the subject buffer.  However
                 // we only need to process the latest once.

@@ -1588,18 +1588,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private (SynthesizedExplicitImplementationForwardingMethod? ForwardingMethod, (MethodSymbol Body, MethodSymbol Implemented)? MethodImpl)
             SynthesizeInterfaceMemberImplementation(SymbolAndDiagnostics implementingMemberAndDiagnostics, Symbol interfaceMember)
         {
-            if (interfaceMember.DeclaredAccessibility != Accessibility.Public)
-            {
-                // Non-public interface members cannot be implemented implicitly,
-                // appropriate errors are reported elsewhere. Let's not synthesize
-                // forwarding methods, or modify metadata virtualness of the
-                // implementing methods.
-                return default;
-            }
-
             foreach (Diagnostic diagnostic in implementingMemberAndDiagnostics.Diagnostics.Diagnostics)
             {
-                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                if (diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Code is not (int)ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember)
                 {
                     return default;
                 }
@@ -1615,15 +1606,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             MethodSymbol interfaceMethod = (MethodSymbol)interfaceMember;
             MethodSymbol implementingMethod = (MethodSymbol)implementingMember;
-
-            // Interface properties/events with non-public accessors cannot be implemented implicitly,
-            // appropriate errors are reported elsewhere. Let's not synthesize
-            // forwarding methods, or modify metadata virtualness of the
-            // implementing accessors, even for public ones.
-            if (interfaceMethod.AssociatedSymbol?.IsEventOrPropertyWithImplementableNonPublicAccessor() == true)
-            {
-                return default;
-            }
 
             //explicit implementations are always respected by the CLR
             if (implementingMethod.ExplicitInterfaceImplementations.Contains(interfaceMethod, ExplicitInterfaceImplementationTargetMemberEqualityComparer.Instance))

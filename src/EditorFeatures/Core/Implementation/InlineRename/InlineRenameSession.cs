@@ -771,11 +771,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 Dismiss(rollbackTemporaryEdits: true);
                 CancelAllOpenDocumentTrackingTasks();
 
+                _triggerView.Caret.PositionChanged += LogPositionChanged;
+
                 ApplyRename(newSolution, operationContext);
 
                 LogRenameSession(RenameLogMessage.UserActionOutcome.Committed, previewChanges);
 
                 EndRenameSession();
+
+                _triggerView.Caret.PositionChanged -= LogPositionChanged;
+
+                void LogPositionChanged(object sender, CaretPositionChangedEventArgs e)
+                {
+                    try
+                    {
+                        throw new InvalidOperationException("Caret position changed during application of rename");
+                    }
+                    catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex))
+                    {
+                        // Unreachable code due to ReportAndCatch
+                        Contract.ThrowIfTrue(true);
+                    }
+                }
             }
         }
 
@@ -870,6 +887,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             return false;
         }
+
+        internal bool IsInOpenTextBuffer(SnapshotPoint point)
+            => _openTextBuffers.ContainsKey(point.Snapshot.TextBuffer);
 
         internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);

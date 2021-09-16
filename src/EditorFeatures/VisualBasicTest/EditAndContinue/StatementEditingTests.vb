@@ -2421,7 +2421,7 @@ Class C
 End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO allow creating a new leaf closure
+            ' TODO allow creating a new leaf closure: : https://github.com/dotnet/roslyn/issues/54672
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "Me"))
         End Sub
