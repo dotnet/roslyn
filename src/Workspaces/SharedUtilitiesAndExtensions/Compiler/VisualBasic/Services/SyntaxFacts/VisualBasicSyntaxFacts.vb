@@ -1295,14 +1295,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, ArgumentListSyntax).Arguments
         End Function
 
-        Public Function GetArgumentListOfInvocationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetArgumentListOfInvocationExpression
-            Return DirectCast(node, InvocationExpressionSyntax).ArgumentList
-        End Function
-
-        Public Function GetArgumentListOfObjectCreationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetArgumentListOfObjectCreationExpression
-            Return DirectCast(node, ObjectCreationExpressionSyntax).ArgumentList
-        End Function
-
         Public Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFacts.ConvertToSingleLine
             Return node.ConvertToSingleLine(useElasticTrivia)
         End Function

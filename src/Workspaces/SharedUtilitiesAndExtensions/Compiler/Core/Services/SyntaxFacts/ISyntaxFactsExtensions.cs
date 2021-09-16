@@ -264,6 +264,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region GetXXXOfYYY Members
 
+        public static SyntaxNode? GetArgumentListOfInvocationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfInvocationExpression(node, out _, out var argumentList);
+            return argumentList;
+        }
+
+        public static SyntaxNode? GetArgumentListOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out var argumentList, out _);
+            return argumentList;
+        }
+
         public static SyntaxNode? GetInitializerOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out _, out var initializer);
