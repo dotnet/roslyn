@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// <item>
     /// 'IsXXX' where 'XXX' exactly matches one of the same named syntax (node, token, trivia, list, etc.) constructs that 
     /// both C# and VB have. For example 'IsSimpleName' to correspond to C# and VB's SimpleNameSyntax node.  These 'checking' 
-    /// methods should never fail.
+    /// methods should never fail.  For non leaf node types this should be implemented as a typecheck ('is' in C#, 'typeof ... is'
+    /// in VB).  For leaf nodes, this should be implemented by deffering to <see cref="ISyntaxKinds"/> to check against the 
+    /// raw kind of the node.
     /// </item>
     /// <item>
     /// 'GetPartsOfXXX(SyntaxNode node, out SyntaxNode/SyntaxToken part1, ...)' where 'XXX' one of the same named Syntax constructs
