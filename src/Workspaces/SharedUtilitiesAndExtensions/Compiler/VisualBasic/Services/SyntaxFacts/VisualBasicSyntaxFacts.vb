@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Function IsObjectCreationExpressionType(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectCreationExpressionType
+        Public Function IsTypeOfObjectCreationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTypeOfObjectCreationExpression
             Return node.IsParentKind(SyntaxKind.ObjectCreationExpression) AndAlso
                 DirectCast(node.Parent, ObjectCreationExpressionSyntax).Type Is node
         End Function
@@ -685,22 +685,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End While
 
             Return Nothing
-        End Function
-
-        Public Function FindTokenOnLeftOfPosition(node As SyntaxNode,
-                                                  position As Integer,
-                                                  Optional includeSkipped As Boolean = True,
-                                                  Optional includeDirectives As Boolean = False,
-                                                  Optional includeDocumentationComments As Boolean = False) As SyntaxToken Implements ISyntaxFacts.FindTokenOnLeftOfPosition
-            Return node.FindTokenOnLeftOfPosition(position, includeSkipped, includeDirectives, includeDocumentationComments)
-        End Function
-
-        Public Function FindTokenOnRightOfPosition(node As SyntaxNode,
-                                                   position As Integer,
-                                                   Optional includeSkipped As Boolean = True,
-                                                   Optional includeDirectives As Boolean = False,
-                                                   Optional includeDocumentationComments As Boolean = False) As SyntaxToken Implements ISyntaxFacts.FindTokenOnRightOfPosition
-            Return node.FindTokenOnRightOfPosition(position, includeSkipped, includeDirectives, includeDocumentationComments)
         End Function
 
         Public Function IsMemberInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberInitializerNamedAssignmentIdentifier
@@ -1457,11 +1441,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Function GetObjectCreationInitializer(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetObjectCreationInitializer
+        Public Function GetInitializerOfObjectCreationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetInitializerOfObjectCreationExpression
             Return DirectCast(node, ObjectCreationExpressionSyntax).Initializer
         End Function
 
-        Public Function GetObjectCreationType(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetObjectCreationType
+        Public Function GetTypeOfObjectCreationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetTypeOfObjectCreationExpression
             Return DirectCast(node, ObjectCreationExpressionSyntax).Type
         End Function
 
@@ -1653,177 +1637,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function IsPragmaDirective(trivia As SyntaxTrivia, ByRef isDisable As Boolean, ByRef isActive As Boolean, ByRef errorCodes As SeparatedSyntaxList(Of SyntaxNode)) As Boolean Implements ISyntaxFacts.IsPragmaDirective
             Return trivia.IsPragmaDirective(isDisable, isActive, errorCodes)
-        End Function
-
-        Public Function IsOnTypeHeader(
-                root As SyntaxNode,
-                position As Integer,
-                fullHeader As Boolean,
-                ByRef typeDeclaration As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnTypeHeader
-            Dim typeBlock = TryGetAncestorForLocation(Of TypeBlockSyntax)(root, position)
-            If typeBlock Is Nothing Then
-                Return Nothing
-            End If
-
-            Dim typeStatement = typeBlock.BlockStatement
-            typeDeclaration = typeStatement
-
-            Dim lastToken = If(typeStatement.TypeParameterList?.GetLastToken(), typeStatement.Identifier)
-            If fullHeader Then
-                lastToken = If(typeBlock.Implements.LastOrDefault()?.GetLastToken(),
-                            If(typeBlock.Inherits.LastOrDefault()?.GetLastToken(),
-                               lastToken))
-            End If
-
-            Return IsOnHeader(root, position, typeBlock, lastToken)
-        End Function
-
-        Public Function IsOnPropertyDeclarationHeader(root As SyntaxNode, position As Integer, ByRef propertyDeclaration As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnPropertyDeclarationHeader
-            Dim node = TryGetAncestorForLocation(Of PropertyStatementSyntax)(root, position)
-            propertyDeclaration = node
-
-            If propertyDeclaration Is Nothing Then
-                Return False
-            End If
-
-            If node.AsClause IsNot Nothing Then
-                Return IsOnHeader(root, position, node, node.AsClause)
-            End If
-
-            Return IsOnHeader(root, position, node, node.Identifier)
-        End Function
-
-        Public Function IsOnParameterHeader(root As SyntaxNode, position As Integer, ByRef parameter As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnParameterHeader
-            Dim node = TryGetAncestorForLocation(Of ParameterSyntax)(root, position)
-            parameter = node
-
-            If parameter Is Nothing Then
-                Return False
-            End If
-
-            Return IsOnHeader(root, position, node, node)
-        End Function
-
-        Public Function IsOnMethodHeader(root As SyntaxNode, position As Integer, ByRef method As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnMethodHeader
-            Dim node = TryGetAncestorForLocation(Of MethodStatementSyntax)(root, position)
-            method = node
-
-            If method Is Nothing Then
-                Return False
-            End If
-
-            If node.HasReturnType() Then
-                Return IsOnHeader(root, position, method, node.GetReturnType())
-            End If
-
-            If node.ParameterList IsNot Nothing Then
-                Return IsOnHeader(root, position, method, node.ParameterList)
-            End If
-
-            Return IsOnHeader(root, position, node, node)
-        End Function
-
-        Public Function IsOnLocalFunctionHeader(root As SyntaxNode, position As Integer, ByRef localFunction As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnLocalFunctionHeader
-            ' No local functions in VisualBasic
-            Return False
-        End Function
-
-        Public Function IsOnLocalDeclarationHeader(root As SyntaxNode, position As Integer, ByRef localDeclaration As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnLocalDeclarationHeader
-            Dim node = TryGetAncestorForLocation(Of LocalDeclarationStatementSyntax)(root, position)
-            localDeclaration = node
-
-            If localDeclaration Is Nothing Then
-                Return False
-            End If
-
-            Dim initializersExpressions = node.Declarators.
-                Where(Function(d) d.Initializer IsNot Nothing).
-                SelectAsArray(Function(initialized) initialized.Initializer.Value)
-            Return IsOnHeader(root, position, node, node, initializersExpressions)
-        End Function
-
-        Public Function IsOnIfStatementHeader(root As SyntaxNode, position As Integer, ByRef ifStatement As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnIfStatementHeader
-            ifStatement = Nothing
-
-            Dim multipleLineNode = TryGetAncestorForLocation(Of MultiLineIfBlockSyntax)(root, position)
-            If multipleLineNode IsNot Nothing Then
-                ifStatement = multipleLineNode
-                Return IsOnHeader(root, position, multipleLineNode.IfStatement, multipleLineNode.IfStatement)
-            End If
-
-            Dim singleLineNode = TryGetAncestorForLocation(Of SingleLineIfStatementSyntax)(root, position)
-            If singleLineNode IsNot Nothing Then
-                ifStatement = singleLineNode
-                Return IsOnHeader(root, position, singleLineNode, singleLineNode.Condition)
-            End If
-
-            Return False
-        End Function
-
-        Public Function IsOnWhileStatementHeader(root As SyntaxNode, position As Integer, ByRef whileStatement As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnWhileStatementHeader
-            whileStatement = Nothing
-
-            Dim whileBlock = TryGetAncestorForLocation(Of WhileBlockSyntax)(root, position)
-            If whileBlock IsNot Nothing Then
-                whileStatement = whileBlock
-                Return IsOnHeader(root, position, whileBlock.WhileStatement, whileBlock.WhileStatement)
-            End If
-
-            Return False
-        End Function
-
-        Public Function IsOnForeachHeader(root As SyntaxNode, position As Integer, ByRef foreachStatement As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOnForeachHeader
-            Dim node = TryGetAncestorForLocation(Of ForEachBlockSyntax)(root, position)
-            foreachStatement = node
-
-            If foreachStatement Is Nothing Then
-                Return False
-            End If
-
-            Return IsOnHeader(root, position, node, node.ForEachStatement)
-        End Function
-
-        Public Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer, ByRef typeDeclaration As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBetweenTypeMembers
-            Dim token = root.FindToken(position)
-            Dim typeDecl = token.GetAncestor(Of TypeBlockSyntax)
-            typeDeclaration = typeDecl
-
-            If typeDecl IsNot Nothing Then
-                Dim start = If(typeDecl.Implements.LastOrDefault()?.Span.End,
-                               If(typeDecl.Inherits.LastOrDefault()?.Span.End,
-                                  typeDecl.BlockStatement.Span.End))
-
-                If position >= start AndAlso
-                   position <= typeDecl.EndBlockStatement.Span.Start Then
-
-                    Dim line = sourceText.Lines.GetLineFromPosition(position)
-                    If Not line.IsEmptyOrWhitespace() Then
-                        Return False
-                    End If
-
-                    Dim member = typeDecl.Members.FirstOrDefault(Function(d) d.FullSpan.Contains(position))
-                    If member Is Nothing Then
-                        ' There are no members, Or we're after the last member.
-                        Return True
-                    Else
-                        ' We're within a member.  Make sure we're in the leading whitespace of
-                        ' the member.
-                        If position < member.SpanStart Then
-                            For Each trivia In member.GetLeadingTrivia()
-                                If Not trivia.IsWhitespaceOrEndOfLine() Then
-                                    Return False
-                                End If
-
-                                If trivia.FullSpan.Contains(position) Then
-                                    Return True
-                                End If
-                            Next
-                        End If
-                    End If
-                End If
-            End If
-
-            Return False
         End Function
 
         Protected Overrides Function ContainsInterleavedDirective(span As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
