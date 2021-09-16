@@ -1542,14 +1542,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             closeParen = tupleExpr.CloseParenToken
         End Sub
 
-        Public Function GetOperandOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetOperandOfPrefixUnaryExpression
-            Return DirectCast(node, UnaryExpressionSyntax).Operand
-        End Function
-
-        Public Function GetOperatorTokenOfPrefixUnaryExpression(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetOperatorTokenOfPrefixUnaryExpression
-            Return DirectCast(node, UnaryExpressionSyntax).OperatorToken
-        End Function
-
         Public Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef name As SyntaxNode) Implements ISyntaxFacts.GetPartsOfMemberAccessExpression
             Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
             expression = memberAccess.Expression
@@ -2290,6 +2282,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             type = objectCreationExpression.Type
             argumentList = objectCreationExpression.ArgumentList
             initializer = objectCreationExpression.Initializer
+        End Sub
+
+        Public Sub GetPartsOfPrefixUnaryExpression(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef operand As SyntaxNode) Implements ISyntaxFacts.GetPartsOfPrefixUnaryExpression
+            Dim unaryExpression = DirectCast(node, UnaryExpressionSyntax)
+            operatorToken = unaryExpression.OperatorToken
+            operand = unaryExpression.Operand
         End Sub
 
 #End Region

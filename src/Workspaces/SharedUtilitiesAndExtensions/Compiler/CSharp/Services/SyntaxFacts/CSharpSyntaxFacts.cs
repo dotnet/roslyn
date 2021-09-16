@@ -1482,12 +1482,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             closeParen = tupleExpression.CloseParenToken;
         }
 
-        public SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node)
-            => ((PrefixUnaryExpressionSyntax)node).Operand;
-
-        public SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node)
-            => ((PrefixUnaryExpressionSyntax)node).OperatorToken;
-
         public SyntaxNode? GetNextExecutableStatement(SyntaxNode statement)
             => ((StatementSyntax)statement).GetNextStatement();
 
@@ -2018,6 +2012,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             type = objectCreationExpression.Type;
             argumentList = objectCreationExpression.ArgumentList;
             initializer = objectCreationExpression.Initializer;
+        }
+
+        public void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand)
+        {
+            var prefixUnaryExpression = (PrefixUnaryExpressionSyntax)node;
+            operatorToken = prefixUnaryExpression.OperatorToken;
+            operand = prefixUnaryExpression.Operand;
         }
 
         #endregion

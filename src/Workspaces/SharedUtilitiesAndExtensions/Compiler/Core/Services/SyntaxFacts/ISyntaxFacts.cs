@@ -208,9 +208,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsVerbatimInterpolatedStringExpression(SyntaxNode node);
 
-        SyntaxNode GetOperandOfPrefixUnaryExpression(SyntaxNode node);
-        SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(SyntaxNode node);
-
         // Left side of = assignment.
         bool IsLeftSideOfAssignment([NotNullWhen(true)] SyntaxNode? node);
 
@@ -594,6 +591,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right);
         void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer);
         void GetPartsOfParenthesizedExpression(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen);
+        void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand);
         void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name);
 
         #endregion

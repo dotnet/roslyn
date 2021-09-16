@@ -282,6 +282,18 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return initializer;
         }
 
+        public static SyntaxNode GetOperandOfPrefixUnaryExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfPrefixUnaryExpression(node, out _, out var operand);
+            return operand;
+        }
+
+        public static SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfPrefixUnaryExpression(node, out var operatorToken, out _);
+            return operatorToken;
+        }
+
         public static SyntaxNode GetTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfObjectCreationExpression(node, out var type, out _, out _);
