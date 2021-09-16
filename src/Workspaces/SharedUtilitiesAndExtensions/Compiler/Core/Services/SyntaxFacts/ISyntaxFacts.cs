@@ -462,7 +462,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true);
         SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node);
 
-        void GetPartsOfParenthesizedExpression(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen);
         [return: NotNullIfNotNull("node")]
         SyntaxNode? WalkDownParentheses(SyntaxNode? node);
 
@@ -542,14 +541,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsVarPattern([NotNullWhen(true)] SyntaxNode? node);
 
         SyntaxNode GetExpressionOfConstantPattern(SyntaxNode node);
-        void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen);
+        SyntaxNode GetTypeOfTypePattern(SyntaxNode node);
 
+        void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen);
         void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
         void GetPartsOfDeclarationPattern(SyntaxNode node, out SyntaxNode type, out SyntaxNode designation);
         void GetPartsOfRecursivePattern(SyntaxNode node, out SyntaxNode? type, out SyntaxNode? positionalPart, out SyntaxNode? propertyPart, out SyntaxNode? designation);
         void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern);
-
-        SyntaxNode GetTypeOfTypePattern(SyntaxNode node);
 
         // Violation.  This is a feature level API.
         SyntaxNode? GetNextExecutableStatement(SyntaxNode statement);
@@ -602,6 +600,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
         void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer);
+        void GetPartsOfParenthesizedExpression(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen);
         void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name);
 
         #endregion
