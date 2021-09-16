@@ -270,10 +270,22 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return argumentList;
         }
 
+        public static SyntaxList<SyntaxNode> GetImportsOfCompilationUnit(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfCompilationUnit(node, out var imports, out _, out _);
+            return imports;
+        }
+
         public static SyntaxNode? GetInitializerOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out _, out var initializer);
             return initializer;
+        }
+
+        public static SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfCompilationUnit(node, out _, out _, out var members);
+            return members;
         }
 
         public static SyntaxNode GetNameOfMemberAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)

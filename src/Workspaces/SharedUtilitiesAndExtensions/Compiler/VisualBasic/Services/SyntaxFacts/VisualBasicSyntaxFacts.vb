@@ -899,17 +899,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(namespaceDeclaration, NamespaceBlockSyntax).Members
         End Function
 
-        Public Function GetMembersOfCompilationUnit(compilationUnit As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfCompilationUnit
-            Return DirectCast(compilationUnit, CompilationUnitSyntax).Members
-        End Function
-
         Public Function GetImportsOfNamespaceDeclaration(namespaceDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetImportsOfNamespaceDeclaration
             'Visual Basic doesn't have namespaced imports
             Return Nothing
-        End Function
-
-        Public Function GetImportsOfCompilationUnit(compilationUnit As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetImportsOfCompilationUnit
-            Return DirectCast(compilationUnit, CompilationUnitSyntax).Imports
         End Function
 
         Public Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTopLevelNodeWithMembers
@@ -2204,6 +2196,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 #End Region
 
 #Region "GetPartsOfXXX members"
+
+        Public Sub GetPartsOfCompilationUnit(node As SyntaxNode, ByRef [imports] As SyntaxList(Of SyntaxNode), ByRef attributeLists As SyntaxList(Of SyntaxNode), ByRef members As SyntaxList(Of SyntaxNode)) Implements ISyntaxFacts.GetPartsOfCompilationUnit
+            Dim compilationUnit = DirectCast(node, CompilationUnitSyntax)
+            [imports] = compilationUnit.Imports
+            attributeLists = compilationUnit.Attributes
+            members = compilationUnit.Members
+        End Sub
 
         Public Sub GetPartsOfConditionalAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef whenNotNull As SyntaxNode) Implements ISyntaxFacts.GetPartsOfConditionalAccessExpression
             Dim conditionalAccess = DirectCast(node, ConditionalAccessExpressionSyntax)

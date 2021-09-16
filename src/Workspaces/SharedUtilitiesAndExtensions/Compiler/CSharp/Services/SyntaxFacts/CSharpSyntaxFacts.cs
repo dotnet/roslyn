@@ -912,14 +912,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
             => ((BaseNamespaceDeclarationSyntax)namespaceDeclaration).Members;
 
-        public SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(SyntaxNode compilationUnit)
-            => ((CompilationUnitSyntax)compilationUnit).Members;
-
         public SyntaxList<SyntaxNode> GetImportsOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
             => ((BaseNamespaceDeclarationSyntax)namespaceDeclaration).Usings;
-
-        public SyntaxList<SyntaxNode> GetImportsOfCompilationUnit(SyntaxNode compilationUnit)
-            => ((CompilationUnitSyntax)compilationUnit).Usings;
 
         private void AppendMembers(SyntaxNode? node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
         {
@@ -1938,6 +1932,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         #endregion
 
         #region GetPartsOfXXX members
+
+        public void GetPartsOfCompilationUnit(SyntaxNode node, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> attributeLists, out SyntaxList<SyntaxNode> members)
+        {
+            var compilationUnit = (CompilationUnitSyntax)node;
+            imports = compilationUnit.Usings;
+            attributeLists = compilationUnit.AttributeLists;
+            members = compilationUnit.Members;
+        }
 
         public void GetPartsOfConditionalAccessExpression(
             SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull)
