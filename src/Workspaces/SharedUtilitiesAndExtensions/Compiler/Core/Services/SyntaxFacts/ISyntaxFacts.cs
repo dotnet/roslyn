@@ -441,14 +441,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsClassDeclaration([NotNullWhen(true)] SyntaxNode? node);
         bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node);
-        SyntaxNode GetNameOfNamespaceDeclaration(SyntaxNode node);
         // Violation.  This is a feature level API.
         List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
         // Violation.  This is a feature level API.
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode? root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
-        SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
-        SyntaxList<SyntaxNode> GetImportsOfNamespaceDeclaration(SyntaxNode namespaceDeclaration);
 
         // Violation.  This is a feature level API.
         bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span);
@@ -579,6 +576,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode? argumentList);
         void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right);
         void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name);
+        void GetPartsOfNamespaceDeclaration(SyntaxNode node, out SyntaxNode name, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> members);
         void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer);
         void GetPartsOfParenthesizedExpression(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen);
         void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand);

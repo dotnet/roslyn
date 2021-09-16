@@ -871,25 +871,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.IsKind(SyntaxKind.NamespaceBlock)
         End Function
 
-        Public Function GetNameOfNamespaceDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetNameOfNamespaceDeclaration
-            If IsNamespaceDeclaration(node) Then
-                Return DirectCast(node, NamespaceBlockSyntax).NamespaceStatement.Name
-            End If
-
-            Return Nothing
-        End Function
-
         Public Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfTypeDeclaration
             Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
-        End Function
-
-        Public Function GetMembersOfNamespaceDeclaration(namespaceDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfNamespaceDeclaration
-            Return DirectCast(namespaceDeclaration, NamespaceBlockSyntax).Members
-        End Function
-
-        Public Function GetImportsOfNamespaceDeclaration(namespaceDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetImportsOfNamespaceDeclaration
-            'Visual Basic doesn't have namespaced imports
-            Return Nothing
         End Function
 
         Public Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTopLevelNodeWithMembers
@@ -2214,6 +2197,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             expression = memberAccess.Expression
             operatorToken = memberAccess.OperatorToken
             name = memberAccess.Name
+        End Sub
+
+        Public Sub GetPartsOfNamespaceDeclaration(node As SyntaxNode, ByRef name As SyntaxNode, ByRef [imports] As SyntaxList(Of SyntaxNode), ByRef members As SyntaxList(Of SyntaxNode)) Implements ISyntaxFacts.GetPartsOfNamespaceDeclaration
+            Dim namespaceBlock = DirectCast(node, NamespaceBlockSyntax)
+            name = namespaceBlock.NamespaceStatement.Name
+            [imports] = Nothing
+            members = namespaceBlock.Members
         End Sub
 
         Public Sub GetPartsOfObjectCreationExpression(node As SyntaxNode, ByRef type As SyntaxNode, ByRef argumentList As SyntaxNode, ByRef initializer As SyntaxNode) Implements ISyntaxFacts.GetPartsOfObjectCreationExpression

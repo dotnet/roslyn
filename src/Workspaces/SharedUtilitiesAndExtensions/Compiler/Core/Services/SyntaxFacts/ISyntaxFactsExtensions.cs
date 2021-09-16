@@ -276,6 +276,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return imports;
         }
 
+        public static SyntaxList<SyntaxNode> GetImportsOfNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfNamespaceDeclaration(node, out _, out var imports, out _);
+            return imports;
+        }
+
         public static SyntaxNode? GetInitializerOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out _, out var initializer);
@@ -288,9 +294,21 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return members;
         }
 
+        public static SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfNamespaceDeclaration(node, out _, out _, out var members);
+            return members;
+        }
+
         public static SyntaxNode GetNameOfMemberAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfMemberAccessExpression(node, out _, out var name);
+            return name;
+        }
+
+        public static SyntaxNode GetNameOfNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfNamespaceDeclaration(node, out var name, out _, out _);
             return name;
         }
 

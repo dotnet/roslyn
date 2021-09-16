@@ -1955,6 +1955,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             name = memberAccess.Name;
         }
 
+        public void GetPartsOfNamespaceDeclaration(SyntaxNode node, out SyntaxNode name, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> members)
+        {
+            var namespaceDeclaration = (NamespaceDeclarationSyntax)node;
+            name = namespaceDeclaration.Name;
+            imports = namespaceDeclaration.Usings;
+            members = namespaceDeclaration.Members;
+        }
+
         public void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer)
         {
             var objectCreationExpression = (ObjectCreationExpressionSyntax)node;
