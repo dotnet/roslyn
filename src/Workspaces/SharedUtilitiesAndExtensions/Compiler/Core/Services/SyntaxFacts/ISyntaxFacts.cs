@@ -242,9 +242,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </param>
         SyntaxNode? GetLeftSideOfDot(SyntaxNode? node, bool allowImplicitTarget = false);
 
-        bool IsRightSideOfQualifiedName([NotNullWhen(true)] SyntaxNode? node);
         bool IsLeftSideOfExplicitInterfaceSpecifier([NotNullWhen(true)] SyntaxNode? node);
-        void GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken dotToken, out SyntaxNode right);
 
         bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsNameOfAnyMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
@@ -590,6 +588,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer);
         void GetPartsOfParenthesizedExpression(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen);
         void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand);
+        void GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken dotToken, out SyntaxNode right);
         void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name);
 
         #endregion

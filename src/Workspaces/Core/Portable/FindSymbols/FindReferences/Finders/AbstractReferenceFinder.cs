@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsRightSideOfQualifiedName(node))
+            if (syntaxFacts.IsRightOfQualifiedName(node))
                 node = node.GetRequiredParent();
 
             if (syntaxFacts.IsUsingDirectiveName(node))
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return true;
             }
 
-            if (syntaxFacts.IsRightSideOfQualifiedName(node) ||
+            if (syntaxFacts.IsRightOfQualifiedName(node) ||
                 syntaxFacts.IsNameOfSimpleMemberAccessExpression(node) ||
                 syntaxFacts.IsNameOfMemberBindingExpression(node))
             {

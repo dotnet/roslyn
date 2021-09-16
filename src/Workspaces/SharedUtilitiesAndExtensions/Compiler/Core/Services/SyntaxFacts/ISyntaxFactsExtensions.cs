@@ -333,6 +333,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return node == expression;
         }
 
+        public static bool IsRightOfQualifiedName(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        {
+            var parent = node?.Parent;
+            if (!syntaxFacts.IsQualifiedName(parent))
+                return false;
+
+            syntaxFacts.GetPartsOfQualifiedName(parent, out _, out _, out var right);
+            return node == right;
+        }
+
         public static bool IsTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         {
             var parent = node?.Parent;

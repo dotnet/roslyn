@@ -161,18 +161,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 DirectCast(node.Parent, AttributeSyntax).Name Is node
         End Function
 
-        Public Sub GetPartsOfQualifiedName(node As SyntaxNode, ByRef left As SyntaxNode, ByRef dotToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfQualifiedName
-            Dim qualifiedName = DirectCast(node, QualifiedNameSyntax)
-            left = qualifiedName.Left
-            dotToken = qualifiedName.DotToken
-            right = qualifiedName.Right
-        End Sub
-
-        Public Function IsRightSideOfQualifiedName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsRightSideOfQualifiedName
-            Dim vbNode = TryCast(node, SimpleNameSyntax)
-            Return vbNode IsNot Nothing AndAlso vbNode.IsRightSideOfQualifiedName()
-        End Function
-
         Public Function IsNameOfSimpleMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfSimpleMemberAccessExpression
             Dim vbNode = TryCast(node, ExpressionSyntax)
             Return vbNode IsNot Nothing AndAlso vbNode.IsSimpleMemberAccessExpressionName()
@@ -2279,6 +2267,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Dim unaryExpression = DirectCast(node, UnaryExpressionSyntax)
             operatorToken = unaryExpression.OperatorToken
             operand = unaryExpression.Operand
+        End Sub
+
+        Public Sub GetPartsOfQualifiedName(node As SyntaxNode, ByRef left As SyntaxNode, ByRef dotToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfQualifiedName
+            Dim qualifiedName = DirectCast(node, QualifiedNameSyntax)
+            left = qualifiedName.Left
+            dotToken = qualifiedName.DotToken
+            right = qualifiedName.Right
         End Sub
 
 #End Region

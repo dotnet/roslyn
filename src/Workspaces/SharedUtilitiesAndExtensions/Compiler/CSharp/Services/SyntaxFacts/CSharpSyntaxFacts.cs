@@ -143,20 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public bool IsRightSideOfQualifiedName([NotNullWhen(true)] SyntaxNode? node)
-        {
-            var name = node as SimpleNameSyntax;
-            return name.IsRightSideOfQualifiedName();
-        }
-
-        public void GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
-        {
-            var qualifiedName = (QualifiedNameSyntax)node;
-            left = qualifiedName.Left;
-            operatorToken = qualifiedName.DotToken;
-            right = qualifiedName.Right;
-        }
-
         public bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
         {
             var name = node as SimpleNameSyntax;
@@ -2014,6 +2000,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             var prefixUnaryExpression = (PrefixUnaryExpressionSyntax)node;
             operatorToken = prefixUnaryExpression.OperatorToken;
             operand = prefixUnaryExpression.Operand;
+        }
+
+        public void GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
+        {
+            var qualifiedName = (QualifiedNameSyntax)node;
+            left = qualifiedName.Left;
+            operatorToken = qualifiedName.DotToken;
+            right = qualifiedName.Right;
         }
 
         #endregion
