@@ -214,17 +214,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ThrowIfNull(symbol)
 
             If options IsNot Nothing AndAlso options.ReuseSyntax AndAlso symbol.DeclaringSyntaxReferences.Length = 1
-                Dim reusableSyntaxNode = symbol.DeclaringSyntaxReferences(0).GetSyntax()
+                Dim reusableNode = symbol.DeclaringSyntaxReferences(0).GetSyntax()
 
-                Dim declarationStatementNode = TryCast(reusableSyntaxNode, DeclarationStatementSyntax)
-                If declarationStatementNode IsNot Nothing
-                    Dim declarationBlockFromBegin = declarationStatementNode.GetDeclarationBlockFromBegin()
-                    Return TryCast(RemoveLeadingDirectiveTrivia(declarationBlockFromBegin), T)
+                ' For VB method like symbol (Function, Sub, Property & Event), DeclaringSyntaxReferences will fetch
+                ' the first line of the member's block. But what we want to reuse is the whole member's block
+                If symbol.IsKind(SymbolKind.Method) OrElse symbol.IsKind(SymbolKind.Property) OrElse symbol.IsKind(SymbolKind.Event)
+                    Dim declarationStatementNode = TryCast(reusableNode, DeclarationStatementSyntax)
+                    If declarationStatementNode IsNot Nothing
+                        Dim declarationBlockFromBegin = declarationStatementNode.GetDeclarationBlockFromBegin()
+                        Return TryCast(RemoveLeadingDirectiveTrivia(declarationBlockFromBegin), T)
+                    End If
                 End If
 
-                Return TryCast(RemoveLeadingDirectiveTrivia(reusableSyntaxNode), T)
+                Return TryCast(RemoveLeadingDirectiveTrivia(reusableNode), T)
             End If
-
             Return Nothing
         End Function
     End Module
