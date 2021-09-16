@@ -76,6 +76,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// it apropriately.  Functions like this make it seem like that doesn't need to be considered, easily allowing for bugs
     /// to creep in.
     /// </item>
+    /// <item>
+    /// Abbreviating or otherwise changing the names that C# and VB share here.  For example use 'ObjectCreationExpression'
+    /// not 'ObjectCreation'.  This prevents accidental duplication and keeps consistency with all members.
+    /// </item>
     /// </list>
     /// </summary>
     /// <remarks>
@@ -560,7 +564,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// Gets the <see cref="DeclarationKind"/> for the declaration.
         /// </summary>
         DeclarationKind GetDeclarationKind(SyntaxNode declaration);
-        bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node);
 
         #region IsXXX members
 

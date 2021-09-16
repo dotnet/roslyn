@@ -1905,9 +1905,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => ((TypePatternSyntax)node).Type;
 
-        public bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsKind(SyntaxKind.LocalFunctionStatement);
-
         public void GetPartsOfInterpolationExpression(SyntaxNode node,
             out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> contents, out SyntaxToken stringEndToken)
         {
