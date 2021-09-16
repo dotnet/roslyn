@@ -70,7 +70,7 @@
     <Compile Include="Simplification\Simplifier.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.8.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(RoslynVersion)" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Caravela.CodeAnalysis.CSharp.Workspaces.Lightweight" />
