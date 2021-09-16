@@ -54,12 +54,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Overrides ReadOnly Property SyntaxKinds As ISyntaxKinds = VisualBasicSyntaxKinds.Instance Implements ISyntaxFacts.SyntaxKinds
 
-        Protected Overrides ReadOnly Property DocumentationCommentService As IDocumentationCommentService
-            Get
-                Return VisualBasicDocumentationCommentService.Instance
-            End Get
-        End Property
-
         Public Function SupportsIndexingInitializer(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsIndexingInitializer
             Return False
         End Function
@@ -223,11 +217,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetNameOfParameter(node As SyntaxNode) As SyntaxToken? Implements ISyntaxFacts.GetNameOfParameter
-            Return TryCast(node, ParameterSyntax)?.Identifier?.Identifier
+            Return DirectCast(node, ParameterSyntax).Identifier?.Identifier
         End Function
 
         Public Function GetDefaultOfParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetDefaultOfParameter
-            Return TryCast(node, ParameterSyntax)?.Default
+            Return DirectCast(node, ParameterSyntax).Default
         End Function
 
         Public Function GetParameterList(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetParameterList
@@ -243,8 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetIdentifierOfGenericName(genericName As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfGenericName
-            Dim vbGenericName = TryCast(genericName, GenericNameSyntax)
-            Return If(vbGenericName IsNot Nothing, vbGenericName.Identifier, Nothing)
+            Return DirectCast(genericName, GenericNameSyntax).Identifier
         End Function
 
         Public Function IsUsingDirectiveName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUsingDirectiveName
@@ -273,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetExpressionOfReturnStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfReturnStatement
-            Return TryCast(node, ReturnStatementSyntax)?.Expression
+            Return DirectCast(node, ReturnStatementSyntax).Expression
         End Function
 
         Public Function IsThisConstructorInitializer(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsThisConstructorInitializer
@@ -588,11 +581,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 Return
             End If
 
-            Return
+            Throw ExceptionUtilities.UnexpectedValue(node.Kind())
         End Sub
 
         Public Function GetExpressionOfInterpolation(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfInterpolation
-            Return TryCast(node, InterpolationSyntax)?.Expression
+            Return DirectCast(node, InterpolationSyntax).Expression
         End Function
 
         Public Function IsInNamespaceOrTypeContext(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsInNamespaceOrTypeContext
@@ -608,7 +601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetExpressionOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFacts.GetExpressionOfArgument
-            Return TryCast(node, ArgumentSyntax).GetArgumentExpression()
+            Return DirectCast(node, ArgumentSyntax).GetArgumentExpression()
         End Function
 
         Public Function GetRefKindOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.RefKind Implements ISyntaxFacts.GetRefKindOfArgument
@@ -1279,7 +1272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetRightHandSideOfAssignment(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetRightHandSideOfAssignment
-            Return TryCast(node, AssignmentStatementSyntax)?.Right
+            Return DirectCast(node, AssignmentStatementSyntax).Right
         End Function
 
         Public Function IsInferredAnonymousObjectMemberDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsInferredAnonymousObjectMemberDeclarator
@@ -1310,16 +1303,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetArgumentsOfInvocationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfInvocationExpression
-            Return GetArgumentsOfArgumentList(TryCast(node, InvocationExpressionSyntax)?.ArgumentList)
+            Dim argumentList = DirectCast(node, InvocationExpressionSyntax).ArgumentList
+            Return If(argumentList Is Nothing, Nothing, GetArgumentsOfArgumentList(argumentList))
         End Function
 
         Public Function GetArgumentsOfObjectCreationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfObjectCreationExpression
-            Return GetArgumentsOfArgumentList(TryCast(node, ObjectCreationExpressionSyntax)?.ArgumentList)
+            Dim argumentList = DirectCast(node, ObjectCreationExpressionSyntax).ArgumentList
+            Return If(argumentList Is Nothing, Nothing, GetArgumentsOfArgumentList(argumentList))
         End Function
 
         Public Function GetArgumentsOfArgumentList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfArgumentList
-            Dim arguments = TryCast(node, ArgumentListSyntax)?.Arguments
-            Return If(arguments.HasValue, arguments.Value, Nothing)
+            Return DirectCast(node, ArgumentListSyntax).Arguments
         End Function
 
         Public Function GetArgumentListOfInvocationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetArgumentListOfInvocationExpression
@@ -1612,30 +1606,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(statement, StatementSyntax).GetNextStatement()?.FirstAncestorOrSelf(Of ExecutableStatementSyntax)
         End Function
 
-        Public Overrides Function IsSingleLineCommentTrivia(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.CommentTrivia
+        Private Function ISyntaxFacts_IsSingleLineCommentTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsSingleLineCommentTrivia
+            Return MyBase.IsSingleLineCommentTrivia(trivia)
         End Function
 
-        Public Overrides Function IsMultiLineCommentTrivia(trivia As SyntaxTrivia) As Boolean
-            ' VB does not have multi-line comments.
+        Private Function ISyntaxFacts_IsMultiLineCommentTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsMultiLineCommentTrivia
+            Return MyBase.IsMultiLineCommentTrivia(trivia)
+        End Function
+
+        Private Function ISyntaxFacts_IsSingleLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsSingleLineDocCommentTrivia
+            Return MyBase.IsSingleLineDocCommentTrivia(trivia)
+        End Function
+
+        Private Function ISyntaxFacts_IsMultiLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsMultiLineDocCommentTrivia
+            Return MyBase.IsMultiLineDocCommentTrivia(trivia)
             Return False
         End Function
 
-        Public Overrides Function IsSingleLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+        Private Function ISyntaxFacts_IsShebangDirectiveTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsShebangDirectiveTrivia
+            Return MyBase.IsShebangDirectiveTrivia(trivia)
         End Function
 
-        Public Overrides Function IsMultiLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
-            ' VB does not have multi-line comments.
-            Return False
-        End Function
-
-        Public Overrides Function IsShebangDirectiveTrivia(trivia As SyntaxTrivia) As Boolean
-            ' VB does not have shebang directives.
-            Return False
-        End Function
-
-        Public Overrides Function IsPreprocessorDirective(trivia As SyntaxTrivia) As Boolean
+        Public Overrides Function IsPreprocessorDirective(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsPreprocessorDirective
             Return SyntaxFacts.IsPreprocessorDirective(trivia.Kind())
         End Function
 
@@ -1826,14 +1818,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Private Function ISyntaxFacts_GetFileBanner(root As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFacts.GetFileBanner
-            Return GetFileBanner(root)
-        End Function
-
-        Private Function ISyntaxFacts_GetFileBanner(firstToken As SyntaxToken) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFacts.GetFileBanner
-            Return GetFileBanner(firstToken)
-        End Function
-
         Protected Overrides Function ContainsInterleavedDirective(span As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Return token.ContainsInterleavedDirective(span, cancellationToken)
         End Function
@@ -1848,10 +1832,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function IsDocumentationCommentExteriorTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsDocumentationCommentExteriorTrivia
             Return trivia.Kind() = SyntaxKind.DocumentationCommentExteriorTrivia
-        End Function
-
-        Private Function ISyntaxFacts_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, maxBannerLength As Integer, cancellationToken As CancellationToken) As String Implements ISyntaxFacts.GetBannerText
-            Return GetBannerText(documentationCommentTriviaSyntax, maxBannerLength, cancellationToken)
         End Function
 
         Public Function GetModifiers(node As SyntaxNode) As SyntaxTokenList Implements ISyntaxFacts.GetModifiers
@@ -1906,14 +1886,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function GetStatementContainerStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode) Implements ISyntaxFacts.GetStatementContainerStatements
             Return GetExecutableBlockStatements(node)
-        End Function
-
-        Private Function ISyntaxFacts_GetLeadingBlankLines(node As SyntaxNode) As ImmutableArray(Of SyntaxTrivia) Implements ISyntaxFacts.GetLeadingBlankLines
-            Return MyBase.GetLeadingBlankLines(node)
-        End Function
-
-        Private Function ISyntaxFacts_GetNodeWithoutLeadingBlankLines(Of TSyntaxNode As SyntaxNode)(node As TSyntaxNode) As TSyntaxNode Implements ISyntaxFacts.GetNodeWithoutLeadingBlankLines
-            Return MyBase.GetNodeWithoutLeadingBlankLines(node)
         End Function
 
         Public Function IsConversionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsConversionExpression

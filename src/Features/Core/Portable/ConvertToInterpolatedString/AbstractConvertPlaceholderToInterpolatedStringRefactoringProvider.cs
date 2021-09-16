@@ -21,12 +21,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 {
-    internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<TInvocationExpressionSyntax, TExpressionSyntax, TArgumentSyntax, TLiteralExpressionSyntax, TArgumentListExpressionSyntax> : CodeRefactoringProvider
+    internal abstract class AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<
+        TInvocationExpressionSyntax,
+        TExpressionSyntax,
+        TArgumentSyntax,
+        TLiteralExpressionSyntax,
+        TArgumentListExpressionSyntax,
+        TInterpolationSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TArgumentSyntax : SyntaxNode
         where TLiteralExpressionSyntax : SyntaxNode
         where TArgumentListExpressionSyntax : SyntaxNode
+        where TInterpolationSyntax : SyntaxNode
     {
 
         // Methods that are not string.Format but still should qualify to be replaced.
@@ -142,15 +149,15 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             return (null, null);
 
-            static bool IsValidPlaceholderToInterpolatedString(TInvocationExpressionSyntax invocation,
-                                                               ISyntaxFactsService syntaxFactsService,
-                                                               SemanticModel semanticModel,
-                                                               ImmutableArray<IMethodSymbol> applicableMethods,
-                                                               AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<
-                                                                   TInvocationExpressionSyntax, TExpressionSyntax,
-                                                                   TArgumentSyntax, TLiteralExpressionSyntax,
-                                                                   TArgumentListExpressionSyntax> thisInstance,
-                                                               CancellationToken cancellationToken)
+            static bool IsValidPlaceholderToInterpolatedString(
+                TInvocationExpressionSyntax invocation,
+                ISyntaxFactsService syntaxFactsService,
+                SemanticModel semanticModel,
+                ImmutableArray<IMethodSymbol> applicableMethods,
+                AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider<
+                    TInvocationExpressionSyntax, TExpressionSyntax, TArgumentSyntax,
+                    TLiteralExpressionSyntax, TArgumentListExpressionSyntax, TInterpolationSyntax> thisInstance,
+                CancellationToken cancellationToken)
             {
                 var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
                 if (arguments.Count >= 2)
@@ -284,16 +291,15 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         {
             return interpolatedString.ReplaceNodes(syntaxFactsService.GetContentsOfInterpolatedString(interpolatedString), (oldNode, newNode) =>
             {
-                var interpolationSyntaxNode = newNode;
-                if (interpolationSyntaxNode != null)
+                if (newNode is TInterpolationSyntax interpolation)
                 {
-                    if (syntaxFactsService.GetExpressionOfInterpolation(interpolationSyntaxNode) is TLiteralExpressionSyntax literalExpression && syntaxFactsService.IsNumericLiteralExpression(literalExpression))
+                    if (syntaxFactsService.GetExpressionOfInterpolation(interpolation) is TLiteralExpressionSyntax literalExpression && syntaxFactsService.IsNumericLiteralExpression(literalExpression))
                     {
                         if (int.TryParse(literalExpression.GetFirstToken().ValueText, out var index))
                         {
                             if (index >= 0 && index < expandedArguments.Length)
                             {
-                                return interpolationSyntaxNode.ReplaceNode(
+                                return interpolation.ReplaceNode(
                                     literalExpression,
                                     syntaxFactsService.ConvertToSingleLine(expandedArguments[index], useElasticTrivia: true).WithAdditionalAnnotations(Formatter.Annotation));
                             }

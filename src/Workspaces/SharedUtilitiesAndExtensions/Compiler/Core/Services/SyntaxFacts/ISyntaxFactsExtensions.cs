@@ -56,13 +56,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsRegularOrDocumentationComment(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
             => syntaxFacts.IsRegularComment(trivia) || syntaxFacts.IsDocumentationComment(trivia);
 
-        public static ImmutableArray<SyntaxTrivia> GetTriviaAfterLeadingBlankLines(
-            this ISyntaxFacts syntaxFacts, SyntaxNode node)
-        {
-            var leadingBlankLines = syntaxFacts.GetLeadingBlankLines(node);
-            return node.GetLeadingTrivia().Skip(leadingBlankLines.Length).ToImmutableArray();
-        }
-
         public static void GetPartsOfAssignmentStatement(
             this ISyntaxFacts syntaxFacts, SyntaxNode statement,
             out SyntaxNode left, out SyntaxNode right)

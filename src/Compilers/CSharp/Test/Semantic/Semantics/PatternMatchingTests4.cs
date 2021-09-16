@@ -3050,6 +3050,32 @@ class Program
                 );
         }
 
+        [Fact, WorkItem(48591, "https://github.com/dotnet/roslyn/issues/48591")]
+        public void PointerAsInput_05()
+        {
+            var source =
+@"public class C
+{
+    unsafe static void F2<T>(nint i) where T : unmanaged
+    {
+        T* p = (T*)i;
+        _ = p == null;
+        _ = p != null;
+        _ = p is null;
+        _ = p is not null;
+        _ = p switch { not null => true, null => false };
+        _ = p switch { { } => true, null => false }; // 1
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                // (11,24): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = p switch { { } => true, null => false }; // 1
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{ }").WithLocation(11, 24)
+                );
+        }
+
         [Fact]
         public void UnmatchedInput_06()
         {

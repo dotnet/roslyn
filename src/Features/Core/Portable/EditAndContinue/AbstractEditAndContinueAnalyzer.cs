@@ -5502,10 +5502,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                  => obj.GetHashCode();
         }
 
-#pragma warning disable format
         private static bool IsGlobalMain(ISymbol symbol)
-            => symbol is IMethodSymbol { Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, ContainingType.Name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName };
-#pragma warning restore format
+            => symbol is IMethodSymbol { Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName };
 
         private static bool InGenericContext(ISymbol symbol, out bool isGenericMethod)
         {

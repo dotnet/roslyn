@@ -313,10 +313,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                     if (syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode) ||
                         syntaxFacts.IsNameOfMemberBindingExpression(nameNode))
                     {
-                        var expression =
-                            syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent, allowImplicitTarget: true) ??
-                            syntaxFacts.GetTargetOfMemberBinding(nameNode.Parent);
-                        if (expression is TSimpleNameSyntax)
+                        var expression = syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode)
+                            ? syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent, allowImplicitTarget: true)
+                            : syntaxFacts.GetTargetOfMemberBinding(nameNode.Parent);
+                        if (expression is TSimpleNameSyntax simpleName)
                         {
                             // Check if the expression before the dot binds to a property or field.
                             var symbol = _semanticModel.GetSymbolInfo(expression, searchScope.CancellationToken).GetAnySymbol();
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                                 {
                                     // Try to look up 'Color' as a type.
                                     var symbolResults = await searchScope.FindDeclarationsAsync(
-                                        symbol.Name, (TSimpleNameSyntax)expression, SymbolFilter.Type).ConfigureAwait(false);
+                                        symbol.Name, simpleName, SymbolFilter.Type).ConfigureAwait(false);
 
                                     // Return results that have accessible members.
                                     var namedTypeSymbols = OfType<INamedTypeSymbol>(symbolResults);
