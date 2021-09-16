@@ -14,22 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxTreeExtensions
     {
-        public static ISet<SyntaxKind> GetPrecedingModifiers(
-            this SyntaxTree syntaxTree,
-            int position,
-            SyntaxToken tokenOnLeftOfPosition)
-            => syntaxTree.GetPrecedingModifiers(position, tokenOnLeftOfPosition, out var _);
+        public static ISet<SyntaxKind> GetPrecedingModifiers(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            => syntaxTree.GetPrecedingModifiers(position, cancellationToken, out _);
 
         public static ISet<SyntaxKind> GetPrecedingModifiers(
 #pragma warning disable IDE0060 // Remove unused parameter - Unused this parameter for consistency with other extension methods.
             this SyntaxTree syntaxTree,
 #pragma warning restore IDE0060 // Remove unused parameter
             int position,
-            SyntaxToken tokenOnLeftOfPosition,
+            CancellationToken cancellationToken,
             out int positionBeforeModifiers)
         {
-            var token = tokenOnLeftOfPosition;
-            token = token.GetPreviousTokenIfTouchingWord(position);
+            positionBeforeModifiers = position;
+            var tokenOnLeftOfPosition = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
             var result = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer);
             while (true)
@@ -55,12 +53,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.OutKeyword:
                     case SyntaxKind.InKeyword:
                         result.Add(token.Kind());
+                        positionBeforeModifiers = token.FullSpan.Start;
                         token = token.GetPreviousToken(includeSkipped: true);
                         continue;
                     case SyntaxKind.IdentifierToken:
                         if (token.HasMatchingText(SyntaxKind.AsyncKeyword))
                         {
                             result.Add(SyntaxKind.AsyncKeyword);
+                            positionBeforeModifiers = token.FullSpan.Start;
                             token = token.GetPreviousToken(includeSkipped: true);
                             continue;
                         }
@@ -71,7 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 break;
             }
 
-            positionBeforeModifiers = token.FullSpan.End;
             return result;
         }
 
