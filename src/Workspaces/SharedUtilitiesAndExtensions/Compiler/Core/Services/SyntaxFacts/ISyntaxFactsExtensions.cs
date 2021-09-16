@@ -47,12 +47,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 || syntaxFacts.IsPreprocessorKeyword(token);
         }
 
-        public static bool IsAnyMemberAccessExpression(
-            this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
-        {
-            return syntaxFacts.IsSimpleMemberAccessExpression(node) || syntaxFacts.IsPointerMemberAccessExpression(node);
-        }
-
         public static bool IsRegularOrDocumentationComment(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
             => syntaxFacts.IsRegularComment(trivia) || syntaxFacts.IsDocumentationComment(trivia);
 
@@ -282,6 +276,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return initializer;
         }
 
+        public static SyntaxNode GetNameOfMemberAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfMemberAccessExpression(node, out _, out var name);
+            return name;
+        }
+
         public static SyntaxNode GetOperandOfPrefixUnaryExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfPrefixUnaryExpression(node, out _, out var operand);
@@ -320,6 +320,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 return false;
 
             syntaxFacts.GetPartsOfInvocationExpression(parent, out var expression, out _);
+            return node == expression;
+        }
+
+        public static bool IsExpressionOfMemberAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        {
+            var parent = node?.Parent;
+            if (!syntaxFacts.IsMemberAccessExpression(parent))
+                return false;
+
+            syntaxFacts.GetPartsOfMemberAccessExpression(parent, out var expression, out _);
             return node == expression;
         }
 

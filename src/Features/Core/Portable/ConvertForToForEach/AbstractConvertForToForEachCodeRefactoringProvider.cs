@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                         var shouldWarn = syntaxFacts.IsArgument(current.Parent);
                         shouldWarn |= semanticFacts.IsWrittenTo(semanticModel, current, cancellationToken);
                         shouldWarn |=
-                            syntaxFacts.IsAnyMemberAccessExpression(current.Parent) &&
+                            syntaxFacts.IsMemberAccessExpression(current.Parent) &&
                             syntaxFacts.IsInvocationExpression(current.Parent.Parent);
 
                         if (shouldWarn)

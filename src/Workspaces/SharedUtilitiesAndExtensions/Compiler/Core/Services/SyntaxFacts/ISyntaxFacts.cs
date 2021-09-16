@@ -268,9 +268,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node);
 
-        bool IsExpressionOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
-        SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode node);
-
         /// <summary>
         /// Returns the expression node the member is being accessed off of.  If <paramref name="allowImplicitTarget"/>
         /// is <see langword="false"/>, this will be the node directly to the left of the dot-token.  If <paramref name="allowImplicitTarget"/>
@@ -279,7 +276,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// may return the expression in the surrounding With-statement.
         /// </summary>
         SyntaxNode? GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget = false);
-        void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name);
 
         SyntaxNode? GetTargetOfMemberBinding(SyntaxNode? node);
 
@@ -580,6 +576,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsImplicitObjectCreation([NotNullWhen(true)] SyntaxNode? node);
         bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node);
 
+        #region IsXXX members
+
+        bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
+
+        #endregion
+
         #region GetPartsOfXXX members
 
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
@@ -587,6 +589,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
         void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode? argumentList);
         void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right);
+        void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name);
         void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer);
         void GetPartsOfParenthesizedExpression(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen);
         void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand);

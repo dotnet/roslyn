@@ -1436,10 +1436,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             right = assignment.Right
         End Sub
 
-        Public Function GetNameOfMemberAccessExpression(memberAccessExpression As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetNameOfMemberAccessExpression
-            Return DirectCast(memberAccessExpression, MemberAccessExpressionSyntax).Name
-        End Function
-
         Public Function GetIdentifierOfSimpleName(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfSimpleName
             Return DirectCast(node, SimpleNameSyntax).Identifier
         End Function
@@ -1491,10 +1487,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return SyntaxFactory.AreEquivalent(node1, node2)
         End Function
 
-        Public Function IsExpressionOfMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsExpressionOfMemberAccessExpression
-            Return node IsNot Nothing AndAlso TryCast(node.Parent, MemberAccessExpressionSyntax)?.Expression Is node
-        End Function
-
         Public Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfAwaitExpression
             Return DirectCast(node, AwaitExpressionSyntax).Expression
         End Function
@@ -1540,13 +1532,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             openParen = tupleExpr.OpenParenToken
             arguments = CType(CType(tupleExpr.Arguments, SeparatedSyntaxList(Of SyntaxNode)), SeparatedSyntaxList(Of TArgumentSyntax))
             closeParen = tupleExpr.CloseParenToken
-        End Sub
-
-        Public Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef name As SyntaxNode) Implements ISyntaxFacts.GetPartsOfMemberAccessExpression
-            Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
-            expression = memberAccess.Expression
-            operatorToken = memberAccess.OperatorToken
-            name = memberAccess.Name
         End Sub
 
         Public Function GetNextExecutableStatement(statement As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetNextExecutableStatement
@@ -2266,7 +2251,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+#Region "IsXXX members"
+
+        Public Function IsMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberAccessExpression
+            Return TypeOf node Is MemberAccessExpressionSyntax
+        End Function
+
+#End Region
+
 #Region "GetPartsOfXXX members"
+
+        Public Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef name As SyntaxNode) Implements ISyntaxFacts.GetPartsOfMemberAccessExpression
+            Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
+            expression = memberAccess.Expression
+            operatorToken = memberAccess.OperatorToken
+            name = memberAccess.Name
+        End Sub
 
         Public Sub GetPartsOfObjectCreationExpression(node As SyntaxNode, ByRef type As SyntaxNode, ByRef argumentList As SyntaxNode, ByRef initializer As SyntaxNode) Implements ISyntaxFacts.GetPartsOfObjectCreationExpression
             Dim objectCreationExpression = DirectCast(node, ObjectCreationExpressionSyntax)

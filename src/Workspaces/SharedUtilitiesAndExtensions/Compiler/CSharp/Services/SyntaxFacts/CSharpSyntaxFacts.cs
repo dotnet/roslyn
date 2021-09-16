@@ -1386,17 +1386,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             right = assignment.Right;
         }
 
-        public SyntaxNode GetNameOfMemberAccessExpression(SyntaxNode memberAccessExpression)
-            => ((MemberAccessExpressionSyntax)memberAccessExpression).Name;
-
-        public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name)
-        {
-            var memberAccess = (MemberAccessExpressionSyntax)node;
-            expression = memberAccess.Expression;
-            operatorToken = memberAccess.OperatorToken;
-            name = memberAccess.Name;
-        }
-
         public SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
             => ((SimpleNameSyntax)node).Identifier;
 
@@ -1431,9 +1420,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool AreEquivalent(SyntaxNode? node1, SyntaxNode? node2)
             => SyntaxFactory.AreEquivalent(node1, node2);
-
-        public bool IsExpressionOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
-            => (node?.Parent as MemberAccessExpressionSyntax)?.Expression == node;
 
         public static SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
             => ((InvocationExpressionSyntax)node).Expression;
@@ -1998,7 +1984,22 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node is InterpolatedStringExpressionSyntax interpolatedString &&
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
 
+        #region IsXXX members
+
+        public bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node is MemberAccessExpressionSyntax;
+
+        #endregion
+
         #region GetPartsOfXXX members
+
+        public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name)
+        {
+            var memberAccess = (MemberAccessExpressionSyntax)node;
+            expression = memberAccess.Expression;
+            operatorToken = memberAccess.OperatorToken;
+            name = memberAccess.Name;
+        }
 
         public void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer)
         {
