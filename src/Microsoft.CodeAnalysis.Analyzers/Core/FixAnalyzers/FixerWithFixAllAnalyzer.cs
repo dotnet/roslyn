@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 {
+    using static CodeAnalysisDiagnosticsResources;
+
     /// <summary>
     /// A <see cref="CodeFixProvider"/> that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique across all registered code actions by this fixer.
     /// This enables the <see cref="FixAllProvider"/> to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.
@@ -26,49 +28,39 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         internal const string CodeFixProviderMetadataName = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
         internal const string GetFixAllProviderMethodName = "GetFixAllProvider";
 
-        private static readonly LocalizableString s_localizableCreateCodeActionWithEquivalenceKeyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableCreateCodeActionWithEquivalenceKeyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CreateCodeActionWithEquivalenceKeyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static readonly LocalizableString s_localizableCodeActionNeedsEquivalenceKeyDescription = CreateLocalizableResourceString(nameof(CodeActionNeedsEquivalenceKeyDescription));
 
-        private static readonly LocalizableString s_localizableOverrideCodeActionEquivalenceKeyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableOverrideCodeActionEquivalenceKeyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideCodeActionEquivalenceKeyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableOverrideGetFixAllProviderTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideGetFixAllProviderTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableOverrideGetFixAllProviderMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideGetFixAllProviderMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableCodeActionNeedsEquivalenceKeyDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.CodeActionNeedsEquivalenceKeyDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableOverrideGetFixAllProviderDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.OverrideGetFixAllProviderDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        internal static readonly DiagnosticDescriptor CreateCodeActionEquivalenceKeyRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor CreateCodeActionEquivalenceKeyRule = new(
             DiagnosticIds.CreateCodeActionWithEquivalenceKeyRuleId,
-            s_localizableCreateCodeActionWithEquivalenceKeyTitle,
-            s_localizableCreateCodeActionWithEquivalenceKeyMessage,
+            CreateLocalizableResourceString(nameof(CreateCodeActionWithEquivalenceKeyTitle)),
+            CreateLocalizableResourceString(nameof(CreateCodeActionWithEquivalenceKeyMessage)),
             "Correctness",
             DiagnosticSeverity.Warning,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor OverrideCodeActionEquivalenceKeyRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor OverrideCodeActionEquivalenceKeyRule = new(
             DiagnosticIds.OverrideCodeActionEquivalenceKeyRuleId,
-            s_localizableOverrideCodeActionEquivalenceKeyTitle,
-            s_localizableOverrideCodeActionEquivalenceKeyMessage,
+            CreateLocalizableResourceString(nameof(OverrideCodeActionEquivalenceKeyTitle)),
+            CreateLocalizableResourceString(nameof(OverrideCodeActionEquivalenceKeyMessage)),
             "Correctness",
             DiagnosticSeverity.Warning,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        internal static readonly DiagnosticDescriptor OverrideGetFixAllProviderRule = new DiagnosticDescriptor(
+        internal static readonly DiagnosticDescriptor OverrideGetFixAllProviderRule = new(
             DiagnosticIds.OverrideGetFixAllProviderRuleId,
-            s_localizableOverrideGetFixAllProviderTitle,
-            s_localizableOverrideGetFixAllProviderMessage,
+            CreateLocalizableResourceString(nameof(OverrideGetFixAllProviderTitle)),
+            CreateLocalizableResourceString(nameof(OverrideGetFixAllProviderMessage)),
             "Correctness",
             DiagnosticSeverity.Warning,
-            description: s_localizableOverrideGetFixAllProviderDescription,
+            description: CreateLocalizableResourceString(nameof(OverrideGetFixAllProviderDescription)),
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
             ImmutableArray.Create(CreateCodeActionEquivalenceKeyRule, OverrideCodeActionEquivalenceKeyRule, OverrideGetFixAllProviderRule);
 
         public override void Initialize(AnalysisContext context)
@@ -128,22 +120,22 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             /// <summary>
             /// Set of all non-abstract sub-types of <see cref="CodeFixProvider"/> in this compilation.
             /// </summary>
-            private readonly HashSet<INamedTypeSymbol> _codeFixProviders = new HashSet<INamedTypeSymbol>();
+            private readonly HashSet<INamedTypeSymbol> _codeFixProviders = new();
 
             /// <summary>
             /// Set of all non-abstract sub-types of <see cref="CodeAction"/> which override <see cref="CodeAction.EquivalenceKey"/> in this compilation.
             /// </summary>
-            private readonly HashSet<INamedTypeSymbol> _codeActionsWithEquivalenceKey = new HashSet<INamedTypeSymbol>();
+            private readonly HashSet<INamedTypeSymbol> _codeActionsWithEquivalenceKey = new();
 
             /// <summary>
             /// Map of invocations from code fix providers to invocations that create a code action using the static "Create" methods on <see cref="CodeAction"/>.
             /// </summary>
-            private readonly Dictionary<INamedTypeSymbol, HashSet<IInvocationOperation>> _codeActionCreateInvocations = new Dictionary<INamedTypeSymbol, HashSet<IInvocationOperation>>();
+            private readonly Dictionary<INamedTypeSymbol, HashSet<IInvocationOperation>> _codeActionCreateInvocations = new();
 
             /// <summary>
             /// Map of invocations from code fix providers to object creations that create a code action using sub-types of <see cref="CodeAction"/>.
             /// </summary>
-            private readonly Dictionary<INamedTypeSymbol, HashSet<IObjectCreationOperation>> _codeActionObjectCreations = new Dictionary<INamedTypeSymbol, HashSet<IObjectCreationOperation>>();
+            private readonly Dictionary<INamedTypeSymbol, HashSet<IObjectCreationOperation>> _codeActionObjectCreations = new();
 
             public CompilationAnalyzer(
                 INamedTypeSymbol codeFixProviderSymbol,
@@ -250,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     }
                     else if (fixer.BaseType != null && fixer.BaseType.Equals(_codeFixProviderSymbol))
                     {
-                        Diagnostic diagnostic = Diagnostic.Create(OverrideGetFixAllProviderRule, fixer.Locations.First(), fixer.Name);
+                        Diagnostic diagnostic = fixer.CreateDiagnostic(OverrideGetFixAllProviderRule, fixer.Name);
                         context.ReportDiagnostic(diagnostic);
                     }
                 }
@@ -280,7 +272,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     IParameterSymbol param = invocation.TargetMethod.Parameters.FirstOrDefault(p => p.Name == EquivalenceKeyParameterName);
                     if (param == null)
                     {
-                        return true;
+                        // User is calling an overload without the equivalenceKey parameter
+                        return false;
                     }
 
                     foreach (var argument in invocation.Arguments)
@@ -296,32 +289,28 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
                 void AnalyzeFixerWithFixAll(INamedTypeSymbol fixer, CompilationAnalysisContext context)
                 {
-                    if (_codeActionCreateInvocations != null)
+                    if (_codeActionCreateInvocations != null
+                        && _codeActionCreateInvocations.TryGetValue(fixer, out HashSet<IInvocationOperation> invocations))
                     {
-                        if (_codeActionCreateInvocations.TryGetValue(fixer, out HashSet<IInvocationOperation> invocations))
+                        foreach (IInvocationOperation invocation in invocations)
                         {
-                            foreach (IInvocationOperation invocation in invocations)
+                            if (IsViolatingCodeActionCreateInvocation(invocation))
                             {
-                                if (IsViolatingCodeActionCreateInvocation(invocation))
-                                {
-                                    Diagnostic diagnostic = Diagnostic.Create(CreateCodeActionEquivalenceKeyRule, invocation.Syntax.GetLocation(), EquivalenceKeyParameterName);
-                                    context.ReportDiagnostic(diagnostic);
-                                }
+                                Diagnostic diagnostic = invocation.CreateDiagnostic(CreateCodeActionEquivalenceKeyRule, EquivalenceKeyParameterName);
+                                context.ReportDiagnostic(diagnostic);
                             }
                         }
                     }
 
-                    if (_codeActionObjectCreations != null)
+                    if (_codeActionObjectCreations != null
+                        && _codeActionObjectCreations.TryGetValue(fixer, out HashSet<IObjectCreationOperation> objectCreations))
                     {
-                        if (_codeActionObjectCreations.TryGetValue(fixer, out HashSet<IObjectCreationOperation> objectCreations))
+                        foreach (IObjectCreationOperation objectCreation in objectCreations)
                         {
-                            foreach (IObjectCreationOperation objectCreation in objectCreations)
+                            if (IsViolatingCodeActionObjectCreation(objectCreation))
                             {
-                                if (IsViolatingCodeActionObjectCreation(objectCreation))
-                                {
-                                    Diagnostic diagnostic = Diagnostic.Create(OverrideCodeActionEquivalenceKeyRule, objectCreation.Syntax.GetLocation(), objectCreation.Constructor.ContainingType, EquivalenceKeyPropertyName);
-                                    context.ReportDiagnostic(diagnostic);
-                                }
+                                Diagnostic diagnostic = objectCreation.CreateDiagnostic(OverrideCodeActionEquivalenceKeyRule, objectCreation.Constructor.ContainingType, EquivalenceKeyPropertyName);
+                                context.ReportDiagnostic(diagnostic);
                             }
                         }
                     }
@@ -345,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                             return _codeActionsWithEquivalenceKey != null && _codeActionsWithEquivalenceKey.Contains(namedType);
                         }
 
-                        // For types in different compilation, perfom the check.
+                        // For types in different compilation, perform the check.
                         return IsCodeActionWithOverriddenEquivlanceKeyCore(namedType);
                     }
                 }

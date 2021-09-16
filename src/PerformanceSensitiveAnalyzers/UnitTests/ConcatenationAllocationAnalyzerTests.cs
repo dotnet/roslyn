@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers;
@@ -47,7 +47,9 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
                 // Test0.cs(9,21): warning HAA0201: Considering using StringBuilder
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ConcatenationAllocationAnalyzer.StringConcatenationAllocationRule).WithLocation(9, 21));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         [Theory]
@@ -111,7 +113,9 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
                 // Test0.cs(11,45): warning HAA0202: Value type (System.DateTime) is being boxed to a reference type for a string concatenation.
+#pragma warning disable RS0030 // Do not used banned APIs
                 VerifyCS.Diagnostic(ConcatenationAllocationAnalyzer.ValueTypeToReferenceTypeInAStringConcatenationRule).WithLocation(11, 45).WithArguments("System.DateTime"));
+#pragma warning restore RS0030 // Do not used banned APIs
         }
     }
 }

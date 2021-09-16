@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         /// </summary>
         private sealed class CopyAbstractValueDomain : AbstractValueDomain<CopyAbstractValue>
         {
-            public static CopyAbstractValueDomain Default = new CopyAbstractValueDomain();
+            public static CopyAbstractValueDomain Default = new();
             private readonly SetAbstractDomain<AnalysisEntity> _entitiesDomain = SetAbstractDomain<AnalysisEntity>.Default;
 
             private CopyAbstractValueDomain() { }

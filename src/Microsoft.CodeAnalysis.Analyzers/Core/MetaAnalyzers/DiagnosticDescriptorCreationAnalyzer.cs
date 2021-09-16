@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
+    using static CodeAnalysisDiagnosticsResources;
     using PooledLocalizabeStringsConcurrentDictionary = PooledConcurrentDictionary<INamedTypeSymbol, PooledConcurrentSet<(IFieldSymbol field, IArgumentOperation argument)>>;
     using PooledResourcesDataValueConcurrentDictionary = PooledConcurrentDictionary<string, ImmutableDictionary<string, (string value, Location location)>>;
     using PooledFieldToResourceNameAndFileNameConcurrentDictionary = PooledConcurrentDictionary<IFieldSymbol, (string nameOfResource, string resourceFileName)>;
@@ -57,154 +58,121 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             "Text.CSharp.Analyzers",
             "Text.VisualBasic.Analyzers");
 
-        private static readonly LocalizableString s_localizableUseLocalizableStringsTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableUseLocalizableStringsMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableUseLocalizableStringsDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableProvideHelpUriTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideHelpUriInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableProvideHelpUriMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideHelpUriInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableProvideHelpUriDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideHelpUriInDescriptorDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableDiagnosticIdMustBeAConstantTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeAConstantTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDiagnosticIdMustBeAConstantMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeAConstantMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDiagnosticIdMustBeAConstantDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeAConstantDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableUseUniqueDiagnosticIdTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseUniqueDiagnosticIdTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableUseUniqueDiagnosticIdMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseUniqueDiagnosticIdMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableUseUniqueDiagnosticIdDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UseUniqueDiagnosticIdDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableProvideCustomTagsTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableProvideCustomTagsMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableProvideCustomTagsDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDoNotUseReservedDiagnosticIdDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableDefineDiagnosticTitleCorrectlyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticTitleCorrectlyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDefineDiagnosticTitleCorrectlyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticTitleCorrectlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableDefineDiagnosticMessageCorrectlyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticMessageCorrectlyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDefineDiagnosticMessageCorrectlyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticMessageCorrectlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        private static readonly LocalizableString s_localizableDefineDiagnosticDescriptionCorrectlyTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticDescriptionCorrectlyTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDefineDiagnosticDescriptionCorrectlyMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DefineDiagnosticDescriptionCorrectlyMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
         /// <summary>
-        /// RS1007 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.UseLocalizableStringsInDescriptorTitle"/>)
+        /// RS1007 (<inheritdoc cref="UseLocalizableStringsInDescriptorTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UseLocalizableStringsInDescriptorRule = new(
             DiagnosticIds.UseLocalizableStringsInDescriptorRuleId,
-            s_localizableUseLocalizableStringsTitle,
-            s_localizableUseLocalizableStringsMessage,
+            CreateLocalizableResourceString(nameof(UseLocalizableStringsInDescriptorTitle)),
+            CreateLocalizableResourceString(nameof(UseLocalizableStringsInDescriptorMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisLocalization,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
-            description: s_localizableUseLocalizableStringsDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(UseLocalizableStringsInDescriptorDescription)),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         /// <summary>
-        /// RS1015 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.ProvideHelpUriInDescriptorTitle"/>)
+        /// RS1015 (<inheritdoc cref="ProvideHelpUriInDescriptorTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor ProvideHelpUriInDescriptorRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ProvideHelpUriInDescriptorRule = new(
             DiagnosticIds.ProvideHelpUriInDescriptorRuleId,
-            s_localizableProvideHelpUriTitle,
-            s_localizableProvideHelpUriMessage,
+            CreateLocalizableResourceString(nameof(ProvideHelpUriInDescriptorTitle)),
+            CreateLocalizableResourceString(nameof(ProvideHelpUriInDescriptorMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisDocumentation,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
-            description: s_localizableProvideHelpUriDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(ProvideHelpUriInDescriptorDescription)),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         /// <summary>
-        /// RS1017 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DiagnosticIdMustBeAConstantTitle"/>)
+        /// RS1017 (<inheritdoc cref="DiagnosticIdMustBeAConstantTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DiagnosticIdMustBeAConstantRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DiagnosticIdMustBeAConstantRule = new(
             DiagnosticIds.DiagnosticIdMustBeAConstantRuleId,
-            s_localizableDiagnosticIdMustBeAConstantTitle,
-            s_localizableDiagnosticIdMustBeAConstantMessage,
+            CreateLocalizableResourceString(nameof(DiagnosticIdMustBeAConstantTitle)),
+            CreateLocalizableResourceString(nameof(DiagnosticIdMustBeAConstantMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDiagnosticIdMustBeAConstantDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(DiagnosticIdMustBeAConstantDescription)),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         /// <summary>
-        /// RS1019 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.UseUniqueDiagnosticIdTitle"/>)
+        /// RS1019 (<inheritdoc cref="UseUniqueDiagnosticIdTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor UseUniqueDiagnosticIdRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UseUniqueDiagnosticIdRule = new(
             DiagnosticIds.UseUniqueDiagnosticIdRuleId,
-            s_localizableUseUniqueDiagnosticIdTitle,
-            s_localizableUseUniqueDiagnosticIdMessage,
+            CreateLocalizableResourceString(nameof(UseUniqueDiagnosticIdTitle)),
+            CreateLocalizableResourceString(nameof(UseUniqueDiagnosticIdMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableUseUniqueDiagnosticIdDescription,
+            description: CreateLocalizableResourceString(nameof(UseUniqueDiagnosticIdDescription)),
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
 
         /// <summary>
-        /// RS1028 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.ProvideCustomTagsInDescriptorTitle"/>)
+        /// RS1028 (<inheritdoc cref="ProvideCustomTagsInDescriptorTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor ProvideCustomTagsInDescriptorRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor ProvideCustomTagsInDescriptorRule = new(
             DiagnosticIds.ProvideCustomTagsInDescriptorRuleId,
-            s_localizableProvideCustomTagsTitle,
-            s_localizableProvideCustomTagsMessage,
+            CreateLocalizableResourceString(nameof(ProvideCustomTagsInDescriptorTitle)),
+            CreateLocalizableResourceString(nameof(ProvideCustomTagsInDescriptorMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisDocumentation,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
-            description: s_localizableProvideCustomTagsDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(ProvideCustomTagsInDescriptorDescription)),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         /// <summary>
-        /// RS1029 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DoNotUseReservedDiagnosticIdTitle"/>)
+        /// RS1029 (<inheritdoc cref="DoNotUseReservedDiagnosticIdTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DoNotUseReservedDiagnosticIdRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotUseReservedDiagnosticIdRule = new(
             DiagnosticIds.DoNotUseReservedDiagnosticIdRuleId,
-            s_localizableDoNotUseReservedDiagnosticIdTitle,
-            s_localizableDoNotUseReservedDiagnosticIdMessage,
+            CreateLocalizableResourceString(nameof(DoNotUseReservedDiagnosticIdTitle)),
+            CreateLocalizableResourceString(nameof(DoNotUseReservedDiagnosticIdMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDoNotUseReservedDiagnosticIdDescription,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(DoNotUseReservedDiagnosticIdDescription)),
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         /// <summary>
-        /// RS1031 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DefineDiagnosticTitleCorrectlyTitle"/>)
+        /// RS1031 (<inheritdoc cref="DefineDiagnosticTitleCorrectlyTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DefineDiagnosticTitleCorrectlyRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DefineDiagnosticTitleCorrectlyRule = new(
             DiagnosticIds.DefineDiagnosticTitleCorrectlyRuleId,
-            s_localizableDefineDiagnosticTitleCorrectlyTitle,
-            s_localizableDefineDiagnosticTitleCorrectlyMessage,
+            CreateLocalizableResourceString(nameof(DefineDiagnosticTitleCorrectlyTitle)),
+            CreateLocalizableResourceString(nameof(DefineDiagnosticTitleCorrectlyMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         /// <summary>
-        /// RS1032 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DefineDiagnosticMessageCorrectlyTitle"/>)
+        /// RS1032 (<inheritdoc cref="DefineDiagnosticMessageCorrectlyTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DefineDiagnosticMessageCorrectlyRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DefineDiagnosticMessageCorrectlyRule = new(
             DiagnosticIds.DefineDiagnosticMessageCorrectlyRuleId,
-            s_localizableDefineDiagnosticMessageCorrectlyTitle,
-            s_localizableDefineDiagnosticMessageCorrectlyMessage,
+            CreateLocalizableResourceString(nameof(DefineDiagnosticMessageCorrectlyTitle)),
+            CreateLocalizableResourceString(nameof(DefineDiagnosticMessageCorrectlyMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         /// <summary>
-        /// RS1033 (<inheritdoc cref="CodeAnalysisDiagnosticsResources.DefineDiagnosticDescriptionCorrectlyTitle"/>)
+        /// RS1033 (<inheritdoc cref="DefineDiagnosticDescriptionCorrectlyTitle"/>)
         /// </summary>
-        public static readonly DiagnosticDescriptor DefineDiagnosticDescriptionCorrectlyRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DefineDiagnosticDescriptionCorrectlyRule = new(
             DiagnosticIds.DefineDiagnosticDescriptionCorrectlyRuleId,
-            s_localizableDefineDiagnosticDescriptionCorrectlyTitle,
-            s_localizableDefineDiagnosticDescriptionCorrectlyMessage,
+            CreateLocalizableResourceString(nameof(DefineDiagnosticDescriptionCorrectlyTitle)),
+            CreateLocalizableResourceString(nameof(DefineDiagnosticDescriptionCorrectlyMessage)),
             DiagnosticCategory.MicrosoftCodeAnalysisDesign,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(
             UseLocalizableStringsInDescriptorRule,
             ProvideHelpUriInDescriptorRule,
             DiagnosticIdMustBeAConstantRule,
@@ -1050,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                         // Factory methods to track declaration locations for every analyzer rule ID.
                         ConcurrentBag<Location> AddLocationFactory(string analyzerName)
-                            => new ConcurrentBag<Location> { location };
+                            => new() { location };
 
                         ConcurrentBag<Location> UpdateLocationsFactory(string analyzerName, ConcurrentBag<Location> bag)
                         {
@@ -1112,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     {
                         // Diagnostic Id for rule '{0}' must be a non-null constant.
                         string arg1 = ((IFieldInitializerOperation)operationAnalysisContext.Operation).InitializedFields.Single().Name;
-                        var diagnostic = Diagnostic.Create(DiagnosticIdMustBeAConstantRule, argument.Value.Syntax.GetLocation(), arg1);
+                        var diagnostic = argument.Value.CreateDiagnostic(DiagnosticIdMustBeAConstantRule, arg1);
                         operationAnalysisContext.ReportDiagnostic(diagnostic);
                     }
 

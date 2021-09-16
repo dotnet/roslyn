@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #if HAS_IOPERATION
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 builder.Append($", DepthInherit: {DepthOfInheritance}");
             }
 
-            builder.Append($")");
+            builder.Append(')');
             appendChildren(indent: "   ");
             return builder.ToString();
 

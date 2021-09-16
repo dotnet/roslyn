@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #if HAS_IOPERATION
 
@@ -108,11 +108,11 @@ namespace Analyzer.Utilities.Extensions
             return false;
         }
 
-        private static bool HasConstantValue(Optional<object> constantValue, ITypeSymbol constantValueType, ulong comparand)
+        private static bool HasConstantValue(Optional<object?> constantValue, ITypeSymbol constantValueType, ulong comparand)
         {
             if (constantValueType.SpecialType is SpecialType.System_Double or SpecialType.System_Single)
             {
-                return (double)constantValue.Value == comparand;
+                return (double?)constantValue.Value == comparand;
             }
 
             return DiagnosticHelpers.TryConvertToUInt64(constantValue.Value, constantValueType.SpecialType, out ulong convertedValue) && convertedValue == comparand;
@@ -304,7 +304,7 @@ namespace Analyzer.Utilities.Extensions
 
             if (isInsideAnonymousObjectInitializer)
             {
-                for (IOperation current = operation; current != null && current.Kind != OperationKind.Block; current = current.Parent)
+                for (IOperation? current = operation; current != null && current.Kind != OperationKind.Block; current = current.Parent)
                 {
                     switch (current.Kind)
                     {
@@ -327,26 +327,6 @@ namespace Analyzer.Utilities.Extensions
             // We return null for such cases.
             return null;
         }
-
-        /// <summary>
-        /// Workaround for https://github.com/dotnet/roslyn/issues/22736 (IPropertyReferenceExpressions in IAnonymousObjectCreationExpression are missing a receiver).
-        /// Gets the instance for the anonymous object being created that is being referenced by <paramref name="operation"/>.
-        /// Otherwise, returns null
-        /// </summary>
-        public static IAnonymousObjectCreationOperation? GetAnonymousObjectCreation(this IPropertyReferenceOperation operation)
-        {
-            if (operation.Instance == null &&
-                operation.Property.ContainingType.IsAnonymousType)
-            {
-                var declarationSyntax = operation.Property.ContainingType.DeclaringSyntaxReferences[0].GetSyntax();
-                return operation.GetAncestor(OperationKind.AnonymousObjectCreation, (IAnonymousObjectCreationOperation a) => a.Syntax == declarationSyntax);
-            }
-
-            return null;
-        }
-
-        public static bool IsInsideAnonymousFunction(this IOperation operation)
-            => operation.GetAncestor<IAnonymousFunctionOperation>(OperationKind.AnonymousFunction) != null;
 
         public static bool HasAnyOperationDescendant(this ImmutableArray<IOperation> operationBlocks, Func<IOperation, bool> predicate)
         {
@@ -392,23 +372,18 @@ namespace Analyzer.Utilities.Extensions
         /// <param name="binaryOperation"></param>
         /// <returns></returns>
         public static bool IsComparisonOperator(this IBinaryOperation binaryOperation)
-        {
-            switch (binaryOperation.OperatorKind)
+            => binaryOperation.OperatorKind switch
             {
-                case BinaryOperatorKind.Equals:
-                case BinaryOperatorKind.NotEquals:
-                case BinaryOperatorKind.ObjectValueEquals:
-                case BinaryOperatorKind.ObjectValueNotEquals:
-                case BinaryOperatorKind.LessThan:
-                case BinaryOperatorKind.LessThanOrEqual:
-                case BinaryOperatorKind.GreaterThan:
-                case BinaryOperatorKind.GreaterThanOrEqual:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+                BinaryOperatorKind.Equals
+                or BinaryOperatorKind.NotEquals
+                or BinaryOperatorKind.ObjectValueEquals
+                or BinaryOperatorKind.ObjectValueNotEquals
+                or BinaryOperatorKind.LessThan
+                or BinaryOperatorKind.LessThanOrEqual
+                or BinaryOperatorKind.GreaterThan
+                or BinaryOperatorKind.GreaterThanOrEqual => true,
+                _ => false,
+            };
 
         public static IOperation GetRoot(this IOperation operation)
         {
@@ -426,11 +401,12 @@ namespace Analyzer.Utilities.Extensions
         /// </summary>
         /// <remarks>Also see <see cref="IMethodSymbolExtensions.s_methodToTopmostOperationBlockCache"/></remarks>
         private static readonly BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph?>> s_operationToCfgCache
-            = new BoundedCache<Compilation, ConcurrentDictionary<IOperation, ControlFlowGraph?>>();
+            = new();
 
         public static bool TryGetEnclosingControlFlowGraph(this IOperation operation, [NotNullWhen(returnValue: true)] out ControlFlowGraph? cfg)
         {
             operation = operation.GetRoot();
+            RoslynDebug.Assert(operation.SemanticModel is not null);
             var operationToCfgMap = s_operationToCfgCache.GetOrCreateValue(operation.SemanticModel.Compilation);
             cfg = operationToCfgMap.GetOrAdd(operation, CreateControlFlowGraph);
             return cfg != null;
@@ -533,11 +509,17 @@ namespace Analyzer.Utilities.Extensions
 
         private static readonly ImmutableArray<OperationKind> s_LambdaAndLocalFunctionKinds =
             ImmutableArray.Create(OperationKind.AnonymousFunction, OperationKind.LocalFunction);
+
         public static bool IsWithinLambdaOrLocalFunction(this IOperation operation, [NotNullWhen(true)] out IOperation? containingLambdaOrLocalFunctionOperation)
         {
             containingLambdaOrLocalFunctionOperation = operation.GetAncestor(s_LambdaAndLocalFunctionKinds);
             return containingLambdaOrLocalFunctionOperation != null;
         }
+
+        public static bool IsWithinExpressionTree(this IOperation operation, [NotNullWhen(true)] INamedTypeSymbol? linqExpressionTreeType)
+            => linqExpressionTreeType != null
+                && operation.GetAncestor(s_LambdaAndLocalFunctionKinds)?.Parent?.Type?.OriginalDefinition is { } lambdaType
+                && linqExpressionTreeType.Equals(lambdaType);
 
         public static ITypeSymbol? GetPatternType(this IPatternOperation pattern)
         {
@@ -647,7 +629,7 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Walks down consequtive parenthesized operations until an operand is reached that isn't a parenthesized operation.
+        /// Walks down consecutive parenthesized operations until an operand is reached that isn't a parenthesized operation.
         /// </summary>
         /// <param name="operation">The starting operation.</param>
         /// <returns>The inner non parenthesized operation or the starting operation if it wasn't a parenthesized operation.</returns>
@@ -661,18 +643,22 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
-        public static IOperation WalkUpParentheses(this IOperation operation)
+        [return: NotNullIfNotNull("operation")]
+        public static IOperation? WalkUpParentheses(this IOperation? operation)
         {
-            while (operation is IParenthesizedOperation parenthesizedOperation)
+            if (operation is null)
+                return null;
+
+            while (operation.Parent is IParenthesizedOperation parenthesizedOperation)
             {
-                operation = parenthesizedOperation.Parent;
+                operation = parenthesizedOperation;
             }
 
             return operation;
         }
 
         /// <summary>
-        /// Walks down consequtive conversion operations until an operand is reached that isn't a conversion operation.
+        /// Walks down consecutive conversion operations until an operand is reached that isn't a conversion operation.
         /// </summary>
         /// <param name="operation">The starting operation.</param>
         /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
@@ -686,11 +672,15 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
-        public static IOperation WalkUpConversion(this IOperation operation)
+        [return: NotNullIfNotNull("operation")]
+        public static IOperation? WalkUpConversion(this IOperation? operation)
         {
-            while (operation is IConversionOperation conversionOperation)
+            if (operation is null)
+                return null;
+
+            while (operation.Parent is IConversionOperation conversionOperation)
             {
-                operation = conversionOperation.Parent;
+                operation = conversionOperation;
             }
 
             return operation;
@@ -732,7 +722,7 @@ namespace Analyzer.Utilities.Extensions
             int minOrdinal = int.MaxValue;
             foreach (IArgumentOperation argumentOperation in invocationOperation.Arguments)
             {
-                if (argumentOperation.Parameter.Ordinal < minOrdinal && argumentOperation.Value is TOperation to)
+                if (argumentOperation.Parameter?.Ordinal < minOrdinal && argumentOperation.Value is TOperation to)
                 {
                     minOrdinal = argumentOperation.Parameter.Ordinal;
                     firstFoundArgument = to;
@@ -803,7 +793,7 @@ namespace Analyzer.Utilities.Extensions
 
             foreach (var argument in arguments)
             {
-                if (argument.Parameter.Ordinal == parameterIndex)
+                if (argument.Parameter?.Ordinal == parameterIndex)
                 {
                     return argument;
                 }
@@ -824,6 +814,7 @@ namespace Analyzer.Utilities.Extensions
 
             foreach (var argument in arguments)
             {
+                RoslynDebug.Assert(argument.Parameter is not null);
                 Debug.Assert(parameterOrderedArguments[argument.Parameter.Ordinal] == null);
                 parameterOrderedArguments[argument.Parameter.Ordinal] = argument;
             }
@@ -831,7 +822,7 @@ namespace Analyzer.Utilities.Extensions
             return parameterOrderedArguments.ToImmutableArray();
         }
 
-        // Copied from roslyn https://github.com/dotnet/roslyn/blob/master/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Extensions/OperationExtensions.cs#L25
+        // Copied from roslyn https://github.com/dotnet/roslyn/blob/main/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Extensions/OperationExtensions.cs#L25
 
 #if CODEANALYSIS_V3_OR_BETTER
         /// <summary>
@@ -858,7 +849,7 @@ namespace Analyzer.Utilities.Extensions
             | obj is X x               |      |  ✔️   |             |             |                 |
             | ref var x =              |      |       |     ✔️      |     ✔️      |                 |
             | ref readonly var x =     |      |       |     ✔️      |             |                 |
- 
+
             */
             if (operation is ILocalReferenceOperation localReference &&
                 localReference.IsDeclaration &&
@@ -871,7 +862,7 @@ namespace Analyzer.Utilities.Extensions
             {
                 switch (operation.Parent)
                 {
-                    case IPatternCaseClauseOperation _:
+                    case IPatternCaseClauseOperation:
                         // A declaration pattern within a pattern case clause is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -881,7 +872,7 @@ namespace Analyzer.Utilities.Extensions
                         //
                         return ValueUsageInfo.Write;
 
-                    case IRecursivePatternOperation _:
+                    case IRecursivePatternOperation:
                         // A declaration pattern within a recursive pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -892,7 +883,7 @@ namespace Analyzer.Utilities.Extensions
                         //
                         return ValueUsageInfo.Write;
 
-                    case ISwitchExpressionArmOperation _:
+                    case ISwitchExpressionArmOperation:
                         // A declaration pattern within a switch expression arm is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -902,7 +893,7 @@ namespace Analyzer.Utilities.Extensions
                         //
                         return ValueUsageInfo.Write;
 
-                    case IIsPatternOperation _:
+                    case IIsPatternOperation:
                         // A declaration pattern within an is pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj' below:
@@ -910,7 +901,7 @@ namespace Analyzer.Utilities.Extensions
                         //
                         return ValueUsageInfo.Write;
 
-                    case IPropertySubpatternOperation _:
+                    case IPropertySubpatternOperation:
                         // A declaration pattern within a property sub-pattern is a
                         // write for the declared local.
                         // For example, 'x' is defined and assigned the value from 'obj.Property' below:
@@ -953,20 +944,13 @@ namespace Analyzer.Utilities.Extensions
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {
-                switch (argumentOperation.Parameter.RefKind)
+                return argumentOperation.Parameter?.RefKind switch
                 {
-                    case RefKind.RefReadOnly:
-                        return ValueUsageInfo.ReadableReference;
-
-                    case RefKind.Out:
-                        return ValueUsageInfo.WritableReference;
-
-                    case RefKind.Ref:
-                        return ValueUsageInfo.ReadableWritableReference;
-
-                    default:
-                        return ValueUsageInfo.Read;
-                }
+                    RefKind.RefReadOnly => ValueUsageInfo.ReadableReference,
+                    RefKind.Out => ValueUsageInfo.WritableReference,
+                    RefKind.Ref => ValueUsageInfo.ReadableWritableReference,
+                    _ => ValueUsageInfo.Read,
+                };
             }
             else if (operation.Parent is IReturnOperation returnOperation)
             {
@@ -1004,25 +988,23 @@ namespace Analyzer.Utilities.Extensions
             {
                 return ValueUsageInfo.Write;
             }
-            else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation)
+            else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation &&
+                variableInitializerOperation.Parent is IVariableDeclaratorOperation variableDeclaratorOperation)
             {
-                if (variableInitializerOperation.Parent is IVariableDeclaratorOperation variableDeclaratorOperation)
+                switch (variableDeclaratorOperation.Symbol.RefKind)
                 {
-                    switch (variableDeclaratorOperation.Symbol.RefKind)
-                    {
-                        case RefKind.Ref:
-                            return ValueUsageInfo.ReadableWritableReference;
+                    case RefKind.Ref:
+                        return ValueUsageInfo.ReadableWritableReference;
 
-                        case RefKind.RefReadOnly:
-                            return ValueUsageInfo.ReadableReference;
-                    }
+                    case RefKind.RefReadOnly:
+                        return ValueUsageInfo.ReadableReference;
                 }
             }
 
             return ValueUsageInfo.Read;
         }
 
-        public static bool IsInLeftOfDeconstructionAssignment(this IOperation operation, out IDeconstructionAssignmentOperation? deconstructionAssignment)
+        public static bool IsInLeftOfDeconstructionAssignment([DisallowNull] this IOperation? operation, out IDeconstructionAssignmentOperation? deconstructionAssignment)
         {
             deconstructionAssignment = null;
 
@@ -1079,23 +1061,17 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Retursn true if the given operation is a regular compound assignment,
+        /// Returns true if the given operation is a regular compound assignment,
         /// i.e. <see cref="ICompoundAssignmentOperation"/> such as <code>a += b</code>,
-        /// or a special null coalescing compoud assignment, i.e. <see cref="ICoalesceAssignmentOperation"/>
+        /// or a special null coalescing compound assignment, i.e. <see cref="ICoalesceAssignmentOperation"/>
         /// such as <code>a ??= b</code>.
         /// </summary>
         public static bool IsAnyCompoundAssignment(this IOperation operation)
-        {
-            switch (operation)
+            => operation switch
             {
-                case ICompoundAssignmentOperation _:
-                case ICoalesceAssignmentOperation _:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+                ICompoundAssignmentOperation or ICoalesceAssignmentOperation => true,
+                _ => false,
+            };
 #endif
     }
 }

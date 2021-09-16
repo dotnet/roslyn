@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Analyzer.Utilities.Extensions
@@ -55,10 +55,10 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
                 End Get
             End Property
 
-            Protected Overrides Function GetFirstArgumentOfInvocation(node As SyntaxNode) As SyntaxNode
-                Dim invocation = DirectCast(node, InvocationExpressionSyntax)
-                If invocation.ArgumentList IsNot Nothing Then
-                    Dim argument = invocation.ArgumentList.Arguments.FirstOrDefault()
+            Protected Overrides Function GetFirstArgumentOfInvocation(invocation As SyntaxNode) As SyntaxNode
+                Dim invocationExpression = DirectCast(invocation, InvocationExpressionSyntax)
+                If invocationExpression.ArgumentList IsNot Nothing Then
+                    Dim argument = invocationExpression.ArgumentList.Arguments.FirstOrDefault()
                     If argument IsNot Nothing Then
                         Return argument.GetExpression
                     End If

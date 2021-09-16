@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Diagnostics.Analyzers
 
 Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
@@ -11,7 +12,6 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
     ''' </summary>
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
     Public NotInheritable Class BasicPartsExportedWithMEFv2MustBeMarkedAsSharedFixer
-        Inherits PartsExportedWithMEFv2MustBeMarkedAsSharedFixer
-
+        Inherits PartsExportedWithMEFv2MustBeMarkedAsSharedFixer(Of TypeBlockSyntax)
     End Class
 End Namespace

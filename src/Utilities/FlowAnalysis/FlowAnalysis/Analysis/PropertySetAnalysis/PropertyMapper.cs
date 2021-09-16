@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -117,10 +117,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(
+            return RoslynHashCode.Combine(
                 this.PropertyName.GetHashCodeOrDefault(),
-                HashUtilities.Combine(this.MapFromValueContentAbstractValue.GetHashCodeOrDefault(),
-                this.MapFromPointsToAbstractValue.GetHashCodeOrDefault()));
+                this.MapFromValueContentAbstractValue.GetHashCodeOrDefault(),
+                this.MapFromPointsToAbstractValue.GetHashCodeOrDefault());
         }
 
         public override bool Equals(object obj)

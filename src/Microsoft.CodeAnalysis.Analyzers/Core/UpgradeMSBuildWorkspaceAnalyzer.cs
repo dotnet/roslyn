@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Analyzer.Utilities;
@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers
 {
+    using static CodeAnalysisDiagnosticsResources;
+
     public abstract class UpgradeMSBuildWorkspaceAnalyzer : DiagnosticAnalyzer
     {
         private const string WorkspacesDesktop = "Microsoft.CodeAnalysis.Workspaces.Desktop";
@@ -14,21 +16,16 @@ namespace Microsoft.CodeAnalysis.Analyzers
         private const string MSBuildWorkspaceFullName = "Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace";
         protected const string MSBuildWorkspace = "MSBuildWorkspace";
 
-        // Each analyzer needs a public id to identify each DiagnosticDescriptor and subsequently fix diagnostics in CodeFixProvider.cs
-        private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UpgradeMSBuildWorkspaceTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UpgradeMSBuildWorkspaceMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UpgradeMSBuildWorkspaceDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-
-        public static readonly DiagnosticDescriptor UpgradeMSBuildWorkspaceDiagnosticRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor UpgradeMSBuildWorkspaceDiagnosticRule = new(
             DiagnosticIds.UpgradeMSBuildWorkspaceRuleId,
-            s_localizableTitle,
-            s_localizableMessage,
+            CreateLocalizableResourceString(nameof(UpgradeMSBuildWorkspaceTitle)),
+            CreateLocalizableResourceString(nameof(UpgradeMSBuildWorkspaceMessage)),
             DiagnosticCategory.Library,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: s_localizableDescription,
+            description: CreateLocalizableResourceString(nameof(UpgradeMSBuildWorkspaceDescription)),
             helpLinkUri: "https://go.microsoft.com/fwlink/?linkid=874285",
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(UpgradeMSBuildWorkspaceDiagnosticRule);
 

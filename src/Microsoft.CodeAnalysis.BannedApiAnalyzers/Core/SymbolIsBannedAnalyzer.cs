@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -16,37 +16,39 @@ using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
+    using static BannedApiAnalyzerResources;
+
     internal static class SymbolIsBannedAnalyzer
     {
         public const string BannedSymbolsFileName = "BannedSymbols.txt";
 
-        public static readonly DiagnosticDescriptor SymbolIsBannedRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor SymbolIsBannedRule = new(
             id: DiagnosticIds.SymbolIsBannedRuleId,
-            title: BannedApiAnalyzerResources.SymbolIsBannedTitle,
-            messageFormat: BannedApiAnalyzerResources.SymbolIsBannedMessage,
+            title: CreateLocalizableResourceString(nameof(SymbolIsBannedTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(SymbolIsBannedMessage)),
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: BannedApiAnalyzerResources.SymbolIsBannedDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            description: CreateLocalizableResourceString(nameof(SymbolIsBannedDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
-        public static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new(
             id: DiagnosticIds.DuplicateBannedSymbolRuleId,
-            title: BannedApiAnalyzerResources.DuplicateBannedSymbolTitle,
-            messageFormat: BannedApiAnalyzerResources.DuplicateBannedSymbolMessage,
+            title: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolMessage)),
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: BannedApiAnalyzerResources.DuplicateBannedSymbolDescription,
-            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
+            description: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolDescription)),
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
     }
 
     public abstract class SymbolIsBannedAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
             ImmutableArray.Create(SymbolIsBannedAnalyzer.SymbolIsBannedRule, SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule);
 
         protected abstract TSyntaxKind XmlCrefSyntaxKind { get; }
@@ -155,6 +157,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                                 VerifyType(context.ReportDiagnostic, incrementOrDecrement.OperatorMethod.ContainingType, context.Operation.Syntax);
                             }
                             break;
+                        case ITypeOfOperation typeOfOperation:
+                            VerifyType(context.ReportDiagnostic, typeOfOperation.TypeOperand, context.Operation.Syntax);
+                            break;
                     }
                 },
                 OperationKind.ObjectCreation,
@@ -169,7 +174,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 OperationKind.UnaryOperator,
                 OperationKind.BinaryOperator,
                 OperationKind.Increment,
-                OperationKind.Decrement);
+                OperationKind.Decrement,
+                OperationKind.TypeOf);
 
             compilationContext.RegisterSyntaxNodeAction(
                 context => VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context),
@@ -274,9 +280,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     if (entryBySymbol.TryGetValue(type, out var entry))
                     {
                         reportDiagnostic(
-                            Diagnostic.Create(
+                            syntaxNode.CreateDiagnostic(
                                 SymbolIsBannedAnalyzer.SymbolIsBannedRule,
-                                syntaxNode.GetLocation(),
                                 type.ToDisplayString(SymbolDisplayFormat),
                                 string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
                         return false;
@@ -332,9 +337,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     if (entryBySymbol.TryGetValue(currentSymbol, out var entry))
                     {
                         reportDiagnostic(
-                            Diagnostic.Create(
+                            syntaxNode.CreateDiagnostic(
                                 SymbolIsBannedAnalyzer.SymbolIsBannedRule,
-                                syntaxNode.GetLocation(),
                                 currentSymbol.ToDisplayString(SymbolDisplayFormat),
                                 string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
                         return;

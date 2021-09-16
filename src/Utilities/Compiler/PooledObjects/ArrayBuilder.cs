@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,14 +6,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 
-#pragma warning disable CA1710 // Rename Microsoft.CodeAnalysis.ArrayBuilder<T> to end in 'Collection'.
 #pragma warning disable CA1000 // Do not declare static members on generic types
 
 namespace Analyzer.Utilities.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
     [DebuggerTypeProxy(typeof(ArrayBuilder<>.DebuggerProxy))]
-    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>, IDisposable
+    internal sealed partial class ArrayBuilder<T> : IReadOnlyList<T>, IDisposable
     {
         #region DebuggerProxy
 #pragma warning disable CA1812 // ArrayBuilder<T>.DebuggerProxy is an internal class that is apparently never instantiated - used in DebuggerTypeProxy attribute above.
@@ -75,31 +74,18 @@ namespace Analyzer.Utilities.PooledObjects
 
         public int Count
         {
-            get
-            {
-                return _builder.Count;
-            }
-            set
-            {
-                _builder.Count = value;
-            }
+            get => _builder.Count;
+            set => _builder.Count = value;
         }
 
         public T this[int index]
         {
-            get
-            {
-                return _builder[index];
-            }
-
-            set
-            {
-                _builder[index] = value;
-            }
+            get => _builder[index];
+            set => _builder[index] = value;
         }
 
         /// <summary>
-        /// Write <paramref name="value"/> to slot <paramref name="index"/>. 
+        /// Write <paramref name="value"/> to slot <paramref name="index"/>.
         /// Fills in unallocated slots preceding the <paramref name="index"/>, if any.
         /// </summary>
         public void SetItem(int index, T value)
@@ -306,7 +292,7 @@ namespace Analyzer.Utilities.PooledObjects
         #region Poolable
 
         // To implement Poolable, you need two things:
-        // 1) Expose Freeing primitive. 
+        // 1) Expose Freeing primitive.
         private void Free()
         {
             var pool = _pool;
@@ -317,9 +303,9 @@ namespace Analyzer.Utilities.PooledObjects
                 // After about 50 (just 67) we have a long tail of infrequently used builder sizes.
                 // However we have builders with size up to 50K   (just one such thing)
                 //
-                // We do not want to retain (potentially indefinitely) very large builders 
+                // We do not want to retain (potentially indefinitely) very large builders
                 // while the chance that we will need their size is diminishingly small.
-                // It makes sense to constrain the size to some "not too small" number. 
+                // It makes sense to constrain the size to some "not too small" number.
                 // Overall perf does not seem to be very sensitive to this number, so I picked 128 as a limit.
                 if (_builder.Capacity < 128)
                 {
@@ -414,7 +400,7 @@ namespace Analyzer.Utilities.PooledObjects
             }
 
             // bucketize
-            // prevent reallocation. it may not have 'count' entries, but it won't have more. 
+            // prevent reallocation. it may not have 'count' entries, but it won't have more.
             var accumulator = new Dictionary<K, ArrayBuilder<T>>(Count, comparer);
             for (int i = 0; i < Count; i++)
             {

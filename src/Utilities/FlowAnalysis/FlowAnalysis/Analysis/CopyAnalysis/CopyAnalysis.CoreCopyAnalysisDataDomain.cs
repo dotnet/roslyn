@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 
@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 _getDefaultCopyValue = getDefaultCopyValue;
             }
 
+#pragma warning disable CA1725 // Parameter names should match base declaration
             public override CoreCopyAnalysisData Merge(CoreCopyAnalysisData map1, CoreCopyAnalysisData map2)
+#pragma warning restore CA1725 // Parameter names should match base declaration
             {
                 CopyAnalysisData.AssertValidCopyAnalysisData(map1);
                 CopyAnalysisData.AssertValidCopyAnalysisData(map2);

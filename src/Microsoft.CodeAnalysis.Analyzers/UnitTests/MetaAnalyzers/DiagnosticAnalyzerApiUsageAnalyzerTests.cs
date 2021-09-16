@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
@@ -931,23 +931,31 @@ End Class
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingTypes) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic(CSharpDiagnosticAnalyzerApiUsageAnalyzer.DoNotUseTypesFromAssemblyDirectRule)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(analyzerTypeName, violatingTypes);
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingIndirectTypes, string violatingTypes) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic(CSharpDiagnosticAnalyzerApiUsageAnalyzer.DoNotUseTypesFromAssemblyIndirectRule)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(analyzerTypeName, violatingIndirectTypes, violatingTypes);
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingTypes) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic(BasicDiagnosticAnalyzerApiUsageAnalyzer.DoNotUseTypesFromAssemblyDirectRule)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(analyzerTypeName, violatingTypes);
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string analyzerTypeName, string violatingIndirectTypes, string violatingTypes) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic(BasicDiagnosticAnalyzerApiUsageAnalyzer.DoNotUseTypesFromAssemblyIndirectRule)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(analyzerTypeName, violatingIndirectTypes, violatingTypes);
     }
 }
