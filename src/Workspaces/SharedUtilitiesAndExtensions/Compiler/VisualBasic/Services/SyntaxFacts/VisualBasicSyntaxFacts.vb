@@ -681,15 +681,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.Kind = SyntaxKind.InvocationExpression OrElse node.Kind = SyntaxKind.DictionaryAccessExpression
         End Function
 
-        Public Sub GetPartsOfParenthesizedExpression(
-            node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef expression As SyntaxNode, ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfParenthesizedExpression
-
-            Dim parenthesizedExpression = DirectCast(node, ParenthesizedExpressionSyntax)
-            openParen = parenthesizedExpression.OpenParenToken
-            expression = parenthesizedExpression.Expression
-            closeParen = parenthesizedExpression.CloseParenToken
-        End Sub
-
         Public Function IsTypeNamedVarInVariableOrFieldDeclaration(token As SyntaxToken, parent As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTypeNamedVarInVariableOrFieldDeclaration
             Return False
         End Function
@@ -2239,6 +2230,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             type = objectCreationExpression.Type
             argumentList = objectCreationExpression.ArgumentList
             initializer = objectCreationExpression.Initializer
+        End Sub
+
+        Public Sub GetPartsOfParenthesizedExpression(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef expression As SyntaxNode, ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfParenthesizedExpression
+            Dim parenthesizedExpression = DirectCast(node, ParenthesizedExpressionSyntax)
+            openParen = parenthesizedExpression.OpenParenToken
+            expression = parenthesizedExpression.Expression
+            closeParen = parenthesizedExpression.CloseParenToken
         End Sub
 
         Public Sub GetPartsOfPrefixUnaryExpression(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef operand As SyntaxNode) Implements ISyntaxFacts.GetPartsOfPrefixUnaryExpression

@@ -680,15 +680,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false)
             => node.ConvertToSingleLine(useElasticTrivia);
 
-        public void GetPartsOfParenthesizedExpression(
-            SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen)
-        {
-            var parenthesizedExpression = (ParenthesizedExpressionSyntax)node;
-            openParen = parenthesizedExpression.OpenParenToken;
-            expression = parenthesizedExpression.Expression;
-            closeParen = parenthesizedExpression.CloseParenToken;
-        }
-
         public bool IsIndexerMemberCRef(SyntaxNode? node)
             => node.IsKind(SyntaxKind.IndexerMemberCref);
 
@@ -1978,6 +1969,15 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             type = objectCreationExpression.Type;
             argumentList = objectCreationExpression.ArgumentList;
             initializer = objectCreationExpression.Initializer;
+        }
+
+        public void GetPartsOfParenthesizedExpression(
+            SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen)
+        {
+            var parenthesizedExpression = (ParenthesizedExpressionSyntax)node;
+            openParen = parenthesizedExpression.OpenParenToken;
+            expression = parenthesizedExpression.Expression;
+            closeParen = parenthesizedExpression.CloseParenToken;
         }
 
         public void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand)
