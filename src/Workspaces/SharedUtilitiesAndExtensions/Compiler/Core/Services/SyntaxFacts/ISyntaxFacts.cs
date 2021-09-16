@@ -32,12 +32,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     /// that both C# and VB have, and where the returned parts correspond to the members those nodes have in common across the 
     /// languages.  For example 'GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken dotToken, out SyntaxNode right)'
     /// VB.  These functions should throw if passed a node that the corresponding 'IsXXX' did not return <see langword="true"/> for.
+    /// For nodes that only have a single child, 'GetPartsOfXXX' is not not needed and can be replaced with the easier to use
+    /// 'GetXXXOfYYY' to get that single child.
     /// </item>
     /// <item>
     /// 'GetXxxOfYYY' where 'XXX' matches the name of a property on a 'YYY' syntax construct that both C# and VB have.  For
     /// example 'GetExpressionOfMemberAccessExpression' corresponding to MemberAccessExpressionsyntax.Expression in both C# and
     /// VB.  These functions should throw if passed a node that the corresponding 'IsYYY' did not return <see langword="true"/> for.
-    /// Note: these should migrate to <see cref="ISyntaxFactsExtensions"/> and be built off of 'GetPartsOfXXX'.
+    /// For nodes that only have a single child, these functions can stay here.  For nodes with multiple children, these should migrate
+    /// to <see cref="ISyntaxFactsExtensions"/> and be built off of 'GetPartsOfXXX'.
     /// </item>
     /// <item>
     /// Absolutely trivial questions that relate to syntax and can be asked sensibly of each language.  For example,
@@ -194,8 +197,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node);
-
-        SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
 
         bool IsExpressionOfAwaitExpression([NotNullWhen(true)] SyntaxNode? node);
         SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
@@ -596,6 +597,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer);
         void GetPartsOfParenthesizedExpression(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen);
         void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name);
+
+        #endregion
+
+        #region GetXXXOfYYYMembers
+
+        // note: this is only for nodes that have a single child nodes.  If a node has multiple child nodes, then
+        // ISyntaxFacts should have a GetPartsOfXXX helper instead, and GetXXXOfYYY should be built off of that
+        // inside ISyntaxFactsExtensions
+
+        SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
 
         #endregion
     }
