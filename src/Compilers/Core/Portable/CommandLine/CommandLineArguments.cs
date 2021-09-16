@@ -524,9 +524,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // If we are skipping analyzers, ensure that we only add suppressors.
-            bool shouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !skipAnalyzers || analyzer is DiagnosticSuppressor;
-
             // All analyzer references are registered now, we can start loading them.
             foreach (var resolvedReference in resolvedReferences)
             {
@@ -540,6 +537,9 @@ namespace Microsoft.CodeAnalysis
 
             generators = generatorBuilder.ToImmutable();
             analyzers = analyzerBuilder.ToImmutable();
+
+            // If we are skipping analyzers, ensure that we only add suppressors.
+            bool shouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !skipAnalyzers || analyzer is DiagnosticSuppressor;
         }
 
         private AnalyzerFileReference? ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)
