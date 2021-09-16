@@ -2,30 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Storage;
 
 namespace AnalyzerRunner
 {
-    [ExportWorkspaceService(typeof(IPersistentStorageLocationService), ServiceLayer.Host)]
+    [ExportWorkspaceService(typeof(IPersistentStorageConfiguration), ServiceLayer.Host)]
     [Shared]
-    internal class PersistentStorageLocationService : IPersistentStorageLocationService
+    internal sealed class PersistentStorageConfiguration : IPersistentStorageConfiguration
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PersistentStorageLocationService()
+        public PersistentStorageConfiguration()
         {
         }
 
-        public bool IsSupported(Workspace workspace) => true;
+        public bool ThrowOnFailure => true;
 
-        public string TryGetStorageLocation(Solution _)
+        public string? TryGetStorageLocation(SolutionKey _)
         {
             var location = Path.Combine(Path.GetTempPath(), "RoslynTests", "AnalyzerRunner", "temp-db");
             Directory.CreateDirectory(location);

@@ -24,7 +24,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property SkippedTokensTrivia As Integer = SyntaxKind.SkippedTokensTrivia Implements ISyntaxKinds.SkippedTokensTrivia
         Public ReadOnly Property WhitespaceTrivia As Integer = SyntaxKind.WhitespaceTrivia Implements ISyntaxKinds.WhitespaceTrivia
         Public ReadOnly Property SingleLineCommentTrivia As Integer = SyntaxKind.CommentTrivia Implements ISyntaxKinds.SingleLineCommentTrivia
-        Private ReadOnly Property MultiLineCommentTrivia As Integer? Implements ISyntaxKinds.MultiLineCommentTrivia
+        Public ReadOnly Property MultiLineCommentTrivia As Integer? Implements ISyntaxKinds.MultiLineCommentTrivia
+
+        Public ReadOnly Property SingleLineDocCommentTrivia As Integer = SyntaxKind.DocumentationCommentTrivia Implements ISyntaxKinds.SingleLineDocCommentTrivia
+        Public ReadOnly Property MultiLineDocCommentTrivia As Integer? Implements ISyntaxKinds.MultiLineDocCommentTrivia
+        Public ReadOnly Property ShebangDirectiveTrivia As Integer? Implements ISyntaxKinds.ShebangDirectiveTrivia
 
         Public ReadOnly Property CloseBraceToken As Integer = SyntaxKind.CloseBraceToken Implements ISyntaxKinds.CloseBraceToken
         Public ReadOnly Property ColonToken As Integer = SyntaxKind.ColonToken Implements ISyntaxKinds.ColonToken

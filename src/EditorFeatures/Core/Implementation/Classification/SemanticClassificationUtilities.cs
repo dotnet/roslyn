@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -208,12 +209,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (semanticCacheService == null)
                 return false;
 
-            var checksums = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var checksum = checksums.Text;
-
             var result = await semanticCacheService.GetCachedSemanticClassificationsAsync(
-                SemanticClassificationCacheUtilities.GetDocumentKeyForCaching(document),
-                textSpan, checksum, cancellationToken).ConfigureAwait(false);
+                document, textSpan, cancellationToken).ConfigureAwait(false);
             if (result.IsDefault)
                 return false;
 

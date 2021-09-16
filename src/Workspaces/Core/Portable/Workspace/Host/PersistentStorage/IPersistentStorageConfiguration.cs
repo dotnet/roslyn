@@ -8,24 +8,28 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal interface IPersistentStorageLocationService : IWorkspaceService
+    /// <summary>
+    /// Configuration of the <see cref="IPersistentStorageService"/> intended to be used to override behavior in tests.
+    /// </summary>
+    internal interface IPersistentStorageConfiguration : IWorkspaceService
     {
-        bool IsSupported(Workspace workspace);
-        string? TryGetStorageLocation(Solution solution);
+        /// <summary>
+        /// Indicates that the client expects the DB to succeed at all work and that it should not ever gracefully fall over.
+        /// Should not be set in normal host environments, where it is completely reasonable for things to fail
+        /// (for example, if a client asks for a key that hasn't been stored yet).
+        /// </summary>
+        bool ThrowOnFailure { get; }
+
+        string? TryGetStorageLocation(SolutionKey solutionKey);
     }
 
-    internal interface IPersistentStorageLocationService2 : IPersistentStorageLocationService
-    {
-        string? TryGetStorageLocation(Workspace workspace, SolutionKey solutionKey);
-    }
-
-    [ExportWorkspaceService(typeof(IPersistentStorageLocationService)), Shared]
-    internal class DefaultPersistentStorageLocationService : IPersistentStorageLocationService, IPersistentStorageLocationService2
+    [ExportWorkspaceService(typeof(IPersistentStorageConfiguration)), Shared]
+    internal sealed class DefaultPersistentStorageConfiguration : IPersistentStorageConfiguration
     {
         /// <summary>
         /// Used to ensure that the path components we generate do not contain any characters that might be invalid in a
@@ -36,13 +40,11 @@ namespace Microsoft.CodeAnalysis.Host
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultPersistentStorageLocationService()
+        public DefaultPersistentStorageConfiguration()
         {
         }
 
-        public virtual bool IsSupported(Workspace workspace) => false;
-
-        protected virtual string GetCacheDirectory()
+        private static string GetCacheDirectory()
         {
             // Store in the LocalApplicationData/Roslyn/hash folder (%appdatalocal%/... on Windows,
             // ~/.local/share/... on unix).  This will place the folder in a location we can trust
@@ -52,12 +54,11 @@ namespace Microsoft.CodeAnalysis.Host
             return Path.Combine(appDataFolder, "Microsoft", "VisualStudio", "Roslyn", "Cache");
         }
 
-        public string? TryGetStorageLocation(Solution solution)
-            => TryGetStorageLocation(solution.Workspace, SolutionKey.ToSolutionKey(solution));
+        public bool ThrowOnFailure => false;
 
-        public string? TryGetStorageLocation(Workspace workspace, SolutionKey solutionKey)
+        public string? TryGetStorageLocation(SolutionKey solutionKey)
         {
-            if (!IsSupported(workspace))
+            if (solutionKey.WorkspaceKind is not (WorkspaceKind.RemoteWorkspace or WorkspaceKind.RemoteTemporaryWorkspace or WorkspaceKind.Host))
                 return null;
 
             if (string.IsNullOrWhiteSpace(solutionKey.FilePath))
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Host
             // folder to store their data in.
 
             var cacheDirectory = GetCacheDirectory();
-            var kind = StripInvalidPathChars(workspace.Kind ?? "");
+            var kind = StripInvalidPathChars(solutionKey.WorkspaceKind);
             var hash = StripInvalidPathChars(Checksum.Create(solutionKey.FilePath).ToString());
 
             return Path.Combine(cacheDirectory, kind, hash);

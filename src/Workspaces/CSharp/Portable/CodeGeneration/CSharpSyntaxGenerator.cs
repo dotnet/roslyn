@@ -2023,7 +2023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertSwitchSections(SyntaxNode switchStatement, int index, IEnumerable<SyntaxNode> switchSections)
         {
-            if (!(switchStatement is SwitchStatementSyntax statement))
+            if (switchStatement is not SwitchStatementSyntax statement)
             {
                 return switchStatement;
             }

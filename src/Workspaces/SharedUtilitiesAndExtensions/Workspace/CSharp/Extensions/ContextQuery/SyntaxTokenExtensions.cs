@@ -181,9 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                         // attributes can belong to a statement
                         var container = token.Parent.Parent;
                         if (container is StatementSyntax)
-                        {
                             return true;
-                        }
                     }
 
                     return false;
@@ -255,9 +253,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (compUnit != null)
                 {
                     if (compUnit.AttributeLists.Count > 0 && compUnit.AttributeLists.Last().GetLastToken(includeZeroWidth: true) == token)
-                    {
                         return true;
-                    }
+                }
+
+                if (token.Parent.IsKind(SyntaxKind.AttributeList))
+                {
+                    var container = token.Parent.Parent;
+                    if (container is IncompleteMemberSyntax && container.Parent is CompilationUnitSyntax)
+                        return true;
                 }
             }
 
@@ -679,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsNumericTypeContext(this SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (!(token.Parent is MemberAccessExpressionSyntax memberAccessExpression))
+            if (token.Parent is not MemberAccessExpressionSyntax memberAccessExpression)
             {
                 return false;
             }

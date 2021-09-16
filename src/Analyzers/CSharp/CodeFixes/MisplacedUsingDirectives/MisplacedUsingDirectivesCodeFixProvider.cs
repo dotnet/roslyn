@@ -126,13 +126,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             AddImportPlacement placement,
             CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
 
             // Expand usings so that they can be properly simplified after they are relocated.
             var compilationUnitWithExpandedUsings = await ExpandUsingDirectivesAsync(document, compilationUnit, allUsingDirectives, cancellationToken).ConfigureAwait(false);
 
             // Remove the file header from the compilation unit so that we do not lose it when making changes to usings.
-            var (compilationUnitWithoutHeader, fileHeader) = RemoveFileHeader(compilationUnitWithExpandedUsings, syntaxFactsService);
+            var (compilationUnitWithoutHeader, fileHeader) = RemoveFileHeader(compilationUnitWithExpandedUsings, bannerService);
 
             // A blanket warning that this codefix may change code so that it does not compile.
             var warningAnnotation = WarningAnnotation.Create(CSharpAnalyzersResources.Warning_colon_Moving_using_directives_may_change_code_meaning);
@@ -397,9 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         }
 
         private static (CompilationUnitSyntax compilationUnitWithoutHeader, ImmutableArray<SyntaxTrivia> header) RemoveFileHeader(
-            CompilationUnitSyntax syntaxRoot, ISyntaxFactsService syntaxFactsService)
+            CompilationUnitSyntax syntaxRoot, IFileBannerFactsService bannerService)
         {
-            var fileHeader = syntaxFactsService.GetFileBanner(syntaxRoot);
+            var fileHeader = bannerService.GetFileBanner(syntaxRoot);
             var leadingTrivia = syntaxRoot.GetLeadingTrivia();
 
             for (var i = fileHeader.Length - 1; i >= 0; i--)

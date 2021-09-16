@@ -545,13 +545,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 // TODO: newTree.HasErrors?
                 var syntaxDiagnostics = newRoot.GetDiagnostics();
-                var hasSyntaxError = syntaxDiagnostics.Any(d => d.Severity == DiagnosticSeverity.Error);
-                if (hasSyntaxError)
+                var syntaxError = syntaxDiagnostics.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error);
+                if (syntaxError != null)
                 {
                     // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                     // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
                     DocumentAnalysisResults.Log.Write("{0}: syntax errors", newDocument.Name);
-                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray<RudeEditDiagnostic>.Empty, hasChanges);
+                    return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray<RudeEditDiagnostic>.Empty, syntaxError, hasChanges);
                 }
 
                 if (!hasChanges)
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     DocumentAnalysisResults.Log.Write("{0}: experimental features enabled", newDocument.Name);
 
                     return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(
-                        new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)), hasChanges);
+                        new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)), syntaxError: null, hasChanges);
                 }
 
                 var capabilities = await lazyCapabilities.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (!capabilities.HasFlag(EditAndContinueCapabilities.Baseline))
                 {
                     return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(
-                       new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)), hasChanges);
+                       new RudeEditDiagnostic(RudeEditKind.NotSupportedByRuntime, default)), syntaxError: null, hasChanges);
                 }
 
                 // We are in break state when there are no active statements.
@@ -666,6 +666,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newDocument.Id,
                     newActiveStatements.MoveToImmutable(),
                     diagnostics.ToImmutable(),
+                    syntaxError: null,
                     hasRudeEdits ? default : semanticEdits,
                     hasRudeEdits ? default : newExceptionRegions.MoveToImmutable(),
                     hasRudeEdits ? default : lineEdits.ToImmutable(),
@@ -683,7 +684,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     new RudeEditDiagnostic(RudeEditKind.InternalError, span: default, arguments: new[] { newDocument.FilePath, e.ToString() });
 
                 // Report as "syntax error" - we can't analyze the document
-                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(diagnostic), hasChanges);
+                return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, ImmutableArray.Create(diagnostic), syntaxError: null, hasChanges);
             }
         }
 
@@ -5501,10 +5502,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                  => obj.GetHashCode();
         }
 
-#pragma warning disable format
         private static bool IsGlobalMain(ISymbol symbol)
-            => symbol is IMethodSymbol { Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName, ContainingType.Name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName };
-#pragma warning restore format
+            => symbol is IMethodSymbol { Name: WellKnownMemberNames.TopLevelStatementsEntryPointMethodName };
 
         private static bool InGenericContext(ISymbol symbol, out bool isGenericMethod)
         {
