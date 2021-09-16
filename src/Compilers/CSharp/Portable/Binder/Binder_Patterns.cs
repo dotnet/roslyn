@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -341,11 +342,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!receiverType.IsErrorType());
-
             indexerAccess = null;
             patternSymbol = null;
             lengthProperty = null;
-
             bool found;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var bindingDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
@@ -1437,6 +1436,7 @@ done:
                 PatternSyntax pattern = p.Pattern;
                 BoundPropertySubpatternMember? member;
                 TypeSymbol memberType;
+                bool isLengthOrCount = false;
                 if (expr == null)
                 {
                     if (!hasErrors)
@@ -1450,10 +1450,22 @@ done:
                 {
                     member = LookupMembersForPropertyPattern(inputType, expr, diagnostics, ref hasErrors);
                     memberType = member.Type;
+                    // If we're dealing with the member that makes the type countable, and the type is also indexable, then it will be assumed to always return a non-negative value
+                    if (memberType.SpecialType == SpecialType.System_Int32 &&
+                        member.Symbol is { Name: WellKnownMemberNames.LengthPropertyName or WellKnownMemberNames.CountPropertyName, Kind: SymbolKind.Property } memberSymbol)
+                    {
+                        TypeSymbol receiverType = member.Receiver?.Type ?? inputType;
+                        if (!receiverType.IsErrorType())
+                        {
+                            isLengthOrCount = receiverType.IsSZArray()
+                                ? ReferenceEquals(memberSymbol, Compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length))
+                                : TryPerformPatternIndexerLookup(node, receiverType, argIsIndex: true, indexerAccess: out _, patternSymbol: out _, lengthProperty: out _, BindingDiagnosticBag.Discarded);
+                        }
+                    }
                 }
 
                 BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);
-                builder.Add(new BoundPropertySubpattern(p, member, boundPattern));
+                builder.Add(new BoundPropertySubpattern(p, member, isLengthOrCount, boundPattern));
             }
 
             return builder.ToImmutableAndFree();

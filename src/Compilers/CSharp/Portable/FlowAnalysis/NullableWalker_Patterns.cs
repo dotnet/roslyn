@@ -503,6 +503,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagSliceEvaluation e:
                                     addTemp(e, e.SliceType);
                                     break;
+                                case BoundDagAssignmentEvaluation e:
+                                    break;
                                 default:
                                     throw ExceptionUtilities.UnexpectedValue(p.Evaluation.Kind);
                             }

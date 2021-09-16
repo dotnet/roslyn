@@ -1429,6 +1429,7 @@
   </Node>
   <Node Name="BoundDagPropertyEvaluation" Base="BoundDagEvaluation">
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
+    <Field Name="IsLengthOrCount" Type="bool"/>
   </Node>
   <Node Name="BoundDagIndexEvaluation" Base="BoundDagEvaluation">
     <Field Name="Property" Type="PropertySymbol" Null="disallow"/>
@@ -1449,6 +1450,9 @@
     <Field Name="EndIndex" Type="int"/>
     <Field Name="IndexerAccess" Type="BoundIndexerAccess?"/>
     <Field Name="SliceMethod" Type="MethodSymbol?"/>
+  </Node>
+  <Node Name="BoundDagAssignmentEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Target" Type="BoundDagTemp"/>
   </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
@@ -2170,6 +2174,7 @@
   <Node Name="BoundPropertySubpattern" Base="BoundSubpattern">
     <!-- The property or field access in a property pattern. -->
     <Field Name="Member" Type="BoundPropertySubpatternMember?"/>
+    <Field Name="IsLengthOrCount" Type="bool"/>
   </Node>
   <Node Name="BoundPropertySubpatternMember" Base="BoundNode">
     <Field Name="Receiver" Type="BoundPropertySubpatternMember?"/>

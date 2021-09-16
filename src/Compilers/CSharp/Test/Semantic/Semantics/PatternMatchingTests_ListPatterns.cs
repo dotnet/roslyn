@@ -74,7 +74,7 @@ public class X
             AssertEx.Multiple(
                 () => verifier.VerifyIL("X.Test(System.Span<char>)", @"
 {
-  // Code size       76 (0x4c)
+  // Code size       69 (0x45)
   .maxstack  4
   .locals init (char V_0, //first
                 System.Span<char> V_1, //others
@@ -87,47 +87,43 @@ public class X
   IL_0004:  call       ""int System.Span<char>.Length.get""
   IL_0009:  stloc.s    V_4
   IL_000b:  ldloc.s    V_4
-  IL_000d:  ldc.i4.2
-  IL_000e:  bge.s      IL_0017
-  IL_0010:  ldloc.s    V_4
-  IL_0012:  ldc.i4.1
-  IL_0013:  ble.un.s   IL_003d
-  IL_0015:  br.s       IL_004a
-  IL_0017:  ldloca.s   V_3
-  IL_0019:  ldc.i4.0
-  IL_001a:  call       ""ref char System.Span<char>.this[int].get""
-  IL_001f:  ldind.u2
-  IL_0020:  stloc.0
-  IL_0021:  ldloca.s   V_3
-  IL_0023:  ldc.i4.1
-  IL_0024:  ldloc.s    V_4
-  IL_0026:  ldc.i4.2
-  IL_0027:  sub
-  IL_0028:  call       ""System.Span<char> System.Span<char>.Slice(int, int)""
-  IL_002d:  stloc.1
-  IL_002e:  ldloca.s   V_3
-  IL_0030:  ldloc.s    V_4
-  IL_0032:  ldc.i4.1
-  IL_0033:  sub
-  IL_0034:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0039:  ldind.u2
-  IL_003a:  stloc.2
-  IL_003b:  br.s       IL_003f
-  IL_003d:  ldc.i4.1
-  IL_003e:  ret
-  IL_003f:  ldloc.0
-  IL_0040:  ldloc.2
-  IL_0041:  bne.un.s   IL_004a
-  IL_0043:  ldloc.1
-  IL_0044:  call       ""bool X.Test(System.Span<char>)""
-  IL_0049:  ret
-  IL_004a:  ldc.i4.0
-  IL_004b:  ret
+  IL_000d:  ldc.i4.1
+  IL_000e:  ble.un.s   IL_0036
+  IL_0010:  ldloca.s   V_3
+  IL_0012:  ldc.i4.0
+  IL_0013:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0018:  ldind.u2
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_3
+  IL_001c:  ldc.i4.1
+  IL_001d:  ldloc.s    V_4
+  IL_001f:  ldc.i4.2
+  IL_0020:  sub
+  IL_0021:  call       ""System.Span<char> System.Span<char>.Slice(int, int)""
+  IL_0026:  stloc.1
+  IL_0027:  ldloca.s   V_3
+  IL_0029:  ldloc.s    V_4
+  IL_002b:  ldc.i4.1
+  IL_002c:  sub
+  IL_002d:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0032:  ldind.u2
+  IL_0033:  stloc.2
+  IL_0034:  br.s       IL_0038
+  IL_0036:  ldc.i4.1
+  IL_0037:  ret
+  IL_0038:  ldloc.0
+  IL_0039:  ldloc.2
+  IL_003a:  bne.un.s   IL_0043
+  IL_003c:  ldloc.1
+  IL_003d:  call       ""bool X.Test(System.Span<char>)""
+  IL_0042:  ret
+  IL_0043:  ldc.i4.0
+  IL_0044:  ret
 }
 "),
                 () => verifier.VerifyIL("X.Test(char[])", @"
 {
-  // Code size       79 (0x4f)
+  // Code size       72 (0x48)
   .maxstack  4
   .locals init (char V_0, //first
                 char[] V_1, //others
@@ -137,53 +133,49 @@ public class X
   IL_0000:  ldarg.0
   IL_0001:  stloc.3
   IL_0002:  ldloc.3
-  IL_0003:  brfalse.s  IL_004d
+  IL_0003:  brfalse.s  IL_0046
   IL_0005:  ldloc.3
   IL_0006:  callvirt   ""int System.Array.Length.get""
   IL_000b:  stloc.s    V_4
   IL_000d:  ldloc.s    V_4
-  IL_000f:  ldc.i4.2
-  IL_0010:  bge.s      IL_0019
-  IL_0012:  ldloc.s    V_4
-  IL_0014:  ldc.i4.1
-  IL_0015:  ble.un.s   IL_0040
-  IL_0017:  br.s       IL_004d
-  IL_0019:  ldloc.3
-  IL_001a:  ldc.i4.0
-  IL_001b:  ldelem.u2
-  IL_001c:  stloc.0
-  IL_001d:  ldloc.3
+  IL_000f:  ldc.i4.1
+  IL_0010:  ble.un.s   IL_0039
+  IL_0012:  ldloc.3
+  IL_0013:  ldc.i4.0
+  IL_0014:  ldelem.u2
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.3
+  IL_0017:  ldc.i4.1
+  IL_0018:  ldc.i4.0
+  IL_0019:  newobj     ""System.Index..ctor(int, bool)""
   IL_001e:  ldc.i4.1
-  IL_001f:  ldc.i4.0
+  IL_001f:  ldc.i4.1
   IL_0020:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0025:  ldc.i4.1
-  IL_0026:  ldc.i4.1
-  IL_0027:  newobj     ""System.Index..ctor(int, bool)""
-  IL_002c:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0031:  call       ""char[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<char>(char[], System.Range)""
-  IL_0036:  stloc.1
-  IL_0037:  ldloc.3
-  IL_0038:  ldloc.s    V_4
-  IL_003a:  ldc.i4.1
-  IL_003b:  sub
-  IL_003c:  ldelem.u2
-  IL_003d:  stloc.2
-  IL_003e:  br.s       IL_0042
-  IL_0040:  ldc.i4.1
-  IL_0041:  ret
-  IL_0042:  ldloc.0
-  IL_0043:  ldloc.2
-  IL_0044:  bne.un.s   IL_004d
-  IL_0046:  ldloc.1
-  IL_0047:  call       ""bool X.Test(char[])""
-  IL_004c:  ret
-  IL_004d:  ldc.i4.0
-  IL_004e:  ret
+  IL_0025:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_002a:  call       ""char[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<char>(char[], System.Range)""
+  IL_002f:  stloc.1
+  IL_0030:  ldloc.3
+  IL_0031:  ldloc.s    V_4
+  IL_0033:  ldc.i4.1
+  IL_0034:  sub
+  IL_0035:  ldelem.u2
+  IL_0036:  stloc.2
+  IL_0037:  br.s       IL_003b
+  IL_0039:  ldc.i4.1
+  IL_003a:  ret
+  IL_003b:  ldloc.0
+  IL_003c:  ldloc.2
+  IL_003d:  bne.un.s   IL_0046
+  IL_003f:  ldloc.1
+  IL_0040:  call       ""bool X.Test(char[])""
+  IL_0045:  ret
+  IL_0046:  ldc.i4.0
+  IL_0047:  ret
 }
 "),
                 () => verifier.VerifyIL("X.Test(string)", @"
 {
-  // Code size       73 (0x49)
+  // Code size       66 (0x42)
   .maxstack  4
   .locals init (char V_0, //first
                 string V_1, //others
@@ -193,45 +185,41 @@ public class X
   IL_0000:  ldarg.0
   IL_0001:  stloc.3
   IL_0002:  ldloc.3
-  IL_0003:  brfalse.s  IL_0047
+  IL_0003:  brfalse.s  IL_0040
   IL_0005:  ldloc.3
   IL_0006:  callvirt   ""int string.Length.get""
   IL_000b:  stloc.s    V_4
   IL_000d:  ldloc.s    V_4
-  IL_000f:  ldc.i4.2
-  IL_0010:  bge.s      IL_0019
-  IL_0012:  ldloc.s    V_4
-  IL_0014:  ldc.i4.1
-  IL_0015:  ble.un.s   IL_003a
-  IL_0017:  br.s       IL_0047
-  IL_0019:  ldloc.3
-  IL_001a:  ldc.i4.0
-  IL_001b:  callvirt   ""char string.this[int].get""
-  IL_0020:  stloc.0
-  IL_0021:  ldloc.3
-  IL_0022:  ldc.i4.1
-  IL_0023:  ldloc.s    V_4
-  IL_0025:  ldc.i4.2
-  IL_0026:  sub
-  IL_0027:  callvirt   ""string string.Substring(int, int)""
-  IL_002c:  stloc.1
-  IL_002d:  ldloc.3
-  IL_002e:  ldloc.s    V_4
-  IL_0030:  ldc.i4.1
-  IL_0031:  sub
-  IL_0032:  callvirt   ""char string.this[int].get""
-  IL_0037:  stloc.2
-  IL_0038:  br.s       IL_003c
-  IL_003a:  ldc.i4.1
-  IL_003b:  ret
-  IL_003c:  ldloc.0
-  IL_003d:  ldloc.2
-  IL_003e:  bne.un.s   IL_0047
-  IL_0040:  ldloc.1
-  IL_0041:  call       ""bool X.Test(string)""
-  IL_0046:  ret
-  IL_0047:  ldc.i4.0
-  IL_0048:  ret
+  IL_000f:  ldc.i4.1
+  IL_0010:  ble.un.s   IL_0033
+  IL_0012:  ldloc.3
+  IL_0013:  ldc.i4.0
+  IL_0014:  callvirt   ""char string.this[int].get""
+  IL_0019:  stloc.0
+  IL_001a:  ldloc.3
+  IL_001b:  ldc.i4.1
+  IL_001c:  ldloc.s    V_4
+  IL_001e:  ldc.i4.2
+  IL_001f:  sub
+  IL_0020:  callvirt   ""string string.Substring(int, int)""
+  IL_0025:  stloc.1
+  IL_0026:  ldloc.3
+  IL_0027:  ldloc.s    V_4
+  IL_0029:  ldc.i4.1
+  IL_002a:  sub
+  IL_002b:  callvirt   ""char string.this[int].get""
+  IL_0030:  stloc.2
+  IL_0031:  br.s       IL_0035
+  IL_0033:  ldc.i4.1
+  IL_0034:  ret
+  IL_0035:  ldloc.0
+  IL_0036:  ldloc.2
+  IL_0037:  bne.un.s   IL_0040
+  IL_0039:  ldloc.1
+  IL_003a:  call       ""bool X.Test(string)""
+  IL_003f:  ret
+  IL_0040:  ldc.i4.0
+  IL_0041:  ret
 }
 ")
                 );
@@ -496,135 +484,128 @@ True
             AssertEx.Multiple(
                 () => verifier.VerifyIL("X.Test1", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       41 (0x29)
   .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0029
+  IL_0001:  brfalse.s  IL_0027
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test1.Count.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  blt.s      IL_0029
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldc.i4.0
-  IL_000f:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0014:  ldc.i4.0
-  IL_0015:  ldc.i4.1
-  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001b:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0020:  callvirt   ""int Test1.this[System.Range].get""
-  IL_0025:  ldc.i4.1
-  IL_0026:  ceq
+  IL_0009:  pop
+  IL_000a:  ldarg.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldc.i4.1
+  IL_0014:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0019:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_001e:  callvirt   ""int Test1.this[System.Range].get""
+  IL_0023:  ldc.i4.1
+  IL_0024:  ceq
+  IL_0026:  ret
+  IL_0027:  ldc.i4.0
   IL_0028:  ret
-  IL_0029:  ldc.i4.0
-  IL_002a:  ret
 }"),
                 () => verifier.VerifyIL("X.Test2", @"
 {
-  // Code size       44 (0x2c)
+  // Code size       42 (0x2a)
   .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_002a
+  IL_0001:  brfalse.s  IL_0028
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test2.Count.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  blt.s      IL_002a
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldc.i4.0
-  IL_000f:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0014:  ldc.i4.0
-  IL_0015:  ldc.i4.1
-  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001b:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0020:  ldc.i4.5
-  IL_0021:  callvirt   ""int Test2.this[System.Range, int].get""
-  IL_0026:  ldc.i4.1
-  IL_0027:  ceq
+  IL_0009:  pop
+  IL_000a:  ldarg.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldc.i4.1
+  IL_0014:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0019:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_001e:  ldc.i4.5
+  IL_001f:  callvirt   ""int Test2.this[System.Range, int].get""
+  IL_0024:  ldc.i4.1
+  IL_0025:  ceq
+  IL_0027:  ret
+  IL_0028:  ldc.i4.0
   IL_0029:  ret
-  IL_002a:  ldc.i4.0
-  IL_002b:  ret
 }"),
                 () => verifier.VerifyIL("X.Test3", @"
 {
-  // Code size       48 (0x30)
+  // Code size       46 (0x2e)
   .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_002e
+  IL_0001:  brfalse.s  IL_002c
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test3.Count.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  blt.s      IL_002e
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  ldc.i4.0
-  IL_000f:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0014:  ldc.i4.0
-  IL_0015:  ldc.i4.1
-  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001b:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0020:  call       ""int[] System.Array.Empty<int>()""
-  IL_0025:  callvirt   ""int Test3.this[System.Range, params int[]].get""
-  IL_002a:  ldc.i4.1
-  IL_002b:  ceq
+  IL_0009:  pop
+  IL_000a:  ldarg.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldc.i4.1
+  IL_0014:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0019:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_001e:  call       ""int[] System.Array.Empty<int>()""
+  IL_0023:  callvirt   ""int Test3.this[System.Range, params int[]].get""
+  IL_0028:  ldc.i4.1
+  IL_0029:  ceq
+  IL_002b:  ret
+  IL_002c:  ldc.i4.0
   IL_002d:  ret
-  IL_002e:  ldc.i4.0
-  IL_002f:  ret
 }"),
                 () => verifier.VerifyIL("X.Test4", @"
 {
-  // Code size       56 (0x38)
+  // Code size       54 (0x36)
   .maxstack  7
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0036
+  IL_0001:  brfalse.s  IL_0034
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test4.Count.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  blt.s      IL_0036
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.1
-  IL_000e:  newarr     ""System.Range""
-  IL_0013:  dup
+  IL_0009:  pop
+  IL_000a:  ldarg.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  newarr     ""System.Range""
+  IL_0011:  dup
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldc.i4.0
   IL_0014:  ldc.i4.0
-  IL_0015:  ldc.i4.0
-  IL_0016:  ldc.i4.0
-  IL_0017:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001c:  ldc.i4.0
-  IL_001d:  ldc.i4.1
-  IL_001e:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0023:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0028:  stelem     ""System.Range""
-  IL_002d:  callvirt   ""int Test4.this[params System.Range[]].get""
-  IL_0032:  ldc.i4.1
-  IL_0033:  ceq
+  IL_0015:  newobj     ""System.Index..ctor(int, bool)""
+  IL_001a:  ldc.i4.0
+  IL_001b:  ldc.i4.1
+  IL_001c:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0021:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0026:  stelem     ""System.Range""
+  IL_002b:  callvirt   ""int Test4.this[params System.Range[]].get""
+  IL_0030:  ldc.i4.1
+  IL_0031:  ceq
+  IL_0033:  ret
+  IL_0034:  ldc.i4.0
   IL_0035:  ret
-  IL_0036:  ldc.i4.0
-  IL_0037:  ret
 }"),
                 () => verifier.VerifyIL("X.Test5", @"
 {
-  // Code size       30 (0x1e)
+  // Code size       26 (0x1a)
   .maxstack  4
   .locals init (int V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_001c
+  IL_0001:  brfalse.s  IL_0018
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test5.Count.get""
   IL_0009:  stloc.0
-  IL_000a:  ldloc.0
+  IL_000a:  ldarg.0
   IL_000b:  ldc.i4.0
-  IL_000c:  blt.s      IL_001c
-  IL_000e:  ldarg.0
-  IL_000f:  ldc.i4.0
-  IL_0010:  ldloc.0
-  IL_0011:  ldc.i4.0
-  IL_0012:  sub
-  IL_0013:  callvirt   ""int Test5.Slice(int, int)""
-  IL_0018:  ldc.i4.1
-  IL_0019:  ceq
-  IL_001b:  ret
-  IL_001c:  ldc.i4.0
-  IL_001d:  ret
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  sub
+  IL_000f:  callvirt   ""int Test5.Slice(int, int)""
+  IL_0014:  ldc.i4.1
+  IL_0015:  ceq
+  IL_0017:  ret
+  IL_0018:  ldc.i4.0
+  IL_0019:  ret
 }")
             );
         }
@@ -1341,7 +1322,7 @@ True
 True
 True
 Length
-False
+True
 Length
 True
 Length
@@ -1360,19 +1341,17 @@ True
 }"),
                 () => verifier.VerifyIL("X.Test2", @"
 {
-  // Code size       18 (0x12)
-  .maxstack  2
+  // Code size       14 (0xe)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0010
+  IL_0001:  brfalse.s  IL_000c
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int C.Length.get""
-  IL_0009:  ldc.i4.0
-  IL_000a:  clt
+  IL_0009:  pop
+  IL_000a:  ldc.i4.1
+  IL_000b:  ret
   IL_000c:  ldc.i4.0
-  IL_000d:  ceq
-  IL_000f:  ret
-  IL_0010:  ldc.i4.0
-  IL_0011:  ret
+  IL_000d:  ret
 }")
             );
         }
@@ -1411,6 +1390,64 @@ class X
             CompileAndVerify(compilation, expectedOutput: "-10121");
         }
 
+        [Theory]
+        [InlineData(
+            "{ null, null, new(0, 0) }",
+            "[..{ Length: >=2 }, { X: 0, Y: 0 }]",
+            "e.Length, e[0..^1], e[0..^1].Length, e[^1], e[^1].X, e[^1].Y, True")]
+        [InlineData(
+            "{ null, null, new(0, 0) }",
+            "[.., { X: 0, Y: 0 }]",
+            "e.Length, e[^1], e[^1].X, e[^1].Y, True")]
+        [InlineData(
+            "{ new(0, 5) }",
+            "[.., { X:0, Y:0 }] or [{ X:0, Y:5 }]",
+            "e.Length, e[^1], e[^1].X, e[^1].Y, e[0], e[0].X, e[0].Y, True")]
+        [InlineData(
+            "{ new(0, 1), new(0, 5) }",
+            "[.., { X:0, Y:0 }] or [{ X:0, Y:5 }]",
+            "e.Length, e[^1], e[^1].X, e[^1].Y, False")]
+        [InlineData(
+            "{ null, new(0, 5) }",
+            "[.., { X:0, Y:0 }] or [{ X:0, Y:5 }]",
+            "e.Length, e[^1], e[^1].X, e[^1].Y, False")]
+        public void SlicePattern_OrderOfEvaluation(string array, string pattern, string expectedOutput)
+        {
+            var source = @"
+using static System.Console;
+
+Write(new MyArray(new MyPoint[] " + array + @") is " + pattern + @");
+
+class MyPoint
+{
+    public Point point;
+    public string source;
+
+    public MyPoint(int x, int y) : this(new(x, y)) { }
+    public MyPoint(Point point, string source = ""e"") => (this.point, this.source) = (point, source);
+    public int X { get { Write($""{source}.{nameof(X)}, ""); return point.X; } }
+    public int Y { get { Write($""{source}.{nameof(Y)}, ""); return point.Y; } }
+}
+class MyArray
+{
+    public MyPoint[] array;
+    public string source;
+
+    public MyArray(MyPoint[] array, string source = ""e"") => (this.array, this.source) = (array, source);
+    public MyPoint this[System.Index index] { get { Write($""{source}[{index}], ""); return new(array[index].point, $""{source}[{index}]""); } }
+    public MyArray this[System.Range range] { get { Write($""{source}[{range}], ""); return new(array[range], $""{source}[{range}]""); } }
+    public int Length { get { Write($""{source}.{nameof(Length)}, ""); return array.Length; } }
+}
+struct Point
+{
+    public int X, Y;
+    public Point(int x, int y) => (X, Y) = (x, y);
+}
+" + TestSources.GetSubArray;
+            var compilation = CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
         [Fact]
         public void ListPattern_NarrowedTypes()
         {
@@ -1442,13 +1479,13 @@ class X
         }
 
         [Fact]
-        public void ListPattern_ImpossiblePattern()
+        public void ImpossiblePattern_01()
         {
             var source = @"
 using System;
 class X
 {
-    public void M(int[] a)
+    public void M(int[] a, int[,] mdarray)
     {
         _ = a is [] and [1];          // 1
         _ = a is [1] and [1];
@@ -1460,6 +1497,23 @@ class X
         _ = a is ([>0]) and ([>=0]);
         _ = a is [>0] and [<0];       // 5
         _ = a is [>0] and [>=0];
+        _ = a is {Length:-1};         // 6
+        _ = a is [.., >0] and [<0];   // 7
+        _ = a is [.., >0, _] and [_, <=0, ..];
+        _ = new { a } is { a.Length:-1 }; // 8
+        _ = a is [..{ Length: -1 }];  // 9
+        _ = a is [..{ Length: < -1 }];  // 10
+        _ = a is [..{ Length: <= -1 }]; // 11
+        _ = a is [..{ Length: >= -1 }];
+        _ = a is [..{ Length: > -1 }];
+        _ = a is [_, _, ..{ Length: int.MaxValue - 1 }]; // 12
+        _ = a is [_, _, ..{ Length: <= int.MaxValue - 1 }];
+        _ = a is [_, _, ..{ Length: >= int.MaxValue - 1 }]; // 13
+        _ = a is [_, _, ..{ Length: < int.MaxValue - 1 }];
+        _ = a is [_, _, ..{ Length: > int.MaxValue - 1 }]; // 14
+        _ = a is { LongLength: -1 };
+        _ = (Array)a is { Length: -1 };
+        _ = mdarray is { Length: -1 };
     } 
 }
 ";
@@ -1479,8 +1533,136 @@ class X
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is ([>0]) and ([<0])").WithArguments("int[]").WithLocation(13, 13),
                 // (15,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
                 //         _ = a is [>0] and [<0];       // 5
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [>0] and [<0]").WithArguments("int[]").WithLocation(15, 13)
-                );
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [>0] and [<0]").WithArguments("int[]").WithLocation(15, 13),
+                // (17,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is {Length:-1};         // 6
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is {Length:-1}").WithArguments("int[]").WithLocation(17, 13),
+                // (18,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is [.., >0] and [<0];   // 7
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [.., >0] and [<0]").WithArguments("int[]").WithLocation(18, 13),
+                //         _ = new { a } is { a.Length:-1 }; // 8
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { a } is { a.Length:-1 }").WithArguments("<anonymous type: int[] a>").WithLocation(20, 13),
+                // (21,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is [..{ Length: -1 }];  // 9
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [..{ Length: -1 }]").WithArguments("int[]").WithLocation(21, 13),
+                // (22,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is [..{ Length: < -1 }];  // 10
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [..{ Length: < -1 }]").WithArguments("int[]").WithLocation(22, 13),
+                // (23,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is [..{ Length: <= -1 }]; // 11
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [..{ Length: <= -1 }]").WithArguments("int[]").WithLocation(23, 13),
+                // (26,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is [_, _, ..{ Length: int.MaxValue - 1 }]; // 12
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [_, _, ..{ Length: int.MaxValue - 1 }]").WithArguments("int[]").WithLocation(26, 13),
+                // (28,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is [_, _, ..{ Length: >= int.MaxValue - 1 }]; // 13
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [_, _, ..{ Length: >= int.MaxValue - 1 }]").WithArguments("int[]").WithLocation(28, 13),
+                // (30,13): error CS8518: An expression of type 'int[]' can never match the provided pattern.
+                //         _ = a is [_, _, ..{ Length: > int.MaxValue - 1 }]; // 14
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "a is [_, _, ..{ Length: > int.MaxValue - 1 }]").WithArguments("int[]").WithLocation(30, 13)
+            );
+        }
+
+        [Fact]
+        public void ImpossiblePattern_02()
+        {
+            var source = @"
+interface IIndexable
+{
+    int this[int i] { get; }
+}
+interface ICountableViaCount
+{
+    int Count { get; }
+}
+interface ICountableViaLength
+{
+    int Length { get; }
+}
+class X
+{
+    public static void Test1<T>(T t) where T : ICountableViaCount
+    {
+        _ = t is { Count: -1 };
+        _ = new { t } is { t.Count: -1 };
+    }
+    public static void Test2<T>(T t) where T : ICountableViaLength
+    {
+        _ = t is { Length: -1 };
+        _ = new { t } is { t.Length: -1 };
+    }
+    public static void Test3<T>(T t) where T : IIndexable, ICountableViaCount
+    {
+        _ = t is { Count: -1 }; // 1
+        _ = new { t } is { t.Count: -1 }; // 2
+    }
+    public static void Test4<T>(T t) where T : IIndexable, ICountableViaLength
+    {
+        _ = t is { Length: -1 }; // 3
+        _ = new { t } is { t.Length: -1 }; // 4
+    }
+    public static void Test5<T>(T t) where T : IIndexable, ICountableViaLength, ICountableViaCount
+    {
+        _ = t is { Length: -1 }; // 5
+        _ = t is { Count: -1 }; // 6
+        _ = new { t } is { t.Count: -1 }; // 7
+        _ = new { t } is { t.Length: -1 }; // 8
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (28,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                //         _ = t is { Count: -1 }; // 1
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Count: -1 }").WithArguments("T").WithLocation(28, 13),
+                // (29,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+                //         _ = new { t } is { t.Count: -1 }; // 2
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Count: -1 }").WithArguments("<anonymous type: T t>").WithLocation(29, 13),
+                // (33,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                //         _ = t is { Length: -1 }; // 3
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(33, 13),
+                // (34,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+                //         _ = new { t } is { t.Length: -1 }; // 4
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(34, 13),
+                // (38,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                //         _ = t is { Length: -1 }; // 5
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(38, 13),
+                // (39,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                //         _ = t is { Count: -1 }; // 6
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Count: -1 }").WithArguments("T").WithLocation(39, 13),
+                // (40,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+                //         _ = new { t } is { t.Count: -1 }; // 7
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Count: -1 }").WithArguments("<anonymous type: T t>").WithLocation(40, 13),
+                // (41,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+                //         _ = new { t } is { t.Length: -1 }; // 8
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(41, 13));
+        }
+
+        [Fact]
+        public void BadConstant()
+        {
+            var source = @"
+using System;
+class X
+{
+    public void M(int[] a)
+    {
+        const int bad = a;
+        _ = a is { Length: bad };
+        _ = new { a } is { a.Length: bad };
+        _ = a is [..{ Length: bad }];
+        _ = a is [..{ Length: < bad }];
+        _ = a is [..{ Length: <= bad }];
+        _ = a is [..{ Length: >= bad }];
+        _ = a is [..{ Length: > bad }];
+    } 
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            compilation.VerifyEmitDiagnostics(
+                // (7,25): error CS0029: Cannot implicitly convert type 'int[]' to 'int'
+                //         const int bad = a;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a").WithArguments("int[]", "int").WithLocation(7, 25));
         }
 
         [Fact]
@@ -1949,6 +2131,913 @@ struct S
                 // (12,13): warning CS8656: Call to non-readonly member 'S.Slice(int, int)' from a 'readonly' member results in an implicit copy of 'this'.
                 //         _ = this[r]; // 3, 4
                 Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S.Slice(int, int)", "this").WithLocation(12, 13));
+        }
+
+        [Fact]
+        public void Subsumption_01()
+        {
+            var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        switch (a)
+        {
+            case [..,42]:
+            case [42]:
+                break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                    // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                    //             case [42]:
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[42]").WithLocation(9, 18)
+                    );
+
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
+@"[0]: t0 != null ? [1] : [9]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [9]
+[3]: t2 = t0[-1]; [4]
+[4]: t2 == 42 ? [5] : [6]
+[5]: leaf `case [..,42]:`
+[6]: t1 == 1 ? [7] : [9]
+[7]: t3 = t0[0]; [8]
+[8]: t3 <-- t2; [9]
+[9]: leaf <break> `switch (a)
+        {
+            case [..,42]:
+            case [42]:
+                break;
+        }`
+");
+        }
+
+        [Fact]
+        public void Subsumption_02()
+        {
+            var src = @"
+class C
+{
+    void Test(int[] a, int[] b)
+    {
+        switch (a, b)
+        {
+            case ([.., 42], [.., 43]):
+            case ([42], [43]):
+                break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case ([42], [43]):
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "([42], [43])").WithLocation(9, 18));
+
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
+@"[0]: t1 = t0.a; [1]
+[1]: t1 != null ? [2] : [22]
+[2]: t2 = t1.Length; [3]
+[3]: t2 >= 1 ? [4] : [22]
+[4]: t3 = t1[-1]; [5]
+[5]: t3 == 42 ? [6] : [19]
+[6]: t4 = t0.b; [7]
+[7]: t4 != null ? [8] : [22]
+[8]: t5 = t4.Length; [9]
+[9]: t5 >= 1 ? [10] : [22]
+[10]: t6 = t4[-1]; [11]
+[11]: t6 == 43 ? [12] : [13]
+[12]: leaf `case ([.., 42], [.., 43]):`
+[13]: t2 == 1 ? [14] : [22]
+[14]: t7 = t1[0]; [15]
+[15]: t7 <-- t3; [16]
+[16]: t5 == 1 ? [17] : [22]
+[17]: t9 = t4[0]; [18]
+[18]: t9 <-- t6; [22]
+[19]: t2 == 1 ? [20] : [22]
+[20]: t7 = t1[0]; [21]
+[21]: t7 <-- t3; [22]
+[22]: leaf <break> `switch (a, b)
+        {
+            case ([.., 42], [.., 43]):
+            case ([42], [43]):
+                break;
+        }`
+");
+        }
+
+        [Fact]
+        public void Subsumption_03()
+        {
+            var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        switch (a)
+        {
+            case { Length: 1 } and [.., 1]:
+            case { Length: 1 } and [1, ..]:
+                break;
+        }
+        switch (a)
+        {
+            case { Length: 1 } and [1, ..]:
+            case { Length: 1 } and [.., 1]:
+                break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                    // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                    //             case { Length: 1 } and [1, ..]:
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "{ Length: 1 } and [1, ..]").WithLocation(9, 18),
+                    // (15,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                    //             case { Length: 1 } and [.., 1]:
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "{ Length: 1 } and [.., 1]").WithLocation(15, 18)
+                    );
+        }
+
+        [Fact]
+        public void Subsumption_04()
+        {
+            var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        switch (a)
+        {
+            case [1, .., 3]:
+            case [1, 2, 3]:
+                break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [1, 2, 3]:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1, 2, 3]").WithLocation(9, 18)
+                );
+
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
+@"[0]: t0 != null ? [1] : [13]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 2 ? [3] : [13]
+[3]: t2 = t0[0]; [4]
+[4]: t2 == 1 ? [5] : [13]
+[5]: t3 = t0[-1]; [6]
+[6]: t3 == 3 ? [7] : [8]
+[7]: leaf `case [1, .., 3]:`
+[8]: t1 == 3 ? [9] : [13]
+[9]: t4 = t0[1]; [10]
+[10]: t4 == 2 ? [11] : [13]
+[11]: t5 = t0[2]; [12]
+[12]: t5 <-- t3; [13]
+[13]: leaf <break> `switch (a)
+        {
+            case [1, .., 3]:
+            case [1, 2, 3]:
+                break;
+        }`
+");
+        }
+
+        [Fact]
+        public void Subsumption_05()
+        {
+            var src = @"
+using System;
+class C
+{
+    static int Test(int[] a)
+    {
+        switch (a)
+        {
+            case [1, 2, 3]: return 1;
+            case [1, .., 3]: return 2;
+            default: return 3;
+        }
+    }
+    static void Main()
+    {
+        Console.WriteLine(Test(new[]{1,2,3}));
+        Console.WriteLine(Test(new[]{1,0,3}));
+        Console.WriteLine(Test(new[]{1,2,0}));
+    }
+}";
+            var expectedOutput = @"
+1
+2
+3
+";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
+@"[0]: t0 != null ? [1] : [18]
+[1]: t1 = t0.Length; [2]
+[2]: t1 == 3 ? [3] : [12]
+[3]: t2 = t0[0]; [4]
+[4]: t2 == 1 ? [5] : [18]
+[5]: t3 = t0[1]; [6]
+[6]: t3 == 2 ? [7] : [15]
+[7]: t4 = t0[2]; [8]
+[8]: t4 == 3 ? [9] : [10]
+[9]: leaf `case [1, 2, 3]:`
+[10]: t5 = t0[-1]; [11]
+[11]: t5 <-- t4; [18]
+[12]: t1 >= 2 ? [13] : [18]
+[13]: t2 = t0[0]; [14]
+[14]: t2 == 1 ? [15] : [18]
+[15]: t5 = t0[-1]; [16]
+[16]: t5 == 3 ? [17] : [18]
+[17]: leaf `case [1, .., 3]:`
+[18]: leaf `default`
+");
+        }
+
+        [Fact]
+        public void Subsumption_06()
+        {
+            var src = @"
+using System;
+class C
+{
+    static int Test(int[] a)
+    {
+        switch (a)
+        {
+            case [42]: return 1;
+            case [..,42]: return 2;
+            default: return 3;
+        }
+    }
+    static void Main()
+    {
+        Console.WriteLine(Test(new[]{42}));
+        Console.WriteLine(Test(new[]{42, 42}));
+        Console.WriteLine(Test(new[]{42, 43}));
+    }
+}";
+            var expectedOutput = @"
+1
+2
+3
+";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
+@"[0]: t0 != null ? [1] : [12]
+[1]: t1 = t0.Length; [2]
+[2]: t1 == 1 ? [3] : [8]
+[3]: t2 = t0[0]; [4]
+[4]: t2 == 42 ? [5] : [6]
+[5]: leaf `case [42]:`
+[6]: t3 = t0[-1]; [7]
+[7]: t3 <-- t2; [12]
+[8]: t1 >= 1 ? [9] : [12]
+[9]: t3 = t0[-1]; [10]
+[10]: t3 == 42 ? [11] : [12]
+[11]: leaf `case [..,42]:`
+[12]: leaf `default`
+");
+        }
+
+        [Fact]
+        public void Subsumption_07()
+        {
+            var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        switch (a)
+        {
+            case [>0, ..]:
+            case [.., <=0]:
+            case [var unreachable]:
+                    break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [var unreachable]:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(10, 18));
+        }
+
+        [Fact]
+        public void Subsumption_08()
+        {
+            var src = @"
+class C
+{
+    void Test(object[] a)
+    {
+        switch (a)
+        {
+            case [null, ..]:
+            case [.., not null]:
+            case [var unreachable]:
+                    break;
+        }
+        switch (a)
+        {
+            case [string, ..]:
+            case [.., not string]:
+            case [var unreachable]:
+                    break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [var unreachable]:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(10, 18),
+                // (17,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [var unreachable]:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[var unreachable]").WithLocation(17, 18));
+
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
+@"[0]: t0 != null ? [1] : [10]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [10]
+[3]: t2 = t0[0]; [4]
+[4]: t2 == null ? [5] : [6]
+[5]: leaf `case [null, ..]:`
+[6]: t3 = t0[-1]; [7]
+[7]: t1 == 1 ? [8] : [9]
+[8]: t3 <-- t2; [11]
+[9]: t3 == null ? [10] : [11]
+[10]: leaf <break> `switch (a)
+        {
+            case [null, ..]:
+            case [.., not null]:
+            case [var unreachable]:
+                    break;
+        }`
+[11]: leaf `case [.., not null]:`
+");
+        }
+
+        [Fact]
+        public void Subsumption_09()
+        {
+            var src = @"
+C.Test(new[] { 42, -1, 0, 42 });
+
+class C
+{
+    public static void Test(int[] a)
+    {
+        switch (a)
+        {
+            case [_, > 0, ..]: 
+                System.Console.Write(1);
+                break;
+            case [.., <= 0, _]: 
+                System.Console.Write(2);
+                break;
+            default:
+                System.Console.Write(3);
+                break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2");
+
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
+@"[0]: t0 != null ? [1] : [11]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 2 ? [3] : [11]
+[3]: t2 = t0[1]; [4]
+[4]: t2 > 0 ? [5] : [6]
+[5]: leaf `case [_, > 0, ..]:`
+[6]: t3 = t0[-2]; [7]
+[7]: t1 == 3 ? [8] : [9]
+[8]: t3 <-- t2; [10]
+[9]: t3 <= 0 ? [10] : [11]
+[10]: leaf `case [.., <= 0, _]:`
+[11]: leaf `default`
+");
+        }
+
+        [Fact]
+        public void Subsumption_10()
+        {
+            var src = @"
+class C
+{
+    public int X { get; }
+    public int Y { get; }
+    public C F { get; }
+    static void Test(C[] a) 
+    {
+        switch (a)
+        {
+            case [.., {X:> 0, Y:0}]:
+            case [{Y:0, X:> 0}]:
+                break;
+        }
+        switch (a)
+        {
+            case [.., {X:> 0, F.Y: 0}]:
+            case [..[{F.Y: 0, X:> 0}]]:
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (12,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [{Y:0, X:> 0}]:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[{Y:0, X:> 0}]").WithLocation(12, 18),
+                // (18,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [..[{F.Y: 0, X:> 0}]]:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[..[{F.Y: 0, X:> 0}]]").WithLocation(18, 18)
+                );
+        }
+
+        [Fact]
+        public void Subsumption_11()
+        {
+            var src = @"
+class C
+{
+    public int X { get; }
+    public int Y { get; }
+
+    public void Deconstruct(out C c1, out C c2) => throw null;
+
+    static void Test(C[] a) 
+    {
+        switch (a)
+        {
+            case [.., (_, { X: 0 })]:
+            case [({ X: 0 }, _)]: // ok
+                break;
+        }
+        switch (a)
+        {
+            case [.., (_, { X: 0 })]:
+            case [(_, { X: 0 })]: // err
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (20,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [(_, { X: 0 })]: // err
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[(_, { X: 0 })]").WithLocation(20, 18));
+        }
+
+        [Fact]
+        public void Subsumption_12()
+        {
+            var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        _ = a switch
+        {
+            { Length: not 1 }  => 0,
+            [<0, ..] => 0,
+            [..[>= 0]] or [..null] => 1,
+            [_] => 2, // unreachable
+        };
+        _ = a switch // exhaustive
+        {
+            { Length: not 1 }  => 0,
+            [<0, ..] => 0,
+            [..[>= 0]] => 1,
+            [_] => 2,
+        };
+    }
+}" + TestSources.GetSubArray;
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyEmitDiagnostics(
+                // (11,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             [_] => 2, // unreachable
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[_]").WithLocation(11, 13));
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+
+@"[0]: t0 != null ? [1] : [13]
+[1]: t1 = t0.Length; [2]
+[2]: t1 == 1 ? [3] : [12]
+[3]: t2 = t0[0]; [4]
+[4]: t2 < 0 ? [5] : [6]
+[5]: leaf <arm> `[<0, ..] => 0`
+[6]: t3 = DagSliceEvaluation(t0); [7]
+[7]: t3 != null ? [8] : [11]
+[8]: t4 = t3.Length; [9]
+[9]: t5 = t3[0]; [10]
+[10]: t5 <-- t2; [11]
+[11]: leaf <arm> `[..[>= 0]] or [..null] => 1`
+[12]: leaf <arm> `{ Length: not 1 }  => 0`
+[13]: leaf <default> `a switch
+        {
+            { Length: not 1 }  => 0,
+            [<0, ..] => 0,
+            [..[>= 0]] or [..null] => 1,
+            [_] => 2, // unreachable
+        }`
+");
+        }
+
+        [Fact]
+        public void Subsumption_13()
+        {
+            var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        _ = a switch
+        {
+            [.., >0] => 1,
+            [<0, ..] => 2,
+            [0, ..] => 3,
+            { Length: not 1 } => 4,
+            [var unreachable] => 5,
+        };
+    }
+}" + TestSources.GetSubArray;
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyEmitDiagnostics(
+                // (12,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             [var unreachable] => 5,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[var unreachable]").WithLocation(12, 13));
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 != null ? [1] : [15]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [14]
+[3]: t2 = t0[-1]; [4]
+[4]: t2 > 0 ? [5] : [6]
+[5]: leaf <arm> `[.., >0] => 1`
+[6]: t3 = t0[0]; [7]
+[7]: t1 == 1 ? [8] : [10]
+[8]: t3 <-- t2; [9]
+[9]: t3 < 0 ? [11] : [13]
+[10]: t3 < 0 ? [11] : [12]
+[11]: leaf <arm> `[<0, ..] => 2`
+[12]: t3 == 0 ? [13] : [14]
+[13]: leaf <arm> `[0, ..] => 3`
+[14]: leaf <arm> `{ Length: not 1 } => 4`
+[15]: leaf <default> `a switch
+        {
+            [.., >0] => 1,
+            [<0, ..] => 2,
+            [0, ..] => 3,
+            { Length: not 1 } => 4,
+            [var unreachable] => 5,
+        }`
+");
+        }
+
+        [Fact]
+        public void Subsumption_14()
+        {
+            var src = @"
+class C
+{
+    void Test(int[] a)
+    {
+        _ = a switch
+        {
+            [.., >=0, >0] => 0,
+            [.., <0, >=0] => 0,
+            [<=0, <0, ..] => 1,
+            [>0, <=0, ..] => 1,
+            [0, 0] => 1,
+            { Length: not 2 }  => 2,
+            [var unreachable, var unreachable2] => 3,
+        };
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyEmitDiagnostics(
+                // (14,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //             [var unreachable, var unreachable2] => 3,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[var unreachable, var unreachable2]").WithLocation(14, 13));
+        }
+
+        [Fact]
+        public void Subsumption_15()
+        {
+            // testing the scenario where we have multiple preconditions for indexers to relate.
+            var src = @"
+class C
+{
+    void Test(int[][] a)
+    {
+        switch (a)
+        {
+            case [.., [.., 42]]:
+            case [[42]]:
+                break;
+        };
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRange(src);
+            comp.VerifyEmitDiagnostics(
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [[42]]:
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[[42]]").WithLocation(9, 18));
+
+            VerifyDecisionDagDump<SwitchStatementSyntax>(comp,
+@"[0]: t0 != null ? [1] : [27]
+[1]: t1 = t0.Length; [2]
+[2]: t1 >= 1 ? [3] : [27]
+[3]: t2 = t0[-1]; [4]
+[4]: t2 != null ? [5] : [24]
+[5]: t3 = t2.Length; [6]
+[6]: t3 >= 1 ? [7] : [19]
+[7]: t4 = t2[-1]; [8]
+[8]: t4 == 42 ? [9] : [10]
+[9]: leaf `case [.., [.., 42]]:`
+[10]: t1 == 1 ? [11] : [27]
+[11]: t5 = t0[0]; [12]
+[12]: t5 <-- t2; [13]
+[13]: t7 = t5.Length; [14]
+[14]: t7 <-- t3; [15]
+[15]: t7 == 1 ? [16] : [27]
+[16]: t9 = t5[0]; [17]
+[17]: t3 <-- t7; [18]
+[18]: t9 <-- t4; [27]
+[19]: t1 == 1 ? [20] : [27]
+[20]: t5 = t0[0]; [21]
+[21]: t5 <-- t2; [22]
+[22]: t7 = t5.Length; [23]
+[23]: t7 <-- t3; [27]
+[24]: t1 == 1 ? [25] : [27]
+[25]: t5 = t0[0]; [26]
+[26]: t5 <-- t2; [27]
+[27]: leaf <break> `switch (a)
+        {
+            case [.., [.., 42]]:
+            case [[42]]:
+                break;
+        }`
+");
+        }
+
+        [Fact]
+        public void Subsumption_16()
+        {
+            var src = @"
+using System;
+class C
+{
+    static int Test(int[][] a)
+    {
+        switch (a)
+        {
+            case [.., [.., <0]]:
+                return 1;
+            case [[>=0]]:
+                return 2;
+        }
+        return -1;
+    }
+    static void Main()
+    {
+        Console.WriteLine(Test(new[] { new[] { 0, -1 }}));
+        Console.WriteLine(Test(new[] { new[] { 0 }, new[] { -1 }}));
+        Console.WriteLine(Test(new[] { new[] { 0 }}));
+    }
+}";
+            var expectedOutput = @"
+1
+1
+2
+";
+            var comp = CreateCompilationWithIndexAndRange(src, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Subsumption_Slice_00(
+            [CombinatorialValues(
+                "[1,2,3]",
+                "[1,2,3,..[]]",
+                "[1,2,..[],3]",
+                "[1,..[],2,3]",
+                "[..[],1,2,3]",
+                "[1,..[2,3]]",
+                "[..[1,2],3]",
+                "[..[1,2,3]]",
+                "[..[..[1,2,3]]]",
+                "[..[1,2,3,..[]]]",
+                "[..[1,2,..[],3]]",
+                "[..[1,..[],2,3]]",
+                "[..[..[],1,2,3]]",
+                "[..[1,..[2,3]]]",
+                "[..[..[1,2],3]]",
+                "[1, ..[2], 3]",
+                "[1, ..[2, ..[3]]]",
+                "[1, ..[2, ..[], 3]]")]
+            string case1,
+            [CombinatorialValues(
+                "[1,2,3]",
+                "[1,2,3,..[]]",
+                "[1,2,..[],3]",
+                "[1,..[],2,3]",
+                "[..[],1,2,3]",
+                "[1,..[2,3]]",
+                "[..[1,2],3]",
+                "[..[1,2,3]]",
+                "[..[..[1,2,3]]]",
+                "[..[1,2,3,..[]]]",
+                "[..[1,2,..[],3]]",
+                "[..[1,..[],2,3]]",
+                "[..[..[],1,2,3]]",
+                "[..[1,..[2,3]]]",
+                "[..[..[1,2],3]]",
+                "[1, ..[2], 3]",
+                "[1, ..[2, ..[3]]]",
+                "[1, ..[2, ..[], 3]]")]
+            string case2)
+        {
+            var src = @"
+using System;
+class C
+{
+    void Test(Span<int> a)
+    {
+        switch (a)
+        {
+            case " + case1 + @":
+            case " + case2 + @":
+                break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (10,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, case2).WithLocation(10, 18)
+                );
+        }
+
+        [Fact]
+        public void Subsumption_Slice_01()
+        {
+            var src = @"
+class C
+{
+    public static void Test(System.Span<int> a)
+    {
+        switch (a)
+        {
+            case [var v]: break;
+            case [..[var v]]: break;
+        }
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics(
+                // (9,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
+                //             case [..[var v]]: break;
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[..[var v]]").WithLocation(9, 18));
+        }
+
+        [Fact]
+        public void Exhaustiveness_01()
+        {
+            var src = @"
+using System;
+class C
+{
+    public int X = 0, Y = 0;
+    public static void Test(Span<int> a, Span<C> b)
+    {
+        _ = a switch
+        {
+            [.., >=0] or [<0] or { Length: 0 or >1 } => 0
+        };
+
+        _ = a switch
+        {
+            [.., >=0] or [..[.., <0]] or [] => 0
+        };
+
+        _ = a switch
+        {
+            [..[>=0] ] or [<0] or
+            { Length: 0 or >1 } => 0
+        };
+
+        _ = a switch
+        {
+            [..[.., <0]] or [..] => 0
+        };
+
+        _ = a switch
+        {
+            [_, ..{ Length: < int.MaxValue - 1 }] or [] or { Length: int.MaxValue } => 0
+        };
+
+        _ = a switch
+        {
+            [..{ Length: <= int.MaxValue - 1 }, _] or []  => 0
+        };
+
+        _ = a switch
+        {
+            [_, ..{ Length: <= int.MaxValue - 2 }, _] or { Length: 0 or 1 } => 0
+        };
+
+        _ = b switch
+        { 
+            [.., { X: >=0, Y: >0 }] => 0,
+            [.., { X: <0, Y: >=0 }] => 0,
+            [{ X: <=0, Y: <0 }, ..] => 1,
+            [{ X: >0, Y: <=0 }, ..] => 1,
+            [{ X:0, Y:0 }] => 1,
+            { Length: not 1 } => 0
+        };
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Exhaustiveness_02()
+        {
+            var src = @"
+using System;
+class C
+{
+    public static void Test1(Span<int> a)
+    {
+        _ = a switch
+        {
+            [] => 1,
+            [_] => 2,
+            [_,..] => 3,
+        };
+    }
+    public static void Test2(Span<int> a)
+    {
+        _ = a switch
+        {
+            { Length: 0 } => 1,
+            { Length: 1 } => 2,
+            { Length: >=1 } => 3,
+        };
+    }
+}";
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, parseOptions: TestOptions.RegularWithListPatterns);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            string expectedIl = @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int System.Span<int>.Length.get""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  brfalse.s  IL_0011
+  IL_000b:  ldloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  beq.s      IL_0014
+  IL_000f:  br.s       IL_0017
+  IL_0011:  ldc.i4.1
+  IL_0012:  pop
+  IL_0013:  ret
+  IL_0014:  ldc.i4.2
+  IL_0015:  pop
+  IL_0016:  ret
+  IL_0017:  ldc.i4.3
+  IL_0018:  pop
+  IL_0019:  ret
+}
+";
+            verifier.VerifyIL("C.Test1", expectedIl);
+            verifier.VerifyIL("C.Test2", expectedIl);
         }
     }
 }

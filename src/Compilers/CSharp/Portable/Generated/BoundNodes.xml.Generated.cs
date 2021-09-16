@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DagIndexEvaluation,
         DagIndexerEvaluation,
         DagSliceEvaluation,
+        DagAssignmentEvaluation,
         SwitchSection,
         SwitchLabel,
         SequencePointExpression,
@@ -5119,7 +5120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDagPropertyEvaluation : BoundDagEvaluation
     {
-        public BoundDagPropertyEvaluation(SyntaxNode syntax, PropertySymbol property, BoundDagTemp input, bool hasErrors = false)
+        public BoundDagPropertyEvaluation(SyntaxNode syntax, PropertySymbol property, bool isLengthOrCount, BoundDagTemp input, bool hasErrors = false)
             : base(BoundKind.DagPropertyEvaluation, syntax, input, hasErrors || input.HasErrors())
         {
 
@@ -5127,18 +5128,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Property = property;
+            this.IsLengthOrCount = isLengthOrCount;
         }
 
 
         public PropertySymbol Property { get; }
+
+        public bool IsLengthOrCount { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagPropertyEvaluation(this);
 
-        public BoundDagPropertyEvaluation Update(PropertySymbol property, BoundDagTemp input)
+        public BoundDagPropertyEvaluation Update(PropertySymbol property, bool isLengthOrCount, BoundDagTemp input)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || input != this.Input)
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || isLengthOrCount != this.IsLengthOrCount || input != this.Input)
             {
-                var result = new BoundDagPropertyEvaluation(this.Syntax, property, input, this.HasErrors);
+                var result = new BoundDagPropertyEvaluation(this.Syntax, property, isLengthOrCount, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5258,6 +5262,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!TypeSymbol.Equals(sliceType, this.SliceType, TypeCompareKind.ConsiderEverything) || lengthTemp != this.LengthTemp || startIndex != this.StartIndex || endIndex != this.EndIndex || indexerAccess != this.IndexerAccess || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(sliceMethod, this.SliceMethod) || input != this.Input)
             {
                 var result = new BoundDagSliceEvaluation(this.Syntax, sliceType, lengthTemp, startIndex, endIndex, indexerAccess, sliceMethod, input, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundDagAssignmentEvaluation : BoundDagEvaluation
+    {
+        public BoundDagAssignmentEvaluation(SyntaxNode syntax, BoundDagTemp target, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagAssignmentEvaluation, syntax, input, hasErrors || target.HasErrors() || input.HasErrors())
+        {
+
+            RoslynDebug.Assert(target is object, "Field 'target' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Target = target;
+        }
+
+
+        public BoundDagTemp Target { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagAssignmentEvaluation(this);
+
+        public BoundDagAssignmentEvaluation Update(BoundDagTemp target, BoundDagTemp input)
+        {
+            if (target != this.Target || input != this.Input)
+            {
+                var result = new BoundDagAssignmentEvaluation(this.Syntax, target, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7901,25 +7934,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPropertySubpattern : BoundSubpattern
     {
-        public BoundPropertySubpattern(SyntaxNode syntax, BoundPropertySubpatternMember? member, BoundPattern pattern, bool hasErrors = false)
+        public BoundPropertySubpattern(SyntaxNode syntax, BoundPropertySubpatternMember? member, bool isLengthOrCount, BoundPattern pattern, bool hasErrors = false)
             : base(BoundKind.PropertySubpattern, syntax, pattern, hasErrors || member.HasErrors() || pattern.HasErrors())
         {
 
             RoslynDebug.Assert(pattern is object, "Field 'pattern' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Member = member;
+            this.IsLengthOrCount = isLengthOrCount;
         }
 
 
         public BoundPropertySubpatternMember? Member { get; }
+
+        public bool IsLengthOrCount { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitPropertySubpattern(this);
 
-        public BoundPropertySubpattern Update(BoundPropertySubpatternMember? member, BoundPattern pattern)
+        public BoundPropertySubpattern Update(BoundPropertySubpatternMember? member, bool isLengthOrCount, BoundPattern pattern)
         {
-            if (member != this.Member || pattern != this.Pattern)
+            if (member != this.Member || isLengthOrCount != this.IsLengthOrCount || pattern != this.Pattern)
             {
-                var result = new BoundPropertySubpattern(this.Syntax, member, pattern, this.HasErrors);
+                var result = new BoundPropertySubpattern(this.Syntax, member, isLengthOrCount, pattern, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8661,6 +8697,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDagIndexerEvaluation((BoundDagIndexerEvaluation)node, arg);
                 case BoundKind.DagSliceEvaluation:
                     return VisitDagSliceEvaluation((BoundDagSliceEvaluation)node, arg);
+                case BoundKind.DagAssignmentEvaluation:
+                    return VisitDagAssignmentEvaluation((BoundDagAssignmentEvaluation)node, arg);
                 case BoundKind.SwitchSection:
                     return VisitSwitchSection((BoundSwitchSection)node, arg);
                 case BoundKind.SwitchLabel:
@@ -8958,6 +8996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitDagIndexEvaluation(BoundDagIndexEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagSliceEvaluation(BoundDagSliceEvaluation node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchSection(BoundSwitchSection node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchLabel(BoundSwitchLabel node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSequencePointExpression(BoundSequencePointExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -9173,6 +9212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitDagIndexEvaluation(BoundDagIndexEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagSliceEvaluation(BoundDagSliceEvaluation node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchSection(BoundSwitchSection node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchLabel(BoundSwitchLabel node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSequencePointExpression(BoundSequencePointExpression node) => this.DefaultVisit(node);
@@ -9825,6 +9865,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.LengthTemp);
             this.Visit(node.IndexerAccess);
+            this.Visit(node.Input);
+            return null;
+        }
+        public override BoundNode? VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node)
+        {
+            this.Visit(node.Target);
             this.Visit(node.Input);
             return null;
         }
@@ -10945,7 +10991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDagPropertyEvaluation(BoundDagPropertyEvaluation node)
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(node.Property, input);
+            return node.Update(node.Property, node.IsLengthOrCount, input);
         }
         public override BoundNode? VisitDagIndexEvaluation(BoundDagIndexEvaluation node)
         {
@@ -10967,6 +11013,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             TypeSymbol? sliceType = this.VisitType(node.SliceType);
             return node.Update(sliceType, lengthTemp, node.StartIndex, node.EndIndex, indexerAccess, node.SliceMethod, input);
+        }
+        public override BoundNode? VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node)
+        {
+            BoundDagTemp target = (BoundDagTemp)this.Visit(node.Target);
+            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
+            return node.Update(target, input);
         }
         public override BoundNode? VisitSwitchSection(BoundSwitchSection node)
         {
@@ -11389,7 +11441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundPropertySubpatternMember? member = (BoundPropertySubpatternMember?)this.Visit(node.Member);
             BoundPattern pattern = (BoundPattern)this.Visit(node.Pattern);
-            return node.Update(member, pattern);
+            return node.Update(member, node.IsLengthOrCount, pattern);
         }
         public override BoundNode? VisitPropertySubpatternMember(BoundPropertySubpatternMember node)
         {
@@ -12753,7 +12805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             PropertySymbol property = GetUpdatedSymbol(node, node.Property);
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(property, input);
+            return node.Update(property, node.IsLengthOrCount, input);
         }
 
         public override BoundNode? VisitDagIndexEvaluation(BoundDagIndexEvaluation node)
@@ -15076,6 +15128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitDagPropertyEvaluation(BoundDagPropertyEvaluation node, object? arg) => new TreeDumperNode("dagPropertyEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("property", node.Property, null),
+            new TreeDumperNode("isLengthOrCount", node.IsLengthOrCount, null),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
@@ -15107,6 +15160,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("endIndex", node.EndIndex, null),
             new TreeDumperNode("indexerAccess", null, new TreeDumperNode[] { Visit(node.IndexerAccess, null) }),
             new TreeDumperNode("sliceMethod", node.SliceMethod, null),
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node, object? arg) => new TreeDumperNode("dagAssignmentEvaluation", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("target", null, new TreeDumperNode[] { Visit(node.Target, null) }),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
@@ -15784,6 +15844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitPropertySubpattern(BoundPropertySubpattern node, object? arg) => new TreeDumperNode("propertySubpattern", null, new TreeDumperNode[]
         {
             new TreeDumperNode("member", null, new TreeDumperNode[] { Visit(node.Member, null) }),
+            new TreeDumperNode("isLengthOrCount", node.IsLengthOrCount, null),
             new TreeDumperNode("pattern", null, new TreeDumperNode[] { Visit(node.Pattern, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly IValueSetFactory<decimal> ForDecimal = DecimalValueSetFactory.Instance;
         internal static readonly IValueSetFactory<int> ForNint = NintValueSetFactory.Instance;
         internal static readonly IValueSetFactory<uint> ForNuint = NuintValueSetFactory.Instance;
+        internal static readonly IValueSetFactory<int> ForLength = NonNegativeIntValueSetFactory.Instance;
 
         public static IValueSetFactory? ForSpecialType(SpecialType specialType, bool isNative = false)
         {
@@ -56,6 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             type = type.EnumUnderlyingTypeOrSelf();
             return ForSpecialType(type.SpecialType, type.IsNativeIntegerType);
+        }
+
+        public static IValueSetFactory? ForInput(BoundDagTemp input)
+        {
+            if (input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true })
+                return ForLength;
+            return ForType(input.Type);
         }
     }
 }

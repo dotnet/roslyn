@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<BoundDecisionDagNode> loweredNodes,
                 BoundDagTemp input)
             {
-                IValueSetFactory fac = ValueSetFactory.ForType(input.Type);
+                IValueSetFactory fac = ValueSetFactory.ForInput(input);
                 return GatherValueDispatchNodes(node, loweredNodes, input, fac);
             }
 
@@ -1105,15 +1105,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundEvaluationDecisionDagNode evaluationNode:
                         {
-                            BoundExpression sideEffect = LowerEvaluation(evaluationNode.Evaluation);
-                            Debug.Assert(sideEffect != null);
-                            _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
+                            var e = evaluationNode.Evaluation;
+                            if (e is not BoundDagAssignmentEvaluation)
+                            {
+                                BoundExpression sideEffect = LowerEvaluation(e);
+                                Debug.Assert(sideEffect != null);
+                                _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
 
-                            // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
-                            // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
-                            // synchronize on changes.
-                            if (GenerateInstrumentation)
-                                _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
+                                // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
+                                // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
+                                // synchronize on changes.
+                                if (GenerateInstrumentation)
+                                    _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
+                            }
 
                             if (nextNode != evaluationNode.Next)
                             {
