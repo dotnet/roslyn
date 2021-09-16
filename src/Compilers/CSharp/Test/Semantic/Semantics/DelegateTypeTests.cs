@@ -3553,7 +3553,6 @@ class C
     static void Main()
     {
         M(F);
-        M(() => 1);
     }
 }";
 
@@ -3561,10 +3560,7 @@ class C
             comp.VerifyDiagnostics(
                 // (10,11): error CS1503: Argument 1: cannot convert from 'method group' to 'Expression'
                 //         M(F);
-                Diagnostic(ErrorCode.ERR_BadArgType, "F").WithArguments("1", "method group", "System.Linq.Expressions.Expression").WithLocation(10, 11),
-                // (11,11): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
-                //         M(() => 1);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(11, 11));
+                Diagnostic(ErrorCode.ERR_BadArgType, "F").WithArguments("1", "method group", "System.Linq.Expressions.Expression").WithLocation(10, 11));
 
             var expectedDiagnostics = new[]
             {
@@ -3580,6 +3576,33 @@ class C
 
         [Fact]
         public void OverloadResolution_40()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C
+{
+    static void M(Expression e) { Console.WriteLine(""M(Expression e)""); }
+    static void M(object o) { Console.WriteLine(""M(object o)""); }
+    static void Main()
+    {
+        M(() => 1);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,11): error CS1660: Cannot convert lambda expression to type 'Expression' because it is not a delegate type
+                //         M(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 11));
+
+            var expectedOutput = @"M(Expression e)";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_41()
         {
             var source =
 @"using System;
@@ -3618,6 +3641,42 @@ class C
             comp.VerifyDiagnostics(expectedDiagnostics);
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void OverloadResolution_42()
+        {
+            var source =
+@"using System;
+using System.Runtime.InteropServices;
+[ComImport]
+[Guid(""96A2DE64-6D44-4DA5-BBA4-25F5F07E0E6B"")]
+interface I
+{
+    void F(Delegate d, short s);
+    void F(Action a, ref int i);
+}
+class C : I
+{
+    void I.F(Delegate d, short s) => Console.WriteLine(""I.F(Delegate d, short s)"");
+    void I.F(Action a, ref int i) => Console.WriteLine(""I.F(Action a, ref int i)"");
+}
+class Program
+{
+    static void M(I i)
+    {
+        i.F(() => { }, 1);
+    }
+    static void Main()
+    {
+        M(new C());
+    }
+}";
+
+            var expectedOutput = @"I.F(Action a, ref int i)";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]

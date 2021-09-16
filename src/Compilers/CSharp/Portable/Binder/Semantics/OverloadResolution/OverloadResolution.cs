@@ -1672,6 +1672,16 @@ outerDefault:
             Debug.Assert(m2.Result.IsValid);
             Debug.Assert(arguments != null);
 
+            // Prefer overloads that did not use the inferred type of lambdas or method groups
+            // to infer generic method type arguments or to convert arguments.
+            switch (RequiredFunctionType(m1), RequiredFunctionType(m2))
+            {
+                case (false, true):
+                    return BetterResult.Left;
+                case (true, false):
+                    return BetterResult.Right;
+            }
+
             // Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method/property on an instance of a COM imported type.
             // We should have ignored the 'ref' on the parameter while determining the applicability of argument for the given method call.
             // As per Devdiv Bug #696573: '[Interop] Com omit ref overload resolution is incorrect', we must prefer non-ref omitted methods over ref omitted methods
@@ -1684,18 +1694,10 @@ outerDefault:
             {
                 return hasAnyRefOmittedArgument1 ? BetterResult.Right : BetterResult.Left;
             }
-
-            // Prefer overloads that did not use the inferred type of lambdas or method groups
-            // to infer generic method type arguments or to convert arguments.
-            switch (RequiredFunctionType(m1), RequiredFunctionType(m2))
+            else
             {
-                case (false, true):
-                    return BetterResult.Left;
-                case (true, false):
-                    return BetterResult.Right;
+                return BetterFunctionMember(m1, m2, arguments, considerRefKinds: hasAnyRefOmittedArgument1, useSiteInfo: ref useSiteInfo);
             }
-
-            return BetterFunctionMember(m1, m2, arguments, considerRefKinds: hasAnyRefOmittedArgument1, useSiteInfo: ref useSiteInfo);
         }
 
         private BetterResult BetterFunctionMember<TMember>(
