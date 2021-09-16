@@ -922,6 +922,18 @@ namespace Microsoft.CodeAnalysis
 
                     return new CompilationInfo(compilationWithGenerators, hasSuccessfullyLoaded, generatedDocuments);
                 }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Explicitly force a yield point here.  This addresses a problem on .net framework where it's
+                    // possible that cancelling this task chain ends up stack overflowing as the TPL attempts to
+                    // synchronously recurse through the tasks to execute antecedent work.  This will force continuations
+                    // here to run asynchronously preventing the stack overflow.
+                    // See https://github.com/dotnet/roslyn/issues/56356 for more details.
+                    // note: this can be removed if this code only needs to run on .net core (as the stack overflow issue
+                    // does not exist there).
+                    await Task.Yield().ConfigureAwait(false);
+                    throw;
+                }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable;

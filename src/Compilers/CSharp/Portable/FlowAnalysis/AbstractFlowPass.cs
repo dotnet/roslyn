@@ -2429,7 +2429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     || !learnFromOperator(binary))
                 {
                     Unsplit();
-                    Visit(binary.Right);
+                    VisitRvalue(binary.Right);
                 }
 
                 if (stack.Count == 0)
