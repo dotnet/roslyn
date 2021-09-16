@@ -500,6 +500,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsReturnStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ReturnStatement;
 
+        public static bool IsThrowStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ThrowStatement;
+
         public static bool IsUsingStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.UsingStatement;
 

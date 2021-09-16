@@ -1985,9 +1985,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression)
             => ((ThrowExpressionSyntax)throwExpression).Expression;
 
-        public bool IsThrowStatement([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsKind(SyntaxKind.ThrowStatement);
-
         public bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
 

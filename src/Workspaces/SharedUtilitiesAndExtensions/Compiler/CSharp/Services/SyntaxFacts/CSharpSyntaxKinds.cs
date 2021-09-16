@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int LocalDeclarationStatement => (int)SyntaxKind.LocalDeclarationStatement;
         public int LockStatement => (int)SyntaxKind.LockStatement;
         public int ReturnStatement => (int)SyntaxKind.ReturnStatement;
+        public int ThrowStatement => (int)SyntaxKind.ThrowStatement;
         public int UsingStatement => (int)SyntaxKind.UsingStatement;
 
         public int Attribute => (int)SyntaxKind.Attribute;

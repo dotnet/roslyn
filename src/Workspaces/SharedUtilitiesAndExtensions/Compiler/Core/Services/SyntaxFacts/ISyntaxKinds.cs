@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int LocalDeclarationStatement { get; }
         int LockStatement { get; }
         int ReturnStatement { get; }
+        int ThrowStatement { get; }
         int UsingStatement { get; }
 
         #endregion

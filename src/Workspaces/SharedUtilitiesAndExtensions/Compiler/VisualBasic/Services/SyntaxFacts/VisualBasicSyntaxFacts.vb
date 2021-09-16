@@ -2256,10 +2256,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Throw New NotImplementedException()
         End Function
 
-        Public Function IsThrowStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsThrowStatement
-            Return node.IsKind(SyntaxKind.ThrowStatement)
-        End Function
-
         Public Function IsLocalFunction(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLocalFunction
             Return False
         End Function

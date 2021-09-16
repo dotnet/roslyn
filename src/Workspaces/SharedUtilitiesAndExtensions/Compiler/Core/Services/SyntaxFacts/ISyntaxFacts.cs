@@ -579,7 +579,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsImplicitObjectCreation([NotNullWhen(true)] SyntaxNode? node);
         SyntaxNode GetExpressionOfThrowExpression(SyntaxNode throwExpression);
-        bool IsThrowStatement([NotNullWhen(true)] SyntaxNode? node);
         bool IsLocalFunction([NotNullWhen(true)] SyntaxNode? node);
 
         #region GetPartsOfXXX members
