@@ -292,6 +292,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region IsXXXOfYYY members
 
+        public static bool IsExpressionOfAwaitExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        {
+            var parent = node?.Parent;
+            if (!syntaxFacts.IsAwaitExpression(parent))
+                return false;
+
+            return node == syntaxFacts.GetExpressionOfAwaitExpression(parent);
+        }
+
         public static bool IsExpressionOfInvocationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
         {
             var parent = node?.Parent;

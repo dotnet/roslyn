@@ -198,8 +198,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node);
 
-        bool IsExpressionOfAwaitExpression([NotNullWhen(true)] SyntaxNode? node);
-        SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
         bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node);
 
         void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
@@ -606,6 +604,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         // ISyntaxFacts should have a GetPartsOfXXX helper instead, and GetXXXOfYYY should be built off of that
         // inside ISyntaxFactsExtensions
 
+        SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
 
         #endregion

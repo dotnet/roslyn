@@ -1432,9 +1432,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool AreEquivalent(SyntaxNode? node1, SyntaxNode? node2)
             => SyntaxFactory.AreEquivalent(node1, node2);
 
-        public bool IsExpressionOfAwaitExpression([NotNullWhen(true)] SyntaxNode? node)
-            => (node?.Parent as AwaitExpressionSyntax)?.Expression == node;
-
         public bool IsExpressionOfMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => (node?.Parent as MemberAccessExpressionSyntax)?.Expression == node;
 
