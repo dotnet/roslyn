@@ -524,15 +524,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public void GetPartsOfConditionalAccessExpression(
-            SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull)
-        {
-            var conditionalAccess = (ConditionalAccessExpressionSyntax)node;
-            expression = conditionalAccess.Expression;
-            operatorToken = conditionalAccess.OperatorToken;
-            whenNotNull = conditionalAccess.WhenNotNull;
-        }
-
         public bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is PostfixUnaryExpressionSyntax;
 
@@ -1963,6 +1954,15 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         #endregion
 
         #region GetPartsOfXXX members
+
+        public void GetPartsOfConditionalAccessExpression(
+            SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull)
+        {
+            var conditionalAccess = (ConditionalAccessExpressionSyntax)node;
+            expression = conditionalAccess.Expression;
+            operatorToken = conditionalAccess.OperatorToken;
+            whenNotNull = conditionalAccess.WhenNotNull;
+        }
 
         public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name)
         {

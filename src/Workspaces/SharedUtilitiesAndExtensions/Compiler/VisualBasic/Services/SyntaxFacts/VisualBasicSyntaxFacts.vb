@@ -179,13 +179,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TryCast(node, ExpressionSyntax).GetRootConditionalAccessExpression()
         End Function
 
-        Public Sub GetPartsOfConditionalAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef whenNotNull As SyntaxNode) Implements ISyntaxFacts.GetPartsOfConditionalAccessExpression
-            Dim conditionalAccess = DirectCast(node, ConditionalAccessExpressionSyntax)
-            expression = conditionalAccess.Expression
-            operatorToken = conditionalAccess.QuestionMarkToken
-            whenNotNull = conditionalAccess.WhenNotNull
-        End Sub
-
         Public Function IsAnonymousFunction(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnonymousFunction
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
@@ -2226,6 +2219,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 #End Region
 
 #Region "GetPartsOfXXX members"
+
+        Public Sub GetPartsOfConditionalAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef whenNotNull As SyntaxNode) Implements ISyntaxFacts.GetPartsOfConditionalAccessExpression
+            Dim conditionalAccess = DirectCast(node, ConditionalAccessExpressionSyntax)
+            expression = conditionalAccess.Expression
+            operatorToken = conditionalAccess.QuestionMarkToken
+            whenNotNull = conditionalAccess.WhenNotNull
+        End Sub
 
         Public Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef name As SyntaxNode) Implements ISyntaxFacts.GetPartsOfMemberAccessExpression
             Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
