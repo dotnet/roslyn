@@ -161,7 +161,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTypeDeclaration(SyntaxNode node);
 
         bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node);
-        void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name);
 
         bool IsRegularComment(SyntaxTrivia trivia);
         bool IsDocumentationComment(SyntaxTrivia trivia);
@@ -606,6 +605,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         #region GetPartsOfXXX members
 
         void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer);
+        void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name);
 
         #endregion
     }
