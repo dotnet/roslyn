@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected ImmutableArray<TMatch>? AnalyzeWorker()
         {
-            if (_syntaxFacts.GetObjectCreationInitializer(_objectCreationExpression) != null)
+            if (_syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression) != null)
             {
                 // Don't bother if this already has an initializer.
                 return null;

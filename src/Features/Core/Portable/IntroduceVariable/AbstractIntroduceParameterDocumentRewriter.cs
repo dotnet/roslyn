@@ -249,6 +249,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     foreach (var invocation in invocations)
                     {
                         var argumentListSyntax = _syntaxFacts.GetArgumentListOfInvocationExpression(invocation);
+                        if (argumentListSyntax == null)
+                            continue;
+
                         editor.ReplaceNode(argumentListSyntax, (currentArgumentListSyntax, _) =>
                         {
                             return GenerateNewArgumentListSyntaxForTrampoline(compilation, invocationSemanticModel,

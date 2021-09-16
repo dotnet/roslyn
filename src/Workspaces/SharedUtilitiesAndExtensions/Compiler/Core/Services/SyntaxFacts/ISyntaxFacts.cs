@@ -185,12 +185,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool TryGetPredefinedOperator(SyntaxToken token, out PredefinedOperator op);
         bool TryGetExternalSourceInfo([NotNullWhen(true)] SyntaxNode? directive, out ExternalSourceInfo info);
 
-        // Violation.  Should be named IsTypeOfObjectCreationExpression
-        bool IsObjectCreationExpressionType([NotNullWhen(true)] SyntaxNode? node);
-        // Violation.  Should be named GetInitializerOfObjectCreationExpression
-        SyntaxNode? GetObjectCreationInitializer(SyntaxNode node);
-        // Violation.  Should be named GetTypeOfObjectCreationExpression
-        SyntaxNode GetObjectCreationType(SyntaxNode node);
+        bool IsTypeOfObjectCreationExpression([NotNullWhen(true)] SyntaxNode? node);
+        SyntaxNode? GetInitializerOfObjectCreationExpression(SyntaxNode node);
+        SyntaxNode GetTypeOfObjectCreationExpression(SyntaxNode node);
 
         bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node);
 
@@ -328,8 +325,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
 
-        // Violation.  Parameter shoudl not nullable.
-        SyntaxToken GetIdentifierOfGenericName(SyntaxNode? node);
+        SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfParameter(SyntaxNode node);
         SyntaxToken GetIdentifierOfTypeDeclaration(SyntaxNode node);
@@ -355,8 +351,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode node);
 
-        // Violation.  Return value should be nullable as VB has invocations without an argument list node.
-        SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode node);
+        SyntaxNode? GetArgumentListOfInvocationExpression(SyntaxNode node);
         SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode node);
 
         bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node);
@@ -425,7 +420,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsInStaticContext(SyntaxNode node);
         bool IsUnsafeContext(SyntaxNode node);
 
-        // Violation.  This is a feature level API.
         bool IsInNamespaceOrTypeContext([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsBaseTypeList([NotNullWhen(true)] SyntaxNode? node);
@@ -472,9 +466,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode? GetContainingTypeDeclaration(SyntaxNode? root, int position);
         SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true);
         SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node);
-
-        SyntaxToken FindTokenOnLeftOfPosition(SyntaxNode node, int position, bool includeSkipped = true, bool includeDirectives = false, bool includeDocumentationComments = false);
-        SyntaxToken FindTokenOnRightOfPosition(SyntaxNode node, int position, bool includeSkipped = true, bool includeDirectives = false, bool includeDocumentationComments = false);
 
         void GetPartsOfParenthesizedExpression(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen);
         [return: NotNullIfNotNull("node")]
@@ -564,24 +555,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern);
 
         SyntaxNode GetTypeOfTypePattern(SyntaxNode node);
-
-        /// <summary>
-        /// <paramref name="fullHeader"/> controls how much of the type header should be considered. If <see
-        /// langword="false"/> only the span up through the type name will be considered.  If <see langword="true"/>
-        /// then the span through the base-list will be considered.
-        /// </summary>
-        // Violation.  This is a feature level API.
-        bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
-
-        bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? propertyDeclaration);
-        bool IsOnParameterHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? parameter);
-        bool IsOnMethodHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? method);
-        bool IsOnLocalFunctionHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? localFunction);
-        bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? localDeclaration);
-        bool IsOnIfStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? ifStatement);
-        bool IsOnWhileStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? whileStatement);
-        bool IsOnForeachHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? foreachStatement);
-        bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration);
 
         // Violation.  This is a feature level API.
         SyntaxNode? GetNextExecutableStatement(SyntaxNode statement);
