@@ -420,7 +420,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsInStaticContext(SyntaxNode node);
         bool IsUnsafeContext(SyntaxNode node);
 
-        // Violation.  This is a feature level API.
         bool IsInNamespaceOrTypeContext([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsBaseTypeList([NotNullWhen(true)] SyntaxNode? node);
