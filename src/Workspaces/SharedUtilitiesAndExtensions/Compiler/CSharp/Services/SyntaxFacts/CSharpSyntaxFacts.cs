@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node)
             => node.GetRootConditionalAccessExpression();
 
-        public bool IsObjectCreationExpressionType([NotNullWhen(true)] SyntaxNode? node)
+        public bool IsTypeOfObjectCreationExpression([NotNullWhen(true)] SyntaxNode? node)
             => node.IsParentKind(SyntaxKind.ObjectCreationExpression, out ObjectCreationExpressionSyntax? objectCreation) &&
                objectCreation.Type == node;
 
@@ -214,12 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsParameterList([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.ParameterList, SyntaxKind.BracketedParameterList);
 
-        public SyntaxToken GetIdentifierOfGenericName(SyntaxNode? genericName)
-        {
-            return genericName is GenericNameSyntax csharpGenericName
-                ? csharpGenericName.Identifier
-                : default;
-        }
+        public SyntaxToken GetIdentifierOfGenericName(SyntaxNode node)
+            => ((GenericNameSyntax)node).Identifier;
 
         public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
             => node.IsParentKind(SyntaxKind.UsingDirective, out UsingDirectiveSyntax? usingDirective) &&
@@ -666,18 +662,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node)
             => throw ExceptionUtilities.Unreachable;
-
-        public SyntaxToken FindTokenOnLeftOfPosition(
-            SyntaxNode node, int position, bool includeSkipped, bool includeDirectives, bool includeDocumentationComments)
-        {
-            return node.FindTokenOnLeftOfPosition(position, includeSkipped, includeDirectives, includeDocumentationComments);
-        }
-
-        public SyntaxToken FindTokenOnRightOfPosition(
-            SyntaxNode node, int position, bool includeSkipped, bool includeDirectives, bool includeDocumentationComments)
-        {
-            return node.FindTokenOnRightOfPosition(position, includeSkipped, includeDirectives, includeDocumentationComments);
-        }
 
         public bool IsNameOfSubpattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IdentifierName) &&
@@ -1295,7 +1279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
             => ((BaseArgumentListSyntax)argumentList).Arguments;
 
-        public SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode invocationExpression)
+        public SyntaxNode? GetArgumentListOfInvocationExpression(SyntaxNode invocationExpression)
             => ((InvocationExpressionSyntax)invocationExpression).ArgumentList;
 
         public SyntaxNode? GetArgumentListOfObjectCreationExpression(SyntaxNode objectCreationExpression)
@@ -1386,10 +1370,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsTypeDeclaration(SyntaxNode node)
             => SyntaxFacts.IsTypeDeclaration(node.Kind());
 
-        public SyntaxNode? GetObjectCreationInitializer(SyntaxNode node)
+        public SyntaxNode? GetInitializerOfObjectCreationExpression(SyntaxNode node)
             => ((ObjectCreationExpressionSyntax)node).Initializer;
 
-        public SyntaxNode GetObjectCreationType(SyntaxNode node)
+        public SyntaxNode GetTypeOfObjectCreationExpression(SyntaxNode node)
             => ((ObjectCreationExpressionSyntax)node).Type;
 
         public bool IsSimpleAssignmentStatement([NotNullWhen(true)] SyntaxNode? statement)
@@ -1531,180 +1515,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
             => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
-
-        public bool IsOnTypeHeader(SyntaxNode root, int position, bool fullHeader, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
-        {
-            var node = TryGetAncestorForLocation<BaseTypeDeclarationSyntax>(root, position);
-            typeDeclaration = node;
-            if (node == null)
-                return false;
-
-            var lastToken = (node as TypeDeclarationSyntax)?.TypeParameterList?.GetLastToken() ?? node.Identifier;
-            if (fullHeader)
-                lastToken = node.BaseList?.GetLastToken() ?? lastToken;
-
-            return IsOnHeader(root, position, node, lastToken);
-        }
-
-        public bool IsOnPropertyDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? propertyDeclaration)
-        {
-            var node = TryGetAncestorForLocation<PropertyDeclarationSyntax>(root, position);
-            propertyDeclaration = node;
-            if (propertyDeclaration == null)
-            {
-                return false;
-            }
-
-            RoslynDebug.AssertNotNull(node);
-            return IsOnHeader(root, position, node, node.Identifier);
-        }
-
-        public bool IsOnParameterHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? parameter)
-        {
-            var node = TryGetAncestorForLocation<ParameterSyntax>(root, position);
-            parameter = node;
-            if (parameter == null)
-            {
-                return false;
-            }
-
-            RoslynDebug.AssertNotNull(node);
-            return IsOnHeader(root, position, node, node);
-        }
-
-        public bool IsOnMethodHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? method)
-        {
-            var node = TryGetAncestorForLocation<MethodDeclarationSyntax>(root, position);
-            method = node;
-            if (method == null)
-            {
-                return false;
-            }
-
-            RoslynDebug.AssertNotNull(node);
-            return IsOnHeader(root, position, node, node.ParameterList);
-        }
-
-        public bool IsOnLocalFunctionHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? localFunction)
-        {
-            var node = TryGetAncestorForLocation<LocalFunctionStatementSyntax>(root, position);
-            localFunction = node;
-            if (localFunction == null)
-            {
-                return false;
-            }
-
-            RoslynDebug.AssertNotNull(node);
-            return IsOnHeader(root, position, node, node.ParameterList);
-        }
-
-        public bool IsOnLocalDeclarationHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? localDeclaration)
-        {
-            var node = TryGetAncestorForLocation<LocalDeclarationStatementSyntax>(root, position);
-            localDeclaration = node;
-            if (localDeclaration == null)
-            {
-                return false;
-            }
-
-            var initializersExpressions = node!.Declaration.Variables
-                .Where(v => v.Initializer != null)
-                .SelectAsArray(initializedV => initializedV.Initializer!.Value);
-            return IsOnHeader(root, position, node, node, holes: initializersExpressions);
-        }
-
-        public bool IsOnIfStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? ifStatement)
-        {
-            var node = TryGetAncestorForLocation<IfStatementSyntax>(root, position);
-            ifStatement = node;
-            if (ifStatement == null)
-            {
-                return false;
-            }
-
-            RoslynDebug.AssertNotNull(node);
-            return IsOnHeader(root, position, node, node.CloseParenToken);
-        }
-
-        public bool IsOnWhileStatementHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? whileStatement)
-        {
-            var node = TryGetAncestorForLocation<WhileStatementSyntax>(root, position);
-            whileStatement = node;
-            if (whileStatement == null)
-            {
-                return false;
-            }
-
-            RoslynDebug.AssertNotNull(node);
-            return IsOnHeader(root, position, node, node.CloseParenToken);
-        }
-
-        public bool IsOnForeachHeader(SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? foreachStatement)
-        {
-            var node = TryGetAncestorForLocation<ForEachStatementSyntax>(root, position);
-            foreachStatement = node;
-            if (foreachStatement == null)
-            {
-                return false;
-            }
-
-            RoslynDebug.AssertNotNull(node);
-            return IsOnHeader(root, position, node, node.CloseParenToken);
-        }
-
-        public bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
-        {
-            var token = root.FindToken(position);
-            var typeDecl = token.GetAncestor<TypeDeclarationSyntax>();
-            typeDeclaration = typeDecl;
-
-            if (typeDecl == null)
-            {
-                return false;
-            }
-
-            RoslynDebug.AssertNotNull(typeDeclaration);
-            if (position < typeDecl.OpenBraceToken.Span.End ||
-                position > typeDecl.CloseBraceToken.Span.Start)
-            {
-                return false;
-            }
-
-            var line = sourceText.Lines.GetLineFromPosition(position);
-            if (!line.IsEmptyOrWhitespace())
-            {
-                return false;
-            }
-
-            var member = typeDecl.Members.FirstOrDefault(d => d.FullSpan.Contains(position));
-            if (member == null)
-            {
-                // There are no members, or we're after the last member.
-                return true;
-            }
-            else
-            {
-                // We're within a member.  Make sure we're in the leading whitespace of
-                // the member.
-                if (position < member.SpanStart)
-                {
-                    foreach (var trivia in member.GetLeadingTrivia())
-                    {
-                        if (!trivia.IsWhitespaceOrEndOfLine())
-                        {
-                            return false;
-                        }
-
-                        if (trivia.FullSpan.Contains(position))
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
 
         protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
             => token.ContainsInterleavedDirective(span, cancellationToken);
