@@ -8842,7 +8842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 WasCompilerGenerated = true, // don't interfere with the type info for exprSyntax.
             };
-            
+
             var memberAccess = BindMemberAccessWithBoundLeft(node, receiver, node.Name, node.OperatorToken, invoked, indexed, diagnostics);
             return memberAccess;
         }

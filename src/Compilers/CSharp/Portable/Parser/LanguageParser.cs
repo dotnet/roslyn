@@ -11024,7 +11024,7 @@ tryAgain:
 
         private static bool CanStartConsequenceExpression(SyntaxKind kind)
         {
-            return kind 
+            return kind
                 is SyntaxKind.DotToken
                 or SyntaxKind.MinusGreaterThanToken
                 or SyntaxKind.OpenBracketToken;
@@ -11043,7 +11043,7 @@ tryAgain:
                 case SyntaxKind.MinusGreaterThanToken:
                     expr = _syntaxFactory.PointerMemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
                     break;
-                
+
                 case SyntaxKind.OpenBracketToken:
                     expr = _syntaxFactory.ElementBindingExpression(this.ParseBracketedArgumentList());
                     break;
