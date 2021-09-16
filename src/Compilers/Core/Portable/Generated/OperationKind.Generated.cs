@@ -255,5 +255,7 @@ namespace Microsoft.CodeAnalysis
         RelationalPattern = 0x70,
         /// <summary>Indicates an <see cref="IWithOperation"/>.</summary>
         With = 0x71,
+        /// <summary>Indicates an <see cref="IPointerElementReferenceOperation"/>.</summary>
+        PointerElementReference = 0x72,
     }
 }

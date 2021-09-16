@@ -275,6 +275,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundFunctionPointerInvocationOperation((BoundFunctionPointerInvocation)boundNode);
                 case BoundKind.UnconvertedAddressOfOperator:
                     return CreateBoundUnconvertedAddressOfOperatorOperation((BoundUnconvertedAddressOfOperator)boundNode);
+                case BoundKind.PointerElementAccess:
+                    return CreatePointerElementAccessOperation((BoundPointerElementAccess)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -286,7 +288,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.MakeRefOperator:
                 case BoundKind.MethodGroup:
                 case BoundKind.NamespaceExpression:
-                case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.PreviousSubmissionReference:
                 case BoundKind.RefTypeOperator:
@@ -468,6 +469,17 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundUnconvertedAddressOf.Syntax,
                 boundUnconvertedAddressOf.GetPublicTypeSymbol(),
                 boundUnconvertedAddressOf.WasCompilerGenerated);
+        }
+
+        private IOperation CreatePointerElementAccessOperation(BoundPointerElementAccess boundPointerElementAccess)
+        {
+            return new PointerElementReferenceOperation(
+                Create(boundPointerElementAccess.Expression),
+                Create(boundPointerElementAccess.Index),
+                _semanticModel,
+                boundPointerElementAccess.Syntax,
+                boundPointerElementAccess.GetPublicTypeSymbol(),
+                boundPointerElementAccess.WasCompilerGenerated);
         }
 
         internal ImmutableArray<IOperation> CreateIgnoredDimensions(BoundNode declaration, SyntaxNode declarationSyntax)

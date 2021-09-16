@@ -1904,6 +1904,7 @@ endRegion:
                 case OperationKind.NegatedPattern:
                 case OperationKind.BinaryPattern:
                 case OperationKind.TypePattern:
+                case OperationKind.PointerElementReference:
                     return true;
             }
 

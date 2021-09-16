@@ -1566,5 +1566,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<IOperation> children = SpecializedCollections.SingletonEnumerable(operation.Operand).Concat(operation.Initializer);
             AssertEx.Equal(children, operation.Children);
         }
+
+        public override void VisitPointerElementReference(IPointerElementReferenceOperation operation)
+        {
+            Assert.Equal(OperationKind.PointerElementReference, operation.Kind);
+            AssertEx.Equal(new[] { operation.PointerReference, operation.Index }, operation.Children);
+        }
     }
 }

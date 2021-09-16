@@ -7324,5 +7324,18 @@ oneMoreTime:
                 return set.Count == properties.Count();
             }
         }
+
+        public override IOperation VisitPointerElementReference(IPointerElementReferenceOperation operation, int? captureIdForResult)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.PointerReference));
+            var visitedIndices = VisitArray(ImmutableArray.Create(operation.Index));
+            RoslynDebug.Assert(visitedIndices.Length == 1);
+            IOperation visitedIndex = visitedIndices[0];
+            IOperation visitedPointerReference = PopOperand();
+            PopStackFrame(frame);
+            return new PointerElementReferenceOperation(visitedPointerReference, visitedIndex, semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
+        }
     }
 }

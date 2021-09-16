@@ -3320,6 +3320,32 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IObjectOrCollectionInitializerOperation Initializer { get; }
     }
+    /// <summary>
+    /// Represents a reference to a pointer element.
+    /// <para>
+    /// Current usage:
+    ///  (1) C# pointer element reference expression.
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.PointerElementReference"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IPointerElementReferenceOperation : IOperation
+    {
+        /// <summary>
+        /// Pointer to be indexed.
+        /// </summary>
+        IOperation PointerReference { get; }
+        /// <summary>
+        /// Index that specifies an individual element.
+        /// </summary>
+        IOperation Index { get; }
+    }
     #endregion
 
     #region Implementations
@@ -7602,6 +7628,49 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitWith(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitWith(this, argument);
     }
+    internal sealed partial class PointerElementReferenceOperation : Operation, IPointerElementReferenceOperation
+    {
+        internal PointerElementReferenceOperation(IOperation pointerReference, IOperation index, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            PointerReference = SetParentOperation(pointerReference, this);
+            Index = SetParentOperation(index, this);
+            Type = type;
+        }
+        public IOperation PointerReference { get; }
+        public IOperation Index { get; }
+        protected override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when PointerReference != null
+                    => PointerReference,
+                1 when Index != null
+                    => Index,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        protected override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (PointerReference != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Index != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.PointerElementReference;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitPointerElementReference(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitPointerElementReference(this, argument);
+    }
     #endregion
     #region Cloner
     internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
@@ -8160,6 +8229,11 @@ namespace Microsoft.CodeAnalysis.Operations
             var internalOperation = (WithOperation)operation;
             return new WithOperation(Visit(internalOperation.Operand), internalOperation.CloneMethod, Visit(internalOperation.Initializer), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
+        public override IOperation VisitPointerElementReference(IPointerElementReferenceOperation operation, object? argument)
+        {
+            var internalOperation = (PointerElementReferenceOperation)operation;
+            return new PointerElementReferenceOperation(Visit(internalOperation.PointerReference), Visit(internalOperation.Index), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
     }
     #endregion
     
@@ -8289,6 +8363,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitTypePattern(ITypePatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitRelationalPattern(IRelationalPatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitWith(IWithOperation operation) => DefaultVisit(operation);
+        public virtual void VisitPointerElementReference(IPointerElementReferenceOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -8415,6 +8490,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitTypePattern(ITypePatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitRelationalPattern(IRelationalPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitWith(IWithOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitPointerElementReference(IPointerElementReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }

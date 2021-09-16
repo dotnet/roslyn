@@ -3057,4 +3057,25 @@
       </Comments>
     </Property>
   </Node>
+  <Node Name="IPointerElementReferenceOperation" Base="IOperation" ChildrenOrder="PointerReference,Index" HasType="true">
+    <Comments>
+      <summary>
+        Represents a reference to a pointer element.
+        <para>
+        Current usage:
+         (1) C# pointer element reference expression.
+        </para>
+      </summary>
+    </Comments>
+    <Property Name="PointerReference" Type="IOperation">
+      <Comments>
+        <summary>Pointer to be indexed.</summary>
+      </Comments>
+    </Property>
+    <Property Name="Index" Type="IOperation">
+      <Comments>
+        <summary>Index that specifies an individual element.</summary>
+      </Comments>
+    </Property>
+  </Node>
 </Tree>

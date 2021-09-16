@@ -71,6 +71,10 @@ Microsoft.CodeAnalysis.LineMapping.LineMapping() -> void
 Microsoft.CodeAnalysis.LineMapping.LineMapping(Microsoft.CodeAnalysis.Text.LinePositionSpan span, int? characterOffset, Microsoft.CodeAnalysis.FileLinePositionSpan mappedSpan) -> void
 Microsoft.CodeAnalysis.LineMapping.MappedSpan.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
 Microsoft.CodeAnalysis.LineMapping.Span.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+Microsoft.CodeAnalysis.OperationKind.PointerElementReference = 114 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.IPointerElementReferenceOperation
+Microsoft.CodeAnalysis.Operations.IPointerElementReferenceOperation.Index.get -> Microsoft.CodeAnalysis.IOperation!
+Microsoft.CodeAnalysis.Operations.IPointerElementReferenceOperation.PointerReference.get -> Microsoft.CodeAnalysis.IOperation!
 override Microsoft.CodeAnalysis.LineMapping.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.LineMapping.GetHashCode() -> int
 override Microsoft.CodeAnalysis.LineMapping.ToString() -> string?
@@ -125,3 +129,5 @@ static Microsoft.CodeAnalysis.IncrementalValueProviderExtensions.WithComparer<TS
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGeneratorsForAllLanguages() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 abstract Microsoft.CodeAnalysis.Compilation.GetUsedAssemblyReferences(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference!>
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitPointerElementReference(Microsoft.CodeAnalysis.Operations.IPointerElementReferenceOperation! operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitPointerElementReference(Microsoft.CodeAnalysis.Operations.IPointerElementReferenceOperation! operation, TArgument argument) -> TResult?
