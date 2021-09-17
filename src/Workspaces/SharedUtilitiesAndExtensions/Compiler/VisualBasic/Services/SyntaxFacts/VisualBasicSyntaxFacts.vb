@@ -35,87 +35,87 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End Get
         End Property
 
-        Public Overrides ReadOnly Property StringComparer As StringComparer Implements ISyntaxFacts.StringComparer
+        Public Overrides ReadOnly Property StringComparer As StringComparer
             Get
                 Return CaseInsensitiveComparison.Comparer
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ElasticMarker As SyntaxTrivia Implements ISyntaxFacts.ElasticMarker
+        Public Overrides ReadOnly Property ElasticMarker As SyntaxTrivia
             Get
                 Return SyntaxFactory.ElasticMarker
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia Implements ISyntaxFacts.ElasticCarriageReturnLineFeed
+        Public Overrides ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia
             Get
                 Return SyntaxFactory.ElasticCarriageReturnLineFeed
             End Get
         End Property
 
-        Public Overrides ReadOnly Property SyntaxKinds As ISyntaxKinds = VisualBasicSyntaxKinds.Instance Implements ISyntaxFacts.SyntaxKinds
+        Public Overrides ReadOnly Property SyntaxKinds As ISyntaxKinds = VisualBasicSyntaxKinds.Instance
 
-        Public Overrides Function SupportsIndexingInitializer(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsIndexingInitializer
+        Public Overrides Function SupportsIndexingInitializer(options As ParseOptions) As Boolean
             Return False
         End Function
 
-        Public Overrides Function SupportsThrowExpression(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsThrowExpression
+        Public Overrides Function SupportsThrowExpression(options As ParseOptions) As Boolean
             Return False
         End Function
 
-        Public Overrides Function SupportsLocalFunctionDeclaration(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsLocalFunctionDeclaration
+        Public Overrides Function SupportsLocalFunctionDeclaration(options As ParseOptions) As Boolean
             Return False
         End Function
 
-        Public Overrides Function SupportsRecord(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsRecord
+        Public Overrides Function SupportsRecord(options As ParseOptions) As Boolean
             Return False
         End Function
 
-        Public Overrides Function SupportsRecordStruct(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsRecordStruct
+        Public Overrides Function SupportsRecordStruct(options As ParseOptions) As Boolean
             Return False
         End Function
 
-        Public Overrides Function ParseToken(text As String) As SyntaxToken Implements ISyntaxFacts.ParseToken
+        Public Overrides Function ParseToken(text As String) As SyntaxToken
             Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function
 
-        Public Overrides Function ParseLeadingTrivia(text As String) As SyntaxTriviaList Implements ISyntaxFacts.ParseLeadingTrivia
+        Public Overrides Function ParseLeadingTrivia(text As String) As SyntaxTriviaList
             Return SyntaxFactory.ParseLeadingTrivia(text)
         End Function
 
-        Public Overrides Function EscapeIdentifier(identifier As String) As String Implements ISyntaxFacts.EscapeIdentifier
+        Public Overrides Function EscapeIdentifier(identifier As String) As String
             Dim keywordKind = SyntaxFacts.GetKeywordKind(identifier)
             Dim needsEscaping = keywordKind <> SyntaxKind.None
 
             Return If(needsEscaping, "[" & identifier & "]", identifier)
         End Function
 
-        Public Overrides Function IsVerbatimIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsVerbatimIdentifier
+        Public Overrides Function IsVerbatimIdentifier(token As SyntaxToken) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsOperator(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsOperator
+        Public Overrides Function IsOperator(token As SyntaxToken) As Boolean
             Return (IsUnaryExpressionOperatorToken(CType(token.Kind, SyntaxKind)) AndAlso (TypeOf token.Parent Is UnaryExpressionSyntax OrElse TypeOf token.Parent Is OperatorStatementSyntax)) OrElse
                    (IsBinaryExpressionOperatorToken(CType(token.Kind, SyntaxKind)) AndAlso (TypeOf token.Parent Is BinaryExpressionSyntax OrElse TypeOf token.Parent Is OperatorStatementSyntax))
         End Function
 
-        Public Overrides Function IsContextualKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsContextualKeyword
+        Public Overrides Function IsContextualKeyword(token As SyntaxToken) As Boolean
             Return token.IsContextualKeyword()
         End Function
 
-        Public Overrides Function IsReservedKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsReservedKeyword
+        Public Overrides Function IsReservedKeyword(token As SyntaxToken) As Boolean
             Return token.IsReservedKeyword()
         End Function
 
-        Public Overrides Function IsPreprocessorKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsPreprocessorKeyword
+        Public Overrides Function IsPreprocessorKeyword(token As SyntaxToken) As Boolean
             Return token.IsPreprocessorKeyword()
         End Function
 
-        Public Overrides Function IsPreProcessorDirectiveContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsPreProcessorDirectiveContext
+        Public Overrides Function IsPreProcessorDirectiveContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Return syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken)
         End Function
 
-        Public Overrides Function TryGetCorrespondingOpenBrace(token As SyntaxToken, ByRef openBrace As SyntaxToken) As Boolean Implements ISyntaxFacts.TryGetCorrespondingOpenBrace
+        Public Overrides Function TryGetCorrespondingOpenBrace(token As SyntaxToken, ByRef openBrace As SyntaxToken) As Boolean
 
             If token.Kind = SyntaxKind.CloseBraceToken Then
                 Dim tuples = token.Parent.GetBraces()
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Overrides Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral
+        Public Overrides Function IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             If syntaxTree Is Nothing Then
                 Return False
             End If
@@ -134,11 +134,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return syntaxTree.IsEntirelyWithinStringOrCharOrNumericLiteral(position, cancellationToken)
         End Function
 
-        Public Overrides Function IsDirective(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDirective
+        Public Overrides Function IsDirective(node As SyntaxNode) As Boolean
             Return TypeOf node Is DirectiveTriviaSyntax
         End Function
 
-        Public Overrides Function TryGetExternalSourceInfo(node As SyntaxNode, ByRef info As ExternalSourceInfo) As Boolean Implements ISyntaxFacts.TryGetExternalSourceInfo
+        Public Overrides Function TryGetExternalSourceInfo(node As SyntaxNode, ByRef info As ExternalSourceInfo) As Boolean
             Select Case node.Kind
                 Case SyntaxKind.ExternalSourceDirectiveTrivia
                     info = New ExternalSourceInfo(CInt(DirectCast(node, ExternalSourceDirectiveTriviaSyntax).LineStart.Value), False)
@@ -152,93 +152,93 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Overrides Function IsDeclarationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclarationExpression
+        Public Overrides Function IsDeclarationExpression(node As SyntaxNode) As Boolean
             ' VB doesn't support declaration expressions
             Return False
         End Function
 
-        Public Overrides Function IsAttributeName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAttributeName
+        Public Overrides Function IsAttributeName(node As SyntaxNode) As Boolean
             Return node.IsParentKind(SyntaxKind.Attribute) AndAlso
                 DirectCast(node.Parent, AttributeSyntax).Name Is node
         End Function
 
-        Public Overrides Function IsNameOfSimpleMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfSimpleMemberAccessExpression
+        Public Overrides Function IsNameOfSimpleMemberAccessExpression(node As SyntaxNode) As Boolean
             Dim vbNode = TryCast(node, ExpressionSyntax)
             Return vbNode IsNot Nothing AndAlso vbNode.IsSimpleMemberAccessExpressionName()
         End Function
 
-        Public Overrides Function IsNameOfAnyMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfAnyMemberAccessExpression
+        Public Overrides Function IsNameOfAnyMemberAccessExpression(node As SyntaxNode) As Boolean
             Dim memberAccess = TryCast(node?.Parent, MemberAccessExpressionSyntax)
             Return memberAccess IsNot Nothing AndAlso memberAccess.Name Is node
         End Function
 
-        Public Overrides Function GetStandaloneExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetStandaloneExpression
+        Public Overrides Function GetStandaloneExpression(node As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.GetStandaloneExpression(TryCast(node, ExpressionSyntax))
         End Function
 
-        Public Overrides Function GetRootConditionalAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetRootConditionalAccessExpression
+        Public Overrides Function GetRootConditionalAccessExpression(node As SyntaxNode) As SyntaxNode
             Return TryCast(node, ExpressionSyntax).GetRootConditionalAccessExpression()
         End Function
 
-        Public Overrides Function IsNamedArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedArgument
+        Public Overrides Function IsNamedArgument(node As SyntaxNode) As Boolean
             Dim arg = TryCast(node, SimpleArgumentSyntax)
             Return arg?.NameColonEquals IsNot Nothing
         End Function
 
-        Public Overrides Function IsNameOfNamedArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfNamedArgument
+        Public Overrides Function IsNameOfNamedArgument(node As SyntaxNode) As Boolean
             Return node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node)
         End Function
 
-        Public Overrides Function GetNameOfParameter(node As SyntaxNode) As SyntaxToken? Implements ISyntaxFacts.GetNameOfParameter
+        Public Overrides Function GetNameOfParameter(node As SyntaxNode) As SyntaxToken?
             Return DirectCast(node, ParameterSyntax).Identifier?.Identifier
         End Function
 
-        Public Overrides Function GetDefaultOfParameter(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetDefaultOfParameter
+        Public Overrides Function GetDefaultOfParameter(node As SyntaxNode) As SyntaxNode
             Return DirectCast(node, ParameterSyntax).Default
         End Function
 
-        Public Overrides Function GetParameterList(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetParameterList
+        Public Overrides Function GetParameterList(node As SyntaxNode) As SyntaxNode
             Return node.GetParameterList()
         End Function
 
-        Public Overrides Function IsParameterList(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParameterList
+        Public Overrides Function IsParameterList(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.ParameterList)
         End Function
 
-        Public Overrides Function GetIdentifierOfGenericName(genericName As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfGenericName
+        Public Overrides Function GetIdentifierOfGenericName(genericName As SyntaxNode) As SyntaxToken
             Return DirectCast(genericName, GenericNameSyntax).Identifier
         End Function
 
-        Public Overrides Function IsUsingDirectiveName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUsingDirectiveName
+        Public Overrides Function IsUsingDirectiveName(node As SyntaxNode) As Boolean
             Return node.IsParentKind(SyntaxKind.SimpleImportsClause) AndAlso
                    DirectCast(node.Parent, SimpleImportsClauseSyntax).Name Is node
         End Function
 
-        Public Overrides Function IsDeconstructionAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeconstructionAssignment
+        Public Overrides Function IsDeconstructionAssignment(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsDeconstructionForEachStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeconstructionForEachStatement
+        Public Overrides Function IsDeconstructionForEachStatement(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsStatement
+        Public Overrides Function IsStatement(node As SyntaxNode) As Boolean
             Return TypeOf node Is StatementSyntax
         End Function
 
-        Public Overrides Function IsExecutableStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsExecutableStatement
+        Public Overrides Function IsExecutableStatement(node As SyntaxNode) As Boolean
             Return TypeOf node Is ExecutableStatementSyntax
         End Function
 
-        Public Overrides Function IsMethodBody(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMethodBody
+        Public Overrides Function IsMethodBody(node As SyntaxNode) As Boolean
             Return TypeOf node Is MethodBlockBaseSyntax
         End Function
 
-        Public Overrides Function GetExpressionOfReturnStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfReturnStatement
+        Public Overrides Function GetExpressionOfReturnStatement(node As SyntaxNode) As SyntaxNode
             Return DirectCast(node, ReturnStatementSyntax).Expression
         End Function
 
-        Public Overrides Function IsThisConstructorInitializer(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsThisConstructorInitializer
+        Public Overrides Function IsThisConstructorInitializer(token As SyntaxToken) As Boolean
             If TypeOf token.Parent Is IdentifierNameSyntax AndAlso token.HasMatchingText(SyntaxKind.NewKeyword) Then
                 Dim memberAccess = TryCast(token.Parent.Parent, MemberAccessExpressionSyntax)
                 Return memberAccess.IsThisConstructorInitializer()
@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Overrides Function IsBaseConstructorInitializer(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsBaseConstructorInitializer
+        Public Overrides Function IsBaseConstructorInitializer(token As SyntaxToken) As Boolean
             If TypeOf token.Parent Is IdentifierNameSyntax AndAlso token.HasMatchingText(SyntaxKind.NewKeyword) Then
                 Dim memberAccess = TryCast(token.Parent.Parent, MemberAccessExpressionSyntax)
                 Return memberAccess.IsBaseConstructorInitializer()
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Overrides Function IsQueryKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsQueryKeyword
+        Public Overrides Function IsQueryKeyword(token As SyntaxToken) As Boolean
             Select Case token.Kind()
                 Case _
                     SyntaxKind.JoinKeyword,
@@ -287,17 +287,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End Select
         End Function
 
-        Public Overrides Function IsPredefinedType(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsPredefinedType
+        Public Overrides Function IsPredefinedType(token As SyntaxToken) As Boolean
             Dim actualType As PredefinedType = PredefinedType.None
             Return TryGetPredefinedType(token, actualType) AndAlso actualType <> PredefinedType.None
         End Function
 
-        Public Overrides Function IsPredefinedType(token As SyntaxToken, type As PredefinedType) As Boolean Implements ISyntaxFacts.IsPredefinedType
+        Public Overrides Function IsPredefinedType(token As SyntaxToken, type As PredefinedType) As Boolean
             Dim actualType As PredefinedType = PredefinedType.None
             Return TryGetPredefinedType(token, actualType) AndAlso actualType = type
         End Function
 
-        Public Overrides Function TryGetPredefinedType(token As SyntaxToken, ByRef type As PredefinedType) As Boolean Implements ISyntaxFacts.TryGetPredefinedType
+        Public Overrides Function TryGetPredefinedType(token As SyntaxToken, ByRef type As PredefinedType) As Boolean
             type = GetPredefinedType(token)
             Return type <> PredefinedType.None
         End Function
@@ -341,17 +341,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End Select
         End Function
 
-        Public Overrides Function IsPredefinedOperator(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsPredefinedOperator
+        Public Overrides Function IsPredefinedOperator(token As SyntaxToken) As Boolean
             Dim actualOp As PredefinedOperator = PredefinedOperator.None
             Return TryGetPredefinedOperator(token, actualOp) AndAlso actualOp <> PredefinedOperator.None
         End Function
 
-        Public Overrides Function IsPredefinedOperator(token As SyntaxToken, op As PredefinedOperator) As Boolean Implements ISyntaxFacts.IsPredefinedOperator
+        Public Overrides Function IsPredefinedOperator(token As SyntaxToken, op As PredefinedOperator) As Boolean
             Dim actualOp As PredefinedOperator = PredefinedOperator.None
             Return TryGetPredefinedOperator(token, actualOp) AndAlso actualOp = op
         End Function
 
-        Public Overrides Function TryGetPredefinedOperator(token As SyntaxToken, ByRef op As PredefinedOperator) As Boolean Implements ISyntaxFacts.TryGetPredefinedOperator
+        Public Overrides Function TryGetPredefinedOperator(token As SyntaxToken, ByRef op As PredefinedOperator) As Boolean
             op = GetPredefinedOperator(token)
             Return op <> PredefinedOperator.None
         End Function
@@ -426,33 +426,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End Select
         End Function
 
-        Public Overrides Function GetText(kind As Integer) As String Implements ISyntaxFacts.GetText
+        Public Overrides Function GetText(kind As Integer) As String
             Return SyntaxFacts.GetText(CType(kind, SyntaxKind))
         End Function
 
-        Public Overrides Function IsIdentifierPartCharacter(c As Char) As Boolean Implements ISyntaxFacts.IsIdentifierPartCharacter
+        Public Overrides Function IsIdentifierPartCharacter(c As Char) As Boolean
             Return SyntaxFacts.IsIdentifierPartCharacter(c)
         End Function
 
-        Public Overrides Function IsIdentifierStartCharacter(c As Char) As Boolean Implements ISyntaxFacts.IsIdentifierStartCharacter
+        Public Overrides Function IsIdentifierStartCharacter(c As Char) As Boolean
             Return SyntaxFacts.IsIdentifierStartCharacter(c)
         End Function
 
-        Public Overrides Function IsIdentifierEscapeCharacter(c As Char) As Boolean Implements ISyntaxFacts.IsIdentifierEscapeCharacter
+        Public Overrides Function IsIdentifierEscapeCharacter(c As Char) As Boolean
             Return c = "["c OrElse c = "]"c
         End Function
 
-        Public Overrides Function IsValidIdentifier(identifier As String) As Boolean Implements ISyntaxFacts.IsValidIdentifier
+        Public Overrides Function IsValidIdentifier(identifier As String) As Boolean
             Dim token = SyntaxFactory.ParseToken(identifier)
             ' TODO: There is no way to get the diagnostics to see if any are actually errors?
             Return IsIdentifier(token) AndAlso Not token.ContainsDiagnostics AndAlso token.ToString().Length = identifier.Length
         End Function
 
-        Public Overrides Function IsVerbatimIdentifier(identifier As String) As Boolean Implements ISyntaxFacts.IsVerbatimIdentifier
+        Public Overrides Function IsVerbatimIdentifier(identifier As String) As Boolean
             Return IsValidIdentifier(identifier) AndAlso MakeHalfWidthIdentifier(identifier.First()) = "[" AndAlso MakeHalfWidthIdentifier(identifier.Last()) = "]"
         End Function
 
-        Public Overrides Function IsTypeCharacter(c As Char) As Boolean Implements ISyntaxFacts.IsTypeCharacter
+        Public Overrides Function IsTypeCharacter(c As Char) As Boolean
             Return c = "%"c OrElse
                    c = "&"c OrElse
                    c = "@"c OrElse
@@ -461,11 +461,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                    c = "$"c
         End Function
 
-        Public Overrides Function IsStartOfUnicodeEscapeSequence(c As Char) As Boolean Implements ISyntaxFacts.IsStartOfUnicodeEscapeSequence
+        Public Overrides Function IsStartOfUnicodeEscapeSequence(c As Char) As Boolean
             Return False ' VB does not support identifiers with escaped unicode characters
         End Function
 
-        Public Overrides Function IsLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsLiteral
+        Public Overrides Function IsLiteral(token As SyntaxToken) As Boolean
             Select Case token.Kind()
                 Case _
                         SyntaxKind.IntegerLiteralToken,
@@ -486,45 +486,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Overrides Function IsStringLiteralOrInterpolatedStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsStringLiteralOrInterpolatedStringLiteral
+        Public Overrides Function IsStringLiteralOrInterpolatedStringLiteral(token As SyntaxToken) As Boolean
             Return token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken)
         End Function
 
-        Public Overrides Function IsBindableToken(token As Microsoft.CodeAnalysis.SyntaxToken) As Boolean Implements ISyntaxFacts.IsBindableToken
+        Public Overrides Function IsBindableToken(token As Microsoft.CodeAnalysis.SyntaxToken) As Boolean
             Return Me.IsWord(token) OrElse
                 Me.IsLiteral(token) OrElse
                 Me.IsOperator(token)
         End Function
 
-        Public Overrides Function IsPointerMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsPointerMemberAccessExpression
+        Public Overrides Function IsPointerMemberAccessExpression(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Sub GetNameAndArityOfSimpleName(node As SyntaxNode, ByRef name As String, ByRef arity As Integer) Implements ISyntaxFacts.GetNameAndArityOfSimpleName
+        Public Overrides Sub GetNameAndArityOfSimpleName(node As SyntaxNode, ByRef name As String, ByRef arity As Integer)
             Dim simpleName = DirectCast(node, SimpleNameSyntax)
             name = simpleName.Identifier.ValueText
             arity = simpleName.Arity
         End Sub
 
-        Public Overrides Function LooksGeneric(name As SyntaxNode) As Boolean Implements ISyntaxFacts.LooksGeneric
+        Public Overrides Function LooksGeneric(name As SyntaxNode) As Boolean
             Return name.IsKind(SyntaxKind.GenericName)
         End Function
 
-        Public Overrides Function GetExpressionOfMemberAccessExpression(node As SyntaxNode, Optional allowImplicitTarget As Boolean = False) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfMemberAccessExpression
+        Public Overrides Function GetExpressionOfMemberAccessExpression(node As SyntaxNode, Optional allowImplicitTarget As Boolean = False) As SyntaxNode
             Return TryCast(node, MemberAccessExpressionSyntax)?.GetExpressionOfMemberAccessExpression(allowImplicitTarget)
         End Function
 
-        Public Overrides Function GetTargetOfMemberBinding(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetTargetOfMemberBinding
+        Public Overrides Function GetTargetOfMemberBinding(node As SyntaxNode) As SyntaxNode
             ' Member bindings are a C# concept.
             Return Nothing
         End Function
 
-        Public Overrides Function GetNameOfMemberBindingExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetNameOfMemberBindingExpression
+        Public Overrides Function GetNameOfMemberBindingExpression(node As SyntaxNode) As SyntaxNode
             ' Member bindings are a C# concept.
             Return Nothing
         End Function
 
-        Public Overrides Sub GetPartsOfElementAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFacts.GetPartsOfElementAccessExpression
+        Public Overrides Sub GetPartsOfElementAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode)
             Dim invocation = TryCast(node, InvocationExpressionSyntax)
             If invocation IsNot Nothing Then
                 expression = invocation?.Expression
@@ -540,57 +540,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Throw ExceptionUtilities.UnexpectedValue(node.Kind())
         End Sub
 
-        Public Overrides Function GetExpressionOfInterpolation(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfInterpolation
+        Public Overrides Function GetExpressionOfInterpolation(node As SyntaxNode) As SyntaxNode
             Return DirectCast(node, InterpolationSyntax).Expression
         End Function
 
-        Public Overrides Function IsInNamespaceOrTypeContext(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsInNamespaceOrTypeContext
+        Public Overrides Function IsInNamespaceOrTypeContext(node As SyntaxNode) As Boolean
             Return SyntaxFacts.IsInNamespaceOrTypeContext(node)
         End Function
 
-        Public Overrides Function IsBaseTypeList(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBaseTypeList
+        Public Overrides Function IsBaseTypeList(node As SyntaxNode) As Boolean
             Return TryCast(node, InheritsOrImplementsStatementSyntax) IsNot Nothing
         End Function
 
-        Public Overrides Function IsInStaticContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFacts.IsInStaticContext
+        Public Overrides Function IsInStaticContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean
             Return node.IsInStaticContext()
         End Function
 
-        Public Overrides Function GetExpressionOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFacts.GetExpressionOfArgument
+        Public Overrides Function GetExpressionOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode
             Return DirectCast(node, ArgumentSyntax).GetArgumentExpression()
         End Function
 
-        Public Overrides Function GetRefKindOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.RefKind Implements ISyntaxFacts.GetRefKindOfArgument
+        Public Overrides Function GetRefKindOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.RefKind
             ' TODO(cyrusn): Consider the method this argument is passed to, to determine this.
             Return RefKind.None
         End Function
 
-        Public Overrides Function IsArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsArgument
+        Public Overrides Function IsArgument(node As SyntaxNode) As Boolean
             Return TypeOf node Is ArgumentSyntax
         End Function
 
-        Public Overrides Function IsSimpleArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleArgument
+        Public Overrides Function IsSimpleArgument(node As SyntaxNode) As Boolean
             Dim argument = TryCast(node, ArgumentSyntax)
             Return argument IsNot Nothing AndAlso Not argument.IsNamed AndAlso Not argument.IsOmitted
         End Function
 
-        Public Overrides Function IsInConstantContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFacts.IsInConstantContext
+        Public Overrides Function IsInConstantContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean
             Return node.IsInConstantContext()
         End Function
 
-        Public Overrides Function IsInConstructor(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFacts.IsInConstructor
+        Public Overrides Function IsInConstructor(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean
             Return node.GetAncestors(Of StatementSyntax).Any(Function(s) s.Kind = SyntaxKind.ConstructorBlock)
         End Function
 
-        Public Overrides Function IsUnsafeContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFacts.IsUnsafeContext
+        Public Overrides Function IsUnsafeContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function GetNameOfAttribute(node As SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFacts.GetNameOfAttribute
+        Public Overrides Function GetNameOfAttribute(node As SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode
             Return DirectCast(node, AttributeSyntax).Name
         End Function
 
-        Public Overrides Function IsAttributeNamedArgumentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAttributeNamedArgumentIdentifier
+        Public Overrides Function IsAttributeNamedArgumentIdentifier(node As SyntaxNode) As Boolean
             Dim identifierName = TryCast(node, IdentifierNameSyntax)
             Return identifierName.IsParentKind(SyntaxKind.NameColonEquals) AndAlso
                 identifierName.Parent.IsParentKind(SyntaxKind.SimpleArgument) AndAlso
@@ -598,7 +598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 identifierName.Parent.Parent.Parent.IsParentKind(SyntaxKind.Attribute)
         End Function
 
-        Public Overrides Function GetContainingTypeDeclaration(root As SyntaxNode, position As Integer) As SyntaxNode Implements ISyntaxFacts.GetContainingTypeDeclaration
+        Public Overrides Function GetContainingTypeDeclaration(root As SyntaxNode, position As Integer) As SyntaxNode
             If root Is Nothing Then
                 Throw New ArgumentNullException(NameOf(root))
             End If
@@ -613,7 +613,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 FirstOrDefault(Function(n) TypeOf n Is TypeBlockSyntax OrElse TypeOf n Is DelegateStatementSyntax)
         End Function
 
-        Public Overrides Function GetContainingVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetContainingVariableDeclaratorOfFieldDeclaration
+        Public Overrides Function GetContainingVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As SyntaxNode
             If node Is Nothing Then
                 Throw New ArgumentNullException(NameOf(node))
             End If
@@ -631,14 +631,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return Nothing
         End Function
 
-        Public Overrides Function IsMemberInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberInitializerNamedAssignmentIdentifier
+        Public Overrides Function IsMemberInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean
             Dim unused As SyntaxNode = Nothing
             Return IsMemberInitializerNamedAssignmentIdentifier(node, unused)
         End Function
 
         Public Overrides Function IsMemberInitializerNamedAssignmentIdentifier(
                 node As SyntaxNode,
-                ByRef initializedInstance As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberInitializerNamedAssignmentIdentifier
+                ByRef initializedInstance As SyntaxNode) As Boolean
 
             Dim identifier = TryCast(node, IdentifierNameSyntax)
             If identifier?.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
@@ -652,25 +652,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Overrides Function IsNameOfSubpattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfSubpattern
+        Public Overrides Function IsNameOfSubpattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsPropertyPatternClause(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsPropertyPatternClause
+        Public Overrides Function IsPropertyPatternClause(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsElementAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsElementAccessExpression
+        Public Overrides Function IsElementAccessExpression(node As SyntaxNode) As Boolean
             ' VB doesn't have a specialized node for element access.  Instead, it just uses an
             ' invocation expression or dictionary access expression.
             Return node.Kind = SyntaxKind.InvocationExpression OrElse node.Kind = SyntaxKind.DictionaryAccessExpression
         End Function
 
-        Public Overrides Function IsIndexerMemberCRef(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIndexerMemberCRef
+        Public Overrides Function IsIndexerMemberCRef(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer, Optional useFullSpan As Boolean = True) As SyntaxNode Implements ISyntaxFacts.GetContainingMemberDeclaration
+        Public Overrides Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer, Optional useFullSpan As Boolean = True) As SyntaxNode
             Contract.ThrowIfNull(root, NameOf(root))
             Contract.ThrowIfTrue(position < 0 OrElse position > root.FullSpan.End, NameOf(position))
 
@@ -719,7 +719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return Nothing
         End Function
 
-        Public Overrides Function IsMethodLevelMember(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMethodLevelMember
+        Public Overrides Function IsMethodLevelMember(node As SyntaxNode) As Boolean
 
             ' Note: Derived types of MethodBaseSyntax are expanded explicitly, since PropertyStatementSyntax and
             ' EventStatementSyntax will NOT be parented by MethodBlockBaseSyntax.  Additionally, there are things
@@ -759,7 +759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                    TypeOf node Is FieldDeclarationSyntax
         End Function
 
-        Public Overrides Function GetMemberBodySpanForSpeculativeBinding(node As SyntaxNode) As TextSpan Implements ISyntaxFacts.GetMemberBodySpanForSpeculativeBinding
+        Public Overrides Function GetMemberBodySpanForSpeculativeBinding(node As SyntaxNode) As TextSpan
             Dim member = GetContainingMemberDeclaration(node, node.SpanStart)
             If member Is Nothing Then
                 Return Nothing
@@ -788,7 +788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return Nothing
         End Function
 
-        Public Overrides Function ContainsInMemberBody(node As SyntaxNode, span As TextSpan) As Boolean Implements ISyntaxFacts.ContainsInMemberBody
+        Public Overrides Function ContainsInMemberBody(node As SyntaxNode, span As TextSpan) As Boolean
             Dim method = TryCast(node, MethodBlockBaseSyntax)
             If method IsNot Nothing Then
                 Return method.Statements.Count > 0 AndAlso ContainsExclusively(GetSyntaxListSpan(method.Statements), span)
@@ -840,23 +840,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
 
-        Public Overrides Function GetTopLevelAndMethodLevelMembers(root As SyntaxNode) As List(Of SyntaxNode) Implements ISyntaxFacts.GetTopLevelAndMethodLevelMembers
+        Public Overrides Function GetTopLevelAndMethodLevelMembers(root As SyntaxNode) As List(Of SyntaxNode)
             Dim list = New List(Of SyntaxNode)()
             AppendMembers(root, list, topLevel:=True, methodLevel:=True)
             Return list
         End Function
 
-        Public Overrides Function GetMethodLevelMembers(root As SyntaxNode) As List(Of SyntaxNode) Implements ISyntaxFacts.GetMethodLevelMembers
+        Public Overrides Function GetMethodLevelMembers(root As SyntaxNode) As List(Of SyntaxNode)
             Dim list = New List(Of SyntaxNode)()
             AppendMembers(root, list, topLevel:=False, methodLevel:=True)
             Return list
         End Function
 
-        Public Overrides Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfTypeDeclaration
+        Public Overrides Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode)
             Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
         End Function
 
-        Public Overrides Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTopLevelNodeWithMembers
+        Public Overrides Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean
             Return TypeOf node Is NamespaceBlockSyntax OrElse
                    TypeOf node Is TypeBlockSyntax OrElse
                    TypeOf node Is EnumBlockSyntax
@@ -864,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Private Const s_dotToken As String = "."
 
-        Public Overrides Function GetDisplayName(node As SyntaxNode, options As DisplayNameOptions, Optional rootNamespace As String = Nothing) As String Implements ISyntaxFacts.GetDisplayName
+        Public Overrides Function GetDisplayName(node As SyntaxNode, options As DisplayNameOptions, Optional rootNamespace As String = Nothing) As String
             If node Is Nothing Then
                 Return String.Empty
             End If
@@ -1015,7 +1015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Next
         End Sub
 
-        Public Overrides Function TryGetBindableParent(token As SyntaxToken) As SyntaxNode Implements ISyntaxFacts.TryGetBindableParent
+        Public Overrides Function TryGetBindableParent(token As SyntaxToken) As SyntaxNode
             Dim node = token.Parent
             While node IsNot Nothing
                 Dim parent = node.Parent
@@ -1067,7 +1067,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node
         End Function
 
-        Public Overrides Function GetConstructors(root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode) Implements ISyntaxFacts.GetConstructors
+        Public Overrides Function GetConstructors(root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
             Dim compilationUnit = TryCast(root, CompilationUnitSyntax)
             If compilationUnit Is Nothing Then
                 Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
@@ -1105,7 +1105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Next
         End Sub
 
-        Public Overrides Function GetInactiveRegionSpanAroundPosition(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As TextSpan Implements ISyntaxFacts.GetInactiveRegionSpanAroundPosition
+        Public Overrides Function GetInactiveRegionSpanAroundPosition(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As TextSpan
             Dim trivia = tree.FindTriviaToLeft(position, cancellationToken)
             If trivia.Kind = SyntaxKind.DisabledTextTrivia Then
                 Return trivia.FullSpan
@@ -1114,7 +1114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return Nothing
         End Function
 
-        Public Overrides Function GetNameForArgument(argument As SyntaxNode) As String Implements ISyntaxFacts.GetNameForArgument
+        Public Overrides Function GetNameForArgument(argument As SyntaxNode) As String
             If TryCast(argument, ArgumentSyntax)?.IsNamed Then
                 Return DirectCast(argument, SimpleArgumentSyntax).NameColonEquals.Name.Identifier.ValueText
             End If
@@ -1122,103 +1122,103 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return String.Empty
         End Function
 
-        Public Overrides Function GetNameForAttributeArgument(argument As SyntaxNode) As String Implements ISyntaxFacts.GetNameForAttributeArgument
+        Public Overrides Function GetNameForAttributeArgument(argument As SyntaxNode) As String
             ' All argument types are ArgumentSyntax in VB.
             Return GetNameForArgument(argument)
         End Function
 
-        Public Overrides Function IsLeftSideOfDot(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLeftSideOfDot
+        Public Overrides Function IsLeftSideOfDot(node As SyntaxNode) As Boolean
             Return TryCast(node, ExpressionSyntax).IsLeftSideOfDot()
         End Function
 
-        Public Overrides Function GetRightSideOfDot(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetRightSideOfDot
+        Public Overrides Function GetRightSideOfDot(node As SyntaxNode) As SyntaxNode
             Return If(TryCast(node, QualifiedNameSyntax)?.Right,
                       TryCast(node, MemberAccessExpressionSyntax)?.Name)
         End Function
 
-        Public Overrides Function GetLeftSideOfDot(node As SyntaxNode, Optional allowImplicitTarget As Boolean = False) As SyntaxNode Implements ISyntaxFacts.GetLeftSideOfDot
+        Public Overrides Function GetLeftSideOfDot(node As SyntaxNode, Optional allowImplicitTarget As Boolean = False) As SyntaxNode
             Return If(TryCast(node, QualifiedNameSyntax)?.Left,
                       TryCast(node, MemberAccessExpressionSyntax)?.GetExpressionOfMemberAccessExpression(allowImplicitTarget))
         End Function
 
-        Public Overrides Function IsLeftSideOfExplicitInterfaceSpecifier(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLeftSideOfExplicitInterfaceSpecifier
+        Public Overrides Function IsLeftSideOfExplicitInterfaceSpecifier(node As SyntaxNode) As Boolean
             Return IsLeftSideOfDot(node) AndAlso TryCast(node.Parent.Parent, ImplementsClauseSyntax) IsNot Nothing
         End Function
 
-        Public Overrides Function IsLeftSideOfAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLeftSideOfAssignment
+        Public Overrides Function IsLeftSideOfAssignment(node As SyntaxNode) As Boolean
             Return TryCast(node, ExpressionSyntax).IsLeftSideOfSimpleAssignmentStatement
         End Function
 
-        Public Overrides Function IsLeftSideOfAnyAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLeftSideOfAnyAssignment
+        Public Overrides Function IsLeftSideOfAnyAssignment(node As SyntaxNode) As Boolean
             Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignmentStatement
         End Function
 
-        Public Overrides Function IsLeftSideOfCompoundAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLeftSideOfCompoundAssignment
+        Public Overrides Function IsLeftSideOfCompoundAssignment(node As SyntaxNode) As Boolean
             Return TryCast(node, ExpressionSyntax).IsLeftSideOfCompoundAssignmentStatement
         End Function
 
-        Public Overrides Function GetRightHandSideOfAssignment(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetRightHandSideOfAssignment
+        Public Overrides Function GetRightHandSideOfAssignment(node As SyntaxNode) As SyntaxNode
             Return DirectCast(node, AssignmentStatementSyntax).Right
         End Function
 
-        Public Overrides Function IsInferredAnonymousObjectMemberDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsInferredAnonymousObjectMemberDeclarator
+        Public Overrides Function IsInferredAnonymousObjectMemberDeclarator(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.InferredFieldInitializer)
         End Function
 
-        Public Overrides Function IsOperandOfIncrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOperandOfIncrementExpression
+        Public Overrides Function IsOperandOfIncrementExpression(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsOperandOfIncrementOrDecrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOperandOfIncrementOrDecrementExpression
+        Public Overrides Function IsOperandOfIncrementOrDecrementExpression(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function GetContentsOfInterpolatedString(interpolatedString As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetContentsOfInterpolatedString
+        Public Overrides Function GetContentsOfInterpolatedString(interpolatedString As SyntaxNode) As SyntaxList(Of SyntaxNode)
             Return (TryCast(interpolatedString, InterpolatedStringExpressionSyntax)?.Contents).Value
         End Function
 
-        Public Overrides Function IsNumericLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsNumericLiteral
+        Public Overrides Function IsNumericLiteral(token As SyntaxToken) As Boolean
             Return token.Kind = SyntaxKind.DecimalLiteralToken OrElse
                    token.Kind = SyntaxKind.FloatingLiteralToken OrElse
                    token.Kind = SyntaxKind.IntegerLiteralToken
         End Function
 
-        Public Overrides Function IsVerbatimStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsVerbatimStringLiteral
+        Public Overrides Function IsVerbatimStringLiteral(token As SyntaxToken) As Boolean
             ' VB does not have verbatim strings
             Return False
         End Function
 
-        Public Overrides Function GetArgumentsOfInvocationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfInvocationExpression
+        Public Overrides Function GetArgumentsOfInvocationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
             Dim argumentList = DirectCast(node, InvocationExpressionSyntax).ArgumentList
             Return If(argumentList Is Nothing, Nothing, GetArgumentsOfArgumentList(argumentList))
         End Function
 
-        Public Overrides Function GetArgumentsOfObjectCreationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfObjectCreationExpression
+        Public Overrides Function GetArgumentsOfObjectCreationExpression(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
             Dim argumentList = DirectCast(node, ObjectCreationExpressionSyntax).ArgumentList
             Return If(argumentList Is Nothing, Nothing, GetArgumentsOfArgumentList(argumentList))
         End Function
 
-        Public Overrides Function GetArgumentsOfArgumentList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfArgumentList
+        Public Overrides Function GetArgumentsOfArgumentList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
             Return DirectCast(node, ArgumentListSyntax).Arguments
         End Function
 
-        Public Overrides Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFacts.ConvertToSingleLine
+        Public Overrides Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode
             Return node.ConvertToSingleLine(useElasticTrivia)
         End Function
 
-        Public Overrides Function IsDocumentationComment(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDocumentationComment
+        Public Overrides Function IsDocumentationComment(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.DocumentationCommentTrivia)
         End Function
 
-        Public Overrides Function IsUsingOrExternOrImport(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUsingOrExternOrImport
+        Public Overrides Function IsUsingOrExternOrImport(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.ImportsStatement)
         End Function
 
-        Public Overrides Function IsGlobalAssemblyAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsGlobalAssemblyAttribute
+        Public Overrides Function IsGlobalAssemblyAttribute(node As SyntaxNode) As Boolean
             Return IsGlobalAttribute(node, SyntaxKind.AssemblyKeyword)
         End Function
 
-        Public Overrides Function IsGlobalModuleAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsGlobalModuleAttribute
+        Public Overrides Function IsGlobalModuleAttribute(node As SyntaxNode) As Boolean
             Return IsGlobalAttribute(node, SyntaxKind.ModuleKeyword)
         End Function
 
@@ -1233,7 +1233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Overrides Function IsDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclaration
+        Public Overrides Function IsDeclaration(node As SyntaxNode) As Boolean
             ' From the Visual Basic language spec:
             ' NamespaceMemberDeclaration  :=
             '    NamespaceDeclaration  |
@@ -1312,7 +1312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         '    InterfaceDeclaration  |
         '    ClassDeclaration  |
         '    DelegateDeclaration
-        Public Overrides Function IsTypeDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTypeDeclaration
+        Public Overrides Function IsTypeDeclaration(node As SyntaxNode) As Boolean
             Select Case node.Kind()
                 Case SyntaxKind.EnumBlock,
                      SyntaxKind.StructureBlock,
@@ -1327,35 +1327,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Overrides Function IsSimpleAssignmentStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleAssignmentStatement
+        Public Overrides Function IsSimpleAssignmentStatement(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.SimpleAssignmentStatement)
         End Function
 
-        Public Overrides Sub GetPartsOfAssignmentStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfAssignmentStatement
+        Public Overrides Sub GetPartsOfAssignmentStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode)
             ' VB only has assignment statements, so this can just delegate to that helper
             GetPartsOfAssignmentExpressionOrStatement(statement, left, operatorToken, right)
         End Sub
 
-        Public Overrides Sub GetPartsOfAssignmentExpressionOrStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfAssignmentExpressionOrStatement
+        Public Overrides Sub GetPartsOfAssignmentExpressionOrStatement(statement As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode)
             Dim assignment = DirectCast(statement, AssignmentStatementSyntax)
             left = assignment.Left
             operatorToken = assignment.OperatorToken
             right = assignment.Right
         End Sub
 
-        Public Overrides Function GetIdentifierOfSimpleName(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfSimpleName
+        Public Overrides Function GetIdentifierOfSimpleName(node As SyntaxNode) As SyntaxToken
             Return DirectCast(node, SimpleNameSyntax).Identifier
         End Function
 
-        Public Overrides Function GetIdentifierOfVariableDeclarator(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfVariableDeclarator
+        Public Overrides Function GetIdentifierOfVariableDeclarator(node As SyntaxNode) As SyntaxToken
             Return DirectCast(node, VariableDeclaratorSyntax).Names.Last().Identifier
         End Function
 
-        Public Overrides Function GetIdentifierOfParameter(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfParameter
+        Public Overrides Function GetIdentifierOfParameter(node As SyntaxNode) As SyntaxToken
             Return DirectCast(node, ParameterSyntax).Identifier.Identifier
         End Function
 
-        Public Overrides Function GetIdentifierOfTypeDeclaration(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfTypeDeclaration
+        Public Overrides Function GetIdentifierOfTypeDeclaration(node As SyntaxNode) As SyntaxToken
             Select Case node.Kind()
                 Case SyntaxKind.EnumStatement,
                      SyntaxKind.StructureStatement,
@@ -1372,41 +1372,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Throw ExceptionUtilities.UnexpectedValue(node)
         End Function
 
-        Public Overrides Function GetIdentifierOfIdentifierName(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfIdentifierName
+        Public Overrides Function GetIdentifierOfIdentifierName(node As SyntaxNode) As SyntaxToken
             Return DirectCast(node, IdentifierNameSyntax).Identifier
         End Function
 
-        Public Overrides Function IsDeclaratorOfLocalDeclarationStatement(declarator As SyntaxNode, localDeclarationStatement As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclaratorOfLocalDeclarationStatement
+        Public Overrides Function IsDeclaratorOfLocalDeclarationStatement(declarator As SyntaxNode, localDeclarationStatement As SyntaxNode) As Boolean
             Return DirectCast(localDeclarationStatement, LocalDeclarationStatementSyntax).Declarators.
                 Contains(DirectCast(declarator, VariableDeclaratorSyntax))
         End Function
 
-        Public Overrides Function AreEquivalent(token1 As SyntaxToken, token2 As SyntaxToken) As Boolean Implements ISyntaxFacts.AreEquivalent
+        Public Overrides Function AreEquivalent(token1 As SyntaxToken, token2 As SyntaxToken) As Boolean
             Return SyntaxFactory.AreEquivalent(token1, token2)
         End Function
 
-        Public Overrides Function AreEquivalent(node1 As SyntaxNode, node2 As SyntaxNode) As Boolean Implements ISyntaxFacts.AreEquivalent
+        Public Overrides Function AreEquivalent(node1 As SyntaxNode, node2 As SyntaxNode) As Boolean
             Return SyntaxFactory.AreEquivalent(node1, node2)
         End Function
 
-        Public Overrides Function IsExpressionOfForeach(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsExpressionOfForeach
+        Public Overrides Function IsExpressionOfForeach(node As SyntaxNode) As Boolean
             Return node IsNot Nothing AndAlso TryCast(node.Parent, ForEachStatementSyntax)?.Expression Is node
         End Function
 
-        Public Overrides Function GetExpressionOfExpressionStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfExpressionStatement
+        Public Overrides Function GetExpressionOfExpressionStatement(node As SyntaxNode) As SyntaxNode
             Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
 
-        Public Overrides Function IsIsExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsExpression
+        Public Overrides Function IsIsExpression(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.TypeOfIsExpression)
         End Function
 
-        Public Overrides Function WalkDownParentheses(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.WalkDownParentheses
+        Public Overrides Function WalkDownParentheses(node As SyntaxNode) As SyntaxNode
             Return If(TryCast(node, ExpressionSyntax)?.WalkDownParentheses(), node)
         End Function
 
         Public Overrides Sub GetPartsOfTupleExpression(Of TArgumentSyntax As SyntaxNode)(
-                node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of TArgumentSyntax), ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfTupleExpression
+                node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of TArgumentSyntax), ByRef closeParen As SyntaxToken)
 
             Dim tupleExpr = DirectCast(node, TupleExpressionSyntax)
             openParen = tupleExpr.OpenParenToken
@@ -1414,23 +1414,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             closeParen = tupleExpr.CloseParenToken
         End Sub
 
-        Public Overrides Function IsPreprocessorDirective(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsPreprocessorDirective
+        Public Overrides Function IsPreprocessorDirective(trivia As SyntaxTrivia) As Boolean
             Return SyntaxFacts.IsPreprocessorDirective(trivia.Kind())
         End Function
 
-        Public Overrides Function IsRegularComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsRegularComment
+        Public Overrides Function IsRegularComment(trivia As SyntaxTrivia) As Boolean
             Return trivia.Kind = SyntaxKind.CommentTrivia
         End Function
 
-        Public Overrides Function IsDocumentationComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsDocumentationComment
+        Public Overrides Function IsDocumentationComment(trivia As SyntaxTrivia) As Boolean
             Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
         End Function
 
-        Public Overrides Function IsElastic(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsElastic
+        Public Overrides Function IsElastic(trivia As SyntaxTrivia) As Boolean
             Return trivia.IsElastic()
         End Function
 
-        Public Overrides Function IsPragmaDirective(trivia As SyntaxTrivia, ByRef isDisable As Boolean, ByRef isActive As Boolean, ByRef errorCodes As SeparatedSyntaxList(Of SyntaxNode)) As Boolean Implements ISyntaxFacts.IsPragmaDirective
+        Public Overrides Function IsPragmaDirective(trivia As SyntaxTrivia, ByRef isDisable As Boolean, ByRef isActive As Boolean, ByRef errorCodes As SeparatedSyntaxList(Of SyntaxNode)) As Boolean
             Return trivia.IsPragmaDirective(isDisable, isActive, errorCodes)
         End Function
 
@@ -1438,87 +1438,79 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return token.ContainsInterleavedDirective(span, cancellationToken)
         End Function
 
-        Private Function ISyntaxFacts_ContainsInterleavedDirective(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.ContainsInterleavedDirective
-            Return ContainsInterleavedDirective(node, cancellationToken)
-        End Function
-
-        Private Function ISyntaxFacts_ContainsInterleavedDirective1(nodes As ImmutableArray(Of SyntaxNode), cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.ContainsInterleavedDirective
-            Return ContainsInterleavedDirective(nodes, cancellationToken)
-        End Function
-
-        Public Overrides Function IsDocumentationCommentExteriorTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsDocumentationCommentExteriorTrivia
+        Public Overrides Function IsDocumentationCommentExteriorTrivia(trivia As SyntaxTrivia) As Boolean
             Return trivia.Kind() = SyntaxKind.DocumentationCommentExteriorTrivia
         End Function
 
-        Public Overrides Function GetModifiers(node As SyntaxNode) As SyntaxTokenList Implements ISyntaxFacts.GetModifiers
+        Public Overrides Function GetModifiers(node As SyntaxNode) As SyntaxTokenList
             Return node.GetModifiers()
         End Function
 
-        Public Overrides Function WithModifiers(node As SyntaxNode, modifiers As SyntaxTokenList) As SyntaxNode Implements ISyntaxFacts.WithModifiers
+        Public Overrides Function WithModifiers(node As SyntaxNode, modifiers As SyntaxTokenList) As SyntaxNode
             Return node.WithModifiers(modifiers)
         End Function
 
-        Public Overrides Function GetVariablesOfLocalDeclarationStatement(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetVariablesOfLocalDeclarationStatement
+        Public Overrides Function GetVariablesOfLocalDeclarationStatement(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
             Return DirectCast(node, LocalDeclarationStatementSyntax).Declarators
         End Function
 
-        Public Overrides Function GetInitializerOfVariableDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetInitializerOfVariableDeclarator
+        Public Overrides Function GetInitializerOfVariableDeclarator(node As SyntaxNode) As SyntaxNode
             Return DirectCast(node, VariableDeclaratorSyntax).Initializer
         End Function
 
-        Public Overrides Function GetTypeOfVariableDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetTypeOfVariableDeclarator
+        Public Overrides Function GetTypeOfVariableDeclarator(node As SyntaxNode) As SyntaxNode
             Dim declarator = DirectCast(node, VariableDeclaratorSyntax)
             Return TryCast(declarator.AsClause, SimpleAsClauseSyntax)?.Type
         End Function
 
-        Public Overrides Function GetValueOfEqualsValueClause(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetValueOfEqualsValueClause
+        Public Overrides Function GetValueOfEqualsValueClause(node As SyntaxNode) As SyntaxNode
             Return DirectCast(node, EqualsValueSyntax).Value
         End Function
 
-        Public Overrides Function IsScopeBlock(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsScopeBlock
+        Public Overrides Function IsScopeBlock(node As SyntaxNode) As Boolean
             ' VB has no equivalent of curly braces.
             Return False
         End Function
 
-        Public Overrides Function IsExecutableBlock(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsExecutableBlock
+        Public Overrides Function IsExecutableBlock(node As SyntaxNode) As Boolean
             Return node.IsExecutableBlock()
         End Function
 
-        Public Overrides Function GetExecutableBlockStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode) Implements ISyntaxFacts.GetExecutableBlockStatements
+        Public Overrides Function GetExecutableBlockStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
             Return node.GetExecutableBlockStatements()
         End Function
 
-        Public Overrides Function FindInnermostCommonExecutableBlock(nodes As IEnumerable(Of SyntaxNode)) As SyntaxNode Implements ISyntaxFacts.FindInnermostCommonExecutableBlock
+        Public Overrides Function FindInnermostCommonExecutableBlock(nodes As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return nodes.FindInnermostCommonExecutableBlock()
         End Function
 
-        Public Overrides Function IsStatementContainer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsStatementContainer
+        Public Overrides Function IsStatementContainer(node As SyntaxNode) As Boolean
             Return IsExecutableBlock(node)
         End Function
 
-        Public Overrides Function GetStatementContainerStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode) Implements ISyntaxFacts.GetStatementContainerStatements
+        Public Overrides Function GetStatementContainerStatements(node As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
             Return GetExecutableBlockStatements(node)
         End Function
 
-        Public Overrides Function IsConversionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsConversionExpression
+        Public Overrides Function IsConversionExpression(node As SyntaxNode) As Boolean
             Return node.Kind = SyntaxKind.CTypeExpression
         End Function
 
-        Public Overrides Function IsCastExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsCastExpression
+        Public Overrides Function IsCastExpression(node As SyntaxNode) As Boolean
             Return node.Kind = SyntaxKind.DirectCastExpression
         End Function
 
-        Public Overrides Sub GetPartsOfCastExpression(node As SyntaxNode, ByRef type As SyntaxNode, ByRef expression As SyntaxNode) Implements ISyntaxFacts.GetPartsOfCastExpression
+        Public Overrides Sub GetPartsOfCastExpression(node As SyntaxNode, ByRef type As SyntaxNode, ByRef expression As SyntaxNode)
             Dim cast = DirectCast(node, DirectCastExpressionSyntax)
             type = cast.Type
             expression = cast.Expression
         End Sub
 
-        Public Overrides Function GetDeconstructionReferenceLocation(node As SyntaxNode) As Location Implements ISyntaxFacts.GetDeconstructionReferenceLocation
+        Public Overrides Function GetDeconstructionReferenceLocation(node As SyntaxNode) As Location
             Throw New NotImplementedException()
         End Function
 
-        Public Overrides Function GetDeclarationIdentifierIfOverride(token As SyntaxToken) As SyntaxToken? Implements ISyntaxFacts.GetDeclarationIdentifierIfOverride
+        Public Overrides Function GetDeclarationIdentifierIfOverride(token As SyntaxToken) As SyntaxToken?
             If token.Kind() = SyntaxKind.OverridesKeyword Then
                 Dim parent = token.Parent
 
@@ -1536,26 +1528,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return Nothing
         End Function
 
-        Public Overrides Function IsPostfixUnaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsPostfixUnaryExpression
+        Public Overrides Function IsPostfixUnaryExpression(node As SyntaxNode) As Boolean
             ' Does not exist in VB.
             Return False
         End Function
 
-        Public Overrides Function IsMemberBindingExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberBindingExpression
+        Public Overrides Function IsMemberBindingExpression(node As SyntaxNode) As Boolean
             ' Does not exist in VB.  VB represents a member binding as a MemberAccessExpression with null target.
             Return False
         End Function
 
-        Public Overrides Function IsNameOfMemberBindingExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfMemberBindingExpression
+        Public Overrides Function IsNameOfMemberBindingExpression(node As SyntaxNode) As Boolean
             ' Does not exist in VB.  VB represents a member binding as a MemberAccessExpression with null target.
             Return False
         End Function
 
-        Public Overrides Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetAttributeLists
+        Public Overrides Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode)
             Return node.GetAttributeLists()
         End Function
 
-        Public Overrides Function IsUsingAliasDirective(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUsingAliasDirective
+        Public Overrides Function IsUsingAliasDirective(node As SyntaxNode) As Boolean
             Dim importStatement = TryCast(node, ImportsStatementSyntax)
 
             If (importStatement IsNot Nothing) Then
@@ -1578,7 +1570,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 node As SyntaxNode,
                 ByRef globalKeyword As SyntaxToken,
                 ByRef [alias] As SyntaxToken,
-                ByRef name As SyntaxNode) Implements ISyntaxFacts.GetPartsOfUsingAliasDirective
+                ByRef name As SyntaxNode)
             Dim importStatement = DirectCast(node, ImportsStatementSyntax)
             For Each importsClause In importStatement.ImportsClauses
 
@@ -1597,7 +1589,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Throw ExceptionUtilities.Unreachable
         End Sub
 
-        Public Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParameterNameXmlElementSyntax
+        Public Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean
             Dim xmlElement = TryCast(node, XmlElementSyntax)
             If xmlElement IsNot Nothing Then
                 Dim name = TryCast(xmlElement.StartTag.Name, XmlNameSyntax)
@@ -1607,7 +1599,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetContentFromDocumentationCommentTriviaSyntax
+        Public Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxList(Of SyntaxNode)
             Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
             If documentationCommentTrivia IsNot Nothing Then
                 Return documentationCommentTrivia.Content
@@ -1652,128 +1644,128 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return 1
         End Function
 
-        Public Overrides Function SupportsNotPattern(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsNotPattern
+        Public Overrides Function SupportsNotPattern(options As ParseOptions) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsIsPatternExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsPatternExpression
+        Public Overrides Function IsIsPatternExpression(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsAnyPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnyPattern
+        Public Overrides Function IsAnyPattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsAndPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAndPattern
+        Public Overrides Function IsAndPattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsBinaryPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBinaryPattern
+        Public Overrides Function IsBinaryPattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsConstantPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsConstantPattern
+        Public Overrides Function IsConstantPattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsDeclarationPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclarationPattern
+        Public Overrides Function IsDeclarationPattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsNotPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNotPattern
+        Public Overrides Function IsNotPattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsOrPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsOrPattern
+        Public Overrides Function IsOrPattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsParenthesizedPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParenthesizedPattern
+        Public Overrides Function IsParenthesizedPattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsRecursivePattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsRecursivePattern
+        Public Overrides Function IsRecursivePattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsUnaryPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUnaryPattern
+        Public Overrides Function IsUnaryPattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsTypePattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTypePattern
+        Public Overrides Function IsTypePattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Function IsVarPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVarPattern
+        Public Overrides Function IsVarPattern(node As SyntaxNode) As Boolean
             Return False
         End Function
 
-        Public Overrides Sub GetPartsOfIsPatternExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef isToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfIsPatternExpression
+        Public Overrides Sub GetPartsOfIsPatternExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef isToken As SyntaxToken, ByRef right As SyntaxNode)
             Throw ExceptionUtilities.Unreachable
         End Sub
 
-        Public Overrides Function GetExpressionOfConstantPattern(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfConstantPattern
+        Public Overrides Function GetExpressionOfConstantPattern(node As SyntaxNode) As SyntaxNode
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Public Overrides Sub GetPartsOfParenthesizedPattern(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef pattern As SyntaxNode, ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfParenthesizedPattern
+        Public Overrides Sub GetPartsOfParenthesizedPattern(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef pattern As SyntaxNode, ByRef closeParen As SyntaxToken)
             Throw ExceptionUtilities.Unreachable
         End Sub
 
-        Public Overrides Sub GetPartsOfBinaryPattern(node As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfBinaryPattern
+        Public Overrides Sub GetPartsOfBinaryPattern(node As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode)
             Throw ExceptionUtilities.Unreachable
         End Sub
 
-        Public Overrides Sub GetPartsOfUnaryPattern(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef pattern As SyntaxNode) Implements ISyntaxFacts.GetPartsOfUnaryPattern
+        Public Overrides Sub GetPartsOfUnaryPattern(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef pattern As SyntaxNode)
             Throw ExceptionUtilities.Unreachable
         End Sub
 
-        Public Overrides Sub GetPartsOfDeclarationPattern(node As SyntaxNode, ByRef type As SyntaxNode, ByRef designation As SyntaxNode) Implements ISyntaxFacts.GetPartsOfDeclarationPattern
+        Public Overrides Sub GetPartsOfDeclarationPattern(node As SyntaxNode, ByRef type As SyntaxNode, ByRef designation As SyntaxNode)
             Throw New NotImplementedException()
         End Sub
 
-        Public Overrides Sub GetPartsOfRecursivePattern(node As SyntaxNode, ByRef type As SyntaxNode, ByRef positionalPart As SyntaxNode, ByRef propertyPart As SyntaxNode, ByRef designation As SyntaxNode) Implements ISyntaxFacts.GetPartsOfRecursivePattern
+        Public Overrides Sub GetPartsOfRecursivePattern(node As SyntaxNode, ByRef type As SyntaxNode, ByRef positionalPart As SyntaxNode, ByRef propertyPart As SyntaxNode, ByRef designation As SyntaxNode)
             Throw New NotImplementedException()
         End Sub
 
-        Public Overrides Function GetTypeOfTypePattern(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetTypeOfTypePattern
+        Public Overrides Function GetTypeOfTypePattern(node As SyntaxNode) As SyntaxNode
             Throw New NotImplementedException()
         End Function
 
-        Public Overrides Sub GetPartsOfInterpolationExpression(node As SyntaxNode, ByRef stringStartToken As SyntaxToken, ByRef contents As SyntaxList(Of SyntaxNode), ByRef stringEndToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfInterpolationExpression
+        Public Overrides Sub GetPartsOfInterpolationExpression(node As SyntaxNode, ByRef stringStartToken As SyntaxToken, ByRef contents As SyntaxList(Of SyntaxNode), ByRef stringEndToken As SyntaxToken)
             Dim interpolatedStringExpressionSyntax As InterpolatedStringExpressionSyntax = DirectCast(node, InterpolatedStringExpressionSyntax)
             stringStartToken = interpolatedStringExpressionSyntax.DollarSignDoubleQuoteToken
             contents = interpolatedStringExpressionSyntax.Contents
             stringEndToken = interpolatedStringExpressionSyntax.DoubleQuoteToken
         End Sub
 
-        Public Overrides Function IsVerbatimInterpolatedStringExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVerbatimInterpolatedStringExpression
+        Public Overrides Function IsVerbatimInterpolatedStringExpression(node As SyntaxNode) As Boolean
             Return False
         End Function
 
 #Region "IsXXX members"
 
-        Public Overrides Function IsAnonymousFunctionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnonymousFunctionExpression
+        Public Overrides Function IsAnonymousFunctionExpression(node As SyntaxNode) As Boolean
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
-        Public Overrides Function IsBaseNamespaceDeclaration(<NotNullWhen(True)> node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBaseNamespaceDeclaration
+        Public Overrides Function IsBaseNamespaceDeclaration(<NotNullWhen(True)> node As SyntaxNode) As Boolean
             Return TypeOf node Is NamespaceBlockSyntax
         End Function
 
-        Public Overrides Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBinaryExpression
+        Public Overrides Function IsBinaryExpression(node As SyntaxNode) As Boolean
             Return TypeOf node Is BinaryExpressionSyntax
         End Function
 
-        Public Overrides Function IsLiteralExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLiteralExpression
+        Public Overrides Function IsLiteralExpression(node As SyntaxNode) As Boolean
             Return TypeOf node Is LiteralExpressionSyntax
         End Function
 
-        Public Overrides Function IsMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberAccessExpression
+        Public Overrides Function IsMemberAccessExpression(node As SyntaxNode) As Boolean
             Return TypeOf node Is MemberAccessExpressionSyntax
         End Function
 
-        Public Overrides Function IsSimpleName(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleName
+        Public Overrides Function IsSimpleName(node As SyntaxNode) As Boolean
             Return TypeOf node Is SimpleNameSyntax
         End Function
 
@@ -1781,75 +1773,75 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 #Region "GetPartsOfXXX members"
 
-        Public Overrides Sub GetPartsOfBinaryExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfBinaryExpression
+        Public Overrides Sub GetPartsOfBinaryExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode)
             Dim binaryExpression = DirectCast(node, BinaryExpressionSyntax)
             left = binaryExpression.Left
             operatorToken = binaryExpression.OperatorToken
             right = binaryExpression.Right
         End Sub
 
-        Public Overrides Sub GetPartsOfCompilationUnit(node As SyntaxNode, ByRef [imports] As SyntaxList(Of SyntaxNode), ByRef attributeLists As SyntaxList(Of SyntaxNode), ByRef members As SyntaxList(Of SyntaxNode)) Implements ISyntaxFacts.GetPartsOfCompilationUnit
+        Public Overrides Sub GetPartsOfCompilationUnit(node As SyntaxNode, ByRef [imports] As SyntaxList(Of SyntaxNode), ByRef attributeLists As SyntaxList(Of SyntaxNode), ByRef members As SyntaxList(Of SyntaxNode))
             Dim compilationUnit = DirectCast(node, CompilationUnitSyntax)
             [imports] = compilationUnit.Imports
             attributeLists = compilationUnit.Attributes
             members = compilationUnit.Members
         End Sub
 
-        Public Overrides Sub GetPartsOfConditionalAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef whenNotNull As SyntaxNode) Implements ISyntaxFacts.GetPartsOfConditionalAccessExpression
+        Public Overrides Sub GetPartsOfConditionalAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef whenNotNull As SyntaxNode)
             Dim conditionalAccess = DirectCast(node, ConditionalAccessExpressionSyntax)
             expression = conditionalAccess.Expression
             operatorToken = conditionalAccess.QuestionMarkToken
             whenNotNull = conditionalAccess.WhenNotNull
         End Sub
 
-        Public Overrides Sub GetPartsOfConditionalExpression(node As SyntaxNode, ByRef condition As SyntaxNode, ByRef whenTrue As SyntaxNode, ByRef whenFalse As SyntaxNode) Implements ISyntaxFacts.GetPartsOfConditionalExpression
+        Public Overrides Sub GetPartsOfConditionalExpression(node As SyntaxNode, ByRef condition As SyntaxNode, ByRef whenTrue As SyntaxNode, ByRef whenFalse As SyntaxNode)
             Dim conditionalExpression = DirectCast(node, TernaryConditionalExpressionSyntax)
             condition = conditionalExpression.Condition
             whenTrue = conditionalExpression.WhenTrue
             whenFalse = conditionalExpression.WhenFalse
         End Sub
 
-        Public Overrides Sub GetPartsOfInvocationExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFacts.GetPartsOfInvocationExpression
+        Public Overrides Sub GetPartsOfInvocationExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode)
             Dim invocation = DirectCast(node, InvocationExpressionSyntax)
             expression = invocation.Expression
             argumentList = invocation.ArgumentList
         End Sub
 
-        Public Overrides Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef name As SyntaxNode) Implements ISyntaxFacts.GetPartsOfMemberAccessExpression
+        Public Overrides Sub GetPartsOfMemberAccessExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef name As SyntaxNode)
             Dim memberAccess = DirectCast(node, MemberAccessExpressionSyntax)
             expression = memberAccess.Expression
             operatorToken = memberAccess.OperatorToken
             name = memberAccess.Name
         End Sub
 
-        Public Overrides Sub GetPartsOfBaseNamespaceDeclaration(node As SyntaxNode, ByRef name As SyntaxNode, ByRef [imports] As SyntaxList(Of SyntaxNode), ByRef members As SyntaxList(Of SyntaxNode)) Implements ISyntaxFacts.GetPartsOfBaseNamespaceDeclaration
+        Public Overrides Sub GetPartsOfBaseNamespaceDeclaration(node As SyntaxNode, ByRef name As SyntaxNode, ByRef [imports] As SyntaxList(Of SyntaxNode), ByRef members As SyntaxList(Of SyntaxNode))
             Dim namespaceBlock = DirectCast(node, NamespaceBlockSyntax)
             name = namespaceBlock.NamespaceStatement.Name
             [imports] = Nothing
             members = namespaceBlock.Members
         End Sub
 
-        Public Overrides Sub GetPartsOfObjectCreationExpression(node As SyntaxNode, ByRef type As SyntaxNode, ByRef argumentList As SyntaxNode, ByRef initializer As SyntaxNode) Implements ISyntaxFacts.GetPartsOfObjectCreationExpression
+        Public Overrides Sub GetPartsOfObjectCreationExpression(node As SyntaxNode, ByRef type As SyntaxNode, ByRef argumentList As SyntaxNode, ByRef initializer As SyntaxNode)
             Dim objectCreationExpression = DirectCast(node, ObjectCreationExpressionSyntax)
             type = objectCreationExpression.Type
             argumentList = objectCreationExpression.ArgumentList
             initializer = objectCreationExpression.Initializer
         End Sub
 
-        Public Overrides Sub GetPartsOfParenthesizedExpression(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef expression As SyntaxNode, ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfParenthesizedExpression
+        Public Overrides Sub GetPartsOfParenthesizedExpression(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef expression As SyntaxNode, ByRef closeParen As SyntaxToken)
             Dim parenthesizedExpression = DirectCast(node, ParenthesizedExpressionSyntax)
             openParen = parenthesizedExpression.OpenParenToken
             expression = parenthesizedExpression.Expression
             closeParen = parenthesizedExpression.CloseParenToken
         End Sub
 
-        Public Overrides Sub GetPartsOfPrefixUnaryExpression(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef operand As SyntaxNode) Implements ISyntaxFacts.GetPartsOfPrefixUnaryExpression
+        Public Overrides Sub GetPartsOfPrefixUnaryExpression(node As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef operand As SyntaxNode)
             Dim unaryExpression = DirectCast(node, UnaryExpressionSyntax)
             operatorToken = unaryExpression.OperatorToken
             operand = unaryExpression.Operand
         End Sub
 
-        Public Overrides Sub GetPartsOfQualifiedName(node As SyntaxNode, ByRef left As SyntaxNode, ByRef dotToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfQualifiedName
+        Public Overrides Sub GetPartsOfQualifiedName(node As SyntaxNode, ByRef left As SyntaxNode, ByRef dotToken As SyntaxToken, ByRef right As SyntaxNode)
             Dim qualifiedName = DirectCast(node, QualifiedNameSyntax)
             left = qualifiedName.Left
             dotToken = qualifiedName.DotToken
@@ -1860,11 +1852,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 #Region "GetXXXOfYYY members"
 
-        Public Overrides Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfAwaitExpression
+        Public Overrides Function GetExpressionOfAwaitExpression(node As SyntaxNode) As SyntaxNode
             Return DirectCast(node, AwaitExpressionSyntax).Expression
         End Function
 
-        Public Overrides Function GetExpressionOfThrowExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfThrowExpression
+        Public Overrides Function GetExpressionOfThrowExpression(node As SyntaxNode) As SyntaxNode
             ' ThrowExpression doesn't exist in VB
             Throw New NotImplementedException()
         End Function
