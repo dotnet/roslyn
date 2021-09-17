@@ -20,15 +20,45 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly TempRoot _temp;
         private readonly TempDirectory _directory;
 
+        /// <summary>
+        /// An assembly with no references, assembly version 1.
+        /// </summary>
         public TempFile Delta1 { get; }
+
+        /// <summary>
+        /// An assembly with a reference to <see cref="Delta1"/>.
+        /// </summary>
         public TempFile Gamma { get; }
+
+        /// <summary>
+        /// An assembly with a reference to <see cref="Gamma"/>.
+        /// </summary>
         public TempFile Beta { get; }
+
+        /// <summary>
+        /// An assembly with a reference to <see cref="Gamma"/>.
+        /// </summary>
         public TempFile Alpha { get; }
 
+        /// <summary>
+        /// An assembly with no references, assembly version 2.
+        /// </summary>
         public TempFile Delta2 { get; }
+
+        /// <summary>
+        /// An assembly with a reference to <see cref="Delta2"/>.
+        /// </summary>
         public TempFile Epsilon { get; }
 
+        /// <summary>
+        /// An assembly with no references, assembly version 2. The implementation however is different than
+        /// <see cref="Delta2"/> so we can test having two assemblies that look the same but aren't.
+        /// </summary>
         public TempFile Delta2B { get; }
+
+        /// <summary>
+        /// An assembly with no references, assembly version 3.
+        /// </summary>
         public TempFile Delta3 { get; }
 
         public TempFile UserSystemCollectionsImmutable { get; }
