@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                     else
                     {
-                        moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
+                        moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatusEx.RestartRequired, ImmutableArray<ManagedModuleUpdate>.Empty);
                         diagnosticData = ImmutableArray<DiagnosticData>.Empty;
                         rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
                         syntaxError = null;
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 diagnosticData = ImmutableArray.Create(DiagnosticData.Create(diagnostic, solution.Options));
                 rudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty;
-                moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
+                moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatusEx.RestartRequired, ImmutableArray<ManagedModuleUpdate>.Empty);
                 syntaxError = null;
             }
 

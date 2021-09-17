@@ -173,18 +173,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         /// <summary>
-        /// Determine whether the updates made to projects containing the specified file (or all projects that are built,
-        /// if <paramref name="sourceFilePath"/> is null) are ready to be applied and the debugger should attempt to apply
-        /// them on "continue".
+        /// Determine whether updates have been made to projects containing the specified file (or all projects that are built,
+        /// if <paramref name="sourceFilePath"/> is null).
         /// </summary>
-        /// <returns>
-        /// Returns <see cref="ManagedModuleUpdateStatus.Blocked"/> if there are rude edits or other errors
-        /// that block the application of the updates. Might return <see cref="ManagedModuleUpdateStatus.Ready"/> even if there are
-        /// errors in the code that will block the application of the updates. E.g. emit diagnostics can't be determined until
-        /// emit is actually performed. Therefore, this method only serves as an optimization to avoid unnecessary emit attempts,
-        /// but does not provide a definitive answer. Only <see cref="EmitSolutionUpdateAsync"/> can definitively determine whether
-        /// the update is valid or not.
-        /// </returns>
         public ValueTask<bool> HasChangesAsync(
             DebuggingSessionId sessionId,
             Solution solution,

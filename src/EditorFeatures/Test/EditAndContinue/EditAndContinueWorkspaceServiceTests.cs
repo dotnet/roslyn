@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Assert.True(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.RestartRequired, updates.Status);
             Assert.Empty(updates.Updates);
             AssertEx.Equal(new[] { $"{document2.Project.Id} Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, moduleFile.Path, expectedErrorMessage)}" }, InspectDiagnostics(emitDiagnostics));
 
@@ -1103,7 +1103,7 @@ class C1
             Assert.True(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.RestartRequired, updates.Status);
             Assert.Empty(updates.Updates);
             AssertEx.Equal(new[] { $"{document2.Project.Id} Error ENC2016: {string.Format(FeaturesResources.EditAndContinueDisallowedByProject, document2.Project.Name, "*message*")}" }, InspectDiagnostics(emitDiagnostics));
 
@@ -1193,7 +1193,7 @@ class C1
             Assert.True(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.RestartRequired, updates.Status);
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
@@ -1262,7 +1262,7 @@ class C { int Y => 2; }
                 diagnostics1.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.RestartRequired, updates.Status);
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
@@ -1337,7 +1337,7 @@ class C { int Y => 2; }
                diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
             (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.RestartRequired, updates.Status);
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
@@ -1412,7 +1412,7 @@ class C { int Y => 2; }
             Assert.True(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.RestartRequired, updates.Status);
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
@@ -1457,7 +1457,7 @@ class C { int Y => 2; }
             Assert.True(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.RestartRequired, updates.Status);
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
@@ -1473,7 +1473,7 @@ class C { int Y => 2; }
             Assert.True(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
 
             (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.RestartRequired, updates.Status);
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
@@ -1507,7 +1507,7 @@ class C { int Y => 2; }
             Assert.True(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.Blocked, updates.Status);
             Assert.Empty(updates.Updates);
             Assert.Empty(emitDiagnostics);
 
@@ -1550,7 +1550,7 @@ class C { int Y => 2; }
             Assert.True(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.Blocked, updates.Status);
             Assert.Empty(updates.Updates);
 
             // TODO: https://github.com/dotnet/roslyn/issues/36061
@@ -2899,7 +2899,7 @@ class C { int Y => 1; }
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             AssertEx.Equal(new[] { $"{document1.Project.Id} Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "test-pdb", new FileNotFoundException().Message)}" }, InspectDiagnostics(emitDiagnostics));
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.RestartRequired, updates.Status);
         }
 
         [Fact]
@@ -2932,7 +2932,7 @@ class C { int Y => 1; }
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             AssertEx.Equal(new[] { $"{document.Project.Id} Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "test-assembly", "*message*")}" }, InspectDiagnostics(emitDiagnostics));
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.RestartRequired, updates.Status);
 
             EndDebuggingSession(debuggingSession);
 
@@ -3487,7 +3487,7 @@ class C
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
             Assert.Empty(emitDiagnostics);
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
+            Assert.Equal(ManagedModuleUpdateStatusEx.RestartRequired, updates.Status);
 
             // undo the change
             solution = solution.WithDocumentText(document.Id, SourceText.From(source1, Encoding.UTF8));
