@@ -4,7 +4,9 @@
 
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
@@ -12,6 +14,8 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -19,8 +23,10 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
-    internal partial class InheritanceMarginGlyph
+    internal class InheritanceMarginGlyph : Button
     {
+        private const string ToolTipStyleKey = "ToolTipStyle";
+
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly IUIThreadOperationExecutor _operationExecutor;
@@ -44,7 +50,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _operationExecutor = operationExecutor;
             _textView = textView;
             _listener = listener;
-            InitializeComponent();
+
+            SetBinding(AutomationProperties.NameProperty, new Binding(nameof(InheritanceMarginGlyphViewModel.AutomationName)));
+
+            Background = Brushes.Transparent;
+            BorderBrush = Brushes.Transparent;
+
+            Click += InheritanceMargin_OnClick;
+            MouseEnter += InheritanceMargin_OnMouseEnter;
+            MouseLeave += InheritanceMargin_OnMouseLeave;
+
+            Resources.Add(ToolTipStyleKey, new Style(typeof(ToolTip))
+            {
+                Setters =
+                {
+                    new Setter(BackgroundProperty, new DynamicResourceExtension(EnvironmentColors.ToolTipBrushKey)),
+                    new Setter(BorderBrushProperty, new DynamicResourceExtension(EnvironmentColors.ToolTipBorderBrushKey)),
+                    new Setter(ForegroundProperty, new DynamicResourceExtension(EnvironmentColors.ToolTipTextBrushKey)),
+                },
+            });
+
+            // Control template only shows the image
+            var templateBorder = new FrameworkElementFactory(typeof(Border), "Border");
+            templateBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1));
+            templateBorder.SetBinding(Border.BackgroundProperty, new Binding(nameof(Background)) { RelativeSource = RelativeSource.TemplatedParent });
+            templateBorder.SetBinding(Border.BorderBrushProperty, new Binding(nameof(BorderBrush)) { RelativeSource = RelativeSource.TemplatedParent });
+
+            var templateImage = new FrameworkElementFactory(typeof(CrispImage));
+            templateImage.SetBinding(CrispImage.MonikerProperty, new Binding(nameof(InheritanceMarginGlyphViewModel.ImageMoniker)));
+            templateImage.SetBinding(CrispImage.ScaleFactorProperty, new Binding(nameof(InheritanceMarginGlyphViewModel.ScaleFactor)));
+            templateBorder.AppendChild(templateImage);
+
+            Template = new ControlTemplate { VisualTree = templateBorder };
 
             var viewModel = InheritanceMarginGlyphViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
             DataContext = viewModel;
@@ -77,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
 
             var viewModel = (InheritanceMarginGlyphViewModel)DataContext;
-            ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource("ToolTipStyle") };
+            ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource(ToolTipStyleKey) };
 
             ContextMenu = new InheritanceMarginContextMenu(_threadingContext, _streamingFindUsagesPresenter, _operationExecutor, _workspace, _textView, _listener);
             ContextMenu.DataContext = viewModel;
