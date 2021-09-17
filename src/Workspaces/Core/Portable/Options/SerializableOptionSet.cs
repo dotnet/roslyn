@@ -92,10 +92,11 @@ namespace Microsoft.CodeAnalysis.Options
         {
             Debug.Assert(languages.All(RemoteSupportedLanguages.IsSupported));
 
-            if (_languages.Value.SetEquals(languages))
+            if (_languages.Value.IsSupersetOf(languages))
                 return this;
 
             // First create a base option set for the given languages.
+            languages = languages.Union(_languages.Value);
             var newOptionSet = _workspaceOptionSet.OptionService.GetSerializableOptionsSnapshot(languages);
 
             // Then apply all the changed options from the current option set to the new option set.
