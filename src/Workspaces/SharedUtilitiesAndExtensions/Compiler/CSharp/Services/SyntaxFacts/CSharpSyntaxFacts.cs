@@ -1325,9 +1325,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             closeParen = tupleExpression.CloseParenToken;
         }
 
-        public SyntaxNode? GetNextExecutableStatement(SyntaxNode statement)
-            => ((StatementSyntax)statement).GetNextStatement();
-
         public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
             => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 

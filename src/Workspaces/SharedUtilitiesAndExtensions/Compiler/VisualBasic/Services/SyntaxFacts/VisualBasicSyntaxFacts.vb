@@ -1418,10 +1418,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             closeParen = tupleExpr.CloseParenToken
         End Sub
 
-        Public Function GetNextExecutableStatement(statement As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetNextExecutableStatement
-            Return DirectCast(statement, StatementSyntax).GetNextStatement()?.FirstAncestorOrSelf(Of ExecutableStatementSyntax)
-        End Function
-
         Private Function ISyntaxFacts_IsSingleLineCommentTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsSingleLineCommentTrivia
             Return MyBase.IsSingleLineCommentTrivia(trivia)
         End Function
