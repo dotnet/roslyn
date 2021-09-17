@@ -174,11 +174,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsElastic(SyntaxTrivia trivia);
         bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes);
 
-        bool IsSingleLineCommentTrivia(SyntaxTrivia trivia);
-        bool IsMultiLineCommentTrivia(SyntaxTrivia trivia);
-        bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia);
-        bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia);
-        bool IsShebangDirectiveTrivia(SyntaxTrivia trivia);
         bool IsPreprocessorDirective(SyntaxTrivia trivia);
 
         bool IsDocumentationComment(SyntaxNode node);

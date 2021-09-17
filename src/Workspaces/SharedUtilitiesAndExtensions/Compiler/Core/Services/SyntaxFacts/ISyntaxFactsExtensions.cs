@@ -623,6 +623,21 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsEndOfLineTrivia(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
             => trivia.RawKind == syntaxFacts.SyntaxKinds.EndOfLineTrivia;
 
+        public static bool IsMultiLineCommentTrivia(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
+            => trivia.RawKind == syntaxFacts.SyntaxKinds.MultiLineCommentTrivia;
+
+        public static bool IsMultiLineDocCommentTrivia(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
+            => trivia.RawKind == syntaxFacts.SyntaxKinds.MultiLineDocCommentTrivia;
+
+        public static bool IsShebangDirectiveTrivia(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
+            => trivia.RawKind == syntaxFacts.SyntaxKinds.ShebangDirectiveTrivia;
+
+        public static bool IsSingleLineCommentTrivia(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
+            => trivia.RawKind == syntaxFacts.SyntaxKinds.SingleLineCommentTrivia;
+
+        public static bool IsSingleLineDocCommentTrivia(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
+            => trivia.RawKind == syntaxFacts.SyntaxKinds.SingleLineDocCommentTrivia;
+
         public static bool IsWhitespaceTrivia(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
             => trivia.RawKind == syntaxFacts.SyntaxKinds.WhitespaceTrivia;
 
