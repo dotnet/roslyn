@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         protected override bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
         {
-            var leftExpression = syntaxFacts.IsAnyMemberAccessExpression(expression)
+            var leftExpression = syntaxFacts.IsMemberAccessExpression(expression)
                 ? syntaxFacts.GetExpressionOfMemberAccessExpression(expression)
                 : syntaxFacts.GetTargetOfMemberBinding(expression);
             if (leftExpression == null)

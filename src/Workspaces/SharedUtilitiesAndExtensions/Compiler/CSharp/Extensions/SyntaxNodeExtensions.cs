@@ -953,18 +953,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static SyntaxTokenList GetModifiers(this SyntaxNode? member)
-        {
-            switch (member)
+            => member switch
             {
-                case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
-                case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
-                case AnonymousFunctionExpressionSyntax anonymous: return anonymous.Modifiers;
-                case LocalFunctionStatementSyntax localFunction: return localFunction.Modifiers;
-                case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.Modifiers;
-            }
-
-            return default;
-        }
+                AccessorDeclarationSyntax accessor => accessor.Modifiers,
+                AnonymousFunctionExpressionSyntax anonymous => anonymous.Modifiers,
+                LocalDeclarationStatementSyntax localDeclaration => localDeclaration.Modifiers,
+                LocalFunctionStatementSyntax localFunction => localFunction.Modifiers,
+                MemberDeclarationSyntax memberDecl => memberDecl.Modifiers,
+                ParameterSyntax parameter => parameter.Modifiers,
+                _ => default,
+            };
 
         public static SyntaxNode? WithModifiers(this SyntaxNode? member, SyntaxTokenList modifiers)
         {
