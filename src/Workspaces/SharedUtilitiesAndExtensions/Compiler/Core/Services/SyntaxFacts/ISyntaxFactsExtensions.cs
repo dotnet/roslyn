@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => service.SpansPreprocessorDirective(SpecializedCollections.SingletonEnumerable(node));
 
         public static bool SpansPreprocessorDirective(this ISyntaxFacts service, params SyntaxNode[] nodes)
-            => service.SpansPreprocessorDirective(nodes);
+            => service.SpansPreprocessorDirective((IEnumerable<SyntaxNode>)nodes);
 
         public static bool IsWhitespaceOrEndOfLineTrivia(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
             => syntaxFacts.IsWhitespaceTrivia(trivia) || syntaxFacts.IsEndOfLineTrivia(trivia);
