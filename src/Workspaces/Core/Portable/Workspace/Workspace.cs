@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
 
-            var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService,
+            var emptyOptions = new SerializableOptionSet(_optionService,
                 serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty,
                 changedOptionKeysSerializable: ImmutableHashSet<OptionKey>.Empty);
 
