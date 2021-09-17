@@ -455,7 +455,7 @@ Delta: Epsilon: Test E
             Assert.Equal("42", sb.ToString());
         }
 
-        // This help does the samething as in `AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_01` test above except the assertions.
+        // This helper does the same thing as in `AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_01` test above except the assertions.
         private void AssemblyLoadingInNonDefaultContextHelper(StringBuilder sb)
         {
             var loader = new DefaultAnalyzerAssemblyLoader();
