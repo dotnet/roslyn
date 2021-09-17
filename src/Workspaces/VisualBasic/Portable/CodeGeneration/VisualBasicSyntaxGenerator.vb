@@ -1275,7 +1275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration
         End Function
 
-        Private Function GetIsDefault(modifierList As SyntaxTokenList) As Boolean
+        Private Shared Function GetIsDefault(modifierList As SyntaxTokenList) As Boolean
             Dim access As Accessibility
             Dim modifiers As DeclarationModifiers
             Dim isDefault As Boolean
