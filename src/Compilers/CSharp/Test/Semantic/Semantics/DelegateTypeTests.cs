@@ -2339,243 +2339,6 @@ class Program
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
-        [Fact]
-        public void OverloadResolution_29()
-        {
-            var source =
-@"using System;
-class A { }
-class B : A { }
-class Program
-{
-    static void M<T>(T x, T y) { Console.WriteLine(""M<T>(T x, T y)""); }
-    static void M(Func<object> x, Func<object> y) { Console.WriteLine(""M(Func<object> x, Func<object> y)""); }
-    static void Main()
-    {
-        Func<object> fo = () => new A();
-        Func<A> fa = () => new A();
-        M(() => new A(), () => new B());
-        M(fo, () => new B());
-        M(fa, () => new B());
-    }
-}";
-
-            var expectedOutput =
-@"M(Func<object> x, Func<object> y)
-M(Func<object> x, Func<object> y)
-M<T>(T x, T y)
-";
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
-            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
-
-        [Fact]
-        public void OverloadResolution_30()
-        {
-            var source =
-@"using System;
-class Program
-{
-    static void M<T>(T t, Func<object> f) { Console.WriteLine(""M<T>(T t, Func<object> f)""); }
-    static void M<T>(Func<object> f, T t) { Console.WriteLine(""M<T>(Func<object> f, T t)""); }
-    static object F() => null;
-    static void Main()
-    {
-        M(F, F);
-        M(() => 1, () => 2);
-    }
-}";
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (9,9): error CS0411: The type arguments for method 'Program.M<T>(T, Func<object>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M(F, F);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, System.Func<object>)").WithLocation(9, 9),
-                // (10,9): error CS0411: The type arguments for method 'Program.M<T>(T, Func<object>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M(() => 1, () => 2);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, System.Func<object>)").WithLocation(10, 9));
-
-            var expectedDiagnostics = new[]
-            {
-                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<T>(T, Func<object>)' and 'Program.M<T>(Func<object>, T)'
-                //         M(F, F);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, System.Func<object>)", "Program.M<T>(System.Func<object>, T)").WithLocation(9, 9),
-                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<T>(T, Func<object>)' and 'Program.M<T>(Func<object>, T)'
-                //         M(() => 1, () => 2);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, System.Func<object>)", "Program.M<T>(System.Func<object>, T)").WithLocation(10, 9)
-            };
-            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(expectedDiagnostics);
-            comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(expectedDiagnostics);
-        }
-
-        [Fact]
-        public void OverloadResolution_31()
-        {
-            var source =
-@"using System;
- using System.Linq.Expressions;
-class Program
-{
-    static void M<T>(T t) { Console.WriteLine(""M<T>(T t)""); }
-    static void M(Expression<Func<object>> e) { Console.WriteLine(""M(Expression<Func<object>> e)""); }
-    static void Main()
-    {
-        M(() => string.Empty);
-    }
-}";
-
-            var expectedOutput = "M(Expression<Func<object>> e)";
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
-            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
-
-        [Fact]
-        public void OverloadResolution_32()
-        {
-            var source =
-@"using System;
- using System.Linq.Expressions;
-class A { }
-class B : A { }
-class Program
-{
-    static void M<T>(T x, T y) { Console.WriteLine(""M<T>(T x, T y)""); }
-    static void M(Expression<Func<object>> x, Expression<Func<object>> y) { Console.WriteLine(""M(Expression<Func<object>> x, Expression<Func<object>> y)""); }
-    static void Main()
-    {
-        Expression<Func<object>> fo = () => new A();
-        Expression<Func<A>> fa = () => new A();
-        M(() => new A(), () => new B());
-        M(fo, () => new B());
-        M(fa, () => new B());
-    }
-}";
-
-            var expectedOutput =
-@"M(Expression<Func<object>> x, Expression<Func<object>> y)
-M(Expression<Func<object>> x, Expression<Func<object>> y)
-M<T>(T x, T y)
-";
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
-            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
-
-        [Fact]
-        public void OverloadResolution_33()
-        {
-            var source =
-@"using System;
-class Program
-{
-    static void M<T>(object x, T y) { Console.WriteLine(""M<T>(object x, T y)""); }
-    static void M<T, U>(T x, U y) { Console.WriteLine(""M<T, U>(T x, U y)""); }
-    static void Main()
-    {
-        Func<int> f = () => 0;
-        M(() => 1, () => 2);
-        M(() => 1, f);
-        M(f, () => 2);
-    }
-}";
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (9,9): error CS0411: The type arguments for method 'Program.M<T>(object, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M(() => 1, () => 2);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(object, T)").WithLocation(9, 9),
-                // (10,11): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
-                //         M(() => 1, f);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "object").WithLocation(10, 11),
-                // (11,9): error CS0411: The type arguments for method 'Program.M<T>(object, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M(f, () => 2);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(object, T)").WithLocation(11, 9));
-
-            var expectedOutput =
-@"M<T, U>(T x, U y)
-M<T, U>(T x, U y)
-M<T, U>(T x, U y)
-";
-            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
-
-        [Fact]
-        public void OverloadResolution_34()
-        {
-            var source =
-@"using System;
-class Program
-{
-    static void M<T, U>(Func<T> x, U y) { Console.WriteLine(""M<T, U>(Func<T> x, U y)""); }
-    static void M<T, U>(T x, U y) { Console.WriteLine(""M<T, U>(T x, U y)""); }
-    static void Main()
-    {
-        Func<int> f = () => 0;
-        M(() => 1, () => 2);
-        M(() => 1, f);
-        M(f, () => 2);
-    }
-}";
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (9,9): error CS0411: The type arguments for method 'Program.M<T, U>(Func<T>, U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M(() => 1, () => 2);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T, U>(System.Func<T>, U)").WithLocation(9, 9),
-                // (11,9): error CS0411: The type arguments for method 'Program.M<T, U>(Func<T>, U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         M(f, () => 2);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T, U>(System.Func<T>, U)").WithLocation(11, 9));
-
-            var expectedOutput =
-@"M<T, U>(Func<T> x, U y)
-M<T, U>(Func<T> x, U y)
-M<T, U>(Func<T> x, U y)
-";
-            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
-
-        [Fact]
-        public void OverloadResolution_35()
-        {
-            var source =
-@"using System;
-class Program
-{
-    static void M(Delegate x, Func<int> y) { Console.WriteLine(""M(Delegate x, Func<int> y)""); }
-    static void M<T, U>(T x, U y) { Console.WriteLine(""M<T, U>(T x, U y)""); }
-    static void Main()
-    {
-        Func<int> f = () => 0;
-        M(() => 1, () => 2);
-        M(() => 1, f);
-        M(f, () => 2);
-    }
-}";
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (9,11): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
-                //         M(() => 1, () => 2);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 11),
-                // (10,11): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
-                //         M(() => 1, f);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(10, 11));
-
-            var expectedOutput =
-@"M<T, U>(T x, U y)
-M<T, U>(T x, U y)
-M(Delegate x, Func<int> y)
-";
-            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
-            CompileAndVerify(source, expectedOutput: expectedOutput);
-        }
-
         [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
         [Fact]
         public void OverloadResolution_02()
@@ -3466,6 +3229,243 @@ static class Extensions
 
             string expectedOutput = "(System.Int32, System.Int32, System.Int32)";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_29()
+        {
+            var source =
+@"using System;
+class A { }
+class B : A { }
+class Program
+{
+    static void M<T>(T x, T y) { Console.WriteLine(""M<T>(T x, T y)""); }
+    static void M(Func<object> x, Func<object> y) { Console.WriteLine(""M(Func<object> x, Func<object> y)""); }
+    static void Main()
+    {
+        Func<object> fo = () => new A();
+        Func<A> fa = () => new A();
+        M(() => new A(), () => new B());
+        M(fo, () => new B());
+        M(fa, () => new B());
+    }
+}";
+
+            var expectedOutput =
+@"M(Func<object> x, Func<object> y)
+M(Func<object> x, Func<object> y)
+M<T>(T x, T y)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_30()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M<T>(T t, Func<object> f) { Console.WriteLine(""M<T>(T t, Func<object> f)""); }
+    static void M<T>(Func<object> f, T t) { Console.WriteLine(""M<T>(Func<object> f, T t)""); }
+    static object F() => null;
+    static void Main()
+    {
+        M(F, F);
+        M(() => 1, () => 2);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'Program.M<T>(T, Func<object>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(F, F);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, System.Func<object>)").WithLocation(9, 9),
+                // (10,9): error CS0411: The type arguments for method 'Program.M<T>(T, Func<object>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(() => 1, () => 2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(T, System.Func<object>)").WithLocation(10, 9));
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<T>(T, Func<object>)' and 'Program.M<T>(Func<object>, T)'
+                //         M(F, F);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, System.Func<object>)", "Program.M<T>(System.Func<object>, T)").WithLocation(9, 9),
+                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M<T>(T, Func<object>)' and 'Program.M<T>(Func<object>, T)'
+                //         M(() => 1, () => 2);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, System.Func<object>)", "Program.M<T>(System.Func<object>, T)").WithLocation(10, 9)
+            };
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void OverloadResolution_31()
+        {
+            var source =
+@"using System;
+ using System.Linq.Expressions;
+class Program
+{
+    static void M<T>(T t) { Console.WriteLine(""M<T>(T t)""); }
+    static void M(Expression<Func<object>> e) { Console.WriteLine(""M(Expression<Func<object>> e)""); }
+    static void Main()
+    {
+        M(() => string.Empty);
+    }
+}";
+
+            var expectedOutput = "M(Expression<Func<object>> e)";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_32()
+        {
+            var source =
+@"using System;
+ using System.Linq.Expressions;
+class A { }
+class B : A { }
+class Program
+{
+    static void M<T>(T x, T y) { Console.WriteLine(""M<T>(T x, T y)""); }
+    static void M(Expression<Func<object>> x, Expression<Func<object>> y) { Console.WriteLine(""M(Expression<Func<object>> x, Expression<Func<object>> y)""); }
+    static void Main()
+    {
+        Expression<Func<object>> fo = () => new A();
+        Expression<Func<A>> fa = () => new A();
+        M(() => new A(), () => new B());
+        M(fo, () => new B());
+        M(fa, () => new B());
+    }
+}";
+
+            var expectedOutput =
+@"M(Expression<Func<object>> x, Expression<Func<object>> y)
+M(Expression<Func<object>> x, Expression<Func<object>> y)
+M<T>(T x, T y)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_33()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M<T>(object x, T y) { Console.WriteLine(""M<T>(object x, T y)""); }
+    static void M<T, U>(T x, U y) { Console.WriteLine(""M<T, U>(T x, U y)""); }
+    static void Main()
+    {
+        Func<int> f = () => 0;
+        M(() => 1, () => 2);
+        M(() => 1, f);
+        M(f, () => 2);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'Program.M<T>(object, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(() => 1, () => 2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(object, T)").WithLocation(9, 9),
+                // (10,11): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                //         M(() => 1, f);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "object").WithLocation(10, 11),
+                // (11,9): error CS0411: The type arguments for method 'Program.M<T>(object, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(f, () => 2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T>(object, T)").WithLocation(11, 9));
+
+            var expectedOutput =
+@"M<T, U>(T x, U y)
+M<T, U>(T x, U y)
+M<T, U>(T x, U y)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_34()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M<T, U>(Func<T> x, U y) { Console.WriteLine(""M<T, U>(Func<T> x, U y)""); }
+    static void M<T, U>(T x, U y) { Console.WriteLine(""M<T, U>(T x, U y)""); }
+    static void Main()
+    {
+        Func<int> f = () => 0;
+        M(() => 1, () => 2);
+        M(() => 1, f);
+        M(f, () => 2);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'Program.M<T, U>(Func<T>, U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(() => 1, () => 2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T, U>(System.Func<T>, U)").WithLocation(9, 9),
+                // (11,9): error CS0411: The type arguments for method 'Program.M<T, U>(Func<T>, U)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(f, () => 2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("Program.M<T, U>(System.Func<T>, U)").WithLocation(11, 9));
+
+            var expectedOutput =
+@"M<T, U>(Func<T> x, U y)
+M<T, U>(Func<T> x, U y)
+M<T, U>(Func<T> x, U y)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_35()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void M(Delegate x, Func<int> y) { Console.WriteLine(""M(Delegate x, Func<int> y)""); }
+    static void M<T, U>(T x, U y) { Console.WriteLine(""M<T, U>(T x, U y)""); }
+    static void Main()
+    {
+        Func<int> f = () => 0;
+        M(() => 1, () => 2);
+        M(() => 1, f);
+        M(f, () => 2);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,11): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                //         M(() => 1, () => 2);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(9, 11),
+                // (10,11): error CS1660: Cannot convert lambda expression to type 'Delegate' because it is not a delegate type
+                //         M(() => 1, f);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "System.Delegate").WithLocation(10, 11));
+
+            var expectedOutput =
+@"M<T, U>(T x, U y)
+M<T, U>(T x, U y)
+M(Delegate x, Func<int> y)
+";
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
