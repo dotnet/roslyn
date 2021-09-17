@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             {
                 for (var current = token.Parent; current != listSyntax; current = current.Parent)
                 {
-                    if (CSharpSyntaxFacts.Instance.IsAnonymousFunction(current))
+                    if (CSharpSyntaxFacts.Instance.IsAnonymousFunctionExpression(current))
                     {
                         return false;
                     }

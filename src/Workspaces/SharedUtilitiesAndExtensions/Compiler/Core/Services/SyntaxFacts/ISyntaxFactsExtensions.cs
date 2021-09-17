@@ -47,12 +47,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 || syntaxFacts.IsPreprocessorKeyword(token);
         }
 
-        public static bool IsAnyMemberAccessExpression(
-            this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
-        {
-            return syntaxFacts.IsSimpleMemberAccessExpression(node) || syntaxFacts.IsPointerMemberAccessExpression(node);
-        }
-
         public static bool IsRegularOrDocumentationComment(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
             => syntaxFacts.IsRegularComment(trivia) || syntaxFacts.IsDocumentationComment(trivia);
 
@@ -151,12 +145,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return pattern;
         }
 
-        public static SyntaxNode GetExpressionOfParenthesizedExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
-        {
-            syntaxFacts.GetPartsOfParenthesizedExpression(node, out _, out var expression, out _);
-            return expression;
-        }
-
         public static SyntaxToken GetOperatorTokenOfBinaryExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfBinaryExpression(node, out _, out var token, out _);
@@ -164,7 +152,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         public static bool IsAnonymousOrLocalFunction(this ISyntaxFacts syntaxFacts, SyntaxNode node)
-            => syntaxFacts.IsAnonymousFunction(node) ||
+            => syntaxFacts.IsAnonymousFunctionExpression(node) ||
                syntaxFacts.IsLocalFunctionStatement(node);
 
         public static SyntaxNode? GetExpressionOfElementAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
@@ -262,6 +250,141 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return syntaxFacts.GetRootConditionalAccessExpression(standalone) ?? standalone;
         }
 
+        #region GetXXXOfYYY Members
+
+        public static SyntaxNode? GetArgumentListOfInvocationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfInvocationExpression(node, out _, out var argumentList);
+            return argumentList;
+        }
+
+        public static SyntaxNode? GetArgumentListOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out var argumentList, out _);
+            return argumentList;
+        }
+
+        public static SyntaxNode GetExpressionOfParenthesizedExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfParenthesizedExpression(node, out _, out var expression, out _);
+            return expression;
+        }
+
+        public static SyntaxList<SyntaxNode> GetImportsOfBaseNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfBaseNamespaceDeclaration(node, out _, out var imports, out _);
+            return imports;
+        }
+
+        public static SyntaxList<SyntaxNode> GetImportsOfCompilationUnit(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfCompilationUnit(node, out var imports, out _, out _);
+            return imports;
+        }
+
+        public static SyntaxNode? GetInitializerOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfObjectCreationExpression(node, out _, out _, out var initializer);
+            return initializer;
+        }
+
+        public static SyntaxList<SyntaxNode> GetMembersOfBaseNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfBaseNamespaceDeclaration(node, out _, out _, out var members);
+            return members;
+        }
+
+        public static SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfCompilationUnit(node, out _, out _, out var members);
+            return members;
+        }
+
+        public static SyntaxNode GetNameOfBaseNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfBaseNamespaceDeclaration(node, out var name, out _, out _);
+            return name;
+        }
+
+        public static SyntaxNode GetNameOfMemberAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfMemberAccessExpression(node, out _, out var name);
+            return name;
+        }
+
+        public static SyntaxNode GetOperandOfPrefixUnaryExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfPrefixUnaryExpression(node, out _, out var operand);
+            return operand;
+        }
+
+        public static SyntaxToken GetOperatorTokenOfPrefixUnaryExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfPrefixUnaryExpression(node, out var operatorToken, out _);
+            return operatorToken;
+        }
+
+        public static SyntaxNode GetTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfObjectCreationExpression(node, out var type, out _, out _);
+            return type;
+        }
+
+        #endregion
+
+        #region IsXXXOfYYY members
+
+        public static bool IsExpressionOfAwaitExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        {
+            var parent = node?.Parent;
+            if (!syntaxFacts.IsAwaitExpression(parent))
+                return false;
+
+            return node == syntaxFacts.GetExpressionOfAwaitExpression(parent);
+        }
+
+        public static bool IsExpressionOfInvocationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        {
+            var parent = node?.Parent;
+            if (!syntaxFacts.IsInvocationExpression(parent))
+                return false;
+
+            syntaxFacts.GetPartsOfInvocationExpression(parent, out var expression, out _);
+            return node == expression;
+        }
+
+        public static bool IsExpressionOfMemberAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        {
+            var parent = node?.Parent;
+            if (!syntaxFacts.IsMemberAccessExpression(parent))
+                return false;
+
+            syntaxFacts.GetPartsOfMemberAccessExpression(parent, out var expression, out _);
+            return node == expression;
+        }
+
+        public static bool IsRightOfQualifiedName(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        {
+            var parent = node?.Parent;
+            if (!syntaxFacts.IsQualifiedName(parent))
+                return false;
+
+            syntaxFacts.GetPartsOfQualifiedName(parent, out _, out _, out var right);
+            return node == right;
+        }
+
+        public static bool IsTypeOfObjectCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+        {
+            var parent = node?.Parent;
+            if (!syntaxFacts.IsObjectCreationExpression(parent))
+                return false;
+
+            syntaxFacts.GetPartsOfObjectCreationExpression(parent, out var type, out _, out _);
+            return type == node;
+        }
+
+        #endregion
+
         #region ISyntaxKinds forwarding methods
 
         #region trivia
@@ -341,6 +464,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsFalseLiteralExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.FalseLiteralExpression;
 
+        public static bool IsNumericLiteralExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.NumericLiteralExpression;
+
         public static bool IsNullLiteralExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.NullLiteralExpression;
 
@@ -357,14 +483,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsAwaitExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.AwaitExpression;
 
-        public static bool IsImplicitObjectCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
-            => syntaxFacts.IsImplicitObjectCreation(node);
-
         public static bool IsBaseExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.BaseExpression;
 
         public static bool IsConditionalAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ConditionalAccessExpression;
+
+        public static bool IsImplicitObjectCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node != null && node.RawKind == syntaxFacts.SyntaxKinds.ImplicitObjectCreationExpression;
 
         public static bool IsInterpolatedStringExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.InterpolatedStringExpression;
@@ -402,6 +528,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsThisExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ThisExpression;
 
+        public static bool IsThrowExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node != null && node.RawKind == syntaxFacts.SyntaxKinds.ThrowExpression;
+
         public static bool IsTupleExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.TupleExpression;
 
@@ -421,11 +550,17 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsLocalDeclarationStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.LocalDeclarationStatement;
 
+        public static bool IsLocalFunctionStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node != null && node.RawKind == syntaxFacts.SyntaxKinds.LocalFunctionStatement;
+
         public static bool IsLockStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.LockStatement;
 
         public static bool IsReturnStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ReturnStatement;
+
+        public static bool IsThrowStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ThrowStatement;
 
         public static bool IsUsingStatement(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.UsingStatement;
@@ -436,6 +571,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.Attribute;
+
+        public static bool IsClassDeclaration(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ClassDeclaration;
 
         public static bool IsGlobalAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => syntaxFacts.IsGlobalAssemblyAttribute(node) || syntaxFacts.IsGlobalModuleAttribute(node);

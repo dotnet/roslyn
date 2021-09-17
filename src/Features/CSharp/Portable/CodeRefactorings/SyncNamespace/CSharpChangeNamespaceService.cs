@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
             //
             // Note that qualified type name can appear in QualifiedNameSyntax or MemberAccessSyntax, so we need to handle both cases.
 
-            if (syntaxFacts.IsRightSideOfQualifiedName(nameRef))
+            if (syntaxFacts.IsRightOfQualifiedName(nameRef))
             {
                 RoslynDebug.Assert(nameRef.Parent is object);
                 oldNode = nameRef.Parent;

@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 var methodName = _generator.IdentifierName(newMethodIdentifier);
                 var fullExpression = _syntaxFacts.GetExpressionOfInvocationExpression(invocation);
-                if (_syntaxFacts.IsAnyMemberAccessExpression(fullExpression))
+                if (_syntaxFacts.IsMemberAccessExpression(fullExpression))
                 {
                     var receiverExpression = _syntaxFacts.GetExpressionOfMemberAccessExpression(fullExpression);
                     methodName = _generator.MemberAccessExpression(receiverExpression, newMethodIdentifier);

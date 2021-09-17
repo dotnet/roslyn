@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var convertedAnonymousFunctions);
             foreach (var node in nodes)
             {
-                if (!syntaxFactsService.IsAnonymousFunction(node))
+                if (!syntaxFactsService.IsAnonymousFunctionExpression(node))
                     continue;
 
                 var convertedType = (ISymbol?)semanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
