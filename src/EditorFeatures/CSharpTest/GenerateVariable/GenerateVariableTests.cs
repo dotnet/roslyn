@@ -9581,6 +9581,5 @@ class Class
     }
 }", index: Parameter);
         }
-
     }
 }
