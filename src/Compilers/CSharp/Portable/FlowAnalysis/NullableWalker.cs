@@ -4031,7 +4031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected override void OnPushBinaryOperatorInterpolatedStringChildren(BoundBinaryOperator node)
+        protected override void VisitInterpolatedStringBinaryOperatorNode(BoundBinaryOperator node)
         {
             SetNotNullResult(node);
         }

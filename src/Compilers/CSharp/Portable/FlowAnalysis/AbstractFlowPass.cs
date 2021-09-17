@@ -2507,12 +2507,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             node.VisitBinaryOperatorInterpolatedString(
                 (parts, @this: this),
-                visitor: (BoundInterpolatedString interpolatedString, (ArrayBuilder<BoundInterpolatedString> parts, AbstractFlowPass<TLocalState, TLocalFunctionState> @this) arg) =>
+                stringCallback: (BoundInterpolatedString interpolatedString, (ArrayBuilder<BoundInterpolatedString> parts, AbstractFlowPass<TLocalState, TLocalFunctionState> @this) arg) =>
                 {
                     arg.parts.Add(interpolatedString);
                     return true;
                 },
-                binaryOperatorCallback: (op, arg) => arg.@this.OnPushBinaryOperatorInterpolatedStringChildren(op));
+                binaryOperatorCallback: (op, arg) => arg.@this.VisitInterpolatedStringBinaryOperatorNode(op));
 
             Debug.Assert(parts.Count >= 2);
 
@@ -2536,7 +2536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             parts.Free();
         }
 
-        protected virtual void OnPushBinaryOperatorInterpolatedStringChildren(BoundBinaryOperator node) { }
+        protected virtual void VisitInterpolatedStringBinaryOperatorNode(BoundBinaryOperator node) { }
 
         protected virtual bool VisitInterpolatedStringHandlerParts(BoundInterpolatedStringBase node, bool usesBoolReturns, bool firstPartIsConditional, ref TLocalState? shortCircuitState)
         {

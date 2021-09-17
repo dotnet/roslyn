@@ -280,16 +280,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var @string = GetSpecialType(SpecialType.System_String, diagnostics, rootSyntax);
 
-            Func<(ImmutableArray<ImmutableArray<BoundExpression>>, TypeSymbol), BoundUnconvertedInterpolatedString, int, BoundExpression> interpolationFactory =
+            Func<BoundUnconvertedInterpolatedString, int, (ImmutableArray<ImmutableArray<BoundExpression>>, TypeSymbol), BoundExpression> interpolationFactory =
                 createInterpolation;
-            Func<(ImmutableArray<ImmutableArray<BoundExpression>>, TypeSymbol), BoundBinaryOperator, BoundExpression, BoundExpression, BoundExpression> binaryOperatorFactory =
+            Func<BoundBinaryOperator, BoundExpression, BoundExpression, (ImmutableArray<ImmutableArray<BoundExpression>>, TypeSymbol), BoundExpression> binaryOperatorFactory =
                 createBinaryOperator;
 
             var rewritten = (BoundBinaryOperator)originalOperator.RewriteInterpolatedStringAddition((appendCalls, @string), interpolationFactory, binaryOperatorFactory);
 
             return rewritten.Update(BoundBinaryOperator.UncommonData.InterpolatedStringHandlerAddition(data));
 
-            static BoundBinaryOperator createBinaryOperator((ImmutableArray<ImmutableArray<BoundExpression>> _, TypeSymbol @string) arg, BoundBinaryOperator original, BoundExpression left, BoundExpression right)
+            static BoundInterpolatedString createInterpolation(BoundUnconvertedInterpolatedString expression, int i, (ImmutableArray<ImmutableArray<BoundExpression>> AppendCalls, TypeSymbol _) arg)
+            {
+                Debug.Assert(arg.AppendCalls.Length > i);
+                return new BoundInterpolatedString(
+                    expression.Syntax,
+                    interpolationData: null,
+                    arg.AppendCalls[i],
+                    expression.ConstantValue,
+                    expression.Type,
+                    expression.HasErrors);
+            }
+
+            static BoundBinaryOperator createBinaryOperator(BoundBinaryOperator original, BoundExpression left, BoundExpression right, (ImmutableArray<ImmutableArray<BoundExpression>> _, TypeSymbol @string) arg)
                 => new BoundBinaryOperator(
                     original.Syntax,
                     BinaryOperatorKind.StringConcatenation,
@@ -302,19 +314,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     originalUserDefinedOperatorsOpt: default,
                     arg.@string,
                     original.HasErrors);
-
-            static BoundInterpolatedString createInterpolation((ImmutableArray<ImmutableArray<BoundExpression>> AppendCalls, TypeSymbol _) arg, BoundExpression expression, int i)
-            {
-                Debug.Assert(arg.AppendCalls.Length > i);
-                Debug.Assert(expression is BoundUnconvertedInterpolatedString);
-                return new BoundInterpolatedString(
-                    expression.Syntax,
-                    interpolationData: null,
-                    arg.AppendCalls[i],
-                    expression.ConstantValue,
-                    expression.Type,
-                    expression.HasErrors);
-            }
         }
 
         private BoundExpression BindUnconvertedInterpolatedExpressionToHandlerType(
@@ -374,11 +373,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var partsArrayBuilder = ArrayBuilder<ImmutableArray<BoundExpression>>.GetInstance();
 
-            binaryOperator.VisitBinaryOperatorInterpolatedString(partsArrayBuilder, (BoundUnconvertedInterpolatedString unconvertedInterpolatedString, ArrayBuilder<ImmutableArray<BoundExpression>> partsArrayBuilder) =>
-            {
-                partsArrayBuilder.Add(unconvertedInterpolatedString.Parts);
-                return true;
-            });
+            binaryOperator.VisitBinaryOperatorInterpolatedString(partsArrayBuilder,
+                static (BoundUnconvertedInterpolatedString unconvertedInterpolatedString, ArrayBuilder<ImmutableArray<BoundExpression>> partsArrayBuilder) =>
+                {
+                    partsArrayBuilder.Add(unconvertedInterpolatedString.Parts);
+                    return true;
+                });
 
             var (appendCalls, data) = BindUnconvertedInterpolatedPartsToHandlerType(
                 binaryOperator.Syntax,

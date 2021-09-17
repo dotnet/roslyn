@@ -1380,25 +1380,25 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateBoundInterpolatedStringBinaryOperator(BoundBinaryOperator boundBinaryOperator)
         {
             Debug.Assert(boundBinaryOperator.InterpolatedStringHandlerData is not null);
-            Func<(CSharpOperationFactory, InterpolatedStringHandlerData), BoundInterpolatedString, int, IOperation> createInterpolatedString
+            Func<BoundInterpolatedString, int, (CSharpOperationFactory, InterpolatedStringHandlerData), IOperation> createInterpolatedString
                 = createInterpolatedStringOperand;
 
-            Func<(CSharpOperationFactory, InterpolatedStringHandlerData), BoundBinaryOperator, IOperation, IOperation, IOperation> createBinaryOperator
+            Func<BoundBinaryOperator, IOperation, IOperation, (CSharpOperationFactory, InterpolatedStringHandlerData), IOperation> createBinaryOperator
                 = createBoundBinaryOperatorOperation;
 
             return boundBinaryOperator.RewriteInterpolatedStringAddition((this, boundBinaryOperator.InterpolatedStringHandlerData.GetValueOrDefault()), createInterpolatedString, createBinaryOperator);
 
             static IInterpolatedStringOperation createInterpolatedStringOperand(
-                (CSharpOperationFactory @this, InterpolatedStringHandlerData Data) arg,
                 BoundInterpolatedString boundInterpolatedString,
-                int i)
+                int i,
+                (CSharpOperationFactory @this, InterpolatedStringHandlerData Data) arg)
                 => arg.@this.CreateBoundInterpolatedStringExpressionOperation(boundInterpolatedString, arg.Data.PositionInfo[i]);
 
             static IBinaryOperation createBoundBinaryOperatorOperation(
-                (CSharpOperationFactory @this, InterpolatedStringHandlerData _) arg,
                 BoundBinaryOperator boundBinaryOperator,
                 IOperation left,
-                IOperation right)
+                IOperation right,
+                (CSharpOperationFactory @this, InterpolatedStringHandlerData _) arg)
                 => arg.@this.CreateBoundBinaryOperatorOperation(boundBinaryOperator, left, right);
         }
 

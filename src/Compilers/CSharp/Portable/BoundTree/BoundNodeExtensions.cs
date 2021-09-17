@@ -98,14 +98,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static bool VisitBinaryOperatorInterpolatedString<TArg, TInterpolatedStringType>(
+        /// <summary>
+        /// Visits the binary operator tree of interpolated string additions in a depth-first in-order visit.
+        /// <paramref name="stringCallback"/> controls whether to continue the visit by returning true or false:
+        /// if true, the visit will continue. If false, the walk will be cut off.
+        /// </summary>
+        public static bool VisitBinaryOperatorInterpolatedString<TInterpolatedStringType, TArg>(
             this BoundBinaryOperator binary,
             TArg arg,
-            Func<TInterpolatedStringType, TArg, bool> visitor,
+            Func<TInterpolatedStringType, TArg, bool> stringCallback,
             Action<BoundBinaryOperator, TArg>? binaryOperatorCallback = null)
-            where TInterpolatedStringType : BoundExpression
+            where TInterpolatedStringType : BoundInterpolatedStringBase
         {
-            Debug.Assert(typeof(TInterpolatedStringType) == typeof(BoundUnconvertedInterpolatedString) || typeof(TInterpolatedStringType) == typeof(BoundInterpolatedString));
             var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
 
             pushLeftNodes(binary, stack);
@@ -114,11 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (current.Left)
                 {
-                    case BoundBinaryOperator op:
-                        binaryOperatorCallback?.Invoke(op, arg);
+                    case BoundBinaryOperator:
                         break;
                     case TInterpolatedStringType interpolatedString:
-                        if (!visitor(interpolatedString, arg))
+                        if (!stringCallback(interpolatedString, arg))
                         {
                             return false;
                         }
@@ -127,14 +130,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(current.Left.Kind);
                 }
 
+                binaryOperatorCallback?.Invoke(current, arg);
+
                 switch (current.Right)
                 {
                     case BoundBinaryOperator rightOperator:
-                        binaryOperatorCallback?.Invoke(rightOperator, arg);
                         pushLeftNodes(rightOperator, stack);
                         break;
                     case TInterpolatedStringType interpolatedString:
-                        if (!visitor(interpolatedString, arg))
+                        if (!stringCallback(interpolatedString, arg))
                         {
                             return false;
                         }
@@ -162,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Rewrites a BoundBinaryOperator composed of interpolated strings (either converted or unconverted) iteratively, without
-        /// recursion.
+        /// recursion on the left side of the tree. Nodes of the tree are rewritten in a depth-first post-order fashion.
         /// </summary>
         /// <param name="binary">The original top of the binary operations.</param>
         /// <param name="arg">The callback args.</param>
@@ -174,75 +178,61 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Rewriter for the BoundBinaryOperator parts fo the binary operator. Passed the callback parameter, the original binary operator, and
         /// the rewritten left and right components.
         /// </param>
-        public static TResult RewriteInterpolatedStringAddition<TArg, TInterpolatedStringType, TResult>(
+        public static TResult RewriteInterpolatedStringAddition<TInterpolatedStringType, TArg, TResult>(
             this BoundBinaryOperator binary,
             TArg arg,
-            Func<TArg, TInterpolatedStringType, int, TResult> interpolatedStringFactory,
-            Func<TArg, BoundBinaryOperator, TResult, TResult, TResult> binaryOperatorFactory)
-            where TInterpolatedStringType : BoundExpression
+            Func<TInterpolatedStringType, int, TArg, TResult> interpolatedStringFactory,
+            Func<BoundBinaryOperator, TResult, TResult, TArg, TResult> binaryOperatorFactory)
+            where TInterpolatedStringType : BoundInterpolatedStringBase
         {
-            Debug.Assert(typeof(TInterpolatedStringType) == typeof(BoundUnconvertedInterpolatedString) || typeof(TInterpolatedStringType) == typeof(BoundInterpolatedString));
-            var originalStack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
-            var rewrittenLefts = ArrayBuilder<(BoundExpression original, TResult rewritten)>.GetInstance();
-            (BoundBinaryOperator? original, TResult? rewritten) result = default;
-
-            pushLeftNodes(binary, originalStack);
-
             int i = 0;
-            while (originalStack.TryPeek(out var currentBinary))
+            var originalStack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+
+            var result = doRewrite(binary, arg, interpolatedStringFactory, binaryOperatorFactory, originalStack, ref i);
+
+            originalStack.Free();
+            return result;
+
+            static TResult doRewrite(
+                BoundBinaryOperator binary,
+                TArg arg,
+                Func<TInterpolatedStringType, int, TArg, TResult> interpolatedStringFactory,
+                Func<BoundBinaryOperator, TResult, TResult, TArg, TResult> binaryOperatorFactory,
+                ArrayBuilder<BoundBinaryOperator> originalStack,
+                ref int i)
             {
-                Debug.Assert(currentBinary.Left is TInterpolatedStringType || rewrittenLefts.Count != 0 || currentBinary.Left == result.original);
+                TResult? result = default;
 
-                if (currentBinary.Left is TInterpolatedStringType originalLeft)
+                pushLeftNodes(binary, originalStack);
+
+                while (originalStack.TryPop(out var currentBinary))
                 {
-                    if (rewrittenLefts.TryPeek(out var rewrittenLeftTuple) && rewrittenLeftTuple.original == originalLeft)
+                    Debug.Assert(currentBinary.Left is TInterpolatedStringType || result != null);
+                    TResult rewrittenLeft = currentBinary.Left switch
                     {
-                        // Leave it alone, we've already rewritten on the first pass.
-                        Debug.Assert(currentBinary.Right.Kind == BoundKind.BinaryOperator);
-                    }
-                    else
+                        TInterpolatedStringType interpolatedString => interpolatedStringFactory(interpolatedString, i++, arg),
+                        BoundBinaryOperator => result!,
+                        _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Left.Kind)
+                    };
+
+                    // For simplicity, we use recursion for binary operators on the right side of the tree. We're not traditionally concerned
+                    // with long chains of operators on the right side, as without parentheses we'll naturally make a tree that is deep on the
+                    // left side. If this ever changes, we can make this algorithm a more complex post-order iterative rewrite instead.
+
+                    var rewrittenRight = currentBinary.Right switch
                     {
-                        rewrittenLefts.Push((originalLeft, interpolatedStringFactory(arg, originalLeft, i++)));
-                    }
+                        TInterpolatedStringType interpolatedString => interpolatedStringFactory(interpolatedString, i++, arg),
+                        BoundBinaryOperator binaryOperator => doRewrite(binaryOperator, arg, interpolatedStringFactory, binaryOperatorFactory, originalStack, ref i),
+                        _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Right.Kind)
+                    };
+
+                    result = binaryOperatorFactory(currentBinary, rewrittenLeft, rewrittenRight, arg);
                 }
-                else if (currentBinary.Left == result.original)
-                {
-                    Debug.Assert(result.rewritten != null);
-                    rewrittenLefts.Push((currentBinary.Left, result.rewritten));
-                }
 
-                switch (currentBinary.Right)
-                {
-                    case TInterpolatedStringType originalRightString:
-                        var rewrittenLeft = rewrittenLefts.Pop().rewritten;
-                        var rewrittenRight = interpolatedStringFactory(arg, originalRightString, i++);
-                        result = (currentBinary, binaryOperatorFactory(arg, currentBinary, rewrittenLeft, rewrittenRight));
-                        originalStack.Pop();
-                        break;
+                Debug.Assert(result != null);
 
-                    case BoundBinaryOperator originalRightOperator when result.original == originalRightOperator:
-                        // If result.original is originalRightOperator, then this is the second time we're visiting
-                        // this node and can rewrite it. Otherwise, we need to push all the left nodes, visit them,
-                        // then come back again.
-                        Debug.Assert(result.rewritten != null);
-                        rewrittenLeft = rewrittenLefts.Pop().rewritten;
-                        rewrittenRight = result.rewritten;
-                        result = (currentBinary, binaryOperatorFactory(arg, currentBinary, rewrittenLeft, rewrittenRight));
-                        originalStack.Pop();
-                        break;
-
-                    case BoundBinaryOperator originalRightOperator:
-                        pushLeftNodes(originalRightOperator, originalStack);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(currentBinary.Right.Kind);
-                }
+                return result;
             }
-
-            Debug.Assert(result.rewritten != null);
-
-            return result.rewritten;
 
             static void pushLeftNodes(BoundBinaryOperator binary, ArrayBuilder<BoundBinaryOperator> stack)
             {
