@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -153,6 +154,96 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         private static bool IsOnSingleLine(string value)
             => value.GetNumberOfLineBreaks() == 0;
+
+        public static bool ContainsInterleavedDirective(
+            this ISyntaxFacts syntaxFacts, ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken)
+        {
+            if (nodes.Length > 0)
+            {
+                var span = TextSpan.FromBounds(nodes.First().Span.Start, nodes.Last().Span.End);
+
+                foreach (var node in nodes)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (ContainsInterleavedDirective(syntaxFacts, span, node, cancellationToken))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool ContainsInterleavedDirective(this ISyntaxFacts syntaxFacts, SyntaxNode node, CancellationToken cancellationToken)
+            => ContainsInterleavedDirective(syntaxFacts, node.Span, node, cancellationToken);
+
+        public static bool ContainsInterleavedDirective(
+            this ISyntaxFacts syntaxFacts, TextSpan span, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            foreach (var token in node.DescendantTokens())
+            {
+                if (syntaxFacts.ContainsInterleavedDirective(span, token, cancellationToken))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public static bool SpansPreprocessorDirective(this ISyntaxFacts syntaxFacts, IEnumerable<SyntaxNode> nodes)
+        {
+            if (nodes == null || nodes.IsEmpty())
+            {
+                return false;
+            }
+
+            return SpansPreprocessorDirective(syntaxFacts, nodes.SelectMany(n => n.DescendantTokens()));
+        }
+
+        /// <summary>
+        /// Determines if there is preprocessor trivia *between* any of the <paramref name="tokens"/>
+        /// provided.  The <paramref name="tokens"/> will be deduped and then ordered by position.
+        /// Specifically, the first token will not have it's leading trivia checked, and the last
+        /// token will not have it's trailing trivia checked.  All other trivia will be checked to
+        /// see if it contains a preprocessor directive.
+        /// </summary>
+        public static bool SpansPreprocessorDirective(this ISyntaxFacts syntaxFacts, IEnumerable<SyntaxToken> tokens)
+        {
+            // we want to check all leading trivia of all tokens (except the 
+            // first one), and all trailing trivia of all tokens (except the
+            // last one).
+
+            var first = true;
+            var previousToken = default(SyntaxToken);
+
+            // Allow duplicate nodes/tokens to be passed in.  Also, allow the nodes/tokens
+            // to not be in any particular order when passed in.
+            var orderedTokens = tokens.Distinct().OrderBy(t => t.SpanStart);
+
+            foreach (var token in orderedTokens)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    // check the leading trivia of this token, and the trailing trivia
+                    // of the previous token.
+                    if (SpansPreprocessorDirective(syntaxFacts, token.LeadingTrivia) ||
+                        SpansPreprocessorDirective(syntaxFacts, previousToken.TrailingTrivia))
+                    {
+                        return true;
+                    }
+                }
+
+                previousToken = token;
+            }
+
+            return false;
+        }
+
+        private static bool SpansPreprocessorDirective(this ISyntaxFacts syntaxFacts, SyntaxTriviaList list)
+            => list.Any(t => syntaxFacts.IsPreprocessorDirective(t));
 
         public static bool IsLegalIdentifier(this ISyntaxFacts syntaxFacts, string name)
         {

@@ -510,8 +510,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfRecursivePattern(SyntaxNode node, out SyntaxNode? type, out SyntaxNode? positionalPart, out SyntaxNode? propertyPart, out SyntaxNode? designation);
         void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern);
 
-        bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
-        bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
+        bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken);
 
         SyntaxTokenList GetModifiers(SyntaxNode? node);
 
@@ -524,8 +523,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         // Violation.  This is a feature level API.
         SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
-
-        bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes);
 
         bool IsParameterNameXmlElementSyntax([NotNullWhen(true)] SyntaxNode? node);
 

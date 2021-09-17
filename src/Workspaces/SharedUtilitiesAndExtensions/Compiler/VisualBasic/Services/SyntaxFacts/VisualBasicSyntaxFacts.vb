@@ -1459,16 +1459,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return trivia.IsPragmaDirective(isDisable, isActive, errorCodes)
         End Function
 
-        Protected Overrides Function ContainsInterleavedDirective(span As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+        Public Overrides Function ContainsInterleavedDirective(span As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.ContainsInterleavedDirective
             Return token.ContainsInterleavedDirective(span, cancellationToken)
-        End Function
-
-        Private Function ISyntaxFacts_ContainsInterleavedDirective(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.ContainsInterleavedDirective
-            Return ContainsInterleavedDirective(node, cancellationToken)
-        End Function
-
-        Private Function ISyntaxFacts_ContainsInterleavedDirective1(nodes As ImmutableArray(Of SyntaxNode), cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.ContainsInterleavedDirective
-            Return ContainsInterleavedDirective(nodes, cancellationToken)
         End Function
 
         Public Function IsDocumentationCommentExteriorTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsDocumentationCommentExteriorTrivia
@@ -1559,14 +1551,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End If
 
             Return Nothing
-        End Function
-
-        Public Shadows Function SpansPreprocessorDirective(nodes As IEnumerable(Of SyntaxNode)) As Boolean Implements ISyntaxFacts.SpansPreprocessorDirective
-            Return MyBase.SpansPreprocessorDirective(nodes)
-        End Function
-
-        Public Shadows Function SpansPreprocessorDirective(tokens As IEnumerable(Of SyntaxToken)) As Boolean
-            Return MyBase.SpansPreprocessorDirective(tokens)
         End Function
 
         Public Function IsPostfixUnaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsPostfixUnaryExpression
