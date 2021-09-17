@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             Document document, SyntaxToken triggerToken, CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (syntaxFactsService.IsReservedOrContextualKeyword(triggerToken))
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            if (syntaxFacts.IsReservedOrContextualKeyword(triggerToken))
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
