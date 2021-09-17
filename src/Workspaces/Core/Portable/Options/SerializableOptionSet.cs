@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         private readonly ImmutableHashSet<OptionKey> _changedOptionKeysNonSerializable;
 
+        /// <summary>
+        /// Set of languages references in <see cref="_serializableOptionValues"/>.  Cached
+        /// only so we can shortcircuit <see cref="WithLanguages"/>.
+        /// </summary>
         private readonly Lazy<ImmutableHashSet<string>> _languages;
 
         private SerializableOptionSet(
@@ -187,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Options
         private (ImmutableHashSet<string> languages, SortedDictionary<OptionKey, (OptionValueKind, object?)> values) GetLanguagesAndValuesToSerialize()
         {
             var valuesBuilder = new SortedDictionary<OptionKey, (OptionValueKind, object?)>(OptionKeyComparer.Instance);
-            var langauges = ImmutableHashSet<string>.Empty;
+            var languages = ImmutableHashSet<string>.Empty;
 
             foreach (var (optionKey, value) in _serializableOptionValues)
             {
@@ -198,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 Debug.Assert(!optionKey.Option.IsPerLanguage || RemoteSupportedLanguages.IsSupported(optionKey.Language));
                 if (optionKey.Language != null)
-                    languages = langauges.Add(optionKey.Language);
+                    languages = languages.Add(optionKey.Language);
 
                 OptionValueKind kind;
                 switch (value)
@@ -222,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Options
                 valuesBuilder.Add(optionKey, (kind, value));
             }
 
-            return (langauges, valuesBuilder);
+            return (languages, valuesBuilder);
         }
 
         public void Serialize(ObjectWriter writer, CancellationToken cancellationToken)
