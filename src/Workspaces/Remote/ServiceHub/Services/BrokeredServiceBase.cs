@@ -3,7 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -29,6 +32,21 @@ namespace Microsoft.CodeAnalysis.Remote
 
         static BrokeredServiceBase()
         {
+            if (GCSettings.IsServerGC)
+            {
+                // Server GC runs processor-affinitized threads with high priority. To avoid interfering with other
+                // applications while still allowing efficient out-of-process execution, slightly reduce the process
+                // priority when using server GC.
+                Process.GetCurrentProcess().TrySetPriorityClass(ProcessPriorityClass.BelowNormal);
+            }
+
+#if DEBUG
+            // Make sure debug assertions in ServiceHub result in exceptions instead of the assertion UI
+            Trace.Listeners.Clear();
+            Trace.Listeners.Add(new ThrowingTraceListener());
+#endif
+
+            SetNativeDllSearchDirectories();
         }
 
         protected BrokeredServiceBase(in ServiceConstructionArguments arguments)
@@ -97,6 +115,39 @@ namespace Microsoft.CodeAnalysis.Remote
             catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private static void SetNativeDllSearchDirectories()
+        {
+            if (PlatformInformation.IsWindows)
+            {
+                // Set LoadLibrary search directory to %VSINSTALLDIR%\Common7\IDE so that the compiler
+                // can P/Invoke to Microsoft.DiaSymReader.Native when emitting Windows PDBs.
+                //
+                // The AppDomain base directory is specified in VisualStudio\Setup\codeAnalysisService.servicehub.service.json
+                // to be the directory where devenv.exe is -- which is exactly the directory we need to add to the search paths:
+                //
+                //   "appBasePath": "%VSAPPIDDIR%"
+                //
+
+                var loadDir = AppDomain.CurrentDomain.BaseDirectory!;
+
+                try
+                {
+                    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+                    static extern IntPtr AddDllDirectory(string directory);
+
+                    if (AddDllDirectory(loadDir) == IntPtr.Zero)
+                    {
+                        throw new Win32Exception();
+                    }
+                }
+                catch (EntryPointNotFoundException)
+                {
+                    // AddDllDirectory API might not be available on Windows 7.
+                    Environment.SetEnvironmentVariable("MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH", loadDir);
+                }
             }
         }
     }
