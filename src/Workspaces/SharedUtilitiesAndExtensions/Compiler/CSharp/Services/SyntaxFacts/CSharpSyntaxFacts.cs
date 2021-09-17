@@ -37,40 +37,40 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
         }
 
-        public bool IsCaseSensitive => true;
+        public override bool IsCaseSensitive => true;
 
-        public StringComparer StringComparer { get; } = StringComparer.Ordinal;
+        public override StringComparer StringComparer { get; } = StringComparer.Ordinal;
 
-        public SyntaxTrivia ElasticMarker
+        public override SyntaxTrivia ElasticMarker
             => SyntaxFactory.ElasticMarker;
 
-        public SyntaxTrivia ElasticCarriageReturnLineFeed
+        public override SyntaxTrivia ElasticCarriageReturnLineFeed
             => SyntaxFactory.ElasticCarriageReturnLineFeed;
 
         public override ISyntaxKinds SyntaxKinds { get; } = CSharpSyntaxKinds.Instance;
 
-        public bool SupportsIndexingInitializer(ParseOptions options)
+        public override bool SupportsIndexingInitializer(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
 
-        public bool SupportsThrowExpression(ParseOptions options)
+        public override bool SupportsThrowExpression(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
-        public bool SupportsLocalFunctionDeclaration(ParseOptions options)
+        public override bool SupportsLocalFunctionDeclaration(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
 
-        public bool SupportsRecord(ParseOptions options)
+        public override bool SupportsRecord(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
 
-        public bool SupportsRecordStruct(ParseOptions options)
+        public override bool SupportsRecordStruct(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion.IsCSharp10OrAbove();
 
-        public SyntaxToken ParseToken(string text)
+        public override SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
-        public SyntaxTriviaList ParseLeadingTrivia(string text)
+        public override SyntaxTriviaList ParseLeadingTrivia(string text)
             => SyntaxFactory.ParseLeadingTrivia(text);
 
-        public string EscapeIdentifier(string identifier)
+        public override string EscapeIdentifier(string identifier)
         {
             var nullIndex = identifier.IndexOf('\0');
             if (nullIndex >= 0)
@@ -82,10 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return needsEscaping ? "@" + identifier : identifier;
         }
 
-        public bool IsVerbatimIdentifier(SyntaxToken token)
+        public override bool IsVerbatimIdentifier(SyntaxToken token)
             => token.IsVerbatimIdentifier();
 
-        public bool IsOperator(SyntaxToken token)
+        public override bool IsOperator(SyntaxToken token)
         {
             var kind = token.Kind();
 
@@ -96,20 +96,20 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
         }
 
-        public bool IsReservedKeyword(SyntaxToken token)
+        public override bool IsReservedKeyword(SyntaxToken token)
             => SyntaxFacts.IsReservedKeyword(token.Kind());
 
-        public bool IsContextualKeyword(SyntaxToken token)
+        public override bool IsContextualKeyword(SyntaxToken token)
             => SyntaxFacts.IsContextualKeyword(token.Kind());
 
-        public bool IsPreprocessorKeyword(SyntaxToken token)
+        public override bool IsPreprocessorKeyword(SyntaxToken token)
             => SyntaxFacts.IsPreprocessorKeyword(token.Kind());
 
-        public bool IsPreProcessorDirectiveContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        public override bool IsPreProcessorDirectiveContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
             => syntaxTree.IsPreProcessorDirectiveContext(
                 position, syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives: true), cancellationToken);
 
-        public bool IsEntirelyWithinStringOrCharOrNumericLiteral([NotNullWhen(true)] SyntaxTree? syntaxTree, int position, CancellationToken cancellationToken)
+        public override bool IsEntirelyWithinStringOrCharOrNumericLiteral([NotNullWhen(true)] SyntaxTree? syntaxTree, int position, CancellationToken cancellationToken)
         {
             if (syntaxTree == null)
             {
@@ -119,10 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return syntaxTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken);
         }
 
-        public bool IsDirective([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsDirective([NotNullWhen(true)] SyntaxNode? node)
             => node is DirectiveTriviaSyntax;
 
-        public bool TryGetExternalSourceInfo([NotNullWhen(true)] SyntaxNode? node, out ExternalSourceInfo info)
+        public override bool TryGetExternalSourceInfo([NotNullWhen(true)] SyntaxNode? node, out ExternalSourceInfo info)
         {
             if (node is LineDirectiveTriviaSyntax lineDirective)
             {
@@ -143,63 +143,63 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsNameOfSimpleMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
         {
             var name = node as SimpleNameSyntax;
             return name.IsSimpleMemberAccessExpressionName();
         }
 
-        public bool IsNameOfAnyMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsNameOfAnyMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == node;
 
-        public bool IsNameOfMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsNameOfMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
         {
             var name = node as SimpleNameSyntax;
             return name.IsMemberBindingExpressionName();
         }
 
         [return: NotNullIfNotNull("node")]
-        public SyntaxNode? GetStandaloneExpression(SyntaxNode? node)
+        public override SyntaxNode? GetStandaloneExpression(SyntaxNode? node)
             => node is ExpressionSyntax expression ? SyntaxFactory.GetStandaloneExpression(expression) : node;
 
-        public SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node)
+        public override SyntaxNode? GetRootConditionalAccessExpression(SyntaxNode? node)
             => node.GetRootConditionalAccessExpression();
 
-        public bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is DeclarationExpressionSyntax;
 
-        public bool IsAttributeName(SyntaxNode node)
+        public override bool IsAttributeName(SyntaxNode node)
             => SyntaxFacts.IsAttributeName(node);
 
-        public bool IsNamedArgument([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsNamedArgument([NotNullWhen(true)] SyntaxNode? node)
             => node is ArgumentSyntax arg && arg.NameColon != null;
 
-        public bool IsNameOfNamedArgument([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsNameOfNamedArgument([NotNullWhen(true)] SyntaxNode? node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
 
-        public SyntaxToken? GetNameOfParameter(SyntaxNode? node)
+        public override SyntaxToken? GetNameOfParameter(SyntaxNode? node)
             => (node as ParameterSyntax)?.Identifier;
 
-        public SyntaxNode? GetDefaultOfParameter(SyntaxNode node)
+        public override SyntaxNode? GetDefaultOfParameter(SyntaxNode node)
             => ((ParameterSyntax)node).Default;
 
-        public SyntaxNode? GetParameterList(SyntaxNode node)
+        public override SyntaxNode? GetParameterList(SyntaxNode node)
             => node.GetParameterList();
 
-        public bool IsParameterList([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsParameterList([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.ParameterList, SyntaxKind.BracketedParameterList);
 
-        public SyntaxToken GetIdentifierOfGenericName(SyntaxNode node)
+        public override SyntaxToken GetIdentifierOfGenericName(SyntaxNode node)
             => ((GenericNameSyntax)node).Identifier;
 
-        public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
             => node.IsParentKind(SyntaxKind.UsingDirective, out UsingDirectiveSyntax? usingDirective) &&
                usingDirective.Name == node;
 
-        public bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node)
             => node is UsingDirectiveSyntax usingDirectiveNode && usingDirectiveNode.Alias != null;
 
-        public void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name)
+        public override void GetPartsOfUsingAliasDirective(SyntaxNode node, out SyntaxToken globalKeyword, out SyntaxToken alias, out SyntaxNode name)
         {
             var usingDirective = (UsingDirectiveSyntax)node;
             globalKeyword = usingDirective.GlobalKeyword;
@@ -207,13 +207,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             name = usingDirective.Name;
         }
 
-        public bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node)
             => node is ForEachVariableStatementSyntax;
 
-        public bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node)
             => node is AssignmentExpressionSyntax assignment && assignment.IsDeconstruction();
 
-        public Location GetDeconstructionReferenceLocation(SyntaxNode node)
+        public override Location GetDeconstructionReferenceLocation(SyntaxNode node)
         {
             return node switch
             {
@@ -223,13 +223,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             };
         }
 
-        public bool IsStatement([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsStatement([NotNullWhen(true)] SyntaxNode? node)
            => node is StatementSyntax;
 
-        public bool IsExecutableStatement([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsExecutableStatement([NotNullWhen(true)] SyntaxNode? node)
             => node is StatementSyntax;
 
-        public bool IsMethodBody([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsMethodBody([NotNullWhen(true)] SyntaxNode? node)
         {
             if (node is BlockSyntax ||
                 node is ArrowExpressionClauseSyntax)
@@ -241,18 +241,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node)
+        public override SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node)
             => ((ReturnStatementSyntax)node).Expression;
 
-        public bool IsThisConstructorInitializer(SyntaxToken token)
+        public override bool IsThisConstructorInitializer(SyntaxToken token)
             => token.Parent.IsKind(SyntaxKind.ThisConstructorInitializer, out ConstructorInitializerSyntax? constructorInit) &&
                constructorInit.ThisOrBaseKeyword == token;
 
-        public bool IsBaseConstructorInitializer(SyntaxToken token)
+        public override bool IsBaseConstructorInitializer(SyntaxToken token)
             => token.Parent.IsKind(SyntaxKind.BaseConstructorInitializer, out ConstructorInitializerSyntax? constructorInit) &&
                constructorInit.ThisOrBaseKeyword == token;
 
-        public bool IsQueryKeyword(SyntaxToken token)
+        public override bool IsQueryKeyword(SyntaxToken token)
         {
             switch (token.Kind())
             {
@@ -279,13 +279,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
         }
 
-        public bool IsPredefinedType(SyntaxToken token)
+        public override bool IsPredefinedType(SyntaxToken token)
             => TryGetPredefinedType(token, out _);
 
-        public bool IsPredefinedType(SyntaxToken token, PredefinedType type)
+        public override bool IsPredefinedType(SyntaxToken token, PredefinedType type)
             => TryGetPredefinedType(token, out var actualType) && actualType == type;
 
-        public bool TryGetPredefinedType(SyntaxToken token, out PredefinedType type)
+        public override bool TryGetPredefinedType(SyntaxToken token, out PredefinedType type)
         {
             type = GetPredefinedType(token);
             return type != PredefinedType.None;
@@ -315,13 +315,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             };
         }
 
-        public bool IsPredefinedOperator(SyntaxToken token)
+        public override bool IsPredefinedOperator(SyntaxToken token)
             => TryGetPredefinedOperator(token, out var actualOperator) && actualOperator != PredefinedOperator.None;
 
-        public bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op)
+        public override bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op)
             => TryGetPredefinedOperator(token, out var actualOperator) && actualOperator == op;
 
-        public bool TryGetPredefinedOperator(SyntaxToken token, out PredefinedOperator op)
+        public override bool TryGetPredefinedOperator(SyntaxToken token, out PredefinedOperator op)
         {
             op = GetPredefinedOperator(token);
             return op != PredefinedOperator.None;
@@ -403,36 +403,36 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return PredefinedOperator.None;
         }
 
-        public string GetText(int kind)
+        public override string GetText(int kind)
             => SyntaxFacts.GetText((SyntaxKind)kind);
 
-        public bool IsIdentifierStartCharacter(char c)
+        public override bool IsIdentifierStartCharacter(char c)
             => SyntaxFacts.IsIdentifierStartCharacter(c);
 
-        public bool IsIdentifierPartCharacter(char c)
+        public override bool IsIdentifierPartCharacter(char c)
             => SyntaxFacts.IsIdentifierPartCharacter(c);
 
-        public bool IsIdentifierEscapeCharacter(char c)
+        public override bool IsIdentifierEscapeCharacter(char c)
             => c == '@';
 
-        public bool IsValidIdentifier(string identifier)
+        public override bool IsValidIdentifier(string identifier)
         {
             var token = SyntaxFactory.ParseToken(identifier);
             return this.IsIdentifier(token) && !token.ContainsDiagnostics && token.ToString().Length == identifier.Length;
         }
 
-        public bool IsVerbatimIdentifier(string identifier)
+        public override bool IsVerbatimIdentifier(string identifier)
         {
             var token = SyntaxFactory.ParseToken(identifier);
             return this.IsIdentifier(token) && !token.ContainsDiagnostics && token.ToString().Length == identifier.Length && token.IsVerbatimIdentifier();
         }
 
-        public bool IsTypeCharacter(char c) => false;
+        public override bool IsTypeCharacter(char c) => false;
 
-        public bool IsStartOfUnicodeEscapeSequence(char c)
+        public override bool IsStartOfUnicodeEscapeSequence(char c)
             => c == '\\';
 
-        public bool IsLiteral(SyntaxToken token)
+        public override bool IsLiteral(SyntaxToken token)
         {
             switch (token.Kind())
             {
@@ -452,10 +452,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
         }
 
-        public bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token)
+        public override bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token)
             => token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken);
 
-        public bool IsBindableToken(SyntaxToken token)
+        public override bool IsBindableToken(SyntaxToken token)
         {
             if (this.IsWord(token) || this.IsLiteral(token) || this.IsOperator(token))
             {
@@ -478,86 +478,86 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is PostfixUnaryExpressionSyntax;
 
-        public bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberBindingExpressionSyntax;
 
-        public bool IsPointerMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsPointerMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => (node as MemberAccessExpressionSyntax)?.Kind() == SyntaxKind.PointerMemberAccessExpression;
 
-        public void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity)
+        public override void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity)
         {
             var simpleName = (SimpleNameSyntax)node;
             name = simpleName.Identifier.ValueText;
             arity = simpleName.Arity;
         }
 
-        public bool LooksGeneric(SyntaxNode simpleName)
+        public override bool LooksGeneric(SyntaxNode simpleName)
             => simpleName.IsKind(SyntaxKind.GenericName) ||
                simpleName.GetLastToken().GetNextToken().Kind() == SyntaxKind.LessThanToken;
 
-        public SyntaxNode? GetTargetOfMemberBinding(SyntaxNode? node)
+        public override SyntaxNode? GetTargetOfMemberBinding(SyntaxNode? node)
             => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
 
-        public SyntaxNode GetNameOfMemberBindingExpression(SyntaxNode node)
+        public override SyntaxNode GetNameOfMemberBindingExpression(SyntaxNode node)
             => ((MemberBindingExpressionSyntax)node).Name;
 
-        public SyntaxNode? GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
+        public override SyntaxNode? GetExpressionOfMemberAccessExpression(SyntaxNode node, bool allowImplicitTarget)
             => ((MemberAccessExpressionSyntax)node).Expression;
 
-        public void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
+        public override void GetPartsOfElementAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
         {
             var elementAccess = (ElementAccessExpressionSyntax)node;
             expression = elementAccess.Expression;
             argumentList = elementAccess.ArgumentList;
         }
 
-        public SyntaxNode GetExpressionOfInterpolation(SyntaxNode node)
+        public override SyntaxNode GetExpressionOfInterpolation(SyntaxNode node)
             => ((InterpolationSyntax)node).Expression;
 
-        public bool IsInStaticContext(SyntaxNode node)
+        public override bool IsInStaticContext(SyntaxNode node)
             => node.IsInStaticContext();
 
-        public bool IsInNamespaceOrTypeContext([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsInNamespaceOrTypeContext([NotNullWhen(true)] SyntaxNode? node)
             => SyntaxFacts.IsInNamespaceOrTypeContext(node as ExpressionSyntax);
 
-        public bool IsBaseTypeList([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsBaseTypeList([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.BaseList);
 
-        public SyntaxNode GetExpressionOfArgument(SyntaxNode node)
+        public override SyntaxNode GetExpressionOfArgument(SyntaxNode node)
             => ((ArgumentSyntax)node).Expression;
 
-        public RefKind GetRefKindOfArgument(SyntaxNode node)
+        public override RefKind GetRefKindOfArgument(SyntaxNode node)
             => ((ArgumentSyntax)node).GetRefKind();
 
-        public bool IsArgument([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsArgument([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.Argument);
 
-        public bool IsSimpleArgument([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsSimpleArgument([NotNullWhen(true)] SyntaxNode? node)
         {
             return node is ArgumentSyntax argument &&
                    argument.RefOrOutKeyword.Kind() == SyntaxKind.None &&
                    argument.NameColon == null;
         }
 
-        public bool IsInConstantContext([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsInConstantContext([NotNullWhen(true)] SyntaxNode? node)
             => (node as ExpressionSyntax).IsInConstantContext();
 
-        public bool IsInConstructor(SyntaxNode node)
+        public override bool IsInConstructor(SyntaxNode node)
             => node.GetAncestor<ConstructorDeclarationSyntax>() != null;
 
-        public bool IsUnsafeContext(SyntaxNode node)
+        public override bool IsUnsafeContext(SyntaxNode node)
             => node.IsUnsafeContext();
 
-        public SyntaxNode GetNameOfAttribute(SyntaxNode node)
+        public override SyntaxNode GetNameOfAttribute(SyntaxNode node)
             => ((AttributeSyntax)node).Name;
 
-        public bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node)
             => (node as IdentifierNameSyntax).IsAttributeNamedArgumentIdentifier();
 
-        public SyntaxNode? GetContainingTypeDeclaration(SyntaxNode? root, int position)
+        public override SyntaxNode? GetContainingTypeDeclaration(SyntaxNode? root, int position)
         {
             if (root == null)
             {
@@ -575,21 +575,21 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 .FirstOrDefault(n => n is BaseTypeDeclarationSyntax || n is DelegateDeclarationSyntax);
         }
 
-        public SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node)
+        public override SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node)
             => throw ExceptionUtilities.Unreachable;
 
-        public bool IsNameOfSubpattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsNameOfSubpattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IdentifierName) &&
                node.IsParentKind(SyntaxKind.NameColon) &&
                node.Parent.IsParentKind(SyntaxKind.Subpattern);
 
-        public bool IsPropertyPatternClause(SyntaxNode node)
+        public override bool IsPropertyPatternClause(SyntaxNode node)
             => node.Kind() == SyntaxKind.PropertyPatternClause;
 
-        public bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node)
             => IsMemberInitializerNamedAssignmentIdentifier(node, out _);
 
-        public bool IsMemberInitializerNamedAssignmentIdentifier(
+        public override bool IsMemberInitializerNamedAssignmentIdentifier(
             [NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? initializedInstance)
         {
             initializedInstance = null;
@@ -621,17 +621,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public bool IsElementAccessExpression(SyntaxNode? node)
+        public override bool IsElementAccessExpression(SyntaxNode? node)
             => node.IsKind(SyntaxKind.ElementAccessExpression);
 
         [return: NotNullIfNotNull("node")]
-        public SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false)
+        public override SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false)
             => node.ConvertToSingleLine(useElasticTrivia);
 
-        public bool IsIndexerMemberCRef(SyntaxNode? node)
+        public override bool IsIndexerMemberCRef(SyntaxNode? node)
             => node.IsKind(SyntaxKind.IndexerMemberCref);
 
-        public SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true)
+        public override SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true)
         {
             Contract.ThrowIfNull(root, "root");
             Contract.ThrowIfTrue(position < 0 || position > root.FullSpan.End, "position");
@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return null;
         }
 
-        public bool IsMethodLevelMember([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsMethodLevelMember([NotNullWhen(true)] SyntaxNode? node)
         {
             return node is BaseMethodDeclarationSyntax ||
                 node is BasePropertyDeclarationSyntax ||
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 node is BaseFieldDeclarationSyntax;
         }
 
-        public bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node)
         {
             return node is BaseNamespaceDeclarationSyntax ||
                    node is TypeDeclarationSyntax ||
@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         private const string dotToken = ".";
 
-        public string GetDisplayName(SyntaxNode? node, DisplayNameOptions options, string? rootNamespace = null)
+        public override string GetDisplayName(SyntaxNode? node, DisplayNameOptions options, string? rootNamespace = null)
         {
             if (node == null)
             {
@@ -831,21 +831,21 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
         }
 
-        public List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode? root)
+        public override List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode? root)
         {
             var list = new List<SyntaxNode>();
             AppendMembers(root, list, topLevel: true, methodLevel: true);
             return list;
         }
 
-        public List<SyntaxNode> GetMethodLevelMembers(SyntaxNode? root)
+        public override List<SyntaxNode> GetMethodLevelMembers(SyntaxNode? root)
         {
             var list = new List<SyntaxNode>();
             AppendMembers(root, list, topLevel: false, methodLevel: true);
             return list;
         }
 
-        public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
+        public override SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
         private void AppendMembers(SyntaxNode? node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
         }
 
-        public TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node)
+        public override TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node)
         {
             if (node.Span.IsEmpty)
             {
@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return default;
         }
 
-        public bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span)
+        public override bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span)
         {
             switch (node)
             {
@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         private static TextSpan GetBlockBodySpan(BlockSyntax body)
             => TextSpan.FromBounds(body.OpenBraceToken.Span.End, body.CloseBraceToken.SpanStart);
 
-        public SyntaxNode? TryGetBindableParent(SyntaxToken token)
+        public override SyntaxNode? TryGetBindableParent(SyntaxToken token)
         {
             var node = token.Parent;
             while (node != null)
@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return node is PatternSyntax ? null : node;
         }
 
-        public IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken)
+        public override IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken)
         {
             if (root is not CompilationUnitSyntax compilationUnit)
             {
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
         }
 
-        public bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace)
+        public override bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace)
         {
             if (token.Kind() == SyntaxKind.CloseBraceToken)
             {
@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        public override TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
             if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
@@ -1086,47 +1086,47 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return default;
         }
 
-        public string GetNameForArgument(SyntaxNode? argument)
+        public override string GetNameForArgument(SyntaxNode? argument)
             => (argument as ArgumentSyntax)?.NameColon?.Name.Identifier.ValueText ?? string.Empty;
 
-        public string GetNameForAttributeArgument(SyntaxNode? argument)
+        public override string GetNameForAttributeArgument(SyntaxNode? argument)
             => (argument as AttributeArgumentSyntax)?.NameEquals?.Name.Identifier.ValueText ?? string.Empty;
 
-        public bool IsLeftSideOfDot([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsLeftSideOfDot([NotNullWhen(true)] SyntaxNode? node)
             => (node as ExpressionSyntax).IsLeftSideOfDot();
 
-        public SyntaxNode? GetRightSideOfDot(SyntaxNode? node)
+        public override SyntaxNode? GetRightSideOfDot(SyntaxNode? node)
         {
             return (node as QualifiedNameSyntax)?.Right ??
                 (node as MemberAccessExpressionSyntax)?.Name;
         }
 
-        public SyntaxNode? GetLeftSideOfDot(SyntaxNode? node, bool allowImplicitTarget)
+        public override SyntaxNode? GetLeftSideOfDot(SyntaxNode? node, bool allowImplicitTarget)
         {
             return (node as QualifiedNameSyntax)?.Left ??
                 (node as MemberAccessExpressionSyntax)?.Expression;
         }
 
-        public bool IsLeftSideOfExplicitInterfaceSpecifier([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsLeftSideOfExplicitInterfaceSpecifier([NotNullWhen(true)] SyntaxNode? node)
             => (node as NameSyntax).IsLeftSideOfExplicitInterfaceSpecifier();
 
-        public bool IsLeftSideOfAssignment([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsLeftSideOfAssignment([NotNullWhen(true)] SyntaxNode? node)
             => (node as ExpressionSyntax).IsLeftSideOfAssignExpression();
 
-        public bool IsLeftSideOfAnyAssignment([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsLeftSideOfAnyAssignment([NotNullWhen(true)] SyntaxNode? node)
             => (node as ExpressionSyntax).IsLeftSideOfAnyAssignExpression();
 
-        public bool IsLeftSideOfCompoundAssignment([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsLeftSideOfCompoundAssignment([NotNullWhen(true)] SyntaxNode? node)
             => (node as ExpressionSyntax).IsLeftSideOfCompoundAssignExpression();
 
-        public SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node)
+        public override SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node)
             => ((AssignmentExpressionSyntax)node).Right;
 
-        public bool IsInferredAnonymousObjectMemberDeclarator([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsInferredAnonymousObjectMemberDeclarator([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator, out AnonymousObjectMemberDeclaratorSyntax? anonObject) &&
                anonObject.NameEquals == null;
 
-        public bool IsOperandOfIncrementExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsOperandOfIncrementExpression([NotNullWhen(true)] SyntaxNode? node)
             => node.IsParentKind(SyntaxKind.PostIncrementExpression) ||
                node.IsParentKind(SyntaxKind.PreIncrementExpression);
 
@@ -1134,57 +1134,57 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.IsParentKind(SyntaxKind.PostDecrementExpression) ||
                node.IsParentKind(SyntaxKind.PreDecrementExpression);
 
-        public bool IsOperandOfIncrementOrDecrementExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsOperandOfIncrementOrDecrementExpression([NotNullWhen(true)] SyntaxNode? node)
             => IsOperandOfIncrementExpression(node) || IsOperandOfDecrementExpression(node);
 
-        public SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString)
+        public override SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString)
             => ((InterpolatedStringExpressionSyntax)interpolatedString).Contents;
 
-        public bool IsVerbatimStringLiteral(SyntaxToken token)
+        public override bool IsVerbatimStringLiteral(SyntaxToken token)
             => token.IsVerbatimStringLiteral();
 
-        public bool IsNumericLiteral(SyntaxToken token)
+        public override bool IsNumericLiteral(SyntaxToken token)
             => token.Kind() == SyntaxKind.NumericLiteralToken;
 
-        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
+        public override SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode invocationExpression)
             => GetArgumentsOfArgumentList(((InvocationExpressionSyntax)invocationExpression).ArgumentList);
 
-        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode objectCreationExpression)
+        public override SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode objectCreationExpression)
             => ((BaseObjectCreationExpressionSyntax)objectCreationExpression).ArgumentList is { } argumentList
                 ? GetArgumentsOfArgumentList(argumentList)
                 : default;
 
-        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
+        public override SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
             => ((BaseArgumentListSyntax)argumentList).Arguments;
 
-        public bool IsRegularComment(SyntaxTrivia trivia)
+        public override bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
 
-        public bool IsDocumentationComment(SyntaxTrivia trivia)
+        public override bool IsDocumentationComment(SyntaxTrivia trivia)
             => trivia.IsDocComment();
 
-        public bool IsElastic(SyntaxTrivia trivia)
+        public override bool IsElastic(SyntaxTrivia trivia)
             => trivia.IsElastic();
 
-        public bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes)
+        public override bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes)
             => trivia.IsPragmaDirective(out isDisable, out isActive, out errorCodes);
 
-        public bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia)
+        public override bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia)
             => trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia;
 
-        public bool IsDocumentationComment(SyntaxNode node)
+        public override bool IsDocumentationComment(SyntaxNode node)
             => SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
 
-        public bool IsUsingOrExternOrImport([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsUsingOrExternOrImport([NotNullWhen(true)] SyntaxNode? node)
         {
             return node.IsKind(SyntaxKind.UsingDirective) ||
                    node.IsKind(SyntaxKind.ExternAliasDirective);
         }
 
-        public bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node)
             => IsGlobalAttribute(node, SyntaxKind.AssemblyKeyword);
 
-        public bool IsGlobalModuleAttribute([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsGlobalModuleAttribute([NotNullWhen(true)] SyntaxNode? node)
             => IsGlobalAttribute(node, SyntaxKind.ModuleKeyword);
 
         private static bool IsGlobalAttribute([NotNullWhen(true)] SyntaxNode? node, SyntaxKind attributeTarget)
@@ -1236,24 +1236,24 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
         }
 
-        public bool IsDeclaration(SyntaxNode node)
+        public override bool IsDeclaration(SyntaxNode node)
             => SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node);
 
-        public bool IsTypeDeclaration(SyntaxNode node)
+        public override bool IsTypeDeclaration(SyntaxNode node)
             => SyntaxFacts.IsTypeDeclaration(node.Kind());
 
-        public bool IsSimpleAssignmentStatement([NotNullWhen(true)] SyntaxNode? statement)
+        public override bool IsSimpleAssignmentStatement([NotNullWhen(true)] SyntaxNode? statement)
             => statement.IsKind(SyntaxKind.ExpressionStatement, out ExpressionStatementSyntax? exprStatement) &&
                exprStatement.Expression.IsKind(SyntaxKind.SimpleAssignmentExpression);
 
-        public void GetPartsOfAssignmentStatement(
+        public override void GetPartsOfAssignmentStatement(
             SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
             GetPartsOfAssignmentExpressionOrStatement(
                 ((ExpressionStatementSyntax)statement).Expression, out left, out operatorToken, out right);
         }
 
-        public void GetPartsOfAssignmentExpressionOrStatement(
+        public override void GetPartsOfAssignmentExpressionOrStatement(
             SyntaxNode statement, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
             var expression = statement;
@@ -1268,16 +1268,16 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             right = assignment.Right;
         }
 
-        public SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
+        public override SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
             => ((SimpleNameSyntax)node).Identifier;
 
-        public SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node)
+        public override SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Identifier;
 
-        public SyntaxToken GetIdentifierOfParameter(SyntaxNode node)
+        public override SyntaxToken GetIdentifierOfParameter(SyntaxNode node)
             => ((ParameterSyntax)node).Identifier;
 
-        public SyntaxToken GetIdentifierOfTypeDeclaration(SyntaxNode node)
+        public override SyntaxToken GetIdentifierOfTypeDeclaration(SyntaxNode node)
             => node switch
             {
                 BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
@@ -1285,43 +1285,43 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 _ => throw ExceptionUtilities.UnexpectedValue(node),
             };
 
-        public SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node)
+        public override SyntaxToken GetIdentifierOfIdentifierName(SyntaxNode node)
             => ((IdentifierNameSyntax)node).Identifier;
 
-        public bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement)
+        public override bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement)
         {
             return ((LocalDeclarationStatementSyntax)localDeclarationStatement).Declaration.Variables.Contains(
                 (VariableDeclaratorSyntax)declarator);
         }
 
-        public bool AreEquivalent(SyntaxToken token1, SyntaxToken token2)
+        public override bool AreEquivalent(SyntaxToken token1, SyntaxToken token2)
             => SyntaxFactory.AreEquivalent(token1, token2);
 
-        public bool AreEquivalent(SyntaxNode? node1, SyntaxNode? node2)
+        public override bool AreEquivalent(SyntaxNode? node1, SyntaxNode? node2)
             => SyntaxFactory.AreEquivalent(node1, node2);
 
         public static SyntaxNode GetExpressionOfInvocationExpression(SyntaxNode node)
             => ((InvocationExpressionSyntax)node).Expression;
 
-        public bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is ForEachStatementSyntax foreachStatement && foreachStatement.Expression == node;
 
-        public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
+        public override SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
             => ((ExpressionStatementSyntax)node).Expression;
 
-        public bool IsIsExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsIsExpression([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IsExpression);
 
         [return: NotNullIfNotNull("node")]
-        public SyntaxNode? WalkDownParentheses(SyntaxNode? node)
+        public override SyntaxNode? WalkDownParentheses(SyntaxNode? node)
             => (node as ExpressionSyntax)?.WalkDownParentheses() ?? node;
 
-        public void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
-            out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode
+        public override void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
+            out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen)
         {
             var tupleExpression = (TupleExpressionSyntax)node;
             openParen = tupleExpression.OpenParenToken;
-            arguments = (SeparatedSyntaxList<TArgumentSyntax>)(SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
+            arguments = (SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
             closeParen = tupleExpression.CloseParenToken;
         }
 
@@ -1331,31 +1331,31 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
             => token.ContainsInterleavedDirective(span, cancellationToken);
 
-        public SyntaxTokenList GetModifiers(SyntaxNode? node)
+        public override SyntaxTokenList GetModifiers(SyntaxNode? node)
             => node.GetModifiers();
 
-        public SyntaxNode? WithModifiers(SyntaxNode? node, SyntaxTokenList modifiers)
+        public override SyntaxNode? WithModifiers(SyntaxNode? node, SyntaxTokenList modifiers)
             => node.WithModifiers(modifiers);
 
-        public SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node)
+        public override SeparatedSyntaxList<SyntaxNode> GetVariablesOfLocalDeclarationStatement(SyntaxNode node)
             => ((LocalDeclarationStatementSyntax)node).Declaration.Variables;
 
-        public SyntaxNode? GetInitializerOfVariableDeclarator(SyntaxNode node)
+        public override SyntaxNode? GetInitializerOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Initializer;
 
-        public SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node)
+        public override SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclarationSyntax)((VariableDeclaratorSyntax)node).Parent!).Type;
 
-        public SyntaxNode? GetValueOfEqualsValueClause(SyntaxNode? node)
+        public override SyntaxNode? GetValueOfEqualsValueClause(SyntaxNode? node)
             => ((EqualsValueClauseSyntax?)node)?.Value;
 
-        public bool IsScopeBlock([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsScopeBlock([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.Block);
 
-        public bool IsExecutableBlock([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsExecutableBlock([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection, SyntaxKind.CompilationUnit);
 
-        public IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode? node)
+        public override IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode? node)
         {
             return node switch
             {
@@ -1366,13 +1366,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             };
         }
 
-        public SyntaxNode? FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
+        public override SyntaxNode? FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes)
             => nodes.FindInnermostCommonNode(node => IsExecutableBlock(node));
 
-        public bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node)
             => IsExecutableBlock(node) || node.IsEmbeddedStatementOwner();
 
-        public IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode? node)
+        public override IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode? node)
         {
             if (IsExecutableBlock(node))
                 return GetExecutableBlockStatements(node);
@@ -1382,20 +1382,20 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 return ImmutableArray<SyntaxNode>.Empty;
         }
 
-        public bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is CastExpressionSyntax;
 
-        public bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is CastExpressionSyntax;
 
-        public void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression)
+        public override void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression)
         {
             var cast = (CastExpressionSyntax)node;
             type = cast.Type;
             expression = cast.Expression;
         }
 
-        public SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token)
+        public override SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token)
         {
             if (token.Kind() == SyntaxKind.OverrideKeyword && token.Parent is MemberDeclarationSyntax member)
             {
@@ -1422,10 +1422,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             throw ExceptionUtilities.UnexpectedValue(trivia.Kind());
         }
 
-        public bool IsIsPatternExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsIsPatternExpression([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IsPatternExpression);
 
-        public void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right)
+        public override void GetPartsOfIsPatternExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken isToken, out SyntaxNode right)
         {
             var isPatternExpression = (IsPatternExpressionSyntax)node;
             left = isPatternExpression.Expression;
@@ -1433,32 +1433,32 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             right = isPatternExpression.Pattern;
         }
 
-        public bool IsAnyPattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsAnyPattern([NotNullWhen(true)] SyntaxNode? node)
             => node is PatternSyntax;
 
-        public bool IsConstantPattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsConstantPattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.ConstantPattern);
 
-        public bool IsDeclarationPattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsDeclarationPattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.DeclarationPattern);
 
-        public bool IsRecursivePattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsRecursivePattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.RecursivePattern);
 
-        public bool IsVarPattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsVarPattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.VarPattern);
 
-        public SyntaxNode GetExpressionOfConstantPattern(SyntaxNode node)
+        public override SyntaxNode GetExpressionOfConstantPattern(SyntaxNode node)
             => ((ConstantPatternSyntax)node).Expression;
 
-        public void GetPartsOfDeclarationPattern(SyntaxNode node, out SyntaxNode type, out SyntaxNode designation)
+        public override void GetPartsOfDeclarationPattern(SyntaxNode node, out SyntaxNode type, out SyntaxNode designation)
         {
             var declarationPattern = (DeclarationPatternSyntax)node;
             type = declarationPattern.Type;
             designation = declarationPattern.Designation;
         }
 
-        public void GetPartsOfRecursivePattern(SyntaxNode node, out SyntaxNode? type, out SyntaxNode? positionalPart, out SyntaxNode? propertyPart, out SyntaxNode? designation)
+        public override void GetPartsOfRecursivePattern(SyntaxNode node, out SyntaxNode? type, out SyntaxNode? positionalPart, out SyntaxNode? propertyPart, out SyntaxNode? designation)
         {
             var recursivePattern = (RecursivePatternSyntax)node;
             type = recursivePattern.Type;
@@ -1467,31 +1467,31 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             designation = recursivePattern.Designation;
         }
 
-        public bool SupportsNotPattern(ParseOptions options)
+        public override bool SupportsNotPattern(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion.IsCSharp9OrAbove();
 
-        public bool IsAndPattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsAndPattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.AndPattern);
 
-        public bool IsBinaryPattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsBinaryPattern([NotNullWhen(true)] SyntaxNode? node)
             => node is BinaryPatternSyntax;
 
-        public bool IsNotPattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsNotPattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.NotPattern);
 
-        public bool IsOrPattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsOrPattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.OrPattern);
 
-        public bool IsParenthesizedPattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsParenthesizedPattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.ParenthesizedPattern);
 
-        public bool IsTypePattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsTypePattern([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.TypePattern);
 
-        public bool IsUnaryPattern([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsUnaryPattern([NotNullWhen(true)] SyntaxNode? node)
             => node is UnaryPatternSyntax;
 
-        public void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen)
+        public override void GetPartsOfParenthesizedPattern(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode pattern, out SyntaxToken closeParen)
         {
             var parenthesizedPattern = (ParenthesizedPatternSyntax)node;
             openParen = parenthesizedPattern.OpenParenToken;
@@ -1499,7 +1499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             closeParen = parenthesizedPattern.CloseParenToken;
         }
 
-        public void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
+        public override void GetPartsOfBinaryPattern(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
             var binaryPattern = (BinaryPatternSyntax)node;
             left = binaryPattern.Left;
@@ -1507,17 +1507,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             right = binaryPattern.Right;
         }
 
-        public void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern)
+        public override void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern)
         {
             var unaryPattern = (UnaryPatternSyntax)node;
             operatorToken = unaryPattern.OperatorToken;
             pattern = unaryPattern.Pattern;
         }
 
-        public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
+        public override SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => ((TypePatternSyntax)node).Type;
 
-        public void GetPartsOfInterpolationExpression(SyntaxNode node,
+        public override void GetPartsOfInterpolationExpression(SyntaxNode node,
             out SyntaxToken stringStartToken, out SyntaxList<SyntaxNode> contents, out SyntaxToken stringEndToken)
         {
             var interpolatedStringExpression = (InterpolatedStringExpressionSyntax)node;
@@ -1526,35 +1526,35 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             stringEndToken = interpolatedStringExpression.StringEndToken;
         }
 
-        public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
+        public override bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
             => node is InterpolatedStringExpressionSyntax interpolatedString &&
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
 
         #region IsXXX members
 
-        public bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is AnonymousFunctionExpressionSyntax;
 
-        public bool IsBaseNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsBaseNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node)
             => node is BaseNamespaceDeclarationSyntax;
 
-        public bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is BinaryExpressionSyntax;
 
-        public bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is LiteralExpressionSyntax;
 
-        public bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberAccessExpressionSyntax;
 
-        public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
+        public override bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
             => node is SimpleNameSyntax;
 
         #endregion
 
         #region GetPartsOfXXX members
 
-        public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
+        public override void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
             var binaryExpression = (BinaryExpressionSyntax)node;
             left = binaryExpression.Left;
@@ -1562,7 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             right = binaryExpression.Right;
         }
 
-        public void GetPartsOfCompilationUnit(SyntaxNode node, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> attributeLists, out SyntaxList<SyntaxNode> members)
+        public override void GetPartsOfCompilationUnit(SyntaxNode node, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> attributeLists, out SyntaxList<SyntaxNode> members)
         {
             var compilationUnit = (CompilationUnitSyntax)node;
             imports = compilationUnit.Usings;
@@ -1570,7 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             members = compilationUnit.Members;
         }
 
-        public void GetPartsOfConditionalAccessExpression(
+        public override void GetPartsOfConditionalAccessExpression(
             SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode whenNotNull)
         {
             var conditionalAccess = (ConditionalAccessExpressionSyntax)node;
@@ -1579,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             whenNotNull = conditionalAccess.WhenNotNull;
         }
 
-        public void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse)
+        public override void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse)
         {
             var conditionalExpression = (ConditionalExpressionSyntax)node;
             condition = conditionalExpression.Condition;
@@ -1587,14 +1587,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             whenFalse = conditionalExpression.WhenFalse;
         }
 
-        public void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode? argumentList)
+        public override void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode? argumentList)
         {
             var invocation = (InvocationExpressionSyntax)node;
             expression = invocation.Expression;
             argumentList = invocation.ArgumentList;
         }
 
-        public void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name)
+        public override void GetPartsOfMemberAccessExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxToken operatorToken, out SyntaxNode name)
         {
             var memberAccess = (MemberAccessExpressionSyntax)node;
             expression = memberAccess.Expression;
@@ -1602,7 +1602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             name = memberAccess.Name;
         }
 
-        public void GetPartsOfBaseNamespaceDeclaration(SyntaxNode node, out SyntaxNode name, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> members)
+        public override void GetPartsOfBaseNamespaceDeclaration(SyntaxNode node, out SyntaxNode name, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> members)
         {
             var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)node;
             name = namespaceDeclaration.Name;
@@ -1610,7 +1610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             members = namespaceDeclaration.Members;
         }
 
-        public void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer)
+        public override void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer)
         {
             var objectCreationExpression = (ObjectCreationExpressionSyntax)node;
             type = objectCreationExpression.Type;
@@ -1618,7 +1618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             initializer = objectCreationExpression.Initializer;
         }
 
-        public void GetPartsOfParenthesizedExpression(
+        public override void GetPartsOfParenthesizedExpression(
             SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen)
         {
             var parenthesizedExpression = (ParenthesizedExpressionSyntax)node;
@@ -1627,14 +1627,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             closeParen = parenthesizedExpression.CloseParenToken;
         }
 
-        public void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand)
+        public override void GetPartsOfPrefixUnaryExpression(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode operand)
         {
             var prefixUnaryExpression = (PrefixUnaryExpressionSyntax)node;
             operatorToken = prefixUnaryExpression.OperatorToken;
             operand = prefixUnaryExpression.Operand;
         }
 
-        public void GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
+        public override void GetPartsOfQualifiedName(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
             var qualifiedName = (QualifiedNameSyntax)node;
             left = qualifiedName.Left;
@@ -1646,10 +1646,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         #region GetXXXOfYYY members
 
-        public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
+        public override SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
             => ((AwaitExpressionSyntax)node).Expression;
 
-        public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node)
+        public override SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node)
             => ((ThrowExpressionSyntax)node).Expression;
 
         #endregion
