@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -115,16 +116,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // Note: we'll fallback to Metadata-As-Source if we fail to get IVsNavInfo, but that should never happen.
             }
 
-            // Generate new source or retrieve existing source for the symbol in question
-            var allowDecompilation = false;
+            MetadataAsSourceFile? result = null;
 
-            // Check whether decompilation is supported for the project. We currently only support this for C# projects.
-            if (project.LanguageServices.GetService<IDecompiledSourceService>() != null)
+            // First try loading the file from information stored in the PDB. This could give us the actual source, so is a better
+            // result that metadata
+            var pdbSourceDocumentNavigationService = project.GetLanguageService<IPdbSourceDocumentNavigationService>();
+            if (pdbSourceDocumentNavigationService is not null)
             {
-                allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
+                result = pdbSourceDocumentNavigationService.GetPdbSourceDocumentAsync(project, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
-            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
+            // Otherwise lets generate a source file
+            if (result is null)
+            {
+                // Generate new source or retrieve existing source for the symbol in question
+                var allowDecompilation = false;
+
+                // Check whether decompilation is supported for the project. We currently only support this for C# projects.
+                if (project.LanguageServices.GetService<IDecompiledSourceService>() != null)
+                {
+                    allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
+                }
+
+                result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
+            }
 
             var vsRunningDocumentTable4 = IServiceProviderExtensions.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_serviceProvider);
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
@@ -137,6 +152,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
             // which saves us JIT time in this method.
             var vsTextBuffer = (IVsTextBuffer)(object)vsRunningDocumentTable4.GetDocumentData(documentCookie);
+
+            // Set the buffer to read only, just in case the file isn't
+            ErrorHandler.ThrowOnFailure(vsTextBuffer.GetStateFlags(out var flags));
+            flags |= (int)BUFFERSTATEFLAGS.BSF_USER_READONLY;
+            ErrorHandler.ThrowOnFailure(vsTextBuffer.SetStateFlags(flags));
+
             var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
 
             if (!fileAlreadyOpen)
