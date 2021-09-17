@@ -1023,7 +1023,6 @@ class X
         [InlineData("public int this[Index i] => 0;", true)]
         public void ListPattern_MemberLookup_Index_ErrorCases(string indexer, bool valid = false)
         {
-            // TODO2 crash
             var source = @"
 using System;
 class Test1
