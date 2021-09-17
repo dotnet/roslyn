@@ -450,7 +450,7 @@ Delta: Epsilon: Test E
             var testObject = testAssembly.CreateInstance(typeof(DefaultAnalyzerAssemblyLoaderTests).FullName!,
                 ignoreCase: false, BindingFlags.Default, binder: null, args: new object[] { _output, _testFixture }, null, null)!;
 
-            StringBuilder sb = new();
+            StringBuilder sb = new StringBuilder();
             testObject.GetType().GetMethod(nameof(AssemblyLoadingInNonDefaultContextHelper), BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(testObject, new object[] { sb });
             Assert.Equal("42", sb.ToString());
         }
