@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         private readonly ImmutableHashSet<OptionKey> _changedOptionKeysNonSerializable;
 
+        private readonly Lazy<ImmutableHashSet<string>> _languages;
+
         private SerializableOptionSet(
             WorkspaceOptionSet workspaceOptionSet,
             ImmutableDictionary<OptionKey, object?> values,
@@ -57,6 +59,8 @@ namespace Microsoft.CodeAnalysis.Options
             Debug.Assert(values.Keys.All(ShouldSerialize));
             Debug.Assert(changedOptionKeysSerializable.All(optionKey => ShouldSerialize(optionKey)));
             Debug.Assert(changedOptionKeysNonSerializable.All(optionKey => !ShouldSerialize(optionKey)));
+
+            _languages = new Lazy<ImmutableHashSet<string>>(() => this.GetLanguagesAndValuesToSerialize().languages);
         }
 
         internal SerializableOptionSet(
@@ -75,6 +79,9 @@ namespace Microsoft.CodeAnalysis.Options
         public SerializableOptionSet WithLanguages(ImmutableHashSet<string> languages)
         {
             Debug.Assert(languages.All(RemoteSupportedLanguages.IsSupported));
+
+            if (_languages.Value.SetEquals(languages))
+                return this;
 
             // First create a base option set for the given languages.
             var newOptionSet = _workspaceOptionSet.OptionService.GetSerializableOptionsSnapshot(languages);
@@ -169,10 +176,10 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        private (HashSet<string> languages, SortedDictionary<OptionKey, (OptionValueKind, object?)> values) GetLanguagesAndValuesToSerialize()
+        private (ImmutableHashSet<string> languages, SortedDictionary<OptionKey, (OptionValueKind, object?)> values) GetLanguagesAndValuesToSerialize()
         {
             var valuesBuilder = new SortedDictionary<OptionKey, (OptionValueKind, object?)>(OptionKeyComparer.Instance);
-            var langauges = new HashSet<string>();
+            var langauges = ImmutableHashSet<string>.Empty;
 
             foreach (var (optionKey, value) in _serializableOptionValues)
             {
@@ -180,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 Debug.Assert(!optionKey.Option.IsPerLanguage || RemoteSupportedLanguages.IsSupported(optionKey.Language));
                 if (optionKey.Language != null)
-                    langauges.Add(optionKey.Language);
+                    languages = langauges.Add(optionKey.Language);
 
                 OptionValueKind kind;
                 switch (value)
@@ -404,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Options
                 _serializableOptionSet = serializableOptionSet;
             }
 
-            public HashSet<string> Languages
+            public ImmutableHashSet<string> Languages
                 => _serializableOptionSet.GetLanguagesAndValuesToSerialize().languages;
         }
 
