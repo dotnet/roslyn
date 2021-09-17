@@ -81,16 +81,8 @@ namespace Microsoft.CodeAnalysis
                 var projectsToInclude = new HashSet<ProjectId>();
                 AddReferencedProjects(projectsToInclude, projectId);
 
-                // we're syncing a subset of projects, so only sync the options for the particular languages
-                // we're syncing over.
-                var languages = projectsToInclude.Select(id => ProjectStates[id].Language)
-                                                 .Where(s => RemoteSupportedLanguages.IsSupported(s))
-                                                 .ToImmutableHashSet();
-
-                var options = this.Options.WithLanguages(languages);
-
                 return (options, new AsyncLazy<SolutionStateChecksums>(
-                    c => ComputeChecksumsAsync(projectsToInclude, options, c), cacheResult: true));
+                    c => ComputeChecksumsAsync(projectsToInclude, this.Options, c), cacheResult: true));
             }
 
             void AddReferencedProjects(HashSet<ProjectId> result, ProjectId projectId)
