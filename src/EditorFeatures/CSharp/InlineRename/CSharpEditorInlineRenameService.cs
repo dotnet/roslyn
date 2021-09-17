@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename
 {
@@ -18,6 +20,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename
         public CSharpEditorInlineRenameService(
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices) : base(refactorNotifyServices)
         {
+        }
+
+        protected override bool CheckLanguageSpecificIssues(ISymbol symbol, SyntaxToken triggerToken, [NotNullWhen(true)] out string? langError)
+        {
+            if (triggerToken.IsTypeNamedDynamic() &&
+                symbol.Kind == SymbolKind.DynamicType)
+            {
+                langError = EditorFeaturesResources.You_cannot_rename_this_element;
+                return true;
+            }
+
+            langError = null;
+            return false;
         }
     }
 }

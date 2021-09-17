@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices)
             => _refactorNotifyServices = refactorNotifyServices;
 
+        protected abstract bool CheckLanguageSpecificIssues(ISymbol symbol, SyntaxToken triggerToken, [NotNullWhen(true)] out string? langError);
+
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var triggerToken = await GetTriggerTokenAsync(document, position, cancellationToken).ConfigureAwait(false);
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             return await GetRenameInfoAsync(_refactorNotifyServices, document, triggerToken, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static async Task<IInlineRenameInfo> GetRenameInfoAsync(
+        private async Task<IInlineRenameInfo> GetRenameInfoAsync(
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             Document document, SyntaxToken triggerToken, CancellationToken cancellationToken)
         {
@@ -115,13 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            if (syntaxFactsService.IsTypeNamedDynamic(triggerToken, triggerToken.Parent))
-            {
-                if (symbol.Kind == SymbolKind.DynamicType)
-                {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
-                }
-            }
+            if (CheckLanguageSpecificIssues(symbol, triggerToken, out var langError))
+                return new FailureInlineRenameInfo(langError);
 
             // we allow implicit locals and parameters of Event handlers
             if (symbol.IsImplicitlyDeclared &&

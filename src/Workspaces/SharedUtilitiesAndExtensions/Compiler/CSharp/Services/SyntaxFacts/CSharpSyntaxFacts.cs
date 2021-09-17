@@ -478,22 +478,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
-        public bool IsTypeNamedDynamic(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent)
-        {
-
-            if (parent is ExpressionSyntax typedParent)
-            {
-                if (SyntaxFacts.IsInTypeOnlyContext(typedParent) &&
-                    typedParent.IsKind(SyntaxKind.IdentifierName) &&
-                    token.ValueText == "dynamic")
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public bool IsBindableToken(SyntaxToken token)
         {
             if (this.IsWord(token) || this.IsLiteral(token) || this.IsOperator(token))
