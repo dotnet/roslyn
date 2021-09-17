@@ -268,9 +268,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private bool SpansPreprocessorDirective(SyntaxTriviaList list)
             => list.Any(t => IsPreprocessorDirective(t));
 
-        public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode node);
+        public abstract SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode? node);
 
-        public abstract bool IsParameterNameXmlElementSyntax(SyntaxNode node);
+        public abstract bool IsParameterNameXmlElementSyntax(SyntaxNode? node);
 
         public abstract SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
 
