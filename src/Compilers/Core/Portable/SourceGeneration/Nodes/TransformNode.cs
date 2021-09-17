@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (builder.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.RecordStepsForCachedTable(sourceTable, _name);
+                    return previousTable.RecordStepsForCachedTable(builder, sourceTable, _name);
                 }
                 return previousTable;
             }
@@ -56,25 +56,16 @@ namespace Microsoft.CodeAnalysis
             // - Added: perform transform and add
             // - Modified: perform transform and do element wise comparison with previous results
 
-            var newTable = previousTable.ToBuilder(builder.DriverState.TrackIncrementalSteps);
+            var newTable = builder.CreateTableBuilder(previousTable, _name);
 
             foreach (var entry in sourceTable)
             {
-                if (entry.State == EntryState.Removed && newTable.TryRemoveEntries())
+                var inputs = newTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
+                if (entry.State == EntryState.Removed)
                 {
-                    if (newTable.TrackIncrementalSteps)
-                    {
-                        newTable.RecordStepInfoForLastEntry(_name, TimeSpan.Zero, ImmutableArray.Create((entry.Step!, entry.OutputIndex)), EntryState.Removed);
-                    }
+                    newTable.TryRemoveEntries(TimeSpan.Zero, inputs);
                 }
-                else if (entry.State == EntryState.Cached && newTable.TryUseCachedEntries())
-                {
-                    if (newTable.TrackIncrementalSteps)
-                    {
-                        newTable.RecordStepInfoForLastEntry(_name, TimeSpan.Zero, ImmutableArray.Create((entry.Step!, entry.OutputIndex)), EntryState.Cached);
-                    }
-                }
-                else
+                else if(entry.State != EntryState.Cached || !newTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
                 {
                     // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
                     _ = SharedStopwatch.StartNew();
@@ -82,14 +73,9 @@ namespace Microsoft.CodeAnalysis
                     // generate the new entries
                     var newOutputs = _func(entry.Item, cancellationToken);
 
-                    if (entry.State != EntryState.Modified || !newTable.TryModifyEntries(newOutputs, _comparer))
+                    if (entry.State != EntryState.Modified || !newTable.TryModifyEntries(newOutputs, _comparer, stopwatch.Elapsed, inputs, entry.State))
                     {
-                        newTable.AddEntries(newOutputs, EntryState.Added);
-                    }
-
-                    if (newTable.TrackIncrementalSteps)
-                    {
-                        newTable.RecordStepInfoForLastEntry(_name, stopwatch.Elapsed, ImmutableArray.Create((entry.Step!, entry.OutputIndex)), entry.State);
+                        newTable.AddEntries(newOutputs, EntryState.Added, stopwatch.Elapsed, inputs, entry.State);
                     }
                 }
             }

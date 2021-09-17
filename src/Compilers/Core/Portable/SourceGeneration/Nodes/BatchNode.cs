@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
             // - Modified otherwise
 
             // update the table
-            var newTable = previousTable.ToBuilder(builder.DriverState.TrackIncrementalSteps);
+            var newTable = builder.CreateTableBuilder(previousTable, _name);
 
             // If this execution is tracking steps, then the source table should have also tracked steps or be the empty table.
             Debug.Assert(!newTable.TrackIncrementalSteps || (sourceTable.HasTrackedSteps || sourceTable.IsEmpty));
@@ -55,29 +55,16 @@ namespace Microsoft.CodeAnalysis
             var sourceValues = batchedSourceEntries.SelectAsArray(sourceEntry => sourceEntry.State != EntryState.Removed, sourceEntry => sourceEntry.Item);
             var sourceInputs = newTable.TrackIncrementalSteps ? batchedSourceEntries.SelectAsArray(sourceEntry => (sourceEntry.Step!, sourceEntry.OutputIndex)) : default;
 
-            EntryState inputState;
             if (previousTable.IsEmpty)
             {
-                inputState = EntryState.Added;
-                newTable.AddEntry(sourceValues, EntryState.Added);
+                newTable.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
             }
-            else if (sourceTable.IsCached && newTable.TryUseCachedEntries())
+            else if (!sourceTable.IsCached || !newTable.TryUseCachedEntries(stopwatch.Elapsed, sourceInputs))
             {
-                inputState = EntryState.Cached;
-            }
-            else
-            {
-                inputState = EntryState.Modified;
-                if (!newTable.TryModifyEntry(sourceValues, _comparer))
+                if (!newTable.TryModifyEntry(sourceValues, _comparer, stopwatch.Elapsed, sourceInputs, EntryState.Modified))
                 {
-                    inputState = EntryState.Added;
-                    newTable.AddEntry(sourceValues, EntryState.Added);
+                    newTable.AddEntry(sourceValues, EntryState.Added, stopwatch.Elapsed, sourceInputs, EntryState.Added);
                 }
-            }
-
-            if (newTable.TrackIncrementalSteps)
-            {
-                newTable.RecordStepInfoForLastEntry(_name, stopwatch.Elapsed, sourceInputs, inputState);
             }
 
             return newTable.ToImmutableAndFree();

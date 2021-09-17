@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis
             {
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
-                    return RecordStepsForCachedTable(previousTable, input1Table, input2Table);
+                    return RecordStepsForCachedTable(graphState, previousTable, input1Table, input2Table);
                 }
                 return previousTable;
             }
 
-            var builder = previousTable.ToBuilder(graphState.DriverState.TrackIncrementalSteps);
+            var builder = graphState.CreateTableBuilder(previousTable, _name);
 
             // Semantics of a join:
             //
@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis
                 // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
                 _ = SharedStopwatch.StartNew();
                 var stopwatch = SharedStopwatch.StartNew();
+
+                var stepInputs = builder.TrackIncrementalSteps ? ImmutableArray.Create((entry1.Step!, entry1.OutputIndex), (input2Step!, 0)) : default;
+
                 var state = (entry1.State, isInput2Cached) switch
                 {
                     (EntryState.Cached, true) => EntryState.Cached,
@@ -68,36 +71,26 @@ namespace Microsoft.CodeAnalysis
                 };
 
                 var entry = (entry1.Item, input2);
-                if (state != EntryState.Modified || _comparer is null || !builder.TryModifyEntry(entry, _comparer))
+                if (state != EntryState.Modified || _comparer is null || !builder.TryModifyEntry(entry, _comparer, stopwatch.Elapsed, stepInputs, state))
                 {
-                    builder.AddEntry(entry, state);
-                }
-
-                if (builder.TrackIncrementalSteps)
-                {
-                    Debug.Assert(entry1.Step is not null);
-                    Debug.Assert(input2Step is not null);
-                    builder.RecordStepInfoForLastEntry(
-                        _name,
-                        stopwatch.Elapsed,
-                        ImmutableArray.Create((entry1.Step, entry1.OutputIndex), (input2Step, 0)),
-                        state);
+                    builder.AddEntry(entry, state, stopwatch.Elapsed, stepInputs, state);
                 }
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        private NodeStateTable<(TInput1, TInput2)> RecordStepsForCachedTable(NodeStateTable<(TInput1, TInput2)> previousTable, NodeStateTable<TInput1> input1Table, NodeStateTable<TInput2> input2Table)
+        private NodeStateTable<(TInput1, TInput2)> RecordStepsForCachedTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, TInput2)> previousTable, NodeStateTable<TInput1> input1Table, NodeStateTable<TInput2> input2Table)
         {
             Debug.Assert(input1Table.HasTrackedSteps && input2Table.IsCached);
-            var builder = previousTable.ToBuilder(stepTrackingEnabled: true);
+            var builder = graphState.CreateTableBuilder(previousTable, _name);
             (_, IncrementalGeneratorRunStep? input2Step) = input2Table.Single();
             foreach (var entry in input1Table)
             {
-                bool usedCachedEntry = builder.TryUseCachedEntries();
+                var stepInputs = builder.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex), (input2Step!, 0)) : default;
+
+                bool usedCachedEntry = builder.TryUseCachedEntries(TimeSpan.Zero, stepInputs);
                 Debug.Assert(usedCachedEntry);
-                builder.RecordStepInfoForLastEntry(_name, TimeSpan.Zero, ImmutableArray.Create((entry.Step!, entry.OutputIndex), (input2Step!, 0)), entry.State);
             }
             return builder.ToImmutableAndFree();
         }

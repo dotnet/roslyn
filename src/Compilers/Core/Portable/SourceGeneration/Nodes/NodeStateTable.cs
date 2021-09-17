@@ -147,9 +147,9 @@ namespace Microsoft.CodeAnalysis
             return sourceBuilder.ToImmutableAndFree();
         }
 
-        public Builder ToBuilder(bool stepTrackingEnabled)
+        public Builder ToBuilder(string? stepName, bool stepTrackingEnabled)
         {
-            return new Builder(this, stepTrackingEnabled);
+            return new Builder(this, stepName, stepTrackingEnabled);
         }
 
         public sealed class Builder
@@ -157,15 +157,17 @@ namespace Microsoft.CodeAnalysis
             private readonly ArrayBuilder<TableEntry> _states;
             private readonly NodeStateTable<T> _previous;
 
+            private readonly string? _name;
             private readonly ArrayBuilder<IncrementalGeneratorRunStep>? _steps;
 
             [MemberNotNullWhen(true, nameof(_steps))]
             public bool TrackIncrementalSteps { get; }
 
-            internal Builder(NodeStateTable<T> previous, bool stepTrackingEnabled)
+            internal Builder(NodeStateTable<T> previous, string? name, bool stepTrackingEnabled)
             {
                 _states = ArrayBuilder<TableEntry>.GetInstance();
                 _previous = previous;
+                _name = name;
                 TrackIncrementalSteps = stepTrackingEnabled;
                 if (stepTrackingEnabled)
                 {
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public bool TryRemoveEntries()
+            public bool TryRemoveEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs)
             {
                 if (_previous._states.Length <= _states.Count)
                 {
@@ -184,12 +186,13 @@ namespace Microsoft.CodeAnalysis
                 // Mark the corresponding entries to this node execution in the previous table as removed.
                 var previousEntries = _previous._states[_states.Count].AsRemoved();
                 _states.Add(previousEntries);
+                RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Removed);
                 return true;
             }
 
-            public bool TryRemoveEntries(out ImmutableArray<T> entries)
+            public bool TryRemoveEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, out ImmutableArray<T> entries)
             {
-                if (!TryRemoveEntries())
+                if (!TryRemoveEntries(elapsedTime, stepInputs))
                 {
                     entries = default;
                     return false;
@@ -199,7 +202,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool TryUseCachedEntries()
+            public bool TryUseCachedEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs)
             {
                 if (_previous._states.Length <= _states.Count)
                 {
@@ -211,12 +214,13 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(previousEntries.IsCached);
 
                 _states.Add(previousEntries);
+                RecordStepInfoForLastEntry(elapsedTime, stepInputs, EntryState.Cached);
                 return true;
             }
 
-            public bool TryUseCachedEntries(out ImmutableArray<T> entries)
+            public bool TryUseCachedEntries(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, out ImmutableArray<T> entries)
             {
-                if (!TryUseCachedEntries())
+                if (!TryUseCachedEntries(elapsedTime, stepInputs))
                 {
                     entries = default;
                     return false;
@@ -226,7 +230,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool TryModifyEntry(T value, IEqualityComparer<T> comparer)
+            public bool TryModifyEntry(T value, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
                 if (_previous._states.Length <= _states.Count)
                 {
@@ -237,10 +241,11 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(_previous._states[_states.Count].Count == 1);
                 EntryState newEntryState = comparer.Equals(_previous._states[_states.Count].GetItem(0), value) ? EntryState.Cached : EntryState.Modified;
                 _states.Add(new TableEntry(value, newEntryState));
+                RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
             }
 
-            public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer)
+            public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
                 if (_previous._states.Length <= _states.Count)
                 {
@@ -289,63 +294,45 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 _states.Add(modified.ToImmutableAndFree());
+                RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
             }
 
-            public void AddEntry(T value, EntryState state)
+            public void AddEntry(T value, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
                 _states.Add(new TableEntry(value, state));
+                RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
             }
 
-            public void AddEntries(ImmutableArray<T> values, EntryState state)
+            public void AddEntries(ImmutableArray<T> values, EntryState state, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
                 _states.Add(new TableEntry(values, state));
+                RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
             }
 
-            public void RecordStepInfoForLastEntry(string? stepName, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
+            private void RecordStepInfoForLastEntry(TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
-                Debug.Assert(TrackIncrementalSteps);
-                // We should have already recorded step information for all steps before the most recently recorded step.
-                Debug.Assert(_steps.Count + 1 == _states.Count);
-
-                TableEntry outputInfo = _states[^1];
-
-                ArrayBuilder<(object Value, IncrementalStepRunReason OutputStatus)> stepOutputBuilder = ArrayBuilder<(object, IncrementalStepRunReason)>.GetInstance(outputInfo.Count);
-
-                for (int i = 0; i < outputInfo.Count; i++)
+                if (TrackIncrementalSteps)
                 {
-                    stepOutputBuilder.Add((outputInfo.GetItem(i)!, AsStepState(overallInputState, outputInfo.GetState(i))));
+                    // We should have already recorded step information for all steps before the most recently recorded step.
+                    Debug.Assert(_steps.Count + 1 == _states.Count);
+
+                    TableEntry outputInfo = _states[^1];
+
+                    ArrayBuilder<(object Value, IncrementalStepRunReason OutputStatus)> stepOutputBuilder = ArrayBuilder<(object, IncrementalStepRunReason)>.GetInstance(outputInfo.Count);
+
+                    for (int i = 0; i < outputInfo.Count; i++)
+                    {
+                        stepOutputBuilder.Add((outputInfo.GetItem(i)!, AsStepState(overallInputState, outputInfo.GetState(i))));
+                    }
+
+                    _steps.Add(
+                        new IncrementalGeneratorRunStep(
+                            _name,
+                            stepInputs,
+                            stepOutputBuilder.ToImmutableAndFree(),
+                            elapsedTime));
                 }
-
-                _steps.Add(
-                    new IncrementalGeneratorRunStep(
-                        stepName,
-                        stepInputs,
-                        stepOutputBuilder.ToImmutableAndFree(),
-                        elapsedTime));
-            }
-
-            public void RecordStepInfoForLastEntry(string? stepName, TimeSpan elapsedTime)
-            {
-                Debug.Assert(TrackIncrementalSteps);
-                // We should have already recorded step information for all steps before the most recently recorded step.
-                Debug.Assert(_steps.Count + 1 == _states.Count);
-
-                TableEntry outputInfo = _states[^1];
-
-                ArrayBuilder<(object Value, IncrementalStepRunReason OutputStatus)> stepOutputBuilder = ArrayBuilder<(object, IncrementalStepRunReason)>.GetInstance(outputInfo.Count);
-
-                for (int i = 0; i < outputInfo.Count; i++)
-                {
-                    stepOutputBuilder.Add((outputInfo.GetItem(i)!, AsStepState(outputInfo.GetState(i))));
-                }
-
-                _steps.Add(
-                    new IncrementalGeneratorRunStep(
-                        stepName,
-                        ImmutableArray<(IncrementalGeneratorRunStep Source, int OutputIndex)>.Empty,
-                        stepOutputBuilder.ToImmutableAndFree(),
-                        elapsedTime));
             }
 
             public IReadOnlyList<IncrementalGeneratorRunStep> Steps => (IReadOnlyList<IncrementalGeneratorRunStep>?)_steps ?? ImmutableArray<IncrementalGeneratorRunStep>.Empty;

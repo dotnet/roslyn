@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis
             public Builder(SyntaxReceiverInputNode owner, DriverStateTable driverStateTable, bool trackIncrementalSteps)
             {
                 _owner = owner;
-                _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_owner).ToBuilder(trackIncrementalSteps);
+                _nodeStateTable = driverStateTable.GetStateTableOrEmpty<ISyntaxContextReceiver?>(_owner).ToBuilder(stepName: null, trackIncrementalSteps);
                 _inputSteps = trackIncrementalSteps ? ArrayBuilder<(IncrementalGeneratorRunStep, int)>.GetInstance() : null;
                 try
                 {
@@ -81,11 +81,7 @@ namespace Microsoft.CodeAnalysis
 
             public void SaveStateAndFree(ImmutableSegmentedDictionary<object, IStateTable>.Builder tables)
             {
-                _nodeStateTable.AddEntry(_receiver, EntryState.Modified);
-                if (TrackIncrementalSteps)
-                {
-                    _nodeStateTable.RecordStepInfoForLastEntry(null, lastElapsedTime, _inputSteps.ToImmutableAndFree(), EntryState.Modified);
-                }
+                _nodeStateTable.AddEntry(_receiver, EntryState.Modified, lastElapsedTime, TrackIncrementalSteps ? _inputSteps.ToImmutableAndFree() : default, EntryState.Modified);
                 tables[_owner] = _nodeStateTable.ToImmutableAndFree();
             }
 

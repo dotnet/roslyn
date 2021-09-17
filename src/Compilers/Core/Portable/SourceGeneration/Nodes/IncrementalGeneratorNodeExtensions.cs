@@ -12,15 +12,15 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class IncrementalGeneratorNodeExtensions
     {
-        public static NodeStateTable<TOutput> RecordStepsForCachedTable<TInput, TOutput>(this NodeStateTable<TOutput> previousTable, NodeStateTable<TInput> inputTable, string? stepName)
+        public static NodeStateTable<TOutput> RecordStepsForCachedTable<TInput, TOutput>(this NodeStateTable<TOutput> previousTable, DriverStateTable.Builder graphState, NodeStateTable<TInput> inputTable, string? stepName)
         {
             Debug.Assert(inputTable.HasTrackedSteps && inputTable.IsCached);
-            NodeStateTable<TOutput>.Builder builder = previousTable.ToBuilder(stepTrackingEnabled: true);
+            NodeStateTable<TOutput>.Builder builder = graphState.CreateTableBuilder(previousTable, stepName);
             foreach (var entry in inputTable)
             {
-                bool usedCachedEntry = builder.TryUseCachedEntries();
+                var inputs = ImmutableArray.Create((entry.Step!, entry.OutputIndex));
+                bool usedCachedEntry = builder.TryUseCachedEntries(TimeSpan.Zero, inputs);
                 Debug.Assert(usedCachedEntry);
-                builder.RecordStepInfoForLastEntry(stepName, TimeSpan.Zero, ImmutableArray.Create((entry.Step!, entry.OutputIndex)), entry.State);
             }
             return builder.ToImmutableAndFree();
         }

@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis
             public Builder(SyntaxInputNode<T> owner, DriverStateTable table, bool trackIncrementalSteps)
             {
                 _owner = owner;
-                _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder(trackIncrementalSteps);
-                _transformTable = table.GetStateTableOrEmpty<T>(_owner).ToBuilder(trackIncrementalSteps);
+                _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder(_owner.Name, trackIncrementalSteps);
+                _transformTable = table.GetStateTableOrEmpty<T>(_owner).ToBuilder(_owner.Name, trackIncrementalSteps);
             }
 
             public ISyntaxInputNode SyntaxInputNode { get => _owner; }
@@ -69,20 +69,16 @@ namespace Microsoft.CodeAnalysis
 
             public void VisitTree(Lazy<SyntaxNode> root, EntryState state, int syntaxTreeIndex, IncrementalGeneratorRunStep? inputStep, GeneratorRunStateTable.Builder runStateTableBuilder, SemanticModel? model, CancellationToken cancellationToken)
             {
+                var filterTableInputs = _filterTable.TrackIncrementalSteps ? ImmutableArray.Create((inputStep!, syntaxTreeIndex)) : default;
                 if (state == EntryState.Removed)
                 {
                     // mark both syntax *and* transform nodes removed
-                    if (_filterTable.TryRemoveEntries(out ImmutableArray<SyntaxNode> removedNodes) && _filterTable.TrackIncrementalSteps)
-                    {
-                        _filterTable.RecordStepInfoForLastEntry(null, TimeSpan.Zero, ImmutableArray.Create((inputStep!, syntaxTreeIndex)), EntryState.Removed);
-                    }
+                    _filterTable.TryRemoveEntries(TimeSpan.Zero, filterTableInputs, out ImmutableArray<SyntaxNode> removedNodes);
 
                     for (int i = 0; i < removedNodes.Length; i++)
                     {
-                        if (_transformTable.TryRemoveEntries() && _transformTable.TrackIncrementalSteps)
-                        {
-                            _transformTable.RecordStepInfoForLastEntry(_owner.Name, TimeSpan.Zero, ImmutableArray.Create((_filterTable.Steps[^1], i)), EntryState.Removed);
-                        }
+                        var transformTableInputs = _transformTable.TrackIncrementalSteps ? ImmutableArray.Create((_filterTable.Steps[^1], i)) : default;
+                        _transformTable.TryRemoveEntries(TimeSpan.Zero, transformTableInputs);
                     }
 
                 }
@@ -91,30 +87,20 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(model is object);
 
                     // get the syntax nodes from cache, or a syntax walk using the filter
-                    if (state == EntryState.Cached && _filterTable.TryUseCachedEntries(out ImmutableArray<SyntaxNode> nodes))
+                    if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(TimeSpan.Zero, filterTableInputs, out ImmutableArray<SyntaxNode> nodes))
                     {
-                        if (_filterTable.TrackIncrementalSteps)
-                        {
-                            _filterTable.RecordStepInfoForLastEntry(null, TimeSpan.Zero, ImmutableArray.Create((inputStep!, syntaxTreeIndex)), EntryState.Cached);
-                        }
-                    }
-                    else
-                    {
-
                         // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
                         _ = SharedStopwatch.StartNew();
                         var stopwatch = SharedStopwatch.StartNew();
                         nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
-                        _filterTable.AddEntries(nodes, state);
-                        if (_filterTable.TrackIncrementalSteps)
-                        {
-                            _filterTable.RecordStepInfoForLastEntry(null, stopwatch.Elapsed, ImmutableArray.Create((inputStep!, syntaxTreeIndex)), state);
-                        }
+                        _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, filterTableInputs, state);
                     }
 
                     // now, using the obtained syntax nodes, run the transform
                     for (int i = 0; i < nodes.Length; i++)
                     {
+                        var transformTableInputs = _transformTable.TrackIncrementalSteps ? ImmutableArray.Create((_filterTable.Steps[^1], i)) : default;
+
                         // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
                         _ = SharedStopwatch.StartNew();
                         var stopwatch = SharedStopwatch.StartNew();
@@ -122,18 +108,9 @@ namespace Microsoft.CodeAnalysis
                         var value = new GeneratorSyntaxContext(node, model);
                         var transformed = _owner._transformFunc(value, cancellationToken);
 
-                        if (state == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer))
+                        if (state == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer, stopwatch.Elapsed, transformTableInputs, state))
                         {
-                            _transformTable.AddEntry(transformed, EntryState.Added);
-                        }
-
-                        if (_transformTable.TrackIncrementalSteps)
-                        {
-                            _transformTable.RecordStepInfoForLastEntry(
-                                _owner.Name,
-                                stopwatch.Elapsed,
-                                ImmutableArray.Create((_filterTable.Steps[^1], i)),
-                                state);
+                            _transformTable.AddEntry(transformed, EntryState.Added, stopwatch.Elapsed, transformTableInputs, EntryState.Added);
                         }
                     }
                 }

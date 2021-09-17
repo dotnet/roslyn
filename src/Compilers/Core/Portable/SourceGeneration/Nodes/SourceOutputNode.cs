@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using TOutput = System.ValueTuple<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.GeneratedSourceText>, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>>;
@@ -46,26 +45,20 @@ namespace Microsoft.CodeAnalysis
             {
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.RecordStepsForCachedTable(sourceTable, _name);
+                    return previousTable.RecordStepsForCachedTable(graphState, sourceTable, _name);
                 }
                 return previousTable;
             }
 
-            var nodeTable = previousTable.ToBuilder(graphState.DriverState.TrackIncrementalSteps);
+            var nodeTable = graphState.CreateTableBuilder(previousTable, _name);
             foreach (var entry in sourceTable)
             {
+                var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
                 if (entry.State == EntryState.Removed)
                 {
-                    if (nodeTable.TryRemoveEntries() && nodeTable.TrackIncrementalSteps)
-                    {
-                        nodeTable.RecordStepInfoForLastEntry(_name, TimeSpan.Zero, ImmutableArray.Create((entry.Step!, entry.OutputIndex)), entry.State);
-                    }
+                    nodeTable.TryRemoveEntries(TimeSpan.Zero, inputs);
                 }
-                else if (entry.State == EntryState.Cached && nodeTable.TryUseCachedEntries() && nodeTable.TrackIncrementalSteps)
-                {
-                    nodeTable.RecordStepInfoForLastEntry(_name, TimeSpan.Zero, ImmutableArray.Create((entry.Step!, entry.OutputIndex)), entry.State);
-                }
-                else
+                else if (entry.State != EntryState.Cached || !nodeTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
                 {
                     // we don't currently handle modified any differently than added at the output
                     // we just run the action and mark the new source as added. In theory we could compare
@@ -84,11 +77,7 @@ namespace Microsoft.CodeAnalysis
                         var stopwatch = SharedStopwatch.StartNew();
                         _action(context, entry.Item);
                         var sourcesAndDiagnostics = (sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly());
-                        nodeTable.AddEntry(sourcesAndDiagnostics, EntryState.Added);
-                        if (nodeTable.TrackIncrementalSteps)
-                        {
-                            nodeTable.RecordStepInfoForLastEntry(_name, stopwatch.Elapsed, ImmutableArray.Create((entry.Step!, entry.OutputIndex)), EntryState.Added);
-                        }
+                        nodeTable.AddEntry(sourcesAndDiagnostics, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
                     }
                     finally
                     {

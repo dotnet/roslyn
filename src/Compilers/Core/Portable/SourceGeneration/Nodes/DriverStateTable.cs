@@ -153,6 +153,11 @@ namespace Microsoft.CodeAnalysis
                 return newTable;
             }
 
+            public NodeStateTable<T>.Builder CreateTableBuilder<T>(NodeStateTable<T> previousTable, string? stepName)
+            {
+                return previousTable.ToBuilder(stepName, DriverState.TrackIncrementalSteps);
+            }
+
             public DriverStateTable ToImmutable()
             {
                 // we can compact the tables at this point, as we'll no longer be using them to determine current state

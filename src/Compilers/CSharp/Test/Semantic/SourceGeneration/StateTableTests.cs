@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Table_Entries_Can_Be_Enumerated()
         {
-            var builder = NodeStateTable<int>.Empty.ToBuilder(false);
-            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(2), EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(3), EntryState.Added);
+            var builder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, false);
+            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(2), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(3), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             var table = builder.ToImmutableAndFree();
 
             var expected = ImmutableArray.Create((1, EntryState.Added, 0), (2, EntryState.Added, 0), (3, EntryState.Added, 0));
@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Table_Entries_Are_Flattened_When_Enumerated()
         {
-            var builder = NodeStateTable<int>.Empty.ToBuilder(false);
-            builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(4, 5, 6), EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(7, 8, 9), EntryState.Added);
+            var builder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, false);
+            builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(4, 5, 6), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(7, 8, 9), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             var table = builder.ToImmutableAndFree();
 
             var expected = ImmutableArray.Create((1, EntryState.Added, 0), (2, EntryState.Added, 1), (3, EntryState.Added, 2), (4, EntryState.Added, 0), (5, EntryState.Added, 1), (6, EntryState.Added, 2), (7, EntryState.Added, 0), (8, EntryState.Added, 1), (9, EntryState.Added, 2));
@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         {
             var o = new object();
 
-            var builder = NodeStateTable<object>.Empty.ToBuilder(false);
-            builder.AddEntries(ImmutableArray.Create(o, o, o), EntryState.Added);
+            var builder = NodeStateTable<object>.Empty.ToBuilder(stepName: null, false);
+            builder.AddEntries(ImmutableArray.Create(o, o, o), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             var table = builder.ToImmutableAndFree();
 
             var expected = ImmutableArray.Create((o, EntryState.Added, 0), (o, EntryState.Added, 1), (o, EntryState.Added, 2));
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         {
             object? o = new object();
 
-            var builder = NodeStateTable<object?>.Empty.ToBuilder(false);
-            builder.AddEntry(o, EntryState.Added);
-            builder.AddEntry(null, EntryState.Added);
-            builder.AddEntry(o, EntryState.Added);
+            var builder = NodeStateTable<object?>.Empty.ToBuilder(stepName: null, false);
+            builder.AddEntry(o, EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntry(null, EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntry(o, EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             var table = builder.ToImmutableAndFree();
 
             var expected = ImmutableArray.Create((o, EntryState.Added, 0), (null, EntryState.Added, 0), (o, EntryState.Added, 0));
@@ -73,18 +73,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Builder_Can_Add_Entries_From_Previous_Table()
         {
-            var builder = NodeStateTable<int>.Empty.ToBuilder(false);
-            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(2, 3), EntryState.Cached);
-            builder.AddEntries(ImmutableArray.Create(4, 5), EntryState.Modified);
-            builder.AddEntries(ImmutableArray.Create(6), EntryState.Added);
+            var builder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, false);
+            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(2, 3), EntryState.Cached, TimeSpan.Zero, default, EntryState.Cached);
+            builder.AddEntries(ImmutableArray.Create(4, 5), EntryState.Modified, TimeSpan.Zero, default, EntryState.Modified);
+            builder.AddEntries(ImmutableArray.Create(6), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             var previousTable = builder.ToImmutableAndFree();
 
-            builder = previousTable.ToBuilder(false);
-            builder.AddEntries(ImmutableArray.Create(10, 11), EntryState.Added);
-            builder.TryUseCachedEntries(out var cachedEntries); // ((2, EntryState.Cached), (3, EntryState.Cached))
-            builder.AddEntries(ImmutableArray.Create(20, 21, 22), EntryState.Modified);
-            bool didRemoveEntries = builder.TryRemoveEntries(out var removedEntries); //((6, EntryState.Removed))
+            builder = previousTable.ToBuilder(stepName: null, false);
+            builder.AddEntries(ImmutableArray.Create(10, 11), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.TryUseCachedEntries(TimeSpan.Zero, default, out var cachedEntries); // ((2, EntryState.Cached), (3, EntryState.Cached))
+            builder.AddEntries(ImmutableArray.Create(20, 21, 22), EntryState.Modified, TimeSpan.Zero, default, EntryState.Modified);
+            bool didRemoveEntries = builder.TryRemoveEntries(TimeSpan.Zero, default, out var removedEntries); //((6, EntryState.Removed))
             var newTable = builder.ToImmutableAndFree();
 
             var expected = ImmutableArray.Create((10, EntryState.Added, 0), (11, EntryState.Added, 1), (2, EntryState.Cached, 0), (3, EntryState.Cached, 1), (20, EntryState.Modified, 0), (21, EntryState.Modified, 1), (22, EntryState.Modified, 2), (6, EntryState.Removed, 0));
@@ -97,10 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Table_Entries_Are_Cached_Or_Dropped_When_Cached()
         {
-            var builder = NodeStateTable<int>.Empty.ToBuilder(false);
-            builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(4, 5, 6), EntryState.Removed);
-            builder.AddEntries(ImmutableArray.Create(7, 8, 9), EntryState.Added);
+            var builder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, false);
+            builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(4, 5, 6), EntryState.Removed, TimeSpan.Zero, default, EntryState.Removed);
+            builder.AddEntries(ImmutableArray.Create(7, 8, 9), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             var table = builder.ToImmutableAndFree();
 
             var expected = ImmutableArray.Create((1, EntryState.Added, 0), (2, EntryState.Added, 1), (3, EntryState.Added, 2), (4, EntryState.Removed, 0), (5, EntryState.Removed, 1), (6, EntryState.Removed, 2), (7, EntryState.Added, 0), (8, EntryState.Added, 1), (9, EntryState.Added, 2));
@@ -114,10 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Table_AsCached_Occurs_Only_Once()
         {
-            var builder = NodeStateTable<int>.Empty.ToBuilder(false);
-            builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(4, 5, 6), EntryState.Removed);
-            builder.AddEntries(ImmutableArray.Create(7, 8, 9), EntryState.Added);
+            var builder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, false);
+            builder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(4, 5, 6), EntryState.Removed, TimeSpan.Zero, default, EntryState.Removed);
+            builder.AddEntries(ImmutableArray.Create(7, 8, 9), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             var table = builder.ToImmutableAndFree();
 
             var expected = ImmutableArray.Create((1, EntryState.Added, 0), (2, EntryState.Added, 1), (3, EntryState.Added, 2), (4, EntryState.Removed, 0), (5, EntryState.Removed, 1), (6, EntryState.Removed, 2), (7, EntryState.Added, 0), (8, EntryState.Added, 1), (9, EntryState.Added, 2));
@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Table_Single_Returns_First_Item()
         {
-            var builder = NodeStateTable<int>.Empty.ToBuilder(false);
-            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
+            var builder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, false);
+            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             var table = builder.ToImmutableAndFree();
 
             Assert.Equal(1, table.Single().item);
@@ -145,19 +145,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Table_Single_Returns_Second_Item_When_First_Is_Removed()
         {
-            var builder = NodeStateTable<int>.Empty.ToBuilder(false);
-            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
+            var builder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, false);
+            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             var table = builder.ToImmutableAndFree();
 
             AssertTableEntries(table, new[] { (1, EntryState.Added, 0) });
 
             // remove the first item and replace it in the table
-            builder = table.ToBuilder(false);
+            builder = table.ToBuilder(stepName: null, false);
 
-            bool didRemoveEntries = builder.TryRemoveEntries(out _);
+            bool didRemoveEntries = builder.TryRemoveEntries(TimeSpan.Zero, default);
             Assert.True(didRemoveEntries);
 
-            builder.AddEntries(ImmutableArray.Create(2), EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(2), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             table = builder.ToImmutableAndFree();
 
             AssertTableEntries(table, new[] { (1, EntryState.Removed, 0), (2, EntryState.Added, 0) });
@@ -167,19 +167,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Builder_Handles_Modification_When_Both_Tables_Have_Empty_Entries()
         {
-            var builder = NodeStateTable<int>.Empty.ToBuilder(false);
-            builder.AddEntries(ImmutableArray.Create(1, 2), EntryState.Added);
-            builder.AddEntries(ImmutableArray<int>.Empty, EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(3, 4), EntryState.Added);
+            var builder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, false);
+            builder.AddEntries(ImmutableArray.Create(1, 2), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray<int>.Empty, EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(3, 4), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             var previousTable = builder.ToImmutableAndFree();
 
             var expected = ImmutableArray.Create((1, EntryState.Added, 0), (2, EntryState.Added, 1), (3, EntryState.Added, 0), (4, EntryState.Added, 1));
             AssertTableEntries(previousTable, expected);
 
-            builder = previousTable.ToBuilder(false);
-            Assert.True(builder.TryModifyEntries(ImmutableArray.Create(3, 2), EqualityComparer<int>.Default));
-            Assert.True(builder.TryModifyEntries(ImmutableArray<int>.Empty, EqualityComparer<int>.Default));
-            Assert.True(builder.TryModifyEntries(ImmutableArray.Create(3, 5), EqualityComparer<int>.Default));
+            builder = previousTable.ToBuilder(stepName: null, false);
+            Assert.True(builder.TryModifyEntries(ImmutableArray.Create(3, 2), EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
+            Assert.True(builder.TryModifyEntries(ImmutableArray<int>.Empty, EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
+            Assert.True(builder.TryModifyEntries(ImmutableArray.Create(3, 5), EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
 
             var newTable = builder.ToImmutableAndFree();
 
@@ -190,21 +190,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Node_Table_Doesnt_Modify_Single_Item_Multiple_Times_When_Same()
         {
-            var builder = NodeStateTable<int>.Empty.ToBuilder(false);
-            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(2), EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(3), EntryState.Added);
-            builder.AddEntries(ImmutableArray.Create(4), EntryState.Added);
+            var builder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, false);
+            builder.AddEntries(ImmutableArray.Create(1), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(2), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(3), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            builder.AddEntries(ImmutableArray.Create(4), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
             var previousTable = builder.ToImmutableAndFree();
 
             var expected = ImmutableArray.Create((1, EntryState.Added, 0), (2, EntryState.Added, 0), (3, EntryState.Added, 0), (4, EntryState.Added, 0));
             AssertTableEntries(previousTable, expected);
 
-            builder = previousTable.ToBuilder(false);
-            Assert.True(builder.TryModifyEntry(1, EqualityComparer<int>.Default));
-            Assert.True(builder.TryModifyEntry(2, EqualityComparer<int>.Default));
-            Assert.True(builder.TryModifyEntry(5, EqualityComparer<int>.Default));
-            Assert.True(builder.TryModifyEntry(4, EqualityComparer<int>.Default));
+            builder = previousTable.ToBuilder(stepName: null, false);
+            Assert.True(builder.TryModifyEntry(1, EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
+            Assert.True(builder.TryModifyEntry(2, EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
+            Assert.True(builder.TryModifyEntry(5, EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
+            Assert.True(builder.TryModifyEntry(4, EqualityComparer<int>.Default, TimeSpan.Zero, default, EntryState.Modified));
 
             var newTable = builder.ToImmutableAndFree();
 
@@ -247,8 +247,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Driver_Table_Calls_Into_Node_With_PreviousTable()
         {
-            var nodeBuilder = NodeStateTable<int>.Empty.ToBuilder(false);
-            nodeBuilder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Cached);
+            var nodeBuilder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, false);
+            nodeBuilder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Cached, TimeSpan.Zero, default, EntryState.Cached);
             var newTable = nodeBuilder.ToImmutableAndFree();
 
             NodeStateTable<int>? passedIn = null;
@@ -275,13 +275,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Fact]
         public void Driver_Table_Compacts_State_Tables_And_Drops_Steps_When_Made_Immutable()
         {
-            var nodeBuilder = NodeStateTable<int>.Empty.ToBuilder(true);
-            nodeBuilder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added);
-            nodeBuilder.RecordStepInfoForLastEntry(stepName: null, elapsedTime: TimeSpan.Zero);
-            nodeBuilder.AddEntries(ImmutableArray.Create(4), EntryState.Removed);
-            nodeBuilder.RecordStepInfoForLastEntry(stepName: null, elapsedTime: TimeSpan.Zero);
-            nodeBuilder.AddEntries(ImmutableArray.Create(5, 6), EntryState.Modified);
-            nodeBuilder.RecordStepInfoForLastEntry(stepName: null, elapsedTime: TimeSpan.Zero);
+            var nodeBuilder = NodeStateTable<int>.Empty.ToBuilder(stepName: null, true);
+            nodeBuilder.AddEntries(ImmutableArray.Create(1, 2, 3), EntryState.Added, TimeSpan.Zero, default, EntryState.Added);
+            nodeBuilder.AddEntries(ImmutableArray.Create(4), EntryState.Removed, TimeSpan.Zero, default, EntryState.Removed);
+            nodeBuilder.AddEntries(ImmutableArray.Create(5, 6), EntryState.Modified, TimeSpan.Zero, default, EntryState.Modified);
 
             var newTable = nodeBuilder.ToImmutableAndFree();
 
