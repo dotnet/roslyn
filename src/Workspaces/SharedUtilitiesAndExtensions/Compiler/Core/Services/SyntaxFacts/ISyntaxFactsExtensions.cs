@@ -270,15 +270,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return expression;
         }
 
-        public static SyntaxList<SyntaxNode> GetImportsOfCompilationUnit(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        public static SyntaxList<SyntaxNode> GetImportsOfBaseNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
-            syntaxFacts.GetPartsOfCompilationUnit(node, out var imports, out _, out _);
+            syntaxFacts.GetPartsOfBaseNamespaceDeclaration(node, out _, out var imports, out _);
             return imports;
         }
 
-        public static SyntaxList<SyntaxNode> GetImportsOfNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        public static SyntaxList<SyntaxNode> GetImportsOfCompilationUnit(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
-            syntaxFacts.GetPartsOfNamespaceDeclaration(node, out _, out var imports, out _);
+            syntaxFacts.GetPartsOfCompilationUnit(node, out var imports, out _, out _);
             return imports;
         }
 
@@ -288,27 +288,27 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return initializer;
         }
 
+        public static SyntaxList<SyntaxNode> GetMembersOfBaseNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfBaseNamespaceDeclaration(node, out _, out _, out var members);
+            return members;
+        }
+
         public static SyntaxList<SyntaxNode> GetMembersOfCompilationUnit(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfCompilationUnit(node, out _, out _, out var members);
             return members;
         }
 
-        public static SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+        public static SyntaxNode GetNameOfBaseNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
-            syntaxFacts.GetPartsOfNamespaceDeclaration(node, out _, out _, out var members);
-            return members;
+            syntaxFacts.GetPartsOfBaseNamespaceDeclaration(node, out var name, out _, out _);
+            return name;
         }
 
         public static SyntaxNode GetNameOfMemberAccessExpression(this ISyntaxFacts syntaxFacts, SyntaxNode node)
         {
             syntaxFacts.GetPartsOfMemberAccessExpression(node, out _, out var name);
-            return name;
-        }
-
-        public static SyntaxNode GetNameOfNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
-        {
-            syntaxFacts.GetPartsOfNamespaceDeclaration(node, out var name, out _, out _);
             return name;
         }
 
@@ -577,9 +577,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsGlobalAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => syntaxFacts.IsGlobalAssemblyAttribute(node) || syntaxFacts.IsGlobalModuleAttribute(node);
-
-        public static bool IsNamespaceDeclaration(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
-            => node?.RawKind == syntaxFacts.SyntaxKinds.NamespaceDeclaration;
 
         public static bool IsParameter(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.Parameter;

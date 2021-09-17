@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
+Imports System.Diagnostics.CodeAnalysis
 
 #If CODE_STYLE Then
 Imports Microsoft.CodeAnalysis.Internal.Editing
@@ -1801,6 +1802,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
+        Public Function IsBaseNamespaceDeclaration(<NotNullWhen(True)> node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBaseNamespaceDeclaration
+            Return TypeOf node Is NamespaceBlockSyntax
+        End Function
+
         Public Function IsBinaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsBinaryExpression
             Return TypeOf node Is BinaryExpressionSyntax
         End Function
@@ -1862,7 +1867,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             name = memberAccess.Name
         End Sub
 
-        Public Sub GetPartsOfNamespaceDeclaration(node As SyntaxNode, ByRef name As SyntaxNode, ByRef [imports] As SyntaxList(Of SyntaxNode), ByRef members As SyntaxList(Of SyntaxNode)) Implements ISyntaxFacts.GetPartsOfNamespaceDeclaration
+        Public Sub GetPartsOfBaseNamespaceDeclaration(node As SyntaxNode, ByRef name As SyntaxNode, ByRef [imports] As SyntaxList(Of SyntaxNode), ByRef members As SyntaxList(Of SyntaxNode)) Implements ISyntaxFacts.GetPartsOfBaseNamespaceDeclaration
             Dim namespaceBlock = DirectCast(node, NamespaceBlockSyntax)
             name = namespaceBlock.NamespaceStatement.Name
             [imports] = Nothing

@@ -1577,6 +1577,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is AnonymousFunctionExpressionSyntax;
 
+        public bool IsBaseNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node)
+            => node is BaseNamespaceDeclarationSyntax;
+
         public bool IsBinaryExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is BinaryExpressionSyntax;
 
@@ -1641,9 +1644,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             name = memberAccess.Name;
         }
 
-        public void GetPartsOfNamespaceDeclaration(SyntaxNode node, out SyntaxNode name, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> members)
+        public void GetPartsOfBaseNamespaceDeclaration(SyntaxNode node, out SyntaxNode name, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> members)
         {
-            var namespaceDeclaration = (NamespaceDeclarationSyntax)node;
+            var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)node;
             name = namespaceDeclaration.Name;
             imports = namespaceDeclaration.Usings;
             members = namespaceDeclaration.Members;
