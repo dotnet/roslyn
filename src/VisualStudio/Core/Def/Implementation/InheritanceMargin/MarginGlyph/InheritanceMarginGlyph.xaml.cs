@@ -51,8 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _textView = textView;
             _listener = listener;
 
-            SetBinding(AutomationProperties.NameProperty, new Binding(nameof(InheritanceMarginGlyphViewModel.AutomationName)));
-
             Background = Brushes.Transparent;
             BorderBrush = Brushes.Transparent;
 
@@ -70,20 +68,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 },
             });
 
+            var viewModel = InheritanceMarginGlyphViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
+            SetValue(AutomationProperties.NameProperty, viewModel.AutomationName);
+
             // Control template only shows the image
             var templateBorder = new FrameworkElementFactory(typeof(Border), "Border");
             templateBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1));
-            templateBorder.SetBinding(Border.BackgroundProperty, new Binding(nameof(Background)) { RelativeSource = RelativeSource.TemplatedParent });
-            templateBorder.SetBinding(Border.BorderBrushProperty, new Binding(nameof(BorderBrush)) { RelativeSource = RelativeSource.TemplatedParent });
+            templateBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(BackgroundProperty));
+            templateBorder.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(BorderBrushProperty));
 
             var templateImage = new FrameworkElementFactory(typeof(CrispImage));
-            templateImage.SetBinding(CrispImage.MonikerProperty, new Binding(nameof(InheritanceMarginGlyphViewModel.ImageMoniker)));
-            templateImage.SetBinding(CrispImage.ScaleFactorProperty, new Binding(nameof(InheritanceMarginGlyphViewModel.ScaleFactor)));
+            templateImage.SetValue(CrispImage.MonikerProperty, viewModel.ImageMoniker);
+            templateImage.SetValue(CrispImage.ScaleFactorProperty, viewModel.ScaleFactor);
             templateBorder.AppendChild(templateImage);
 
             Template = new ControlTemplate { VisualTree = templateBorder };
-
-            var viewModel = InheritanceMarginGlyphViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
             DataContext = viewModel;
         }
 
