@@ -884,60 +884,20 @@ namespace Microsoft.CodeAnalysis.Testing
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60Windows =
                 new Lazy<ReferenceAssemblies>(() =>
-                {
-                    if (!NuGetFramework.Parse("net6.0").IsPackageBased)
-                    {
-                        // The NuGet version provided at runtime does not recognize the 'net6.0' target framework
-                        throw new NotSupportedException("The 'net6.0' target framework is not supported by this version of NuGet.");
-                    }
-
-                    return new ReferenceAssemblies(
-                        "net6.0",
-                        new PackageIdentity(
-                            "Microsoft.NETCore.App.Ref",
-                            "6.0.0-preview.7.21377.19"),
-                        Path.Combine("ref", "net6.0"))
-                    .AddPackages(
+                    Net60.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "6.0.0-preview.7.21378.9")));
-                });
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "6.0.0-preview.7.21378.9"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60Android =
                 new Lazy<ReferenceAssemblies>(() =>
-                {
-                    if (!NuGetFramework.Parse("net6.0").IsPackageBased)
-                    {
-                        // The NuGet version provided at runtime does not recognize the 'net6.0' target framework
-                        throw new NotSupportedException("The 'net6.0' target framework is not supported by this version of NuGet.");
-                    }
-
-                    return new ReferenceAssemblies(
-                        "net6.0",
-                        new PackageIdentity(
-                            "Microsoft.NETCore.App.Ref",
-                            "6.0.0-preview.7.21377.19"),
-                        Path.Combine("ref", "net6.0"))
-                    .AddPackages(
+                    return Net60.AddPackages(
                         ImmutableArray.Create(
-                            new PackageIdentity("Microsoft.Android.Ref", "30.0.100-preview.7.110")));
-                });
+                            new PackageIdentity("Microsoft.Android.Ref", "30.0.100-preview.7.110"))));
 
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60iOS =
                 new Lazy<ReferenceAssemblies>(() =>
                 {
-                    if (!NuGetFramework.Parse("net6.0").IsPackageBased)
-                    {
-                        // The NuGet version provided at runtime does not recognize the 'net6.0' target framework
-                        throw new NotSupportedException("The 'net6.0' target framework is not supported by this version of NuGet.");
-                    }
-
-                    return new ReferenceAssemblies(
-                        "net6.0",
-                        new PackageIdentity(
-                            "Microsoft.NETCore.App.Ref",
-                            "6.0.0-preview.7.21377.19"),
-                        Path.Combine("ref", "net6.0"))
-                    .AddPackages(
+                    return Net60.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.iOS.Ref", "15.0.100-preview.7.230")));
                 });
@@ -945,19 +905,7 @@ namespace Microsoft.CodeAnalysis.Testing
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60MacOS =
                 new Lazy<ReferenceAssemblies>(() =>
                 {
-                    if (!NuGetFramework.Parse("net6.0").IsPackageBased)
-                    {
-                        // The NuGet version provided at runtime does not recognize the 'net6.0' target framework
-                        throw new NotSupportedException("The 'net6.0' target framework is not supported by this version of NuGet.");
-                    }
-
-                    return new ReferenceAssemblies(
-                        "net6.0",
-                        new PackageIdentity(
-                            "Microsoft.NETCore.App.Ref",
-                            "6.0.0-preview.7.21377.19"),
-                        Path.Combine("ref", "net6.0"))
-                    .AddPackages(
+                    return Net60.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.macOS.Ref", "12.0.100-preview.7.230")));
                 });
@@ -965,19 +913,7 @@ namespace Microsoft.CodeAnalysis.Testing
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60MacCatalyst =
                 new Lazy<ReferenceAssemblies>(() =>
                 {
-                    if (!NuGetFramework.Parse("net6.0").IsPackageBased)
-                    {
-                        // The NuGet version provided at runtime does not recognize the 'net6.0' target framework
-                        throw new NotSupportedException("The 'net6.0' target framework is not supported by this version of NuGet.");
-                    }
-
-                    return new ReferenceAssemblies(
-                        "net6.0",
-                        new PackageIdentity(
-                            "Microsoft.NETCore.App.Ref",
-                            "6.0.0-preview.7.21377.19"),
-                        Path.Combine("ref", "net6.0"))
-                    .AddPackages(
+                    return Net60.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.MacCatalyst.Ref", "15.0.100-preview.7.230")));
                 });
@@ -985,19 +921,7 @@ namespace Microsoft.CodeAnalysis.Testing
             private static readonly Lazy<ReferenceAssemblies> _lazyNet60TvOS =
                 new Lazy<ReferenceAssemblies>(() =>
                 {
-                    if (!NuGetFramework.Parse("net6.0").IsPackageBased)
-                    {
-                                    // The NuGet version provided at runtime does not recognize the 'net6.0' target framework
-                                    throw new NotSupportedException("The 'net6.0' target framework is not supported by this version of NuGet.");
-                    }
-
-                    return new ReferenceAssemblies(
-                        "net6.0",
-                        new PackageIdentity(
-                            "Microsoft.NETCore.App.Ref",
-                            "6.0.0-preview.7.21377.19"),
-                        Path.Combine("ref", "net6.0"))
-                    .AddPackages(
+                    return Net60.AddPackages(
                         ImmutableArray.Create(
                             new PackageIdentity("Microsoft.tvOS.Ref", "15.0.100-preview.7.230")));
                 });
