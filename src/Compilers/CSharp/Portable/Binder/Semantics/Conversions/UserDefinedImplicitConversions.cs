@@ -606,6 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Not "standard".
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
+                case ConversionKind.FunctionType:
 
                 // Not implicit.
                 case ConversionKind.ExplicitNumeric:
@@ -642,9 +643,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Added for C# 7.1
                 case ConversionKind.DefaultLiteral:
-
-                // Added for C# 10.
-                case ConversionKind.FunctionType:
                     return true;
 
                 default:

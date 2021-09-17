@@ -6427,18 +6427,17 @@ delegate void D2(object x, ref object y);
 delegate void D4(out object x, ref object y);
 class Program
 {
+    static void M(Delegate d) { Report(d); }
+    static void M(D2 d) { Report(d); }
+    static void M(D4 d) { Report(d); }
     static void F1(ref object x, object y) { }
     static void F2(object x, ref object y) { }
     static void Main()
     {
-        var d1 = F1;
-        D2 d2 = F2;
-        var d3 = (ref object x, out object y) => { y = null; };
-        D4 d4 = (out object x, ref object y) => { x = null; };
-        Report(d1);
-        Report(d2);
-        Report(d3);
-        Report(d4);
+        M(F1);
+        M(F2);
+        M((ref object x, out object y) => { y = null; });
+        M((out object x, ref object y) => { x = null; });
     }
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
@@ -6505,14 +6504,18 @@ public class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (7,20): error CS1660: Cannot convert lambda expression to type 'Program.Field' because it is not a delegate type
                 //         SomeMethod((Employee e) => e.Name);
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(Employee e) => e.Name").WithArguments("lambda expression", "Program.Field").WithLocation(7, 20));
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(Employee e) => e.Name").WithArguments("lambda expression", "Program.Field").WithLocation(7, 20)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -6542,7 +6545,6 @@ class Program
         _ = (C1)F;
     }
 }";
-
 
             var expectedDiagnostics = new[]
             {
@@ -6593,8 +6595,8 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (4,37): error CS0553: 'C1.implicit operator C1(object)': user-defined conversions to or from a base type are not allowed
                 //     public static implicit operator C1(object o) { Console.WriteLine("operator C1(object o)"); return new C1(); }
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "C1").WithArguments("C1.implicit operator C1(object)").WithLocation(4, 37),
@@ -6624,16 +6626,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(21, 13),
                 // (22,13): error CS0030: Cannot convert type 'method' to 'C2'
                 //         _ = (C2)F;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C2)F").WithArguments("method", "C2").WithLocation(22, 13));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C2)F").WithArguments("method", "C2").WithLocation(22, 13)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (4,37): error CS0553: 'C1.implicit operator C1(object)': user-defined conversions to or from a base type are not allowed
-                //     public static implicit operator C1(object o) { Console.WriteLine("operator C1(object o)"); return new C1(); }
-                Diagnostic(ErrorCode.ERR_ConversionWithBase, "C1").WithArguments("C1.implicit operator C1(object)").WithLocation(4, 37),
-                // (8,37): error CS0552: 'C2.implicit operator C2(ICloneable)': user-defined conversions to or from an interface are not allowed
-                //     public static implicit operator C2(ICloneable c) { Console.WriteLine("operator C2(ICloneable c)"); return new C2(); }
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "C2").WithArguments("C2.implicit operator C2(System.ICloneable)").WithLocation(8, 37));
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -6678,8 +6678,8 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (24,17): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         C1 c1 = () => 1;
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(24, 17),
@@ -6715,22 +6715,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(34, 13),
                 // (35,13): error CS0030: Cannot convert type 'method' to 'C2'
                 //         _ = (C2)F;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C2)F").WithArguments("method", "C2").WithLocation(35, 13));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C2)F").WithArguments("method", "C2").WithLocation(35, 13)
+            };
 
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-@"operator C1(Delegate d)
-operator C2(MulticastDelegate d)
-operator C3(Expression e)
-operator C4(LambdaExpression e)
-operator C1(Delegate d)
-operator C2(MulticastDelegate d)
-operator C1(Delegate d)
-operator C2(MulticastDelegate d)
-operator C3(Expression e)
-operator C4(LambdaExpression e)
-operator C1(Delegate d)
-operator C2(MulticastDelegate d)
-");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -6758,8 +6750,8 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (11,24): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
                 //         C<object> c1 = () => 1;
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<object>").WithLocation(11, 24),
@@ -6783,18 +6775,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<object>)F").WithArguments("method", "C<object>").WithLocation(17, 13),
                 // (18,13): error CS0030: Cannot convert type 'method' to 'C<ICloneable>'
                 //         _ = (C<ICloneable>)F;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<ICloneable>)F").WithArguments("method", "C<System.ICloneable>").WithLocation(18, 13));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<ICloneable>)F").WithArguments("method", "C<System.ICloneable>").WithLocation(18, 13)
+            };
 
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-@"operator C<System.Object>(System.Object t)
-operator C<System.ICloneable>(System.ICloneable t)
-operator C<System.Object>(System.Object t)
-operator C<System.ICloneable>(System.ICloneable t)
-operator C<System.Object>(System.Object t)
-operator C<System.ICloneable>(System.ICloneable t)
-operator C<System.Object>(System.Object t)
-operator C<System.ICloneable>(System.ICloneable t)
-");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -6827,8 +6815,8 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (12,26): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
                 //         C<Delegate> c1 = () => 1;
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(12, 26),
@@ -6864,22 +6852,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<Delegate>)F").WithArguments("method", "C<System.Delegate>").WithLocation(22, 13),
                 // (23,13): error CS0030: Cannot convert type 'method' to 'C<MulticastDelegate>'
                 //         _ = (C<MulticastDelegate>)F;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<MulticastDelegate>)F").WithArguments("method", "C<System.MulticastDelegate>").WithLocation(23, 13));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<MulticastDelegate>)F").WithArguments("method", "C<System.MulticastDelegate>").WithLocation(23, 13)
+            };
 
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-@"operator C<System.Delegate>(System.Delegate t)
-operator C<System.MulticastDelegate>(System.MulticastDelegate t)
-operator C<System.Linq.Expressions.Expression>(System.Linq.Expressions.Expression t)
-operator C<System.Linq.Expressions.LambdaExpression>(System.Linq.Expressions.LambdaExpression t)
-operator C<System.Delegate>(System.Delegate t)
-operator C<System.MulticastDelegate>(System.MulticastDelegate t)
-operator C<System.Delegate>(System.Delegate t)
-operator C<System.MulticastDelegate>(System.MulticastDelegate t)
-operator C<System.Linq.Expressions.Expression>(System.Linq.Expressions.Expression t)
-operator C<System.Linq.Expressions.LambdaExpression>(System.Linq.Expressions.LambdaExpression t)
-operator C<System.Delegate>(System.Delegate t)
-operator C<System.MulticastDelegate>(System.MulticastDelegate t)
-");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -6941,8 +6921,8 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (4,37): error CS0553: 'C1.explicit operator C1(object)': user-defined conversions to or from a base type are not allowed
                 //     public static explicit operator C1(object o) { Console.WriteLine("operator C1(object o)"); return new C1(); }
                 Diagnostic(ErrorCode.ERR_ConversionWithBase, "C1").WithArguments("C1.explicit operator C1(object)").WithLocation(4, 37),
@@ -6960,16 +6940,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(17, 13),
                 // (18,13): error CS0030: Cannot convert type 'method' to 'C2'
                 //         _ = (C2)F;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C2)F").WithArguments("method", "C2").WithLocation(18, 13));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C2)F").WithArguments("method", "C2").WithLocation(18, 13)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (4,37): error CS0553: 'C1.explicit operator C1(object)': user-defined conversions to or from a base type are not allowed
-                //     public static explicit operator C1(object o) { Console.WriteLine("operator C1(object o)"); return new C1(); }
-                Diagnostic(ErrorCode.ERR_ConversionWithBase, "C1").WithArguments("C1.explicit operator C1(object)").WithLocation(4, 37),
-                // (8,37): error CS0552: 'C2.explicit operator C2(ICloneable)': user-defined conversions to or from an interface are not allowed
-                //     public static explicit operator C2(ICloneable c) { Console.WriteLine("operator C2(ICloneable c)"); return new C2(); }
-                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "C2").WithArguments("C2.explicit operator C2(System.ICloneable)").WithLocation(8, 37));
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -7008,8 +6986,8 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (24,18): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
                 //         _ = (C1)(() => 1);
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(24, 18),
@@ -7027,16 +7005,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(28, 13),
                 // (29,13): error CS0030: Cannot convert type 'method' to 'C2'
                 //         _ = (C2)F;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C2)F").WithArguments("method", "C2").WithLocation(29, 13));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C2)F").WithArguments("method", "C2").WithLocation(29, 13)
+            };
 
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-@"operator C1(Delegate d)
-operator C2(MulticastDelegate d)
-operator C3(Expression e)
-operator C4(LambdaExpression e)
-operator C1(Delegate d)
-operator C2(MulticastDelegate d)
-");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -7060,8 +7036,8 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (11,25): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
                 //         _ = (C<object>)(() => 1);
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<object>").WithLocation(11, 25),
@@ -7073,14 +7049,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<object>)F").WithArguments("method", "C<object>").WithLocation(13, 13),
                 // (14,13): error CS0030: Cannot convert type 'method' to 'C<ICloneable>'
                 //         _ = (C<ICloneable>)F;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<ICloneable>)F").WithArguments("method", "C<System.ICloneable>").WithLocation(14, 13));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<ICloneable>)F").WithArguments("method", "C<System.ICloneable>").WithLocation(14, 13)
+            };
 
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-@"operator C<System.Object>(System.Object t)
-operator C<System.ICloneable>(System.ICloneable t)
-operator C<System.Object>(System.Object t)
-operator C<System.ICloneable>(System.ICloneable t)
-");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -7107,8 +7083,8 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (12,27): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
                 //         _ = (C<Delegate>)(() => 1);
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(12, 27),
@@ -7126,16 +7102,14 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<Delegate>)F").WithArguments("method", "C<System.Delegate>").WithLocation(16, 13),
                 // (17,13): error CS0030: Cannot convert type 'method' to 'C<MulticastDelegate>'
                 //         _ = (C<MulticastDelegate>)F;
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<MulticastDelegate>)F").WithArguments("method", "C<System.MulticastDelegate>").WithLocation(17, 13));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<MulticastDelegate>)F").WithArguments("method", "C<System.MulticastDelegate>").WithLocation(17, 13)
+            };
 
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-@"operator C<System.Delegate>(System.Delegate t)
-operator C<System.MulticastDelegate>(System.MulticastDelegate t)
-operator C<System.Linq.Expressions.Expression>(System.Linq.Expressions.Expression t)
-operator C<System.Linq.Expressions.LambdaExpression>(System.Linq.Expressions.LambdaExpression t)
-operator C<System.Delegate>(System.Delegate t)
-operator C<System.MulticastDelegate>(System.MulticastDelegate t)
-");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

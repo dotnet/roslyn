@@ -2793,7 +2793,7 @@ OuterBreak:
                 return false;
             }
 
-            return conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).Exists;
+            return conversions.ClassifyImplicitConversionFromTypeOrImplicitFunctionTypeConversion(source, destination, ref useSiteInfo).Exists;
         }
 #nullable disable
 
