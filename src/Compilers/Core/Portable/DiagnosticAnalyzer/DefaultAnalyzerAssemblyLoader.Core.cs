@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
                "System.Xml.XDocument",
                "System.Xml.XPath.XDocument");
 
-        // This is the default context where compiler (and some of its dependencies) are being loaded into, which might be differernt from AssemblyLoadContext.Default.
+        // This is the context where compiler (and some of its dependencies) are being loaded into, which might be different from AssemblyLoadContext.Default.
         private static readonly AssemblyLoadContext s_compilerLoadContext = AssemblyLoadContext.GetLoadContext(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
 
         private readonly object _guard = new object();
