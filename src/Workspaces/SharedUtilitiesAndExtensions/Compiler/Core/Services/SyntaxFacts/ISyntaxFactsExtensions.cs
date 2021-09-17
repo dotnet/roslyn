@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -14,6 +16,144 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal static class ISyntaxFactsExtensions
     {
+        private static readonly ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool
+            = SharedPools.Default<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>();
+
+        public static bool IsOnSingleLine(this ISyntaxFacts syntaxFacts, SyntaxNode node, bool fullSpan)
+        {
+            // The stack logic assumes the initial node is not null
+            Contract.ThrowIfNull(node);
+
+            // Use an actual Stack so we can write out deeply recursive structures without overflowing.
+            // Note: algorithm is taken from GreenNode.WriteTo.
+            //
+            // General approach is that we recurse down the nodes, using a real stack object to
+            // keep track of what node we're on.  If full-span is true we'll examine all tokens
+            // and all the trivia on each token.  If full-span is false we'll examine all tokens
+            // but we'll ignore the leading trivia on the very first trivia and the trailing trivia
+            // on the very last token.
+            var stack = s_stackPool.Allocate();
+            stack.Push((node, leading: fullSpan, trailing: fullSpan));
+
+            var result = IsOnSingleLine(syntaxFacts, stack);
+
+            s_stackPool.ClearAndFree(stack);
+
+            return result;
+        }
+
+        private static bool IsOnSingleLine(
+            ISyntaxFacts syntaxFacts, Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)> stack)
+        {
+            while (stack.Count > 0)
+            {
+                var (currentNodeOrToken, currentLeading, currentTrailing) = stack.Pop();
+                if (currentNodeOrToken.IsToken)
+                {
+                    // If this token isn't on a single line, then the original node definitely
+                    // isn't on a single line.
+                    if (!IsOnSingleLine(syntaxFacts, currentNodeOrToken.AsToken(), currentLeading, currentTrailing))
+                        return false;
+                }
+                else
+                {
+                    var currentNode = currentNodeOrToken.AsNode()!;
+
+                    var childNodesAndTokens = currentNode.ChildNodesAndTokens();
+                    var childCount = childNodesAndTokens.Count;
+
+                    // Walk the children of this node in reverse, putting on the stack to process.
+                    // This way we process the children in the actual child-order they are in for
+                    // this node.
+                    var index = 0;
+                    foreach (var child in childNodesAndTokens.Reverse())
+                    {
+                        // Since we're walking the children in reverse, if we're on hte 0th item,
+                        // that's the last child.
+                        var last = index == 0;
+
+                        // Once we get all the way to the end of the reversed list, we're actually
+                        // on the first.
+                        var first = index == childCount - 1;
+
+                        // We want the leading trivia if we've asked for it, or if we're not the first
+                        // token being processed.  We want the trailing trivia if we've asked for it,
+                        // or if we're not the last token being processed.
+                        stack.Push((child, currentLeading | !first, currentTrailing | !last));
+                        index++;
+                    }
+                }
+            }
+
+            // All tokens were on a single line.  This node is on a single line.
+            return true;
+        }
+
+        private static bool IsOnSingleLine(ISyntaxFacts syntaxFacts, SyntaxToken token, bool leading, bool trailing)
+        {
+            // If any of our trivia is not on a single line, then we're not on a single line.
+            if (!IsOnSingleLine(syntaxFacts, token.LeadingTrivia, leading) ||
+                !IsOnSingleLine(syntaxFacts, token.TrailingTrivia, trailing))
+            {
+                return false;
+            }
+
+            // Only string literals can span multiple lines.  Only need to check those.
+            if (syntaxFacts.SyntaxKinds.StringLiteralToken == token.RawKind ||
+                syntaxFacts.SyntaxKinds.InterpolatedStringTextToken == token.RawKind)
+            {
+                // This allocated.  But we only do it in the string case. For all other tokens
+                // we don't need any allocations.
+                if (!IsOnSingleLine(token.ToString()))
+                {
+                    return false;
+                }
+            }
+
+            // Any other type of token is on a single line.
+            return true;
+        }
+
+        private static bool IsOnSingleLine(ISyntaxFacts syntaxFacts, SyntaxTriviaList triviaList, bool checkTrivia)
+        {
+            if (checkTrivia)
+            {
+                foreach (var trivia in triviaList)
+                {
+                    if (trivia.HasStructure)
+                    {
+                        // For structured trivia, we recurse into the trivia to see if it
+                        // is on a single line or not.  If it isn't, then we're definitely
+                        // not on a single line.
+                        if (!IsOnSingleLine(syntaxFacts, trivia.GetStructure()!, fullSpan: true))
+                        {
+                            return false;
+                        }
+                    }
+                    else if (syntaxFacts.IsEndOfLineTrivia(trivia))
+                    {
+                        // Contained an end-of-line trivia.  Definitely not on a single line.
+                        return false;
+                    }
+                    else if (!syntaxFacts.IsWhitespaceTrivia(trivia))
+                    {
+                        // Was some other form of trivia (like a comment).  Easiest thing
+                        // to do is just stringify this and count the number of newlines.
+                        // these should be rare.  So the allocation here is ok.
+                        if (!IsOnSingleLine(trivia.ToString()))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private static bool IsOnSingleLine(string value)
+            => value.GetNumberOfLineBreaks() == 0;
+
         public static bool IsLegalIdentifier(this ISyntaxFacts syntaxFacts, string name)
         {
             if (name.Length == 0)
