@@ -516,7 +516,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         {
                             // TODO: find a cleaner way to fetch this
                             var metadataReference = _workspace.CurrentSolution.GetRequiredProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
-                                                                                    .Single(m => m.FilePath == path && m.Properties == properties);
+                                .Single(m => StringComparer.OrdinalIgnoreCase.Equals(m.FilePath, path) && m.Properties == properties);
 
                             _workspace.FileWatchedReferenceFactory.StopWatchingReference(metadataReference);
 
