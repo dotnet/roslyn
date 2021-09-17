@@ -536,24 +536,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
 
-        bool CanHaveAccessibility(SyntaxNode declaration);
-
-        /// <summary>
-        /// Gets the accessibility of the declaration.
-        /// </summary>
-        // Violation.  This is a not a concrete syntactic concept over C#/VB syntax nodes.  This should be on SyntaxGenerator
-        // (which provide syntactic abstractions like 'Accessibility' questions).
-        Accessibility GetAccessibility(SyntaxNode declaration);
-
-        void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault);
-
-        SyntaxTokenList GetModifierTokens(SyntaxNode? declaration);
-
-        /// <summary>
-        /// Gets the <see cref="DeclarationKind"/> for the declaration.
-        /// </summary>
-        DeclarationKind GetDeclarationKind(SyntaxNode declaration);
-
         #region IsXXX members
 
         bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node);
