@@ -1275,17 +1275,19 @@ partial class C
 
             // Files passed in reverse order.
             verify(new[] { tree2, tree1 });
-            
+
             void verify(CSharpTestSource source)
             {
                 var compilation = CreateCompilation(source, assemblyName: "Test");
-                compilation.VerifyDiagnostics(
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                    Assert.Equal("p2", method.Parameters.Single().Name);
+                });
+                verifier.VerifyDiagnostics(
                     // (5,24): warning CS8826: Partial method declarations 'int C.M(int p2)' and 'int C.M(int p1)' have signature differences.
                     //     public partial int M(int p1) => 42;
                     Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("int C.M(int p2)", "int C.M(int p1)").WithLocation(5, 24));
-
-                var method = compilation.GetMember<MethodSymbol>("C.M");
-                Assert.Equal("p2", method.Parameters.Single().Name);
 
                 var actual = GetDocumentationCommentText(compilation);
                 var expected = @"
@@ -1330,20 +1332,22 @@ partial class C
 
             // Files passed in reverse order.
             verify(new[] { tree2, tree1 });
-            
+
             void verify(CSharpTestSource source)
             {
                 var compilation = CreateCompilation(source, assemblyName: "Test");
-                compilation.VerifyDiagnostics(
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                    Assert.Equal("p2", method.Parameters.Single().Name);
+                });
+                verifier.VerifyDiagnostics(
                     // (4,42): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'p2', but there is no parameter by that name
                     //     /** <summary>Accepts <paramref name="p2"/>.</summary> */
                     Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p2").WithArguments("p2", "C.M(int)").WithLocation(4, 42),
                     // (5,24): warning CS8826: Partial method declarations 'int C.M(int p2)' and 'int C.M(int p1)' have signature differences.
                     //     public partial int M(int p1) => 42;
                     Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("int C.M(int p2)", "int C.M(int p1)").WithLocation(5, 24));
-
-                var method = compilation.GetMember<MethodSymbol>("C.M");
-                Assert.Equal("p2", method.Parameters.Single().Name);
 
                 var actual = GetDocumentationCommentText(compilation,
                     // (4,42): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'p2', but there is no parameter by that name
@@ -1391,20 +1395,22 @@ partial class C
 
             // Files passed in reverse order.
             verify(new[] { tree2, tree1 });
-            
+
             void verify(CSharpTestSource source)
             {
                 var compilation = CreateCompilation(source, assemblyName: "Test");
-                compilation.VerifyDiagnostics(
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                    Assert.Equal("p2", method.Parameters.Single().Name);
+                });
+                verifier.VerifyDiagnostics(
                     // (4,24): warning CS8826: Partial method declarations 'int C.M(int p2)' and 'int C.M(int p1)' have signature differences.
                     //     public partial int M(int p1) => 42;
                     Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("int C.M(int p2)", "int C.M(int p1)").WithLocation(4, 24),
                     // (4,42): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'p1', but there is no parameter by that name
                     //     /** <summary>Accepts <paramref name="p1"/>.</summary> */
                     Diagnostic(ErrorCode.WRN_UnmatchedParamRefTag, "p1").WithArguments("p1", "C.M(int)").WithLocation(4, 42));
-
-                var method = compilation.GetMember<MethodSymbol>("C.M");
-                Assert.Equal("p2", method.Parameters.Single().Name);
 
                 var actual = GetDocumentationCommentText(compilation,
                     // (4,42): warning CS1734: XML comment on 'C.M(int)' has a paramref tag for 'p1', but there is no parameter by that name
@@ -1452,17 +1458,19 @@ partial class C
 
             // Files passed in reverse order.
             verify(new[] { tree2, tree1 });
-            
+
             void verify(CSharpTestSource source)
             {
                 var compilation = CreateCompilation(source, assemblyName: "Test");
-                compilation.VerifyDiagnostics(
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var method = module.GlobalNamespace.GetMember<MethodSymbol>("C.M");
+                    Assert.Equal("p2", method.Parameters.Single().Name);
+                });
+                verifier.VerifyDiagnostics(
                     // (4,24): warning CS8826: Partial method declarations 'int C.M(int p2)' and 'int C.M(int p1)' have signature differences.
                     //     public partial int M(int p1) => 42;
                     Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("int C.M(int p2)", "int C.M(int p1)").WithLocation(4, 24));
-
-                var method = compilation.GetMember<MethodSymbol>("C.M");
-                Assert.Equal("p2", method.Parameters.Single().Name);
 
                 var actual = GetDocumentationCommentText(compilation);
                 var expected = @"

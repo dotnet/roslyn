@@ -295,6 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (maxDocumentationMode >= DocumentationMode.Diagnose
                     && RequiresDocumentationComment(symbol)
+                    // We never give a missing doc comment warning on a partial method
+                    // implementation, and we skip the missing doc comment warning on a partial
+                    // definition whose documentation we were not going to output anyway.
                     && !symbol.IsPartialImplementation()
                     && !shouldSkipPartialDefinitionComments)
                 {
