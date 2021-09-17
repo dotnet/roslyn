@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_loadContextByDirectory.TryGetValue(fullDirectoryPath, out loadContext))
                 {
-                    loadContext = new DirectoryLoadContext(fullDirectoryPath, this);
+                    loadContext = new DirectoryLoadContext(fullDirectoryPath, this, s_compilerLoadContext);
                     _loadContextByDirectory[fullDirectoryPath] = loadContext;
                 }
             }
@@ -106,11 +106,13 @@ namespace Microsoft.CodeAnalysis
         {
             internal string Directory { get; }
             private readonly DefaultAnalyzerAssemblyLoader _loader;
+            private readonly AssemblyLoadContext _compilerLoadContext;
 
-            public DirectoryLoadContext(string directory, DefaultAnalyzerAssemblyLoader loader)
+            public DirectoryLoadContext(string directory, DefaultAnalyzerAssemblyLoader loader, AssemblyLoadContext compilerLoadContext)
             {
                 Directory = directory;
                 _loader = loader;
+                _compilerLoadContext = compilerLoadContext;
             }
 
             protected override Assembly? Load(AssemblyName assemblyName)
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // Delegate to the compiler's load context to load the compiler or anything
                     // referenced by the compiler
-                    return s_compilerLoadContext.LoadFromAssemblyName(assemblyName);
+                    return _compilerLoadContext.LoadFromAssemblyName(assemblyName);
                 }
 
                 var assemblyPath = Path.Combine(Directory, simpleName + ".dll");
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // The analyzer didn't explicitly register this dependency. Most likely the
                     // assembly we're trying to load here is netstandard or a similar framework
-                    // assembly. We assume that if that is not the case, then the parent ALC will
+                    // assembly. We assume that if that is not the case, then the default ALC will
                     // fail to load this.
                     return null;
                 }
