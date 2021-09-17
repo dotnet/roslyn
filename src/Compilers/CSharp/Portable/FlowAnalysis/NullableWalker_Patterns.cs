@@ -509,15 +509,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         else if (e.IndexerAccess is not null)
                                         {
                                             // this[Index]
-                                            var indexer = (PropertySymbol)AsMemberOfType(inputType, e.IndexerAccess.Indexer);
-                                            type = indexer.TypeWithAnnotations;
+                                            var indexer = AsMemberOfType(inputType, e.IndexerAccess.Indexer);
+                                            type = indexer.GetTypeOrReturnType();
 
                                         }
                                         else if (e.IndexerSymbol is not null)
                                         {
                                             // this[int]
-                                            var indexer = (PropertySymbol)AsMemberOfType(inputType, e.IndexerSymbol);
-                                            type = indexer.TypeWithAnnotations;
+                                            var indexer = AsMemberOfType(inputType, e.IndexerSymbol);
+                                            type = indexer.GetTypeOrReturnType();
                                         }
                                         else
                                         {
