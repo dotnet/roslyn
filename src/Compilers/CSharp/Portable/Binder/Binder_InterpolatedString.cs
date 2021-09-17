@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = null;
 
-                if (InExpressionTree || !ValidateInterpolatedStringParts(unconvertedInterpolatedString))
+                if (InExpressionTree || !InterpolatedStringPartsAreValidInDefaultHandler(unconvertedInterpolatedString))
                 {
                     return false;
                 }
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool ValidateInterpolatedStringParts(BoundUnconvertedInterpolatedString unconvertedInterpolatedString)
+        private static bool InterpolatedStringPartsAreValidInDefaultHandler(BoundUnconvertedInterpolatedString unconvertedInterpolatedString)
             => !unconvertedInterpolatedString.Parts.ContainsAwaitExpression()
                && unconvertedInterpolatedString.Parts.All(p => p is not BoundStringInsert { Value.Type.TypeKind: TypeKind.Dynamic });
 
@@ -233,19 +233,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // The constant value is folded as part of creating the unconverted operator. If there is a constant value, then the top-level binary operator
             // will have one.
-            bool isConstant = binaryOperator.ConstantValue is not null;
+            if (binaryOperator.ConstantValue is not null)
+            {
+                // This is case 1. Let the standard machinery handle it
+                return false;
+            }
             var partsArrayBuilder = ArrayBuilder<ImmutableArray<BoundExpression>>.GetInstance();
 
-            if (!binaryOperator.VisitBinaryOperatorInterpolatedString(partsArrayBuilder, static (BoundUnconvertedInterpolatedString unconvertedInterpolatedString, ArrayBuilder<ImmutableArray<BoundExpression>> partsArrayBuilder) =>
-                {
-                    if (!ValidateInterpolatedStringParts(unconvertedInterpolatedString))
+            if (!binaryOperator.VisitBinaryOperatorInterpolatedString(
+                    partsArrayBuilder,
+                    static (BoundUnconvertedInterpolatedString unconvertedInterpolatedString, ArrayBuilder<ImmutableArray<BoundExpression>> partsArrayBuilder) =>
                     {
-                        return false;
-                    }
+                        if (!InterpolatedStringPartsAreValidInDefaultHandler(unconvertedInterpolatedString))
+                        {
+                            return false;
+                        }
 
-                    partsArrayBuilder.Add(unconvertedInterpolatedString.Parts);
-                    return true;
-                }))
+                        partsArrayBuilder.Add(unconvertedInterpolatedString.Parts);
+                        return true;
+                    }))
             {
                 partsArrayBuilder.Free();
                 return false;
@@ -253,10 +259,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(partsArrayBuilder.Count >= 2);
 
-            if (isConstant ||
-                (partsArrayBuilder.Count <= 4 && partsArrayBuilder.All(static parts => AllInterpolatedStringPartsAreStrings(parts))))
+            if (partsArrayBuilder.Count <= 4 && partsArrayBuilder.All(static parts => AllInterpolatedStringPartsAreStrings(parts)))
             {
-                // This is case 1 and 2. Let the standard machinery handle it
+                // This is case 2. Let the standard machinery handle it
                 partsArrayBuilder.Free();
                 return false;
             }
