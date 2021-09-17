@@ -2,20 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell;
@@ -54,8 +48,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
             var viewModel = InheritanceMarginGlyphViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
             DataContext = viewModel;
-            ContextMenu.DataContext = viewModel;
+        }
+
+        protected override void OnMouseEnter(MouseEventArgs e)
+        {
+            LazyInitialize();
+            base.OnMouseEnter(e);
+        }
+
+        protected override void OnGotFocus(RoutedEventArgs e)
+        {
+            LazyInitialize();
+            base.OnGotFocus(e);
+        }
+
+        protected override void OnPreviewGotKeyboardFocus(KeyboardFocusChangedEventArgs e)
+        {
+            LazyInitialize();
+            base.OnPreviewGotKeyboardFocus(e);
+        }
+
+        private void LazyInitialize()
+        {
+            if (ToolTip is not null)
+            {
+                // Already initialized
+                return;
+            }
+
+            var viewModel = (InheritanceMarginGlyphViewModel)DataContext;
             ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource("ToolTipStyle") };
+
+            ContextMenu = new InheritanceMarginContextMenu(_threadingContext, _streamingFindUsagesPresenter, _operationExecutor, _workspace, _textView, _listener);
+            ContextMenu.DataContext = viewModel;
+            ContextMenu.ItemsSource = viewModel.MenuItemViewModels;
+            ContextMenu.Opened += ContextMenu_OnOpen;
+            ContextMenu.Closed += ContextMenu_OnClose;
         }
 
         private void InheritanceMargin_OnClick(object sender, RoutedEventArgs e)
@@ -65,38 +93,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 this.ContextMenu.IsOpen = true;
                 e.Handled = true;
             }
-        }
-
-        private void TargetMenuItem_OnClick(object sender, RoutedEventArgs e)
-        {
-            if (e.OriginalSource is MenuItem { DataContext: TargetMenuItemViewModel viewModel })
-            {
-                Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget, KeyValueLogMessage.Create(LogType.UserAction));
-
-                var token = _listener.BeginAsyncOperation(nameof(TargetMenuItem_OnClick));
-                TargetMenuItem_OnClickAsync(viewModel).CompletesAsyncOperation(token);
-            }
-        }
-
-        private async Task TargetMenuItem_OnClickAsync(TargetMenuItemViewModel viewModel)
-        {
-            using var context = _operationExecutor.BeginExecute(
-                title: EditorFeaturesResources.Navigating,
-                defaultDescription: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
-                allowCancellation: true,
-                showProgress: false);
-
-            var cancellationToken = context.UserCancellationToken;
-            var rehydrated = await viewModel.DefinitionItem.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
-            if (rehydrated == null)
-                return;
-
-            await _streamingFindUsagesPresenter.TryNavigateToOrPresentItemsAsync(
-                _threadingContext,
-                _workspace,
-                string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
-                ImmutableArray.Create<DefinitionItem>(rehydrated),
-                cancellationToken).ConfigureAwait(false);
         }
 
         private void ChangeBorderToHoveringColor()
@@ -153,11 +149,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // user is viewing the targets menu.
                 Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
             }
-        }
-
-        private void TargetsSubmenu_OnOpen(object sender, RoutedEventArgs e)
-        {
-            Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
         }
 
         private void ResetBorderToInitialColor()
