@@ -2,16 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Diagnostics;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Debugging
 {
     internal sealed class DebuggingWorkspaceService : IDebuggingWorkspaceService
     {
-        public event EventHandler<DebuggingStateChangedEventArgs> BeforeDebuggingStateChanged;
+        [ExportWorkspaceServiceFactory(typeof(IDebuggingWorkspaceService), ServiceLayer.Host), Shared]
+        internal sealed class Factory : IWorkspaceServiceFactory
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Factory()
+            {
+            }
+
+            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+                => new DebuggingWorkspaceService();
+        }
+
+        public event EventHandler<DebuggingStateChangedEventArgs>? BeforeDebuggingStateChanged;
 
         public DebuggingState CurrentDebuggingState { get; private set; } = DebuggingState.Design;
 
