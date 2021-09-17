@@ -44,16 +44,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             => solution.WithChangedOptionsFrom(remoteWorkpace.Options);
 
         [Fact]
-        [Obsolete]
-        public void TestRemoteHostCreation()
-        {
-            var remoteLogger = new TraceSource("inprocRemoteClient");
-            var testData = new RemoteHostTestData(new RemoteWorkspaceManager(new SolutionAssetCache()), isInProc: true);
-            var streams = FullDuplexStream.CreatePair();
-            using var _ = new RemoteHostService(streams.Item1, new InProcRemoteHostClient.ServiceProvider(remoteLogger, testData));
-        }
-
-        [Fact]
         public async Task TestRemoteHostSynchronize()
         {
             var code = @"class Test { void Method() { } }";

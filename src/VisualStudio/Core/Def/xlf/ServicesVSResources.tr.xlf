@@ -2613,11 +2613,6 @@ Ek bilgiler: {1}</target>
         <target state="translated">Üyeleri seçin</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio">
-        <source>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</source>
-        <target state="translated">Visual Studio tarafından kullanılan bir işlemde, kurtarılamayan bir hatayla karşılaşıldı. Çalışmanızı kaydettikten sonra Visual Studio'yu kapatıp yeniden başlatmanız önerilir.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_a_symbol_specification">
         <source>Add a symbol specification</source>
         <target state="translated">Sembol belirtimi ekle</target>

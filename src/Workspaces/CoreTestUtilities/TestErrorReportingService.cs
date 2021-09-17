@@ -30,9 +30,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
             => OnError(message);
 
-        public void ShowRemoteHostCrashedErrorInfo(Exception? exception)
-            => OnError(exception?.Message ?? "Unexpected error");
-
         public void ShowFeatureNotAvailableErrorInfo(string message, Exception? exception)
             => OnError($"{message} {exception}");
     }
