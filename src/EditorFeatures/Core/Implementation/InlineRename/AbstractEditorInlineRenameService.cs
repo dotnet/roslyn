@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices)
             => _refactorNotifyServices = refactorNotifyServices;
 
-        protected abstract bool CheckLanguageSpecificIssues(ISymbol symbol, SyntaxToken triggerToken, [NotNullWhen(true)] out string? langError);
+        protected abstract bool CheckLanguageSpecificIssues(
+            SemanticModel semantic, ISymbol symbol, SyntaxToken triggerToken, [NotNullWhen(true)] out string? langError);
 
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -44,9 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFactsService.IsReservedOrContextualKeyword(triggerToken))
-            {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
-            }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
@@ -58,50 +57,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // RenameOverloads option to be on.
             var triggerSymbol = tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
             if (triggerSymbol == null)
-            {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
-            }
 
             // see https://github.com/dotnet/roslyn/issues/10898
             // we are disabling rename for tuple fields for now
             // 1) compiler does not return correct location information in these symbols
             // 2) renaming tuple fields seems a complex enough thing to require some design
             if (triggerSymbol.ContainingType?.IsTupleType == true)
-            {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
-            }
 
             // If rename is invoked on a member group reference in a nameof expression, then the
             // RenameOverloads option should be forced on.
             var forceRenameOverloads = tokenRenameInfo.IsMemberGroup;
-
-            if (syntaxFactsService.IsTypeNamedVarInVariableOrFieldDeclaration(triggerToken, triggerToken.Parent))
-            {
-                // To check if var in this context is a real type, or the keyword, we need to 
-                // speculatively bind the identifier "var". If it returns a symbol, it's a real type,
-                // if not, it's the keyword.
-                // see bugs 659683 (compiler API) and 659705 (rename/workspace api) for examples
-                var symbolForVar = semanticModel.GetSpeculativeSymbolInfo(
-                    triggerToken.SpanStart,
-                    triggerToken.Parent!,
-                    SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
-
-                if (symbolForVar == null)
-                {
-                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
-                }
-            }
-
             var symbol = await RenameLocations.ReferenceProcessing.TryGetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol == null)
-            {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
-            }
 
             if (symbol.Kind == SymbolKind.Alias && symbol.IsExtern)
-            {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
-            }
 
             // Cannot rename constructors in VB.  TODO: this logic should be in the VB subclass of this type.
             var workspace = document.Project.Solution.Workspace;
@@ -113,12 +86,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     semanticModel, triggerToken.SpanStart, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 if (originalSymbol != null && originalSymbol.IsConstructor())
-                {
                     return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
-                }
             }
 
-            if (CheckLanguageSpecificIssues(symbol, triggerToken, out var langError))
+            if (CheckLanguageSpecificIssues(semanticModel, symbol, triggerToken, out var langError))
                 return new FailureInlineRenameInfo(langError);
 
             // we allow implicit locals and parameters of Event handlers
@@ -137,19 +108,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             if (symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType)
-            {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.Renaming_anonymous_type_members_is_not_yet_supported);
-            }
 
             if (symbol.IsErrorType())
-            {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.Please_resolve_errors_in_your_code_before_renaming_this_element);
-            }
 
             if (symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.UserDefinedOperator)
-            {
                 return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_operators);
-            }
 
             var symbolLocations = symbol.Locations;
 
@@ -177,9 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         var projectIdOfLocation = sourceDocument.Project.Id;
 
                         if (solution.Projects.Any(p => p.IsSubmission && p.ProjectReferences.Any(r => r.ProjectId == projectIdOfLocation)))
-                        {
                             return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_from_previous_submissions);
-                        }
                     }
                     else
                     {

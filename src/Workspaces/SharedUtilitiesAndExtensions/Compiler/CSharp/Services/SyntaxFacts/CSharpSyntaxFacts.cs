@@ -455,29 +455,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token)
             => token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken);
 
-        public bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent)
-        {
-            var typedToken = token;
-            var typedParent = parent;
-
-            if (typedParent.IsKind(SyntaxKind.IdentifierName))
-            {
-                TypeSyntax? declaredType = null;
-                if (typedParent.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? varDecl))
-                {
-                    declaredType = varDecl.Type;
-                }
-                else if (typedParent.IsParentKind(SyntaxKind.FieldDeclaration, out FieldDeclarationSyntax? fieldDecl))
-                {
-                    declaredType = fieldDecl.Declaration.Type;
-                }
-
-                return declaredType == typedParent && typedToken.ValueText == "var";
-            }
-
-            return false;
-        }
-
         public bool IsBindableToken(SyntaxToken token)
         {
             if (this.IsWord(token) || this.IsLiteral(token) || this.IsOperator(token))

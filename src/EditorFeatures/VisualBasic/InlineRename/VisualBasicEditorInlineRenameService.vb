@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InlineRename
             MyBase.New(refactorNotifyServices)
         End Sub
 
-        Protected Overrides Function CheckLanguageSpecificIssues(symbol As ISymbol, triggerToken As SyntaxToken, ByRef langError As String) As Boolean
+        Protected Overrides Function CheckLanguageSpecificIssues(semanticModel As SemanticModel, symbol As ISymbol, triggerToken As SyntaxToken, ByRef langError As String) As Boolean
             Return False
         End Function
     End Class
