@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         protected abstract GeneratorDriver CreateGeneratorDriver(Project project, ImmutableArray<ISourceGenerator> sourceGenerators);
 
-        public override async Task RunAsync(CancellationToken cancellationToken = default)
+        protected override async Task RunImplAsync(CancellationToken cancellationToken)
         {
             var analyzers = GetDiagnosticAnalyzers().ToArray();
             var defaultDiagnostic = GetDefaultDiagnostic(analyzers);
