@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -165,12 +166,34 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </summary>
         protected TimeSpan MatchDiagnosticsTimeout { get; set; } = TimeSpan.FromSeconds(2);
 
+        private readonly ConcurrentBag<Workspace> _workspaces = new ConcurrentBag<Workspace>();
+
         /// <summary>
         /// Runs the test.
         /// </summary>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the operation will observe.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public virtual async Task RunAsync(CancellationToken cancellationToken = default)
+        public async Task RunAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                await RunImplAsync(cancellationToken);
+            }
+            finally
+            {
+                while (_workspaces.TryTake(out var workspace))
+                {
+                    workspace.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Runs the test.
+        /// </summary>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the operation will observe.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        protected virtual async Task RunImplAsync(CancellationToken cancellationToken)
         {
             Verify.NotEmpty($"{nameof(TestState)}.{nameof(SolutionState.Sources)}", TestState.Sources);
 
@@ -319,19 +342,19 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="expectedResults">A collection of <see cref="DiagnosticResult"/>s describing the expected
         /// diagnostics for the sources.</param>
         /// <param name="verifier">The verifier to use for test assertions.</param>
-        private void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, ImmutableArray<DiagnosticAnalyzer> analyzers, DiagnosticResult[] expectedResults, IVerifier verifier)
+        private void VerifyDiagnosticResults(IEnumerable<(Project project, Diagnostic diagnostic)> actualResults, ImmutableArray<DiagnosticAnalyzer> analyzers, DiagnosticResult[] expectedResults, IVerifier verifier)
         {
             var matchedDiagnostics = MatchDiagnostics(actualResults.ToArray(), expectedResults);
             verifier.Equal(actualResults.Count(), matchedDiagnostics.Count(x => x.actual is object), $"{nameof(MatchDiagnostics)} failed to include all actual diagnostics in the result");
             verifier.Equal(expectedResults.Length, matchedDiagnostics.Count(x => x.expected is object), $"{nameof(MatchDiagnostics)} failed to include all expected diagnostics in the result");
 
-            actualResults = matchedDiagnostics.Select(x => x.actual).WhereNotNull();
+            actualResults = matchedDiagnostics.Select(x => x.actual).Where(x => x is { }).Select(x => x!.Value);
             expectedResults = matchedDiagnostics.Where(x => x.expected is object).Select(x => x.expected.GetValueOrDefault()).ToArray();
 
             var expectedCount = expectedResults.Length;
             var actualCount = actualResults.Count();
 
-            var diagnosticsOutput = actualResults.Any() ? FormatDiagnostics(analyzers, DefaultFilePath, actualResults.ToArray()) : "    NONE.";
+            var diagnosticsOutput = actualResults.Any() ? FormatDiagnostics(analyzers, DefaultFilePath, actualResults.Select(result => result.diagnostic).ToArray()) : "    NONE.";
             var message = $"Mismatch between number of diagnostics returned, expected \"{expectedCount}\" actual \"{actualCount}\"\r\n\r\nDiagnostics:\r\n{diagnosticsOutput}\r\n";
             verifier.Equal(expectedCount, actualCount, message);
 
@@ -342,51 +365,51 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 if (!expected.HasLocation)
                 {
-                    message = FormatVerifierMessage(analyzers, actual, expected, "Expected a project diagnostic with no location:");
-                    verifier.Equal(Location.None, actual.Location, message);
+                    message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, "Expected a project diagnostic with no location:");
+                    verifier.Equal(Location.None, actual.diagnostic.Location, message);
                 }
                 else
                 {
-                    VerifyDiagnosticLocation(analyzers, actual, expected, actual.Location, expected.Spans[0], verifier);
+                    VerifyDiagnosticLocation(analyzers, actual.diagnostic, expected, actual.diagnostic.Location, expected.Spans[0], verifier);
                     if (!expected.Options.HasFlag(DiagnosticOptions.IgnoreAdditionalLocations))
                     {
-                        var additionalLocations = actual.AdditionalLocations.ToArray();
+                        var additionalLocations = actual.diagnostic.AdditionalLocations.ToArray();
 
-                        message = FormatVerifierMessage(analyzers, actual, expected, $"Expected {expected.Spans.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:");
+                        message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, $"Expected {expected.Spans.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:");
                         verifier.Equal(expected.Spans.Length - 1, additionalLocations.Length, message);
 
                         for (var j = 0; j < additionalLocations.Length; ++j)
                         {
-                            VerifyDiagnosticLocation(analyzers, actual, expected, additionalLocations[j], expected.Spans[j + 1], verifier);
+                            VerifyDiagnosticLocation(analyzers, actual.diagnostic, expected, additionalLocations[j], expected.Spans[j + 1], verifier);
                         }
                     }
                 }
 
-                message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic id to be \"{expected.Id}\" was \"{actual.Id}\"");
-                verifier.Equal(expected.Id, actual.Id, message);
+                message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, $"Expected diagnostic id to be \"{expected.Id}\" was \"{actual.diagnostic.Id}\"");
+                verifier.Equal(expected.Id, actual.diagnostic.Id, message);
 
                 if (!expected.Options.HasFlag(DiagnosticOptions.IgnoreSeverity))
                 {
-                    message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic severity to be \"{expected.Severity}\" was \"{actual.Severity}\"");
-                    verifier.Equal(expected.Severity, actual.Severity, message);
+                    message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, $"Expected diagnostic severity to be \"{expected.Severity}\" was \"{actual.diagnostic.Severity}\"");
+                    verifier.Equal(expected.Severity, actual.diagnostic.Severity, message);
                 }
 
                 if (expected.Message != null)
                 {
-                    message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic message to be \"{expected.Message}\" was \"{actual.GetMessage()}\"");
-                    verifier.Equal(expected.Message, actual.GetMessage(), message);
+                    message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, $"Expected diagnostic message to be \"{expected.Message}\" was \"{actual.diagnostic.GetMessage()}\"");
+                    verifier.Equal(expected.Message, actual.diagnostic.GetMessage(), message);
                 }
                 else if (expected.MessageArguments?.Length > 0)
                 {
-                    message = FormatVerifierMessage(analyzers, actual, expected, $"Expected diagnostic message arguments to match");
+                    message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, $"Expected diagnostic message arguments to match");
                     verifier.SequenceEqual(
                         expected.MessageArguments.Select(argument => argument?.ToString() ?? string.Empty),
-                        GetArguments(actual).Select(argument => argument?.ToString() ?? string.Empty),
+                        GetArguments(actual.diagnostic).Select(argument => argument?.ToString() ?? string.Empty),
                         StringComparer.Ordinal,
                         message);
                 }
 
-                DiagnosticVerifier?.Invoke(actual, expected, verifier);
+                DiagnosticVerifier?.Invoke(actual.diagnostic, expected, verifier);
             }
         }
 
@@ -418,11 +441,11 @@ namespace Microsoft.CodeAnalysis.Testing
         /// the total number of mismatched pairs.</para>
         /// </list>
         /// </returns>
-        private ImmutableArray<(Diagnostic? actual, DiagnosticResult? expected)> MatchDiagnostics(Diagnostic[] actualResults, DiagnosticResult[] expectedResults)
+        private ImmutableArray<((Project project, Diagnostic diagnostic)? actual, DiagnosticResult? expected)> MatchDiagnostics((Project project, Diagnostic diagnostic)[] actualResults, DiagnosticResult[] expectedResults)
         {
-            var actualIds = actualResults.Select(result => result.Id).ToImmutableArray();
-            var actualResultLocations = actualResults.Select(result => (location: result.Location.GetLineSpan(), additionalLocations: result.AdditionalLocations.Select(location => location.GetLineSpan()).ToImmutableArray())).ToImmutableArray();
-            var actualArguments = actualResults.Select(actual => GetArguments(actual).Select(argument => argument?.ToString() ?? string.Empty).ToImmutableArray()).ToImmutableArray();
+            var actualIds = actualResults.Select(result => result.diagnostic.Id).ToImmutableArray();
+            var actualResultLocations = actualResults.Select(result => (location: result.diagnostic.Location.GetLineSpan(), additionalLocations: result.diagnostic.AdditionalLocations.Select(location => location.GetLineSpan()).ToImmutableArray())).ToImmutableArray();
+            var actualArguments = actualResults.Select(actual => GetArguments(actual.diagnostic).Select(argument => argument?.ToString() ?? string.Empty).ToImmutableArray()).ToImmutableArray();
 
             expectedResults = expectedResults.ToOrderedArray();
             var expectedArguments = expectedResults.Select(expected => expected.MessageArguments?.Select(argument => argument?.ToString() ?? string.Empty).ToImmutableArray() ?? ImmutableArray<string>.Empty).ToImmutableArray();
@@ -430,9 +453,9 @@ namespace Microsoft.CodeAnalysis.Testing
             // Initialize the best match to a trivial result where everything is unmatched. This will be updated if/when
             // better matches are found.
             var bestMatchCount = MatchQuality.RemainingUnmatched(actualResults.Length + expectedResults.Length);
-            var bestMatch = actualResults.Select(result => ((Diagnostic?)result, default(DiagnosticResult?))).Concat(expectedResults.Select(result => (default(Diagnostic?), (DiagnosticResult?)result))).ToImmutableArray();
+            var bestMatch = actualResults.Select(result => (((Project project, Diagnostic diagnostic)?)result, default(DiagnosticResult?))).Concat(expectedResults.Select(result => (default((Project project, Diagnostic diagnostic)?), (DiagnosticResult?)result))).ToImmutableArray();
 
-            var builder = ImmutableArray.CreateBuilder<(Diagnostic? actual, DiagnosticResult? expected)>();
+            var builder = ImmutableArray.CreateBuilder<((Project project, Diagnostic diagnostic)? actual, DiagnosticResult? expected)>();
             var usedExpected = new bool[expectedResults.Length];
 
             // The recursive match algorithm is not optimized, so use a timeout to ensure it completes in a reasonable
@@ -508,7 +531,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     }
 
                     var (lineSpan, additionalLineSpans) = actualResultLocations[firstActualIndex];
-                    var matchValue = GetMatchValue(actualResults[firstActualIndex], actualIds[firstActualIndex], lineSpan, additionalLineSpans, actualArguments[firstActualIndex], expectedResults[i], expectedArguments[i]);
+                    var matchValue = GetMatchValue(actualResults[firstActualIndex].diagnostic, actualIds[firstActualIndex], lineSpan, additionalLineSpans, actualArguments[firstActualIndex], expectedResults[i], expectedArguments[i]);
                     if (matchValue == MatchQuality.None)
                     {
                         continue;
@@ -969,13 +992,15 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A collection of <see cref="Diagnostic"/>s that surfaced in the source code, sorted by
         /// <see cref="Diagnostic.Location"/>.</returns>
-        private async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync(EvaluatedProjectState primaryProject, ImmutableArray<EvaluatedProjectState> additionalProjects, ImmutableArray<DiagnosticAnalyzer> analyzers, IVerifier verifier, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<(Project project, Diagnostic diagnostic)>> GetSortedDiagnosticsAsync(EvaluatedProjectState primaryProject, ImmutableArray<EvaluatedProjectState> additionalProjects, ImmutableArray<DiagnosticAnalyzer> analyzers, IVerifier verifier, CancellationToken cancellationToken)
         {
             var solution = await GetSolutionAsync(primaryProject, additionalProjects, verifier, cancellationToken);
-            var additionalDiagnostics = primaryProject.AdditionalDiagnostics;
-            foreach (var project in additionalProjects)
+            var primaryProjectInSolution = solution.Projects.Single(project => project.Name == DefaultTestProjectName);
+            var additionalDiagnostics = primaryProject.AdditionalDiagnostics.Select(diagnostic => (primaryProjectInSolution, diagnostic)).ToImmutableArray();
+            foreach (var additionalProject in additionalProjects)
             {
-                additionalDiagnostics = additionalDiagnostics.AddRange(project.AdditionalDiagnostics);
+                var additionalProjectInSolution = solution.Projects.Single(project => project.Name == additionalProject.Name);
+                additionalDiagnostics = additionalDiagnostics.AddRange(additionalProject.AdditionalDiagnostics.Select(diagnostic => (additionalProjectInSolution, diagnostic)));
             }
 
             return await GetSortedDiagnosticsAsync(solution, analyzers, additionalDiagnostics, CompilerDiagnostics, verifier, cancellationToken);
@@ -993,21 +1018,21 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A collection of <see cref="Diagnostic"/>s that surfaced in the source code, sorted by
         /// <see cref="Diagnostic.Location"/>.</returns>
-        protected async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<Diagnostic> additionalDiagnostics, CompilerDiagnostics compilerDiagnostics, IVerifier verifier, CancellationToken cancellationToken)
+        protected async Task<ImmutableArray<(Project project, Diagnostic diagnostic)>> GetSortedDiagnosticsAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<(Project project, Diagnostic diagnostic)> additionalDiagnostics, CompilerDiagnostics compilerDiagnostics, IVerifier verifier, CancellationToken cancellationToken)
         {
             if (analyzers.IsEmpty)
             {
                 analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new EmptyDiagnosticAnalyzer());
             }
 
-            var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
+            var diagnostics = ImmutableArray.CreateBuilder<(Project project, Diagnostic diagnostic)>();
             foreach (var project in solution.Projects)
             {
                 var compilation = await GetProjectCompilationAsync(project, verifier, cancellationToken).ConfigureAwait(false);
                 var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, GetAnalyzerOptions(project), cancellationToken);
                 var allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
 
-                diagnostics.AddRange(allDiagnostics.Where(diagnostic => !IsCompilerDiagnostic(diagnostic) || IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics)));
+                diagnostics.AddRange(allDiagnostics.Where(diagnostic => !IsCompilerDiagnostic(diagnostic) || IsCompilerDiagnosticIncluded(diagnostic, compilerDiagnostics)).Select(diagnostic => (project, diagnostic)));
             }
 
             diagnostics.AddRange(additionalDiagnostics);
@@ -1310,7 +1335,14 @@ namespace Microsoft.CodeAnalysis.Testing
             return solution.GetProject(project.Id);
         }
 
-        public virtual AdhocWorkspace CreateWorkspace()
+        public Workspace CreateWorkspace()
+        {
+            var workspace = CreateWorkspaceImpl();
+            _workspaces.Add(workspace);
+            return workspace;
+        }
+
+        protected virtual Workspace CreateWorkspaceImpl()
         {
             var exportProvider = ExportProviderFactory.Value.CreateExportProvider();
             var host = MefHostServices.Create(exportProvider.AsCompositionContext());
@@ -1327,14 +1359,14 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="diagnostics">A collection of <see cref="Diagnostic"/>s to be sorted.</param>
         /// <returns>A collection containing the input <paramref name="diagnostics"/>, sorted by
         /// <see cref="Diagnostic.Location"/> and <see cref="Diagnostic.Id"/>.</returns>
-        private static Diagnostic[] SortDistinctDiagnostics(IEnumerable<Diagnostic> diagnostics)
+        private static (Project project, Diagnostic diagnostic)[] SortDistinctDiagnostics(IEnumerable<(Project project, Diagnostic diagnostic)> diagnostics)
         {
             return diagnostics
-                .OrderBy(d => d.Location.GetLineSpan().Path, StringComparer.Ordinal)
-                .ThenBy(d => d.Location.SourceSpan.Start)
-                .ThenBy(d => d.Location.SourceSpan.End)
-                .ThenBy(d => d.Id)
-                .ThenBy(d => GetArguments(d), LexicographicComparer.Instance).ToArray();
+                .OrderBy(d => d.diagnostic.Location.GetLineSpan().Path, StringComparer.Ordinal)
+                .ThenBy(d => d.diagnostic.Location.SourceSpan.Start)
+                .ThenBy(d => d.diagnostic.Location.SourceSpan.End)
+                .ThenBy(d => d.diagnostic.Id)
+                .ThenBy(d => GetArguments(d.diagnostic), LexicographicComparer.Instance).ToArray();
         }
 
         private static IReadOnlyList<object?> GetArguments(Diagnostic diagnostic)
