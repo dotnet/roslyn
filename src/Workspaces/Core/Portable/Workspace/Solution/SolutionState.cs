@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis
             idToProjectStateMap ??= _projectIdToProjectStateMap;
             remoteSupportedProjectLanguages ??= _remoteSupportedLanguages;
             Debug.Assert(remoteSupportedProjectLanguages.SetEquals(GetRemoteSupportedProjectLanguages(idToProjectStateMap)));
-            options ??= Options.WithLanguages(remoteSupportedProjectLanguages);
+            options ??= Options.UnionWithLanguages(remoteSupportedProjectLanguages);
             analyzerReferences ??= AnalyzerReferences;
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
