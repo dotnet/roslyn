@@ -28,9 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateDefaultConstructors
             ' Offer the feature if we're on the header for the class/struct, or if we're on the 
             ' first base-type of a class.
 
-            Dim syntaxFacts = semanticDocument.Document.GetLanguageService(Of ISyntaxFactsService)()
+            Dim headerFacts = semanticDocument.Document.GetLanguageService(Of IHeaderFactsService)()
             Dim typeDecl As SyntaxNode = Nothing
-            If syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, typeDecl) Then
+            If headerFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, typeDecl) Then
                 classType = TryCast(semanticDocument.SemanticModel.GetDeclaredSymbol(typeDecl), INamedTypeSymbol)
                 Return classType IsNot Nothing AndAlso classType.TypeKind = TypeKind.Class
             End If

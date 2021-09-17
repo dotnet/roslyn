@@ -224,12 +224,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         }
 
         /// <summary>
-        /// Checks if the position is on the header of a type (from the start of the type up through it's name).
-        /// </summary>
-        public static bool IsOnTypeHeader(this ISyntaxFacts syntaxFacts, SyntaxNode root, int position, [NotNullWhen(true)] out SyntaxNode? typeDeclaration)
-            => syntaxFacts.IsOnTypeHeader(root, position, fullHeader: false, out typeDeclaration);
-
-        /// <summary>
         /// Gets the statement container node for the statement <paramref name="node"/>.
         /// </summary>
         /// <param name="syntaxFacts">The <see cref="ISyntaxFacts"/> implementation.</param>

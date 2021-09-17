@@ -2578,11 +2578,6 @@ Additional information: {1}</source>
         <target state="translated">멤버 선택</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio">
-        <source>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</source>
-        <target state="translated">Visual Studio에서 사용하는 프로세스에서 복원할 수 없는 오류가 발생했습니다. 작업을 저장하고, Visual Studio를 종료한 후 다시 시작하시는 것을 권장해 드립니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_a_symbol_specification">
         <source>Add a symbol specification</source>
         <target state="translated">기호 사양 추가</target>

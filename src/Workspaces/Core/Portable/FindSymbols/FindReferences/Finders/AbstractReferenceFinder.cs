@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     usageInfo |= TypeOrNamespaceUsageInfo.Base;
                 }
-                else if (syntaxFacts.IsObjectCreationExpressionType(node))
+                else if (syntaxFacts.IsTypeOfObjectCreationExpression(node))
                 {
                     usageInfo |= TypeOrNamespaceUsageInfo.ObjectCreation;
                 }
