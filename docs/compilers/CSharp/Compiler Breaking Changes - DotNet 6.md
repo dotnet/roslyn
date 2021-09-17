@@ -8,9 +8,13 @@
     }
     ```
 
-2. In C# 10, lambda expressions and method groups with inferred type are implicitly convertible to `System.MulticastDelegate`, and bases classes and interfaces of `System.MulticastDelegate` including `object`, and lambda expressions are implicitly convertible to `System.Linq.Expressions.Expression` and `System.Linq.Expressions.LambdaExpression`. These are _function_type_conversions_.
+2. In C# 10, lambda expressions and method groups with inferred type are implicitly convertible to `System.MulticastDelegate`, and bases classes and interfaces of `System.MulticastDelegate` including `object`,
+and lambda expressions are implicitly convertible to `System.Linq.Expressions.Expression` and `System.Linq.Expressions.LambdaExpression`.
+These are _function_type_conversions_.
 
-    In method overload resolution, if there is an applicable overload that relies on a _function_type_conversion_ of a lambda expression or method group, and the closest applicable extension method overload with a conversion to a strongly-type delegate parameter is in an enclosing namespace, the overload with the _function_type_conversion_ will be chosen.
+    In method overload resolution, if there is an applicable overload that relies on a _function_type_conversion_ of a lambda expression or method group,
+    and the closest applicable extension method overload with a conversion to a strongly-type delegate parameter is in an enclosing namespace,
+    the overload with the _function_type_conversion_ will be chosen.
 
     ```csharp
     class C
@@ -31,9 +35,13 @@
     }
     ```
 
-2. In C# 10, lambda expressions and method groups with inferred type are implicitly convertible to `System.MulticastDelegate`, and bases classes and interfaces of `System.MulticastDelegate` including `object`, and lambda expressions are implicitly convertible to `System.Linq.Expressions.Expression` and `System.Linq.Expressions.LambdaExpression`. These are _function_type_conversions_.
+2. In C# 10, lambda expressions and method groups with inferred type are implicitly convertible to `System.MulticastDelegate`, and bases classes and interfaces of `System.MulticastDelegate` including `object`,
+and lambda expressions are implicitly convertible to `System.Linq.Expressions.Expression` and `System.Linq.Expressions.LambdaExpression`.
+These are _function_type_conversions_.
 
-    In binary operator overload resolution, if there is an applicable operator overload that relies on a _function_type_conversion_ of a lambda expression or method group, and the closest applicable operator overload with a conversion to a strongly-type delegate parameter is defined in a base type, the overload with the _function_type_conversion_ will be chosen.
+    In binary operator overload resolution, if there is an applicable operator overload that relies on a _function_type_conversion_ of a lambda expression or method group,
+    and the closest applicable operator overload with a conversion to a strongly-type delegate parameter is defined in a base type,
+    the overload with the _function_type_conversion_ will be chosen.
 
     ```csharp
     using System;
