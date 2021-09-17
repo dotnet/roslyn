@@ -670,14 +670,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.Kind = SyntaxKind.InvocationExpression OrElse node.Kind = SyntaxKind.DictionaryAccessExpression
         End Function
 
-        Public Function IsTypeNamedVarInVariableOrFieldDeclaration(token As SyntaxToken, parent As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTypeNamedVarInVariableOrFieldDeclaration
-            Return False
-        End Function
-
-        Public Function IsTypeNamedDynamic(token As SyntaxToken, parent As SyntaxNode) As Boolean Implements ISyntaxFacts.IsTypeNamedDynamic
-            Return False
-        End Function
-
         Public Function IsIndexerMemberCRef(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIndexerMemberCRef
             Return False
         End Function
@@ -1425,10 +1417,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             arguments = CType(CType(tupleExpr.Arguments, SeparatedSyntaxList(Of SyntaxNode)), SeparatedSyntaxList(Of TArgumentSyntax))
             closeParen = tupleExpr.CloseParenToken
         End Sub
-
-        Public Function GetNextExecutableStatement(statement As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetNextExecutableStatement
-            Return DirectCast(statement, StatementSyntax).GetNextStatement()?.FirstAncestorOrSelf(Of ExecutableStatementSyntax)
-        End Function
 
         Private Function ISyntaxFacts_IsSingleLineCommentTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsSingleLineCommentTrivia
             Return MyBase.IsSingleLineCommentTrivia(trivia)

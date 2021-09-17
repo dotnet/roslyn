@@ -690,5 +690,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var typeInfo = semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken);
             return typeInfo.Type.IsNumericType();
         }
+
+        public static bool IsTypeNamedDynamic(this SyntaxToken token)
+            => token.Parent is IdentifierNameSyntax typedParent &&
+               SyntaxFacts.IsInTypeOnlyContext(typedParent) &&
+               token.Text == "dynamic";
     }
 }
