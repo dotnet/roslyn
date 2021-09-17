@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly ProjectCacheService _owner;
             private readonly SemaphoreSlim _gate;
 
-            public ImplicitCacheMonitor(ProjectCacheService owner, int backOffTimeSpanInMS)
+            public ImplicitCacheMonitor(ProjectCacheService owner, TimeSpan backOffTimeSpan)
                 : base(AsynchronousOperationListenerProvider.NullListener,
-                       backOffTimeSpanInMS,
+                       backOffTimeSpan,
                        CancellationToken.None)
             {
                 _owner = owner;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Host
 
             protected override Task ExecuteAsync()
             {
-                _owner.ClearExpiredImplicitCache(DateTime.UtcNow - TimeSpan.FromMilliseconds(BackOffTimeSpanInMS));
+                _owner.ClearExpiredImplicitCache(DateTime.UtcNow - BackOffTimeSpan);
 
                 return Task.CompletedTask;
             }

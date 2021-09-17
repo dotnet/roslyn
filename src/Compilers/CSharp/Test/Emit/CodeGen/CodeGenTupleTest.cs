@@ -20545,12 +20545,21 @@ public partial class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,18): error CS8142: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
-                //     partial void M1((int a, int b) x);
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(4, 18),
-                // (5,18): error CS8142: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
-                //     partial void M2((int a, int b) x);
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(5, 18)
+                // (10,18): error CS8142: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
+                //     partial void M1((int notA, int notB) y) { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(10, 18),
+                // (10,18): warning CS8826: Partial method declarations 'void C.M1((int a, int b) x)' and 'void C.M1((int notA, int notB) y)' have signature differences.
+                //     partial void M1((int notA, int notB) y) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void C.M1((int a, int b) x)", "void C.M1((int notA, int notB) y)").WithLocation(10, 18),
+                // (11,18): error CS8142: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
+                //     partial void M2((int, int) y) { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(11, 18),
+                // (11,18): warning CS8826: Partial method declarations 'void C.M2((int a, int b) x)' and 'void C.M2((int, int) y)' have signature differences.
+                //     partial void M2((int, int) y) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("void C.M2((int a, int b) x)", "void C.M2((int, int) y)").WithLocation(11, 18),
+                // (12,18): warning CS8826: Partial method declarations 'void C.M3((int a, int b) x)' and 'void C.M3((int a, int b) y)' have signature differences.
+                //     partial void M3((int a, int b) y) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M3").WithArguments("void C.M3((int a, int b) x)", "void C.M3((int a, int b) y)").WithLocation(12, 18)
                 );
         }
 
@@ -28122,33 +28131,39 @@ class C
         [Fact]
         public void TupleWithElementNamedWithDefaultName()
         {
-            string source = @"
+            // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+            for (int i = 0; i < 1000; i++)
+            {
+                string source = @"
 class C
 {
     (int Item1, int Item2) M() => throw null;
 }
 ";
-            var comp = CreateCompilation(source);
-            var m = (MethodSymbol)comp.GetMember("C.M");
-            var tuple = m.ReturnType;
-            Assert.Equal("(System.Int32 Item1, System.Int32 Item2)", tuple.ToTestDisplayString());
-            Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
+                var comp = CreateCompilation(source);
+                var m = (MethodSymbol)comp.GetMember("C.M");
+                var tuple = m.ReturnType;
+                Assert.Equal("(System.Int32 Item1, System.Int32 Item2)", tuple.ToTestDisplayString());
+                Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
 
-            var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
-            Assert.Equal(0, item1.TupleElementIndex);
+                var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
+                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+                RoslynDebug.AssertOrFailFast(0 == item1.TupleElementIndex);
 
-            var item1Underlying = item1.TupleUnderlyingField;
-            Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
-            Assert.Equal("System.Int32 (System.Int32 Item1, System.Int32 Item2).Item1", item1Underlying.ToTestDisplayString());
-            Assert.Equal(0, item1Underlying.TupleElementIndex);
-            Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
+                var item1Underlying = item1.TupleUnderlyingField;
+                Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
+                Assert.Equal("System.Int32 (System.Int32 Item1, System.Int32 Item2).Item1", item1Underlying.ToTestDisplayString());
+                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+                RoslynDebug.AssertOrFailFast(0 == item1Underlying.TupleElementIndex);
+                Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
 
-            var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
-            Assert.Equal(1, item2.TupleElementIndex);
-            var item2Underlying = item2.TupleUnderlyingField;
-            Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
-            Assert.Equal(1, item2Underlying.TupleElementIndex);
-            Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
+                var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
+                Assert.Equal(1, item2.TupleElementIndex);
+                var item2Underlying = item2.TupleUnderlyingField;
+                Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
+                Assert.Equal(1, item2Underlying.TupleElementIndex);
+                Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
+            }
         }
 
         [Fact]

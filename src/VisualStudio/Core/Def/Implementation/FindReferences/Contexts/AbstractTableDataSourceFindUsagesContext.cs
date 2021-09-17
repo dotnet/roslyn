@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -143,6 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 _progressQueue = new AsyncBatchingWorkQueue<(int current, int maximum)>(
                     TimeSpan.FromMilliseconds(250),
                     this.UpdateTableProgressAsync,
+                    presenter._asyncListener,
                     CancellationTokenSource.Token);
             }
 
@@ -249,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 this.CancelSearch();
 
                 // Clear the title of the window.  It will go back to the default editor title.
-                this._findReferencesWindow.Title = null;
+                _findReferencesWindow.Title = null;
 
                 lock (Gate)
                 {
@@ -304,7 +306,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public sealed override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
             {
                 await OnCompletedAsyncWorkerAsync(cancellationToken).ConfigureAwait(false);
-
                 _tableDataSink.IsStable = true;
             }
 
@@ -330,7 +331,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 ImmutableDictionary<string, string> additionalProperties,
                 CancellationToken cancellationToken)
             {
-                var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var document = documentSpan.Document;
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, cancellationToken).ConfigureAwait(false);
 
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
@@ -340,10 +342,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     return null;
                 }
 
+                var (guid, projectName, projectFlavor) = GetGuidAndProjectInfo(document);
+
                 return DocumentSpanEntry.TryCreate(
                     this,
                     definitionBucket,
-                    documentSpan,
+                    guid,
+                    projectName,
+                    projectFlavor,
+                    document.FilePath,
+                    documentSpan.SourceSpan,
                     spanKind,
                     mappedDocumentSpan.Value,
                     excerptResult,
@@ -406,7 +414,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return default;
             }
 
-            private Task UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken _)
+            private ValueTask UpdateTableProgressAsync(ImmutableArray<(int current, int maximum)> nextBatch, CancellationToken _)
             {
                 if (!nextBatch.IsEmpty)
                 {
@@ -426,7 +434,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         _findReferencesWindow.SetProgress(current, maximum);
                 }
 
-                return Task.CompletedTask;
+                return ValueTaskFactory.CompletedTask;
             }
 
             #endregion

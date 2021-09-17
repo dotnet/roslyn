@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         {
         }
 
-        protected override CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-            => CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
+        protected override CSharpSyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+            => CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
 
         protected override AbstractRecommendationServiceRunner<CSharpSyntaxContext> CreateRunner(CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
             => new CSharpRecommendationServiceRunner(context, filterOutOfScopeLocals, cancellationToken);

@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         foreach (var curSymbol in symbol.ContainingType.GetMembers()
                                                         .Where(m => m.Kind == symbol.Kind && m.Name == symbol.Name))
                         {
-                            var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
+                            var definitionItem = curSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, includeHiddenLocations: true);
                             await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                         }
                     }

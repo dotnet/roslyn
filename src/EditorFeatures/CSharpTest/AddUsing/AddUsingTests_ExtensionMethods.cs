@@ -1407,5 +1407,123 @@ namespace A.Extension
 ",
 parseOptions: null);
         }
+
+        [Fact]
+        [WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
+        public async Task TestMethodConflictWithGenericExtension()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace A
+{
+    public abstract class Goo
+    {
+        public abstract object Bar( Type type );
+    }
+
+    public class Test
+    {
+        public void TestMethod(Goo arg)
+        {
+            arg.[|Bar<object>()|];
+
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class Extension
+    {
+        public static T Bar<T>( this Goo @this )
+            => (T)@this.Bar( typeof( T ) );
+    }
+}",
+@"using A.Extensions;
+
+namespace A
+{
+    public abstract class Goo
+    {
+        public abstract object Bar( Type type );
+    }
+
+    public class Test
+    {
+        public void TestMethod(Goo arg)
+        {
+            arg.Bar<object>();
+
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class Extension
+    {
+        public static T Bar<T>( this Goo @this )
+            => (T)@this.Bar( typeof( T ) );
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(55117, "https://github.com/dotnet/roslyn/issues/55117")]
+        public async Task TestMethodConflictWithConditionalGenericExtension()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace A
+{
+    public abstract class Goo
+    {
+        public abstract object Bar( Type type );
+    }
+
+    public class Test
+    {
+        public void TestMethod(Goo arg)
+        {
+            arg?.[|Bar<object>()|];
+
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class Extension
+    {
+        public static T Bar<T>( this Goo @this )
+            => (T)@this.Bar( typeof( T ) );
+    }
+}",
+@"using A.Extensions;
+
+namespace A
+{
+    public abstract class Goo
+    {
+        public abstract object Bar( Type type );
+    }
+
+    public class Test
+    {
+        public void TestMethod(Goo arg)
+        {
+            arg?.Bar<object>();
+
+        }
+    }
+}
+
+namespace A.Extensions
+{
+    public static class Extension
+    {
+        public static T Bar<T>( this Goo @this )
+            => (T)@this.Bar( typeof( T ) );
+    }
+}");
+        }
     }
 }

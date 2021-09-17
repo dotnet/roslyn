@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                  options As CodeGenerationOptions) As DeclarationStatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([event], options)
             If reusableSyntax IsNot Nothing Then
-                Return reusableSyntax
+                Return reusableSyntax.GetDeclarationBlockFromBegin()
             End If
 
             Dim declaration = GenerateEventDeclarationWorker([event], destination, options)
@@ -127,6 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 result = result.WithEventStatement(
                     result.EventStatement.WithImplementsClause(GenerateImplementsClause(explicitInterface)))
             End If
+
             Return result
         End Function
 

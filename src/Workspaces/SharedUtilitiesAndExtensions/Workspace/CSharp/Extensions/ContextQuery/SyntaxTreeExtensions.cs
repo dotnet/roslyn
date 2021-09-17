@@ -17,6 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal static partial class SyntaxTreeExtensions
     {
+        private static readonly ISet<SyntaxKind> s_validLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+            {
+                SyntaxKind.ExternKeyword,
+                SyntaxKind.StaticKeyword,
+                SyntaxKind.AsyncKeyword,
+                SyntaxKind.UnsafeKeyword,
+            };
+
         public static bool IsAttributeNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
@@ -353,6 +361,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        public static bool IsLocalFunctionDeclarationContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            => syntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);
+
         public static bool IsLocalFunctionDeclarationContext(
             this SyntaxTree syntaxTree,
             int position,
@@ -489,6 +500,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // class C {
             //   int i;
             //   |
+
+            // namespace NS;
+            // |
             if (token.IsKind(SyntaxKind.SemicolonToken))
             {
                 if (token.Parent.IsKind(SyntaxKind.ExternAliasDirective, SyntaxKind.UsingDirective))
@@ -537,6 +551,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             //   [Bar]
             //   |
 
+            // namespace NS;
+            // [Attr]
+            // |
+
             if (token.IsKind(SyntaxKind.CloseBracketToken) &&
                 token.Parent.IsKind(SyntaxKind.AttributeList))
             {
@@ -551,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // the grandparent is the owner of the attribute
                 // the great-grandparent is the container that the owner is in
                 var container = token.Parent?.Parent?.Parent;
-                if (container is CompilationUnitSyntax or NamespaceDeclarationSyntax or TypeDeclarationSyntax)
+                if (container is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
                     return true;
             }
 
@@ -639,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (container.IsKind(SyntaxKind.IncompleteMember, out IncompleteMemberSyntax? incompleteMember))
                     return incompleteMember.Type.IsKind(SyntaxKind.RefType);
 
-                if (container is CompilationUnitSyntax or NamespaceDeclarationSyntax or TypeDeclarationSyntax)
+                if (container is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
                     return true;
             }
 
@@ -703,16 +721,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsNamespaceDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             if (syntaxTree.IsScript() || syntaxTree.IsInNonUserCode(position, cancellationToken))
-            {
                 return false;
-            }
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
                                   .GetPreviousTokenIfTouchingWord(position);
+            if (token == default)
+                return false;
 
-            var declaration = token.GetAncestor<NamespaceDeclarationSyntax>();
+            var declaration = token.GetAncestor<BaseNamespaceDeclarationSyntax>();
+            if (declaration?.NamespaceKeyword == token)
+                return true;
 
-            return declaration != null && (declaration.Name.Span.IntersectsWith(position) || declaration.NamespaceKeyword == token);
+            return declaration?.Name.Span.IntersectsWith(position) == true;
         }
 
         public static bool IsPartialTypeDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken, [NotNullWhen(true)] out TypeDeclarationSyntax? declarationSyntax)
@@ -792,7 +812,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken) ||
+                syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
         }
 
         public static bool IsBaseClassOrInterfaceContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
@@ -1392,7 +1413,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // e is { P: $$
             // e is { ..., P: $$
-            if (leftToken.IsKind(SyntaxKind.ColonToken) && leftToken.Parent.IsKind(SyntaxKind.NameColon) &&
+            // e is { ..., P.P2: $$
+            if (leftToken.IsKind(SyntaxKind.ColonToken) && leftToken.Parent.IsKind(SyntaxKind.NameColon, SyntaxKind.ExpressionColon) &&
                 leftToken.Parent.IsParentKind(SyntaxKind.Subpattern))
             {
                 return true;
@@ -1418,6 +1440,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             var originalLeftToken = leftToken;
             leftToken = leftToken.GetPreviousTokenIfTouchingWord(position);
+
+            // For instance:
+            // e is { A.$$ }
+            if (leftToken.IsKind(SyntaxKind.DotToken))
+            {
+                return false;
+            }
 
             var patternSyntax = leftToken.GetAncestor<PatternSyntax>();
             if (patternSyntax != null)
@@ -1615,6 +1644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     node = node.Parent;
                     continue;
                 }
+
                 if (node.Parent.IsKind(SyntaxKind.Argument) && node.Parent.Parent.IsKind(SyntaxKind.TupleExpression))
                 {
                     node = node.Parent.Parent;
@@ -1637,6 +1667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -1942,12 +1973,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsGlobalStatementContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-#if false
-            if (syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken))
-            {
-                return false;
-            }
-#endif
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
                                   .GetPreviousTokenIfTouchingWord(position);

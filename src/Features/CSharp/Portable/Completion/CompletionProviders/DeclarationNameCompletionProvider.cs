@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var context = CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
+                var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
                 if (context.IsInNonUserCode)
                 {
                     return;

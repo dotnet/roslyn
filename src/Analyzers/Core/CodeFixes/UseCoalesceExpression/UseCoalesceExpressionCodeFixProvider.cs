@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+            => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_coalesce_expression, createChangedDocument)
+                : base(AnalyzersResources.Use_coalesce_expression, createChangedDocument, nameof(AnalyzersResources.Use_coalesce_expression))
             {
 
             }

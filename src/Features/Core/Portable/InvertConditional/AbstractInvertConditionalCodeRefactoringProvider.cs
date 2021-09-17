@@ -31,7 +31,6 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             }
 
             context.RegisterRefactoring(new MyCodeAction(
-                FeaturesResources.Invert_conditional,
                 c => InvertConditionalAsync(document, span, c)),
                 conditional.Span);
         }
@@ -63,8 +62,8 @@ namespace Microsoft.CodeAnalysis.InvertConditional
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Invert_conditional, createChangedDocument, nameof(FeaturesResources.Invert_conditional))
             {
             }
         }

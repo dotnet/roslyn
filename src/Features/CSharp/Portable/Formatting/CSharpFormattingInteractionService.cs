@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IInferredIndentationService>();
                 options = await inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, explicitFormat: true, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
+
             return Formatter.GetFormattedTextChanges(root,
                 SpecializedCollections.SingletonEnumerable(formattingSpan),
                 document.Project.Solution.Workspace, options, cancellationToken).ToImmutableArray();

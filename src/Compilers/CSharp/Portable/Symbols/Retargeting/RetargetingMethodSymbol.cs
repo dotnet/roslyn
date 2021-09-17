@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if (_lazyParameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, this.RetargetParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, this.RetargetParameters());
                 }
 
                 return _lazyParameters;
@@ -172,14 +172,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
             else
             {
-                ParameterSymbol[] parameters = new ParameterSymbol[count];
+                var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(count);
 
                 for (int i = 0; i < count; i++)
                 {
-                    parameters[i] = new RetargetingMethodParameterSymbol(this, list[i]);
+                    parameters.Add(new RetargetingMethodParameterSymbol(this, list[i]));
                 }
 
-                return parameters.AsImmutableOrNull();
+                return parameters.ToImmutableAndFree();
             }
         }
 

@@ -13,12 +13,13 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface INavigationBarItemService : ILanguageService
     {
-        Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextSnapshot textSnapshot, CancellationToken cancellationToken);
+        Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken);
         bool ShowItemGrayedIfNear(NavigationBarItem item);
 
         /// <summary>
         /// Returns <see langword="true"/> if navigation (or generation) happened.  <see langword="false"/> otherwise.
         /// </summary>
-        Task<bool> TryNavigateToItemAsync(Document document, NavigationBarItem item, ITextView view, ITextSnapshot textSnapshot, CancellationToken cancellationToken);
+        Task<bool> TryNavigateToItemAsync(
+            Document document, NavigationBarItem item, ITextView view, ITextVersion textVersion, CancellationToken cancellationToken);
     }
 }

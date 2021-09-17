@@ -276,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                                             .WithExpressionBody(getAccessorDeclaration.ExpressionBody)
                                             .WithSemicolonToken(getAccessorDeclaration.SemicolonToken);
                 }
+
                 if (getAccessorDeclaration?.Body != null)
                 {
                     return methodDeclaration.WithBody(getAccessorDeclaration.Body)

@@ -70,12 +70,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                     {
                         descriptionBuilder.AddLineBreak();
                     }
+
                     descriptionBuilder.AddRange(description);
                 }
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return new VSHover
+            return new VSInternalHover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),
                 Contents = new MarkupContent

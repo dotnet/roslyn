@@ -33,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
                     Function(ct) FixAsync(context.Document, diagnostic, ct)),
                     diagnostic)
             Next
+
             Return Task.CompletedTask
         End Function
 

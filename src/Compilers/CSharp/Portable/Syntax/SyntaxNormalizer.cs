@@ -1168,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                     int parentDepth = GetDeclarationDepth(node.Parent);
 
-                    if (node.Parent.IsKind(SyntaxKind.GlobalStatement))
+                    if (node.Parent.Kind() is SyntaxKind.GlobalStatement or SyntaxKind.FileScopedNamespaceDeclaration)
                     {
                         return parentDepth;
                     }

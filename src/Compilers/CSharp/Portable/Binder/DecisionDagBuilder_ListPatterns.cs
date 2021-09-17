@@ -32,15 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                      subpatterns[0] is BoundSlicePattern { Pattern: null })
             {
                 // If `..` is the only pattern in the list, bail. This is a no-op and we don't need to match anything further.
-                // If there's a subpattern, we're going to need the length value to extract a slice for the input,
-                // in which case we will test the length even if there is no other patterns in the list.
-                // i.e. the length is required to be non-negative for the match to be correct.
             }
             else
             {
                 Debug.Assert(list.LengthProperty is not null);
-
-                var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, list.LengthProperty, input);
+                var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, list.LengthProperty, isLengthOrCount: true, input);
                 tests.Add(new Tests.One(lengthEvaluation));
                 var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
                 tests.Add(new Tests.One(list.HasSlice

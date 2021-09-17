@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private class MyCodeAction : CodeAction.SolutionChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }

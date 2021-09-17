@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
         }
 
-        public SyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-            => CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
+        public SyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+            => CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
     }
 }

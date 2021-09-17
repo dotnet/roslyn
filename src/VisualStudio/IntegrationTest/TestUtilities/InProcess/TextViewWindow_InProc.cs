@@ -300,6 +300,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 return tag.Tag.GetType().Equals(type);
             }
+
             var service = GetComponentModelService<IViewTagAggregatorFactoryService>();
             var aggregator = service.CreateTagAggregator<ITag>(view);
             var allTags = aggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length));

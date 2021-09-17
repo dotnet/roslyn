@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
         public void RunInTransaction<TState>(Action<TState> action, TState state)
         {
             RunInTransaction(
-                state =>
+                static state =>
                 {
                     state.action(state.state);
                     return (object?)null;

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
@@ -19,25 +20,29 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         private const string PersistentStorageFileName = "storage.ide";
 
         private readonly SQLiteConnectionPoolService _connectionPoolService;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly OptionSet _options;
         private readonly IPersistentStorageFaultInjector? _faultInjector;
 
         public SQLitePersistentStorageService(
             OptionSet options,
             SQLiteConnectionPoolService connectionPoolService,
-            IPersistentStorageLocationService locationService)
+            IPersistentStorageLocationService locationService,
+            IAsynchronousOperationListener asyncListener)
             : base(locationService)
         {
             _options = options;
             _connectionPoolService = connectionPoolService;
+            _asyncListener = asyncListener;
         }
 
         public SQLitePersistentStorageService(
             OptionSet options,
             SQLiteConnectionPoolService connectionPoolService,
             IPersistentStorageLocationService locationService,
+            IAsynchronousOperationListener asyncListener,
             IPersistentStorageFaultInjector? faultInjector)
-            : this(options, connectionPoolService, locationService)
+            : this(options, connectionPoolService, locationService, asyncListener)
         {
             _faultInjector = faultInjector;
         }
@@ -65,6 +70,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 workingFolderPath,
                 solutionKey.FilePath,
                 databaseFilePath,
+                _asyncListener,
                 _faultInjector));
         }
 

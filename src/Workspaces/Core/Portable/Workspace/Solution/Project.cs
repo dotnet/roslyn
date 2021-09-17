@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis
             var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
 
             // return an iterator to avoid eagerly allocating all the document instances
-            return generatedDocumentStates.States.Select(state =>
+            return generatedDocumentStates.States.Values.Select(state =>
                 ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this)))!;
         }
 
@@ -347,9 +347,6 @@ namespace Microsoft.CodeAnalysis
             return this.SupportsCompilation &&
                    await _solution.State.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false);
         }
-
-        internal async Task<IEnumerable<Document>> GetDocumentsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-            => (await _solution.State.GetDocumentsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false)).Select(s => _solution.GetDocument(s.Id)!);
 
         private static readonly Func<DocumentId, Project, Document?> s_tryCreateDocumentFunction =
             (documentId, project) => project._projectState.DocumentStates.TryGetState(documentId, out var state) ? new Document(project, state) : null;

@@ -235,6 +235,7 @@ $@"<Project>{GetTargetContents(language)}
       <_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle Condition=""'$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle)' == ''"">{nameof(AnalysisMode.Default)}</_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle>
 
       <_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>AnalysisLevelStyle_$(_GlobalAnalyzerConfigAnalysisMode_MicrosoftCodeAnalysis{language}CodeStyle).editorconfig</_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>
+      <_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle.ToLowerInvariant())</_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle>
       
       <_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle Condition=""'$(_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle)' == ''"">$(MSBuildThisFileDirectory)config</_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle>
       <_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle Condition=""'$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)' != ''"">$(_GlobalAnalyzerConfigDir_MicrosoftCodeAnalysis{language}CodeStyle)\$(_GlobalAnalyzerConfigFileName_MicrosoftCodeAnalysis{language}CodeStyle)</_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle>

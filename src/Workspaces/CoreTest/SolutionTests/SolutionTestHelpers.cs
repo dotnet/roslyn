@@ -32,6 +32,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace;
         }
 
+        public static Workspace CreateWorkspaceWithPartalSemantics(Type[]? additionalParts = null)
+            => new WorkspaceWithPartialSemantics(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
+
+        private class WorkspaceWithPartialSemantics : Workspace
+        {
+            public WorkspaceWithPartialSemantics(HostServices hostServices) : base(hostServices, workspaceKind: nameof(WorkspaceWithPartialSemantics))
+            {
+            }
+
+            protected internal override bool PartialSemanticsEnabled => true;
+        }
+
         public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp)
         {
             var id = ProjectId.CreateNewId();
@@ -106,7 +118,5 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Throws<ArgumentException>(() => factory(instanceWithNoItem, new TValue[] { item, item }));
             }
         }
-
-#nullable enable
     }
 }

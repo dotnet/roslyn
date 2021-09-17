@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../EditorFeaturesResources.resx">
     <body>
@@ -464,7 +464,7 @@
       </trans-unit>
       <trans-unit id="User_Types_Record_Structs">
         <source>User Types - Record Structs</source>
-        <target state="new">User Types - Record Structs</target>
+        <target state="translated">Typy uživatelů – Struktury záznamů</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Records">
@@ -1582,6 +1582,51 @@ Chcete pokračovat?</target>
       <trans-unit id="Outlining">
         <source>Outlining</source>
         <target state="translated">Sbalení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Comment">
+        <source>Regex - Comment</source>
+        <target state="translated">Regulární výrazy – komentář</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_Class">
+        <source>Regex - Character Class</source>
+        <target state="translated">Regulární výrazy – třída znaků</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Alternation">
+        <source>Regex - Alternation</source>
+        <target state="translated">Regulární výrazy – alternace</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Anchor">
+        <source>Regex - Anchor</source>
+        <target state="translated">Regulární výrazy – ukotvení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Quantifier">
+        <source>Regex - Quantifier</source>
+        <target state="translated">Regulární výrazy – kvantifikátor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_SelfEscapedCharacter">
+        <source>Regex - Self Escaped Character</source>
+        <target state="translated">Regulární výrazy – znak uvozující sebe sama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Grouping">
+        <source>Regex - Grouping</source>
+        <target state="translated">Regulární výrazy – seskupování</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Text">
+        <source>Regex - Text</source>
+        <target state="translated">Regulární výrazy – text</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_OtherEscape">
+        <source>Regex - Other Escape</source>
+        <target state="translated">Regulární výrazy – ostatní řídicí znaky</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Tracking_Cancellation">

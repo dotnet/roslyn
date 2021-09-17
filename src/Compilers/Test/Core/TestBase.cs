@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using static TestReferences.NetFx;
 using static Roslyn.Test.Utilities.TestMetadata;
 using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
+using Basic.Reference.Assemblies;
 
 namespace Roslyn.Test.Utilities
 {
@@ -238,7 +239,7 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference CSharpDesktopRef => s_desktopCSharpRef.Value;
 
         private static readonly Lazy<MetadataReference> s_std20Ref = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.netstandard).GetReference(display: "netstandard20.netstandard.dll"),
+            () => AssemblyMetadata.CreateFromImage(NetStandard20.Resources.netstandard).GetReference(display: "netstandard20.netstandard.dll"),
             LazyThreadSafetyMode.PublicationOnly);
 
         public static MetadataReference NetStandard20Ref => s_std20Ref.Value;

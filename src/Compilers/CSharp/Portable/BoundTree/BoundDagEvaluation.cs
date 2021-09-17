@@ -10,13 +10,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class BoundDagEvaluation
     {
-        public override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
-        public virtual bool Equals(BoundDagEvaluation other)
+        public sealed override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
+        public bool Equals(BoundDagEvaluation other)
         {
             return this == other ||
-                this.Kind == other.Kind &&
-                this.Input.Equals(other.Input) &&
-                Symbol.Equals(this.Symbol, other.Symbol, TypeCompareKind.AllIgnoreOptions);
+                this.IsEquivalentTo(other) &&
+                this.Input.Equals(other.Input);
+        }
+
+        /// <summary>
+        /// Check if this is equivalent to the <paramref name="other"/> node, ignoring the input.
+        /// </summary>
+        public virtual bool IsEquivalentTo(BoundDagEvaluation other)
+        {
+            return this == other ||
+               this.Kind == other.Kind &&
+               Symbol.Equals(this.Symbol, other.Symbol, TypeCompareKind.AllIgnoreOptions);
         }
 
         private Symbol? Symbol
@@ -32,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagIndexEvaluation e => e.Property,
                     BoundDagSliceEvaluation e => (Symbol?)e.SliceMethod ?? e.IndexerAccess?.Indexer,
                     BoundDagIndexerEvaluation e => e.IndexerSymbol ?? e.IndexerAccess?.Indexer,
+                    BoundDagAssignmentEvaluation => null,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
             }
@@ -79,11 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundDagIndexEvaluation
     {
         public override int GetHashCode() => base.GetHashCode() ^ this.Index;
-        public override bool Equals(BoundDagEvaluation obj)
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
-            return this == obj ||
-                base.Equals(obj) &&
-                // base.Equals checks the kind field, so the following cast is safe
+            return base.IsEquivalentTo(obj) &&
+                // base.IsEquivalentTo checks the kind field, so the following cast is safe
                 this.Index == ((BoundDagIndexEvaluation)obj).Index;
         }
     }
@@ -91,11 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundDagIndexerEvaluation
     {
         public override int GetHashCode() => base.GetHashCode() ^ this.Index;
-        public override bool Equals(BoundDagEvaluation obj)
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
-            return this == obj ||
-                base.Equals(obj) &&
-                // base.Equals checks the kind field, so the following cast is safe
+            return base.IsEquivalentTo(obj) &&
                 this.Index == ((BoundDagIndexerEvaluation)obj).Index;
         }
     }
@@ -103,13 +110,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundDagSliceEvaluation
     {
         public override int GetHashCode() => base.GetHashCode() ^ this.StartIndex ^ this.EndIndex;
-        public override bool Equals(BoundDagEvaluation obj)
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
-            return this == obj ||
-                base.Equals(obj) &&
-                // base.Equals checks the kind field, so the following cast is safe
+            return base.IsEquivalentTo(obj) &&
                 (BoundDagSliceEvaluation)obj is var e &&
                 this.StartIndex == e.StartIndex && this.EndIndex == e.EndIndex;
+        }
+    }
+
+    partial class BoundDagAssignmentEvaluation
+    {
+        public override int GetHashCode() => Hash.Combine(base.GetHashCode(), this.Target.GetHashCode());
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
+        {
+            return base.IsEquivalentTo(obj) &&
+                this.Target.Equals(((BoundDagAssignmentEvaluation)obj).Target);
         }
     }
 }
