@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>The <see cref="CodeRefactoringProvider"/> to be used.</returns>
         protected abstract IEnumerable<CodeRefactoringProvider> GetCodeRefactoringProviders();
 
-        public override async Task RunAsync(CancellationToken cancellationToken = default)
+        protected override async Task RunImplAsync(CancellationToken cancellationToken)
         {
             Verify.NotEmpty($"{nameof(TestState)}.{nameof(SolutionState.Sources)}", TestState.Sources);
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Testing
             return CodeActionExpected(FixedState);
         }
 
-        protected override DiagnosticDescriptor? GetDefaultDiagnostic(DiagnosticAnalyzer[] analyzers)
+        protected internal override DiagnosticDescriptor? GetDefaultDiagnostic(DiagnosticAnalyzer[] analyzers)
         {
             if (base.GetDefaultDiagnostic(analyzers) is { } descriptor)
             {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         protected async Task VerifyRefactoringAsync(SolutionState testState, SolutionState fixedState, DiagnosticResult triggerSpan, IVerifier verifier, CancellationToken cancellationToken)
         {
-            var numberOfIncrementalIterations = OffersEmptyRefactoring || HasAnyChange(testState, fixedState) ? 1 : 0;
+            var numberOfIncrementalIterations = OffersEmptyRefactoring || HasAnyChange(testState, fixedState, recursive: true) ? 1 : 0;
             await VerifyRefactoringAsync(Language, triggerSpan, GetCodeRefactoringProviders().ToImmutableArray(), testState, fixedState, numberOfIncrementalIterations, ApplyRefactoringAsync, verifier.PushContext("Code refactoring application"), cancellationToken);
         }
 
@@ -156,6 +156,21 @@ namespace Microsoft.CodeAnalysis.Testing
             ExceptionDispatchInfo? iterationCountFailure;
             (project, iterationCountFailure) = await getFixedProject(triggerSpan, codeRefactoringProviders, CodeActionIndex, CodeActionEquivalenceKey, CodeActionVerifier, project, numberOfIterations, verifier, cancellationToken).ConfigureAwait(false);
 
+            // After applying the refactoring, compare the resulting string to the inputted one
+            await VerifyProjectAsync(newState, project, verifier, cancellationToken).ConfigureAwait(false);
+
+            foreach (var additionalProject in newState.AdditionalProjects)
+            {
+                var actualProject = project.Solution.Projects.Single(p => p.Name == additionalProject.Key);
+                await VerifyProjectAsync(additionalProject.Value, actualProject, verifier, cancellationToken);
+            }
+
+            // Validate the iteration counts after validating the content
+            iterationCountFailure?.Throw();
+        }
+
+        private async Task VerifyProjectAsync(ProjectState newState, Project project, IVerifier verifier, CancellationToken cancellationToken)
+        {
             // After applying the refactoring, compare the resulting string to the inputted one
             var updatedDocuments = project.Documents.ToArray();
 
@@ -183,21 +198,41 @@ namespace Microsoft.CodeAnalysis.Testing
                 verifier.Equal(newState.AdditionalFiles[i].filename, updatedAdditionalDocuments[i].Name, $"file name was expected to be '{newState.AdditionalFiles[i].filename}' but was '{updatedAdditionalDocuments[i].Name}'");
             }
 
-            // Validate the iteration counts after validating the content
-            iterationCountFailure?.Throw();
+            var updatedAnalyzerConfigDocuments = project.AnalyzerConfigDocuments().ToArray();
+
+            verifier.Equal(newState.AnalyzerConfigFiles.Count, updatedAnalyzerConfigDocuments.Length, $"expected '{nameof(newState)}.{nameof(SolutionState.AnalyzerConfigFiles)}' and '{nameof(updatedAnalyzerConfigDocuments)}' to be equal but '{nameof(newState)}.{nameof(SolutionState.AnalyzerConfigFiles)}' contains '{newState.AnalyzerConfigFiles.Count}' documents and '{nameof(updatedAnalyzerConfigDocuments)}' contains '{updatedAnalyzerConfigDocuments.Length}' documents");
+
+            for (var i = 0; i < updatedAnalyzerConfigDocuments.Length; i++)
+            {
+                var actual = await updatedAnalyzerConfigDocuments[i].GetTextAsync(cancellationToken).ConfigureAwait(false);
+                verifier.EqualOrDiff(newState.AnalyzerConfigFiles[i].content.ToString(), actual.ToString(), $"content of '{newState.AnalyzerConfigFiles[i].filename}' did not match. Diff shown with expected as baseline:");
+                verifier.Equal(newState.AnalyzerConfigFiles[i].content.Encoding, actual.Encoding, $"encoding of '{newState.AnalyzerConfigFiles[i].filename}' was expected to be '{newState.AnalyzerConfigFiles[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
+                verifier.Equal(newState.AnalyzerConfigFiles[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{newState.AnalyzerConfigFiles[i].filename}' was expected to be '{newState.AnalyzerConfigFiles[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
+                verifier.Equal(newState.AnalyzerConfigFiles[i].filename, updatedAnalyzerConfigDocuments[i].Name, $"file name was expected to be '{newState.AnalyzerConfigFiles[i].filename}' but was '{updatedAnalyzerConfigDocuments[i].Name}'");
+            }
         }
 
         private async Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)> ApplyRefactoringAsync(DiagnosticResult triggerSpan, ImmutableArray<CodeRefactoringProvider> codeRefactoringProviders, int? codeActionIndex, string? codeActionEquivalenceKey, Action<CodeAction, IVerifier>? codeActionVerifier, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
         {
+            if (numberOfIterations == -1)
+            {
+                // For better error messages, use '==' instead of '<=' for iteration comparison when the right hand
+                // side is 1.
+                numberOfIterations = 1;
+            }
+
             var expectedNumberOfIterations = numberOfIterations;
             if (numberOfIterations < 0)
             {
                 numberOfIterations = -numberOfIterations;
             }
 
+            var currentIteration = -1;
             bool done;
             do
             {
+                currentIteration++;
+
                 try
                 {
                     verifier.True(--numberOfIterations >= -1, "The upper limit for the number of code fix iterations was exceeded");
@@ -212,24 +247,26 @@ namespace Microsoft.CodeAnalysis.Testing
                 var actions = ImmutableArray.CreateBuilder<CodeAction>();
 
                 var location = await GetTriggerLocationAsync();
+                var triggerDocument = project.Solution.GetDocument(location.SourceTree);
 
                 foreach (var codeRefactoringProvider in codeRefactoringProviders)
                 {
-                    var context = new CodeRefactoringContext(project.GetDocument(location.SourceTree), location.SourceSpan, actions.Add, cancellationToken);
+                    var context = new CodeRefactoringContext(triggerDocument, location.SourceSpan, actions.Add, cancellationToken);
                     await codeRefactoringProvider.ComputeRefactoringsAsync(context).ConfigureAwait(false);
                 }
 
                 var filteredActions = FilterCodeActions(actions.ToImmutable());
-                var actionToApply = TryGetCodeActionToApply(filteredActions, codeActionIndex, codeActionEquivalenceKey, codeActionVerifier, verifier);
+                var actionToApply = TryGetCodeActionToApply(currentIteration, filteredActions, codeActionIndex, codeActionEquivalenceKey, codeActionVerifier, verifier);
                 if (actionToApply != null)
                 {
                     anyActions = true;
 
-                    var fixedProject = await ApplyCodeActionAsync(project, actionToApply, verifier, cancellationToken).ConfigureAwait(false);
-                    if (fixedProject != project)
+                    var originalProjectId = project.Id;
+                    var fixedProject = await ApplyCodeActionAsync(triggerDocument.Project, actionToApply, verifier, cancellationToken).ConfigureAwait(false);
+                    if (fixedProject != triggerDocument.Project)
                     {
                         done = false;
-                        project = fixedProject;
+                        project = fixedProject.Solution.GetProject(originalProjectId);
                         break;
                     }
                 }
