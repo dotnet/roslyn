@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         /// <summary>
         /// Set of languages references in <see cref="_serializableOptionValues"/>.  Cached
-        /// only so we can shortcircuit <see cref="WithLanguages"/>.
+        /// only so we can shortcircuit <see cref="UnionWithLanguages"/>.
         /// </summary>
         private readonly Lazy<ImmutableHashSet<string>> _languages;
 
@@ -86,9 +86,9 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Returns an option set with all the serializable option values prefetched for given <paramref name="languages"/>,
         /// while also retaining all the explicitly changed option values in this option set for any language.
-        /// NOTE: All the provided <paramref name="languages"/> must be <see cref="RemoteSupportedLanguages.IsSupported(string)"/>.
+        /// Note: All the provided <paramref name="languages"/> must be <see cref="RemoteSupportedLanguages.IsSupported(string)"/>.
         /// </summary>
-        public SerializableOptionSet WithLanguages(ImmutableHashSet<string> languages)
+        public SerializableOptionSet UnionWithLanguages(ImmutableHashSet<string> languages)
         {
             Debug.Assert(languages.All(RemoteSupportedLanguages.IsSupported));
 
