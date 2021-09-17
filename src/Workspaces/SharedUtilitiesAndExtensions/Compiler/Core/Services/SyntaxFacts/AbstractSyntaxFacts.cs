@@ -40,9 +40,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public abstract SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia);
 
-        public bool HasIncompleteParentMember([NotNullWhen(true)] SyntaxNode? node)
-            => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
-
         public abstract bool AreEquivalent(SyntaxNode? node1, SyntaxNode? node2);
         public abstract bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
         public abstract bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span);

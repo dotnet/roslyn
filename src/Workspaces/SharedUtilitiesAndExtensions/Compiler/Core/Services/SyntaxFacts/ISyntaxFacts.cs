@@ -388,7 +388,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsInConstructor(SyntaxNode node);
         bool IsMethodLevelMember([NotNullWhen(true)] SyntaxNode? node);
         bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node);
-        bool HasIncompleteParentMember([NotNullWhen(true)] SyntaxNode? node);
 
         /// <summary>
         /// A block that has no semantics other than introducing a new scope. That is only C# BlockSyntax.
