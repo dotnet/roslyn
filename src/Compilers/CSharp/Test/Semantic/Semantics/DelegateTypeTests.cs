@@ -2678,6 +2678,41 @@ static class E
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: @"C.M");
         }
 
+        [WorkItem(4674, "https://github.com/dotnet/csharplang/issues/4674")]
+        [Fact]
+        public void OverloadResolution_43()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        var c = new C();
+        c.M(F);
+    }
+}
+class C
+{
+    public void M(Expression e) { Console.WriteLine(""C.M""); }
+}
+static class E
+{
+    public static void M(this object o, Func<int> a) { Console.WriteLine(""E.M""); }
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"E.M");
+
+            // Breaking change from C#9 which binds to E.M.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (9,13): error CS0428: Cannot convert method group 'F' to non-delegate type 'Expression'. Did you intend to invoke the method?
+                //         c.M(F);
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(9, 13));
+        }
+
         [Fact]
         public void OverloadResolution_05()
         {
