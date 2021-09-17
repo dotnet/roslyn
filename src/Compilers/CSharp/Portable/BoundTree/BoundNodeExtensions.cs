@@ -186,11 +186,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             where TInterpolatedStringType : BoundInterpolatedStringBase
         {
             int i = 0;
-            var originalStack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
 
-            var result = doRewrite(binary, arg, interpolatedStringFactory, binaryOperatorFactory, originalStack, ref i);
+            var result = doRewrite(binary, arg, interpolatedStringFactory, binaryOperatorFactory, ref i);
 
-            originalStack.Free();
             return result;
 
             static TResult doRewrite(
@@ -198,10 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TArg arg,
                 Func<TInterpolatedStringType, int, TArg, TResult> interpolatedStringFactory,
                 Func<BoundBinaryOperator, TResult, TResult, TArg, TResult> binaryOperatorFactory,
-                ArrayBuilder<BoundBinaryOperator> originalStack,
                 ref int i)
             {
                 TResult? result = default;
+                var originalStack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
 
                 pushLeftNodes(binary, originalStack);
 
@@ -222,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var rewrittenRight = currentBinary.Right switch
                     {
                         TInterpolatedStringType interpolatedString => interpolatedStringFactory(interpolatedString, i++, arg),
-                        BoundBinaryOperator binaryOperator => doRewrite(binaryOperator, arg, interpolatedStringFactory, binaryOperatorFactory, originalStack, ref i),
+                        BoundBinaryOperator binaryOperator => doRewrite(binaryOperator, arg, interpolatedStringFactory, binaryOperatorFactory, ref i),
                         _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Right.Kind)
                     };
 
@@ -230,6 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(result != null);
+                originalStack.Free();
 
                 return result;
             }
