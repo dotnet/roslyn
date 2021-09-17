@@ -1,0 +1,256 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.PdbSourceDocument
+{
+    internal abstract class AbstractPdbSourceDocumentNavigationService : IPdbSourceDocumentNavigationService
+    {
+        private MetadataAsSourceWorkspace? _workspace;
+        private readonly IPdbFileLocatorService _pdbFileLocatorService;
+        private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
+
+        protected abstract string LanguageName { get; }
+
+        protected AbstractPdbSourceDocumentNavigationService(IPdbFileLocatorService pdbFileLocatorService, IPdbSourceDocumentLoaderService pdbSourceDocumentLoaderService)
+        {
+            _pdbFileLocatorService = pdbFileLocatorService;
+            _pdbSourceDocumentLoaderService = pdbSourceDocumentLoaderService;
+        }
+
+        public async Task<MetadataAsSourceFile?> GetPdbSourceDocumentAsync(Project project, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            var peReference = compilation.GetMetadataReference(symbol.ContainingAssembly) as PortableExecutableReference;
+            if (peReference is null)
+                return null;
+
+            var dllPath = peReference.FilePath;
+            if (dllPath is null)
+                return null;
+
+            using var pdbStream = await _pdbFileLocatorService.GetPdbPathAsync(dllPath, cancellationToken).ConfigureAwait(false);
+            if (pdbStream is null)
+                return null;
+
+            using var dllStream = File.OpenRead(dllPath);
+            var filePaths = GetSourcePaths(symbol, dllStream, pdbStream);
+            if (filePaths.Length == 0)
+                return null;
+
+            // TODO: Do we need our own workspace?
+            //       We should probably cache things from the same document
+            //       Does each assembly get its own project added to that workspace?
+            if (_workspace == null)
+            {
+                _workspace = new MetadataAsSourceWorkspace(null!, project.Solution.Workspace.Services.HostServices);
+            }
+
+            var symbolId = SymbolKey.Create(symbol, cancellationToken);
+            var projectId = ProjectId.CreateNewId();
+            var languageServices = _workspace.Services.GetLanguageServices(LanguageName);
+            var compilationOptions = languageServices.CompilationFactory!.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
+            var parseOptions = languageServices.GetRequiredService<ISyntaxTreeFactoryService>().GetDefaultParseOptionsWithLatestLanguageVersion();
+            var assemblyName = symbol.ContainingAssembly.Identity.Name;
+
+            var documentInfos = filePaths.Select(filePath => DocumentInfo.Create(
+                DocumentId.CreateNewId(projectId),
+                Path.GetFileName(filePath),
+                filePath: filePath,
+                loader: _pdbSourceDocumentLoaderService.LoadSourceFile(filePath)));
+
+            var projectInfo = ProjectInfo.Create(
+                projectId,
+                VersionStamp.Default,
+                name: assemblyName,
+                assemblyName: assemblyName,
+                language: LanguageName,
+                compilationOptions: compilationOptions,
+                parseOptions: parseOptions,
+                documents: documentInfos,
+                metadataReferences: project.MetadataReferences.ToImmutableArray());
+
+            var temporarySolution = _workspace.CurrentSolution.AddProject(projectInfo);
+            var temporaryProject = temporarySolution.GetRequiredProject(projectId);
+
+            var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryProject.Documents.First(), cancellationToken).ConfigureAwait(false);
+            var navigateDocument = temporaryProject.GetDocument(navigateLocation.SourceTree);
+
+            return new MetadataAsSourceFile(navigateDocument!.FilePath, navigateLocation, navigateDocument!.Name + " [from PDB]", navigateDocument.FilePath);
+        }
+
+        // TODO: Move everything below this point to a service? Or just a static class?
+        private static string[] GetSourcePaths(ISymbol symbol, Stream dllStream, Stream pdbStream)
+        {
+            using var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream, MetadataStreamOptions.LeaveOpen);
+            var pdbReader = pdbReaderProvider.GetMetadataReader();
+
+            //using var dllReaderProvider = MetadataReaderProvider.FromMetadataStream(dllStream, leaveOpen: true);   // TODO: Fails with "System.BadImageFormatException : Invalid COR20 header signature.", from tests at least
+            using var dllReaderProvider = ModuleMetadata.CreateFromStream(dllStream, leaveOpen: true);
+            var dllReader = dllReaderProvider.GetMetadataReader();
+
+            var documentHandles = FindSourceDocuments(symbol, dllReader, pdbReader);
+
+            var result = documentHandles.Select(h => pdbReader.GetString(pdbReader.GetDocument(h).Name)).ToArray();
+            return result;
+        }
+
+        private static HashSet<DocumentHandle> FindSourceDocuments(ISymbol symbol, MetadataReader dllReader, MetadataReader pdbReader)
+        {
+            var docList = new HashSet<DocumentHandle>();
+
+            // There is no way to go from parameter metadata to its containing method or type, so we need use the symbol API first to
+            // get the method it belongs to.
+            var token = symbol is IParameterSymbol parameterSymbol ? parameterSymbol.ContainingSymbol.MetadataToken : symbol.MetadataToken;
+            var handle = MetadataTokens.EntityHandle(token);
+
+            switch (handle.Kind)
+            {
+                case HandleKind.MethodDefinition:
+                    ProcessMethodDef((MethodDefinitionHandle)handle, dllReader, pdbReader, docList, processDeclaringType: true);
+                    break;
+                case HandleKind.TypeDefinition:
+                    ProcessTypeDef((TypeDefinitionHandle)handle, dllReader, pdbReader, docList);
+                    break;
+                case HandleKind.FieldDefinition:
+                    ProcessFieldDef((FieldDefinitionHandle)handle, dllReader, pdbReader, docList);
+                    break;
+                case HandleKind.PropertyDefinition:
+                    ProcessPropertyDef((PropertyDefinitionHandle)handle, dllReader, pdbReader, docList);
+                    break;
+                case HandleKind.EventDefinition:
+                    ProcessEventDef((EventDefinitionHandle)handle, dllReader, pdbReader, docList);
+                    break;
+            }
+
+            return docList;
+        }
+
+        private static void ProcessMethodDef(MethodDefinitionHandle methodDefHandle, MetadataReader dllReader, MetadataReader pdbReader, HashSet<DocumentHandle> docList, bool processDeclaringType)
+        {
+            var mdi = pdbReader.GetMethodDebugInformation(methodDefHandle);
+            if (!mdi.Document.IsNil)
+            {
+                docList.Add(mdi.Document);
+                return;
+            }
+
+            if (!mdi.SequencePointsBlob.IsNil)
+            {
+                foreach (var point in mdi.GetSequencePoints())
+                {
+                    if (!point.Document.IsNil)
+                    {
+                        docList.Add(point.Document);
+                        // No need to check the type if we found a document
+                        processDeclaringType = false;
+                    }
+                }
+            }
+
+            // Not all methods have document info, for example synthesized constructors, so we also want
+            // to get any documents from the declaring type
+            if (processDeclaringType)
+            {
+                var methodDef = dllReader.GetMethodDefinition(methodDefHandle);
+                var typeDefHandle = methodDef.GetDeclaringType();
+                ProcessTypeDef(typeDefHandle, dllReader, pdbReader, docList);
+            }
+        }
+
+        private static void ProcessEventDef(EventDefinitionHandle eventDefHandle, MetadataReader dllReader, MetadataReader pdbReader, HashSet<DocumentHandle> docList)
+        {
+            var eventDef = dllReader.GetEventDefinition(eventDefHandle);
+            var accessors = eventDef.GetAccessors();
+            if (!accessors.Adder.IsNil)
+            {
+                ProcessMethodDef(accessors.Adder, dllReader, pdbReader, docList, processDeclaringType: true);
+            }
+
+            if (!accessors.Remover.IsNil)
+            {
+                ProcessMethodDef(accessors.Remover, dllReader, pdbReader, docList, processDeclaringType: true);
+            }
+
+            if (!accessors.Raiser.IsNil)
+            {
+                ProcessMethodDef(accessors.Raiser, dllReader, pdbReader, docList, processDeclaringType: true);
+            }
+
+            foreach (var other in accessors.Others)
+            {
+                ProcessMethodDef(other, dllReader, pdbReader, docList, processDeclaringType: true);
+            }
+        }
+
+        private static void ProcessPropertyDef(PropertyDefinitionHandle propertyDefHandle, MetadataReader dllReader, MetadataReader pdbReader, HashSet<DocumentHandle> docList)
+        {
+            var propertyDef = dllReader.GetPropertyDefinition(propertyDefHandle);
+            var accessors = propertyDef.GetAccessors();
+            if (!accessors.Getter.IsNil)
+            {
+                ProcessMethodDef(accessors.Getter, dllReader, pdbReader, docList, processDeclaringType: true);
+            }
+
+            if (!accessors.Setter.IsNil)
+            {
+                ProcessMethodDef(accessors.Setter, dllReader, pdbReader, docList, processDeclaringType: true);
+            }
+
+            foreach (var other in accessors.Others)
+            {
+                ProcessMethodDef(other, dllReader, pdbReader, docList, processDeclaringType: true);
+            }
+        }
+
+        private static void ProcessFieldDef(FieldDefinitionHandle fieldDefHandle, MetadataReader dllReader, MetadataReader pdbReader, HashSet<DocumentHandle> docList)
+        {
+            var fieldDef = dllReader.GetFieldDefinition(fieldDefHandle);
+            var typeDefHandle = fieldDef.GetDeclaringType();
+            ProcessTypeDef(typeDefHandle, dllReader, pdbReader, docList);
+        }
+
+        private static void ProcessTypeDef(TypeDefinitionHandle typeDefHandle, MetadataReader dllReader, MetadataReader pdbReader, HashSet<DocumentHandle> docList)
+        {
+            var handles = pdbReader.GetCustomDebugInformation(typeDefHandle);
+            foreach (var cdiHandle in handles)
+            {
+                var cdi = pdbReader.GetCustomDebugInformation(cdiHandle);
+                var guid = pdbReader.GetGuid(cdi.Kind);
+                if (guid == PortableCustomDebugInfoKinds.TypeDocuments)
+                {
+                    if (((TypeDefinitionHandle)cdi.Parent).Equals(typeDefHandle))
+                    {
+                        var reader = pdbReader.GetBlobReader(cdi.Value);
+                        while (reader.RemainingBytes > 0)
+                        {
+                            docList.Add(MetadataTokens.DocumentHandle(reader.ReadCompressedInteger()));
+                        }
+                    }
+                }
+            }
+
+            // We don't necessarily have all of the documents associated with the type
+            var typeDef = dllReader.GetTypeDefinition(typeDefHandle);
+            foreach (var methodDefHandle in typeDef.GetMethods())
+            {
+                ProcessMethodDef(methodDefHandle, dllReader, pdbReader, docList, processDeclaringType: false);
+            }
+        }
+    }
+}
