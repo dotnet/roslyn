@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<AttributeSyntax> attributesToBind,
             ImmutableArray<NamedTypeSymbol> boundAttributeTypes,
             CSharpAttributeData?[] attributesBuilder,
+            BoundAttribute?[]? boundNodesBuilder,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(binders.Any());
@@ -73,10 +74,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var attribute = (SourceAttributeData?)attributesBuilder[i];
                 if (attribute == null)
                 {
-                    attributesBuilder[i] = binder.GetAttribute(attributeSyntax, boundAttributeType, diagnostics);
+                    (attributesBuilder[i], var boundNode) = binder.GetAttribute(attributeSyntax, boundAttributeType, diagnostics);
+                    if (boundNodesBuilder is not null)
+                    {
+                        boundNodesBuilder[i] = boundNode;
+                    }
                 }
                 else
                 {
+                    Debug.Assert(boundNodesBuilder is null || boundNodesBuilder[i] is not null);
+
                     // attributesBuilder might contain some early bound well-known attributes, which had no errors.
                     // We don't rebind the early bound attributes, but need to compute isConditionallyOmitted.
                     // Note that AttributeData.IsConditionallyOmitted is required only during emit, but must be computed here as
@@ -96,11 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Bind Single Attribute
 
-        internal CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, BindingDiagnosticBag diagnostics)
+        internal (CSharpAttributeData, BoundAttribute) GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, BindingDiagnosticBag diagnostics)
         {
             var boundAttribute = new ExecutableCodeBinder(node, this.ContainingMemberOrLambda, this).BindAttribute(node, boundAttributeType, diagnostics);
 
-            return GetAttribute(boundAttribute, diagnostics);
+            return (GetAttribute(boundAttribute, diagnostics), boundAttribute);
         }
 
         internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
@@ -205,11 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             RoslynDebug.Assert((object)attributeType != null);
             Debug.Assert(boundAttribute.Syntax.Kind() == SyntaxKind.Attribute);
-
-            if (diagnostics.DiagnosticBag is object)
-            {
-                NullableWalker.AnalyzeIfNeeded(this, boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
-            }
 
             bool hasErrors = boundAttribute.HasAnyErrors;
 
