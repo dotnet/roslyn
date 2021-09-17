@@ -2147,7 +2147,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 // (4,17): error CS0547: 'C.Length': property or indexer cannot have void type
                 //     public void Length => throw null;
@@ -2174,7 +2174,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 // (9,21): error CS9200: List patterns may not be used for a value of type 'C'.
                 //         _ = this is [1];
@@ -2210,7 +2210,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 // (11,23): error CS9201: Slice patterns may not be used for a value of type 'C'.
                 //         _ = this is { .._ };
@@ -2238,7 +2238,7 @@ public class C
     public int Slice(int i, int j) => throw null;
 }}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "Length True");
         }
@@ -2257,7 +2257,7 @@ public class C
     public int Slice(int i, int j) => throw null;
 }}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "True");
         }
@@ -2276,7 +2276,7 @@ public class C
     public int Slice(int i, int j) {{ System.Console.Write(""Slice ""); return 0; }}
 }}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "Length Slice True");
         }
@@ -2296,7 +2296,7 @@ public class C
     public int Slice(int i, int j) => throw null;
 }}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "Length Index True");
         }
@@ -2315,7 +2315,7 @@ public class C
     public int Slice(int i, int j) {{ System.Console.Write(""Slice ""); return 0; }}
 }}
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "Length Index Slice True");
         }
@@ -2350,7 +2350,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, TestSources.Index }, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(new[] { source, TestSources.Index });
             compilation.VerifyEmitDiagnostics(
                 // (10,29): error CS9200: List patterns may not be used for a value of type 'C<int>'.
                 //         if (new C<int>() is [ var item ]) // 1
@@ -2404,7 +2404,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 // (13,13): error CS0165: Use of unassigned local variable 'item'
                 //             item.ToString(); // 1
@@ -2490,7 +2490,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, TestSources.Index }, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(new[] { source, TestSources.Index });
             compilation.VerifyEmitDiagnostics(
                 // (14,13): error CS0165: Use of unassigned local variable 'item'
                 //             item.ToString(); // 1
@@ -2572,7 +2572,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 // (10,13): error CS0165: Use of unassigned local variable 'item'
                 //             item.ToString(); // 1
@@ -2658,7 +2658,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 // (14,13): error CS0165: Use of unassigned local variable 'rest'
                 //             rest.ToString(); // 1
@@ -2749,7 +2749,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range }, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
             compilation.VerifyEmitDiagnostics(
                 // (15,13): error CS0165: Use of unassigned local variable 'rest'
                 //             rest.ToString(); // 1
@@ -2815,7 +2815,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 // (13,13): warning CS8602: Dereference of a possibly null reference.
                 //             rest.ToString(); // 1, 2
@@ -2885,7 +2885,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 // (17,13): error CS0165: Use of unassigned local variable 'item'
                 //             item.ToString(); // 1
@@ -2949,7 +2949,7 @@ class D
     }
 }
 ";
-            var compilation = CreateCompilationWithIL(source, il, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilationWithIL(source, il);
             compilation.VerifyEmitDiagnostics(
                 // (6,24): error CS9200: List patterns may not be used for a value of type 'C'.
                 //         _ = new C() is [ var item, ..var rest ];
@@ -3167,7 +3167,7 @@ class D
     }
 }
 ";
-            var compilation = CreateCompilationWithIL(source, il, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilationWithIL(source, il);
             compilation.VerifyEmitDiagnostics(
                 // (6,24): error CS9200: List patterns may not be used for a value of type 'C'.
                 //         _ = new C() is [ var item, ..var rest ];
@@ -3190,7 +3190,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 // (6,18): error CS9200: List patterns may not be used for a value of type 'dynamic'.
                 //         _ = d is [_];
@@ -3233,8 +3233,7 @@ class D
     }
 }
 ";
-            var compilation = CreateCompilation(source, references: new[] { lib2Ref }, parseOptions: TestOptions.RegularWithListPatterns);
-            // PROTOTYPE improve diagnostics
+            var compilation = CreateCompilation(source, references: new[] { lib2Ref });
             compilation.VerifyEmitDiagnostics(
                 // (6,18): error CS9200: List patterns may not be used for a value of type 'C'.
                 //         _ = c is [ var item ];
@@ -3272,7 +3271,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 // (5,21): error CS0631: ref and out are not valid in this context
                 //     public int this[ref int i] => 0;
@@ -3326,7 +3325,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range }, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
             compilation.VerifyEmitDiagnostics(
                 // (6,21): error CS0631: ref and out are not valid in this context
                 //     public int this[ref Index i] => 0;
@@ -3367,7 +3366,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 // (10,21): error CS9200: List patterns may not be used for a value of type 'C'.
                 //         _ = this is [ var item, ..var rest ];
@@ -3426,7 +3425,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range }, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
             compilation.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)");
 
@@ -3477,7 +3476,7 @@ public class C
 ");
         }
 
-        [Fact(Skip = "PROTOTYPE")]
+        [Fact]
         public void ListPattern_ImplicitlyConvertibleFromIndexAndRange()
         {
             var source = @"
@@ -3485,12 +3484,12 @@ new C().M();
 
 public class MyIndex
 {
-    public static implicit operator MyIndex(System.Index i) => throw null;
+    public static implicit operator MyIndex(System.Index i) => new MyIndex();
 }
 
 public class MyRange
 {
-    public static implicit operator MyRange(System.Range i) => throw null;
+    public static implicit operator MyRange(System.Range i) => new MyRange();
 }
 
 public class C
@@ -3501,9 +3500,9 @@ public class C
 
     public void M()
     {
-        if (this is [var length] { var item, ..var rest })
+        if (this is [ var item, ..var rest ])
         {
-            System.Console.Write((length, item, rest));
+            System.Console.Write((item, rest));
         }
     }
 
@@ -3514,12 +3513,50 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range }, parseOptions: TestOptions.RegularWithListPatterns);
-            // PROTOTYPE assertion when emitting conversion
+            var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
             compilation.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(compilation, expectedOutput: "(2, item value, rest value)");
+            var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)");
 
             verifier.VerifyIL("C.M", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  4
+  .locals init (string V_0, //item
+                string V_1, //rest
+                C V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloc.2
+  IL_0003:  brfalse.s  IL_0051
+  IL_0005:  ldloc.2
+  IL_0006:  callvirt   ""int C.Length.get""
+  IL_000b:  ldc.i4.1
+  IL_000c:  blt.s      IL_0051
+  IL_000e:  ldloc.2
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldc.i4.0
+  IL_0011:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0016:  call       ""MyIndex MyIndex.op_Implicit(System.Index)""
+  IL_001b:  callvirt   ""string C.this[MyIndex].get""
+  IL_0020:  stloc.0
+  IL_0021:  ldloc.2
+  IL_0022:  ldc.i4.1
+  IL_0023:  ldc.i4.0
+  IL_0024:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0029:  ldc.i4.0
+  IL_002a:  ldc.i4.1
+  IL_002b:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0030:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0035:  call       ""MyRange MyRange.op_Implicit(System.Range)""
+  IL_003a:  callvirt   ""string C.this[MyRange].get""
+  IL_003f:  stloc.1
+  IL_0040:  ldloc.0
+  IL_0041:  ldloc.1
+  IL_0042:  newobj     ""System.ValueTuple<string, string>..ctor(string, string)""
+  IL_0047:  box        ""System.ValueTuple<string, string>""
+  IL_004c:  call       ""void System.Console.Write(object)""
+  IL_0051:  ret
+}
 ");
         }
 
@@ -3538,7 +3575,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 // (9,44): error CS8122: An expression tree may not contain an 'is' pattern-matching operator.
                 //         Expression<Func<bool>> ok1 = () => array is [ _, .. ];
@@ -3566,7 +3603,7 @@ class C
         Console.Write(new C() is [ var x, ..var y ]);
     }
 }";
-            CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, parseOptions: TestOptions.RegularWithListPatterns, expectedOutput: @"Index Range True");
+            CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range });
         }
 
         [Fact]
@@ -3584,7 +3621,7 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithListPatterns);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (2,18): error CS9201: Slice patterns may not be used for a value of type 'C'.
                 // _ = new C() is [ ..var y ];
@@ -3601,7 +3638,7 @@ if (""abc"" is [ var first, ..var rest ])
     System.Console.Write((first, rest).ToString());
 }
 ";
-            CompileAndVerify(src, parseOptions: TestOptions.RegularWithListPatterns, expectedOutput: "(a, bc)");
+            CompileAndVerify(src, expectedOutput: "(a, bc)");
         }
 
         [Fact]
@@ -3610,21 +3647,21 @@ if (""abc"" is [ var first, ..var rest ])
             var src = @"
 _ = new C() switch // 1
 {
-    { Count: <= 0 } => 0,
+    { Count: 0 } => 0,
     [ _ ] => 1,
     // missing
 };
 
 _ = new C() switch // 2
 {
-    { Count: <= 0 } => 0,
+    { Count: 0 } => 0,
     // missing
     { _, _, .. } => 2,
 };
 
 _ = new C() switch // 3
 {
-    { Count: <= 0 } => 0,
+    { Count: 0 } => 0,
     // missing
     [ _, _ ] => 2,
     [ _, _, .. ] => 3,
@@ -3632,7 +3669,7 @@ _ = new C() switch // 3
 
 _ = new C() switch
 {
-    { Count: <=0 } => 0,
+    { Count: 0 } => 0,
     { Count: 1 } => 1,
     [ _, _ ] => 2,
     { Count: > 2 } => 3,
@@ -3643,7 +3680,7 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithListPatterns);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 2 }' is not covered.
                 // _ = new C() switch // 1
@@ -3671,14 +3708,14 @@ _ = new C() switch // 2
 {
     [ > 0 ] => 1,
     [ < 0 ] => 2,
-    { Count: <= 0 or > 1 } => 3,
+    { Count: 0 or > 1 } => 3,
 };
 
 _ = new C() switch
 {
     [ > 0 ] => 1,
     [ < 0 ] => 2,
-    { Count: <= 0 or > 1 } => 3,
+    { Count: 0 or > 1 } => 3,
     [ 0 ] => 4,
 };
 
@@ -3694,9 +3731,8 @@ class C
     public int this[int i] => throw null;
     public int Property => throw null;
 }";
-            // PROTOTYPE bad explanation
-            // Note: it's a bit annoying that we don't assume a positive Count here, or allow a `uint` Count
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithListPatterns);
+            // PROTOTYPE bad explanation for 2
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Count: 0 }' is not covered.
                 // _ = new C() switch // 1
@@ -3719,7 +3755,7 @@ _ = new C() switch // 1
 {
     null => 0,
     [ not null ] => 1,
-    { Count: <= 0 or > 1 } => 2,
+    { Count: 0 or > 1 } => 2,
 };
 
 _ = new C() switch
@@ -3727,20 +3763,20 @@ _ = new C() switch
     null => 0,
     [ not null ] => 1,
     [ null ] => 2,
-    { Count: <= 0 or > 1 } => 3,
+    { Count: 0 or > 1 } => 3,
 };
 
 _ = new C() switch // 2
 {
     [ not null ] => 1,
-    { Count: <= 0 or > 1 } => 2,
+    { Count: 0 or > 1 } => 2,
 };
 
 _ = new C() switch
 {
     [ not null ] => 1,
     [ null ] => 2,
-    { Count: <= 0 or > 1 } => 3,
+    { Count: 0 or > 1 } => 3,
 };
 
 _ = new C() switch // 3
@@ -3756,8 +3792,7 @@ class C
     public string? Property => throw null!;
 }";
             // PROTOTYPE bad explanations on 1 and 2
-            // Note: it's a bit annoying that we don't assume a positive Count here, or allow a `uint` Count
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithListPatterns);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (3,13): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '_' is not covered.
                 // _ = new C() switch // 1
@@ -3788,7 +3823,7 @@ class C
     public int this[int i] => throw null;
 }";
             // PROTOTYPE bad explanation
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithListPatterns);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 // _ = new C() switch // 1
@@ -3813,7 +3848,7 @@ class C
     public int this[int i] => throw null;
 }";
             // PROTOTYPE bad explanation
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithListPatterns);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 // _ = new C() switch // 1
@@ -3829,7 +3864,7 @@ _ = new C() switch // 1
 {
     [ .., > 0 ] => 1,
     [ .., < 0 ] => 2,
-    { Count: <= 0 } => 3,
+    { Count: 0 } => 3,
 };
 
 class C
@@ -3838,7 +3873,7 @@ class C
     public int this[int i] => throw null;
 }";
             // PROTOTYPE bad explanation
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithListPatterns);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 // _ = new C() switch // 1
@@ -3854,7 +3889,7 @@ _ = new C() switch
 {
     [ .., >= 0 ] => 1,
     [ < 0 ] => 2,
-    { Count: <= 0 or > 1 } => 3,
+    { Count: 0 or > 1 } => 3,
 };
 
 class C
@@ -3862,7 +3897,7 @@ class C
     public int Count => throw null;
     public int this[int i] => throw null;
 }";
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithListPatterns);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -3874,7 +3909,7 @@ _ = new C() switch
 {
     [ >= 0 ] => 1,
     [ ..[ < 0 ] ] => 2,
-    { Count: <= 0 or > 1 } => 3,
+    { Count: 0 or > 1 } => 3,
 };
 
 class C
@@ -3883,7 +3918,7 @@ class C
     public int this[int i] => throw null;
     public C Slice(int i, int j) => throw null;
 }";
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithListPatterns);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -3903,7 +3938,7 @@ class C
     public uint Count => throw null!;
     public int this[int i] => throw null!;
 }";
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithListPatterns);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (4,5): error CS9200: List patterns may not be used for a value of type 'C'.
                 //     [ .. ] => 1,
@@ -3933,7 +3968,7 @@ class C
     public nint Count => throw null!;
     public int this[int i] => throw null!;
 }";
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithListPatterns);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (4,5): error CS9200: List patterns may not be used for a value of type 'C'.
                 //     [ .. ] => 1,
