@@ -523,9 +523,6 @@ static void A()
 {
 }",
 parseOptions: CSharp8ParseOptions);
-
-            //await TestAsync(initialMarkup, expectedMarkup, WithRegularOptions(parameters));
-
         }
     }
 }

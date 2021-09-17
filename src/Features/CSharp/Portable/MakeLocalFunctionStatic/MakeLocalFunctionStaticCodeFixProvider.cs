@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var localFunctions = diagnostics.SelectAsArray(d => unwrapGlobalStatement(d.AdditionalLocations[0].FindNode(cancellationToken)));
+            var localFunctions = diagnostics.SelectAsArray(d => d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
             foreach (var localFunction in localFunctions)
             {
                 editor.ReplaceNode(
@@ -55,11 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             }
 
             return Task.CompletedTask;
-
-            static SyntaxNode unwrapGlobalStatement(SyntaxNode node)
-            {
-                return node is GlobalStatementSyntax globalStatement ? globalStatement.Statement : node;
-            }
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
