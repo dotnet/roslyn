@@ -330,8 +330,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                             metadataReferences: new [] { MetadataReference.CreateFromFile(file.Path) })
                 });
 
-            var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
-
             using var remoteWorkspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices(), WorkspaceKind.RemoteWorkspace);
             var optionService = remoteWorkspace.Services.GetRequiredService<IOptionService>();
             var options = new SerializableOptionSet(optionService, ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object>.Empty, ImmutableHashSet<OptionKey>.Empty);
