@@ -95,7 +95,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public ReadOnly Property Attribute As Integer = SyntaxKind.Attribute Implements ISyntaxKinds.Attribute
         Public ReadOnly Property ClassDeclaration As Integer = SyntaxKind.ClassBlock Implements ISyntaxKinds.ClassDeclaration
-        Public ReadOnly Property NamespaceDeclaration As Integer = SyntaxKind.NamespaceBlock Implements ISyntaxKinds.NamespaceDeclaration
         Public ReadOnly Property Parameter As Integer = SyntaxKind.Parameter Implements ISyntaxKinds.Parameter
         Public ReadOnly Property TypeConstraint As Integer = SyntaxKind.TypeConstraint Implements ISyntaxKinds.TypeConstraint
         Public ReadOnly Property VariableDeclarator As Integer = SyntaxKind.VariableDeclarator Implements ISyntaxKinds.VariableDeclarator
