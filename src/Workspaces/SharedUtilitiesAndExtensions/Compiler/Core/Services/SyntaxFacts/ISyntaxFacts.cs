@@ -161,8 +161,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNumericLiteral(SyntaxToken token);
         bool IsVerbatimStringLiteral(SyntaxToken token);
 
-        bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent);
-        bool IsTypeNamedDynamic(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent);
         bool IsUsingOrExternOrImport([NotNullWhen(true)] SyntaxNode? node);
         bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node);
         bool IsGlobalModuleAttribute([NotNullWhen(true)] SyntaxNode? node);
@@ -511,9 +509,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfDeclarationPattern(SyntaxNode node, out SyntaxNode type, out SyntaxNode designation);
         void GetPartsOfRecursivePattern(SyntaxNode node, out SyntaxNode? type, out SyntaxNode? positionalPart, out SyntaxNode? propertyPart, out SyntaxNode? designation);
         void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern);
-
-        // Violation.  This is a feature level API.
-        SyntaxNode? GetNextExecutableStatement(SyntaxNode statement);
 
         bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
