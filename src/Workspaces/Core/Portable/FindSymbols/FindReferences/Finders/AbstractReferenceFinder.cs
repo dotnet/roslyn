@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsRightSideOfQualifiedName(node))
+            if (syntaxFacts.IsRightOfQualifiedName(node))
                 node = node.GetRequiredParent();
 
             if (syntaxFacts.IsUsingDirectiveName(node))
@@ -602,11 +602,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             void CollectMatchingReferences(
                 SyntaxNode node, ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts, ArrayBuilder<FinderLocation> locations)
             {
-                if (!syntaxFacts.IsImplicitObjectCreation(node))
-                {
-                    // Avoid binding unrelated nodes
+                // Avoid binding unrelated nodes
+                if (!syntaxFacts.IsImplicitObjectCreationExpression(node))
                     return;
-                }
 
                 var constructor = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
 
@@ -776,7 +774,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return true;
             }
 
-            if (syntaxFacts.IsRightSideOfQualifiedName(node) ||
+            if (syntaxFacts.IsRightOfQualifiedName(node) ||
                 syntaxFacts.IsNameOfSimpleMemberAccessExpression(node) ||
                 syntaxFacts.IsNameOfMemberBindingExpression(node))
             {

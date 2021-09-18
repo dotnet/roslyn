@@ -297,15 +297,5 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool HasIncompleteParentMember([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent?.RawKind == SyntaxKinds.IncompleteMember;
-
-        public abstract bool CanHaveAccessibility(SyntaxNode declaration);
-
-        public abstract Accessibility GetAccessibility(SyntaxNode declaration);
-
-        public abstract void GetAccessibilityAndModifiers(SyntaxTokenList modifierList, out Accessibility accessibility, out DeclarationModifiers modifiers, out bool isDefault);
-
-        public abstract SyntaxTokenList GetModifierTokens(SyntaxNode declaration);
-
-        public abstract DeclarationKind GetDeclarationKind(SyntaxNode declaration);
     }
 }

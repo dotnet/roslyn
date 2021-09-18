@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     // identifier and the parent of the node being the member access expression. The member
                     // access expression gives the right value for "IsLeftSideOfAnyAssignment" but also
                     // gives the correct operation, where as the IdentifierSyntax does not.
-                    if (node.Parent is not null && syntaxFacts.IsAnyMemberAccessExpression(node.Parent))
+                    if (syntaxFacts.IsMemberAccessExpression(node.Parent))
                     {
                         node = node.Parent;
                     }

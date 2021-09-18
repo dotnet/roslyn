@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace
             if (IsFileAndNamespaceMismatch(namespaceDecl, rootNamespace, projectDir, currentNamespace, out var targetNamespace) &&
                 IsFixSupported(context.SemanticModel, namespaceDecl, context.CancellationToken))
             {
-                var nameSyntax = GetSyntaxFacts().GetNameOfNamespaceDeclaration(namespaceDecl);
+                var nameSyntax = GetSyntaxFacts().GetNameOfBaseNamespaceDeclaration(namespaceDecl);
                 RoslynDebug.AssertNotNull(nameSyntax);
 
                 context.ReportDiagnostic(Diagnostic.Create(
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace
 
             // The current namespace should be valid
             var isCurrentNamespaceInvalid = GetSyntaxFacts()
-                .GetNameOfNamespaceDeclaration(namespaceDeclaration)
+                .GetNameOfBaseNamespaceDeclaration(namespaceDeclaration)
                 ?.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error)
                 ?? false;
 
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MatchFolderAndNamespace
         {
             var syntaxFacts = GetSyntaxFacts();
 
-            var typeDeclarations = syntaxFacts.GetMembersOfNamespaceDeclaration(namespaceDeclaration)
+            var typeDeclarations = syntaxFacts.GetMembersOfBaseNamespaceDeclaration(namespaceDeclaration)
                 .Where(member => syntaxFacts.IsTypeDeclaration(member));
 
             foreach (var typeDecl in typeDeclarations)

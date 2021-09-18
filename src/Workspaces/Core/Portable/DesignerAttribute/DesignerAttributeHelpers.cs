@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.DesignerAttribute
             foreach (var member in members)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (syntaxFacts.IsNamespaceDeclaration(member))
+                if (syntaxFacts.IsBaseNamespaceDeclaration(member))
                 {
                     var firstClass = FindFirstNonNestedClass(
-                        syntaxFacts, syntaxFacts.GetMembersOfNamespaceDeclaration(member), cancellationToken);
+                        syntaxFacts, syntaxFacts.GetMembersOfBaseNamespaceDeclaration(member), cancellationToken);
                     if (firstClass != null)
                         return firstClass;
                 }
