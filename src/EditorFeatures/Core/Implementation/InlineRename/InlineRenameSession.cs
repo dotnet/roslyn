@@ -710,7 +710,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void EndRenameSession()
         {
-            _debuggingWorkspaceService.BeforeDebuggingStateChanged -= OnBeforeDebuggingStateChanged;
             CancelAllOpenDocumentTrackingTasks();
             RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
             _inlineRenameSessionDurationLogBlock.Dispose();
