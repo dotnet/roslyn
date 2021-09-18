@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 ClearSolutionData();
 
                 OnSolutionAdded(solutionInfo);
-
+                this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
                 SetOptions(options);
 
                 solution = CurrentSolution;
