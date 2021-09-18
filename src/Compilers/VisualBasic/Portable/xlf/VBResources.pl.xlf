@@ -7,6 +7,11 @@
         <target state="translated">Właściwość tylko do inicjowania „{0}” może być przypisana tylko przez inicjatora składowej obiektu lub w elemencie „Me”, „MyClass” lub „MyBase” w konstruktorze wystąpień.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="new">A shared abstract interface member cannot be accessed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Błąd składni wiersza polecenia: „{0}” nie jest prawidłową wartością dla opcji „{1}”. Wartość musi mieć postać „{2}”.</target>
@@ -55,6 +60,11 @@
       <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
         <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
         <target state="translated">Zdarzenia udostępnionych zmiennych WithEvents nie mogą zostać obsłużone przez metody w innym typie.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="new">{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">

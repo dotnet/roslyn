@@ -7,6 +7,11 @@
         <target state="translated">Init only 属性 "{0}" 只能由对象成员初始值设定项分配，或在实例构造函数中的 "Me"、"MyClass" 或 "MyBase" 上分配。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="new">A shared abstract interface member cannot be accessed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">命令行语法错误:“{0}”不是“{1}”选项的有效值。值的格式必须为 "{2}"。</target>
@@ -55,6 +60,11 @@
       <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
         <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
         <target state="translated">共享 WithEvents 变量的事件不能由其他类型的方法处理。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="new">{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
