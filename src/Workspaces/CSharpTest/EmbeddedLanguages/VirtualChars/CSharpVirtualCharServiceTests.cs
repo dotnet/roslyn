@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
                 return false;
             }
 
-            if (c is (VirtualChar)'{' or (VirtualChar)'}')
+            if (c == '{' || c == '}')
             {
                 return false;
             }

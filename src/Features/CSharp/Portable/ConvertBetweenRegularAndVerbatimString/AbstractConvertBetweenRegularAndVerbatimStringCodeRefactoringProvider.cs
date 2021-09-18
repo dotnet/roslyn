@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
         }
 
         private static bool IsOpenOrCloseBrace(VirtualChar ch)
-            => ch is (VirtualChar)OpenBrace or (VirtualChar)CloseBrace;
+            => ch == OpenBrace || ch == CloseBrace;
 
         protected void AddRegularStringText(
             IVirtualCharService charService, StringBuilder sb, SyntaxToken stringToken)
