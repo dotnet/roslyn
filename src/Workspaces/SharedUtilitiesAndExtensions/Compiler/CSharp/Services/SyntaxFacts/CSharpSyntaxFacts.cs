@@ -29,7 +29,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
-    internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
+    internal class CSharpSyntaxFacts : ISyntaxFacts
     {
         internal static readonly CSharpSyntaxFacts Instance = new();
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxTrivia ElasticCarriageReturnLineFeed
             => SyntaxFactory.ElasticCarriageReturnLineFeed;
 
-        public override ISyntaxKinds SyntaxKinds { get; } = CSharpSyntaxKinds.Instance;
+        public ISyntaxKinds SyntaxKinds { get; } = CSharpSyntaxKinds.Instance;
 
         public bool SupportsIndexingInitializer(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
@@ -454,45 +454,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token)
             => token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken);
-
-        public bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent)
-        {
-            var typedToken = token;
-            var typedParent = parent;
-
-            if (typedParent.IsKind(SyntaxKind.IdentifierName))
-            {
-                TypeSyntax? declaredType = null;
-                if (typedParent.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? varDecl))
-                {
-                    declaredType = varDecl.Type;
-                }
-                else if (typedParent.IsParentKind(SyntaxKind.FieldDeclaration, out FieldDeclarationSyntax? fieldDecl))
-                {
-                    declaredType = fieldDecl.Declaration.Type;
-                }
-
-                return declaredType == typedParent && typedToken.ValueText == "var";
-            }
-
-            return false;
-        }
-
-        public bool IsTypeNamedDynamic(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent)
-        {
-
-            if (parent is ExpressionSyntax typedParent)
-            {
-                if (SyntaxFacts.IsInTypeOnlyContext(typedParent) &&
-                    typedParent.IsKind(SyntaxKind.IdentifierName) &&
-                    token.ValueText == "dynamic")
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
 
         public bool IsBindableToken(SyntaxToken token)
         {
@@ -1360,17 +1321,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
             var tupleExpression = (TupleExpressionSyntax)node;
             openParen = tupleExpression.OpenParenToken;
-            arguments = (SeparatedSyntaxList<TArgumentSyntax>)(SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
+            arguments = (SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
             closeParen = tupleExpression.CloseParenToken;
         }
 
-        public SyntaxNode? GetNextExecutableStatement(SyntaxNode statement)
-            => ((StatementSyntax)statement).GetNextStatement();
-
-        public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
+        public bool IsPreprocessorDirective(SyntaxTrivia trivia)
             => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
-        protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
+        public bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
             => token.ContainsInterleavedDirective(span, cancellationToken);
 
         public SyntaxTokenList GetModifiers(SyntaxNode? node)
@@ -1447,14 +1405,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return null;
         }
 
-        public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode? node)
+        public SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode? node)
             => node.GetAttributeLists();
 
-        public override bool IsParameterNameXmlElementSyntax([NotNullWhen(true)] SyntaxNode? node)
+        public bool IsParameterNameXmlElementSyntax([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.XmlElement, out XmlElementSyntax? xmlElement) &&
             xmlElement.StartTag.Name.LocalName.ValueText == DocumentationCommentXmlNames.ParameterElementName;
 
-        public override SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
+        public SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
         {
             if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationCommentTrivia)
             {
