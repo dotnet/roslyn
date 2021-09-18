@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 if (attributeList.Target is { Identifier: { RawKind: var kind } })
                 {
-                    return kind == (int)SyntaxKind.AssemblyKeyword
-                        || kind == (int)SyntaxKind.ModuleKeyword;
+                    return kind is ((int)SyntaxKind.AssemblyKeyword)
+                        or ((int)SyntaxKind.ModuleKeyword);
                 }
 
                 return false;
@@ -961,7 +961,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
+
+/* Unmerged change from project 'Microsoft.CodeAnalysis.CSharp.Workspaces (netstandard2.0)'
+Before:
             if (token.Kind() != SyntaxKind.LessThanToken && token.Kind() != SyntaxKind.CommaToken)
+After:
+            if (token.Kind() is SyntaxKind.LessThanToken && not SyntaxKind.CommaToken)
+*/
+            if (token.Kind() is not not SyntaxKind.LessThanToken and not SyntaxKind.CommaToken)
             {
                 return false;
             }
@@ -1419,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (lastTokenInPattern.Parent is SingleVariableDesignationSyntax variableDesignationSyntax &&
                     originalLeftToken.Parent == variableDesignationSyntax)
                 {
-                    return patternSyntax is DeclarationPatternSyntax || patternSyntax is RecursivePatternSyntax;
+                    return patternSyntax is DeclarationPatternSyntax or RecursivePatternSyntax;
                 }
             }
 

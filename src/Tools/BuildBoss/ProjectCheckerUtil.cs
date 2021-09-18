@@ -32,7 +32,7 @@ namespace BuildBoss
         public bool Check(TextWriter textWriter)
         {
             var allGood = true;
-            if (ProjectType == ProjectFileType.CSharp || ProjectType == ProjectFileType.Basic)
+            if (ProjectType is ProjectFileType.CSharp or ProjectFileType.Basic)
             {
                 if (!_projectUtil.IsNewSdk)
                 {

@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                     break;
                 }
 
-                if (part.Tag == TextTags.ContainerStart
-                    || part.Tag == TextTags.ContainerEnd)
+                if (part.Tag is TextTags.ContainerStart
+                    or TextTags.ContainerEnd)
                 {
                     index++;
                     continue;

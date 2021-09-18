@@ -354,13 +354,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsEmbeddedStatementOwnerWithCloseParen([NotNullWhen(true)] this SyntaxNode? node)
         {
-            return node is IfStatementSyntax ||
-                   node is WhileStatementSyntax ||
-                   node is ForStatementSyntax ||
-                   node is CommonForEachStatementSyntax ||
-                   node is UsingStatementSyntax ||
-                   node is FixedStatementSyntax ||
-                   node is LockStatementSyntax;
+            return node is IfStatementSyntax or
+                   WhileStatementSyntax or
+                   ForStatementSyntax or
+                   CommonForEachStatementSyntax or
+                   UsingStatementSyntax or
+                   FixedStatementSyntax or
+                   LockStatementSyntax;
         }
 
         public static bool IsNestedQueryExpression(this SyntaxToken token)
@@ -461,7 +461,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsLastTokenInLabelStatement(this SyntaxToken token)
         {
+
+/* Unmerged change from project 'Microsoft.CodeAnalysis.CSharp.Workspaces (netstandard2.0)'
+Before:
             if (token.Kind() != SyntaxKind.SemicolonToken && token.Kind() != SyntaxKind.CloseBraceToken)
+After:
+            if (token.Kind() is SyntaxKind.SemicolonToken and not SyntaxKind.CloseBraceToken)
+*/
+            if (token.Kind() is not not SyntaxKind.SemicolonToken and not SyntaxKind.CloseBraceToken)
             {
                 return false;
             }
@@ -500,7 +507,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsPlusOrMinusExpression(this SyntaxToken token)
         {
+
+/* Unmerged change from project 'Microsoft.CodeAnalysis.CSharp.Workspaces (netstandard2.0)'
+Before:
             if (token.Kind() != SyntaxKind.PlusToken && token.Kind() != SyntaxKind.MinusToken)
+After:
+            if (token.Kind() is SyntaxKind.PlusToken and not SyntaxKind.MinusToken)
+*/
+            if (token.Kind() is not not SyntaxKind.PlusToken and not SyntaxKind.MinusToken)
             {
                 return false;
             }

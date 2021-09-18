@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private static SyntaxNode? GetQueryExpressionClause(SyntaxToken token)
         {
-            var clause = token.GetAncestors<SyntaxNode>().FirstOrDefault(n => n is QueryClauseSyntax || n is SelectOrGroupClauseSyntax);
+            var clause = token.GetAncestors<SyntaxNode>().FirstOrDefault(n => n is QueryClauseSyntax or SelectOrGroupClauseSyntax);
 
             if (clause != null)
             {

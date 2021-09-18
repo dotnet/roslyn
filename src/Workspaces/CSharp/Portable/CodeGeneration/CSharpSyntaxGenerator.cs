@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var modifierList = AsModifierList(accessibility, modifiers, SyntaxKind.OperatorDeclaration);
             var attributes = default(SyntaxList<AttributeListSyntax>);
 
-            if (kind == OperatorKind.ImplicitConversion || kind == OperatorKind.ExplicitConversion)
+            if (kind is OperatorKind.ImplicitConversion or OperatorKind.ExplicitConversion)
             {
                 return SyntaxFactory.ConversionOperatorDeclaration(
                     attributes, modifierList, SyntaxFactory.Token(GetTokenKind(kind)),

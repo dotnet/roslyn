@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
 
             var inner = parenthesizedPattern.Pattern;
             var innerPrecedence = inner.GetOperatorPrecedence();
-            var innerIsSimple = innerPrecedence == OperatorPrecedence.Primary ||
-                                innerPrecedence == OperatorPrecedence.None;
+            var innerIsSimple = innerPrecedence is OperatorPrecedence.Primary or
+                                OperatorPrecedence.None;
 
-            if (!(parenthesizedPattern.Parent is PatternSyntax))
+            if (parenthesizedPattern.Parent is not PatternSyntax)
             {
                 // We're parented by something not a pattern.  i.e. `x is (...)` or `case (...)`.
                 // These parentheses are never needed for clarity and can always be removed.

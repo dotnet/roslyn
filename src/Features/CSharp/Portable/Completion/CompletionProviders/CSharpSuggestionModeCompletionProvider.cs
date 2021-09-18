@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // We'll show the builder after an open brace or comma, because that's where the
                 // user can start declaring new named parts. 
-                return token.Kind() == SyntaxKind.OpenBraceToken || token.Kind() == SyntaxKind.CommaToken;
+                return token.Kind() is SyntaxKind.OpenBraceToken or SyntaxKind.CommaToken;
             }
 
             return false;
@@ -125,11 +125,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // We might be in the arguments to a parenthesized lambda
+
+/* Unmerged change from project 'Microsoft.CodeAnalysis.CSharp.Features (netstandard2.0)'
+Before:
             if (token.Kind() == SyntaxKind.OpenParenToken || token.Kind() == SyntaxKind.CommaToken)
+After:
+            if (token.Kind() == SyntaxKind.OpenParenToken or SyntaxKind.CommaToken)
+*/
+            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken)
             {
-                if (token.Parent != null && token.Parent is ParameterListSyntax)
+                if (token.Parent is not null and ParameterListSyntax)
                 {
-                    return token.Parent.Parent != null && token.Parent.Parent is ParenthesizedLambdaExpressionSyntax;
+                    return token.Parent.Parent is not null and ParenthesizedLambdaExpressionSyntax;
                 }
             }
 
@@ -228,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (lastTokenInPattern.Parent is SingleVariableDesignationSyntax variableDesignationSyntax &&
                 token.Parent == variableDesignationSyntax)
             {
-                return patternSyntax is DeclarationPatternSyntax || patternSyntax is RecursivePatternSyntax;
+                return patternSyntax is DeclarationPatternSyntax or RecursivePatternSyntax;
             }
 
             return false;

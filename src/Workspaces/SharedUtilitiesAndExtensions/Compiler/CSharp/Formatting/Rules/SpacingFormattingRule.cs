@@ -434,8 +434,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // No space after $" and $@" and @$" at the start of an interpolated string
-            if (previousKind == SyntaxKind.InterpolatedStringStartToken ||
-                previousKind == SyntaxKind.InterpolatedVerbatimStringStartToken)
+            if (previousKind is SyntaxKind.InterpolatedStringStartToken or
+                SyntaxKind.InterpolatedVerbatimStringStartToken)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }
@@ -556,15 +556,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => token.Parent.IsKind(SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.BracketedParameterList, SyntaxKind.ImplicitArrayCreationExpression);
 
         private static bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
-            => (syntaxKind == SyntaxKind.TypeOfExpression || syntaxKind == SyntaxKind.DefaultExpression || syntaxKind == SyntaxKind.SizeOfExpression);
+            => (syntaxKind is SyntaxKind.TypeOfExpression or SyntaxKind.DefaultExpression or SyntaxKind.SizeOfExpression);
 
         private static bool IsControlFlowLikeKeywordStatementKind(SyntaxKind syntaxKind)
         {
-            return (syntaxKind == SyntaxKind.IfStatement || syntaxKind == SyntaxKind.WhileStatement || syntaxKind == SyntaxKind.SwitchStatement ||
-                syntaxKind == SyntaxKind.ForStatement || syntaxKind == SyntaxKind.ForEachStatement || syntaxKind == SyntaxKind.ForEachVariableStatement ||
-                syntaxKind == SyntaxKind.DoStatement ||
-                syntaxKind == SyntaxKind.CatchDeclaration || syntaxKind == SyntaxKind.UsingStatement || syntaxKind == SyntaxKind.LockStatement ||
-                syntaxKind == SyntaxKind.FixedStatement || syntaxKind == SyntaxKind.CatchFilterClause);
+            return (syntaxKind is SyntaxKind.IfStatement or SyntaxKind.WhileStatement or SyntaxKind.SwitchStatement or
+                SyntaxKind.ForStatement or SyntaxKind.ForEachStatement or SyntaxKind.ForEachVariableStatement or
+                SyntaxKind.DoStatement or
+                SyntaxKind.CatchDeclaration or SyntaxKind.UsingStatement or SyntaxKind.LockStatement or
+                SyntaxKind.FixedStatement or SyntaxKind.CatchFilterClause);
         }
 
         private readonly struct CachedOptions : IEquatable<CachedOptions>
