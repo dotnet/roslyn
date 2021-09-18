@@ -732,7 +732,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(1, project1SyncedSolution.Projects.Count());
             Assert.Equal(project1.Name, project1SyncedSolution.Projects.Single().Name);
             var project1Options = (SerializableOptionSet)project1SyncedSolution.Options;
-            Assert.Equal(1, project1Options.GetTestAccessor().Languages.Count);
+            Assert.Equal(2, project1Options.GetTestAccessor().Languages.Count);
             Assert.Contains(LanguageNames.CSharp, project1Options.GetTestAccessor().Languages);
 
             var project2Checksum = await solution.State.GetChecksumAsync(project2.Id, CancellationToken.None);
@@ -740,7 +740,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(1, project2SyncedSolution.Projects.Count());
             Assert.Equal(project2.Name, project2SyncedSolution.Projects.Single().Name);
             var project2Options = (SerializableOptionSet)project2SyncedSolution.Options;
-            Assert.Equal(1, project2Options.GetTestAccessor().Languages.Count);
+            Assert.Equal(2, project2Options.GetTestAccessor().Languages.Count);
             Assert.Contains(LanguageNames.VisualBasic, project2Options.GetTestAccessor().Languages);
         }
 
