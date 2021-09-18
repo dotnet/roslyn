@@ -461,14 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static bool IsLastTokenInLabelStatement(this SyntaxToken token)
         {
-
-/* Unmerged change from project 'Microsoft.CodeAnalysis.CSharp.Workspaces (netstandard2.0)'
-Before:
-            if (token.Kind() != SyntaxKind.SemicolonToken && token.Kind() != SyntaxKind.CloseBraceToken)
-After:
-            if (token.Kind() is SyntaxKind.SemicolonToken and not SyntaxKind.CloseBraceToken)
-*/
-            if (token.Kind() is not not SyntaxKind.SemicolonToken and not SyntaxKind.CloseBraceToken)
+            if (token.Kind() is not SyntaxKind.SemicolonToken and not SyntaxKind.CloseBraceToken)
             {
                 return false;
             }
@@ -507,14 +500,7 @@ After:
 
         public static bool IsPlusOrMinusExpression(this SyntaxToken token)
         {
-
-/* Unmerged change from project 'Microsoft.CodeAnalysis.CSharp.Workspaces (netstandard2.0)'
-Before:
-            if (token.Kind() != SyntaxKind.PlusToken && token.Kind() != SyntaxKind.MinusToken)
-After:
-            if (token.Kind() is SyntaxKind.PlusToken and not SyntaxKind.MinusToken)
-*/
-            if (token.Kind() is not not SyntaxKind.PlusToken and not SyntaxKind.MinusToken)
+            if (token.Kind() is not SyntaxKind.PlusToken and not SyntaxKind.MinusToken)
             {
                 return false;
             }

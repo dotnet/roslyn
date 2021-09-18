@@ -125,13 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // We might be in the arguments to a parenthesized lambda
-
-/* Unmerged change from project 'Microsoft.CodeAnalysis.CSharp.Features (netstandard2.0)'
-Before:
-            if (token.Kind() == SyntaxKind.OpenParenToken || token.Kind() == SyntaxKind.CommaToken)
-After:
-            if (token.Kind() == SyntaxKind.OpenParenToken or SyntaxKind.CommaToken)
-*/
             if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken)
             {
                 if (token.Parent is not null and ParameterListSyntax)

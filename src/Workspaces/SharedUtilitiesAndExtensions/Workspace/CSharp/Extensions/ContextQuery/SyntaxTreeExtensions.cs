@@ -961,14 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-
-/* Unmerged change from project 'Microsoft.CodeAnalysis.CSharp.Workspaces (netstandard2.0)'
-Before:
-            if (token.Kind() != SyntaxKind.LessThanToken && token.Kind() != SyntaxKind.CommaToken)
-After:
-            if (token.Kind() is SyntaxKind.LessThanToken && not SyntaxKind.CommaToken)
-*/
-            if (token.Kind() is not not SyntaxKind.LessThanToken and not SyntaxKind.CommaToken)
+            if (token.Kind() is not SyntaxKind.LessThanToken and not SyntaxKind.CommaToken)
             {
                 return false;
             }
