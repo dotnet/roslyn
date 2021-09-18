@@ -83,7 +83,7 @@ namespace Roslyn.Test.PdbUtilities
         public static ISymUnmanagedReader5 CreateReaderImpl(Stream pdbStream, object metadataImporter)
         {
             pdbStream.Position = 0;
-            bool isPortable = pdbStream.ReadByte() is 'B' and 'S' and 'J' and 'B';
+            bool isPortable = pdbStream.ReadByte() == 'B' && pdbStream.ReadByte() == 'S' && pdbStream.ReadByte() == 'J' && pdbStream.ReadByte() == 'B';
             pdbStream.Position = 0;
 
             if (isPortable)
