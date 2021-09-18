@@ -362,7 +362,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\AbstractDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\AbstractFileBannerFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\HeaderFacts\AbstractHeaderFacts.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\AbstractSyntaxFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\ExternalSourceInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\IAccessibilityFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\IDocumentationCommentService.cs" />
