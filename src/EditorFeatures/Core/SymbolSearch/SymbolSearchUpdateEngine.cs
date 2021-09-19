@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         {
             for (var current = symbol; current.IsValid; current = current.Parent())
             {
-                if (current.Type == SymbolType.Package || current.Type == SymbolType.Version)
+                if (current.Type is SymbolType.Package or SymbolType.Version)
                 {
                     return TryGetRankingSymbolForPackage(current, out rankingSymbol);
                 }

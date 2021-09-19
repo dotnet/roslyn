@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (symbol.Kind == SymbolKind.Method)
                 {
                     var methodSymbol = (IMethodSymbol)symbol;
-                    if (methodSymbol.MethodKind == MethodKind.Constructor ||
-                        methodSymbol.MethodKind == MethodKind.StaticConstructor ||
-                        methodSymbol.MethodKind == MethodKind.Destructor)
+                    if (methodSymbol.MethodKind is MethodKind.Constructor or
+                        MethodKind.StaticConstructor or
+                        MethodKind.Destructor)
                     {
                         return methodSymbol.ContainingType;
                     }

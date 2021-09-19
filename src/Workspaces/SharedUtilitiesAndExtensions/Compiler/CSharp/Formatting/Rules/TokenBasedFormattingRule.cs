@@ -203,9 +203,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 var attributeOwner = previousToken.Parent?.Parent;
 
-                if (attributeOwner is CompilationUnitSyntax ||
-                    attributeOwner is MemberDeclarationSyntax ||
-                    attributeOwner is AccessorDeclarationSyntax)
+                if (attributeOwner is CompilationUnitSyntax or
+                    MemberDeclarationSyntax or
+                    AccessorDeclarationSyntax)
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }

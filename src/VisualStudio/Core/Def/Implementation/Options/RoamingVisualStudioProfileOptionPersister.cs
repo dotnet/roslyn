@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 // code uses object to hold onto any value which will use boxing on value types.
                 // see boxing on nullable types - https://msdn.microsoft.com/en-us/library/ms228597.aspx
-                return (value is bool) || (value == null);
+                return value is bool or null;
             }
             else if (value != null && optionKey.Option.Type != value.GetType())
             {

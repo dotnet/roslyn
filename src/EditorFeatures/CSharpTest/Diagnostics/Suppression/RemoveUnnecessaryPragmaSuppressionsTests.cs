@@ -304,10 +304,10 @@ class Class
                 var suppressMessageAttribtes = new StringBuilder();
                 foreach (var id in UnsupportedDiagnosticIds)
                 {
-                    if (testKind == TestKind.Pragmas || testKind == TestKind.PragmasAndSuppressMessageAttributes)
+                    if (testKind is TestKind.Pragmas or TestKind.PragmasAndSuppressMessageAttributes)
                         pragmas.AppendLine($@"#pragma warning {disableOrRestore} {id}");
 
-                    if (testKind == TestKind.SuppressMessageAttributes || testKind == TestKind.PragmasAndSuppressMessageAttributes)
+                    if (testKind is TestKind.SuppressMessageAttributes or TestKind.PragmasAndSuppressMessageAttributes)
                         suppressMessageAttribtes.AppendLine($@"[System.Diagnostics.CodeAnalysis.SuppressMessage(""Category"", ""{id}"")]");
                 }
 
