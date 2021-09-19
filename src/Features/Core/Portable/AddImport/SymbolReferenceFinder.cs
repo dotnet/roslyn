@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
 
                 inAttributeContext = syntaxFacts.IsAttributeName(nameNode);
-                hasIncompleteParentMember = syntaxFacts.HasIncompleteParentMember(nameNode);
+                hasIncompleteParentMember = nameNode?.Parent?.RawKind == syntaxFacts.SyntaxKinds.IncompleteMember;
                 looksGeneric = syntaxFacts.LooksGeneric(nameNode);
             }
 

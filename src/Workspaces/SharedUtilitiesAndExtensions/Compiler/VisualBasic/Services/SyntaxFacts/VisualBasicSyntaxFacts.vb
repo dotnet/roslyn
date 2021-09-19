@@ -21,7 +21,6 @@ Imports Microsoft.CodeAnalysis.Editing
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
     Friend Class VisualBasicSyntaxFacts
-        Inherits AbstractSyntaxFacts
         Implements ISyntaxFacts
 
         Public Shared ReadOnly Property Instance As New VisualBasicSyntaxFacts
@@ -53,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             End Get
         End Property
 
-        Public Overrides ReadOnly Property SyntaxKinds As ISyntaxKinds = VisualBasicSyntaxKinds.Instance Implements ISyntaxFacts.SyntaxKinds
+        Public ReadOnly Property SyntaxKinds As ISyntaxKinds = VisualBasicSyntaxKinds.Instance Implements ISyntaxFacts.SyntaxKinds
 
         Public Function SupportsIndexingInitializer(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsIndexingInitializer
             Return False
@@ -203,10 +202,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function IsParameterList(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParameterList
             Return node.IsKind(SyntaxKind.ParameterList)
-        End Function
-
-        Public Function ISyntaxFacts_HasIncompleteParentMember(node As SyntaxNode) As Boolean Implements ISyntaxFacts.HasIncompleteParentMember
-            Return HasIncompleteParentMember(node)
         End Function
 
         Public Function GetIdentifierOfGenericName(genericName As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfGenericName
@@ -1222,7 +1217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return IsGlobalAttribute(node, SyntaxKind.AssemblyKeyword)
         End Function
 
-        Public Function IsModuleAssemblyAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsGlobalModuleAttribute
+        Public Function IsGlobalModuleAttribute(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsGlobalModuleAttribute
             Return IsGlobalAttribute(node, SyntaxKind.ModuleKeyword)
         End Function
 
@@ -1409,37 +1404,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return If(TryCast(node, ExpressionSyntax)?.WalkDownParentheses(), node)
         End Function
 
-        Public Sub GetPartsOfTupleExpression(Of TArgumentSyntax As SyntaxNode)(
-                node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of TArgumentSyntax), ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfTupleExpression
-
+        Public Sub GetPartsOfTupleExpression(Of TArgumentSyntax As SyntaxNode)(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of TArgumentSyntax), ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfTupleExpression
             Dim tupleExpr = DirectCast(node, TupleExpressionSyntax)
             openParen = tupleExpr.OpenParenToken
             arguments = CType(CType(tupleExpr.Arguments, SeparatedSyntaxList(Of SyntaxNode)), SeparatedSyntaxList(Of TArgumentSyntax))
             closeParen = tupleExpr.CloseParenToken
         End Sub
 
-        Private Function ISyntaxFacts_IsSingleLineCommentTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsSingleLineCommentTrivia
-            Return MyBase.IsSingleLineCommentTrivia(trivia)
-        End Function
-
-        Private Function ISyntaxFacts_IsMultiLineCommentTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsMultiLineCommentTrivia
-            Return MyBase.IsMultiLineCommentTrivia(trivia)
-        End Function
-
-        Private Function ISyntaxFacts_IsSingleLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsSingleLineDocCommentTrivia
-            Return MyBase.IsSingleLineDocCommentTrivia(trivia)
-        End Function
-
-        Private Function ISyntaxFacts_IsMultiLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsMultiLineDocCommentTrivia
-            Return MyBase.IsMultiLineDocCommentTrivia(trivia)
-            Return False
-        End Function
-
-        Private Function ISyntaxFacts_IsShebangDirectiveTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsShebangDirectiveTrivia
-            Return MyBase.IsShebangDirectiveTrivia(trivia)
-        End Function
-
-        Public Overrides Function IsPreprocessorDirective(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsPreprocessorDirective
+        Public Function IsPreprocessorDirective(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsPreprocessorDirective
             Return SyntaxFacts.IsPreprocessorDirective(trivia.Kind())
         End Function
 
@@ -1459,16 +1431,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return trivia.IsPragmaDirective(isDisable, isActive, errorCodes)
         End Function
 
-        Protected Overrides Function ContainsInterleavedDirective(span As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+        Public Function ContainsInterleavedDirective(span As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.ContainsInterleavedDirective
             Return token.ContainsInterleavedDirective(span, cancellationToken)
-        End Function
-
-        Private Function ISyntaxFacts_ContainsInterleavedDirective(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.ContainsInterleavedDirective
-            Return ContainsInterleavedDirective(node, cancellationToken)
-        End Function
-
-        Private Function ISyntaxFacts_ContainsInterleavedDirective1(nodes As ImmutableArray(Of SyntaxNode), cancellationToken As CancellationToken) As Boolean Implements ISyntaxFacts.ContainsInterleavedDirective
-            Return ContainsInterleavedDirective(nodes, cancellationToken)
         End Function
 
         Public Function IsDocumentationCommentExteriorTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsDocumentationCommentExteriorTrivia
@@ -1561,14 +1525,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return Nothing
         End Function
 
-        Public Shadows Function SpansPreprocessorDirective(nodes As IEnumerable(Of SyntaxNode)) As Boolean Implements ISyntaxFacts.SpansPreprocessorDirective
-            Return MyBase.SpansPreprocessorDirective(nodes)
-        End Function
-
-        Public Shadows Function SpansPreprocessorDirective(tokens As IEnumerable(Of SyntaxToken)) As Boolean
-            Return MyBase.SpansPreprocessorDirective(tokens)
-        End Function
-
         Public Function IsPostfixUnaryExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsPostfixUnaryExpression
             ' Does not exist in VB.
             Return False
@@ -1584,7 +1540,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Overrides Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetAttributeLists
+        Public Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetAttributeLists
             Return node.GetAttributeLists()
         End Function
 
@@ -1630,7 +1586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Throw ExceptionUtilities.Unreachable
         End Sub
 
-        Public Overrides Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParameterNameXmlElementSyntax
+        Public Function IsParameterNameXmlElementSyntax(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsParameterNameXmlElementSyntax
             Dim xmlElement = TryCast(node, XmlElementSyntax)
             If xmlElement IsNot Nothing Then
                 Dim name = TryCast(xmlElement.StartTag.Name, XmlNameSyntax)
@@ -1640,7 +1596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
-        Public Overrides Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetContentFromDocumentationCommentTriviaSyntax
+        Public Function GetContentFromDocumentationCommentTriviaSyntax(trivia As SyntaxTrivia) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetContentFromDocumentationCommentTriviaSyntax
             Dim documentationCommentTrivia = TryCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax)
             If documentationCommentTrivia IsNot Nothing Then
                 Return documentationCommentTrivia.Content
