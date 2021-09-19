@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,9 +18,11 @@ using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     [Shared]
+    [Export(typeof(ManagedHotReloadLanguageService))]
+    [Export(typeof(IManagedHotReloadLanguageService))]
     [Export(typeof(IEditAndContinueSolutionProvider))]
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
-    internal sealed class ManagedHotReloadLanguageService : IManagedHotReloadLanguageService
+    internal sealed class ManagedHotReloadLanguageService : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
     {
         private sealed class DebuggerService : IManagedEditAndContinueDebuggerService
         {
@@ -51,11 +55,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         /// </summary>
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ManagedHotReloadLanguageService(EditAndContinueLanguageService encService, Lazy<IManagedHotReloadService> hotReloadService)
+        public ManagedHotReloadLanguageService(
+            Lazy<IHostWorkspaceProvider> workspaceProvider,
+            IDiagnosticAnalyzerService diagnosticService,
+            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
+            Lazy<IManagedHotReloadService> hotReloadService)
         {
-            _encService = encService;
+            _encService = new EditAndContinueLanguageService(workspaceProvider, diagnosticService, diagnosticUpdateSource);
             _debuggerService = new DebuggerService(hotReloadService);
         }
+
+        public EditAndContinueLanguageService Service => _encService;
 
         public ValueTask StartSessionAsync(CancellationToken cancellationToken)
             => _encService.StartSessionAsync(_debuggerService, cancellationToken);
@@ -83,5 +93,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         public ValueTask EndSessionAsync(CancellationToken cancellationToken)
             => _encService.EndSessionAsync(cancellationToken);
+
+        public event Action<Solution> SolutionCommitted
+        {
+            add
+            {
+                _encService.SolutionCommitted += value;
+            }
+            remove
+            {
+                _encService.SolutionCommitted -= value;
+            }
+        }
     }
 }

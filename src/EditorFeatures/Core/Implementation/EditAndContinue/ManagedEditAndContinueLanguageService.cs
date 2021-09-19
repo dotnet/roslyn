@@ -3,25 +3,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     [Shared]
+    [Export(typeof(ManagedEditAndContinueLanguageService))]
     [Export(typeof(IManagedEditAndContinueLanguageService))]
+    [Export(typeof(IEditAndContinueSolutionProvider))]
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
-    internal sealed class ManagedEditAndContinueLanguageService : IManagedEditAndContinueLanguageService
+    internal sealed class ManagedEditAndContinueLanguageService : IManagedEditAndContinueLanguageService, IEditAndContinueSolutionProvider
     {
         private readonly Lazy<IManagedEditAndContinueDebuggerService> _debuggerService;
         private readonly EditAndContinueLanguageService _encService;
@@ -32,22 +31,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         /// </summary>
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ManagedEditAndContinueLanguageService(EditAndContinueLanguageService encService, Lazy<IManagedEditAndContinueDebuggerService> debuggerService)
+        public ManagedEditAndContinueLanguageService(
+            Lazy<IHostWorkspaceProvider> workspaceProvider,
+            IDiagnosticAnalyzerService diagnosticService,
+            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
+            Lazy<IManagedEditAndContinueDebuggerService> debuggerService)
         {
-            _encService = encService;
+            _encService = new EditAndContinueLanguageService(workspaceProvider, diagnosticService, diagnosticUpdateSource);
             _debuggerService = debuggerService;
         }
 
-        private IDebuggingWorkspaceService GetDebuggingService()
-            => _encService.WorkspaceProvider.Value.Workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
+        public EditAndContinueLanguageService Service => _encService;
 
         /// <summary>
         /// Called by the debugger when a debugging session starts and managed debugging is being used.
         /// </summary>
         public Task StartDebuggingAsync(DebugSessionFlags flags, CancellationToken cancellationToken)
         {
-            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
-
             if (flags.HasFlag(DebugSessionFlags.EditAndContinueDisabled))
             {
                 _encService.Disable();
@@ -58,16 +58,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         }
 
         public Task EnterBreakStateAsync(CancellationToken cancellationToken)
-        {
-            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
-            return _encService.EnterBreakStateAsync(cancellationToken).AsTask();
-        }
+            => _encService.EnterBreakStateAsync(cancellationToken).AsTask();
 
         public Task ExitBreakStateAsync(CancellationToken cancellationToken)
-        {
-            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
-            return _encService.ExitBreakStateAsync(cancellationToken).AsTask();
-        }
+            => _encService.ExitBreakStateAsync(cancellationToken).AsTask();
 
         public Task CommitUpdatesAsync(CancellationToken cancellationToken)
             => _encService.CommitUpdatesAsync(cancellationToken).AsTask();
@@ -76,10 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             => _encService.DiscardUpdatesAsync(cancellationToken).AsTask();
 
         public Task StopDebuggingAsync(CancellationToken cancellationToken)
-        {
-            GetDebuggingService().OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Design);
-            return _encService.EndSessionAsync(cancellationToken).AsTask();
-        }
+            => _encService.EndSessionAsync(cancellationToken).AsTask();
 
         public Task<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
             => _encService.HasChangesAsync(sourceFilePath, cancellationToken).AsTask();
@@ -92,5 +83,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         public Task<bool?> IsActiveStatementInExceptionRegionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
             => _encService.IsActiveStatementInExceptionRegionAsync(instruction, cancellationToken);
+
+        public event Action<Solution> SolutionCommitted
+        {
+            add
+            {
+                _encService.SolutionCommitted += value;
+            }
+            remove
+            {
+                _encService.SolutionCommitted -= value;
+            }
+        }
     }
 }

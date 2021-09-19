@@ -17,8 +17,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
-    [Export(typeof(IEditAndContinueSolutionProvider))]
-    [Export(typeof(EditAndContinueLanguageService)), Shared]
     internal sealed class EditAndContinueLanguageService : IEditAndContinueSolutionProvider
     {
         private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
@@ -28,6 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
 
         public readonly Lazy<IHostWorkspaceProvider> WorkspaceProvider;
+
+        public bool IsSessionActive { get; private set; }
 
         private bool _disabled;
         private RemoteDebuggingSessionProxy? _debuggingSession;
@@ -39,8 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         /// Import <see cref="IHostWorkspaceProvider"/> lazily so that the host does not need to implement it 
         /// unless the host implements debugger components.
         /// </summary>
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditAndContinueLanguageService(
             Lazy<IHostWorkspaceProvider> workspaceProvider,
             IDiagnosticAnalyzerService diagnosticService,
@@ -75,6 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         /// </summary>
         public async ValueTask StartSessionAsync(IManagedEditAndContinueDebuggerService debugger, CancellationToken cancellationToken)
         {
+            IsSessionActive = true;
+
             if (_disabled)
             {
                 return;
@@ -191,6 +191,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
         {
+            IsSessionActive = false;
+
             if (_disabled)
             {
                 return;
