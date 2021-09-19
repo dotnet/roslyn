@@ -1267,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var delegateType = (NamedTypeSymbol)type;
             var invokeMethod = delegateType.DelegateInvokeMethod;
 
-            if ((object)invokeMethod == null || invokeMethod.HasUseSiteError)
+            if (invokeMethod is null || invokeMethod.HasUseSiteError)
             {
                 return LambdaConversionResult.BadTargetType;
             }
