@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -29,20 +30,27 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly Glyph Glyph;
 
         /// <summary>
-        /// The display name used in margin.
+        /// The display name used in the context menu.
         /// </summary>
         public readonly string DisplayName;
+
+        /// <summary>
+        /// TaggedTexts used to show the colorized display name in tooltip.
+        /// </summary>
+        public readonly ImmutableArray<TaggedText> DisplayTaggedTexts;
 
         public InheritanceTargetItem(
             InheritanceRelationship relationToMember,
             DefinitionItem.DetachedDefinitionItem definitionItem,
             Glyph glyph,
-            string displayName)
+            string displayName,
+            ImmutableArray<TaggedText> displayTaggedTexts)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
             Glyph = glyph;
             DisplayName = displayName;
+            DisplayTaggedTexts = displayTaggedTexts;
         }
 
         public static async ValueTask<InheritanceTargetItem> ConvertAsync(
@@ -58,7 +66,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 serializableItem.RelationToMember,
                 definitionItem.Detach(),
                 serializableItem.Glyph,
-                serializableItem.DisplayName);
+                serializableItem.DisplayName,
+                serializableItem.DisplayTaggedTexts);
         }
     }
 }

@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly int LineNumber;
 
         /// <summary>
-        /// Display texts for this member.
+        /// Tagged texts used to show colorized display name for this member.
         /// </summary>
-        public readonly ImmutableArray<TaggedText> DisplayTexts;
+        public readonly ImmutableArray<TaggedText> DisplayTaggedTexts;
 
         /// <summary>
         /// Member's glyph.
@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
         public InheritanceMarginItem(
             int lineNumber,
-            ImmutableArray<TaggedText> displayTexts,
+            ImmutableArray<TaggedText> displayTaggedTexts,
             Glyph glyph,
             ImmutableArray<InheritanceTargetItem> targetItems)
         {
             LineNumber = lineNumber;
-            DisplayTexts = displayTexts;
+            DisplayTaggedTexts = displayTaggedTexts;
             Glyph = glyph;
             TargetItems = targetItems;
         }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             var targetItems = await serializableItem.TargetItems.SelectAsArrayAsync(
                     (item, _) => InheritanceTargetItem.ConvertAsync(solution, item, cancellationToken), cancellationToken).ConfigureAwait(false);
-            return new InheritanceMarginItem(serializableItem.LineNumber, serializableItem.DisplayTexts, serializableItem.Glyph, targetItems);
+            return new InheritanceMarginItem(serializableItem.LineNumber, serializableItem.DisplayTaggedTexts, serializableItem.Glyph, targetItems);
         }
     }
 }

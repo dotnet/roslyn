@@ -1472,9 +1472,129 @@
         <target state="translated">值無效</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_is_inherited">
-        <source>'{0}' is inherited</source>
-        <target state="translated">已繼承 '{0}'</target>
+      <trans-unit id="_0_derives_1">
+        <source>'{0}' derives '{1}'</source>
+        <target state="new">'{0}' derives '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_base_types_and_derived_types">
+        <source>'{0}' has base types and derived types</source>
+        <target state="new">'{0}' has base types and derived types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_implemented_interfaces_and_base_types">
+        <source>'{0}' has implemented interfaces and base types</source>
+        <target state="new">'{0}' has implemented interfaces and base types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_implemented_interfaces_and_derived_types">
+        <source>'{0}' has implemented interfaces and derived types</source>
+        <target state="new">'{0}' has implemented interfaces and derived types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_implemented_interfaces_base_types_and_derived_types">
+        <source>'{0}' has implemented interfaces, base types and derived types</source>
+        <target state="new">'{0}' has implemented interfaces, base types and derived types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_implemented_members_and_overridden_members">
+        <source>'{0}' has implemented members and overridden members</source>
+        <target state="new">'{0}' has implemented members and overridden members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_implemented_members_and_overriding_members">
+        <source>'{0}' has implemented members and overriding members</source>
+        <target state="new">'{0}' has implemented members and overriding members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_implemented_members_overridden_members_and_overriding_members">
+        <source>'{0}' has implemented members, overridden members and overriding members</source>
+        <target state="new">'{0}' has implemented members, overridden members and overriding members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_inherited_interfaces_and_implementing_types">
+        <source>'{0}' has inherited interfaces and implementing types</source>
+        <target state="new">'{0}' has inherited interfaces and implementing types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_multiple_base_types">
+        <source>'{0}' has multiple base types</source>
+        <target state="new">'{0}' has multiple base types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_multiple_derived_types">
+        <source>'{0}' has multiple derived types</source>
+        <target state="new">'{0}' has multiple derived types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_multiple_implemented_interfaces">
+        <source>'{0}' has multiple implemented interfaces</source>
+        <target state="new">'{0}' has multiple implemented interfaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_multiple_implementing_types">
+        <source>'{0}' has mutiple implementing types</source>
+        <target state="new">'{0}' has mutiple implementing types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_multiple_inherited_interfaces">
+        <source>'{0}' has multiple inherited interfaces</source>
+        <target state="new">'{0}' has multiple inherited interfaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_has_overridden_members_and_overriding_members">
+        <source>'{0}' has overridden members and overriding members</source>
+        <target state="new">'{0}' has overridden members and overriding members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_implements_1">
+        <source>'{0}' implements '{1}'</source>
+        <target state="new">'{0}' implements '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_implements_members_from_multiple_interfaces">
+        <source>'{0}' implements members from multiple interfaces</source>
+        <target state="new">'{0}' implements members from multiple interfaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_derived_from_1">
+        <source>'{0}' is derived from '{1}'</source>
+        <target state="new">'{0}' is derived from '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_implemented_by_1">
+        <source>'{0}' is implemented by '{1}'</source>
+        <target state="new">'{0}' is implemented by '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_implemented_by_members_from_multiple_types">
+        <source>'{0}' is implemented by members from multiple types</source>
+        <target state="new">'{0}' is implemented by members from multiple types</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_inherited_from_1">
+        <source>'{0}' is inherited from '{1}'</source>
+        <target state="new">'{0}' is inherited from '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_overridden_by_1">
+        <source>'{0}' is overridden by '{1}'</source>
+        <target state="new">'{0}' is overridden by '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_overridden_by_members_from_multiple_classes">
+        <source>'{0}' is overridden by members from multiple classes</source>
+        <target state="new">'{0}' is overridden by members from multiple classes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_overrides_1">
+        <source>'{0}' overrides '{1}'</source>
+        <target state="new">'{0}' overrides '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_overrides_members_from_multiple_classes">
+        <source>'{0}' overrides members from multiple classes</source>
+        <target state="new">'{0}' overrides members from multiple classes</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">

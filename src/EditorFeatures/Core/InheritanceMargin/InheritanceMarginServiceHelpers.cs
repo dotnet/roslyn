@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
                     SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
+        private static readonly SymbolDisplayFormat s_toolDisplayFormat = s_displayFormat
+            .AddKindOptions(SymbolDisplayKindOptions.IncludeTypeKeyword);
+
         public static async ValueTask<ImmutableArray<SerializableInheritanceMarginItem>> GetInheritanceMemberItemAsync(
             Solution solution,
             ProjectId projectId,
@@ -238,7 +241,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             return new SerializableInheritanceMarginItem(
                 lineNumber,
-                FindUsagesHelpers.GetDisplayParts(interfaceSymbol),
+                GetDisplayTaggedTexts(interfaceSymbol),
                 interfaceSymbol.GetGlyph(),
                 baseSymbolItems.Concat(derivedTypeItems));
         }
@@ -261,7 +264,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             return new SerializableInheritanceMarginItem(
                 lineNumber,
-                FindUsagesHelpers.GetDisplayParts(memberSymbol),
+                GetDisplayTaggedTexts(memberSymbol),
                 memberSymbol.GetGlyph(),
                 implementedMemberItems);
         }
@@ -296,7 +299,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             return new SerializableInheritanceMarginItem(
                 lineNumber,
-                FindUsagesHelpers.GetDisplayParts(memberSymbol),
+                GetDisplayTaggedTexts(memberSymbol),
                 memberSymbol.GetGlyph(),
                 baseSymbolItems.Concat(derivedTypeItems));
         }
@@ -339,7 +342,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             return new SerializableInheritanceMarginItem(
                 lineNumber,
-                FindUsagesHelpers.GetDisplayParts(memberSymbol),
+                GetDisplayTaggedTexts(memberSymbol),
                 memberSymbol.GetGlyph(),
                 implementedMemberItems.Concat(overridenMemberItems).Concat(overridingMemberItems));
         }
@@ -359,14 +362,13 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 includeHiddenLocations: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var displayName = targetSymbol.ToDisplayString(s_displayFormat);
-
             return new SerializableInheritanceTargetItem(
                 inheritanceRelationship,
                 // Id is used by FAR service for caching, it is not used in inheritance margin
                 SerializableDefinitionItem.Dehydrate(id: 0, definition),
                 targetSymbol.GetGlyph(),
-                displayName);
+                targetSymbol.ToDisplayString(s_displayFormat),
+                GetDisplayTaggedTexts(targetSymbol));
         }
 
         private static ImmutableArray<ISymbol> GetImplementedSymbolsForTypeMember(
@@ -487,5 +489,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
+
+        /// <summary>
+        /// Generate the tagged text used in the tooltip.
+        /// </summary>
+        private static ImmutableArray<TaggedText> GetDisplayTaggedTexts(ISymbol symbol)
+            => symbol.ToDisplayParts(s_toolDisplayFormat).ToTaggedText();
     }
 }
