@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                     // extension methods should be changed into their static class versions with
                     // full qualifications, then the qualification changed to the new type
                     if (syntaxFacts.IsNameOfAnyMemberAccessExpression(refNode) &&
-                        syntaxFacts.IsAnyMemberAccessExpression(refNode?.Parent) &&
+                        syntaxFacts.IsMemberAccessExpression(refNode?.Parent) &&
                         syntaxFacts.IsInvocationExpression(refNode.Parent?.Parent))
                     {
                         // get the entire expression, guaranteed not null based on earlier checks
