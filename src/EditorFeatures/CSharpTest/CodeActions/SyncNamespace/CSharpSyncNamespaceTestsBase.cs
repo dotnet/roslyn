@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     var (actions, _) = await GetCodeActionsAsync(workspace, testOptions);
                     if (actions.Length > 0)
                     {
-                        var renameFileAction = actions.Any(action => !(action is CodeAction.SolutionChangeAction));
+                        var renameFileAction = actions.Any(action => action is not CodeAction.SolutionChangeAction);
                         Assert.False(renameFileAction, "Move File to match namespace code action was not expected, but shows up.");
                     }
                 }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                 var results = new List<Tuple<Solution, Solution>>();
 
                 var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
-                var moveFileActions = actions.Where(a => !(a is CodeAction.SolutionChangeAction));
+                var moveFileActions = actions.Where(a => a is not CodeAction.SolutionChangeAction);
 
                 foreach (var action in moveFileActions)
                 {

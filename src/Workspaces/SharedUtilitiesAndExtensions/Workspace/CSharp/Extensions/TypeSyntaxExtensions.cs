@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (typeSyntax is PredefinedTypeSyntax ||
-                typeSyntax is ArrayTypeSyntax ||
-                typeSyntax is GenericNameSyntax ||
-                typeSyntax is PointerTypeSyntax ||
-                typeSyntax is NullableTypeSyntax)
+            if (typeSyntax is PredefinedTypeSyntax or
+                ArrayTypeSyntax or
+                GenericNameSyntax or
+                PointerTypeSyntax or
+                NullableTypeSyntax)
             {
                 return true;
             }

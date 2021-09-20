@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // If we have all non-ApplyChangesOperations, set up to run as command on the server
             // instead of using WorkspaceEdits.
-            if (operations.All(operation => !(operation is ApplyChangesOperation)))
+            if (operations.All(operation => operation is not ApplyChangesOperation))
             {
                 codeAction.Command = SetCommand(codeAction.Title, data);
                 return codeAction;

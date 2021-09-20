@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     syntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral(root.SyntaxTree, position, cancellationToken))
                 {
                     expression = token.Parent?.AncestorsAndSelf()
-                        .TakeWhile(n => !syntaxFacts.IsAnonymousFunction(n))
+                        .TakeWhile(n => !syntaxFacts.IsAnonymousFunctionExpression(n))
                         .OfType<TSyntax>()
                         .SkipWhile(syntax => !isArgumentListToken(syntax, token))
                         .FirstOrDefault();

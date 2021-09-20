@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // We need to filter if 
             // 1. a non-empty strict subset of filters are selected
             // 2. a non-empty set of expanders are unselected
-            var nonExpanderFilterStates = data.SelectedFilters.WhereAsArray(f => !(f.Filter is CompletionExpander));
+            var nonExpanderFilterStates = data.SelectedFilters.WhereAsArray(f => f.Filter is not CompletionExpander);
 
             var selectedNonExpanderFilters = nonExpanderFilterStates.SelectAsArray(f => f.IsSelected, f => f.Filter);
             var needToFilter = selectedNonExpanderFilters.Length > 0 && selectedNonExpanderFilters.Length < nonExpanderFilterStates.Length;

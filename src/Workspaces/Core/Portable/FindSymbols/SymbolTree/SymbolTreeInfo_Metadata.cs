@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 return reference.GetMetadataId();
             }
-            catch (Exception e) when (e is BadImageFormatException || e is IOException)
+            catch (Exception e) when (e is BadImageFormatException or IOException)
             {
                 return null;
             }
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 return reference.GetMetadata();
             }
-            catch (Exception e) when (e is BadImageFormatException || e is IOException)
+            catch (Exception e) when (e is BadImageFormatException or IOException)
             {
                 return null;
             }
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static bool IsPublic(TypeAttributes attributes)
             {
                 var masked = attributes & TypeAttributes.VisibilityMask;
-                return masked == TypeAttributes.Public || masked == TypeAttributes.NestedPublic;
+                return masked is TypeAttributes.Public or TypeAttributes.NestedPublic;
             }
 
             private void PopulateInheritanceMap()

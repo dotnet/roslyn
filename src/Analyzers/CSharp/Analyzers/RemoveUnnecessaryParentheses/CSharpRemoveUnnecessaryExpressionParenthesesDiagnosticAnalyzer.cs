@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
 
             var inner = parenthesizedExpression.Expression;
             var innerPrecedence = inner.GetOperatorPrecedence();
-            var innerIsSimple = innerPrecedence == OperatorPrecedence.Primary ||
-                                innerPrecedence == OperatorPrecedence.None;
+            var innerIsSimple = innerPrecedence is OperatorPrecedence.Primary or
+                                OperatorPrecedence.None;
 
             ExpressionSyntax parentExpression;
             switch (parenthesizedExpression.Parent)
