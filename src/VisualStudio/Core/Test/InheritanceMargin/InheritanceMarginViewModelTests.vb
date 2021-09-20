@@ -264,6 +264,48 @@ public interface IBar3 : IBar2 { }
         End Function
 
         <WpfFact>
+        Public Function TestClassDerivesClass() As Task
+            Dim markup = "
+public class Bar1 {}
+public class Bar2 : Bar1 {}
+public class Bar3 : Bar2 {}"
+
+            Dim tooltipTextForBar1 = String.Format(ServicesVSResources._0_is_inherited, "class Bar1")
+            Dim targetForBar1 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden, ServicesVSResources.Derived_types)).
+                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, "Bar2", Nothing)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, "Bar3", Nothing))
+
+            Dim tooltipTextForBar2 = String.Format(ServicesVSResources._0_is_inherited, "class Bar2")
+            Dim targetForBar2 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, "Bar1", Nothing)).
+                Add(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden, ServicesVSResources.Derived_types)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, "Bar3", Nothing))
+
+            Dim tooltipTextForBar3 = String.Format(ServicesVSResources._0_is_inherited, "class Bar3")
+            Dim targetForBar3 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
+                Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, "Bar1", Nothing)).
+                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, "Bar2", Nothing))
+
+            Return VerifyAsync(markup, LanguageNames.CSharp, New Dictionary(Of Integer, InheritanceMarginGlyphViewModel) From {
+                {2, New InheritanceMarginGlyphViewModel(
+                    KnownMonikers.Overridden,
+                    CreateTextBlock(tooltipTextForBar1),
+                    tooltipTextForBar1,
+                    1,
+                    targetForBar1)},
+                {3, New InheritanceMarginGlyphViewModel(
+                    KnownMonikers.OverridingOverridden,
+                    CreateTextBlock(tooltipTextForBar2),
+                    tooltipTextForBar2,
+                    1,
+                    targetForBar2)},
+                {4, New InheritanceMarginGlyphViewModel(
+                    KnownMonikers.Overriding,
+                    CreateTextBlock(tooltipTextForBar3),
+                    tooltipTextForBar3,
+                    1,
+                    targetForBar3)}})
+
+        End Function
+
+        <WpfFact>
         Public Function TestMutipleMemberOnSameline() As Task
             Dim markup = "
 using System;
