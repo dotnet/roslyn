@@ -4,7 +4,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants>CARAVELA_COMPILER_INTERFACE</DefineConstants>
     <IsPackable>true</IsPackable>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
     <AssemblyName>Caravela.Compiler.Interface</AssemblyName>
     <PackageId>Caravela.Compiler.Sdk</PackageId>
   </PropertyGroup>
@@ -16,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersionForCaravela)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
   </ItemGroup>
 
   <!-- based on https://claires.site/2018/07/03/create-and-pack-reference-assemblies/ -->
@@ -26,11 +25,5 @@
       <ReferenceAssembliesOutput Include="@(DocumentationProjectOutputGroupOutput->'%(FullPath)')" TargetFramework="$(TargetFramework)" />
     </ItemGroup>
   </Target>
-
-  <Target Name="GetRefsForPackage" BeforeTargets="_GetPackageFiles" DependsOnTargets="_GetReferenceAssemblies">
-    <ItemGroup>
-      <None Include="@(ReferenceAssembliesOutput)" PackagePath="ref/$(TargetFramework)" Pack="true" />
-    </ItemGroup>
-  </Target>
-
+  
 </Project>
