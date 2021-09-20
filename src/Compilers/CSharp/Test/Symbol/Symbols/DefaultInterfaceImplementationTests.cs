@@ -7003,7 +7003,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: TargetFramework.Net60);
 
             compilation1.VerifyDiagnostics(
                 // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -12210,7 +12210,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: TargetFramework.Net60);
 
             compilation1.VerifyDiagnostics(
                 // (4,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -25379,7 +25379,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: TargetFramework.Net60);
 
             compilation1.VerifyDiagnostics(
                 // (8,46): error CS0073: An add or remove accessor must have a body
@@ -44313,7 +44313,7 @@ public interface I1
         public void RuntimeFeature_02()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { TestMetadata.NetCoreApp.SystemRuntime },
+                                                 references: new[] { NetCoreApp.SystemRuntime },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -55886,7 +55886,7 @@ public class C0 : I1
         {
             var windowsRuntimeRef = CompilationExtensions.CreateWindowsRuntimeMetadataReference();
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 BuildAssemblyExternClause(windowsRuntimeRef) +
 @"
 .class public auto ansi sealed Event
@@ -56136,7 +56136,7 @@ class C1 : I1, Interface
         public void ExplicitlyImplementedViaAccessors_01()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56466,7 +56466,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_02()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56627,7 +56627,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_03()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56788,7 +56788,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_04()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57087,7 +57087,7 @@ class C3 : C2, I1
         public void ExplicitlyImplementedViaAccessors_06()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57331,7 +57331,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_07()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57442,7 +57442,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_08()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57553,7 +57553,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_09()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57668,7 +57668,7 @@ interface I3 : I2
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_01()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57743,7 +57743,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_02()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57822,7 +57822,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_03()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57896,7 +57896,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_04()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {

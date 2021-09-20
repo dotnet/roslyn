@@ -21,16 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             => semanticModel.GetUsingNamespacesInScope(location)
                 .SelectAsArray(namespaceSymbol => namespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat));
 
-        public static async Task<SyntaxContext> CreateContextAsync(Document document, int position, bool usePartialSemantic, CancellationToken cancellationToken)
+        public static async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
             // reach outside of the span and ended up with "node not within syntax tree" error from the speculative model.
-            // Also we use partial model unless full model is explictly request (e.g. in tests) so that we don't have to wait for all semantics to be computed.
-            var semanticModel = usePartialSemantic
-                ? await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false)
-                : await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(semanticModel);
-            return CSharpSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken);
+            return CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
         }
     }
 }

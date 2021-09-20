@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -30,6 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
+        private readonly IGlobalOptionService _globalOptions;
         private readonly ImmutableHashSet<char> _csharpTriggerCharacters;
         private readonly ImmutableHashSet<char> _vbTriggerCharacters;
 
@@ -41,9 +41,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool RequiresLSPSolution => true;
 
         public CompletionHandler(
+            IGlobalOptionService globalOptions,
             IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
             CompletionListCache completionListCache)
         {
+            _globalOptions = globalOptions;
+
             _csharpTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.CSharp).SelectMany(
                 lz => GetTriggerCharacters(lz.Value)).ToImmutableHashSet();
             _vbTriggerCharacters = completionProviders.Where(lz => lz.Metadata.Language == LanguageNames.VisualBasic).SelectMany(
@@ -91,12 +94,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, string[]>(CommitCharacterArrayComparer.Instance);
 
             // Feature flag to enable the return of TextEdits instead of InsertTexts (will increase payload size).
-            // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
-            // We also check against the CompletionOption for test purposes only.
+            // We check against the CompletionOption for test purposes only.
             Contract.ThrowIfNull(context.Solution);
-            var featureFlagService = context.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-            var returnTextEdits = featureFlagService.IsExperimentEnabled(WellKnownExperimentNames.LSPCompletion) ||
-                completionOptions.GetOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, document.Project.Language);
+            var returnTextEdits = _globalOptions.GetOption(LspOptions.LspCompletionFeatureFlag) ||
+                _globalOptions.GetOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, document.Project.Language);
 
             TextSpan? defaultSpan = null;
             LSP.Range? defaultRange = null;

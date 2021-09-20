@@ -6,10 +6,14 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal class SuggestionsOptions
+    internal static class SuggestionsOptions
     {
-        public static Option2<bool?> Asynchronous =
-           new Option2<bool?>(nameof(SuggestionsOptions), nameof(Asynchronous), defaultValue: null,
-               storageLocations: new RoamingProfileStorageLocation("TextEditor.Specific.Suggestions.Asynchronous2"));
+        private const string FeatureName = "SuggestionsOptions";
+
+        public static readonly Option2<bool?> Asynchronous = new(FeatureName, nameof(Asynchronous), defaultValue: null,
+            new RoamingProfileStorageLocation("TextEditor.Specific.Suggestions.Asynchronous2"));
+
+        public static readonly Option2<bool> AsynchronousFeatureFlag = new(FeatureName, nameof(AsynchronousFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.AsynchronousQuickActions"));
     }
 }

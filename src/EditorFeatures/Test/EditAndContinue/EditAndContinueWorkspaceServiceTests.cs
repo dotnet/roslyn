@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 AssertEx.Equal(new[]
                 {
                     "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31",
                     "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
                 }, _telemetryLog);
             }
@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 AssertEx.Equal(new[]
                 {
                     "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=False",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=False|Capabilities=31",
                     "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
                 }, _telemetryLog);
             }
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             AssertEx.Equal(new[]
             {
                 "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True"
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31"
             }, _telemetryLog);
         }
 
@@ -1037,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 AssertEx.Equal(new[]
                 {
                     "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True"
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31"
                 }, _telemetryLog);
             }
             else
@@ -1045,7 +1045,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 AssertEx.Equal(new[]
                 {
                     "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False"
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31"
                 }, _telemetryLog);
             }
         }
@@ -1112,7 +1112,7 @@ class C1
             AssertEx.Equal(new[]
             {
                 "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC2016"
             }, _telemetryLog);
         }
@@ -1212,7 +1212,7 @@ class C1
                 AssertEx.Equal(new[]
                 {
                     "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=20|RudeEditSyntaxKind=8875|RudeEditBlocking=True"
                 }, _telemetryLog);
             }
@@ -1221,7 +1221,7 @@ class C1
                 AssertEx.Equal(new[]
                 {
                     "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=20|RudeEditSyntaxKind=8875|RudeEditBlocking=True"
                 }, _telemetryLog);
             }
@@ -1356,7 +1356,7 @@ class C { int Y => 2; }
                 AssertEx.Equal(new[]
                 {
                     "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=20|RudeEditSyntaxKind=8875|RudeEditBlocking=True"
                 }, _telemetryLog);
             }
@@ -1365,7 +1365,7 @@ class C { int Y => 2; }
                 AssertEx.Equal(new[]
                 {
                     "Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31",
                     "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=20|RudeEditSyntaxKind=8875|RudeEditBlocking=True"
                 }, _telemetryLog);
             }
@@ -1516,7 +1516,7 @@ class C { int Y => 2; }
             AssertEx.Equal(new[]
             {
                 "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=True|HadRudeEdits=False|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True"
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=True|HadRudeEdits=False|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31"
             }, _telemetryLog);
         }
 
@@ -1563,7 +1563,7 @@ class C { int Y => 2; }
             AssertEx.Equal(new[]
             {
                 "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=CS0266"
             }, _telemetryLog);
         }
@@ -1599,6 +1599,97 @@ class C { int Y => 2; }
 
             // All projects must have no errors.
             Assert.True(await debuggingSession.EditSession.HasChangesAsync(solution, s_noActiveSpans, sourceFilePath: null, CancellationToken.None));
+
+            EndDebuggingSession(debuggingSession);
+        }
+
+        [Fact]
+        [WorkItem(1204, "https://github.com/dotnet/roslyn/issues/1204")]
+        [WorkItem(1371694, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1371694")]
+        public async Task Project_Add()
+        {
+            var sourceA1 = "class A { void M() { System.Console.WriteLine(1); } }";
+            var sourceB1 = "class B { int F() => 1; }";
+            var sourceB2 = "class B { int G() => 1; }";
+            var sourceB3 = "class B { int F() => 2; }";
+
+            var dir = Temp.CreateDirectory();
+            var sourceFileA = dir.CreateFile("a.cs").WriteAllText(sourceA1);
+            var sourceFileB = dir.CreateFile("b.cs").WriteAllText(sourceB1);
+
+            using var _ = CreateWorkspace(out var solution, out var service);
+            solution = AddDefaultTestProject(solution, new[] { sourceA1 });
+            var documentA1 = solution.Projects.Single().Documents.Single();
+
+            var mvidA = EmitAndLoadLibraryToDebuggee(sourceA1, sourceFilePath: sourceFileA.Path, assemblyName: "A");
+            var mvidB = EmitAndLoadLibraryToDebuggee(sourceB1, sourceFilePath: sourceFileB.Path, assemblyName: "B");
+
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            // An active statement may be present in the added file since the file exists in the PDB:
+            var activeLineSpanA1 = SourceText.From(sourceA1, Encoding.UTF8).Lines.GetLinePositionSpan(GetSpan(sourceA1, "System.Console.WriteLine(1);"));
+            var activeLineSpanB1 = SourceText.From(sourceB1, Encoding.UTF8).Lines.GetLinePositionSpan(GetSpan(sourceB1, "1"));
+
+            var activeStatements = ImmutableArray.Create(
+                new ManagedActiveStatementDebugInfo(
+                    new ManagedInstructionId(new ManagedMethodId(mvidA, token: 0x06000001, version: 1), ilOffset: 1),
+                    sourceFileA.Path,
+                    activeLineSpanA1.ToSourceSpan(),
+                    ActiveStatementFlags.IsLeafFrame | ActiveStatementFlags.MethodUpToDate),
+                new ManagedActiveStatementDebugInfo(
+                    new ManagedInstructionId(new ManagedMethodId(mvidB, token: 0x06000001, version: 1), ilOffset: 1),
+                    sourceFileB.Path,
+                    activeLineSpanB1.ToSourceSpan(),
+                    ActiveStatementFlags.IsLeafFrame | ActiveStatementFlags.MethodUpToDate));
+
+            EnterBreakState(debuggingSession, activeStatements);
+
+            // add project that matches assembly B and update the document:
+
+            var documentB2 = solution.
+                AddProject("B", "B", LanguageNames.CSharp).
+                AddDocument("b.cs", SourceText.From(sourceB2, Encoding.UTF8, SourceHashAlgorithm.Sha256), filePath: sourceFileB.Path);
+
+            solution = documentB2.Project.Solution;
+
+            // TODO: https://github.com/dotnet/roslyn/issues/1204
+            // Should return span in document B since the document content matches the PDB.
+            var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentA1.Id, documentB2.Id), CancellationToken.None);
+            AssertEx.Equal(new[]
+            {
+                "<empty>",
+                "(0,21)-(0,22)"
+            }, baseSpans.Select(spans => spans.IsEmpty ? "<empty>" : string.Join(",", spans.Select(s => s.LineSpan.ToString()))));
+
+            var trackedActiveSpans = ImmutableArray.Create(
+                new ActiveStatementSpan(1, activeLineSpanB1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame, unmappedDocumentId: null));
+
+            var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(documentB2, (_, _, _) => new(trackedActiveSpans), CancellationToken.None);
+            // TODO: https://github.com/dotnet/roslyn/issues/1204
+            // AssertEx.Equal(trackedActiveSpans, currentSpans);
+            Assert.Empty(currentSpans);
+
+            Assert.Equal(activeLineSpanB1,
+                await debuggingSession.GetCurrentActiveStatementPositionAsync(documentB2.Project.Solution, (_, _, _) => new(trackedActiveSpans), activeStatements[1].ActiveInstruction, CancellationToken.None));
+
+            var diagnostics = await service.GetDocumentDiagnosticsAsync(documentB2, s_noActiveSpans, CancellationToken.None);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/1204
+            //AssertEx.Equal(
+            //    new[] { "ENC0020: " + string.Format(FeaturesResources.Renaming_0_requires_restarting_the_application, FeaturesResources.method) },
+            //    diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
+            Assert.Empty(diagnostics);
+
+            // update document with a valid change:
+            solution = solution.WithDocumentText(documentB2.Id, SourceText.From(sourceB3, Encoding.UTF8, SourceHashAlgorithm.Sha256));
+
+            var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/1204
+            // verify valid update
+            Assert.Equal(ManagedModuleUpdateStatus.None, updates.Status);
+
+            ExitBreakState(debuggingSession);
 
             EndDebuggingSession(debuggingSession);
         }
@@ -1660,6 +1751,44 @@ class C { int Y => 2; }
         }
 
         [Fact]
+        public async Task Capabilities_SynthesizedNewType()
+        {
+            var source1 = "class C { void M() { } }";
+            var source2 = "class C { void M() { var x = new { Goo = 1 }; } }";
+
+            using var _ = CreateWorkspace(out var solution, out var service);
+            solution = AddDefaultTestProject(solution, new[] { source1 });
+            var project = solution.Projects.Single();
+            solution = solution.WithProjectParseOptions(project.Id, new CSharpParseOptions(LanguageVersion.CSharp10));
+            var documentId = solution.Projects.Single().Documents.Single().Id;
+
+            EmitAndLoadLibraryToDebuggee(source1);
+
+            // attached to processes that doesn't allow creating new types
+            _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+
+            // F5
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            // update document:
+            solution = solution.WithDocumentText(documentId, SourceText.From(source2, Encoding.UTF8));
+            var document2 = solution.Projects.Single().Documents.Single();
+
+            // These errors aren't reported as document diagnostics
+            var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
+            AssertEx.Empty(diagnostics);
+
+            // They are reported as emit diagnostics
+            var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+            AssertEx.Equal(new[] { $"{document2.Project.Id} Error ENC1007: {FeaturesResources.ChangesRequiredSynthesizedType}" }, InspectDiagnostics(emitDiagnostics));
+
+            // no emitted delta:
+            Assert.Empty(updates.Updates);
+
+            EndDebuggingSession(debuggingSession);
+        }
+
+        [Fact]
         public async Task ValidSignificantChange_EmitError()
         {
             var sourceV1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
@@ -1707,7 +1836,7 @@ class C { int Y => 2; }
             AssertEx.Equal(new[]
             {
                 "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=CS8055"
             }, _telemetryLog);
         }
@@ -2116,7 +2245,7 @@ class C { int Y => 2; }
                 AssertEx.Equal(new[]
                 {
                     $"Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount={(commitUpdate ? 3 : 2)}",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True",
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31",
                 }, _telemetryLog);
             }
             else
@@ -2124,7 +2253,7 @@ class C { int Y => 2; }
                 AssertEx.Equal(new[]
                 {
                     $"Debugging_EncSession: SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount={(commitUpdate ? 1 : 0)}",
-                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False"
+                    "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31"
                 }, _telemetryLog);
             }
         }
@@ -2798,7 +2927,7 @@ class C { int Y => 1; }
             AssertEx.Equal(new[]
             {
                 "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True",
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
             }, _telemetryLog);
         }
@@ -3792,9 +3921,12 @@ class C
         [Fact]
         public async Task WatchHotReloadServiceTest()
         {
+            // See https://github.com/dotnet/sdk/blob/main/src/BuiltInTools/dotnet-watch/HotReload/CompilationHandler.cs#L125
+
             var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
             var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
             var source3 = "class C { void X() { System.Console.WriteLine(2); } }";
+            var source4 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
 
             var dir = Temp.CreateDirectory();
             var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1);
@@ -3827,6 +3959,7 @@ class C
                 "(A, MatchesBuildOutput)"
             }, matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
 
+            // Valid update:
             solution = solution.WithDocumentText(documentIdA, SourceText.From(source2, Encoding.UTF8));
 
             var result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
@@ -3834,6 +3967,7 @@ class C
             Assert.Equal(1, result.updates.Length);
             AssertEx.Equal(new[] { 0x02000002 }, result.updates[0].UpdatedTypes);
 
+            // Rude edit:
             solution = solution.WithDocumentText(documentIdA, SourceText.From(source3, Encoding.UTF8));
 
             result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
@@ -3841,6 +3975,13 @@ class C
                 new[] { "ENC0020: " + string.Format(FeaturesResources.Renaming_0_requires_restarting_the_application, FeaturesResources.method) },
                 result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
+            Assert.Empty(result.updates);
+
+            // Syntax error (not reported in diagnostics):
+            solution = solution.WithDocumentText(documentIdA, SourceText.From(source4, Encoding.UTF8));
+
+            result = await hotReload.EmitSolutionUpdateAsync(solution, CancellationToken.None);
+            Assert.Empty(result.diagnostics);
             Assert.Empty(result.updates);
 
             hotReload.EndSession();
@@ -3852,6 +3993,7 @@ class C
             var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
             var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
             var source3 = "class C { void X() { System.Console.WriteLine(2); } }";
+            var source4 = "class C { void M() { System.Console.WriteLine(2)/* missing semicolon */ }";
 
             var dir = Temp.CreateDirectory();
             var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1);
@@ -3884,19 +4026,28 @@ class C
                 "(A, MatchesBuildOutput)"
             }, matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
 
+            // Valid change
             solution = solution.WithDocumentText(documentIdA, SourceText.From(source2, Encoding.UTF8));
 
-            var result = await hotReload.EmitSolutionUpdateAsync(solution, true, CancellationToken.None);
+            var result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
             Assert.Empty(result.diagnostics);
             Assert.Equal(1, result.updates.Length);
 
             solution = solution.WithDocumentText(documentIdA, SourceText.From(source3, Encoding.UTF8));
 
-            result = await hotReload.EmitSolutionUpdateAsync(solution, true, CancellationToken.None);
+            // Rude edit
+            result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
             AssertEx.Equal(
                 new[] { "ENC0020: " + string.Format(FeaturesResources.Renaming_0_requires_restarting_the_application, FeaturesResources.method) },
                 result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
+            Assert.Empty(result.updates);
+
+            // Syntax error is reported in the diagnostics:
+            solution = solution.WithDocumentText(documentIdA, SourceText.From(source4, Encoding.UTF8));
+
+            result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
+            Assert.Equal(1, result.diagnostics.Length);
             Assert.Empty(result.updates);
 
             hotReload.EndSession();

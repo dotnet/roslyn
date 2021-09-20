@@ -142,7 +142,7 @@ namespace AnalyzerRunner
                 solution = solution.WithProjectAnalyzerReferences(projectId, ImmutableArray<AnalyzerReference>.Empty);
             }
 
-            var projects = solution.Projects.Where(project => project.Language == LanguageNames.CSharp || project.Language == LanguageNames.VisualBasic).ToList();
+            var projects = solution.Projects.Where(project => project.Language is LanguageNames.CSharp or LanguageNames.VisualBasic).ToList();
 
             var diagnosticStatistics = new Dictionary<string, (string description, DiagnosticSeverity severity, int count)>();
             foreach (var project in projects)
@@ -173,7 +173,7 @@ namespace AnalyzerRunner
 
         private static void ShowSolutionStatistics(Solution solution, CancellationToken cancellationToken)
         {
-            var projects = solution.Projects.Where(project => project.Language == LanguageNames.CSharp || project.Language == LanguageNames.VisualBasic).ToList();
+            var projects = solution.Projects.Where(project => project.Language is LanguageNames.CSharp or LanguageNames.VisualBasic).ToList();
 
             Console.WriteLine("Number of projects:\t\t" + projects.Count);
             Console.WriteLine("Number of documents:\t\t" + projects.Sum(x => x.DocumentIds.Count));

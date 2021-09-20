@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.Kind() != SyntaxKind.CommaToken && token.Kind() != SyntaxKind.OpenBraceToken)
+            if (token.Kind() is not SyntaxKind.CommaToken and not SyntaxKind.OpenBraceToken)
             {
                 return null;
             }
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             .GetPreviousTokenIfTouchingWord(position);
 
             // We should have gotten back a { or ,
-            if (token.Kind() == SyntaxKind.CommaToken || token.Kind() == SyntaxKind.OpenBraceToken)
+            if (token.Kind() is SyntaxKind.CommaToken or SyntaxKind.OpenBraceToken)
             {
                 if (token.Parent != null)
                 {

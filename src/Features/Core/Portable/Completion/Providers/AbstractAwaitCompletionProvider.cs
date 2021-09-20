@@ -41,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var workspace = document.Project.Solution.Workspace;
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(workspace, semanticModel, position, cancellationToken);
+            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
             if (!syntaxContext.IsAwaitKeywordContext())
             {
                 return;

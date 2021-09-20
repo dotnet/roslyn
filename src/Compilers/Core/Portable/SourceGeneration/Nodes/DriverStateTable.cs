@@ -60,42 +60,61 @@ namespace Microsoft.CodeAnalysis
                 // when we don't have a value for this node, we update all the syntax inputs at once
                 if (!_tableBuilder.ContainsKey(syntaxInputNode))
                 {
+                    // CONSIDER: when the compilation is the same as previous, the syntax trees must also be the same.
+                    // if we have a previous state table for a node, we can just short circuit knowing that it is up to date
+                    var compilationIsCached = GetLatestStateTableForNode(SharedInputNodes.Compilation).IsCached;
+
                     // get a builder for each input node
                     var builders = ArrayBuilder<ISyntaxInputBuilder>.GetInstance(_syntaxInputNodes.Length);
                     foreach (var node in _syntaxInputNodes)
                     {
-                        builders.Add(node.GetBuilder(_previousTable));
-                    }
-
-                    // update each tree for the builders, sharing the semantic model
-                    foreach ((var tree, var state) in GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
-                    {
-                        var root = tree.GetRoot(_cancellationToken);
-                        var model = state != EntryState.Removed ? Compilation.GetSemanticModel(tree) : null;
-                        for (int i = 0; i < builders.Count; i++)
+                        if (compilationIsCached && _previousTable._tables.TryGetValue(node, out var previousStateTable))
                         {
-                            try
-                            {
-                                _cancellationToken.ThrowIfCancellationRequested();
-                                builders[i].VisitTree(root, state, model, _cancellationToken);
-                            }
-                            catch (UserFunctionException ufe)
-                            {
-                                // we're evaluating this node ahead of time, so we can't just throw the exception
-                                // instead we'll hold onto it, and throw the exception when a downstream node actually
-                                // attempts to read the value
-                                _syntaxExceptions[builders[i].SyntaxInputNode] = ufe;
-                                builders.RemoveAt(i);
-                                i--;
-                            }
+                            _tableBuilder.Add(node, previousStateTable);
+                        }
+                        else
+                        {
+                            builders.Add(node.GetBuilder(_previousTable));
                         }
                     }
 
-                    // save the updated inputs
-                    foreach (var builder in builders)
+                    if (builders.Count == 0)
                     {
-                        builder.SaveStateAndFree(_tableBuilder);
-                        Debug.Assert(_tableBuilder.ContainsKey(builder.SyntaxInputNode));
+                        // bring over the previously cached syntax tree inputs
+                        _tableBuilder[SharedInputNodes.SyntaxTrees] = _previousTable._tables[SharedInputNodes.SyntaxTrees];
+                    }
+                    else
+                    {
+                        // update each tree for the builders, sharing the semantic model
+                        foreach ((var tree, var state) in GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees))
+                        {
+                            var root = new Lazy<SyntaxNode>(() => tree.GetRoot(_cancellationToken));
+                            var model = state != EntryState.Removed ? Compilation.GetSemanticModel(tree) : null;
+                            for (int i = 0; i < builders.Count; i++)
+                            {
+                                try
+                                {
+                                    _cancellationToken.ThrowIfCancellationRequested();
+                                    builders[i].VisitTree(root, state, model, _cancellationToken);
+                                }
+                                catch (UserFunctionException ufe)
+                                {
+                                    // we're evaluating this node ahead of time, so we can't just throw the exception
+                                    // instead we'll hold onto it, and throw the exception when a downstream node actually
+                                    // attempts to read the value
+                                    _syntaxExceptions[builders[i].SyntaxInputNode] = ufe;
+                                    builders.RemoveAt(i);
+                                    i--;
+                                }
+                            }
+                        }
+
+                        // save the updated inputs
+                        foreach (var builder in builders)
+                        {
+                            builder.SaveStateAndFree(_tableBuilder);
+                            Debug.Assert(_tableBuilder.ContainsKey(builder.SyntaxInputNode));
+                        }
                     }
                     builders.Free();
                 }

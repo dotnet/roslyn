@@ -89,6 +89,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets the token for this symbol as it appears in metadata. Most of the time this is 0,
+        /// as it is when the symbol is not loaded from metadata.
+        /// </summary>
+        public virtual int MetadataToken => 0;
+
+        /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>
         public abstract SymbolKind Kind { get; }

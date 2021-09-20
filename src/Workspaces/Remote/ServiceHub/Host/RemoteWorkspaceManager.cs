@@ -29,40 +29,17 @@ namespace Microsoft.CodeAnalysis.Remote
 
         internal static readonly ImmutableArray<Assembly> RemoteHostAssemblies =
             MefHostServices.DefaultAssemblies
-                .Add(typeof(ServiceBase).Assembly)
+                .Add(typeof(BrokeredServiceBase).Assembly)
                 .Add(typeof(RemoteWorkspacesResources).Assembly);
 
         private readonly Lazy<RemoteWorkspace> _lazyPrimaryWorkspace;
         internal readonly SolutionAssetCache SolutionAssetCache;
-
-        // TODO: remove
-        private IAssetSource? _solutionAssetSource;
 
         public RemoteWorkspaceManager(SolutionAssetCache assetCache)
         {
             _lazyPrimaryWorkspace = new Lazy<RemoteWorkspace>(CreatePrimaryWorkspace);
             SolutionAssetCache = assetCache;
         }
-
-        // TODO: remove
-        [Obsolete("Supports non-brokered services")]
-        internal IAssetSource GetAssetSource()
-        {
-            Contract.ThrowIfNull(_solutionAssetSource, "Storage not initialized");
-            return _solutionAssetSource;
-        }
-
-        // TODO: remove
-        [Obsolete("Supports non-brokered services")]
-        internal void InitializeAssetSource(IAssetSource assetSource)
-        {
-            Contract.ThrowIfFalse(_solutionAssetSource == null);
-            _solutionAssetSource = assetSource;
-        }
-
-        [Obsolete("To be removed: https://github.com/dotnet/roslyn/issues/43477")]
-        public IAssetSource? TryGetAssetSource()
-            => _solutionAssetSource;
 
         private static ComposableCatalog CreateCatalog(ImmutableArray<Assembly> assemblies)
         {
