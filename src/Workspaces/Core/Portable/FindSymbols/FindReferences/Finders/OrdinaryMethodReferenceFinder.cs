@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IMethodSymbol symbol)
         {
             return
-                symbol.MethodKind == MethodKind.Ordinary ||
-                symbol.MethodKind == MethodKind.DelegateInvoke ||
-                symbol.MethodKind == MethodKind.DeclareMethod ||
-                symbol.MethodKind == MethodKind.ReducedExtension ||
-                symbol.MethodKind == MethodKind.LocalFunction;
+                symbol.MethodKind is MethodKind.Ordinary or
+                MethodKind.DelegateInvoke or
+                MethodKind.DeclareMethod or
+                MethodKind.ReducedExtension or
+                MethodKind.LocalFunction;
         }
 
         protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
@@ -93,8 +93,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private static bool IsForEachMethod(IMethodSymbol methodSymbol)
         {
             return
-                methodSymbol.Name == WellKnownMemberNames.GetEnumeratorMethodName ||
-                methodSymbol.Name == WellKnownMemberNames.MoveNextMethodName;
+                methodSymbol.Name is WellKnownMemberNames.GetEnumeratorMethodName or
+                WellKnownMemberNames.MoveNextMethodName;
         }
 
         private static bool IsDeconstructMethod(IMethodSymbol methodSymbol)

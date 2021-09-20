@@ -1169,7 +1169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 return false;
 
             var operatorName = binaryMethod.Name;
-            if (operatorName != WellKnownMemberNames.EqualityOperatorName && operatorName != WellKnownMemberNames.InequalityOperatorName)
+            if (operatorName is not WellKnownMemberNames.EqualityOperatorName and not WellKnownMemberNames.InequalityOperatorName)
                 return false;
 
             // compiler: && ConvertedHasEqual(node.OperatorKind, node.Right, out t))

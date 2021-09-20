@@ -38,7 +38,7 @@ namespace BoundTreeGenerator
             _writer = writer;
             _tree = tree;
             _targetLang = targetLang;
-            _typeMap = tree.Types.Where(t => !(t is EnumType || t is ValueType)).ToDictionary(n => n.Name, n => n.Base);
+            _typeMap = tree.Types.Where(t => t is not (EnumType or ValueType)).ToDictionary(n => n.Name, n => n.Base);
             _typeMap.Add(tree.Root, null);
 
             InitializeValueTypes();
@@ -275,7 +275,7 @@ namespace BoundTreeGenerator
 
         private void WriteTypes()
         {
-            foreach (var node in _tree.Types.Where(n => !(n is PredefinedNode)))
+            foreach (var node in _tree.Types.Where(n => n is not PredefinedNode))
             {
                 Blank();
                 WriteType(node);
@@ -902,12 +902,12 @@ namespace BoundTreeGenerator
 
         private void WriteType(TreeType node)
         {
-            if (!(node is AbstractNode) && !(node is Node))
+            if (node is not AbstractNode and not Node)
                 return;
             WriteClassHeader(node);
 
             bool unsealed = !CanBeSealed(node);
-            bool concrete = !(node is AbstractNode);
+            bool concrete = node is not AbstractNode;
             bool hasChildNodes = AllNodeOrNodeListFields(node).Any();
 
             if (unsealed)

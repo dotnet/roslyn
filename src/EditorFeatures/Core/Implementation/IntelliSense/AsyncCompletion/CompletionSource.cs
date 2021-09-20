@@ -156,8 +156,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionService completionService)
         {
             // The trigger reason guarantees that user wants a completion.
-            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Invoke ||
-                trigger.Reason == AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique)
+            if (trigger.Reason is AsyncCompletionData.CompletionTriggerReason.Invoke or
+                AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique)
             {
                 return true;
             }
