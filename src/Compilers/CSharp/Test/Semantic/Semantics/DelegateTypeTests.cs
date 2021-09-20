@@ -130,7 +130,13 @@ class Program
                 //         MulticastDelegate m = Main;
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.MulticastDelegate").WithLocation(9, 31));
 
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,20): warning CS8974: Converting method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         object o = Main;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "Main").WithArguments("Main", "object").WithLocation(6, 20));
+
+            CompileAndVerify(comp, expectedOutput:
 @"System.Action
 System.Action
 System.Action
@@ -174,7 +180,13 @@ class Program
                 //         var m = (MulticastDelegate)Main;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(MulticastDelegate)Main").WithArguments("method", "System.MulticastDelegate").WithLocation(9, 17));
 
-            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (6,17): warning CS8974: Converting method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         var o = (object)Main;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "(object)Main").WithArguments("Main", "object").WithLocation(6, 17));
+
+            CompileAndVerify(comp, expectedOutput:
 @"System.Action
 System.Action
 System.Action
@@ -1403,6 +1415,68 @@ namespace N
             var symbolInfo = model.GetSymbolInfo(expr);
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(symbolInfo.Symbol);
+        }
+
+        [WorkItem(55923, "https://github.com/dotnet/roslyn/issues/55923")]
+        [Fact]
+        public void ConvertMethodGroupToObject()
+        {
+            var source =
+@"class Program
+{
+    static object GetValue() => 0;
+    static void Main()
+    {
+        object x = GetValue;
+        x = GetValue;
+        x = (object)GetValue;
+#pragma warning disable 8974
+        object y = GetValue;
+        y = GetValue;
+        y = (object)GetValue;
+#pragma warning restore 8974
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (6,20): error CS0428: Cannot convert method group 'GetValue' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         object x = GetValue;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "GetValue").WithArguments("GetValue", "object").WithLocation(6, 20),
+                // (7,13): error CS0428: Cannot convert method group 'GetValue' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         x = GetValue;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "GetValue").WithArguments("GetValue", "object").WithLocation(7, 13),
+                // (8,13): error CS0030: Cannot convert type 'method' to 'object'
+                //         x = (object)GetValue;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)GetValue").WithArguments("method", "object").WithLocation(8, 13),
+                // (10,20): error CS0428: Cannot convert method group 'GetValue' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         object y = GetValue;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "GetValue").WithArguments("GetValue", "object").WithLocation(10, 20),
+                // (11,13): error CS0428: Cannot convert method group 'GetValue' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         y = GetValue;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "GetValue").WithArguments("GetValue", "object").WithLocation(11, 13),
+                // (12,13): error CS0030: Cannot convert type 'method' to 'object'
+                //         y = (object)GetValue;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)GetValue").WithArguments("method", "object").WithLocation(12, 13));
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,20): warning CS8974: Converting method group 'GetValue' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         object x = GetValue;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "GetValue").WithArguments("GetValue", "object").WithLocation(6, 20),
+                // (7,13): warning CS8974: Converting method group 'GetValue' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         x = GetValue;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "GetValue").WithArguments("GetValue", "object").WithLocation(7, 13),
+                // (8,13): warning CS8974: Converting method group 'GetValue' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         x = (object)GetValue;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "(object)GetValue").WithArguments("GetValue", "object").WithLocation(8, 13)
+            };
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
