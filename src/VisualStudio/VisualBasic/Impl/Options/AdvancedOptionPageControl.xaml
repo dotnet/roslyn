@@ -62,8 +62,8 @@
             <GroupBox x:Uid="QuickActionsBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Quick_Actions}">
                 <StackPanel>
-                    <CheckBox x:Name="ComputeQuickActionsAsynchronouslyExperimental"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Compute_Quick_Actions_asynchronously_experimental}" />
+                    <CheckBox x:Name="ComputeQuickActionsAsynchronously"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Compute_Quick_Actions_asynchronously}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="HighlightingGroupBox"
