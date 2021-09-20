@@ -286,9 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// </summary>
         private static bool IsRelevantSymbolKind(ISymbol symbol)
         {
-            return symbol.Kind == SymbolKind.Local ||
-                symbol.Kind == SymbolKind.Parameter ||
-                symbol.Kind == SymbolKind.RangeVariable;
+            return symbol.Kind is SymbolKind.Local or
+                SymbolKind.Parameter or
+                SymbolKind.RangeVariable;
         }
 
         private static CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)

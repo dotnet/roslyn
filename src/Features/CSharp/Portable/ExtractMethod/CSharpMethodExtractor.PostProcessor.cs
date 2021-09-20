@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     foreach (var trivia in token.LeadingTrivia.Concat(token.TrailingTrivia))
                     {
-                        if (trivia.Kind() != SyntaxKind.WhitespaceTrivia &&
-                            trivia.Kind() != SyntaxKind.EndOfLineTrivia)
+                        if (trivia.Kind() is not SyntaxKind.WhitespaceTrivia and
+                            not SyntaxKind.EndOfLineTrivia)
                         {
                             return false;
                         }

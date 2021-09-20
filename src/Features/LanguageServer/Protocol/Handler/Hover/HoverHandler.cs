@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             HostLanguageServices languageServices,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(semanticModel.Language == LanguageNames.CSharp || semanticModel.Language == LanguageNames.VisualBasic);
+            Debug.Assert(semanticModel.Language is LanguageNames.CSharp or LanguageNames.VisualBasic);
 
             // Get the quick info service to compute quick info.
             // This code path is only invoked for C# and VB, so we can directly cast to QuickInfoServiceWithProviders.

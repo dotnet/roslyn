@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.VariableDeclaration:
                 case SyntaxKind.VariableDeclarator:
                     var declarationKind = GetDeclarationKind(declaration);
-                    return declarationKind == DeclarationKind.Field || declarationKind == DeclarationKind.Event;
+                    return declarationKind is DeclarationKind.Field or DeclarationKind.Event;
 
                 case SyntaxKind.ConstructorDeclaration:
                     // Static constructor can't have accessibility

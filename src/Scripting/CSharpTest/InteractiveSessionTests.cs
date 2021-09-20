@@ -2102,7 +2102,7 @@ int F() => i + j + k + l;
 ");
 
             await Assert.ThrowsAsync<OperationCanceledException>(() =>
-                s3.RunAsync(globals, catchException: e => !(e is OperationCanceledException), cancellationToken: cancellationSource.Token));
+                s3.RunAsync(globals, catchException: e => e is not OperationCanceledException, cancellationToken: cancellationSource.Token));
         }
 
         #endregion
