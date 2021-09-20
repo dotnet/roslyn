@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
         #region Diagnostic tests
 
         [Fact]
-        public async Task NoDiagnosticForNoBannedText()
+        public async Task NoDiagnosticForNoBannedTextAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync("class C { }");
             await VerifyVB.VerifyAnalyzerAsync(@"Class C
@@ -70,7 +70,7 @@ End Class");
         }
 
         [Fact]
-        public async Task NoDiagnosticReportedForEmptyBannedText()
+        public async Task NoDiagnosticReportedForEmptyBannedTextAsync()
         {
             var source = @"";
 
@@ -80,7 +80,7 @@ End Class");
         }
 
         [Fact]
-        public async Task DiagnosticReportedForDuplicateBannedApiLines()
+        public async Task DiagnosticReportedForDuplicateBannedApiLinesAsync()
         {
             var source = @"";
             var bannedText = @"
@@ -95,7 +95,7 @@ End Class");
         }
 
         [Fact]
-        public async Task DiagnosticReportedForDuplicateBannedApiLinesWithDifferentIds()
+        public async Task DiagnosticReportedForDuplicateBannedApiLinesWithDifferentIdsAsync()
         {
             // The colon in the documentation ID is optional.
             // Verify that it doesn't cause exceptions when building look ups.
@@ -113,7 +113,7 @@ End Class");
         }
 
         [Fact]
-        public async Task CSharp_BannedApiFile_MessageIncludedInDiagnostic()
+        public async Task CSharp_BannedApiFile_MessageIncludedInDiagnosticAsync()
         {
             var source = @"
 namespace N
@@ -134,7 +134,7 @@ namespace N
         }
 
         [Fact]
-        public async Task CSharp_BannedApiFile_WhiteSpace()
+        public async Task CSharp_BannedApiFile_WhiteSpaceAsync()
         {
             var source = @"
 namespace N
@@ -156,7 +156,7 @@ namespace N
         }
 
         [Fact]
-        public async Task CSharp_BannedApiFile_WhiteSpaceWithMessage()
+        public async Task CSharp_BannedApiFile_WhiteSpaceWithMessageAsync()
         {
             var source = @"
 namespace N
@@ -177,7 +177,7 @@ namespace N
         }
 
         [Fact]
-        public async Task CSharp_BannedApiFile_EmptyMessage()
+        public async Task CSharp_BannedApiFile_EmptyMessageAsync()
         {
             var source = @"
 namespace N
@@ -198,7 +198,7 @@ namespace N
         }
 
         [Fact]
-        public async Task CSharp_BannedType_Constructor()
+        public async Task CSharp_BannedType_ConstructorAsync()
         {
             var source = @"
 namespace N
@@ -220,7 +220,7 @@ T:N.Banned";
         }
 
         [Fact]
-        public async Task CSharp_BannedGenericType_Constructor()
+        public async Task CSharp_BannedGenericType_ConstructorAsync()
         {
             var source = @"
 class C
@@ -238,7 +238,7 @@ T:System.Collections.Generic.List`1";
         }
 
         [Fact]
-        public async Task CSharp_BannedType_AsTypeArgument()
+        public async Task CSharp_BannedType_AsTypeArgumentAsync()
         {
             var source = @"
 struct C {}
@@ -276,7 +276,7 @@ T:C";
         }
 
         [Fact]
-        public async Task CSharp_BannedNestedType_Constructor()
+        public async Task CSharp_BannedNestedType_ConstructorAsync()
         {
             var source = @"
 class C
@@ -295,7 +295,7 @@ T:C.Nested";
         }
 
         [Fact]
-        public async Task CSharp_BannedType_MethodOnNestedType()
+        public async Task CSharp_BannedType_MethodOnNestedTypeAsync()
         {
             var source = @"
 class C
@@ -320,7 +320,7 @@ T:C";
         }
 
         [Fact]
-        public async Task CSharp_BannedInterface_Method()
+        public async Task CSharp_BannedInterface_MethodAsync()
         {
             var source = @"
 interface I
@@ -342,7 +342,7 @@ class C
         }
 
         [Fact]
-        public async Task CSharp_BannedClass_Operators()
+        public async Task CSharp_BannedClass_OperatorsAsync()
         {
             var source = @"
 class C
@@ -375,7 +375,7 @@ class C
         }
 
         [Fact]
-        public async Task CSharp_BannedClass_Property()
+        public async Task CSharp_BannedClass_PropertyAsync()
         {
             var source = @"
 class C
@@ -394,7 +394,7 @@ class C
         }
 
         [Fact]
-        public async Task CSharp_BannedClass_Field()
+        public async Task CSharp_BannedClass_FieldAsync()
         {
             var source = @"
 class C
@@ -413,7 +413,7 @@ class C
         }
 
         [Fact]
-        public async Task CSharp_BannedClass_Event()
+        public async Task CSharp_BannedClass_EventAsync()
         {
             var source = @"
 using System;
@@ -437,7 +437,7 @@ class C
         }
 
         [Fact]
-        public async Task CSharp_BannedClass_MethodGroup()
+        public async Task CSharp_BannedClass_MethodGroupAsync()
         {
             var source = @"
 delegate void D();
@@ -456,7 +456,7 @@ class C
         }
 
         [Fact]
-        public async Task CSharp_BannedClass_DocumentationReference()
+        public async Task CSharp_BannedClass_DocumentationReferenceAsync()
         {
             var source = @"
 class C { }
@@ -471,7 +471,7 @@ class D { }
         }
 
         [Fact]
-        public async Task CSharp_BannedAttribute_UsageOnType()
+        public async Task CSharp_BannedAttribute_UsageOnTypeAsync()
         {
             var source = @"
 using System;
@@ -490,7 +490,7 @@ class D : C { }
         }
 
         [Fact]
-        public async Task CSharp_BannedAttribute_UsageOnMember()
+        public async Task CSharp_BannedAttribute_UsageOnMemberAsync()
         {
             var source = @"
 using System;
@@ -511,7 +511,7 @@ class C
         }
 
         [Fact]
-        public async Task CSharp_BannedAttribute_UsageOnAssembly()
+        public async Task CSharp_BannedAttribute_UsageOnAssemblyAsync()
         {
             var source = @"
 using System;
@@ -529,7 +529,7 @@ class BannedAttribute : Attribute { }
         }
 
         [Fact]
-        public async Task CSharp_BannedAttribute_UsageOnModule()
+        public async Task CSharp_BannedAttribute_UsageOnModuleAsync()
         {
             var source = @"
 using System;
@@ -547,7 +547,7 @@ class BannedAttribute : Attribute { }
         }
 
         [Fact]
-        public async Task CSharp_BannedConstructor()
+        public async Task CSharp_BannedConstructorAsync()
         {
             var source = @"
 namespace N
@@ -582,7 +582,7 @@ namespace N
         }
 
         [Fact]
-        public async Task CSharp_BannedMethod()
+        public async Task CSharp_BannedMethodAsync()
         {
             var source = @"
 namespace N
@@ -655,7 +655,7 @@ namespace N
         }
 
         [Fact]
-        public async Task CSharp_BannedProperty()
+        public async Task CSharp_BannedPropertyAsync()
         {
             var source = @"
 namespace N
@@ -681,7 +681,7 @@ namespace N
         }
 
         [Fact]
-        public async Task CSharp_BannedField()
+        public async Task CSharp_BannedFieldAsync()
         {
             var source = @"
 namespace N
@@ -707,7 +707,7 @@ namespace N
         }
 
         [Fact]
-        public async Task CSharp_BannedEvent()
+        public async Task CSharp_BannedEventAsync()
         {
             var source = @"
 namespace N
@@ -736,7 +736,7 @@ namespace N
         }
 
         [Fact]
-        public async Task CSharp_BannedMethodGroup()
+        public async Task CSharp_BannedMethodGroupAsync()
         {
             var source = @"
 namespace N
@@ -794,7 +794,7 @@ class C
         }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
-        public async Task CSharp_BannedAbstractVirtualMemberAlsoBansOverrides_RootLevelIsBanned()
+        public async Task CSharp_BannedAbstractVirtualMemberAlsoBansOverrides_RootLevelIsBannedAsync()
         {
             var source = @"
 using System;
@@ -876,7 +876,7 @@ E:N.C1.Event2";
         }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
-        public async Task CSharp_BannedAbstractVirtualMemberBansCorrectOverrides_MiddleLevelIsBanned()
+        public async Task CSharp_BannedAbstractVirtualMemberBansCorrectOverrides_MiddleLevelIsBannedAsync()
         {
             var source = @"
 using System;
@@ -958,7 +958,7 @@ E:N.C2.Event2";
         }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
-        public async Task CSharp_BannedAbstractVirtualMemberBansCorrectOverrides_LeafLevelIsBanned()
+        public async Task CSharp_BannedAbstractVirtualMemberBansCorrectOverrides_LeafLevelIsBannedAsync()
         {
             var source = @"
 using System;
@@ -1040,7 +1040,7 @@ E:N.C3.Event2";
         }
 
         [Fact]
-        public async Task CSharp_InvalidOverrideDefinition()
+        public async Task CSharp_InvalidOverrideDefinitionAsync()
         {
             var source = @"
 using System;
@@ -1069,7 +1069,7 @@ namespace N
         }
 
         [Fact]
-        public async Task VisualBasic_BannedType_Constructor()
+        public async Task VisualBasic_BannedType_ConstructorAsync()
         {
             var source = @"
 Namespace N
@@ -1087,7 +1087,7 @@ End Namespace";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedGenericType_Constructor()
+        public async Task VisualBasic_BannedGenericType_ConstructorAsync()
         {
             var source = @"
 Class C
@@ -1103,7 +1103,7 @@ T:System.Collections.Generic.List`1";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedNestedType_Constructor()
+        public async Task VisualBasic_BannedNestedType_ConstructorAsync()
         {
             var source = @"
 Class C
@@ -1120,7 +1120,7 @@ T:C.Nested";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedType_MethodOnNestedType()
+        public async Task VisualBasic_BannedType_MethodOnNestedTypeAsync()
         {
             var source = @"
 Class C
@@ -1142,7 +1142,7 @@ T:C";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedInterface_Method()
+        public async Task VisualBasic_BannedInterface_MethodAsync()
         {
             var source = @"
 Interface I
@@ -1161,7 +1161,7 @@ End Class";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedClass_Property()
+        public async Task VisualBasic_BannedClass_PropertyAsync()
         {
             var source = @"
 Class C
@@ -1178,7 +1178,7 @@ End Class";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedClass_Field()
+        public async Task VisualBasic_BannedClass_FieldAsync()
         {
             var source = @"
 Class C
@@ -1195,7 +1195,7 @@ End Class";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedClass_Event()
+        public async Task VisualBasic_BannedClass_EventAsync()
         {
             var source = @"
 Imports System
@@ -1217,7 +1217,7 @@ End Class";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedClass_MethodGroup()
+        public async Task VisualBasic_BannedClass_MethodGroupAsync()
         {
             var source = @"
 Delegate Sub D()
@@ -1233,7 +1233,7 @@ End Class";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedAttribute_UsageOnType()
+        public async Task VisualBasic_BannedAttribute_UsageOnTypeAsync()
         {
             var source = @"
 Imports System
@@ -1257,7 +1257,7 @@ End Class
         }
 
         [Fact]
-        public async Task VisualBasic_BannedAttribute_UsageOnMember()
+        public async Task VisualBasic_BannedAttribute_UsageOnMemberAsync()
         {
             var source = @"
 Imports System
@@ -1279,7 +1279,7 @@ End Class
         }
 
         [Fact]
-        public async Task VisualBasic_BannedAttribute_UsageOnAssembly()
+        public async Task VisualBasic_BannedAttribute_UsageOnAssemblyAsync()
         {
             var source = @"
 Imports System
@@ -1299,7 +1299,7 @@ End Class
         }
 
         [Fact]
-        public async Task VisualBasic_BannedAttribute_UsageOnModule()
+        public async Task VisualBasic_BannedAttribute_UsageOnModuleAsync()
         {
             var source = @"
 Imports System
@@ -1319,7 +1319,7 @@ End Class
         }
 
         [Fact]
-        public async Task VisualBasic_BannedConstructor()
+        public async Task VisualBasic_BannedConstructorAsync()
         {
             var source = @"
 Namespace N
@@ -1350,7 +1350,7 @@ End Namespace";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedMethod()
+        public async Task VisualBasic_BannedMethodAsync()
         {
             var source = @"
 Namespace N
@@ -1379,7 +1379,7 @@ End Namespace";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedProperty()
+        public async Task VisualBasic_BannedPropertyAsync()
         {
             var source = @"
 Namespace N
@@ -1401,7 +1401,7 @@ End Namespace";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedField()
+        public async Task VisualBasic_BannedFieldAsync()
         {
             var source = @"
 Namespace N
@@ -1423,7 +1423,7 @@ End Namespace";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedEvent()
+        public async Task VisualBasic_BannedEventAsync()
         {
             var source = @"
 Namespace N
@@ -1448,7 +1448,7 @@ End Namespace";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedMethodGroup()
+        public async Task VisualBasic_BannedMethodGroupAsync()
         {
             var source = @"
 Namespace N
@@ -1469,7 +1469,7 @@ End Namespace";
         }
 
         [Fact]
-        public async Task VisualBasic_BannedClass_DocumentationReference()
+        public async Task VisualBasic_BannedClass_DocumentationReferenceAsync()
         {
             var source = @"
 Class C : End Class
@@ -1484,7 +1484,7 @@ Class D : End Class
         }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
-        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_RootLevelIsBanned()
+        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_RootLevelIsBannedAsync()
         {
             var source = @"
 Imports System
@@ -1568,7 +1568,7 @@ E:N.C1.Event2";
         }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
-        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_MiddleLevelIsBanned()
+        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_MiddleLevelIsBannedAsync()
         {
             var source = @"
 Imports System
@@ -1652,7 +1652,7 @@ E:N.C2.Event2";
         }
 
         [Fact, WorkItem(3295, "https://github.com/dotnet/roslyn-analyzers/issues/3295")]
-        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_LeafLevelIsBanned()
+        public async Task VisualBasic_BannedAbstractVirtualMemberAlsoBansOverrides_LeafLevelIsBannedAsync()
         {
             var source = @"
 Imports System

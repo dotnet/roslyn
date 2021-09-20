@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
 
         [Fact]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
-        public async Task AnalyzerFileMissing_Shipped()
+        public async Task AnalyzerFileMissing_ShippedAsync()
         {
             var source = @"
 public class C
@@ -205,7 +205,7 @@ public class C
 
         [Fact]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
-        public async Task AnalyzerFileMissing_Unshipped()
+        public async Task AnalyzerFileMissing_UnshippedAsync()
         {
             var source = @"
 public class C
@@ -227,7 +227,7 @@ public class C
         [InlineData("dotnet_public_api_analyzer.require_api_files = false")]
         [InlineData("dotnet_public_api_analyzer.require_api_files = true")]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
-        public async Task AnalyzerFileMissing_Both(string editorconfigText)
+        public async Task AnalyzerFileMissing_BothAsync(string editorconfigText)
         {
             var source = @"
 public class C
@@ -249,7 +249,7 @@ public class C
         }
 
         [Fact]
-        public async Task EmptyPublicAPIFiles()
+        public async Task EmptyPublicAPIFilesAsync()
         {
             var source = @"";
 
@@ -260,7 +260,7 @@ public class C
         }
 
         [Fact]
-        public async Task SimpleMissingType()
+        public async Task SimpleMissingTypeAsync()
         {
             var source = @"
 public class C
@@ -276,7 +276,7 @@ public class C
         }
 
         [Fact, WorkItem(2690, "https://github.com/dotnet/wpf/issues/2690")]
-        public async Task XamlGeneratedNamespaceWorkaround()
+        public async Task XamlGeneratedNamespaceWorkaroundAsync()
         {
             var source = @"
 namespace XamlGeneratedNamespace {
@@ -293,7 +293,7 @@ namespace XamlGeneratedNamespace {
         }
 
         [Fact]
-        public async Task SimpleMissingMember_CSharp()
+        public async Task SimpleMissingMember_CSharpAsync()
         {
             var source = @"
 public class C
@@ -326,7 +326,7 @@ public class C
         }
 
         [Fact, WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
-        public async Task SimpleMissingMember_Basic()
+        public async Task SimpleMissingMember_BasicAsync()
         {
             var source = @"
 Imports System
@@ -377,7 +377,7 @@ End Class
         }
 
         [Fact(), WorkItem(821, "https://github.com/dotnet/roslyn-analyzers/issues/821")]
-        public async Task SimpleMissingMember_Basic1()
+        public async Task SimpleMissingMember_Basic1Async()
         {
             var source = @"
 Imports System
@@ -424,7 +424,7 @@ C.WriteOnlyProperty0(Value As Integer) -> Void
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public async Task ShippedTextWithImplicitConstructor()
+        public async Task ShippedTextWithImplicitConstructorAsync()
         {
             var source = @"
 public class C
@@ -444,7 +444,7 @@ C -> void()";
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public async Task ShippedTextForImplicitConstructor()
+        public async Task ShippedTextForImplicitConstructorAsync()
         {
             var source = @"
 public class C
@@ -461,7 +461,7 @@ C.C() -> void";
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public async Task UnshippedTextForImplicitConstructor()
+        public async Task UnshippedTextForImplicitConstructorAsync()
         {
             var source = @"
 public class C
@@ -478,7 +478,7 @@ C.C() -> void";
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public async Task ShippedTextWithMissingImplicitConstructor()
+        public async Task ShippedTextWithMissingImplicitConstructorAsync()
         {
             var source = @"
 public class C
@@ -497,7 +497,7 @@ C";
         }
 
         [Fact, WorkItem(806, "https://github.com/dotnet/roslyn-analyzers/issues/806")]
-        public async Task ShippedTextWithImplicitConstructorAndBreakingCodeChange()
+        public async Task ShippedTextWithImplicitConstructorAndBreakingCodeChangeAsync()
         {
             var source = @"
 public class C
@@ -517,7 +517,7 @@ C.C() -> void";
         }
 
         [Fact]
-        public async Task SimpleMember()
+        public async Task SimpleMemberAsync()
         {
             var source = @"
 public class C
@@ -542,7 +542,7 @@ C.Method() -> void
         }
 
         [Fact]
-        public async Task SplitBetweenShippedUnshipped()
+        public async Task SplitBetweenShippedUnshippedAsync()
         {
             var source = @"
 public class C
@@ -568,7 +568,7 @@ C.Method() -> void
         }
 
         [Fact]
-        public async Task EnumSplitBetweenFiles()
+        public async Task EnumSplitBetweenFilesAsync()
         {
             var source = @"
 public enum E 
@@ -593,7 +593,7 @@ E.V3 = 3 -> E
         }
 
         [Fact]
-        public async Task SimpleRemovedMember()
+        public async Task SimpleRemovedMemberAsync()
         {
             var source = @"
 public class C
@@ -622,7 +622,7 @@ C.Method() -> void
         [Theory]
         [CombinatorialData]
         [WorkItem(3329, "https://github.com/dotnet/roslyn-analyzers/issues/3329")]
-        public async Task RemovedPrefixForNonRemovedApi(bool includeInShipped)
+        public async Task RemovedPrefixForNonRemovedApiAsync(bool includeInShipped)
         {
             var source = @"
 public class C
@@ -669,7 +669,7 @@ C.Property.set -> void
         }
 
         [Fact]
-        public async Task ApiFileShippedWithRemoved()
+        public async Task ApiFileShippedWithRemovedAsync()
         {
             var source = @"
 public class C
@@ -696,7 +696,7 @@ C.Property.set -> void
 
         [Fact]
         [WorkItem(312, "https://github.com/dotnet/roslyn-analyzers/issues/312")]
-        public async Task DuplicateSymbolInSameAPIFile()
+        public async Task DuplicateSymbolInSameAPIFileAsync()
         {
             var source = @"
 public class C
@@ -729,7 +729,7 @@ C.Property.get -> int
 
         [Fact]
         [WorkItem(312, "https://github.com/dotnet/roslyn-analyzers/issues/312")]
-        public async Task DuplicateSymbolInDifferentAPIFiles()
+        public async Task DuplicateSymbolInDifferentAPIFilesAsync()
         {
             var source = @"
 public class C
@@ -763,7 +763,7 @@ C.Property.get -> int";
 
         [Fact]
         [WorkItem(4584, "https://github.com/dotnet/roslyn-analyzers/issues/4584")]
-        public async Task DuplicateObliviousSymbolsInSameApiFile()
+        public async Task DuplicateObliviousSymbolsInSameApiFileAsync()
         {
             var source = @"
 public class C
@@ -789,7 +789,7 @@ C.Property.set -> void
 
         [Fact]
         [WorkItem(4584, "https://github.com/dotnet/roslyn-analyzers/issues/4584")]
-        public async Task DuplicateSymbolUsingObliviousInSameApiFiles()
+        public async Task DuplicateSymbolUsingObliviousInSameApiFilesAsync()
         {
             var source = @"
 public class C
@@ -815,7 +815,7 @@ C.Property.set -> void
 
         [Fact]
         [WorkItem(4584, "https://github.com/dotnet/roslyn-analyzers/issues/4584")]
-        public async Task DuplicateSymbolUsingObliviousInDifferentApiFiles()
+        public async Task DuplicateSymbolUsingObliviousInDifferentApiFilesAsync()
         {
             var source = @"
 public class C
@@ -841,7 +841,7 @@ C.Property.set -> void
 
         [Fact]
         [WorkItem(4584, "https://github.com/dotnet/roslyn-analyzers/issues/4584")]
-        public async Task MultipleDuplicateSymbolsUsingObliviousInDifferentApiFiles()
+        public async Task MultipleDuplicateSymbolsUsingObliviousInDifferentApiFilesAsync()
         {
             var source = @"
 public class C
@@ -868,7 +868,7 @@ C.Property.set -> void
         }
 
         [Fact, WorkItem(773, "https://github.com/dotnet/roslyn-analyzers/issues/773")]
-        public async Task ApiFileShippedWithNonExistentMembers()
+        public async Task ApiFileShippedWithNonExistentMembersAsync()
         {
             // Type C has no public member "Method", but the shipped API has an entry for it.
             var source = @"
@@ -896,7 +896,7 @@ C.Method() -> void
         }
 
         [Fact, WorkItem(773, "https://github.com/dotnet/roslyn-analyzers/issues/773")]
-        public async Task ApiFileShippedWithNonExistentMembers_TestFullPath()
+        public async Task ApiFileShippedWithNonExistentMembers_TestFullPathAsync()
         {
             // Type C has no public member "Method", but the shipped API has an entry for it.
             var source = @"
@@ -928,7 +928,7 @@ C.Method() -> void
         }
 
         [Fact]
-        public async Task TypeForwardsAreProcessed1()
+        public async Task TypeForwardsAreProcessed1Async()
         {
             var source = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparison))]
@@ -954,7 +954,7 @@ System.StringComparison.OrdinalIgnoreCase = 5 -> System.StringComparison (forwar
         }
 
         [Fact]
-        public async Task TypeForwardsAreProcessed2()
+        public async Task TypeForwardsAreProcessed2Async()
         {
             var source = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.StringComparer))]
@@ -1002,7 +1002,7 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
         }
 
         [Fact, WorkItem(1192, "https://github.com/dotnet/roslyn-analyzers/issues/1192")]
-        public async Task OpenGenericTypeForwardsAreProcessed()
+        public async Task OpenGenericTypeForwardsAreProcessedAsync()
         {
             var source = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<>))]
@@ -1023,7 +1023,7 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
         }
 
         [Fact, WorkItem(1192, "https://github.com/dotnet/roslyn-analyzers/issues/1192")]
-        public async Task GenericTypeForwardsAreProcessed()
+        public async Task GenericTypeForwardsAreProcessedAsync()
         {
             var source = @"
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<string>))]
@@ -1044,7 +1044,7 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
         }
 
         [Fact, WorkItem(851, "https://github.com/dotnet/roslyn-analyzers/issues/851")]
-        public async Task TestAvoidMultipleOverloadsWithOptionalParameters()
+        public async Task TestAvoidMultipleOverloadsWithOptionalParametersAsync()
         {
             var source = @"
 public class C
@@ -1117,7 +1117,7 @@ C.Method6<T>(int p1 = 0) -> T
         }
 
         [Fact, WorkItem(851, "https://github.com/dotnet/roslyn-analyzers/issues/851")]
-        public async Task TestOverloadWithOptionalParametersShouldHaveMostParameters()
+        public async Task TestOverloadWithOptionalParametersShouldHaveMostParametersAsync()
         {
             var source = @"
 public class C
@@ -1191,7 +1191,7 @@ C.Method6(string p1) -> void
         }
 
         [Fact, WorkItem(4766, "https://github.com/dotnet/roslyn-analyzers/issues/4766")]
-        public async Task TestObsoleteOverloadWithOptionalParameters_NoDiagnostic()
+        public async Task TestObsoleteOverloadWithOptionalParameters_NoDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -1218,7 +1218,7 @@ C.M(int p1 = 0) -> void
         }
 
         [Fact, WorkItem(4766, "https://github.com/dotnet/roslyn-analyzers/issues/4766")]
-        public async Task TestMultipleOverloadsWithOptionalParameter_OneIsObsolete()
+        public async Task TestMultipleOverloadsWithOptionalParameter_OneIsObsoleteAsync()
         {
             var source = @"
 using System;
@@ -1241,7 +1241,7 @@ C.M(char p1 = '0') -> void";
         }
 
         [Fact]
-        public async Task ObliviousMember_Simple()
+        public async Task ObliviousMember_SimpleAsync()
         {
             var source = @"
 public class C
@@ -1279,7 +1279,7 @@ C.Property.set -> void";
         }
 
         [Fact]
-        public async Task ObliviousMember_AlreadyMarkedAsOblivious()
+        public async Task ObliviousMember_AlreadyMarkedAsObliviousAsync()
         {
             var source = @"
 public class C
@@ -1340,7 +1340,7 @@ D<T>.E<T>.E() -> void";
         }
 
         [Fact]
-        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithClassConstraint()
+        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithClassConstraintAsync()
         {
             var source = @"
 public class C
@@ -1380,7 +1380,7 @@ E.F<T>.F() -> void
         }
 
         [Fact]
-        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithNotNullConstraint()
+        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithNotNullConstraintAsync()
         {
             var source = @"
 public class C
@@ -1406,7 +1406,7 @@ C.M2<T>(T t) -> void
         }
 
         [Fact]
-        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithMiscConstraints()
+        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithMiscConstraintsAsync()
         {
             var source = @"
 public interface I { }
@@ -1446,7 +1446,7 @@ C.M3b<T, U>() -> void
         }
 
         [Fact]
-        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithMiscConstraints2()
+        public async Task ObliviousMember_AlreadyMarkedAsOblivious_TypeParametersWithMiscConstraints2Async()
         {
             var source = @"
 public interface I<T> { }
@@ -1477,7 +1477,7 @@ C.C() -> void
         }
 
         [Fact]
-        public async Task ObliviousMember_NestedEnumIsNotOblivious()
+        public async Task ObliviousMember_NestedEnumIsNotObliviousAsync()
         {
             var source = @"
 public class C
@@ -1503,7 +1503,7 @@ C.E.Some = 1 -> C.E";
         }
 
         [Fact]
-        public async Task NestedEnumIsNotOblivious()
+        public async Task NestedEnumIsNotObliviousAsync()
         {
             var source = @"
 #nullable enable
@@ -1530,7 +1530,7 @@ C.E.Some = 1 -> C.E";
         }
 
         [Fact]
-        public async Task ObliviousTypeArgumentInContainingType()
+        public async Task ObliviousTypeArgumentInContainingTypeAsync()
         {
             var source = @"
 #nullable enable
@@ -1561,7 +1561,7 @@ C<T>.Nested.Nested() -> void
         }
 
         [Fact]
-        public async Task ImplicitContainingType_TClass()
+        public async Task ImplicitContainingType_TClassAsync()
         {
             var source = @"
 #nullable enable
@@ -1599,7 +1599,7 @@ C<T>.field2 -> C<T!>.Nested";
         }
 
         [Fact]
-        public async Task ImplicitContainingType_TOpen()
+        public async Task ImplicitContainingType_TOpenAsync()
         {
             var source = @"
 #nullable enable
@@ -1630,7 +1630,7 @@ C<T>.field2 -> C<T>.Nested";
         #region Fix tests
 
         [Fact]
-        public async Task ShippedTextWithMissingImplicitStructConstructor()
+        public async Task ShippedTextWithMissingImplicitStructConstructorAsync()
         {
             var source = @"
 public struct {|RS0016:C|}
@@ -1647,7 +1647,7 @@ C";
         }
 
         [Fact]
-        public async Task ShippedTextWithMissingImplicitStructConstructorWithExplicitPrivateCtorWithParameters()
+        public async Task ShippedTextWithMissingImplicitStructConstructorWithExplicitPrivateCtorWithParametersAsync()
         {
             var source = @"
 public struct {|RS0016:C|}
@@ -1687,7 +1687,7 @@ C.C(int value) -> void";
 
         [Fact]
         [WorkItem(2622, "https://github.com/dotnet/roslyn-analyzers/issues/2622")]
-        public async Task AnalyzerFileMissing_Both_Fix()
+        public async Task AnalyzerFileMissing_Both_FixAsync()
         {
             var source = @"
 public class {|RS0016:C|}
@@ -1704,7 +1704,7 @@ public class {|RS0016:C|}
         }
 
         [Fact]
-        public async Task TestSimpleMissingMember_Fix()
+        public async Task TestSimpleMissingMember_FixAsync()
         {
             var source = @"
 public class C
@@ -1742,7 +1742,7 @@ C.Property.set -> void";
         [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
         [InlineData("\r\n")] // Windows line ending.
         [InlineData("\n")] // Linux line ending.
-        public async Task TestUseExistingLineEndings(string lineEnding)
+        public async Task TestUseExistingLineEndingsAsync(string lineEnding)
         {
             var source = @"
 public class C
@@ -1762,7 +1762,7 @@ public class C
 
         [Fact]
         [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
-        public async Task TestUseOSLineEnding()
+        public async Task TestUseOSLineEndingAsync()
         {
             var source = @"
 public class C
@@ -1778,7 +1778,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestSimpleMissingMember_Fix_WithoutNullability()
+        public async Task TestSimpleMissingMember_Fix_WithoutNullabilityAsync()
         {
             var source = @"
 #nullable enable
@@ -1799,7 +1799,7 @@ C.NewField -> string";
         }
 
         [Fact]
-        public async Task TestSimpleMissingMember_Fix_WithNullability()
+        public async Task TestSimpleMissingMember_Fix_WithNullabilityAsync()
         {
             var source = @"
 #nullable enable
@@ -1820,7 +1820,7 @@ C.NewField -> string?";
         }
 
         [Fact]
-        public async Task TestSimpleMissingMember_Fix_WithNullability2()
+        public async Task TestSimpleMissingMember_Fix_WithNullability2Async()
         {
             var source = @"
 #nullable enable
@@ -1843,7 +1843,7 @@ C.OldField -> string?";
         }
 
         [Fact]
-        public async Task TestSimpleMissingMember_Fix_WithNullability3()
+        public async Task TestSimpleMissingMember_Fix_WithNullability3Async()
         {
             var source = @"
 #nullable enable
@@ -1865,7 +1865,7 @@ C.OldField -> string?";
         }
 
         [Fact]
-        public async Task TestAddAndRemoveMembers_CSharp_Fix_WithRemovedNullability()
+        public async Task TestAddAndRemoveMembers_CSharp_Fix_WithRemovedNullabilityAsync()
         {
             var source = @"
 public class C
@@ -1884,7 +1884,7 @@ C.C() -> void
         }
 
         [Fact, WorkItem(3793, "https://github.com/dotnet/roslyn-analyzers/issues/3793")]
-        public async Task ObliviousApiDiagnosticInGeneratedFileStillWarn()
+        public async Task ObliviousApiDiagnosticInGeneratedFileStillWarnAsync()
         {
             // We complain about oblivious APIs in generated files too (no special treatment)
             var source = @"
@@ -1907,7 +1907,7 @@ C.ObliviousField -> string";
         }
 
         [Fact, WorkItem(3672, "https://github.com/dotnet/roslyn-analyzers/issues/3672")]
-        public async Task TypeArgumentRefersToTypeParameter_OnMethod()
+        public async Task TypeArgumentRefersToTypeParameter_OnMethodAsync()
         {
             var source = @"
 #nullable enable
@@ -1930,7 +1930,7 @@ public static class C
         }
 
         [Fact, WorkItem(3672, "https://github.com/dotnet/roslyn-analyzers/issues/3672")]
-        public async Task TypeArgumentRefersToTypeParameter_OnType()
+        public async Task TypeArgumentRefersToTypeParameter_OnTypeAsync()
         {
             var source = @"
 #nullable enable
@@ -1948,7 +1948,7 @@ public static class C<T>
         }
 
         [Fact, WorkItem(3672, "https://github.com/dotnet/roslyn-analyzers/issues/3672")]
-        public async Task TypeArgumentRefersToTypeParameter_OnType_SecondTypeArgument()
+        public async Task TypeArgumentRefersToTypeParameter_OnType_SecondTypeArgumentAsync()
         {
             var source = @"
 #nullable enable
@@ -1973,7 +1973,7 @@ public static class C<T1, T2>
         }
 
         [Fact, WorkItem(3672, "https://github.com/dotnet/roslyn-analyzers/issues/3672")]
-        public async Task TypeArgumentRefersToTypeParameter_OnType_ObliviousReference()
+        public async Task TypeArgumentRefersToTypeParameter_OnType_ObliviousReferenceAsync()
         {
             var source = @"
 #nullable enable
@@ -1997,7 +1997,7 @@ public static class C<T>
         }
 
         [Fact]
-        public async Task ApiFileShippedWithDuplicateNullableEnable()
+        public async Task ApiFileShippedWithDuplicateNullableEnableAsync()
         {
             var source = @"
 public class C
@@ -2018,7 +2018,7 @@ public class C
         }
 
         [Fact]
-        public async Task ApiFileUnshippedWithDuplicateNullableEnable()
+        public async Task ApiFileUnshippedWithDuplicateNullableEnableAsync()
         {
             var source = @"
 public class C
@@ -2039,7 +2039,7 @@ public class C
         }
 
         [Fact]
-        public async Task ApiFileShippedWithoutNullableEnable_AvoidUnnecessaryDiagnostic()
+        public async Task ApiFileShippedWithoutNullableEnable_AvoidUnnecessaryDiagnosticAsync()
         {
             var source = @"
 public class C
@@ -2057,7 +2057,7 @@ C.C() -> void";
         }
 
         [Fact]
-        public async Task TestAddAndRemoveMembers_CSharp_Fix()
+        public async Task TestAddAndRemoveMembers_CSharp_FixAsync()
         {
             // Unshipped file has a state 'ObsoleteField' entry and a missing 'NewField' entry.
             var source = @"
@@ -2093,7 +2093,7 @@ C.Property.set -> void";
         }
 
         [Fact]
-        public async Task TestSimpleMissingType_Fix()
+        public async Task TestSimpleMissingType_FixAsync()
         {
             var source = @"
 public class {|RS0016:C|}
@@ -2110,7 +2110,7 @@ public class {|RS0016:C|}
         }
 
         [Fact]
-        public async Task TestMultipleMissingTypeAndMember_Fix()
+        public async Task TestMultipleMissingTypeAndMember_FixAsync()
         {
             var source = @"
 public class {|RS0016:C|}
@@ -2133,7 +2133,7 @@ C2.C2() -> void";
         }
 
         [Fact]
-        public async Task TestMultipleMissingTypeAndMember_CaseSensitiveFix()
+        public async Task TestMultipleMissingTypeAndMember_CaseSensitiveFixAsync()
         {
             var source = @"
 public class {|RS0016:C|}
@@ -2162,7 +2162,7 @@ C2.C2() -> void";
         }
 
         [Fact]
-        public async Task TestChangingMethodSignatureForAnUnshippedMethod_Fix()
+        public async Task TestChangingMethodSignatureForAnUnshippedMethod_FixAsync()
         {
             var source = @"
 public class C
@@ -2181,7 +2181,7 @@ public class C
         }
 
         [Fact]
-        public async Task TestChangingMethodSignatureForAnUnshippedMethod_Fix_WithNullability()
+        public async Task TestChangingMethodSignatureForAnUnshippedMethod_Fix_WithNullabilityAsync()
         {
             var source = @"
 public class C
@@ -2201,7 +2201,7 @@ C";
         }
 
         [Fact]
-        public async Task TestChangingMethodSignatureForAnUnshippedMethodWithShippedOverloads_Fix()
+        public async Task TestChangingMethodSignatureForAnUnshippedMethodWithShippedOverloads_FixAsync()
         {
             var source = @"
 public class C
@@ -2224,7 +2224,7 @@ C.Method(int p1, int p2) -> void";
         }
 
         [Fact]
-        public async Task TestAddingNewPublicOverload_Fix()
+        public async Task TestAddingNewPublicOverload_FixAsync()
         {
             var source = @"
 public class C
@@ -2248,7 +2248,7 @@ C.Method(char p1) -> void";
         }
 
         [Fact]
-        public async Task TestMissingTypeAndMemberAndNestedMembers_Fix()
+        public async Task TestMissingTypeAndMemberAndNestedMembers_FixAsync()
         {
             var source = @"
 public class {|RS0016:C|}
@@ -2278,7 +2278,7 @@ C2.C2() -> void";
         }
 
         [Fact]
-        public async Task TestMissingNestedGenericMembersAndStaleMembers_Fix()
+        public async Task TestMissingNestedGenericMembersAndStaleMembers_FixAsync()
         {
             var source = @"
 public class {|RS0016:C|}
@@ -2331,7 +2331,7 @@ C2.C2() -> void
         }
 
         [Fact]
-        public async Task TestWithExistingUnshippedNestedMembers_Fix()
+        public async Task TestWithExistingUnshippedNestedMembers_FixAsync()
         {
             var source = @"
 public class {|RS0016:C|}
@@ -2364,7 +2364,7 @@ C2.C2() -> void";
         }
 
         [Fact]
-        public async Task TestWithExistingUnshippedNestedGenericMembers_Fix()
+        public async Task TestWithExistingUnshippedNestedGenericMembers_FixAsync()
         {
             var source = @"
 public class C
@@ -2400,7 +2400,7 @@ C.CC<T>.Field -> int";
         }
 
         [Fact]
-        public async Task TestWithExistingShippedNestedMembers_Fix()
+        public async Task TestWithExistingShippedNestedMembers_FixAsync()
         {
             var source = @"
 public class {|RS0016:C|}
@@ -2430,7 +2430,7 @@ C2.C2() -> void";
         }
 
         [Fact]
-        public async Task TestOnlyRemoveStaleSiblingEntries_Fix()
+        public async Task TestOnlyRemoveStaleSiblingEntries_FixAsync()
         {
             var source = @"
 public class {|RS0016:C|}
@@ -2467,7 +2467,7 @@ C2.C2() -> void";
         [InlineData("", "")]
         [InlineData("\r\n", "\r\n")]
         [InlineData("\r\n\r\n", "\r\n")]
-        public async Task TestPreserveTrailingNewline(string originalEndOfFile, string expectedEndOfFile)
+        public async Task TestPreserveTrailingNewlineAsync(string originalEndOfFile, string expectedEndOfFile)
         {
             var source = @"
 public class C
@@ -2495,7 +2495,7 @@ C.Property.get -> int{expectedEndOfFile}";
         }
 
         [Fact]
-        public async Task MissingType_A()
+        public async Task MissingType_AAsync()
         {
             var source = @"
 public class {|RS0016:{|RS0016:A|}|} { }
@@ -2518,7 +2518,7 @@ D.D() -> void";
         }
 
         [Fact]
-        public async Task MissingType_C()
+        public async Task MissingType_CAsync()
         {
             var source = @"
 public class B { }
@@ -2541,7 +2541,7 @@ D.D() -> void";
         }
 
         [Fact]
-        public async Task MissingType_E()
+        public async Task MissingType_EAsync()
         {
             var source = @"
 public class B { }
@@ -2564,7 +2564,7 @@ E.E() -> void";
         }
 
         [Fact]
-        public async Task MissingType_Unordered_A()
+        public async Task MissingType_Unordered_AAsync()
         {
             var source = @"
 public class {|RS0016:{|RS0016:A|}|} { }
@@ -2587,7 +2587,7 @@ B.B() -> void";
         }
 
         [Fact]
-        public async Task MissingType_Unordered_C()
+        public async Task MissingType_Unordered_CAsync()
         {
             var source = @"
 public class B { }
@@ -2610,7 +2610,7 @@ B.B() -> void";
         }
 
         [Fact]
-        public async Task MissingType_Unordered_E()
+        public async Task MissingType_Unordered_EAsync()
         {
             var source = @"
 public class B { }
@@ -2633,7 +2633,7 @@ E.E() -> void";
         }
 
         [Fact, WorkItem(2195, "https://github.com/dotnet/roslyn-analyzers/issues/2195")]
-        public async Task TestPartialType()
+        public async Task TestPartialTypeAsync()
         {
             var source = @"
 public partial class {|RS0016:{|RS0016:C|}|}
@@ -2654,7 +2654,7 @@ C.C() -> void";
         }
 
         [Fact, WorkItem(4133, "https://github.com/dotnet/roslyn-analyzers/issues/4133")]
-        public async Task Record_ImplicitProperty_Fix()
+        public async Task Record_ImplicitProperty_FixAsync()
         {
             var source = @"
 public record R(int {|RS0016:P|});

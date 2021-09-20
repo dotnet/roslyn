@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class MissingKindArgumentToRegisterActionRuleTests
     {
         [Fact]
-        public async Task CSharp_VerifyRegisterSymbolActionDiagnostic()
+        public async Task CSharp_VerifyRegisterSymbolActionDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -55,7 +55,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyRegisterSymbolActionDiagnostic()
+        public async Task VisualBasic_VerifyRegisterSymbolActionDiagnosticAsync()
         {
             var source = @"
 Imports System
@@ -88,7 +88,7 @@ End Class
         }
 
         [Fact]
-        public async Task CSharp_VerifyRegisterSyntaxActionDiagnostic()
+        public async Task CSharp_VerifyRegisterSyntaxActionDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -126,7 +126,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyRegisterSyntaxActionDiagnostic()
+        public async Task VisualBasic_VerifyRegisterSyntaxActionDiagnosticAsync()
         {
             var source = @"
 Imports System
@@ -160,7 +160,7 @@ End Class
         }
 
         [Fact]
-        public async Task CSharp_VerifyRegisterOperationActionDiagnostic()
+        public async Task CSharp_VerifyRegisterOperationActionDiagnosticAsync()
         {
             var source = @"
 using System;
@@ -193,7 +193,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public async Task VisualBasic_VerifyRegisterOperationActionDiagnostic()
+        public async Task VisualBasic_VerifyRegisterOperationActionDiagnosticAsync()
         {
             var source = @"
 Imports System
