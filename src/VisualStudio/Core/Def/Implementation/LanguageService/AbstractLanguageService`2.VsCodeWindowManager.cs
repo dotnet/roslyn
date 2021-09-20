@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             private void AddOrRemoveDropdown()
             {
-                if (!(_codeWindow is IVsDropdownBarManager dropdownManager))
+                if (_codeWindow is not IVsDropdownBarManager dropdownManager)
                 {
                     return;
                 }
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // TODO - Remove the TS check once they move the liveshare navbar to LSP.  Then we can also switch to LSP
                 // for the local navbar implementation.
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163360
-                if (textBuffer?.IsInLspEditorContext() == true && document!.Project!.Language != "TypeScript")
+                if (textBuffer?.IsInLspEditorContext() == true && document!.Project!.Language != InternalLanguageNames.TypeScript)
                 {
                     // Remove the existing dropdown bar if it is ours.
                     if (IsOurDropdownBar(dropdownManager, out var _))

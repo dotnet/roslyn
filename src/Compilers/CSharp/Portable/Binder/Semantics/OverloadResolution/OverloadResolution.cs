@@ -2078,7 +2078,7 @@ outerDefault:
                 return result;
             }
 
-            // UNDONE: Otherwise if one member is a non-lifted operator and  the other is a lifted
+            // UNDONE: Otherwise if one member is a non-lifted operator and the other is a lifted
             // operator, the non-lifted one is better.
 
             // Otherwise: Position in interactive submission chain. The last definition wins.
@@ -2333,7 +2333,6 @@ outerDefault:
         // Determine whether t1 or t2 is a better conversion target from node.
         private BetterResult BetterConversionFromExpression(BoundExpression node, TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            Debug.Assert(node.Kind != BoundKind.UnboundLambda);
             bool ignore;
             return BetterConversionFromExpression(
                 node,
@@ -3548,6 +3547,7 @@ outerDefault:
             if (arguments.IsExtensionMethodInvocation)
             {
                 var inferredFromFirstArgument = MethodTypeInferrer.InferTypeArgumentsFromFirstArgument(
+                    _binder.Compilation,
                     _binder.Conversions,
                     method,
                     args,

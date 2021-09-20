@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyLexicalSortKey;
         }
 
-        public override ImmutableArray<Location> Locations
+        public sealed override ImmutableArray<Location> Locations
         {
             get
             {
@@ -1491,13 +1491,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Conditional("DEBUG")]
         internal void AssertMemberExposure(Symbol member, bool forDiagnostics = false)
         {
-            if (member is FieldSymbol && forDiagnostics && this.IsTupleType)
-            {
-                // There is a problem with binding types of fields in tuple types.
-                // Skipping verification for them temporarily. 
-                return;
-            }
-
             if (member is NamedTypeSymbol type)
             {
                 RoslynDebug.AssertOrFailFast(forDiagnostics);
@@ -2579,11 +2572,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 InstanceInitializers.Free();
             }
-
-            internal void AddOrWrapTupleMembers(SourceMemberContainerTypeSymbol type)
-            {
-                this.NonTypeMembers = type.AddOrWrapTupleMembers(this.NonTypeMembers.ToImmutableAndFree());
-            }
         }
 
         protected sealed class DeclaredMembersAndInitializers
@@ -2667,7 +2655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class MembersAndInitializersBuilder
         {
-            public ArrayBuilder<Symbol>? NonTypeMembers;
+            private ArrayBuilder<Symbol>? NonTypeMembers;
             private ArrayBuilder<FieldOrPropertyInitializer>? InstanceInitializersForPositionalMembers;
             private bool IsNullableEnabledForInstanceConstructorsAndFields;
             private bool IsNullableEnabledForStaticConstructorsAndFields;
@@ -2791,6 +2779,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 NonTypeMembers.Add(member);
             }
 
+            public void SetNonTypeMembers(ArrayBuilder<Symbol> members)
+            {
+                NonTypeMembers?.Free();
+                NonTypeMembers = members;
+            }
+
             public void UpdateIsNullableEnabledForConstructorsAndFields(bool useStatic, CSharpCompilation compilation, CSharpSyntaxNode syntax)
             {
                 ref bool isNullableEnabled = ref GetIsNullableEnabledForConstructorsAndFields(useStatic);
@@ -2909,11 +2903,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if (IsTupleType)
-                {
-                    builder.AddOrWrapTupleMembers(this);
-                }
-
                 if (Volatile.Read(ref _lazyDeclaredMembersAndInitializers) != DeclaredMembersAndInitializers.UninitializedSentinel)
                 {
                     // _lazyDeclaredMembersAndInitializers is already computed. no point to continue.
@@ -3001,6 +2990,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     break;
             }
+
+            AddSynthesizedTupleMembersIfNecessary(builder, declaredMembersAndInitializers);
         }
 
         private void AddDeclaredNontypeMembers(DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
@@ -3638,8 +3629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
             members.AddRange(membersSoFar);
-            builder.NonTypeMembers?.Free();
-            builder.NonTypeMembers = members;
+            builder.SetNonTypeMembers(members);
 
             return;
 
@@ -4219,6 +4209,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return initializers.Any(siblings => siblings.Any(initializer => !initializer.FieldOpt.IsConst));
             }
+        }
+
+        private void AddSynthesizedTupleMembersIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers)
+        {
+            if (!this.IsTupleType)
+            {
+                return;
+            }
+
+            var synthesizedMembers = this.MakeSynthesizedTupleMembers(declaredMembersAndInitializers.NonTypeMembers);
+            if (synthesizedMembers is null)
+            {
+                return;
+            }
+
+            foreach (var synthesizedMember in synthesizedMembers)
+            {
+                builder.AddNonTypeMember(synthesizedMember, declaredMembersAndInitializers);
+            }
+
+            synthesizedMembers.Free();
         }
 
         private void AddNonTypeMembers(

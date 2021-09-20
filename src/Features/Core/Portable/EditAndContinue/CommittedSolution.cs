@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -214,6 +215,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return (null, DocumentState.None);
             }
 
+            // TODO: Handle case when the old project does not exist and needs to be added. https://github.com/dotnet/roslyn/issues/1204
+            if (committedDocument == null && !solution.ContainsProject(document.Project.Id))
+            {
+                // Document in a new project that does not exist in the committed solution.
+                // Pretend this document is design-time-only and ignore it.
+                return (null, DocumentState.DesignTimeOnly);
+            }
+
             if (!document.DocumentState.SupportsEditAndContinue())
             {
                 return (null, DocumentState.DesignTimeOnly);
@@ -271,6 +280,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Add the document to the committed solution with its current (possibly out-of-sync) text.
                     if (committedDocument == null)
                     {
+                        // TODO: Handle case when the old project does not exist and needs to be added. https://github.com/dotnet/roslyn/issues/1204
+                        Debug.Assert(_solution.ContainsProject(documentId.ProjectId));
+
+                        // TODO: Use API proposed in https://github.com/dotnet/roslyn/issues/56253.
                         _solution = _solution.AddDocument(DocumentInfo.Create(
                             documentId,
                             name: document.Name,

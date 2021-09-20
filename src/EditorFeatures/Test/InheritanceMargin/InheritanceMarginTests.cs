@@ -119,10 +119,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 Assert.Equal(expectedDocumentSpans.Length, actualDocumentSpans.Length);
                 for (var i = 0; i < actualDocumentSpans.Length; i++)
                 {
-                    Assert.Equal(expectedDocumentSpans[i].SourceSpan, actualDocumentSpans[i].SourceSpan);
-                    var rehydrated = await actualDocumentSpans[i].TryRehydrateAsync(CancellationToken.None);
-                    Assert.NotNull(rehydrated);
-                    Assert.Equal(expectedDocumentSpans[i].Document.FilePath, rehydrated.Value.Document.FilePath);
+                    var docSpan = await actualDocumentSpans[i].TryRehydrateAsync(CancellationToken.None);
+                    Assert.Equal(expectedDocumentSpans[i].SourceSpan, docSpan.Value.SourceSpan);
+                    Assert.Equal(expectedDocumentSpans[i].Document.FilePath, docSpan.Value.Document.FilePath);
                 }
             }
         }

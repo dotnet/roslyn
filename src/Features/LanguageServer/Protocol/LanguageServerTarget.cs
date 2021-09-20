@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private readonly ICapabilitiesProvider _capabilitiesProvider;
 
+        protected readonly IGlobalOptionService GlobalOptions;
         protected readonly JsonRpc JsonRpc;
         protected readonly RequestDispatcher RequestDispatcher;
         protected readonly RequestExecutionQueue Queue;
@@ -53,6 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspLogger logger,
             ImmutableArray<string> supportedLanguages,
@@ -60,6 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             string userVisibleServerName,
             string telemetryServerTypeName)
         {
+            GlobalOptions = globalOptions;
             RequestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(supportedLanguages);
 
             _capabilitiesProvider = capabilitiesProvider;
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _userVisibleServerName = userVisibleServerName;
             TelemetryServerName = telemetryServerTypeName;
 
-            Queue = new RequestExecutionQueue(logger, workspaceRegistrationService, supportedLanguages, userVisibleServerName, TelemetryServerName);
+            Queue = new RequestExecutionQueue(logger, workspaceRegistrationService, globalOptions, supportedLanguages, userVisibleServerName, TelemetryServerName);
             Queue.RequestServerShutdown += RequestExecutionQueue_Errored;
         }
 

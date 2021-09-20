@@ -22,7 +22,20 @@ namespace Roslyn.Utilities
         /// all builds
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNull<T>([NotNull] T value, [CallerLineNumber] int lineNumber = 0)
+        public static void ThrowIfNull<T>([NotNull] T value, [CallerLineNumber] int lineNumber = 0) where T : class?
+        {
+            if (value is null)
+            {
+                Fail("Unexpected null", lineNumber);
+            }
+        }
+
+        /// <summary>
+        /// Throws a non-accessible exception if the provided value is null.  This method executes in
+        /// all builds
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfNull<T>([NotNull] T? value, [CallerLineNumber] int lineNumber = 0) where T : struct
         {
             if (value is null)
             {

@@ -1465,9 +1465,6 @@ class Program
                 // (4,34): error CS8081: Expression does not have a name.
                 //     static string F1() => nameof(typeof(int));
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(int)").WithLocation(4, 34),
-                // (5,34): warning CS8959: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
-                //     static string F2() => nameof(typeof(nint));
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(nint)").WithArguments("nint").WithLocation(5, 34),
                 // (5,34): error CS8081: Expression does not have a name.
                 //     static string F2() => nameof(typeof(nint));
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(nint)").WithLocation(5, 34),

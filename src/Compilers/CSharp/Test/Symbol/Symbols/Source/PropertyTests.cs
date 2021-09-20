@@ -2041,11 +2041,7 @@ End Class";
     }
 }";
             var compilation3 = CreateCompilation(source3, new[] { reference1 });
-            compilation3.VerifyDiagnostics(
-                // (6,16): error CS0428: Cannot convert method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "P").WithArguments("P", "object").WithLocation(6, 16),
-                // (8,15): error CS0428: Cannot convert method group 'Q' to non-delegate type 'object'. Did you intend to invoke the method?
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Q").WithArguments("Q", "object").WithLocation(8, 15));
+            compilation3.VerifyDiagnostics();
         }
 
         [ClrOnlyFact]
@@ -2097,9 +2093,7 @@ static class E
     internal static object P(this object o) { return null; }
 }";
             var compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source3, new[] { reference1 });
-            compilation3.VerifyDiagnostics(
-                // (6,15): error CS0428: Cannot convert method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "P").WithArguments("P", "object").WithLocation(6, 15));
+            compilation3.VerifyDiagnostics();
         }
 
         [ClrOnlyFact]

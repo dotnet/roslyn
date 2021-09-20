@@ -1101,8 +1101,13 @@ class C
 }
 
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular9);
             var comp = CreateCompilation(tree);
+            comp.VerifyDiagnostics(
+                // (9,15): error CS1660: Cannot convert lambda expression to type 'IList<C>' because it is not a delegate type
+                //         tmp.M((a, b) => c.Add);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(a, b) => c.Add").WithArguments("lambda expression", "System.Collections.Generic.IList<C>").WithLocation(9, 15));
+
             var model = comp.GetSemanticModel(tree);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single().Body;
@@ -5189,6 +5194,219 @@ class Program
         private static LambdaSymbol GetLambdaSymbol(SemanticModel model, LambdaExpressionSyntax syntax)
         {
             return model.GetSymbolInfo(syntax).Symbol.GetSymbol<LambdaSymbol>();
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_01()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [A] (x) => x;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [A] (x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[A] (x) => x").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_02()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [A][A] (x) => x;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [A][A] (x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[A][A] (x) => x").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_03()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = ([A] x) => x;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,37): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = ([A] x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "x").WithLocation(5, 37)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_04()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = ([A][A] x) => x;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,40): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = ([A][A] x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "x").WithLocation(5, 40)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_05()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int, int>> e = ([A] x, [A] y) => x + y;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,42): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int, int>> e = ([A] x, [A] y) => x + y;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "x").WithLocation(5, 42)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_06()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [return: A] (x) => x;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [return: A] (x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[return: A] (x) => x").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_07()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [return: A][return: A] (x) => x;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [return: A][return: A] (x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[return: A][return: A] (x) => x").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_08()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [A][return: A] (x) => x;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [A][return: A] (x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[A][return: A] (x) => x").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_09()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [A] ([A] x) => x;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [A] ([A] x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[A] ([A] x) => x").WithLocation(5, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(53910, "https://github.com/dotnet/roslyn/issues/53910")]
+        public void WithAttributesToExpressionTree_10()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+Expression<Func<int, int>> e = [return: A] ([A] x) => x;
+
+class A : Attribute { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS8972: A lambda expression with attributes cannot be converted to an expression tree
+                // Expression<Func<int, int>> e = [return: A] ([A] x) => x;
+                Diagnostic(ErrorCode.ERR_LambdaWithAttributesToExpressionTree, "[return: A] ([A] x) => x").WithLocation(5, 32)
+                );
         }
     }
 }

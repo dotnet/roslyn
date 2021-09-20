@@ -408,8 +408,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     ImmutableArray<AdditionalText>.Empty,
                     ImmutableArray<GeneratorState>.Empty,
                     previous,
-                    enableIncremental: true,
-                    disabledOutputs: IncrementalGeneratorOutputKind.None);
+                    disabledOutputs: IncrementalGeneratorOutputKind.None,
+                    runtime: TimeSpan.Zero);
 
             return new DriverStateTable.Builder(c, state, ImmutableArray<ISyntaxInputNode>.Empty);
         }

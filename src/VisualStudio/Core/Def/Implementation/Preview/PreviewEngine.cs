@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         private ITextView EnsureTextViewIsInitialized(object previewTextView)
         {
             // We pass in a regular ITextView in tests
-            if (previewTextView != null && previewTextView is ITextView)
+            if (previewTextView is not null and ITextView)
             {
                 return (ITextView)previewTextView;
             }
@@ -264,6 +264,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             // Do not show LineEndingMargin, which determines EOL and EOF settings.
             textView.Options.SetOptionValue(DefaultTextViewHostOptions.LineEndingMarginOptionId, false);
+
+            // Do not show the "no issues found" health indicator for previews. 
+            textView.Options.SetOptionValue(DefaultTextViewHostOptions.EnableFileHealthIndicatorOptionId, false);
         }
 
         // When the dialog is first instantiated, the IVsTextView it contains may 

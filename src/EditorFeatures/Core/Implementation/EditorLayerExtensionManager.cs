@@ -27,32 +27,34 @@ namespace Microsoft.CodeAnalysis.Editor
     internal class EditorLayerExtensionManager : IWorkspaceServiceFactory
     {
         private readonly List<IExtensionErrorHandler> _errorHandlers;
+        private readonly IGlobalOptionService _optionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorLayerExtensionManager(
+            IGlobalOptionService optionService,
             [ImportMany] IEnumerable<IExtensionErrorHandler> errorHandlers)
         {
+            _optionService = optionService;
             _errorHandlers = errorHandlers.ToList();
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var optionService = workspaceServices.GetRequiredService<IOptionService>();
             var errorReportingService = workspaceServices.GetRequiredService<IErrorReportingService>();
             var errorLoggerService = workspaceServices.GetRequiredService<IErrorLoggerService>();
-            return new ExtensionManager(optionService, errorReportingService, errorLoggerService, _errorHandlers);
+            return new ExtensionManager(_optionService, errorReportingService, errorLoggerService, _errorHandlers);
         }
 
         internal class ExtensionManager : AbstractExtensionManager
         {
             private readonly List<IExtensionErrorHandler> _errorHandlers;
-            private readonly IOptionService _optionsService;
+            private readonly IGlobalOptionService _optionsService;
             private readonly IErrorReportingService _errorReportingService;
             private readonly IErrorLoggerService _errorLoggerService;
 
             public ExtensionManager(
-                IOptionService optionsService,
+                IGlobalOptionService optionsService,
                 IErrorReportingService errorReportingService,
                 IErrorLoggerService errorLoggerService,
                 List<IExtensionErrorHandler> errorHandlers)
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
             public override void HandleException(object provider, Exception exception)
             {
-                if (provider is CodeFixProvider || provider is FixAllProvider || provider is CodeRefactoringProvider)
+                if (provider is CodeFixProvider or FixAllProvider or CodeRefactoringProvider)
                 {
                     if (!IsIgnored(provider) &&
                         _optionsService.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))

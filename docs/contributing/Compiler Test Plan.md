@@ -319,6 +319,7 @@ __makeref( x )
 - Tuple
 - Default literal
 - Implicit object creation (target-typed new)
+- Function type (in type inference comparing function types of lambdas or method groups)
 
 ## Types 
 

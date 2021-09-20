@@ -858,9 +858,6 @@ Additional information: {1}</value>
   <data name="Pick_members" xml:space="preserve">
     <value>Pick members</value>
   </data>
-  <data name="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio" xml:space="preserve">
-    <value>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</value>
-  </data>
   <data name="analyzer_Prefer_auto_properties" xml:space="preserve">
     <value>Prefer auto properties</value>
   </data>
@@ -1521,8 +1518,8 @@ Additional information: {1}</value>
   <data name="Comments" xml:space="preserve">
     <value>Comments</value>
   </data>
-  <data name="Inline_Hints_experimental" xml:space="preserve">
-    <value>Inline Hints (experimental)</value>
+  <data name="Inline_Hints" xml:space="preserve">
+    <value>Inline Hints</value>
   </data>
   <data name="Show_hints_for_everything_else" xml:space="preserve">
     <value>Show hints for everything else</value>
@@ -1645,8 +1642,8 @@ Additional information: {1}</value>
   <data name="Show_inheritance_margin" xml:space="preserve">
     <value>Show inheritance margin</value>
   </data>
-  <data name="Inheritance_Margin_experimental" xml:space="preserve">
-    <value>Inheritance Margin (experimental)</value>
+  <data name="Inheritance_Margin" xml:space="preserve">
+    <value>Inheritance Margin</value>
   </data>
   <data name="Analyzers" xml:space="preserve">
     <value>Analyzers</value>
@@ -1698,6 +1695,9 @@ Additional information: {1}</value>
   </data>
   <data name="Search_Settings" xml:space="preserve">
     <value>Search Settings</value>
+  </data>
+  <data name="This_rule_is_not_configurable" xml:space="preserve">
+    <value>This rule is not configurable</value>
   </data>
   <data name="Multiple_members_are_inherited" xml:space="preserve">
     <value>Multiple members are inherited</value>
@@ -1796,6 +1796,9 @@ Additional information: {1}</value>
   <data name="Language_client_initialization_failed" xml:space="preserve">
     <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
     <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
+  </data>
+  <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
+    <value>Combine inheritance margin with indicator margin</value>
   </data>
   <data name="Package_install_canceled" xml:space="preserve">
     <value>Package install canceled</value>

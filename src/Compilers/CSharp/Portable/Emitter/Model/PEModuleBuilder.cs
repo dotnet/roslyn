@@ -382,6 +382,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ImmutableArray<AnonymousTypeKey>.Empty;
         }
 
+        internal virtual ImmutableArray<SynthesizedDelegateKey> GetPreviousSynthesizedDelegates()
+        {
+            return ImmutableArray<SynthesizedDelegateKey>.Empty;
+        }
+
         internal virtual int GetNextAnonymousTypeIndex()
         {
             return 0;
@@ -1656,6 +1661,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal void EnsureNullableAttributeExists()
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute);
+        }
+
+        internal void EnsureNullableContextAttributeExists()
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableContextAttribute);
         }
 
         internal void EnsureNativeIntegerAttributeExists()

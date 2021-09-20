@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -218,112 +218,6 @@ namespace Roslyn.Test.Utilities
             public static PortableExecutableReference SystemThreadingTasks { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemThreadingTasks).GetReference(display: "System.Threading.Tasks.dll (net461)", filePath: "System.Threading.Tasks.dll");
             public static PortableExecutableReference MicrosoftCSharp { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.MicrosoftCSharp).GetReference(display: "Microsoft.CSharp.dll (net461)", filePath: "Microsoft.CSharp.dll");
             public static PortableExecutableReference MicrosoftVisualBasic { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet461.MicrosoftVisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (net461)", filePath: "Microsoft.VisualBasic.dll");
-        }
-        public static class ResourcesNetCoreApp
-        {
-            private static byte[] _mscorlib;
-            public static byte[] mscorlib => ResourceLoader.GetOrCreateResource(ref _mscorlib, "netcoreapp.mscorlib.dll");
-            private static byte[] _System;
-            public static byte[] System => ResourceLoader.GetOrCreateResource(ref _System, "netcoreapp.System.dll");
-            private static byte[] _SystemCore;
-            public static byte[] SystemCore => ResourceLoader.GetOrCreateResource(ref _SystemCore, "netcoreapp.System.Core.dll");
-            private static byte[] _SystemCollections;
-            public static byte[] SystemCollections => ResourceLoader.GetOrCreateResource(ref _SystemCollections, "netcoreapp.System.Collections.dll");
-            private static byte[] _SystemConsole;
-            public static byte[] SystemConsole => ResourceLoader.GetOrCreateResource(ref _SystemConsole, "netcoreapp.System.Console.dll");
-            private static byte[] _SystemLinq;
-            public static byte[] SystemLinq => ResourceLoader.GetOrCreateResource(ref _SystemLinq, "netcoreapp.System.Linq.dll");
-            private static byte[] _SystemLinqExpressions;
-            public static byte[] SystemLinqExpressions => ResourceLoader.GetOrCreateResource(ref _SystemLinqExpressions, "netcoreapp.System.Linq.Expressions.dll");
-            private static byte[] _SystemRuntime;
-            public static byte[] SystemRuntime => ResourceLoader.GetOrCreateResource(ref _SystemRuntime, "netcoreapp.System.Runtime.dll");
-            private static byte[] _SystemRuntimeInteropServices;
-            public static byte[] SystemRuntimeInteropServices => ResourceLoader.GetOrCreateResource(ref _SystemRuntimeInteropServices, "netcoreapp.System.Runtime.InteropServices.dll");
-            private static byte[] _SystemThreadingTasks;
-            public static byte[] SystemThreadingTasks => ResourceLoader.GetOrCreateResource(ref _SystemThreadingTasks, "netcoreapp.System.Threading.Tasks.dll");
-            private static byte[] _netstandard;
-            public static byte[] netstandard => ResourceLoader.GetOrCreateResource(ref _netstandard, "netcoreapp.netstandard.dll");
-            private static byte[] _MicrosoftCSharp;
-            public static byte[] MicrosoftCSharp => ResourceLoader.GetOrCreateResource(ref _MicrosoftCSharp, "netcoreapp.Microsoft.CSharp.dll");
-            private static byte[] _MicrosoftVisualBasic;
-            public static byte[] MicrosoftVisualBasic => ResourceLoader.GetOrCreateResource(ref _MicrosoftVisualBasic, "netcoreapp.Microsoft.VisualBasic.dll");
-            private static byte[] _MicrosoftVisualBasicCore;
-            public static byte[] MicrosoftVisualBasicCore => ResourceLoader.GetOrCreateResource(ref _MicrosoftVisualBasicCore, "netcoreapp.Microsoft.VisualBasic.Core.dll");
-            public static ReferenceInfo[] All => new[]
-            {
-                new ReferenceInfo("mscorlib.dll", mscorlib),
-                new ReferenceInfo("System.dll", System),
-                new ReferenceInfo("System.Core.dll", SystemCore),
-                new ReferenceInfo("System.Collections.dll", SystemCollections),
-                new ReferenceInfo("System.Console.dll", SystemConsole),
-                new ReferenceInfo("System.Linq.dll", SystemLinq),
-                new ReferenceInfo("System.Linq.Expressions.dll", SystemLinqExpressions),
-                new ReferenceInfo("System.Runtime.dll", SystemRuntime),
-                new ReferenceInfo("System.Runtime.InteropServices.dll", SystemRuntimeInteropServices),
-                new ReferenceInfo("System.Threading.Tasks.dll", SystemThreadingTasks),
-                new ReferenceInfo("netstandard.dll", netstandard),
-                new ReferenceInfo("Microsoft.CSharp.dll", MicrosoftCSharp),
-                new ReferenceInfo("Microsoft.VisualBasic.dll", MicrosoftVisualBasic),
-                new ReferenceInfo("Microsoft.VisualBasic.Core.dll", MicrosoftVisualBasicCore),
-            };
-        }
-        public static class NetCoreApp
-        {
-            public static PortableExecutableReference mscorlib { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.mscorlib).GetReference(display: "mscorlib.dll (netcoreapp)", filePath: "mscorlib.dll");
-            public static PortableExecutableReference System { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.System).GetReference(display: "System.dll (netcoreapp)", filePath: "System.dll");
-            public static PortableExecutableReference SystemCore { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemCore).GetReference(display: "System.Core.dll (netcoreapp)", filePath: "System.Core.dll");
-            public static PortableExecutableReference SystemCollections { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemCollections).GetReference(display: "System.Collections.dll (netcoreapp)", filePath: "System.Collections.dll");
-            public static PortableExecutableReference SystemConsole { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemConsole).GetReference(display: "System.Console.dll (netcoreapp)", filePath: "System.Console.dll");
-            public static PortableExecutableReference SystemLinq { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemLinq).GetReference(display: "System.Linq.dll (netcoreapp)", filePath: "System.Linq.dll");
-            public static PortableExecutableReference SystemLinqExpressions { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemLinqExpressions).GetReference(display: "System.Linq.Expressions.dll (netcoreapp)", filePath: "System.Linq.Expressions.dll");
-            public static PortableExecutableReference SystemRuntime { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemRuntime).GetReference(display: "System.Runtime.dll (netcoreapp)", filePath: "System.Runtime.dll");
-            public static PortableExecutableReference SystemRuntimeInteropServices { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemRuntimeInteropServices).GetReference(display: "System.Runtime.InteropServices.dll (netcoreapp)", filePath: "System.Runtime.InteropServices.dll");
-            public static PortableExecutableReference SystemThreadingTasks { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemThreadingTasks).GetReference(display: "System.Threading.Tasks.dll (netcoreapp)", filePath: "System.Threading.Tasks.dll");
-            public static PortableExecutableReference netstandard { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.netstandard).GetReference(display: "netstandard.dll (netcoreapp)", filePath: "netstandard.dll");
-            public static PortableExecutableReference MicrosoftCSharp { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.MicrosoftCSharp).GetReference(display: "Microsoft.CSharp.dll (netcoreapp)", filePath: "Microsoft.CSharp.dll");
-            public static PortableExecutableReference MicrosoftVisualBasic { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.MicrosoftVisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (netcoreapp)", filePath: "Microsoft.VisualBasic.dll");
-            public static PortableExecutableReference MicrosoftVisualBasicCore { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.MicrosoftVisualBasicCore).GetReference(display: "Microsoft.VisualBasic.Core.dll (netcoreapp)", filePath: "Microsoft.VisualBasic.Core.dll");
-        }
-        public static class ResourcesNetStandard20
-        {
-            private static byte[] _mscorlib;
-            public static byte[] mscorlib => ResourceLoader.GetOrCreateResource(ref _mscorlib, "netstandard20.mscorlib.dll");
-            private static byte[] _System;
-            public static byte[] System => ResourceLoader.GetOrCreateResource(ref _System, "netstandard20.System.dll");
-            private static byte[] _SystemCore;
-            public static byte[] SystemCore => ResourceLoader.GetOrCreateResource(ref _SystemCore, "netstandard20.System.Core.dll");
-            private static byte[] _SystemDynamicRuntime;
-            public static byte[] SystemDynamicRuntime => ResourceLoader.GetOrCreateResource(ref _SystemDynamicRuntime, "netstandard20.System.Dynamic.Runtime.dll");
-            private static byte[] _SystemLinq;
-            public static byte[] SystemLinq => ResourceLoader.GetOrCreateResource(ref _SystemLinq, "netstandard20.System.Linq.dll");
-            private static byte[] _SystemLinqExpressions;
-            public static byte[] SystemLinqExpressions => ResourceLoader.GetOrCreateResource(ref _SystemLinqExpressions, "netstandard20.System.Linq.Expressions.dll");
-            private static byte[] _SystemRuntime;
-            public static byte[] SystemRuntime => ResourceLoader.GetOrCreateResource(ref _SystemRuntime, "netstandard20.System.Runtime.dll");
-            private static byte[] _netstandard;
-            public static byte[] netstandard => ResourceLoader.GetOrCreateResource(ref _netstandard, "netstandard20.netstandard.dll");
-            public static ReferenceInfo[] All => new[]
-            {
-                new ReferenceInfo("mscorlib.dll", mscorlib),
-                new ReferenceInfo("System.dll", System),
-                new ReferenceInfo("System.Core.dll", SystemCore),
-                new ReferenceInfo("System.Dynamic.Runtime.dll", SystemDynamicRuntime),
-                new ReferenceInfo("System.Linq.dll", SystemLinq),
-                new ReferenceInfo("System.Linq.Expressions.dll", SystemLinqExpressions),
-                new ReferenceInfo("System.Runtime.dll", SystemRuntime),
-                new ReferenceInfo("netstandard.dll", netstandard),
-            };
-        }
-        public static class NetStandard20
-        {
-            public static PortableExecutableReference mscorlib { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.mscorlib).GetReference(display: "mscorlib.dll (netstandard20)", filePath: "mscorlib.dll");
-            public static PortableExecutableReference System { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.System).GetReference(display: "System.dll (netstandard20)", filePath: "System.dll");
-            public static PortableExecutableReference SystemCore { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.SystemCore).GetReference(display: "System.Core.dll (netstandard20)", filePath: "System.Core.dll");
-            public static PortableExecutableReference SystemDynamicRuntime { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.SystemDynamicRuntime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard20)", filePath: "System.Dynamic.Runtime.dll");
-            public static PortableExecutableReference SystemLinq { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.SystemLinq).GetReference(display: "System.Linq.dll (netstandard20)", filePath: "System.Linq.dll");
-            public static PortableExecutableReference SystemLinqExpressions { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.SystemLinqExpressions).GetReference(display: "System.Linq.Expressions.dll (netstandard20)", filePath: "System.Linq.Expressions.dll");
-            public static PortableExecutableReference SystemRuntime { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.SystemRuntime).GetReference(display: "System.Runtime.dll (netstandard20)", filePath: "System.Runtime.dll");
-            public static PortableExecutableReference netstandard { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.netstandard).GetReference(display: "netstandard.dll (netstandard20)", filePath: "netstandard.dll");
         }
         public static class ResourcesMicrosoftCSharp
         {

@@ -8,9 +8,9 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -32,14 +32,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public LiveShareInProcLanguageClient(
             RequestDispatcherFactory csharpVBRequestDispatcherFactory,
-            VisualStudioWorkspace workspace,
+            IGlobalOptionService globalOptions,
             IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
@@ -50,8 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
-            var isLspEditorEnabled = experimentationService.IsExperimentEnabled(VisualStudioWorkspaceContextService.LspEditorFeatureFlagName);
+            var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
 
             // If the preview feature flag to turn on the LSP editor in local scenarios is on, advertise no capabilities for this Live Share
             // LSP server as LSP requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and remote scenarios.

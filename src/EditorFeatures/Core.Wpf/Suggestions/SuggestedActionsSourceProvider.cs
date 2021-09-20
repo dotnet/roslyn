@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tags;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeFixService _codeFixService;
         private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
-        private readonly IGlobalOptionService _optionService;
+        private readonly IGlobalOptionService _globalOptions;
         public readonly ICodeActionEditHandlerService EditHandler;
         public readonly IAsynchronousOperationListener OperationListener;
         public readonly IUIThreadOperationExecutor UIThreadOperationExecutor;
@@ -65,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
             IAsynchronousOperationListenerProvider listenerProvider,
-            IGlobalOptionService optionService,
+            IGlobalOptionService globalOptions,
             [ImportMany] IEnumerable<Lazy<IImageIdService, OrderableMetadata>> imageIdServices)
         {
             _threadingContext = threadingContext;
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             _diagnosticService = diagnosticService;
             _codeFixService = codeFixService;
             _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
-            _optionService = optionService;
+            _globalOptions = globalOptions;
             EditHandler = editHandler;
             UIThreadOperationExecutor = uiThreadOperationExecutor;
             OperationListener = listenerProvider.GetListener(FeatureAttribute.LightBulb);
@@ -91,18 +90,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             if (textBuffer.IsInLspEditorContext())
                 return null;
 
-            var asyncEnabled = _optionService.GetOption(SuggestionsOptions.Asynchronous);
-            if (asyncEnabled == null)
-            {
-                asyncEnabled =
-                    Workspace.TryGetWorkspace(textBuffer.AsTextContainer(), out var workspace) &&
-                    workspace.Services.GetService<IExperimentationService>() is { } experimentationService &&
-                    experimentationService.IsExperimentEnabled(WellKnownExperimentNames.AsynchronousQuickActions);
-            }
+            var asyncEnabled = _globalOptions.GetOption(SuggestionsOptions.Asynchronous) ??
+                               _globalOptions.GetOption(SuggestionsOptions.AsynchronousFeatureFlag);
 
             return asyncEnabled == true
-                ? new AsyncSuggestedActionsSource(_threadingContext, this, textView, textBuffer, _suggestedActionCategoryRegistry)
-                : new SyncSuggestedActionsSource(_threadingContext, this, textView, textBuffer, _suggestedActionCategoryRegistry);
+                ? new AsyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry)
+                : new SyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry);
         }
     }
 }

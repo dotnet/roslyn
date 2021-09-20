@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 node.GetCurrentNode(newDestination),
                 sourceImports,
                 generator,
-                options.PlaceSystemNamespaceFirst,
+                options.Options,
                 destinationEditor.OriginalDocument.CanAddImportsInHiddenRegions(),
                 cancellationToken));
 
@@ -397,10 +397,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
         private static ImmutableArray<SyntaxNode> GetImports(SyntaxNode start, ISyntaxFactsService syntaxFacts)
         {
             return start.AncestorsAndSelf()
-                .Where(node => node is ICompilationUnitSyntax || syntaxFacts.IsNamespaceDeclaration(node))
+                .Where(node => node is ICompilationUnitSyntax || syntaxFacts.IsBaseNamespaceDeclaration(node))
                 .SelectMany(node => node is ICompilationUnitSyntax
                     ? syntaxFacts.GetImportsOfCompilationUnit(node)
-                    : syntaxFacts.GetImportsOfNamespaceDeclaration(node))
+                    : syntaxFacts.GetImportsOfBaseNamespaceDeclaration(node))
                 .ToImmutableArray();
         }
 
