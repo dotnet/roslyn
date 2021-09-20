@@ -487,7 +487,6 @@ Delta: Epsilon: Test E
 @"Delta: Hello
 ",
                 sb.ToString());
-
         }
 
         private void AssemblyLoadingInNonDefaultContextHelper2(StringBuilder sb)
