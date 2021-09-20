@@ -88,7 +88,7 @@
   <!-- Public API Analyzer configuration -->
   <ItemGroup>
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" PrivateAssets="all" />
+    <PackageReference Include="System.Net.Http" Version="$(SystemNetHttpVersion)" PrivateAssets="all" ExcludeAssets="all" />
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
