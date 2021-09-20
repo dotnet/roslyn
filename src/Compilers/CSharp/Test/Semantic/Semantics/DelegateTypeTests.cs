@@ -2468,12 +2468,18 @@ static class E
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"E.M");
 
-            // Breaking change from C#9 which binds to E.M.
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[]
+            {
                 // (9,13): error CS0428: Cannot convert method group 'F' to non-delegate type 'Expression'. Did you intend to invoke the method?
                 //         c.M(F);
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(9, 13));
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(9, 13)
+            };
+
+            // Breaking change from C#9 which binds to E.M.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -3710,6 +3716,44 @@ class Program
 
             var expectedOutput = @"I.F(Action a, ref int i)";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OverloadResolution_44()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class A
+{
+    public static void F1(Func<int> f) { Console.WriteLine(""A.F1(Func<int> f)""); }
+    public void F2(Func<int> f) { Console.WriteLine(""A.F2(Func<int> f)""); }
+}
+class B : A
+{
+    public static void F1(Delegate d) { Console.WriteLine(""B.F1(Delegate d)""); }
+    public void F2(Expression e) { Console.WriteLine(""B.F2(Expression e)""); }
+}
+class Program
+{
+    static void Main()
+    {
+        B.F1(() => 1);
+        var b = new B();
+        b.F2(() => 2);
+    }
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+@"A.F1(Func<int> f)
+A.F2(Func<int> f)");
+
+            // Breaking change from C#9 which binds to methods from A.
+            var expectedOutput =
+@"B.F1(Delegate d)
+B.F2(Expression e)";
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
