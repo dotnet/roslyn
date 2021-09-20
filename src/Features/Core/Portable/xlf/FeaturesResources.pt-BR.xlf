@@ -955,6 +955,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Mover o arquivo para a pasta raiz do projeto</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type">
+        <source>Move static members to another type...</source>
+        <target state="new">Move static members to another type...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
         <target state="translated">Mover para o namespace...</target>
@@ -1156,11 +1161,11 @@ Essa opção é recomendada quando você sabe que o rastreamento inverso não se
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
         <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">Uma definição de grupo de balanceamento exclui a definição de um grupo definido anteriormente e armazena, no grupo atual, o intervalo entre o grupo definido anteriormente e o grupo atual.
+        <target state="needs-review-translation">Uma definição de grupo de balanceamento exclui a definição de um grupo definido anteriormente e armazena, no grupo atual, o intervalo entre o grupo definido anteriormente e o grupo atual.
     
 'name1' é o grupo atual (opcional), 'name2' é um grupo definido anteriormente e 'subexpression' é qualquer padrão de expressão regular válido. A definição de grupo de balanceamento exclui a definição de name2 e armazena o intervalo entre name2 e name1 no name1. Se não for definido nenhum name2, a correspondência retrocederá. Como a exclusão da última definição de name2 revela a definição anterior de name2, esse constructo permite o uso da pilha de capturas para o grupo name2 como um contador para manter o controle de constructos aninhados, como parênteses ou colchetes de abertura e fechamento.
 
@@ -2300,6 +2305,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Muitos )'s</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="new">Types:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Não é possível ler o arquivo de origem '{0}' ou o PDB criado para o projeto que o contém. Todas as alterações feitas neste arquivo durante a depuração não serão aplicadas até que o conteúdo corresponda ao código-fonte compilado.</target>
@@ -3348,11 +3358,6 @@ Se o especificador de formato "M" for usado sem outros especificadores de format
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">Introduzir variável de consulta para "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">Tipos Anônimos:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">

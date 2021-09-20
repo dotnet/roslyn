@@ -1,0 +1,96 @@
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers.StaticMemberSelection"
+             x:ClassModifier="internal"
+             x:Name="MemberSelectionControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:utilities="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Utilities"
+             xmlns:movestaticmembers="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers"
+             d:DataContext="{d:DesignInstance Type=movestaticmembers:StaticMemberSelectionViewModel}"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Thickness x:Key="ButtonControlsPadding">2, 4, 4, 2</Thickness>
+        <utilities:BooleanReverseConverter x:Key="BooleanReverseConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <ListBox
+            x:Uid="MemberSelectionList"
+            x:Name="MemberSelectionList"
+            Grid.Column="0"
+            Margin="2, 5, 12, 2"
+            SelectionMode="Multiple"
+            AutomationProperties.Name="SelectMembersList"
+            ItemsSource="{Binding Members}">
+            <ListBox.Resources>
+                <Style TargetType="{x:Type ListBoxItem}">
+                    <Setter Property="IsSelected" Value="{Binding IsChecked, Mode=TwoWay}" />
+                </Style>
+            </ListBox.Resources>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Left"
+                        MinWidth="186"
+                        Width="Auto"
+                        Margin="5, 2, 0, 2">
+                        <CheckBox
+                            x:Name="MemberSelected"
+                            AutomationProperties.Name="IsSelected"
+                            Margin="0, 0, 5, 0"
+                            IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
+                        <Image 
+                            x:Name="GlyphOfMember"
+                            Margin="8, 0, 5, 0"
+                            Source="{Binding Glyph}"/>
+                        <TextBlock
+                            x:Name="MemberName"
+                            Text="{Binding SymbolName}"
+                            Margin="0, 0, 5, 0"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <StackPanel
+            Grid.Column="1"
+            Orientation="Vertical"
+            VerticalAlignment="Top"
+            HorizontalAlignment="Center"
+            Margin="0, 4, 0, 0"
+            Width="Auto">
+            <Button
+                x:Name="SelectAllButton"
+                x:Uid="SelectAllButton"
+                Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
+                Content="{Binding ElementName=MemberSelectionControl, Path=SelectAll}"
+                Click="SelectAllButton_Click"
+                Margin="2, 2, 2, 7"
+                Width="Auto"
+                Height="Auto" />
+            <Button
+                x:Name="DeselectAllButton"
+                x:Uid="DeselectAllButton"
+                Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
+                Content="{Binding ElementName=MemberSelectionControl, Path=DeselectAll}"
+                Click="DeselectAllButton_Click"
+                Margin="2, 2, 2, 7"
+                Width="Auto"
+                Height="Auto" />
+            <Button
+                x:Name="SelectDependentsButton"
+                x:Uid="SelectDependentsButton"
+                Padding="{StaticResource ResourceKey=ButtonControlsPadding}"
+                Content="{Binding ElementName=MemberSelectionControl, Path=SelectDependents}"
+                Click="SelectDependentsButton_Click"
+                Margin="2, 2, 2, 7"
+                Width="Auto"
+                Height="Auto"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
