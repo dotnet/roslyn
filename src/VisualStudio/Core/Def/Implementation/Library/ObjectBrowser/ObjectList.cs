@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                 case ObjectListKind.Hierarchy:
                     var parentKind = this.ParentKind;
-                    categoryField = parentKind == ObjectListKind.Types || parentKind == ObjectListKind.BaseTypes
+                    categoryField = parentKind is ObjectListKind.Types or ObjectListKind.BaseTypes
                         ? (uint)_LIB_LISTTYPE.LLT_CLASSES
                         : (uint)_LIB_LISTTYPE.LLT_PACKAGE;
 
@@ -617,9 +617,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             {
                 var name = GetText(i, VSTREETEXTOPTIONS.TTO_DISPLAYTEXT);
 
-                if (_kind == ObjectListKind.Types ||
-                    _kind == ObjectListKind.Namespaces ||
-                    _kind == ObjectListKind.Members)
+                if (_kind is ObjectListKind.Types or
+                    ObjectListKind.Namespaces or
+                    ObjectListKind.Members)
                 {
                     if (string.Equals(matchName, name, StringComparison.Ordinal))
                     {

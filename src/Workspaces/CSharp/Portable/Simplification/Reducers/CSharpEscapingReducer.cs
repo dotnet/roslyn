@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             if (SyntaxFacts.GetContextualKeywordKind(unescapedIdentifier) == SyntaxKind.AwaitKeyword)
             {
-                var enclosingLambdaExpression = parent.GetAncestorsOrThis(n => (n is SimpleLambdaExpressionSyntax || n is ParenthesizedLambdaExpressionSyntax)).FirstOrDefault();
+                var enclosingLambdaExpression = parent.GetAncestorsOrThis(n => (n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax)).FirstOrDefault();
                 if (enclosingLambdaExpression != null)
                 {
                     if (enclosingLambdaExpression is SimpleLambdaExpressionSyntax simpleLambda)

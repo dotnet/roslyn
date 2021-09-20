@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders)
         {
             _completionProviders = completionProviders
-                .Where(lz => lz.Metadata.Language == LanguageNames.CSharp || lz.Metadata.Language == LanguageNames.VisualBasic)
+                .Where(lz => lz.Metadata.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)
                 .ToImmutableArray();
         }
 

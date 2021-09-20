@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => members.LastOrDefault(m => m is MethodDeclarationSyntax);
 
         public static MemberDeclarationSyntax LastOperator(SyntaxList<MemberDeclarationSyntax> members)
-            => members.LastOrDefault(m => m is OperatorDeclarationSyntax || m is ConversionOperatorDeclarationSyntax);
+            => members.LastOrDefault(m => m is OperatorDeclarationSyntax or ConversionOperatorDeclarationSyntax);
 
         public static SyntaxList<TDeclaration> Insert<TDeclaration>(
             SyntaxList<TDeclaration> declarationList,

@@ -347,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 return LanguageNames.CSharp;
             }
-            else if (fileExtension == ".ts" || fileExtension == ".js")
+            else if (fileExtension is ".ts" or ".js")
             {
                 return StringConstants.TypeScriptLanguageName;
             }
