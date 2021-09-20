@@ -435,7 +435,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         public override string FormatSymbol(ISymbol symbol)
         {
-            if (symbol is ITypeSymbol || symbol is INamespaceSymbol)
+            if (symbol is ITypeSymbol or INamespaceSymbol)
             {
                 return FormatNamespaceOrTypeSymbol((INamespaceOrTypeSymbol)symbol);
             }

@@ -234,16 +234,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsEmbeddedStatementOwner([NotNullWhen(returnValue: true)] this SyntaxNode? node)
         {
-            return node is DoStatementSyntax ||
-                   node is ElseClauseSyntax ||
-                   node is FixedStatementSyntax ||
-                   node is CommonForEachStatementSyntax ||
-                   node is ForStatementSyntax ||
-                   node is IfStatementSyntax ||
-                   node is LabeledStatementSyntax ||
-                   node is LockStatementSyntax ||
-                   node is UsingStatementSyntax ||
-                   node is WhileStatementSyntax;
+            return node is DoStatementSyntax or
+                   ElseClauseSyntax or
+                   FixedStatementSyntax or
+                   CommonForEachStatementSyntax or
+                   ForStatementSyntax or
+                   IfStatementSyntax or
+                   LabeledStatementSyntax or
+                   LockStatementSyntax or
+                   UsingStatementSyntax or
+                   WhileStatementSyntax;
         }
 
         public static StatementSyntax? GetEmbeddedStatement(this SyntaxNode? node)
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static ConditionalAccessExpressionSyntax? GetInnerMostConditionalAccessExpression(this SyntaxNode node)
         {
-            if (!(node is ConditionalAccessExpressionSyntax))
+            if (node is not ConditionalAccessExpressionSyntax)
             {
                 return null;
             }
@@ -1073,8 +1073,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         if (expressionTypeOpt.Equals(typeInfo.ConvertedType?.OriginalDefinition))
                             return true;
                     }
-                    else if (current is SelectOrGroupClauseSyntax ||
-                             current is OrderingSyntax)
+                    else if (current is SelectOrGroupClauseSyntax or
+                             OrderingSyntax)
                     {
                         var info = semanticModel.GetSymbolInfo(current, cancellationToken);
                         if (TakesExpressionTree(info, expressionTypeOpt))

@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // Searching for decimals not supported currently.  Our index can only store 64bits
             // for numeric values, and a decimal won't fit within that.
             var tokenValue = token.Value;
-            if (tokenValue == null || tokenValue is decimal)
+            if (tokenValue is null or decimal)
                 return false;
 
             if (token.Parent is null)

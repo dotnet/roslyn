@@ -231,11 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsMethodBody([NotNullWhen(true)] SyntaxNode? node)
         {
-            if (node is BlockSyntax ||
-                node is ArrowExpressionClauseSyntax)
+            if (node is BlockSyntax or
+                ArrowExpressionClauseSyntax)
             {
-                return node.Parent is BaseMethodDeclarationSyntax ||
-                       node.Parent is AccessorDeclarationSyntax;
+                return node.Parent is BaseMethodDeclarationSyntax or
+                       AccessorDeclarationSyntax;
             }
 
             return false;
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return root
                 .FindToken(position)
                 .GetAncestors<SyntaxNode>()
-                .FirstOrDefault(n => n is BaseTypeDeclarationSyntax || n is DelegateDeclarationSyntax);
+                .FirstOrDefault(n => n is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
         }
 
         public SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node)
@@ -666,17 +666,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsMethodLevelMember([NotNullWhen(true)] SyntaxNode? node)
         {
-            return node is BaseMethodDeclarationSyntax ||
-                node is BasePropertyDeclarationSyntax ||
-                node is EnumMemberDeclarationSyntax ||
-                node is BaseFieldDeclarationSyntax;
+            return node is BaseMethodDeclarationSyntax or
+                BasePropertyDeclarationSyntax or
+                EnumMemberDeclarationSyntax or
+                BaseFieldDeclarationSyntax;
         }
 
         public bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node)
         {
-            return node is BaseNamespaceDeclarationSyntax ||
-                   node is TypeDeclarationSyntax ||
-                   node is EnumDeclarationSyntax;
+            return node is BaseNamespaceDeclarationSyntax or
+                   TypeDeclarationSyntax or
+                   EnumDeclarationSyntax;
         }
 
         private const string dotToken = ".";
@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 }
 
                 // If this node is not parented by a name, we're done.
-                if (!(parent is NameSyntax))
+                if (parent is not NameSyntax)
                 {
                     break;
                 }
