@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else if (current is DeclarationExpressionSyntax decl)
                 {
-                    if (!(decl.Designation is SingleVariableDesignationSyntax name))
+                    if (decl.Designation is not SingleVariableDesignationSyntax name)
                     {
                         break;
                     }

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void AddSwitchIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
         {
-            if (!(node is SwitchSectionSyntax section))
+            if (node is not SwitchSectionSyntax section)
             {
                 return;
             }

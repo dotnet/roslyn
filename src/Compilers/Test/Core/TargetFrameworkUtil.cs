@@ -75,6 +75,9 @@ namespace Roslyn.Test.Utilities
         /// Minimal set of required types and Task implementation (<see cref="NetFx.Minimal.minasync"/>).
         /// </summary>
         MinimalAsync,
+
+        Net50,
+        Net60,
     }
 
     /// <summary>
@@ -177,7 +180,8 @@ namespace Roslyn.Test.Utilities
             // Primary
             TargetFramework.Empty => ImmutableArray<MetadataReference>.Empty,
             TargetFramework.NetStandard20 => NetStandard20References,
-            TargetFramework.NetCoreApp => NetCoreApp.StandardReferences,
+            TargetFramework.NetCoreApp or TargetFramework.Net50 => NetCoreApp.StandardReferences,
+            TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(Net60.All),
             TargetFramework.NetCoreAppAndCSharp => NetCoreApp.StandardReferences.Add(NetCoreApp.MicrosoftCSharp),
             TargetFramework.NetFramework => NetFramework.StandardReferences,
 

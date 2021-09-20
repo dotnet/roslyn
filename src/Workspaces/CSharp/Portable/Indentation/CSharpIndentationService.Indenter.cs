@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             }
 
             // find query body that has a token that is a first token on the line
-            if (!(queryExpressionClause.Parent is QueryBodySyntax queryBody))
+            if (queryExpressionClause.Parent is not QueryBodySyntax queryBody)
             {
                 return indenter.GetIndentationOfToken(firstToken);
             }

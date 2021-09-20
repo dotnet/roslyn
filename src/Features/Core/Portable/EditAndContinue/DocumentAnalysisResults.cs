@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public ImmutableArray<RudeEditDiagnostic> RudeEditErrors { get; }
 
         /// <summary>
+        /// The first syntax error, or null if the document does not have syntax errors reported by the compiler.
+        /// </summary>
+        public Diagnostic? SyntaxError { get; }
+
+        /// <summary>
         /// Edits made in the document, or null if the document is unchanged, has syntax errors or rude edits.
         /// </summary>
         public ImmutableArray<SemanticEditInfo> SemanticEdits { get; }
@@ -84,6 +89,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DocumentId documentId,
             ImmutableArray<ActiveStatement> activeStatementsOpt,
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
+            Diagnostic? syntaxError,
             ImmutableArray<SemanticEditInfo> semanticEditsOpt,
             ImmutableArray<ImmutableArray<SourceFileSpan>> exceptionRegionsOpt,
             ImmutableArray<SequencePointUpdates> lineEditsOpt,
@@ -98,12 +104,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(semanticEditsOpt.IsDefault);
                 Debug.Assert(exceptionRegionsOpt.IsDefault);
                 Debug.Assert(lineEditsOpt.IsDefault);
+                Debug.Assert(syntaxError != null || !rudeEdits.IsEmpty || !hasChanges);
             }
             else
             {
                 Debug.Assert(!activeStatementsOpt.IsDefault);
+                Debug.Assert(syntaxError == null);
 
-                if (rudeEdits.Length > 0)
+                if (!rudeEdits.IsEmpty)
                 {
                     Debug.Assert(semanticEditsOpt.IsDefault);
                     Debug.Assert(exceptionRegionsOpt.IsDefault);
@@ -128,6 +136,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             DocumentId = documentId;
             RudeEditErrors = rudeEdits;
+            SyntaxError = syntaxError;
             SemanticEdits = semanticEditsOpt;
             ActiveStatements = activeStatementsOpt;
             ExceptionRegions = exceptionRegionsOpt;
@@ -148,11 +157,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Report errors blocking the document analysis.
         /// </summary>
-        public static DocumentAnalysisResults SyntaxErrors(DocumentId documentId, ImmutableArray<RudeEditDiagnostic> rudeEdits, bool hasChanges)
+        public static DocumentAnalysisResults SyntaxErrors(DocumentId documentId, ImmutableArray<RudeEditDiagnostic> rudeEdits, Diagnostic? syntaxError, bool hasChanges)
             => new(
                 documentId,
                 activeStatementsOpt: default,
-                rudeEdits: rudeEdits,
+                rudeEdits,
+                syntaxError,
                 semanticEditsOpt: default,
                 exceptionRegionsOpt: default,
                 lineEditsOpt: default,
@@ -166,6 +176,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => new(
                 documentId,
                 activeStatementsOpt: default,
+                syntaxError: null,
                 rudeEdits: ImmutableArray<RudeEditDiagnostic>.Empty,
                 semanticEditsOpt: default,
                 exceptionRegionsOpt: default,

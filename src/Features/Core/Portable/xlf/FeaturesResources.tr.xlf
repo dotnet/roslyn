@@ -225,6 +225,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Nesne/koleksiyon başlatma tercihlerini uygula</target>
         <note />
       </trans-unit>
+      <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
+        <source>Applying source changes while the application is running is not supported by the runtime.</source>
+        <target state="new">Applying source changes while the application is running is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
         <source>Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</source>
         <target state="new">Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</target>
@@ -445,6 +450,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Yapıya dönüştür</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="new">Convert to tuple</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
         <target state="translated">Türü '{0}' olarak dönüştür</target>
@@ -513,11 +523,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
         <target state="needs-review-translation">'{0}' projesinde yapılan değişiklikler hata ayıklama oturumunun devam etmesini engelleyecek: {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
-        <source>Edit and continue is not supported by the runtime.</source>
-        <target state="translated">Düzenleme ve devam etme işlemleri çalışma zamanı tarafından desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -2826,6 +2831,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">"HH" özel biçim belirticisi (ve herhangi bir sayıda ek "H" belirticisi) saati 00 ile 23 arasında bir sayı ile temsil eder; yani saat, gece yarısından bu yana geçen saat sayısını belirten sıfır tabanlı 24 saatlik bir düzen ile temsil edilir. Tek haneli bir saat, başına sıfır eklenerek biçimlendirilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="all_anonymous_types_in_container">
+        <source>all anonymous types in container</source>
+        <target state="new">all anonymous types in container</target>
+        <note />
+      </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
         <target state="new">and update call sites directly</target>
@@ -2980,6 +2990,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="into_new_overload">
         <source>into new overload</source>
         <target state="new">into new overload</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="just_this_anonymous_type">
+        <source>just this anonymous type</source>
+        <target state="new">just this anonymous type</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

@@ -277,6 +277,7 @@
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                 case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
                 case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
+                case ErrorCode.WRN_CompileTimeCheckedOverflow:
                     return true;
                 default:
                     return false;

@@ -4,10 +4,13 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote.Host;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
@@ -18,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal abstract partial class BrokeredServiceBase
     {
+        private static int s_cultureInitialized;
+
         internal interface IFactory
         {
             object Create(IDuplexPipe pipe, IServiceProvider hostProvidedServices, ServiceActivationOptions serviceActivationOptions, IServiceBroker serviceBroker);
@@ -50,6 +55,14 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // Dispose the AuthorizationServiceClient since we won't be using it
                 authorizationServiceClient?.Dispose();
+
+                // First request determines the default culture:
+                // TODO: Flow culture explicitly where needed https://github.com/dotnet/roslyn/issues/43670
+                if (Interlocked.CompareExchange(ref s_cultureInitialized, 1, 0) == 0)
+                {
+                    CultureInfo.DefaultThreadCurrentUICulture = serviceActivationOptions.ClientUICulture;
+                    CultureInfo.DefaultThreadCurrentCulture = serviceActivationOptions.ClientCulture;
+                }
 
                 return Task.FromResult((object)Create(
                     stream.UsePipe(),

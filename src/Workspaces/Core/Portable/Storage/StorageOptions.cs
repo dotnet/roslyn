@@ -26,18 +26,9 @@ namespace Microsoft.CodeAnalysis.Storage
             FeatureName, nameof(CloudCacheFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.CloudCache"));
 
-        /// <summary>
-        /// Option that can be set in certain scenarios (like tests) to indicate that the client expects the DB to
-        /// succeed at all work and that it should not ever gracefully fall over.  Should not be set in normal host
-        /// environments, where it is completely reasonable for things to fail (for example, if a client asks for a key
-        /// that hasn't been stored yet).
-        /// </summary>
-        public static readonly Option<bool> DatabaseMustSucceed = new(FeatureName, nameof(DatabaseMustSucceed), defaultValue: false);
-
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             Database,
-            CloudCacheFeatureFlag,
-            DatabaseMustSucceed);
+            CloudCacheFeatureFlag);
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

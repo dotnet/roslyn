@@ -135,6 +135,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<TypeWithAnnotations>[] _exactBounds;
         private readonly HashSet<TypeWithAnnotations>[] _upperBounds;
         private readonly HashSet<TypeWithAnnotations>[] _lowerBounds;
+
+        // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/nullable-reference-types-specification.md#fixing
+        // If the resulting candidate is a reference type and *all* of the exact bounds or *any* of
+        // the lower bounds are nullable reference types, `null` or `default`, then `?` is added to
+        // the resulting candidate, making it a nullable reference type.
+        //
+        // This set of bounds effectively tracks whether a typeless null expression (i.e. null
+        // literal) was used as an argument to a parameter whose type is one of this method's type
+        // parameters. Because such expressions only occur as by-value inputs, we only need to track
+        // the lower bounds, not the exact or upper bounds.
+        private readonly NullableAnnotation[] _nullableAnnotationLowerBounds;
+
         private Dependency[,] _dependencies; // Initialized lazily
         private bool _dependenciesDirty;
 
@@ -314,6 +326,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _exactBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _upperBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _lowerBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
+            _nullableAnnotationLowerBounds = new NullableAnnotation[methodTypeParameters.Length];
+            Debug.Assert(_nullableAnnotationLowerBounds.All(annotation => annotation.IsNotAnnotated()));
             _dependencies = null;
             _dependenciesDirty = false;
         }
@@ -429,6 +443,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!_fixedResults[i].Type.IsErrorType())
                     {
+                        if (_conversions.IncludeNullability && _nullableAnnotationLowerBounds[i].IsAnnotated())
+                        {
+                            _fixedResults[i] = _fixedResults[i].AsAnnotated();
+                        }
                         continue;
                     }
 
@@ -591,6 +609,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IsReallyAType(argument.GetTypeOrFunctionType()))
                 {
                     ExactOrBoundsInference(kind, _extensions.GetTypeWithAnnotations(argument), target, ref useSiteInfo);
+                }
+                else if (IsUnfixedTypeParameter(target) && kind is ExactOrBoundsKind.LowerBound)
+                {
+                    var ordinal = ((TypeParameterSymbol)target.Type).Ordinal;
+                    var typeWithAnnotations = _extensions.GetTypeWithAnnotations(argument);
+                    _nullableAnnotationLowerBounds[ordinal] = _nullableAnnotationLowerBounds[ordinal].Join(typeWithAnnotations.NullableAnnotation);
                 }
             }
         }
@@ -2613,7 +2637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (upper != null)
                 {
-                    // Lower bounds represent contra-variance.
+                    // Upper bounds represent contra-variance.
                     AddAllCandidates(candidates, upper, VarianceKind.In, conversions);
                 }
             }

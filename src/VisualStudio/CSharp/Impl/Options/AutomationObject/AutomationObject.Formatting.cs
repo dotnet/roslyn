@@ -41,8 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Indent_FlushLabelsLeft
         {
-            get { return GetOption(CSharpFormattingOptions2.LabelPositioning) == LabelPositionOptions.LeftMost ? 1 : 0; }
-            set { SetOption(CSharpFormattingOptions2.LabelPositioning, value == 1 ? LabelPositionOptions.LeftMost : LabelPositionOptions.NoIndent); }
+            get { return (int)GetOption(CSharpFormattingOptions2.LabelPositioning); }
+            set { SetOption(CSharpFormattingOptions2.LabelPositioning, (LabelPositionOptions)value); }
         }
 
         public int Indent_UnindentLabels
@@ -185,8 +185,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Space_AroundBinaryOperator
         {
-            get { return GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator) == BinaryOperatorSpacingOptions.Single ? 1 : 0; }
-            set { SetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, value == 1 ? BinaryOperatorSpacingOptions.Single : BinaryOperatorSpacingOptions.Ignore); }
+            get { return (int)GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator); }
+            set { SetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, (BinaryOperatorSpacingOptions)value); }
         }
 
         public int Space_BeforeBasesColon

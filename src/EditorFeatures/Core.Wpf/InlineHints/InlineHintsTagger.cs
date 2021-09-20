@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 _cacheSnapshot = snapshot;
 
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                var classify = document?.Project.Solution.Workspace.Options.GetOption(InlineHintsOptions.ColorHints, document?.Project.Language) ?? false;
+                var classify = document?.Project.Solution.Options.GetOption(InlineHintsOptions.ColorHints, document?.Project.Language) ?? false;
 
                 // Calling into the InlineParameterNameHintsDataTaggerProvider which only responds with the current
                 // active view and disregards and requests for tags not in that view

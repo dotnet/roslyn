@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            if (!(genericIdentifier.Parent is SimpleNameSyntax simpleName))
+            if (genericIdentifier.Parent is not SimpleNameSyntax simpleName)
             {
                 return null;
             }

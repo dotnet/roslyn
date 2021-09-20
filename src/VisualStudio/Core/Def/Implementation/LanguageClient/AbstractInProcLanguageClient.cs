@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -36,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private readonly AbstractRequestDispatcherFactory _requestDispatcherFactory;
         private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
-        protected readonly Workspace Workspace;
+        protected readonly IGlobalOptionService GlobalOptions;
 
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
@@ -81,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         public AbstractInProcLanguageClient(
             AbstractRequestDispatcherFactory requestDispatcherFactory,
-            VisualStudioWorkspace workspace,
+            IGlobalOptionService globalOptions,
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
@@ -90,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             string? diagnosticsClientName)
         {
             _requestDispatcherFactory = requestDispatcherFactory;
-            Workspace = workspace;
+            GlobalOptions = globalOptions;
             _diagnosticService = diagnosticService;
             _listenerProvider = listenerProvider;
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
@@ -208,6 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 jsonRpc,
                 capabilitiesProvider,
                 workspaceRegistrationService,
+                GlobalOptions,
                 _listenerProvider,
                 logger,
                 _diagnosticService,

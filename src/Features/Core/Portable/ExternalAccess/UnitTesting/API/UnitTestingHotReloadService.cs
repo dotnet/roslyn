@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -45,18 +43,31 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             public readonly ImmutableArray<byte> ILDelta;
             public readonly ImmutableArray<byte> MetadataDelta;
             public readonly ImmutableArray<byte> PdbDelta;
+            public readonly ImmutableArray<int> UpdatedMethods;
+            public readonly ImmutableArray<int> UpdatedTypes;
 
-            public Update(Guid moduleId, ImmutableArray<byte> ilDelta, ImmutableArray<byte> metadataDelta, ImmutableArray<byte> pdbDelta)
+            public Update(
+                Guid moduleId,
+                ImmutableArray<byte> ilDelta,
+                ImmutableArray<byte> metadataDelta,
+                ImmutableArray<byte> pdbDelta,
+                ImmutableArray<int> updatedMethods,
+                ImmutableArray<int> updatedTypes)
             {
                 ModuleId = moduleId;
                 ILDelta = ilDelta;
                 MetadataDelta = metadataDelta;
                 PdbDelta = pdbDelta;
+                UpdatedMethods = updatedMethods;
+                UpdatedTypes = updatedTypes;
             }
         }
 
         private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
             (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
+
+        private static readonly ImmutableArray<Update> EmptyUpdate = ImmutableArray.Create<Update>();
+        private static readonly ImmutableArray<Diagnostic> EmptyDiagnostic = ImmutableArray.Create<Diagnostic>();
 
         private readonly IEditAndContinueWorkspaceService _encService;
         private DebuggingSessionId _sessionId;
@@ -100,7 +111,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
             var sessionId = _sessionId;
             Contract.ThrowIfFalse(sessionId != default, "Session has not started");
 
-            var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            var results = await _encService
+                .EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken)
+                .ConfigureAwait(false);
 
             if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
@@ -114,8 +127,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
                 }
             }
 
+            if (results.SyntaxError is not null)
+            {
+                // We do not need to acquire any updates or other
+                // diagnostics if there is a syntax error.
+                return (EmptyUpdate, EmptyDiagnostic.Add(results.SyntaxError));
+            }
+
             var updates = results.ModuleUpdates.Updates.SelectAsArray(
-                update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta));
+                update => new Update(
+                    update.Module,
+                    update.ILDelta,
+                    update.MetadataDelta,
+                    update.PdbDelta,
+                    update.UpdatedMethods,
+                    update.UpdatedTypes));
 
             var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
 
