@@ -10115,5 +10115,43 @@ namespace NS;
     class C { }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewMethodOverloadWithTupleReturnType()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    new (int, int) M() { }
+}
+",
+                code: @"
+class C
+{
+    new  (int, int) M() { }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewPropertyWithTupleReturnType()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    new (int, int) Property { get; set; }
+}
+",
+                code: @"
+class C
+{
+    new  (int, int) Property { get; set; }
+}
+");
+        }
     }
 }

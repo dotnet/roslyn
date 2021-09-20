@@ -322,6 +322,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // some * "(" cases
             if (currentToken.Kind() == SyntaxKind.OpenParenToken)
             {
+                if (previousToken.Kind() == SyntaxKind.NewKeyword &&
+                    previousToken.Parent.IsKind(SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration))
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
                 if (previousToken.Kind() == SyntaxKind.IdentifierToken ||
                     previousToken.Kind() == SyntaxKind.DefaultKeyword ||
                     previousToken.Kind() == SyntaxKind.BaseKeyword ||
