@@ -130,9 +130,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     // The analyzer didn't explicitly register this dependency. Most likely the
                     // assembly we're trying to load here is netstandard or a similar framework
-                    // assembly. We assume that if that is not the case, then the default ALC will
-                    // fail to load this.
-                    return null;
+                    // assembly. In this case, we want to load it in compiler's ALC to avoid any 
+                    // potential type mismatch issue. Otherwise, if this is truly an unknown assembly,
+                    // we assume both compiler and default ALC will fail to load it.
+                    return _compilerLoadContext.LoadFromAssemblyName(assemblyName);
                 }
 
                 var pathToLoad = _loader.GetPathToLoad(assemblyPath);
