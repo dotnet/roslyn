@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 {
                     // static member access should never be pointer or conditional member access,
                     // so syntax in this block should be of the form 'Class.Member' or 'Class<TArg>.Member'
-                    var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(refNode.Parent);
+                    var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(refNode.GetRequiredParent());
                     if (expression != null)
                     {
                         SyntaxNode replacement;
