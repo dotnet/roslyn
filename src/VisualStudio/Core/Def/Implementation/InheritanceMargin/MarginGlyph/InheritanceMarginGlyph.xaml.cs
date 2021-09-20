@@ -6,7 +6,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
@@ -26,6 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     internal class InheritanceMarginGlyph : Button
     {
         private const string ToolTipStyleKey = "ToolTipStyle";
+
+        private static readonly object s_toolTipPlaceholder = new();
 
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
@@ -84,51 +85,48 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
             Template = new ControlTemplate { VisualTree = templateBorder };
             DataContext = viewModel;
+
+            // Add the context menu and tool tip as placeholders
+            ContextMenu = new ContextMenu();
+            ToolTip = s_toolTipPlaceholder;
         }
 
-        protected override void OnMouseEnter(MouseEventArgs e)
+        protected override void OnToolTipOpening(ToolTipEventArgs e)
         {
-            LazyInitialize();
-            base.OnMouseEnter(e);
-        }
-
-        protected override void OnGotFocus(RoutedEventArgs e)
-        {
-            LazyInitialize();
-            base.OnGotFocus(e);
-        }
-
-        protected override void OnPreviewGotKeyboardFocus(KeyboardFocusChangedEventArgs e)
-        {
-            LazyInitialize();
-            base.OnPreviewGotKeyboardFocus(e);
-        }
-
-        private void LazyInitialize()
-        {
-            if (ToolTip is not null)
+            if (ToolTip == s_toolTipPlaceholder)
             {
-                // Already initialized
-                return;
+                var viewModel = (InheritanceMarginGlyphViewModel)DataContext;
+                ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource(ToolTipStyleKey) };
             }
 
-            var viewModel = (InheritanceMarginGlyphViewModel)DataContext;
-            ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource(ToolTipStyleKey) };
+            base.OnToolTipOpening(e);
+        }
 
-            ContextMenu = new InheritanceMarginContextMenu(_threadingContext, _streamingFindUsagesPresenter, _operationExecutor, _workspace, _textView, _listener);
-            ContextMenu.DataContext = viewModel;
-            ContextMenu.ItemsSource = viewModel.MenuItemViewModels;
-            ContextMenu.Opened += ContextMenu_OnOpen;
-            ContextMenu.Closed += ContextMenu_OnClose;
+        protected override void OnContextMenuOpening(ContextMenuEventArgs e)
+        {
+            LazyInitializeContextMenu();
+            base.OnContextMenuOpening(e);
+        }
+
+        private void LazyInitializeContextMenu()
+        {
+            if (ContextMenu is not InheritanceMarginContextMenu)
+            {
+                var viewModel = (InheritanceMarginGlyphViewModel)DataContext;
+
+                ContextMenu = new InheritanceMarginContextMenu(_threadingContext, _streamingFindUsagesPresenter, _operationExecutor, _workspace, _textView, _listener);
+                ContextMenu.DataContext = viewModel;
+                ContextMenu.ItemsSource = viewModel.MenuItemViewModels;
+                ContextMenu.Opened += ContextMenu_OnOpen;
+                ContextMenu.Closed += ContextMenu_OnClose;
+            }
         }
 
         private void InheritanceMargin_OnClick(object sender, RoutedEventArgs e)
         {
-            if (this.ContextMenu != null)
-            {
-                this.ContextMenu.IsOpen = true;
-                e.Handled = true;
-            }
+            LazyInitializeContextMenu();
+            ContextMenu.IsOpen = true;
+            e.Handled = true;
         }
 
         private void ChangeBorderToHoveringColor()
