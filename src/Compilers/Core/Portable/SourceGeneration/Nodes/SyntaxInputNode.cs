@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
             public Builder(SyntaxInputNode<T> owner, DriverStateTable table, bool trackIncrementalSteps)
             {
                 _owner = owner;
-                _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder(_owner.Name, trackIncrementalSteps);
+                _filterTable = table.GetStateTableOrEmpty<SyntaxNode>(_owner._filterKey).ToBuilder(stepName: null, trackIncrementalSteps);
                 _transformTable = table.GetStateTableOrEmpty<T>(_owner).ToBuilder(_owner.Name, trackIncrementalSteps);
             }
 

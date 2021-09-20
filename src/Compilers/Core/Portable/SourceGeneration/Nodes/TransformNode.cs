@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     newTable.TryRemoveEntries(TimeSpan.Zero, inputs);
                 }
-                else if(entry.State != EntryState.Cached || !newTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
+                else if (entry.State != EntryState.Cached || !newTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
                 {
                     // start twice to improve accuracy. See AnalyzerExecutor.ExecuteAndCatchIfThrows for more details
                     _ = SharedStopwatch.StartNew();
