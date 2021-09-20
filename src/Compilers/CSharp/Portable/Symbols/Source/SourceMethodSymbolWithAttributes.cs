@@ -328,27 +328,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ConditionalAttribute))
                 {
-                    var (boundAttribute, boundNode) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                    if (!boundAttribute.HasErrors)
+                    var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                    if (!attributeData.HasErrors)
                     {
-                        string? name = boundAttribute.GetConstructorArgument<string>(0, SpecialType.System_String);
+                        string? name = attributeData.GetConstructorArgument<string>(0, SpecialType.System_String);
                         arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().AddConditionalSymbol(name);
                         if (!hasAnyDiagnostics)
                         {
-                            return (boundAttribute, boundNode);
+                            return (attributeData, boundAttribute);
                         }
                     }
 
                     return (null, null);
                 }
-                else if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out CSharpAttributeData? boundAttribute, out BoundAttribute? boundNode, out ObsoleteAttributeData? obsoleteData))
+                else if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out CSharpAttributeData? attributeData, out BoundAttribute? boundAttribute, out ObsoleteAttributeData? obsoleteData))
                 {
                     if (obsoleteData != null)
                     {
                         arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
                     }
 
-                    return (boundAttribute, boundNode);
+                    return (attributeData, boundAttribute);
                 }
                 else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.UnmanagedCallersOnlyAttribute))
                 {

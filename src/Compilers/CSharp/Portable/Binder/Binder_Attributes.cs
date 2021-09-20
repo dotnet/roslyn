@@ -54,8 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Binder> binders,
             ImmutableArray<AttributeSyntax> attributesToBind,
             ImmutableArray<NamedTypeSymbol> boundAttributeTypes,
-            CSharpAttributeData?[] attributesBuilder,
-            BoundAttribute?[]? boundNodesBuilder,
+            CSharpAttributeData?[] attributeDataArray,
+            BoundAttribute?[]? boundAttributeArray,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(binders.Any());
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(boundAttributeTypes.Any());
             Debug.Assert(binders.Length == attributesToBind.Length);
             Debug.Assert(boundAttributeTypes.Length == attributesToBind.Length);
-            RoslynDebug.Assert(attributesBuilder != null);
+            RoslynDebug.Assert(attributeDataArray != null);
 
             for (int i = 0; i < attributesToBind.Length; i++)
             {
@@ -71,18 +71,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol boundAttributeType = boundAttributeTypes[i];
                 Binder binder = binders[i];
 
-                var attribute = (SourceAttributeData?)attributesBuilder[i];
+                var attribute = (SourceAttributeData?)attributeDataArray[i];
                 if (attribute == null)
                 {
-                    (attributesBuilder[i], var boundNode) = binder.GetAttribute(attributeSyntax, boundAttributeType, diagnostics);
-                    if (boundNodesBuilder is not null)
+                    (attributeDataArray[i], var boundAttribute) = binder.GetAttribute(attributeSyntax, boundAttributeType, diagnostics);
+                    if (boundAttributeArray is not null)
                     {
-                        boundNodesBuilder[i] = boundNode;
+                        boundAttributeArray[i] = boundAttribute;
                     }
                 }
                 else
                 {
-                    Debug.Assert(boundNodesBuilder is null || boundNodesBuilder[i] is not null);
+                    Debug.Assert(boundAttributeArray is null || boundAttributeArray[i] is not null);
 
                     // attributesBuilder might contain some early bound well-known attributes, which had no errors.
                     // We don't rebind the early bound attributes, but need to compute isConditionallyOmitted.
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                     bool isConditionallyOmitted = binder.IsAttributeConditionallyOmitted(attribute.AttributeClass, attributeSyntax.SyntaxTree, ref useSiteInfo);
                     diagnostics.Add(attributeSyntax, useSiteInfo);
-                    attributesBuilder[i] = attribute.WithOmittedCondition(isConditionallyOmitted);
+                    attributeDataArray[i] = attribute.WithOmittedCondition(isConditionallyOmitted);
                 }
             }
         }

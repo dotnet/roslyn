@@ -610,10 +610,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerArgumentExpressionAttribute))
                 {
                     var index = -1;
-                    var (attribute, _) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out _);
-                    if (!attribute.HasErrors)
+                    var (attributeData, _) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out _);
+                    if (!attributeData.HasErrors)
                     {
-                        var constructorArguments = attribute.CommonConstructorArguments;
+                        var constructorArguments = attributeData.CommonConstructorArguments;
                         Debug.Assert(constructorArguments.Length == 1);
                         if (constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string? parameterName))
                         {
@@ -643,16 +643,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 description.Equals(AttributeDescription.DateTimeConstantAttribute));
 
             bool hasAnyDiagnostics;
-            var (attribute, boundNode) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+            var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
             ConstantValue value;
-            if (attribute.HasErrors)
+            if (attributeData.HasErrors)
             {
                 value = ConstantValue.Bad;
                 hasAnyDiagnostics = true;
             }
             else
             {
-                value = DecodeDefaultParameterValueAttribute(description, attribute, arguments.AttributeSyntax, diagnose: false, diagnosticsOpt: null);
+                value = DecodeDefaultParameterValueAttribute(description, attributeData, arguments.AttributeSyntax, diagnose: false, diagnosticsOpt: null);
             }
 
             var paramData = arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>();
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 paramData.DefaultParameterValue = value;
             }
 
-            return !hasAnyDiagnostics ? (attribute, boundNode) : (null, null);
+            return !hasAnyDiagnostics ? (attributeData, boundAttribute) : (null, null);
         }
 #nullable disable
 

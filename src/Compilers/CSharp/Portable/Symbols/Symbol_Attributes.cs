@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var compilation = this.DeclaringCompilation;
 
             ImmutableArray<Binder> binders;
-            BoundAttribute[]? boundNodes;
+            BoundAttribute[]? boundAttributeArray;
             ImmutableArray<AttributeSyntax> attributesToBind = this.GetAttributesToBind(attributesSyntaxLists, symbolPart, diagnostics, compilation, attributeMatchesOpt, binderOpt, out binders);
             int totalAttributesCount = attributesToBind.Length;
             Debug.Assert(!attributesToBind.IsDefault);
@@ -322,12 +322,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.PostEarlyDecodeWellKnownAttributeTypes();
 
                 // Bind the attribute in two stages - early and normal.
-                var attributesBuilder = new CSharpAttributeData[totalAttributesCount];
-                boundNodes = (!earlyDecodingOnly && attributeMatchesOpt is null) ? new BoundAttribute[totalAttributesCount] : null;
+                var attributeDataArray = new CSharpAttributeData[totalAttributesCount];
+                boundAttributeArray = (!earlyDecodingOnly && attributeMatchesOpt is null) ? new BoundAttribute[totalAttributesCount] : null;
 
                 // Early bind and decode some well-known attributes.
-                EarlyWellKnownAttributeData? earlyData = this.EarlyDecodeWellKnownAttributes(binders, boundAttributeTypes, attributesToBind, symbolPart, attributesBuilder, boundNodes);
-                Debug.Assert(!attributesBuilder.Contains((attr) => attr != null && attr.HasErrors));
+                EarlyWellKnownAttributeData? earlyData = this.EarlyDecodeWellKnownAttributes(binders, boundAttributeTypes, attributesToBind, symbolPart, attributeDataArray, boundAttributeArray);
+                Debug.Assert(!attributeDataArray.Contains((attr) => attr != null && attr.HasErrors));
 
                 // Store data decoded from early bound well-known attributes.
                 // TODO: what if this succeeds on another thread, not ours?
@@ -340,8 +340,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Bind attributes.
-                Binder.GetAttributes(binders, attributesToBind, boundAttributeTypes, attributesBuilder, boundNodes, diagnostics);
-                boundAttributes = attributesBuilder.AsImmutableOrNull();
+                Binder.GetAttributes(binders, attributesToBind, boundAttributeTypes, attributeDataArray, boundAttributeArray, diagnostics);
+                boundAttributes = attributeDataArray.AsImmutableOrNull();
 
                 // All attributes must be bound by now.
                 Debug.Assert(!boundAttributes.Any((attr) => attr == null));
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 boundAttributes = ImmutableArray<CSharpAttributeData>.Empty;
-                boundNodes = null;
+                boundAttributeArray = null;
                 wellKnownAttributeData = null;
                 Interlocked.CompareExchange(ref lazyCustomAttributesBag, CustomAttributesBag<CSharpAttributeData>.WithEmptyData(), null);
                 this.PostEarlyDecodeWellKnownAttributeTypes();
@@ -379,12 +379,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (totalAttributesCount != 0)
                     {
-                        Debug.Assert(boundNodes is not null);
+                        Debug.Assert(boundAttributeArray is not null);
                         for (var i = 0; i < totalAttributesCount; i++)
                         {
-                            var boundNode = boundNodes[i];
-                            Debug.Assert(boundNode is not null);
-                            NullableWalker.AnalyzeIfNeeded(binders[i], boundNode, boundNode.Syntax, diagnostics.DiagnosticBag);
+                            var boundAttribute = boundAttributeArray[i];
+                            Debug.Assert(boundAttribute is not null);
+                            NullableWalker.AnalyzeIfNeeded(binders[i], boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
                         }
                     }
 
@@ -588,14 +588,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<NamedTypeSymbol> boundAttributeTypes,
             ImmutableArray<AttributeSyntax> attributesToBind,
             AttributeLocation symbolPart,
-            CSharpAttributeData?[] boundAttributesBuilder,
-            BoundAttribute?[]? boundNodesBuilder)
+            CSharpAttributeData?[] attributeDataArray,
+            BoundAttribute?[]? boundAttributeArray)
         {
             Debug.Assert(boundAttributeTypes.Any());
             Debug.Assert(attributesToBind.Any());
             Debug.Assert(binders.Any());
-            Debug.Assert(boundAttributesBuilder != null);
-            Debug.Assert(!boundAttributesBuilder.Contains((attr) => attr != null));
+            Debug.Assert(attributeDataArray != null);
+            Debug.Assert(!attributeDataArray.Contains((attr) => attr != null));
 
             var earlyBinder = new EarlyWellKnownAttributeBinder(binders[0]);
             var arguments = new EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation>();
@@ -616,14 +616,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments.AttributeSyntax = attributesToBind[i];
 
                     // Early bind some well-known attributes
-                    (CSharpAttributeData? earlyBoundAttributeOpt, BoundAttribute? boundNodeOpt) = this.EarlyDecodeWellKnownAttribute(ref arguments);
-                    Debug.Assert(earlyBoundAttributeOpt == null || !earlyBoundAttributeOpt.HasErrors);
-                    Debug.Assert(boundNodeOpt is null == earlyBoundAttributeOpt is null);
+                    (CSharpAttributeData? earlyAttributeDatOpt, BoundAttribute? boundAttributeOpt) = this.EarlyDecodeWellKnownAttribute(ref arguments);
+                    Debug.Assert(earlyAttributeDatOpt == null || !earlyAttributeDatOpt.HasErrors);
+                    Debug.Assert(boundAttributeOpt is null == earlyAttributeDatOpt is null);
 
-                    boundAttributesBuilder[i] = earlyBoundAttributeOpt;
-                    if (boundNodesBuilder is not null)
+                    attributeDataArray[i] = earlyAttributeDatOpt;
+                    if (boundAttributeArray is not null)
                     {
-                        boundNodesBuilder[i] = boundNodeOpt;
+                        boundAttributeArray[i] = boundAttributeOpt;
                     }
                 }
             }
