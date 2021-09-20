@@ -12,9 +12,9 @@
 and lambda expressions are implicitly convertible to `System.Linq.Expressions.Expression` and `System.Linq.Expressions.LambdaExpression`.
 These are _function_type_conversions_.
 
-    In method overload resolution, if there is an applicable overload that relies on a _function_type_conversion_ of a lambda expression or method group,
-    and the closest applicable extension method overload with a conversion to a strongly-type delegate parameter is in an enclosing namespace,
-    the overload with the _function_type_conversion_ will be chosen.
+    The new implicit conversions may change overload resolution in cases where the compiler searches iteratively for overloads and stops at the first type or namespace scope containing any applicable overloads.
+
+    a. Instance and extension methods
 
     ```csharp
     class C
@@ -22,8 +22,8 @@ These are _function_type_conversions_.
         static void Main()
         {
             var c = new C();
-            c.M(Main);      // C#9: E.M(), C#10: C.M()
-            c.M(() => { }); // C#9: E.M(), C#10: C.M()
+            c.M(Main);      // C#9: E.M(); C#10: C.M()
+            c.M(() => { }); // C#9: E.M(); C#10: C.M()
         }
     
         void M(System.Delegate d) { }
@@ -35,30 +35,72 @@ These are _function_type_conversions_.
     }
     ```
 
-2. In C# 10, lambda expressions and method groups with inferred type are implicitly convertible to `System.MulticastDelegate`, and bases classes and interfaces of `System.MulticastDelegate` including `object`,
-and lambda expressions are implicitly convertible to `System.Linq.Expressions.Expression` and `System.Linq.Expressions.LambdaExpression`.
-These are _function_type_conversions_.
-
-    In binary operator overload resolution, if there is an applicable operator overload that relies on a _function_type_conversion_ of a lambda expression or method group,
-    and the closest applicable operator overload with a conversion to a strongly-type delegate parameter is defined in a base type,
-    the overload with the _function_type_conversion_ will be chosen.
+    b. Base and derived methods
 
     ```csharp
     using System;
-
-    var b = new B();
-    _ = b + F;         // C#9: A.operator+(); C#10: B.operator+()
-    _ = b + (() => 2); // C#9: A.operator+(); C#10: B.operator+()
-
-    static int F() => 1;
+    using System.Linq.Expressions;
 
     class A
     {
+        public void M(Func<int> f) { }
         public static A operator+(A a, Func<int> f) => a;
     }
 
     class B : A
     {
+        public void M(Expression e) { }
         public static B operator+(B b, Delegate d) => b;
+    }
+
+    class Program
+    {
+        static int F() => 1;
+
+        static void Main()
+        {
+            var b = new B();
+            b.M(() => 1); // C#9: A.M(); C#10: B.M()
+            _ = b + F;    // C#9: A.operator+(); C#10: B.operator+()
+        }
+    }
+    ```
+
+3. In C#10, a method group with inferred _function_type_ has an implicit _function_type_conversion_ to `System.Linq.Expressions.Expression` and `System.Linq.Expressions.LambdaExpression`, even though the method group cannot be realized as an `Expression`.
+
+    ```csharp
+    using System;
+    using System.Linq.Expressions;
+
+    var c = new C();
+    c.M(F); // error CS0428: Cannot convert method group 'F' to non-delegate type 'Expression'
+
+    static int F() => 0;
+
+    class C
+    {
+        public void M(Expression e) { }
+    }
+
+    static class E
+    {
+        public static void M(this object o, Func<int> a) { }
+    }
+    ```
+
+4. In C#10, a lambda expression with inferred type may contribute an argument type that affects overload resolution.
+
+    ```csharp
+    using System;
+
+    class Program
+    {
+        static void F(Func<Func<object>> f, int i) { }
+        static void F(Func<Func<int>> f, object o) { }
+
+        static void Main()
+        {
+            F(() => () => 1, 2); // C#9: ok; C#10: ambiguous
+        }
     }
     ```
