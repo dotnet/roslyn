@@ -305,7 +305,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Binder.BindAttributeTypes(binders, attributesToBind, this, attributeTypesBuilder, diagnostics);
 
-                if (!earlyDecodingOnly && attributeMatchesOpt is null)
+                bool interestedInDiagnostics = !earlyDecodingOnly && attributeMatchesOpt is null;
+                if (interestedInDiagnostics)
                 {
                     for (var i = 0; i < totalAttributesCount; i++)
                     {
@@ -323,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Bind the attribute in two stages - early and normal.
                 var attributeDataArray = new CSharpAttributeData[totalAttributesCount];
-                boundAttributeArray = (!earlyDecodingOnly && attributeMatchesOpt is null) ? new BoundAttribute[totalAttributesCount] : null;
+                boundAttributeArray = interestedInDiagnostics ? new BoundAttribute[totalAttributesCount] : null;
 
                 // Early bind and decode some well-known attributes.
                 EarlyWellKnownAttributeData? earlyData = this.EarlyDecodeWellKnownAttributes(binders, boundAttributeTypes, attributesToBind, symbolPart, attributeDataArray, boundAttributeArray);
@@ -616,11 +617,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arguments.AttributeSyntax = attributesToBind[i];
 
                     // Early bind some well-known attributes
-                    (CSharpAttributeData? earlyAttributeDatOpt, BoundAttribute? boundAttributeOpt) = this.EarlyDecodeWellKnownAttribute(ref arguments);
-                    Debug.Assert(earlyAttributeDatOpt == null || !earlyAttributeDatOpt.HasErrors);
-                    Debug.Assert(boundAttributeOpt is null == earlyAttributeDatOpt is null);
+                    (CSharpAttributeData? earlyAttributeDataOpt, BoundAttribute? boundAttributeOpt) = this.EarlyDecodeWellKnownAttribute(ref arguments);
+                    Debug.Assert(earlyAttributeDataOpt == null || !earlyAttributeDataOpt.HasErrors);
+                    Debug.Assert(boundAttributeOpt is null == earlyAttributeDataOpt is null);
 
-                    attributeDataArray[i] = earlyAttributeDatOpt;
+                    attributeDataArray[i] = earlyAttributeDataOpt;
                     if (boundAttributeArray is not null)
                     {
                         boundAttributeArray[i] = boundAttributeOpt;
