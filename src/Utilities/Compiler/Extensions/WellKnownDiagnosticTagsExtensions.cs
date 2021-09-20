@@ -7,11 +7,11 @@ namespace Microsoft.CodeAnalysis
         public const string EnabledRuleInAggressiveMode = nameof(EnabledRuleInAggressiveMode);
         public const string Dataflow = nameof(Dataflow);
         public const string CompilationEnd = nameof(CompilationEnd);
-        public static string[] DataflowAndTelemetry = new string[] { Dataflow, WellKnownDiagnosticTags.Telemetry };
-        public static string[] DataflowAndTelemetryEnabledInAggressiveMode = new string[] { Dataflow, WellKnownDiagnosticTags.Telemetry, EnabledRuleInAggressiveMode };
+        public static readonly string[] DataflowAndTelemetry = new string[] { Dataflow, WellKnownDiagnosticTags.Telemetry };
+        public static readonly string[] DataflowAndTelemetryEnabledInAggressiveMode = new string[] { Dataflow, WellKnownDiagnosticTags.Telemetry, EnabledRuleInAggressiveMode };
 
-        public static string[] Telemetry = new string[] { WellKnownDiagnosticTags.Telemetry };
-        public static string[] TelemetryEnabledInAggressiveMode = new string[] { WellKnownDiagnosticTags.Telemetry, EnabledRuleInAggressiveMode };
-        public static string[] CompilationEndAndTelemetry = new string[] { CompilationEnd, WellKnownDiagnosticTags.Telemetry };
+        public static readonly string[] Telemetry = new string[] { WellKnownDiagnosticTags.Telemetry };
+        public static readonly string[] TelemetryEnabledInAggressiveMode = new string[] { WellKnownDiagnosticTags.Telemetry, EnabledRuleInAggressiveMode };
+        public static readonly string[] CompilationEndAndTelemetry = new string[] { CompilationEnd, WellKnownDiagnosticTags.Telemetry };
     }
 }
