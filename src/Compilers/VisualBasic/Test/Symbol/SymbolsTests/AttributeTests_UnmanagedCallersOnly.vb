@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Private ReadOnly _parseOptions As CSharp.CSharpParseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Default)
         Private ReadOnly _csharpCompOptions As CSharp.CSharpCompilationOptions = New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe:=True)
-        Private ReadOnly _csharpReferences As ImmutableArray(Of MetadataReference) = TargetFrameworkUtil.NetCoreAppReferences.Add(NetCoreApp.SystemRuntimeInteropServices)
+        Private ReadOnly _csharpReferences As ImmutableArray(Of MetadataReference) = TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp).Add(NetCoreApp.SystemRuntimeInteropServices)
 
         Private ReadOnly UnmanagedCallersOnlyAttributeIl As String = <![CDATA[
 .class public auto ansi sealed beforefieldinit System.Runtime.InteropServices.UnmanagedCallersOnlyAttribute

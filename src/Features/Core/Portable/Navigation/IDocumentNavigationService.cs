@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -41,23 +39,23 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <summary>
         /// Navigates to the given position in the specified document, opening it if necessary.
         /// </summary>
-        bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken);
+        bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet? options, bool allowInvalidSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Navigates to the given position in the specified document, opening it if necessary.
         /// </summary>
-        Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, bool allowInvalidSpan, CancellationToken cancellationToken);
+        Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet? options, bool allowInvalidSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Navigates to the given line/offset in the specified document, opening it if necessary.
         /// </summary>
         /// <remarks>Only legal to call on the UI thread.</remarks>
-        bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options, CancellationToken cancellationToken);
+        bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet? options, CancellationToken cancellationToken);
 
         /// <summary>
         /// Navigates to the given virtual position in the specified document, opening it if necessary.
         /// </summary>
-        bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options, CancellationToken cancellationToken);
+        bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet? options, CancellationToken cancellationToken);
     }
 
     internal static class IDocumentNavigationServiceExtensions
@@ -71,11 +69,11 @@ namespace Microsoft.CodeAnalysis.Navigation
             => service.TryNavigateToSpan(workspace, documentId, textSpan, options: null, cancellationToken);
 
         /// <remarks>Only legal to call on the UI thread.</remarks>
-        public static bool TryNavigateToSpan(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken)
+        public static bool TryNavigateToSpan(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet? options, CancellationToken cancellationToken)
             => service.TryNavigateToSpan(workspace, documentId, textSpan, options, allowInvalidSpan: false, cancellationToken);
 
         /// <remarks>Legal to call from any thread.</remarks>
-        public static Task<bool> TryNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken)
+        public static Task<bool> TryNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet? options, CancellationToken cancellationToken)
             => service.TryNavigateToSpanAsync(workspace, documentId, textSpan, options, allowInvalidSpan: false, cancellationToken);
 
         /// <remarks>Only legal to call on the UI thread.</remarks>

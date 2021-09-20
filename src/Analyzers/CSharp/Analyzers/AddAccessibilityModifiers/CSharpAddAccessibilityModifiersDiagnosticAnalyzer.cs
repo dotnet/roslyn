@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
     internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
         : AbstractAddAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
     {
-        private static CSharpSyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
-
         protected override void ProcessCompilationUnit(
             SyntaxTreeAnalysisContext context,
             CodeStyleOption2<AccessibilityModifiersRequired> option, CompilationUnitSyntax compilationUnit)
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             }
 #endif
 
-            if (!CSharpAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(SyntaxFacts, member, option.Value, out var name))
+            if (!CSharpAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, member, option.Value, out var name))
                 return;
 
             // Have an issue to flag, either add or remove. Report issue to user.

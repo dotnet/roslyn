@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private readonly ITagAggregator<InlineHintDataTag> _tagAggregator;
 
         /// <summary>
-        /// stores the parameter hint tags in a global location 
+        /// stores the parameter hint tags in a global location
         /// </summary>
         private readonly List<(IMappingTagSpan<InlineHintDataTag> mappingTagSpan, ITagSpan<IntraTextAdornmentTag>? tagSpan)> _cache = new();
 
         /// <summary>
-        /// Stores the snapshot associated with the cached tags in <see cref="_cache" /> 
+        /// Stores the snapshot associated with the cached tags in <see cref="_cache" />
         /// </summary>
         private ITextSnapshot? _cacheSnapshot;
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 {
                     // Gets the associated span from the snapshot span and creates the IntraTextAdornmentTag from the data
                     // tags. Only dealing with the dataTagSpans if the count is 1 because we do not see a multi-buffer case
-                    // occuring 
+                    // occuring
                     var dataTagSpans = tag.Span.GetSpans(snapshot);
                     if (dataTagSpans.Count == 1)
                     {
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             }
 
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var classify = document?.Project.Solution.Workspace.Options.GetOption(InlineHintsOptions.ColorHints, document?.Project.Language) ?? false;
+            var classify = document?.Project.Solution.Options.GetOption(InlineHintsOptions.ColorHints, document?.Project.Language) ?? false;
 
             var selectedSpans = new List<ITagSpan<IntraTextAdornmentTag>>();
             for (var i = 0; i < _cache.Count; i++)

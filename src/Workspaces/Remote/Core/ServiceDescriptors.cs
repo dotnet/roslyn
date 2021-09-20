@@ -47,6 +47,11 @@ namespace Microsoft.CodeAnalysis.Remote
         private const string InterfaceNamePrefix = "IRemote";
         private const string InterfaceNameSuffix = "Service";
 
+        internal const string Prefix = "roslyn";
+        private const string Suffix64 = "64";
+        private const string SuffixServerGC = "S";
+        private const string SuffixCoreClr = "Core";
+
         public static readonly ServiceDescriptors Instance = new(ComponentName, GetFeatureDisplayName, RemoteSerializationOptions.Default, new (Type, Type?)[]
         {
             (typeof(IRemoteAssetSynchronizationService), null),
@@ -75,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteValueTrackingService), null),
             (typeof(IRemoteInheritanceMarginService), null),
             (typeof(IRemoteUnusedReferenceAnalysisService), null),
+            (typeof(IRemoteProcessTelemetryService), null),
         });
 
         internal readonly RemoteSerializationOptions Options;
@@ -112,10 +118,10 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfFalse(callbackInterface == null || callbackInterface.IsInterface);
 
             var qualifiedServiceName = GetQualifiedServiceName(serviceInterface);
-            var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
-            var descriptor64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
-            var descriptorCoreClr64 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.SuffixCoreClr + RemoteServiceName.Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
-            var descriptorCoreClr64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + RemoteServiceName.SuffixCoreClr + RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
+            var descriptor64 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
+            var descriptor64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + Suffix64 + SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
+            var descriptorCoreClr64 = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + SuffixCoreClr + Suffix64, Options, _featureDisplayNameProvider, callbackInterface);
+            var descriptorCoreClr64ServerGC = ServiceDescriptor.CreateRemoteServiceDescriptor(qualifiedServiceName + SuffixCoreClr + Suffix64 + SuffixServerGC, Options, _featureDisplayNameProvider, callbackInterface);
 
             return (descriptor64, descriptor64ServerGC, descriptorCoreClr64, descriptorCoreClr64ServerGC);
         }
@@ -141,21 +147,21 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfFalse(prefixLength > 0);
 
             int suffixLength;
-            if (qualifiedServiceName.EndsWith(RemoteServiceName.SuffixCoreClr + RemoteServiceName.Suffix64, StringComparison.Ordinal))
+            if (qualifiedServiceName.EndsWith(SuffixCoreClr + Suffix64, StringComparison.Ordinal))
             {
-                suffixLength = RemoteServiceName.SuffixCoreClr.Length + RemoteServiceName.Suffix64.Length;
+                suffixLength = SuffixCoreClr.Length + Suffix64.Length;
             }
-            else if (qualifiedServiceName.EndsWith(RemoteServiceName.SuffixCoreClr + RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, StringComparison.Ordinal))
+            else if (qualifiedServiceName.EndsWith(SuffixCoreClr + Suffix64 + SuffixServerGC, StringComparison.Ordinal))
             {
-                suffixLength = RemoteServiceName.SuffixCoreClr.Length + RemoteServiceName.Suffix64.Length + RemoteServiceName.SuffixServerGC.Length;
+                suffixLength = SuffixCoreClr.Length + Suffix64.Length + SuffixServerGC.Length;
             }
-            else if (qualifiedServiceName.EndsWith(RemoteServiceName.Suffix64, StringComparison.Ordinal))
+            else if (qualifiedServiceName.EndsWith(Suffix64, StringComparison.Ordinal))
             {
-                suffixLength = RemoteServiceName.Suffix64.Length;
+                suffixLength = Suffix64.Length;
             }
-            else if (qualifiedServiceName.EndsWith(RemoteServiceName.Suffix64 + RemoteServiceName.SuffixServerGC, StringComparison.Ordinal))
+            else if (qualifiedServiceName.EndsWith(Suffix64 + SuffixServerGC, StringComparison.Ordinal))
             {
-                suffixLength = RemoteServiceName.Suffix64.Length + RemoteServiceName.SuffixServerGC.Length;
+                suffixLength = Suffix64.Length + SuffixServerGC.Length;
             }
             else
             {

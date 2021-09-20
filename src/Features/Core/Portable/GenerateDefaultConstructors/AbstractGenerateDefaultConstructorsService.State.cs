@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 //
                 // Similarly if this is for the codefix only offer if we do see that there's an error.
                 var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, fullHeader: true, out _))
+                var headerFacts = semanticDocument.Document.GetRequiredLanguageService<IHeaderFactsService>();
+                if (headerFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, fullHeader: true, out _))
                 {
                     var fixesError = FixesError(classType, baseType);
                     if (forRefactoring == fixesError)

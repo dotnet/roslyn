@@ -10,11 +10,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PatternMatching;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -113,9 +114,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         public static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            Workspace workspace,
+            HostWorkspaceServices services,
             ImmutableArray<DocumentKey> documentKeys,
             ImmutableArray<DocumentKey> priorityDocumentKeys,
+            StorageDatabase database,
             string searchPattern,
             IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onItemFound,
@@ -131,15 +133,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
-                workspace, priorityDocumentKeys, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
+                services, priorityDocumentKeys, database, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
 
             await SearchCachedDocumentsInCurrentProcessAsync(
-                workspace, lowPriDocs, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
+                services, lowPriDocs, database, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task SearchCachedDocumentsInCurrentProcessAsync(
-            Workspace workspace,
+            HostWorkspaceServices services,
             ImmutableArray<DocumentKey> documentKeys,
+            StorageDatabase database,
             string patternName,
             string patternContainer,
             DeclaredSymbolInfoKindSet kinds,
@@ -154,7 +157,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 tasks.Add(Task.Run(async () =>
                 {
                     var index = await SyntaxTreeIndex.LoadAsync(
-                        workspace, documentKey, checksum: null, stringTable, cancellationToken).ConfigureAwait(false);
+                        services, documentKey, checksum: null, database, stringTable, cancellationToken).ConfigureAwait(false);
                     if (index == null)
                         return;
 
@@ -183,6 +186,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
             {
+                // Namespaces are never returned in nav-to as they're too common and have too many locations.
+                if (declaredSymbolInfo.Kind == DeclaredSymbolInfoKind.Namespace)
+                    continue;
+
                 await AddResultIfMatchAsync(
                     documentId, document,
                     declaredSymbolInfo,

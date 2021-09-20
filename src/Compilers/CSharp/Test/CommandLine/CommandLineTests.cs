@@ -35,6 +35,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 using static Roslyn.Test.Utilities.TestMetadata;
@@ -11513,7 +11514,7 @@ class C
 
             var analyzerDir = Temp.CreateDirectory();
 
-            var analyzerFile = analyzerDir.CreateFile(analyzerFileName).WriteAllBytes(DesktopTestHelpers.CreateCSharpAnalyzerNetStandard13(Path.GetFileNameWithoutExtension(analyzerFileName)));
+            var analyzerFile = analyzerDir.CreateFile(analyzerFileName).WriteAllBytes(CreateCSharpAnalyzerNetStandard13(Path.GetFileNameWithoutExtension(analyzerFileName)));
             var srcFile = analyzerDir.CreateFile(srcFileName).WriteAllText("public class C { }");
 
             var result = ProcessUtilities.Run(s_CSharpCompilerExecutable, arguments: $"/nologo /t:library /analyzer:{analyzerFileName} {srcFileName}", workingDirectory: analyzerDir.Path);
@@ -11529,6 +11530,165 @@ System.NotImplementedException: 28
             Assert.Equal(0, result.ExitCode);
         }
 #endif
+
+        private static ImmutableArray<byte> CreateCSharpAnalyzerNetStandard13(string analyzerAssemblyName)
+        {
+            var minSystemCollectionsImmutableSource = @"
+[assembly: System.Reflection.AssemblyVersion(""1.2.3.0"")]
+
+namespace System.Collections.Immutable
+{
+    public struct ImmutableArray<T>
+    {
+    }
+}
+";
+
+            var minCodeAnalysisSource = @"
+using System;
+
+[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
+
+namespace Microsoft.CodeAnalysis.Diagnostics
+{
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class DiagnosticAnalyzerAttribute : Attribute
+    {
+        public DiagnosticAnalyzerAttribute(string firstLanguage, params string[] additionalLanguages) {}
+    }
+
+    public abstract class DiagnosticAnalyzer
+    {
+        public abstract System.Collections.Immutable.ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
+        public abstract void Initialize(AnalysisContext context);
+    }
+
+    public abstract class AnalysisContext
+    {
+    }
+}
+
+namespace Microsoft.CodeAnalysis
+{
+    public sealed class DiagnosticDescriptor
+    {
+    }
+}
+";
+            var minSystemCollectionsImmutableImage = CSharpCompilation.Create(
+                "System.Collections.Immutable",
+                new[] { SyntaxFactory.ParseSyntaxTree(minSystemCollectionsImmutableSource) },
+                new MetadataReference[] { NetStandard13.SystemRuntime },
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_b03f5f7f11d50a3a)).EmitToArray();
+
+            var minSystemCollectionsImmutableRef = MetadataReference.CreateFromImage(minSystemCollectionsImmutableImage);
+
+            var minCodeAnalysisImage = CSharpCompilation.Create(
+                "Microsoft.CodeAnalysis",
+                new[] { SyntaxFactory.ParseSyntaxTree(minCodeAnalysisSource) },
+                new MetadataReference[]
+                {
+                    NetStandard13.SystemRuntime,
+                    minSystemCollectionsImmutableRef
+                },
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_31bf3856ad364e35)).EmitToArray();
+
+            var minCodeAnalysisRef = MetadataReference.CreateFromImage(minCodeAnalysisImage);
+
+            var analyzerSource = @"
+using System;
+using System.Collections.ObjectModel;
+using System.Collections.Immutable;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Net.Http;
+using System.Net.Security;
+using System.Net.Sockets;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
+using System.Security.AccessControl;
+using System.Security.Cryptography;
+using System.Security.Principal;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Serialization;
+using System.Xml.XPath;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.Win32.SafeHandles;
+
+[DiagnosticAnalyzer(""C#"")]
+public class TestAnalyzer : DiagnosticAnalyzer
+{
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException(new[]                                 
+    {                                                                                                                                   
+        typeof(Win32Exception),           // Microsoft.Win32.Primitives
+        typeof(AppContext),               // System.AppContext
+        typeof(Console),                  // System.Console
+        typeof(ValueTuple),               // System.ValueTuple
+        typeof(FileVersionInfo),          // System.Diagnostics.FileVersionInfo
+        typeof(Process),                  // System.Diagnostics.Process
+        typeof(ChineseLunisolarCalendar), // System.Globalization.Calendars
+        typeof(ZipArchive),               // System.IO.Compression
+        typeof(ZipFile),                  // System.IO.Compression.ZipFile
+        typeof(FileOptions),              // System.IO.FileSystem
+        typeof(FileAttributes),           // System.IO.FileSystem.Primitives
+        typeof(HttpClient),               // System.Net.Http
+        typeof(AuthenticatedStream),      // System.Net.Security
+        typeof(IOControlCode),            // System.Net.Sockets
+        typeof(RuntimeInformation),       // System.Runtime.InteropServices.RuntimeInformation
+        typeof(SerializationException),   // System.Runtime.Serialization.Primitives
+        typeof(GenericIdentity),          // System.Security.Claims
+        typeof(Aes),                      // System.Security.Cryptography.Algorithms
+        typeof(CspParameters),            // System.Security.Cryptography.Csp
+        typeof(AsnEncodedData),           // System.Security.Cryptography.Encoding
+        typeof(AsymmetricAlgorithm),      // System.Security.Cryptography.Primitives
+        typeof(SafeX509ChainHandle),      // System.Security.Cryptography.X509Certificates
+        typeof(IXmlLineInfo),             // System.Xml.ReaderWriter
+        typeof(XmlNode),                  // System.Xml.XmlDocument
+        typeof(XPathDocument),            // System.Xml.XPath
+        typeof(XDocumentExtensions),      // System.Xml.XPath.XDocument
+        typeof(CodePagesEncodingProvider),// System.Text.Encoding.CodePages
+        typeof(ValueTask<>),              // System.Threading.Tasks.Extensions
+
+        // csc doesn't ship with facades for the following assemblies. 
+        // Analyzers can't use them unless they carry the facade with them.
+
+        // typeof(SafePipeHandle),           // System.IO.Pipes
+        // typeof(StackFrame),               // System.Diagnostics.StackTrace
+        // typeof(BindingFlags),             // System.Reflection.TypeExtensions
+        // typeof(AccessControlActions),     // System.Security.AccessControl
+        // typeof(SafeAccessTokenHandle),    // System.Security.Principal.Windows
+        // typeof(Thread),                   // System.Threading.Thread
+    }.Length.ToString());
+
+    public override void Initialize(AnalysisContext context)
+    {
+    }
+}";
+
+            var references =
+                new MetadataReference[]
+                {
+                    minCodeAnalysisRef,
+                    minSystemCollectionsImmutableRef
+                };
+            references = references.Concat(NetStandard13.All).ToArray();
+
+            var analyzerImage = CSharpCompilation.Create(
+                analyzerAssemblyName,
+                new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(analyzerSource) },
+                references: references,
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).EmitToArray();
+
+            return analyzerImage;
+        }
 
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=484417")]
         [ConditionalFact(typeof(WindowsDesktopOnly), typeof(IsEnglishLocal), Reason = "https://github.com/dotnet/roslyn/issues/30321")]

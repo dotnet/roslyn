@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnType = inferredReturnType.TypeWithAnnotations;
                 returnRefKind = inferredReturnType.RefKind;
 
-                if (!returnType.HasType && returnTypes.Count > 0)
+                if (!returnType.HasType && inferredReturnType.NumExpressions > 0)
                 {
                     return null;
                 }

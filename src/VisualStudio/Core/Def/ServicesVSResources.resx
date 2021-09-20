@@ -858,9 +858,6 @@ Additional information: {1}</value>
   <data name="Pick_members" xml:space="preserve">
     <value>Pick members</value>
   </data>
-  <data name="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio" xml:space="preserve">
-    <value>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</value>
-  </data>
   <data name="analyzer_Prefer_auto_properties" xml:space="preserve">
     <value>Prefer auto properties</value>
   </data>

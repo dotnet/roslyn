@@ -225,6 +225,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">개체/컬렉션 초기화 기본 설정 적용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
+        <source>Applying source changes while the application is running is not supported by the runtime.</source>
+        <target state="new">Applying source changes while the application is running is not supported by the runtime.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
         <source>Attribute '{0}' is missing. Updating an async method or an iterator requires restarting the application.</source>
         <target state="translated">특성 '{0}'이(가) 없습니다. 비동기 메서드 또는 반복기를 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
@@ -445,6 +450,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">구조체로 변환</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_tuple">
+        <source>Convert to tuple</source>
+        <target state="new">Convert to tuple</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
         <target state="translated">형식을 '{0}'(으)로 변환</target>
@@ -513,11 +523,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="EditAndContinueDisallowedByProject">
         <source>Changes made in project '{0}' require restarting the application: {1}</source>
         <target state="translated">' {0}' 프로젝트에서 변경한 내용을 적용하려면 응용 프로그램 ‘{1}’을(를) 다시 시작 해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Edit_and_continue_is_not_supported_by_the_runtime">
-        <source>Edit and continue is not supported by the runtime.</source>
-        <target state="translated">편집하고 계속하기는 런타임에서 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -2826,6 +2831,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">"HH" 사용자 지정 형식 지정자(및 임의 개수의 추가 "H" 지정자)는 시간을 00부터 23까지의 숫자로 나타냅니다. 즉, 시간은 자정부터 경과한 시간을 계산하는 0 기반 24시간제로 표현됩니다. 한 자릿수 시간은 앞에 0이 있는 형식으로 지정됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="all_anonymous_types_in_container">
+        <source>all anonymous types in container</source>
+        <target state="new">all anonymous types in container</target>
+        <note />
+      </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
         <source>and update call sites directly</source>
         <target state="translated">통화 사이트를 직접 업데이트하고</target>
@@ -2980,6 +2990,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
       <trans-unit id="into_new_overload">
         <source>into new overload</source>
         <target state="translated">새 오버로드로</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="just_this_anonymous_type">
+        <source>just this anonymous type</source>
+        <target state="new">just this anonymous type</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">

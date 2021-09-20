@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -36,12 +35,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     internal partial class AdvancedOptionPageControl : AbstractOptionPageControl
     {
         private readonly ColorSchemeApplier _colorSchemeApplier;
-        private readonly IExperimentationService _experimentationService;
 
-        public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel, IExperimentationService experimentationService) : base(optionStore)
+        public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel) : base(optionStore)
         {
             _colorSchemeApplier = componentModel.GetService<ColorSchemeApplier>();
-            _experimentationService = experimentationService;
 
             InitializeComponent();
 
@@ -55,8 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences, () =>
             {
                 // If the option has not been set by the user, check if the option to remove unused references
-                // is enabled from experimentation. If so, default to that. Otherwise default to disabled
-                return experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.RemoveUnusedReferences) ?? false;
+                // is enabled from experimentation. If so, default to that.
+                return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
             });
 
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp);
@@ -96,8 +93,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous, () =>
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation.
-                // If so, default to that. Otherwise default to disabled
-                return experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.AsynchronousQuickActions) ?? false;
+                // If so, default to that.
+                return optionStore.GetOption(SuggestionsOptions.AsynchronousFeatureFlag);
             });
 
             // Highlighting
@@ -106,11 +103,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
             BindToOption(Underline_reassigned_variables, ClassificationOptions.ClassifyReassignedVariables, LanguageNames.CSharp);
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.EnableOpeningInWorkspace, () =>
+            BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.Options.EnableOpeningInWorkspace, () =>
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation.
-                // If so, default to that. Otherwise default to disabled
-                return experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.SourceGeneratorsEnableOpeningInWorkspace) ?? false;
+                // If so, default to that.
+                return optionStore.GetOption(SourceGeneratedFileManager.Options.EnableOpeningInWorkspaceFeatureFlag);
             });
 
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
@@ -197,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             if (checkboxValue != null)
             {
                 // Update the actual value of the feature flag to ensure CPS is informed of the new feature flag value.
-                _experimentationService.EnableExperiment(WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag, checkboxValue.Value);
+                this.OptionStore.SetOption(DiagnosticOptions.LspPullDiagnosticsFeatureFlag, checkboxValue.Value);
             }
 
             // Update the workspace option.

@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -39,15 +38,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
         }
 
-        protected override TestComposition GetComposition()
-            => base.GetComposition().AddParts(typeof(TestExperimentationService));
-
         #region "Option tests"
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OptionSetToNull_ExpEnabled()
         {
-            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, true);
+            TypeImportCompletionFeatureFlag = true;
 
             ShowImportCompletionItemsOptionValue = null;
 
@@ -79,8 +75,7 @@ class Bar
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OptionSetToFalse(bool isExperimentEnabled)
         {
-            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
-
+            TypeImportCompletionFeatureFlag = isExperimentEnabled;
             ShowImportCompletionItemsOptionValue = false;
             IsExpandedCompletion = false;
 
@@ -98,8 +93,7 @@ class Bar
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task OptionSetToTrue(bool isExperimentEnabled)
         {
-            SetExperimentOption(WellKnownExperimentNames.TypeImportCompletion, isExperimentEnabled);
-
+            TypeImportCompletionFeatureFlag = isExperimentEnabled;
             ShowImportCompletionItemsOptionValue = true;
 
             var markup = @"

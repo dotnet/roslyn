@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         private static TextSpan? TryCreateSpanForSwitchLabel(SwitchLabelSyntax switchLabel, int position)
         {
-            if (!(switchLabel.Parent is SwitchSectionSyntax switchSection) || switchSection.Statements.Count == 0)
+            if (switchLabel.Parent is not SwitchSectionSyntax switchSection || switchSection.Statements.Count == 0)
             {
                 return null;
             }
