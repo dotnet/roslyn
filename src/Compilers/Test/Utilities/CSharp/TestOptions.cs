@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions RegularWithoutPatternCombinators = Regular8;
         public static readonly CSharpParseOptions RegularWithPatternCombinators = RegularPreview;
         public static readonly CSharpParseOptions RegularWithExtendedPropertyPatterns = RegularPreview;
+        public static readonly CSharpParseOptions RegularWithListPatterns = RegularPreview;
 
         public static readonly CSharpCompilationOptions ReleaseDll = CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions ReleaseExe = CreateTestOptions(OutputKind.ConsoleApplication, OptimizationLevel.Release);

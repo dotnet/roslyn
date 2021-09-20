@@ -127,6 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return ((BoundRecursivePattern)node).Variable as LocalSymbol;
                         }
 
+                    case BoundKind.ListPattern:
+                        {
+                            return ((BoundListPattern)node).Variable as LocalSymbol;
+                        }
+
                     case BoundKind.FieldAccess:
                         {
                             var fieldAccess = (BoundFieldAccess)node;

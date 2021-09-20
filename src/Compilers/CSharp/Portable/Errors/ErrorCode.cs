@@ -1932,7 +1932,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics introduced for C# 9.0
 
         #region diagnostics introduced for C# 10.0
-
         ERR_InheritingFromRecordWithSealedToString = 8912,
         ERR_HiddenPositionalMember = 8913,
         ERR_GlobalUsingInNamespace = 8914,
@@ -1998,6 +1997,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LambdaWithAttributesToExpressionTree = 8972,
 
         WRN_CompileTimeCheckedOverflow = 8973,
+
+        // PROTOTYPE(list-patterns)
+        ERR_UnsupportedTypeForListPattern = 9200,
+        ERR_UnsupportedTypeForSlicePattern,
+        ERR_MisplacedSlicePattern,
 
         #endregion
 

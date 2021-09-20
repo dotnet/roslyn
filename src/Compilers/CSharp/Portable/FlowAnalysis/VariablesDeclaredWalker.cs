@@ -91,6 +91,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         break;
+                    case BoundListPattern list:
+                        {
+                            if (list.Variable?.Kind == SymbolKind.Local)
+                            {
+                                _variablesDeclared.Add(list.Variable);
+                            }
+                        }
+                        break;
                 }
             }
         }

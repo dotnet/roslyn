@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -207,6 +208,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             switch (CurrentToken.Kind)
             {
+                case SyntaxKind.OpenBracketToken:
+                    return this.ParseListPattern(whenIsKeyword);
+                case SyntaxKind.DotDotToken:
+                    return _syntaxFactory.SlicePattern(EatToken(),
+                        IsPossibleSubpatternElement() ? ParsePattern(precedence, afterIs: false, whenIsKeyword) : null);
                 case SyntaxKind.LessThanToken:
                 case SyntaxKind.LessThanEqualsToken:
                 case SyntaxKind.GreaterThanToken:
@@ -305,10 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     subPatterns: out SeparatedSyntaxList<SubpatternSyntax> subPatterns,
                     closeToken: out SyntaxToken closeParenToken,
                     openKind: SyntaxKind.OpenParenToken,
-                    closeKind: SyntaxKind.CloseParenToken);
+                    closeKind: SyntaxKind.CloseParenToken,
+                    static p => p.ParseSubpatternElement());
 
                 parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause0);
-                parseDesignation(out VariableDesignationSyntax designation0);
+                TryParseSimpleDesignation(out VariableDesignationSyntax designation0, whenIsKeyword);
 
                 if (type == null &&
                     propertyPatternClause0 == null &&
@@ -340,13 +347,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause))
             {
-                parseDesignation(out VariableDesignationSyntax designation0);
+                TryParseSimpleDesignation(out VariableDesignationSyntax designation0, whenIsKeyword);
                 return _syntaxFactory.RecursivePattern(type, positionalPatternClause: null, propertyPatternClause, designation0);
             }
 
             if (type != null)
             {
-                if (parseDesignation(out VariableDesignationSyntax designation))
+                if (TryParseSimpleDesignation(out VariableDesignationSyntax designation, whenIsKeyword))
                 {
                     return _syntaxFactory.DeclarationPattern(type, designation);
                 }
@@ -379,18 +386,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            bool parseDesignation(out VariableDesignationSyntax designationResult)
-            {
-                designationResult = null;
-                if (this.IsTrueIdentifier() && this.IsValidPatternDesignation(whenIsKeyword))
-                {
-                    designationResult = ParseSimpleDesignation();
-                    return true;
-                }
-
-                return false;
-            }
-
             bool looksLikeCast()
             {
                 var resetPoint = this.GetResetPoint();
@@ -399,6 +394,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.Release(ref resetPoint);
                 return result;
             }
+        }
+
+        private bool TryParseSimpleDesignation(out VariableDesignationSyntax designationResult, bool whenIsKeyword)
+        {
+            designationResult = null;
+            if (this.IsTrueIdentifier() && this.IsValidPatternDesignation(whenIsKeyword))
+            {
+                designationResult = ParseSimpleDesignation();
+                return true;
+            }
+
+            return false;
         }
 
         private bool IsValidPatternDesignation(bool whenIsKeyword)
@@ -429,6 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             case SyntaxKind.IdentifierToken:
                             case SyntaxKind.OpenBraceToken:
                             case SyntaxKind.OpenParenToken:
+                            case SyntaxKind.OpenBracketToken:
                                 // these all can start a pattern
                                 return false;
                             default:
@@ -520,32 +528,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 subPatterns: out SeparatedSyntaxList<SubpatternSyntax> subPatterns,
                 closeToken: out SyntaxToken closeBraceToken,
                 openKind: SyntaxKind.OpenBraceToken,
-                closeKind: SyntaxKind.CloseBraceToken);
+                closeKind: SyntaxKind.CloseBraceToken,
+                static p => p.ParseSubpatternElement());
             return _syntaxFactory.PropertyPatternClause(openBraceToken, subPatterns, closeBraceToken);
         }
 
-        private void ParseSubpatternList(
+        private void ParseSubpatternList<T>(
             out SyntaxToken openToken,
-            out SeparatedSyntaxList<SubpatternSyntax> subPatterns,
+            out SeparatedSyntaxList<T> subPatterns,
             out SyntaxToken closeToken,
             SyntaxKind openKind,
-            SyntaxKind closeKind)
+            SyntaxKind closeKind,
+            Func<LanguageParser, T> parseFunc)
+            where T : CSharpSyntaxNode
         {
-            Debug.Assert(openKind == SyntaxKind.OpenParenToken || openKind == SyntaxKind.OpenBraceToken);
-            Debug.Assert(closeKind == SyntaxKind.CloseParenToken || closeKind == SyntaxKind.CloseBraceToken);
-            Debug.Assert((openKind == SyntaxKind.OpenParenToken) == (closeKind == SyntaxKind.CloseParenToken));
+            Debug.Assert((openKind, closeKind) is
+                (SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken) or
+                (SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken) or
+                (SyntaxKind.OpenBracketToken, SyntaxKind.CloseBracketToken));
             Debug.Assert(openKind == this.CurrentToken.Kind);
 
             openToken = this.EatToken(openKind);
-            var list = _pool.AllocateSeparated<SubpatternSyntax>();
+            var list = _pool.AllocateSeparated<T>();
             try
             {
 tryAgain:
-
                 if (this.IsPossibleSubpatternElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
                     // first pattern
-                    list.Add(this.ParseSubpatternElement());
+                    list.Add(parseFunc(this));
 
                     // additional patterns
                     int lastTokenPosition = -1;
@@ -553,6 +564,7 @@ tryAgain:
                     {
                         if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken ||
                             this.CurrentToken.Kind == SyntaxKind.CloseBraceToken ||
+                            this.CurrentToken.Kind == SyntaxKind.CloseBracketToken ||
                             this.CurrentToken.Kind == SyntaxKind.SemicolonToken)
                         {
                             break;
@@ -560,11 +572,12 @@ tryAgain:
                         else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleSubpatternElement())
                         {
                             list.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken)
+                            if (this.CurrentToken.Kind == SyntaxKind.CloseBraceToken ||
+                                this.CurrentToken.Kind == SyntaxKind.CloseBracketToken)
                             {
                                 break;
                             }
-                            list.Add(this.ParseSubpatternElement());
+                            list.Add(parseFunc(this));
                             continue;
                         }
                         else if (this.SkipBadPatternListTokens(ref openToken, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
@@ -614,22 +627,21 @@ tryAgain:
         private bool IsPossibleSubpatternElement()
         {
             return this.IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false, allowAttributes: false) ||
-                this.CurrentToken.Kind switch
-                {
-                    SyntaxKind.OpenBraceToken => true,
-                    SyntaxKind.LessThanToken => true,
-                    SyntaxKind.LessThanEqualsToken => true,
-                    SyntaxKind.GreaterThanToken => true,
-                    SyntaxKind.GreaterThanEqualsToken => true,
-                    _ => false
-                };
+                this.CurrentToken.Kind is
+                    SyntaxKind.OpenBraceToken or
+                    SyntaxKind.OpenBracketToken or
+                    SyntaxKind.LessThanToken or
+                    SyntaxKind.LessThanEqualsToken or
+                    SyntaxKind.GreaterThanToken or
+                    SyntaxKind.GreaterThanEqualsToken;
         }
 
-        private PostSkipAction SkipBadPatternListTokens(
+        private PostSkipAction SkipBadPatternListTokens<T>(
             ref SyntaxToken open,
-            SeparatedSyntaxListBuilder<SubpatternSyntax> list,
+            SeparatedSyntaxListBuilder<T> list,
             SyntaxKind expected,
             SyntaxKind closeKind)
+            where T : CSharpSyntaxNode
         {
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,
                 p => p.CurrentToken.Kind != SyntaxKind.CommaToken && !p.IsPossibleSubpatternElement(),
@@ -683,6 +695,20 @@ tryAgain:
             SeparatedSyntaxList<SwitchExpressionArmSyntax> result = arms;
             _pool.Free(arms);
             return result;
+        }
+
+        private PatternSyntax ParseListPattern(bool whenIsKeyword)
+        {
+            ParseSubpatternList(
+                out SyntaxToken openBracket,
+                out SeparatedSyntaxList<PatternSyntax> list,
+                out SyntaxToken closeBracket,
+                SyntaxKind.OpenBracketToken,
+                SyntaxKind.CloseBracketToken,
+                static p => p.ParsePattern(Precedence.Conditional));
+            TryParseSimpleDesignation(out VariableDesignationSyntax designation, whenIsKeyword);
+            var result = _syntaxFactory.ListPattern(openBracket, list, closeBracket, designation);
+            return CheckFeatureAvailability(result, MessageID.IDS_FeatureListPattern);
         }
     }
 }
