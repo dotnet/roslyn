@@ -67,9 +67,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              Return False
                          End Function)
 
-            ' Quick Actions
-            BindToOption(ComputeQuickActionsAsynchronously, SuggestionsOptions.Asynchronous)
-
             ' Highlighting
             BindToOption(EnableHighlightReferences, FeatureOnOffOptions.ReferenceHighlighting, LanguageNames.VisualBasic)
             BindToOption(EnableHighlightKeywords, FeatureOnOffOptions.KeywordHighlighting, LanguageNames.VisualBasic)
