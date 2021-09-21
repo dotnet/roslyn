@@ -194,8 +194,11 @@ namespace Microsoft.CodeAnalysis
 
             var sectionKey = _sectionKeyPool.Allocate();
 
-            Debug.Assert(Path.IsPathRooted(sourcePath));
-            var normalizedPath = PathUtilities.NormalizeWithForwardSlash(Path.GetFullPath(sourcePath));
+            var normalizedPath = PathUtilities.NormalizeWithForwardSlash(sourcePath);
+            if (Path.IsPathRooted(normalizedPath))
+            {
+                normalizedPath = Path.GetFullPath(normalizedPath);
+            }
 
             // If we have a global config, add any sections that match the full path 
             foreach (var section in _globalConfig.NamedSections)
