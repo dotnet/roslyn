@@ -154,11 +154,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.OperatorKind == BinaryOperatorKind.StringConcatenation);
             Debug.Assert(node.InterpolatedStringHandlerData is not null);
             var partsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-            node.VisitBinaryOperatorInterpolatedString(partsBuilder, (BoundInterpolatedString interpolatedString, ArrayBuilder<BoundExpression> partsBuilder) =>
-            {
-                partsBuilder.AddRange(interpolatedString.Parts);
-                return true;
-            });
+            node.VisitBinaryOperatorInterpolatedString(partsBuilder,
+                static (BoundInterpolatedString interpolatedString, ArrayBuilder<BoundExpression> partsBuilder) =>
+                {
+                    partsBuilder.AddRange(interpolatedString.Parts);
+                    return true;
+                });
             return partsBuilder.ToImmutableAndFree();
         }
 

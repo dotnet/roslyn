@@ -2507,7 +2507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             node.VisitBinaryOperatorInterpolatedString(
                 (parts, @this: this),
-                stringCallback: (BoundInterpolatedString interpolatedString, (ArrayBuilder<BoundInterpolatedString> parts, AbstractFlowPass<TLocalState, TLocalFunctionState> @this) arg) =>
+                stringCallback: static (BoundInterpolatedString interpolatedString, (ArrayBuilder<BoundInterpolatedString> parts, AbstractFlowPass<TLocalState, TLocalFunctionState> @this) arg) =>
                 {
                     arg.parts.Add(interpolatedString);
                     return true;

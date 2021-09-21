@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Visits the binary operator tree of interpolated string additions in a depth-first in-order visit.
+        /// Visits the binary operator tree of interpolated string additions in a depth-first pre-order visit,
+        /// meaning parent, left, then right.
         /// <paramref name="stringCallback"/> controls whether to continue the visit by returning true or false:
         /// if true, the visit will continue. If false, the walk will be cut off.
         /// </summary>
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
 
-            pushLeftNodes(binary, stack);
+            pushLeftNodes(binary, stack, arg, binaryOperatorCallback);
 
             while (stack.TryPop(out BoundBinaryOperator? current))
             {
@@ -130,12 +131,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(current.Left.Kind);
                 }
 
-                binaryOperatorCallback?.Invoke(current, arg);
-
                 switch (current.Right)
                 {
                     case BoundBinaryOperator rightOperator:
-                        pushLeftNodes(rightOperator, stack);
+                        pushLeftNodes(rightOperator, stack, arg, binaryOperatorCallback);
                         break;
                     case TInterpolatedStringType interpolatedString:
                         if (!stringCallback(interpolatedString, arg))
@@ -152,12 +151,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             stack.Free();
             return true;
 
-            static void pushLeftNodes(BoundBinaryOperator binary, ArrayBuilder<BoundBinaryOperator> stack)
+            static void pushLeftNodes(BoundBinaryOperator binary, ArrayBuilder<BoundBinaryOperator> stack, TArg arg, Action<BoundBinaryOperator, TArg>? binaryOperatorCallback)
             {
                 Debug.Assert(typeof(TInterpolatedStringType) == typeof(BoundInterpolatedString) || binary.IsUnconvertedInterpolatedStringAddition);
                 BoundBinaryOperator? current = binary;
                 while (current != null)
                 {
+                    binaryOperatorCallback?.Invoke(current, arg);
                     stack.Push(current);
                     current = current.Left as BoundBinaryOperator;
                 }
@@ -166,7 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Rewrites a BoundBinaryOperator composed of interpolated strings (either converted or unconverted) iteratively, without
-        /// recursion on the left side of the tree. Nodes of the tree are rewritten in a depth-first post-order fashion.
+        /// recursion on the left side of the tree. Nodes of the tree are rewritten in a depth-first post-order fashion, meaning
+        /// left, then right, then parent.
         /// </summary>
         /// <param name="binary">The original top of the binary operations.</param>
         /// <param name="arg">The callback args.</param>

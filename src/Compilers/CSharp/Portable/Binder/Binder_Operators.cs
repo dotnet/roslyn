@@ -712,15 +712,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return convertedBinaryOperator;
             }
 
-            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
-            BoundBinaryOperator? current = unconvertedBinaryOperator;
-
-            var result = doRebind(diagnostics, stack, current);
-            stack.Free();
+            var result = doRebind(diagnostics, unconvertedBinaryOperator);
             return result;
 
-            BoundExpression doRebind(BindingDiagnosticBag diagnostics, ArrayBuilder<BoundBinaryOperator> stack, BoundBinaryOperator? current)
+            BoundExpression doRebind(BindingDiagnosticBag diagnostics, BoundBinaryOperator? current)
             {
+                var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
                 while (current != null)
                 {
                     Debug.Assert(current.IsUnconvertedInterpolatedStringAddition);
@@ -736,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var right = current.Right switch
                     {
                         BoundUnconvertedInterpolatedString s => s,
-                        BoundBinaryOperator b => doRebind(diagnostics, stack, b),
+                        BoundBinaryOperator b => doRebind(diagnostics, b),
                         _ => throw ExceptionUtilities.UnexpectedValue(current.Right.Kind)
                     };
                     left = BindSimpleBinaryOperator((BinaryExpressionSyntax)current.Syntax, diagnostics, left ?? current.Left, right, leaveUnconvertedIfInterpolatedString: false);
@@ -744,6 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(left != null);
                 Debug.Assert(stack.Count == 0);
+                stack.Free();
                 return left;
             }
         }
