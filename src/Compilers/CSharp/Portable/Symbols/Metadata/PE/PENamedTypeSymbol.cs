@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -384,6 +385,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return _handle;
             }
+        }
+
+        public override int MetadataToken
+        {
+            get { return MetadataTokens.GetToken(_handle); }
         }
 
         internal sealed override bool IsInterpolatedStringHandlerType

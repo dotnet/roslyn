@@ -50,8 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             // Only methods and constructors can be overloaded.  However, all functions
             // can successfully return a collection of overloaded functions; if not
             // really overloaded, the collection contains just the original function.
-            if (symbol.MethodKind != MethodKind.Ordinary &&
-                symbol.MethodKind != MethodKind.Constructor)
+            if (symbol.MethodKind is not MethodKind.Ordinary and
+                not MethodKind.Constructor)
             {
                 return ImmutableArray.Create((EnvDTE.CodeElement)Parent);
             }

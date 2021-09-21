@@ -317,7 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             if (documentItemID != (uint)VSConstants.VSITEMID.Nil && Hierarchy.GetProperty(documentItemID, (int)VsHierarchyPropID.Parent, out var parentObj) == VSConstants.S_OK)
             {
                 var parentID = UnboxVSItemId(parentObj);
-                if (parentID != (uint)VSConstants.VSITEMID.Nil && parentID != (uint)VSConstants.VSITEMID.Root)
+                if (parentID is not ((uint)VSConstants.VSITEMID.Nil) and not ((uint)VSConstants.VSITEMID.Root))
                 {
                     return GetFolderNamesForFolder(parentID);
                 }
@@ -383,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
             if (hierarchy.GetProperty((uint)folderItemID, (int)VsHierarchyPropID.Parent, out var parentObj) == VSConstants.S_OK)
             {
                 var parentID = UnboxVSItemId(parentObj);
-                if (parentID != (uint)VSConstants.VSITEMID.Nil && parentID != (uint)VSConstants.VSITEMID.Root)
+                if (parentID is not ((uint)VSConstants.VSITEMID.Nil) and not ((uint)VSConstants.VSITEMID.Root))
                 {
                     ComputeFolderNames(parentID, names, hierarchy);
                 }

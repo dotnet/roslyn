@@ -59,14 +59,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.VolatileKeyword,
             };
 
-        public static readonly ISet<SyntaxKind> AllLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-        {
-            SyntaxKind.AsyncKeyword,
-            SyntaxKind.UnsafeKeyword,
-            SyntaxKind.ExternKeyword,
-            SyntaxKind.StaticKeyword
-        };
-
         public static readonly ISet<SyntaxKind> AllTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.InterfaceDeclaration,

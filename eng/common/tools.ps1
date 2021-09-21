@@ -163,6 +163,9 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   # Disable telemetry on CI.
   if ($ci) {
     $env:DOTNET_CLI_TELEMETRY_OPTOUT=1
+ 
+    # In case of network error, try to log the current IP for reference
+    Try-LogClientIpAddress
   }
 
   # Source Build uses DotNetCoreSdkDir variable
@@ -706,6 +709,15 @@ function MSBuild() {
       Write-PipelineSetVariable -Name 'NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS' -Value '20'
     }
 
+    if ($ci) {
+      $env:NUGET_ENABLE_EXPERIMENTAL_HTTP_RETRY = 'true'
+      $env:NUGET_EXPERIMENTAL_MAX_NETWORK_TRY_COUNT = 6
+      $env:NUGET_EXPERIMENTAL_NETWORK_RETRY_DELAY_MILLISECONDS = 1000
+      Write-PipelineSetVariable -Name 'NUGET_ENABLE_EXPERIMENTAL_HTTP_RETRY' -Value 'true'
+      Write-PipelineSetVariable -Name 'NUGET_EXPERIMENTAL_MAX_NETWORK_TRY_COUNT' -Value '6'
+      Write-PipelineSetVariable -Name 'NUGET_EXPERIMENTAL_NETWORK_RETRY_DELAY_MILLISECONDS' -Value '1000'
+    }
+
     $toolsetBuildProject = InitializeToolset
     $basePath = Split-Path -parent $toolsetBuildProject
     $possiblePaths = @(
@@ -714,6 +726,8 @@ function MSBuild() {
       (Join-Path $basePath (Join-Path $buildTool.Framework 'Microsoft.DotNet.Arcade.Sdk.dll')),
       (Join-Path $basePath (Join-Path netcoreapp2.1 'Microsoft.DotNet.ArcadeLogging.dll')),
       (Join-Path $basePath (Join-Path netcoreapp2.1 'Microsoft.DotNet.Arcade.Sdk.dll'))
+      (Join-Path $basePath (Join-Path netcoreapp3.1 'Microsoft.DotNet.ArcadeLogging.dll')),
+      (Join-Path $basePath (Join-Path netcoreapp3.1 'Microsoft.DotNet.Arcade.Sdk.dll'))
     )
     $selectedPath = $null
     foreach ($path in $possiblePaths) {
@@ -871,4 +885,22 @@ if (!$disableConfigureToolsetImport) {
       }
     }
   }
+}
+
+function Try-LogClientIpAddress()
+{
+    Write-Host "Attempting to log this client's IP for Azure Package feed telemetry purposes"
+    try
+    {
+        $result = Invoke-WebRequest -Uri "http://co1.msedge.net/fdv2/diagnostics.aspx" -UseBasicParsing
+        $lines = $result.Content.Split([Environment]::NewLine) 
+        $socketIp = $lines | Select-String -Pattern "^Socket IP:.*"
+        Write-Host $socketIp
+        $clientIp = $lines | Select-String -Pattern "^Client IP:.*"
+        Write-Host $clientIp
+    }
+    catch
+    {
+        Write-Host "Unable to get this machine's effective IP address for logging: $_"
+    }
 }

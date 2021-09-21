@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                     return;
 
                 // Only publish document diagnostics for the languages this provider supports.
-                if (document.Project.Language != CodeAnalysis.LanguageNames.CSharp && document.Project.Language != CodeAnalysis.LanguageNames.VisualBasic)
+                if (document.Project.Language is not CodeAnalysis.LanguageNames.CSharp and not CodeAnalysis.LanguageNames.VisualBasic)
                     return;
 
                 _diagnosticsWorkQueue.AddWork(document.Id);
