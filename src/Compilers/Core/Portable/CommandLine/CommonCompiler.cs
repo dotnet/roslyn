@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis
             return shouldDebugTransformedCode;
         }
 
-        protected string GetTransformedFilesOutputDirectory(AnalyzerConfigOptionsProvider options)
+        protected string? GetTransformedFilesOutputDirectory(AnalyzerConfigOptionsProvider options)
         {
             options.GlobalOptions.TryGetValue("build_property.CaravelaCompilerTransformedFilesOutputPath", out var transformedFilesOutputDirectory);
             return FileUtilities.ResolveRelativePath(transformedFilesOutputDirectory, _workingDirectory);
@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis
 
                                 while (!paths.Add(path))
                                 {
-                                    path = Path.Combine(Path.GetDirectoryName(originalPath), $"{Path.GetFileNameWithoutExtension(originalPath)}{i}{Path.GetExtension(originalPath)}");
+                                    path = Path.Combine(Path.GetDirectoryName(originalPath)!, $"{Path.GetFileNameWithoutExtension(originalPath)}{i}{Path.GetExtension(originalPath)}");
                                 }
                             }
                         }
