@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         var downloadResult = await downloadResource.GetDownloadResourceResultAsync(
                             packageToInstall,
                             new PackageDownloadContext(cacheContext),
-                            SettingsUtility.GetGlobalPackagesFolder(settings),
+                            temporaryPackagesFolder,
                             logger,
                             cancellationToken);
 
