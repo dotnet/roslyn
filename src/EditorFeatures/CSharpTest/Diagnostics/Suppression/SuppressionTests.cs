@@ -578,11 +578,11 @@ class Class
 class Class
 {{
     void Method()
+#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
     {{
 
-        // Comment
-        // Comment
-#pragma warning disable CS1633 // {CSharpResources.WRN_IllegalPragma_Title}
+// Comment
+// Comment
 #pragma abcde
 
     }}    // Comment   

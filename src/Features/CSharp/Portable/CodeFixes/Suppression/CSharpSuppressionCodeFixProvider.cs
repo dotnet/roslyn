@@ -254,18 +254,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             return SyntaxFactory.Trivia(newPragmaWarning);
         }
 
-        protected override SyntaxToken GetAdjustedTokenForPragmaDisable(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
-        {
-            // normally we find the parent statement for the token but if the token is a close brace
-            // that could expand to a very large block, so we skip it and just return the token itself
-            if (token.IsKind(SyntaxKind.CloseBraceToken))
-            {
-                return token;
-            }
-
-            return base.GetAdjustedTokenForPragmaDisable(token, root, lines, indexOfLine);
-        }
-
         protected override SyntaxNode GetContainingStatement(SyntaxToken token)
             // If we can't get a containing statement, such as for expression bodied members, then
             // return the arrow clause instead
