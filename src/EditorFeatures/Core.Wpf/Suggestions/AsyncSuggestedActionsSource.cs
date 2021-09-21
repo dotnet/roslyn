@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                         if (priority != null)
                         {
-                            // Only request suppression fixes if we're not in the lowest priority group.  The other groups
+                            // Only request suppression fixes if we're in the lowest priority group.  The other groups
                             // should not show suppressions them as that would cause them to not appear at the end.
 
                             var allSets = GetCodeFixesAndRefactoringsAsync(
