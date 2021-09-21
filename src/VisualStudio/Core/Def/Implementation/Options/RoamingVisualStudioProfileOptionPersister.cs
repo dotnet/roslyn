@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Settings;
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// <summary>
     /// Serializes settings marked with <see cref="RoamingProfileStorageLocation"/> to and from the user's roaming profile.
     /// </summary>
-    internal sealed class RoamingVisualStudioProfileOptionPersister : IOptionPersister
+    internal sealed class RoamingVisualStudioProfileOptionPersister : ForegroundThreadAffinitizedObject, IOptionPersister
     {
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
@@ -42,7 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// <remarks>
         /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>
         /// </remarks>
-        public RoamingVisualStudioProfileOptionPersister(IGlobalOptionService globalOptionService, ISettingsManager? settingsManager)
+        public RoamingVisualStudioProfileOptionPersister(IThreadingContext threadingContext, IGlobalOptionService globalOptionService, ISettingsManager? settingsManager)
+            : base(threadingContext, assertIsForeground: true)
         {
             Contract.ThrowIfNull(globalOptionService);
 

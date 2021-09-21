@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -23,10 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FeatureFlagPersisterProvider(
-            [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider)
+        public FeatureFlagPersisterProvider(SVsServiceProvider serviceProvider)
         {
-            _serviceProvider = serviceProvider;
+            _serviceProvider = (IAsyncServiceProvider)serviceProvider;
         }
 
         public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
