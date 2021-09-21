@@ -489,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken)
         End Function
 
-        Public Function IsBindableToken(token As Microsoft.CodeAnalysis.SyntaxToken) As Boolean Implements ISyntaxFacts.IsBindableToken
+        Public Function IsBindableToken(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsBindableToken
             Return Me.IsWord(token) OrElse
                 Me.IsLiteral(token) OrElse
                 Me.IsOperator(token)
@@ -514,6 +514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             If castGenericName IsNot Nothing Then
                 Return castGenericName.TypeArgumentList.Arguments
             End If
+
             Return Nothing
         End Function
 
@@ -559,15 +560,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TryCast(node, InheritsOrImplementsStatementSyntax) IsNot Nothing
         End Function
 
-        Public Function IsInStaticContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFacts.IsInStaticContext
+        Public Function IsInStaticContext(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsInStaticContext
             Return node.IsInStaticContext()
         End Function
 
-        Public Function GetExpressionOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFacts.GetExpressionOfArgument
+        Public Function GetExpressionOfArgument(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfArgument
             Return DirectCast(node, ArgumentSyntax).GetArgumentExpression()
         End Function
 
-        Public Function GetRefKindOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.RefKind Implements ISyntaxFacts.GetRefKindOfArgument
+        Public Function GetExpressionOfAttributeArgument(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfAttributeArgument
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Public Function GetRefKindOfArgument(node As SyntaxNode) As RefKind Implements ISyntaxFacts.GetRefKindOfArgument
             ' TODO(cyrusn): Consider the method this argument is passed to, to determine this.
             Return RefKind.None
         End Function
@@ -576,24 +581,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TypeOf node Is ArgumentSyntax
         End Function
 
+        Public Function IsAttributeArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAttributeArgument
+            Return False
+        End Function
+
         Public Function IsSimpleArgument(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsSimpleArgument
             Dim argument = TryCast(node, ArgumentSyntax)
             Return argument IsNot Nothing AndAlso Not argument.IsNamed AndAlso Not argument.IsOmitted
         End Function
 
-        Public Function IsInConstantContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFacts.IsInConstantContext
+        Public Function IsInConstantContext(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsInConstantContext
             Return node.IsInConstantContext()
         End Function
 
-        Public Function IsInConstructor(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFacts.IsInConstructor
+        Public Function IsInConstructor(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsInConstructor
             Return node.GetAncestors(Of StatementSyntax).Any(Function(s) s.Kind = SyntaxKind.ConstructorBlock)
         End Function
 
-        Public Function IsUnsafeContext(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFacts.IsUnsafeContext
+        Public Function IsUnsafeContext(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsUnsafeContext
             Return False
         End Function
 
-        Public Function GetNameOfAttribute(node As SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFacts.GetNameOfAttribute
+        Public Function GetNameOfAttribute(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetNameOfAttribute
             Return DirectCast(node, AttributeSyntax).Name
         End Function
 

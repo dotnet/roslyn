@@ -265,11 +265,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
         protected static string GetIdentifierNameFromArgument(SyntaxNode argument, ISyntaxFactsService syntaxFacts)
         {
-            var identifierNameSyntax = syntaxFacts.GetExpressionOfArgument(argument);
+            var identifierNameSyntax =
+                syntaxFacts.IsArgument(argument) ? syntaxFacts.GetExpressionOfArgument(argument) :
+                syntaxFacts.IsAttributeArgument(argument) ? syntaxFacts.GetExpressionOfAttributeArgument(argument) : null;
+
             if (!syntaxFacts.IsIdentifierName(identifierNameSyntax))
-            {
                 return string.Empty;
-            }
 
             var identifier = syntaxFacts.GetIdentifierOfIdentifierName(identifierNameSyntax);
             return identifier.ValueText;
