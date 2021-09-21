@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
     {
         private const char ObliviousMarker = '~';
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(DiagnosticIds.AnnotatePublicApiRuleId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(DiagnosticIds.AnnotatePublicApiRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider()
             => new PublicSurfaceAreaFixAllProvider();

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -16,29 +16,31 @@ using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
+    using static BannedApiAnalyzerResources;
+
     internal static class SymbolIsBannedAnalyzer
     {
         public const string BannedSymbolsFileName = "BannedSymbols.txt";
 
         public static readonly DiagnosticDescriptor SymbolIsBannedRule = new(
             id: DiagnosticIds.SymbolIsBannedRuleId,
-            title: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.SymbolIsBannedTitle), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
-            messageFormat: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.SymbolIsBannedMessage), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            title: CreateLocalizableResourceString(nameof(SymbolIsBannedTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(SymbolIsBannedMessage)),
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.SymbolIsBannedDescription), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            description: CreateLocalizableResourceString(nameof(SymbolIsBannedDescription)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTagsExtensions.Telemetry);
 
         public static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new(
             id: DiagnosticIds.DuplicateBannedSymbolRuleId,
-            title: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.DuplicateBannedSymbolTitle), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
-            messageFormat: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.DuplicateBannedSymbolMessage), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            title: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolTitle)),
+            messageFormat: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolMessage)),
             category: "ApiDesign",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: new LocalizableResourceString(nameof(BannedApiAnalyzerResources.DuplicateBannedSymbolDescription), BannedApiAnalyzerResources.ResourceManager, typeof(BannedApiAnalyzerResources)),
+            description: CreateLocalizableResourceString(nameof(DuplicateBannedSymbolDescription)),
             helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTagsExtensions.CompilationEndAndTelemetry);
     }
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
     public abstract class SymbolIsBannedAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
             ImmutableArray.Create(SymbolIsBannedAnalyzer.SymbolIsBannedRule, SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule);
 
         protected abstract TSyntaxKind XmlCrefSyntaxKind { get; }

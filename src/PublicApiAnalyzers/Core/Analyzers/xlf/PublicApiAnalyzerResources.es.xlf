@@ -173,9 +173,9 @@
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
-        <source>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Al quitar un miembro o un tipo público, también debe quitarse la entrada correspondiente en PublicAPI.txt. Esto atrae la atención a los cambios de la API en las revisiones de código y el historial de control de código fuente; además, ayuda a evitar cambios importantes.</target>
-        <note />
+        <source>When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
+        <target state="needs-review-translation">Al quitar un miembro o un tipo público, también debe quitarse la entrada correspondiente en PublicAPI.txt. Esto atrae la atención a los cambios de la API en las revisiones de código y el historial de control de código fuente; además, ayuda a evitar cambios importantes.</target>
+        <note>{Locked="*REMOVED*"}</note>
       </trans-unit>
       <trans-unit id="RemoveDeletedApiMessage">
         <source>Symbol '{0}' is part of the declared API, but is either not public or could not be found</source>

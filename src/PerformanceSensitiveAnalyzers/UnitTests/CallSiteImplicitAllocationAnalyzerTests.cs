@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers;
@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysisPerformanceSensitiveAnalyzers.UnitTests
     public class CallSiteImplicitAllocationAnalyzerTests
     {
         [Fact]
-        public async Task CallSiteImplicitAllocation_Param()
+        public async Task CallSiteImplicitAllocation_ParamAsync()
         {
             var sampleProgram =
 @"using System;
@@ -60,7 +60,7 @@ public class MyClass
         }
 
         [Fact, WorkItem(3272, "https://github.com/dotnet/roslyn-analyzers/issues/3272")]
-        public async Task EmptyParamsWithNetFramework45()
+        public async Task EmptyParamsWithNetFramework45Async()
         {
             await new VerifyCS.Test
             {
@@ -98,7 +98,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task CallSiteImplicitAllocation_NonOverridenMethodOnStruct()
+        public async Task CallSiteImplicitAllocation_NonOverridenMethodOnStructAsync()
         {
             var sampleProgram = @"
 using System;
@@ -134,7 +134,7 @@ public struct OverrideToHashCode
         }
 
         [Fact]
-        public async Task CallSiteImplicitAllocation_DoNotReportNonOverriddenMethodCallForStaticCalls()
+        public async Task CallSiteImplicitAllocation_DoNotReportNonOverriddenMethodCallForStaticCallsAsync()
         {
             var sampleProgram = @"
 using System;
@@ -172,7 +172,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task ParamsIsPrecededByOptionalParameters()
+        public async Task ParamsIsPrecededByOptionalParametersAsync()
         {
             var sampleProgram = @"
 using System.IO;
@@ -198,7 +198,7 @@ public class MyClass
 
         [Fact]
         [WorkItem(7995606, "http://stackoverflow.com/questions/7995606/boxing-occurrence-in-c-sharp")]
-        public async Task Calling_non_overridden_virtual_methods_on_value_types()
+        public async Task Calling_non_overridden_virtual_methods_on_value_typesAsync()
         {
             var source = @"
 using System;
