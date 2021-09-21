@@ -64,15 +64,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // Compute and return the high pri set of fixes and refactorings first so the user
                     // can act on them immediately without waiting on the regular set.
+                    //
+                    // Don't include suppression/config fixes in the high pri set.  We don't want them showing
+                    // up above any fixes/refactorings in the normal pri set.
                     var highPriSet = GetCodeFixesAndRefactoringsAsync(
                         state, requestedActionCategories, document, range, selection, _ => null,
-                        CodeActionRequestPriority.High, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
+                        includeSuppressionFixes: false, CodeActionRequestPriority.High, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
                     await foreach (var set in highPriSet)
                         yield return set;
 
                     var lowPriSet = GetCodeFixesAndRefactoringsAsync(
                         state, requestedActionCategories, document, range, selection, _ => null,
-                        CodeActionRequestPriority.Normal, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
+                        includeSuppressionFixes: true, CodeActionRequestPriority.Normal, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
                     await foreach (var set in lowPriSet)
                         yield return set;
                 }
@@ -85,6 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
+                bool includeSuppressionFixes,
                 CodeActionRequestPriority priority,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
@@ -93,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var fixesTask = GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                    addOperationScope, priority, isBlocking: false, cancellationToken);
+                    addOperationScope, includeSuppressionFixes, priority, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
                     state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
                     addOperationScope, priority, isBlocking: false, cancellationToken);
