@@ -90,12 +90,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         protected abstract SyntaxNode GetContainingStatement(SyntaxToken token);
         protected abstract bool TokenHasTrailingLineContinuationChar(SyntaxToken token);
 
-        protected virtual SyntaxToken GetAdjustedTokenForPragmaDisable(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
+        protected SyntaxToken GetAdjustedTokenForPragmaDisable(SyntaxToken token, SyntaxNode root, TextLineCollection lines)
         {
             var containingStatement = GetContainingStatement(token);
             if (containingStatement is not null && containingStatement.GetFirstToken() != token)
             {
-                indexOfLine = lines.IndexOf(containingStatement.GetFirstToken().SpanStart);
+                var indexOfLine = lines.IndexOf(containingStatement.GetFirstToken().SpanStart);
                 var line = lines[indexOfLine];
                 token = root.FindToken(line.Start);
             }
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var indexOfLine = lines.IndexOf(span.Start);
             var lineAtPos = lines[indexOfLine];
             var startToken = root.FindToken(lineAtPos.Start);
-            startToken = GetAdjustedTokenForPragmaDisable(startToken, root, lines, indexOfLine);
+            startToken = GetAdjustedTokenForPragmaDisable(startToken, root, lines);
 
             // Find the end token to attach pragma restore warning directive.
             var spanEnd = Math.Max(startToken.Span.End, span.End);
