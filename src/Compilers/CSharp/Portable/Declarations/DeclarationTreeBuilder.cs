@@ -703,17 +703,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = QuickAttributes.None;
             if (Matches(AttributeDescription.TypeIdentifierAttribute))
                 result |= QuickAttributes.TypeIdentifier;
-
-            if (Matches(AttributeDescription.TypeForwardedToAttribute))
+            else if (Matches(AttributeDescription.TypeForwardedToAttribute))
                 result |= QuickAttributes.TypeForwardedTo;
-
-            if (Matches(AttributeDescription.AssemblyKeyNameAttribute))
+            else if (Matches(AttributeDescription.AssemblyKeyNameAttribute))
                 result |= QuickAttributes.AssemblyKeyName;
-
-            if (Matches(AttributeDescription.AssemblyKeyFileAttribute))
+            else if (Matches(AttributeDescription.AssemblyKeyFileAttribute))
                 result |= QuickAttributes.AssemblyKeyFile;
-
-            if (Matches(AttributeDescription.AssemblySignatureKeyAttribute))
+            else if (Matches(AttributeDescription.AssemblySignatureKeyAttribute))
                 result |= QuickAttributes.AssemblySignatureKey;
 
             return result;
