@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
                     addOperationScope, priority, isBlocking: false, cancellationToken);
 
-                var actionsArray = await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
+                await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
                 foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes: await fixesTask.ConfigureAwait(false), refactorings: await refactoringsTask.ConfigureAwait(false)))
                     yield return set;
             }
