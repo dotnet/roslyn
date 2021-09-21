@@ -718,6 +718,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var oldSolution = DebuggingSession.LastCommittedSolution;
 
                 var isBlocked = false;
+                var hasEmitErrors = false;
                 foreach (var newProject in solution.Projects)
                 {
                     await PopulateChangedAndAddedDocumentsAsync(oldSolution, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
@@ -904,7 +905,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     else
                     {
                         // error
-                        isBlocked = true;
+                        isBlocked = hasEmitErrors = true;
                     }
 
                     // TODO: https://github.com/dotnet/roslyn/issues/36061
@@ -929,7 +930,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var update = isBlocked ?
-                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError) :
+                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors) :
                     new SolutionUpdate(
                         new ManagedModuleUpdates(
                             (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,

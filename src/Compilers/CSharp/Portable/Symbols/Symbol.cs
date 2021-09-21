@@ -1515,6 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value != containingValue;
         }
 
+#nullable enable
         /// <summary>
         /// True if the symbol is declared outside of the scope of the containing
         /// symbol
@@ -1575,6 +1576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
+#nullable disable
 
         bool ISymbolInternal.IsStatic
         {

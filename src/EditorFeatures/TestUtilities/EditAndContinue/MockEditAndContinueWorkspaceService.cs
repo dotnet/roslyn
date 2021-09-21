@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
@@ -14,6 +16,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal delegate void ActionOut<TArg1>(out TArg1 arg);
     internal delegate void ActionOut<TArg1, TArg2>(TArg1 arg1, out TArg2 arg2);
 
+    [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService), ServiceLayer.Test), Shared]
     internal class MockEditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
         public Func<Solution, ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<ActiveStatementSpan>>>? GetBaseActiveStatementSpansImpl;
@@ -31,6 +34,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public ActionOut<bool, ImmutableArray<DocumentId>>? BreakStateChangesImpl;
         public Action? DiscardSolutionUpdateImpl;
         public Func<Document, ActiveStatementSpanProvider, ImmutableArray<Diagnostic>>? GetDocumentDiagnosticsImpl;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public MockEditAndContinueWorkspaceService()
+        {
+        }
 
         public void BreakStateChanged(DebuggingSessionId sessionId, bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
