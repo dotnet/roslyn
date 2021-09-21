@@ -101,5 +101,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectChanges = GetSingleChangedProjectChanges(oldSolution, newSolution);
             return Tuple.Create(projectChanges.NewProject, projectChanges.GetAddedProjectReferences().Single());
         }
+
+        public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp, string name = "TestProject")
+        {
+            var id = ProjectId.CreateNewId();
+            return solution.AddProject(
+                ProjectInfo.Create(
+                    id,
+                    VersionStamp.Default,
+                    name: name,
+                    assemblyName: name,
+                    language: languageName)).GetRequiredProject(id);
+        }
     }
 }
