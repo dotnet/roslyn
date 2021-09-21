@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.Remoting.Messaging
 Imports System.Threading
 Imports System.Windows
 Imports System.Windows.Documents
@@ -245,7 +246,7 @@ public interface IBar3 : IBar2 { }
                     New MenuItemViewModelData("IBar2", "IBar2", KnownMonikers.InterfacePublic, GetType(TargetMenuItemViewModel)),
                     New MenuItemViewModelData("IBar3", "IBar3", KnownMonikers.InterfacePublic, GetType(TargetMenuItemViewModel)))},
                 {3, New GlyphViewModelData(
-                    KnownMonikers.Implementing,
+                    KnownMonikers.ImplementingImplemented,
                     tooltipTextForIBar2,
                     tooltipTextForIBar2,
                     1,
@@ -283,25 +284,32 @@ public class Bar3 : Bar2 {}"
                 Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, "Bar1", Nothing)).
                 Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, "Bar2", Nothing))
 
-            Return VerifyAsync(markup, LanguageNames.CSharp, New Dictionary(Of Integer, InheritanceMarginGlyphViewModel) From {
-                {2, New InheritanceMarginGlyphViewModel(
+            Return VerifyAsync(markup, LanguageNames.CSharp, New Dictionary(Of Integer, GlyphViewModelData) From {
+                {2, New GlyphViewModelData(
                     KnownMonikers.Overridden,
-                    CreateTextBlock(tooltipTextForBar1),
+                    tooltipTextForBar1,
                     tooltipTextForBar1,
                     1,
-                    targetForBar1)},
-                {3, New InheritanceMarginGlyphViewModel(
+                    New MenuItemViewModelData(ServicesVSResources.Derived_types, ServicesVSResources.Derived_types, KnownMonikers.Overridden, GetType(HeaderMenuItemViewModel)),
+                    New MenuItemViewModelData("Bar2", "Bar2", KnownMonikers.ClassPublic, GetType(TargetMenuItemViewModel)),
+                    New MenuItemViewModelData("Bar3", "Bar3", KnownMonikers.ClassPublic, GetType(TargetMenuItemViewModel)))},
+                {3, New GlyphViewModelData(
                     KnownMonikers.OverridingOverridden,
-                    CreateTextBlock(tooltipTextForBar2),
+                    tooltipTextForBar2,
                     tooltipTextForBar2,
                     1,
-                    targetForBar2)},
-                {4, New InheritanceMarginGlyphViewModel(
+                    New MenuItemViewModelData(ServicesVSResources.Base_Types, ServicesVSResources.Base_Types, KnownMonikers.Overriding, GetType(HeaderMenuItemViewModel)),
+                    New MenuItemViewModelData("Bar1", "Bar1", KnownMonikers.ClassPublic, GetType(TargetMenuItemViewModel)),
+                    New MenuItemViewModelData(ServicesVSResources.Derived_types, ServicesVSResources.Derived_types, KnownMonikers.Overridden, GetType(HeaderMenuItemViewModel)),
+                    New MenuItemViewModelData("Bar3", "Bar3", KnownMonikers.ClassPublic, GetType(TargetMenuItemViewModel)))},
+                {4, New GlyphViewModelData(
                     KnownMonikers.Overriding,
-                    CreateTextBlock(tooltipTextForBar3),
+                    tooltipTextForBar3,
                     tooltipTextForBar3,
                     1,
-                    targetForBar3)}})
+                    New MenuItemViewModelData(ServicesVSResources.Base_Types, ServicesVSResources.Base_Types, KnownMonikers.Overriding, GetType(HeaderMenuItemViewModel)),
+                    New MenuItemViewModelData("Bar1", "Bar1", KnownMonikers.ClassPublic, GetType(TargetMenuItemViewModel)),
+                    New MenuItemViewModelData("Bar2", "Bar2", KnownMonikers.ClassPublic, GetType(TargetMenuItemViewModel)))}})
 
         End Function
 
