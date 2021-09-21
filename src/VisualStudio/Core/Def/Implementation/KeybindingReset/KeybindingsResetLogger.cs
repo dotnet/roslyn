@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis.Experimentation
+namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 {
     internal static class KeybindingsResetLogger
     {

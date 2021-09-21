@@ -1699,6 +1699,9 @@ Additional information: {1}</value>
   <data name="Search_Settings" xml:space="preserve">
     <value>Search Settings</value>
   </data>
+  <data name="This_rule_is_not_configurable" xml:space="preserve">
+    <value>This rule is not configurable</value>
+  </data>
   <data name="Inline_Diagnostics_experimental" xml:space="preserve">
     <value>Inline Diagnostics (experimental)</value>
   </data>

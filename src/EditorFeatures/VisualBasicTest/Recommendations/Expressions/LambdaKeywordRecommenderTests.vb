@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class LambdaKeywordRecommenderTests
+        Inherits RecommenderTests
+
         ' TODO: potentially restrict this to smarter cases where you'd need a parenthesis around the lambda to actually
         ' call it
 

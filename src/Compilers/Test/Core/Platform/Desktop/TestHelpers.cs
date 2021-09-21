@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Win32;
+using Basic.Reference.Assemblies;
 
 namespace Roslyn.Test.Utilities
 {
@@ -81,9 +82,9 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(analyzerSource) },
                 new MetadataReference[]
                 {
-                    TestMetadata.NetStandard20.mscorlib,
-                    TestMetadata.NetStandard20.netstandard,
-                    TestMetadata.NetStandard20.SystemRuntime,
+                    NetStandard20.mscorlib,
+                    NetStandard20.netstandard,
+                    NetStandard20.SystemRuntime,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },

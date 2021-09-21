@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences, () =>
             {
                 // If the option has not been set by the user, check if the option to remove unused references
-                // is enabled from experimentation. If so, default to that. Otherwise default to disabled
+                // is enabled from experimentation. If so, default to that.
                 return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
             });
 
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous, () =>
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation.
-                // If so, default to that. Otherwise default to disabled
+                // If so, default to that.
                 return optionStore.GetOption(SuggestionsOptions.AsynchronousFeatureFlag);
             });
 
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Enable_all_features_in_opened_files_from_source_generators, SourceGeneratedFileManager.Options.EnableOpeningInWorkspace, () =>
             {
                 // If the option has not been set by the user, check if the option is enabled from experimentation.
-                // If so, default to that. Otherwise default to disabled
+                // If so, default to that.
                 return optionStore.GetOption(SourceGeneratedFileManager.Options.EnableOpeningInWorkspaceFeatureFlag);
             });
 

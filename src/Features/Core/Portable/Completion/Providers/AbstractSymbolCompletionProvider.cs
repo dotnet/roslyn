@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
 
                 if (invalidProjects != null)
-                    supportedPlatformData = new SupportedPlatformData(invalidProjects, totalProjects, context.Workspace);
+                    supportedPlatformData = new SupportedPlatformData(completionContext.Document.Project.Solution, invalidProjects, totalProjects);
             }
 
             return CreateItem(
@@ -381,11 +381,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected static async Task<TSyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
             var service = document.GetRequiredLanguageService<ISyntaxContextService>();
-            return (TSyntaxContext)service.CreateContext(workspace, semanticModel, position, cancellationToken);
+            return (TSyntaxContext)service.CreateContext(document, semanticModel, position, cancellationToken);
         }
 
         private static Task<TSyntaxContext> GetOrCreateContextAsync(Document document, int position, CancellationToken cancellationToken)

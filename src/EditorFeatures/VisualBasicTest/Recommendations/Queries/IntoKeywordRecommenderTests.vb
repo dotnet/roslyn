@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
     Public Class IntoKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <WorkItem(543191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543191")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IntoAfterAnonymousObjectCreationExprTest()

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.Experimentation
+namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 {
     [ExportOptionProvider, Shared]
     internal sealed class KeybindingResetOptions : IOptionProvider
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Experimentation
         private const string LocalRegistryPath = @"Roslyn\Internal\KeybindingsStatus\";
 
         public static readonly Option<ReSharperStatus> ReSharperStatus = new(nameof(KeybindingResetOptions),
-            nameof(ReSharperStatus), defaultValue: Experimentation.ReSharperStatus.NotInstalledOrDisabled,
+            nameof(ReSharperStatus), defaultValue: KeybindingReset.ReSharperStatus.NotInstalledOrDisabled,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(ReSharperStatus)));
 
         public static readonly Option<bool> NeedsReset = new(nameof(KeybindingResetOptions),
