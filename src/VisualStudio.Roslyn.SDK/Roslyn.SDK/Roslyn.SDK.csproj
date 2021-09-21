@@ -10,6 +10,7 @@
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <!-- VS Insertion -->
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.SDK</VisualStudioInsertionComponent>
+    <SetupProductArch>Neutral</SetupProductArch>
     <Ngen>false</Ngen>
   </PropertyGroup>
   <ItemGroup>
@@ -129,6 +130,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="5.0.0" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
+    <!-- Explicit reference to avoid missing package warning -->
+    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
+    <PackageReference Include="VSLangProj" Version="$(VSLangProjVersion)" />
   </ItemGroup>
 </Project>

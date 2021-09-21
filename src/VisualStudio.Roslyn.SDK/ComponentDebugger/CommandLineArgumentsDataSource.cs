@@ -50,7 +50,7 @@ namespace Roslyn.ComponentDebugger
                                                                                               ruleNames: Constants.CommandLineArgsRuleName);
         }
 
-        protected override Task<IProjectVersionedValue<ImmutableArray<string>>> PreprocessAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> input, IProjectVersionedValue<ImmutableArray<string>>? previousOutput)
+        protected override Task<IProjectVersionedValue<ImmutableArray<string>>?> PreprocessAsync(IProjectVersionedValue<IProjectSubscriptionUpdate>? input, IProjectVersionedValue<ImmutableArray<string>>? previousOutput)
         {
             if (input is null)
             {
@@ -58,7 +58,7 @@ namespace Roslyn.ComponentDebugger
             }
 
             var description = input.Value.ProjectChanges[Constants.CommandLineArgsRuleName];
-            return Task.FromResult<IProjectVersionedValue<ImmutableArray<string>>>(new ProjectVersionedValue<ImmutableArray<string>>(description.After.Items.Keys.ToImmutableArray(), input.DataSourceVersions));
+            return Task.FromResult<IProjectVersionedValue<ImmutableArray<string>>?>(new ProjectVersionedValue<ImmutableArray<string>>(description.After.Items.Keys.ToImmutableArray(), input.DataSourceVersions));
         }
 
         protected override Task ApplyAsync(IProjectVersionedValue<ImmutableArray<string>> value)
