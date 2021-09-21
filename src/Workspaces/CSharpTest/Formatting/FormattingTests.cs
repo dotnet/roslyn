@@ -10198,7 +10198,7 @@ class C
 {
     void M()
     {
-        var v = new [] { 1, 2, 3 };
+        var v = new[] { 1, 2, 3 };
     }
 }
 ",
