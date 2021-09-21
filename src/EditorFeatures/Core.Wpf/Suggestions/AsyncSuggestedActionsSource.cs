@@ -145,39 +145,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
                     addOperationScope, priority, isBlocking: false, cancellationToken);
 
-                if (priority == CodeActionRequestPriority.High)
-                {
-                    // in a high pri scenario, return data as soon as possible so that the user can interact with them.
-                    // this is especially important for state-machine oriented refactorings (like rename) where the user
-                    // should always have access to them effectively synchronously.
-                    var firstTask = await Task.WhenAny(fixesTask, refactoringsTask).ConfigureAwait(false);
-                    var secondTask = firstTask == fixesTask ? refactoringsTask : fixesTask;
-
-                    var orderedTasks = new[] { firstTask, secondTask };
-                    foreach (var task in orderedTasks)
-                    {
-                        if (task == fixesTask)
-                        {
-                            var fixes = await fixesTask.ConfigureAwait(false);
-                            foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes, ImmutableArray<UnifiedSuggestedActionSet>.Empty))
-                                yield return set;
-                        }
-                        else
-                        {
-                            Contract.ThrowIfFalse(task == refactoringsTask);
-
-                            var refactorings = await refactoringsTask.ConfigureAwait(false);
-                            foreach (var set in ConvertToSuggestedActionSets(state, selection, ImmutableArray<UnifiedSuggestedActionSet>.Empty, refactorings))
-                                yield return set;
-                        }
-                    }
-                }
-                else
-                {
-                    var actionsArray = await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
-                    foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes: actionsArray[0], refactorings: actionsArray[1]))
-                        yield return set;
-                }
+                var actionsArray = await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
+                foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes: actionsArray[0], refactorings: actionsArray[1]))
+                    yield return set;
             }
         }
     }
