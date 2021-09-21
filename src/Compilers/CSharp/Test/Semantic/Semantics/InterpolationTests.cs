@@ -983,6 +983,9 @@ class Program {
                 // (5,35): error CS8917: The delegate type could not be inferred.
                 //         Console.WriteLine($"X = { x=>3 }.");
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x=>3").WithLocation(5, 35),
+                // (6,35): warning CS8974: Converting method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         Console.WriteLine($"X = { Program.Main }.");
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "Program.Main").WithArguments("Main", "object").WithLocation(6, 35),
                 // (7,35): error CS0029: Cannot implicitly convert type 'void' to 'object'
                 //         Console.WriteLine($"X = { Program.Main(null) }.");
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "Program.Main(null)").WithArguments("void", "object").WithLocation(7, 35)
