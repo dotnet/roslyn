@@ -312,26 +312,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // new (int, int)[]
-            if (currentToken.Kind() == SyntaxKind.OpenParenToken &&
-                previousToken.Kind() == SyntaxKind.NewKeyword &&
-                previousToken.Parent.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.ArrayCreationExpression))
+            if (previousToken.Kind() == SyntaxKind.NewKeyword)
             {
-                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                // After a 'new' we almost always want a space.  only exceptions are `new()` as an implicit object 
+                // creation, or `new()` as a constructor constraint or `new[] {}` for an implicit array creation.
+                var spaces = previousToken.Parent?.Kind() is
+                    SyntaxKind.ConstructorConstraint or
+                    SyntaxKind.ImplicitObjectCreationExpression or
+                    SyntaxKind.ImplicitArrayCreationExpression ? 0 : 1;
+                return CreateAdjustSpacesOperation(spaces, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // some * "(" cases
             if (currentToken.Kind() == SyntaxKind.OpenParenToken)
             {
-                if (previousToken.Kind() == SyntaxKind.NewKeyword)
-                {
-                    // new (
-                    //
-                    // 'new' could be a modifier in a declaration, or this could an implicit obj or new-constraint.
-                    var spaces = previousToken.Parent?.Kind() is SyntaxKind.ImplicitArrayCreationExpression or SyntaxKind.ConstructorConstraint ? 0 : 1;
-                    return CreateAdjustSpacesOperation(spaces, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-                }
-
                 if (previousToken.Kind() == SyntaxKind.IdentifierToken ||
                     previousToken.Kind() == SyntaxKind.DefaultKeyword ||
                     previousToken.Kind() == SyntaxKind.BaseKeyword ||

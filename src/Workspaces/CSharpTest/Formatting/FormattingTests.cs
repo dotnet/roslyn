@@ -18,7 +18,7 @@ using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
-    public class FormattingEngineTests : CSharpFormattingTestBase
+    public class FormattingTests : CSharpFormattingTestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Format1()
@@ -10135,6 +10135,78 @@ class C
 {
     void M() {
         string  v     =    new   ();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInTupleArrayCreation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M()
+    {
+        var v = new (int, int)[];
+    }
+}
+",
+                code: @"
+class C
+{
+    void M() {
+        var  v     =    new   (int,   int)  [ ];
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInArrayCreation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M()
+    {
+        var v = new int[1];
+    }
+}
+",
+                code: @"
+class C
+{
+    void M() {
+        var  v     =    new   int  [  1  ];
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInImplicitArrayCreation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M()
+    {
+        var v = new [] { 1, 2, 3 };
+    }
+}
+",
+                code: @"
+class C
+{
+    void M() {
+        var  v     =    new     [ ] {  1,  2,  3 };
     }
 }
 ");
