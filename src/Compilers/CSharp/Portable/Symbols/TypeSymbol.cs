@@ -1768,7 +1768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         };
 
                     ReportMismatchInParameterType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInParameterType =
-                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, topLevel, arg) =>
+                        (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, topLevel, arg) =>
                         {
                             if (arg.isExplicit)
                             {

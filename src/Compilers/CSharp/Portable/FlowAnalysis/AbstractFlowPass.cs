@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 'MethodParameters', 'MethodThisParameter' and 'AnalyzeOutParameters(...)' should be used
         /// instead. _symbol is null during speculative binding.
         /// </summary>
-        protected readonly Symbol _symbol;
+        protected Symbol _symbol;
 
         /// <summary>
         /// Reflects the enclosing member, lambda or local function at the current location (in the bound tree).
