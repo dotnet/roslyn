@@ -374,6 +374,47 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                Public Async Function TestMultilineStatementPragmaWarningDirective8() As Task
+                    Dim source = <![CDATA[
+Imports System
+Class C
+    Sub Method()
+        [|Dim x _
+            As Integer|] _
+        : Return
+    End Sub
+End Class]]>
+                    Dim expected = $"
+Imports System
+Class C
+    Sub Method()
+#Disable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
+        Dim x _
+            As Integer _
+        : Return
+#Enable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
+    End Sub
+End Class"
+
+                    Await TestAsync(source.Value, expected)
+
+                    ' Also verify that the added directive does indeed suppress the diagnostic.
+                    Dim fixedSource = <![CDATA[
+Imports System
+Class C
+    Sub Method()
+#Disable Warning BC42024 ' Unused local variable
+        [|Dim x _
+            As Integer|] _
+        : Return
+#Enable Warning BC42024 ' Unused local variable
+    End Sub
+End Class]]>
+
+                    Await TestMissingAsync(fixedSource.Value)
+                End Function
+
                 <WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestMultilineInterpolatedString() As Task
