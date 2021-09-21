@@ -17,8 +17,8 @@ namespace Caravela.Compiler
             IList<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var compilation = CSharpCompiler.RunTransformers(ref input, transformers, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader);
-            return (compilation, diagnostics.ToReadOnlyAndFree());
+            CSharpCompiler.RunTransformers(input, transformers, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, out _, out var output, out _);
+            return (output, diagnostics.ToReadOnlyAndFree());
         }
     }
 }

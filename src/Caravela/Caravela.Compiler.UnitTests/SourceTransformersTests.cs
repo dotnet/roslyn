@@ -53,11 +53,11 @@ namespace Caravela.Compiler.UnitTests
 
         class TrivialTransformer : ISourceTransformer
         {
-            public Compilation Execute(TransformerContext context)
+            public void Execute(TransformerContext context)
             {
                 context.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create("TEST001", "Test", "Test warning", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 1));
 
-                return context.Compilation.ReplaceSyntaxTree(context.Compilation.SyntaxTrees.Single(), SyntaxFactory.ParseSyntaxTree("class Generated {}"));
+                context.Compilation = context.Compilation.ReplaceSyntaxTree(context.Compilation.SyntaxTrees.Single(), SyntaxFactory.ParseSyntaxTree("class Generated {}"));
             }
         }
         
@@ -129,9 +129,9 @@ namespace Caravela.Compiler.UnitTests
             {
                 this._introducedText = introducedText;
             }
-            public Compilation Execute(TransformerContext context)
+            public void Execute(TransformerContext context)
             {
-                return context.Compilation.AddSyntaxTrees( SyntaxFactory.ParseSyntaxTree(this._introducedText));
+                context.Compilation = context.Compilation.AddSyntaxTrees( SyntaxFactory.ParseSyntaxTree(this._introducedText));
             }
         }
 
@@ -166,11 +166,11 @@ config_transformer_class_name = ConfigTestClass
 
         class ConfigTransformer : ISourceTransformer
         {
-            public Compilation Execute(TransformerContext context)
+            public void Execute(TransformerContext context)
             {
                 context.GlobalOptions.TryGetValue("config_transformer_class_name", out var className);
 
-                return context.Compilation.ReplaceSyntaxTree(context.Compilation.SyntaxTrees.Single(), SyntaxFactory.ParseSyntaxTree($"class {className} {{}}"));
+                context.Compilation = context.Compilation.ReplaceSyntaxTree(context.Compilation.SyntaxTrees.Single(), SyntaxFactory.ParseSyntaxTree($"class {className} {{}}"));
             }
         }
 
@@ -250,7 +250,7 @@ build_property.CaravelaCompilerTransformedFilesOutputPath = {transformedDir.Path
 
         class DoSomethingTransformer : ISourceTransformer
         {
-            public Compilation Execute(TransformerContext context)
+            public void Execute(TransformerContext context)
             {
                 var compilation = context.Compilation;
 
@@ -259,9 +259,7 @@ build_property.CaravelaCompilerTransformedFilesOutputPath = {transformedDir.Path
                     compilation = compilation.ReplaceSyntaxTree(tree, tree.WithInsertAt(0, "/* comment */"));
                 }
 
-                compilation = compilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("class G {}"));
-
-                return compilation;
+                context.Compilation = compilation.AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree("class G {}"));
             }
         }
     }

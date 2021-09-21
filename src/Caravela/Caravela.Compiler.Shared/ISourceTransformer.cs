@@ -10,6 +10,6 @@ namespace Caravela.Compiler
         /// <summary>
         /// Called to perform source transformation.
         /// </summary>
-        Compilation Execute(TransformerContext context);
+        void Execute(TransformerContext context);
     }
 }

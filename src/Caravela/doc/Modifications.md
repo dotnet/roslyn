@@ -33,6 +33,8 @@ This code should be removed once Caravela is out of preview.
 
 ### TreeTracker
 
+#### Tracking of nodes
+
 To support debugging and reporting diagnostics in user code, the Caravela Compiler tracks changes done to syntax trees during transformer execution and maintains a map from syntax nodes in modified trees to nodes in the original tree. The central code for doing this is in `TreeTracker`.
 
 The way tracking works is that each tracked tree has its root node annotated and there is also a `ConditionalWeakTable` mapping each annotation to the original node. When a change is made inside a tracked subtree, new annotations are added, to make sure nodes can still be mapped to their originals. The annotation of the root of the tree is then changed, to indicate that it has been modified.
@@ -45,6 +47,10 @@ Tree tracker is called from several places in the code base, most interestingly 
 Note that if you need to modify the .Generated.cs files, you should make your changes in `SourceWriter` in the CSharpSyntaxGenerator project.
 
 Tree tracker is then used when emitting PDBs (in `CodeGenerator`) and when handling diagnostics (in `CSDiagnostic` and `CSharpDiagnosticFilter`).
+
+#### Mapping of locations and diagnostics
+
+The method `TreeTracker.MapDiagnostic` maps a diagnostic from the transformed syntax tree to the source syntax tree. Additionally, it adds the stores the `SyntaxNode` and `Compilation` related to this diagnostic. This info can be retrieved using `TreeTracker.TryGetDiagnosticInfo`. This is used to make it easier for diagnostic suppression to retrieve symbol information about a diagnostic.  
 
 ## Caravela.Compiler.Shared
 

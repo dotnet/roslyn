@@ -7,7 +7,7 @@ namespace Caravela.Compiler.UnitTests
 {
     abstract class TransformerOrderTransformer : ISourceTransformer
     {
-        public Compilation Execute(TransformerContext context) => throw new Exception();
+        public void Execute(TransformerContext context) => throw new Exception();
     }
 
     [Transformer]

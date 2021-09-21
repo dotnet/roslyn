@@ -114,7 +114,7 @@ class Library
 
         class InterleaveStatementsTransformer : ISourceTransformer
         {
-            public Compilation Execute(TransformerContext context)
+            public void Execute(TransformerContext context)
             {
                 var trees = context.Compilation.SyntaxTrees.ToList();
                 var programTree = trees[0];
@@ -124,7 +124,7 @@ class Library
 
                 var rewriter = new Rewriter(stepStatement);
 
-                return context.Compilation.ReplaceSyntaxTree(programTree, programTree.WithRootAndOptions(rewriter.Visit(programTree.GetRoot()), programTree.Options));
+                context.Compilation = context.Compilation.ReplaceSyntaxTree(programTree, programTree.WithRootAndOptions(rewriter.Visit(programTree.GetRoot()), programTree.Options));
             }
 
             class Rewriter : CSharpSyntaxRewriter
@@ -189,7 +189,7 @@ class C
 
         class LazyPropertyTransformer : ISourceTransformer
         {
-            public Compilation Execute(TransformerContext context)
+            public void Execute(TransformerContext context)
             {
                 var rewriter = new Rewriter();
                 var compilation = context.Compilation;
@@ -197,7 +197,7 @@ class C
                 {
                     compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(rewriter.Visit(tree.GetRoot()), tree.Options));
                 }
-                return compilation;
+                context.Compilation = compilation;
             }
 
             class Rewriter : CSharpSyntaxRewriter

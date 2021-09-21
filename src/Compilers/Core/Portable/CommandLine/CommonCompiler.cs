@@ -756,11 +756,13 @@ namespace Microsoft.CodeAnalysis
         private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
 
         // <Caravela>
-        private protected virtual Compilation RunTransformers(
-            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins,
-            AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics)
+        private protected virtual void RunTransformers(
+            Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins,
+            AnalyzerConfigOptionsProvider analyzerConfigProvider, DiagnosticBag diagnostics, out Compilation annotatedInputCompilation, out Compilation outputCompilation,
+            out ImmutableArray<Action<DiagnosticRequest>> diagnosticFilters)
         {
-            return input;
+            annotatedInputCompilation = outputCompilation = inputCompilation;
+            diagnosticFilters = ImmutableArray<Action<DiagnosticRequest>>.Empty;
         }
         // </Caravela>
 
@@ -1007,7 +1009,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return;
             }
-
+            
+            ImmutableArray<Action<DiagnosticRequest>> diagnosticFilters = ImmutableArray<Action<DiagnosticRequest>>.Empty;
             DiagnosticBag? analyzerExceptionDiagnostics = null;
             if (!analyzers.IsEmpty || !generators.IsEmpty
                                    // <Caravela>
@@ -1107,46 +1110,18 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
-                      additionalTextFiles, analyzerConfigProvider);
-
-                if (!analyzers.IsEmpty)
-                {
-                    analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    analyzerExceptionDiagnostics = new DiagnosticBag();
-
-                    // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
-                    //  1. Always filter out 'Hidden' analyzer diagnostics in build.
-                    //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
-                    var severityFilter = SeverityFilter.Hidden;
-                    if (Arguments.ErrorLogPath == null)
-                        severityFilter |= SeverityFilter.Info;
-
-                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
-                        compilation,
-                        analyzers,
-                        analyzerOptions,
-                        new AnalyzerManager(analyzers),
-                        analyzerExceptionDiagnostics.Add,
-                        Arguments.ReportAnalyzer,
-                        severityFilter,
-                        out compilation,
-                        analyzerCts.Token);
-                    reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
-                }
-
                 // <Caravela>
                 if (!transfomers.IsEmpty)
                 {
-                    var compilationBefore = compilation;
-                    compilation = RunTransformers(ref compilationBefore, transfomers, plugins, analyzerConfigProvider, diagnostics);
+                    var compilationBeforeTransformation = compilation;
+                    RunTransformers(compilationBeforeTransformation, transfomers, plugins, analyzerConfigProvider, diagnostics, out var annotatedInputCompilation, out compilation, out diagnosticFilters);
 
                     bool shouldDebugTransformedCode = ShouldDebugTransformedCode(analyzerConfigProvider);
                     var transformedOutputPath = GetTransformedFilesOutputDirectory(analyzerConfigProvider);
                     bool hasTransformedOutputPath = !string.IsNullOrWhiteSpace(transformedOutputPath);
 
                     // fix whitespace and embed transformed code into PDB or write it to disk
-                    if (compilation != compilationBefore && (shouldDebugTransformedCode || hasTransformedOutputPath))
+                    if (compilation != compilationBeforeTransformation && (shouldDebugTransformedCode || hasTransformedOutputPath))
                     {
                         if (shouldDebugTransformedCode && !hasTransformedOutputPath)
                         {
@@ -1155,7 +1130,7 @@ namespace Microsoft.CodeAnalysis
                             diagnostics.Add(diagnostic);
                         }
 
-                        var transformedTrees = compilation.SyntaxTrees.Where(tree => !compilationBefore.ContainsSyntaxTree(tree)).ToList();
+                        var transformedTrees = compilation.SyntaxTrees.Where(tree => !compilationBeforeTransformation.ContainsSyntaxTree(tree)).ToList();
                         var prefixRemover = CommonPath.MakePrefixRemover(transformedTrees.Select(t => t.FilePath));
                         var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -1231,9 +1206,40 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
                 // </Caravela>
-            }
 
-            compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
+
+                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
+                    additionalTextFiles, analyzerConfigProvider);
+
+                if (!analyzers.IsEmpty)
+                {
+                    analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    analyzerExceptionDiagnostics = new DiagnosticBag();
+
+                    // PERF: Avoid executing analyzers that report only Hidden and/or Info diagnostics, which don't appear in the build output.
+                    //  1. Always filter out 'Hidden' analyzer diagnostics in build.
+                    //  2. Filter out 'Info' analyzer diagnostics if they are not required to be logged in errorlog.
+                    var severityFilter = SeverityFilter.Hidden;
+                    if (Arguments.ErrorLogPath == null)
+                        severityFilter |= SeverityFilter.Info;
+
+                    analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
+                        compilation,
+                        analyzers,
+                        analyzerOptions,
+                        new AnalyzerManager(analyzers),
+                        analyzerExceptionDiagnostics.Add,
+                        Arguments.ReportAnalyzer,
+                        severityFilter,
+                        out compilation,
+                        analyzerCts.Token);
+                    reportAnalyzer = Arguments.ReportAnalyzer && !analyzers.IsEmpty;
+                }
+
+            }
+            
+
+            
             if (HasUnsuppressableErrors(diagnostics))
             {
                 return;
@@ -1416,7 +1422,10 @@ namespace Microsoft.CodeAnalysis
                             if (!diagnostics.IsEmptyWithoutResolution)
                             {
                                 // Apply diagnostic suppressions for analyzer and/or compiler diagnostics from diagnostic suppressors.
-                                analyzerDriver.ApplyProgrammaticSuppressions(diagnostics, compilation);
+                                analyzerDriver.ApplyProgrammaticSuppressions(
+                                    diagnostics,
+                                    compilation
+                                    );
                             }
                         }
                     }
@@ -1478,6 +1487,8 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
+                
+                FilterDiagnostics(diagnostics, diagnosticFilters);
 
                 if (HasUnsuppressableErrors(diagnostics))
                 {
@@ -1512,6 +1523,42 @@ namespace Microsoft.CodeAnalysis
                 return;
             }
         }
+        
+        // <Caravela>
+        private static void FilterDiagnostics(DiagnosticBag diagnostics, ImmutableArray<Action<DiagnosticRequest>> filters)
+        {
+            if (filters.IsEmpty)
+            {
+                return;
+            }
+
+            var inputDiagnostics = diagnostics.ToReadOnly();
+            diagnostics.Clear();
+
+            foreach (var diagnostic in inputDiagnostics)
+            {
+                if (!diagnostic.IsSuppressed)
+                {
+                    if (TreeTracker.TryGetDiagnosticInfo(diagnostic, out var compilation, out var syntaxNode))
+                    {
+                        DiagnosticRequest request = new(diagnostic, syntaxNode, compilation);
+                        foreach (var filter in filters)
+                        {
+                            filter(request);
+                        }
+
+                        if (request.IsSuppressed)
+                        {
+                            // Continue without adding the diagnostic.
+                            continue;
+                        }
+                    }
+                }
+
+                diagnostics.Add(diagnostic);
+            }
+        }
+        // </Caravela>
 
         // virtual for testing
         protected virtual Diagnostics.AnalyzerOptions CreateAnalyzerOptions(
