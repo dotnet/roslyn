@@ -267,7 +267,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         }
 
         protected override SyntaxNode GetContainingStatement(SyntaxToken token)
-            => token.GetAncestor<StatementSyntax>();
+            // If we can't get a containing statement, such as for expression bodied members, then
+            // return the arrow clause instead
+            => (SyntaxNode)token.GetAncestor<StatementSyntax>() ?? token.GetAncestor<ArrowExpressionClauseSyntax>();
 
         protected override bool TokenHasTrailingLineContinuationChar(SyntaxToken token)
             => false;
