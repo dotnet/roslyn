@@ -10118,6 +10118,52 @@ namespace NS;
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInImplicitObjectCreation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M()
+    {
+        string v = new();
+    }
+}
+",
+                code: @"
+class C
+{
+    void M() {
+        string  v     =    new   ();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInConstructorConstraint()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M<T>() where T : new()
+    {
+    }
+}
+",
+                code: @"
+class C
+{
+    void M<T>()   where   T   :   new    (   ) {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
         public async Task NewMethodOverloadWithTupleReturnType()
         {
             await AssertFormatAsync(
