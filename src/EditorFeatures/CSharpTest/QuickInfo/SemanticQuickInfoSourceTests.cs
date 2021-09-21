@@ -1221,6 +1221,42 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
                 Documentation("My Method Definition"));
         }
 
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_05()
+        {
+            var markup =
+@"partial class MyClass
+{
+    ///<summary>My Method Implementation</summary>
+    public partial void MyMethod() { }
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Implementation"));
+        }
+
+        [WorkItem(538638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538638")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestPartialMethodDocComment_06()
+        {
+            var markup =
+@"partial class MyClass
+{
+    ///<summary>My Method Definition</summary>
+    partial void MyMethod();
+
+    partial void MyMethod() { }
+}
+static class Test { static void Method() { MyClass.My$$Method(); } }";
+
+            await TestAsync(markup,
+                MainDescription($"void MyClass.MyMethod()"),
+                Documentation("My Method Definition"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestMetadataFieldMinimal()
         {
