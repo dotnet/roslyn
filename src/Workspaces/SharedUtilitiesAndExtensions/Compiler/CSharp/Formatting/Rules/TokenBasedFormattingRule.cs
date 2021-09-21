@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     // new (
                     //
                     // 'new' could be a modifier in a declaration, or this could an implicit obj or new-constraint.
-                    var spaces = previousToken.Parent?.Kind() is SyntaxKind.ImplicitArrayCreationExpression or SyntaxKind.ConstructorConstraint ? 0 : 1;
+                    var spaces = previousToken.Parent?.Kind() is SyntaxKind.ImplicitObjectCreationExpression or SyntaxKind.ConstructorConstraint ? 0 : 1;
                     return CreateAdjustSpacesOperation(spaces, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
 
