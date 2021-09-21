@@ -1231,8 +1231,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                node.Parent.IsKind(SyntaxKind.AttributeList, out AttributeListSyntax? attributeList) &&
                attributeList.Target?.Identifier.Kind() == attributeTarget;
 
-        private static bool IsMemberDeclaration(SyntaxNode node)
+        public bool IsDeclaration(SyntaxNode? node)
         {
+            if (node is null)
+                return false;
+
+            if (SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()))
+                return true;
+
             // From the C# language spec:
             // class-member-declaration:
             //    constant-declaration
@@ -1274,10 +1280,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     return false;
             }
         }
-
-        public bool IsDeclaration(SyntaxNode? node)
-            => node is not null &&
-               (SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node));
 
         public bool IsTypeDeclaration(SyntaxNode node)
             => SyntaxFacts.IsTypeDeclaration(node.Kind());
