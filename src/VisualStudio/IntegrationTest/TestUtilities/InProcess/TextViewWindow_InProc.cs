@@ -362,9 +362,22 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
             }
 
-            if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
+            var start = DateTime.Now;
+            IEnumerable<SuggestedActionSet> actionSets = Array.Empty<SuggestedActionSet>();
+            while (DateTime.Now - start < TimeSpan.FromSeconds(30))
             {
+                var status = activeSession.TryGetSuggestedActionSets(out actionSets);
+                if (status == QuerySuggestedActionCompletionStatus.CompletedWithoutData)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                    continue;
+                }
+
+                if (status == QuerySuggestedActionCompletionStatus.Completed)
+                    break;
+
                 actionSets = Array.Empty<SuggestedActionSet>();
+                break;
             }
 
             return await SelectActionsAsync(actionSets);
