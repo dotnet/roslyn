@@ -109,7 +109,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Id = id;
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
-            EditSession = new EditSession(this, nonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, _editSessionTelemetry, inBreakState: false);
+
+            EditSession = new EditSession(
+                this,
+                nonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
+                _editSessionTelemetry,
+                lazyActiveStatementMap: null,
+                inBreakState: false);
+
             ReportDiagnostics = reportDiagnostics;
         }
 
@@ -192,15 +199,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Dispose();
         }
 
-        public void BreakStateChanged(bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void BreakStateOrCapabilitiesChanged(bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
             => RestartEditSession(nonRemappableRegions: null, inBreakState, out documentsToReanalyze);
 
-        internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+        internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             ThrowIfDisposed();
 
             EndEditSession(out documentsToReanalyze);
-            EditSession = new EditSession(this, nonRemappableRegions ?? EditSession.NonRemappableRegions, EditSession.Telemetry, inBreakState);
+
+            EditSession = new EditSession(
+                this,
+                nonRemappableRegions ?? EditSession.NonRemappableRegions,
+                EditSession.Telemetry,
+                (inBreakState == null) ? EditSession.BaseActiveStatements : null,
+                inBreakState ?? EditSession.InBreakState);
         }
 
         private ImmutableArray<IDisposable> GetBaselineModuleReaders()

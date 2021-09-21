@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
             (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
+        private readonly Lazy<IManagedEditAndContinueDebuggerService> _debuggerService;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
 
@@ -41,10 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         /// </summary>
         public EditAndContinueLanguageService(
             Lazy<IHostWorkspaceProvider> workspaceProvider,
+            Lazy<IManagedEditAndContinueDebuggerService> debuggerService,
             IDiagnosticAnalyzerService diagnosticService,
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource)
         {
             WorkspaceProvider = workspaceProvider;
+            _debuggerService = debuggerService;
             _diagnosticService = diagnosticService;
             _diagnosticUpdateSource = diagnosticUpdateSource;
         }
@@ -71,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         /// <summary>
         /// Called by the debugger when a debugging session starts and managed debugging is being used.
         /// </summary>
-        public async ValueTask StartSessionAsync(IManagedEditAndContinueDebuggerService debugger, CancellationToken cancellationToken)
+        public async ValueTask StartSessionAsync(CancellationToken cancellationToken)
         {
             IsSessionActive = true;
 
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
                 _debuggingSession = await proxy.StartDebuggingSessionAsync(
                     solution,
-                    debugger,
+                    _debuggerService.Value,
                     captureMatchingDocuments: openedDocumentIds,
                     captureAllMatchingDocuments: false,
                     reportDiagnostics: true,
@@ -115,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             try
             {
-                await session.BreakStateChangedAsync(_diagnosticService, inBreakState: true, cancellationToken).ConfigureAwait(false);
+                await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, inBreakState: true, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -139,13 +143,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             try
             {
-                await session.BreakStateChangedAsync(_diagnosticService, inBreakState: false, cancellationToken).ConfigureAwait(false);
+                await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, inBreakState: false, cancellationToken).ConfigureAwait(false);
                 GetActiveStatementTrackingService().EndTracking();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 _disabled = true;
                 return;
+            }
+        }
+
+        public async ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
+        {
+            if (_disabled)
+            {
+                return;
+            }
+
+            try
+            {
+                await GetDebuggingSession().BreakStateOrCapabilitiesChangedAsync(_diagnosticService, inBreakState: null, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            {
+                _disabled = true;
             }
         }
 
@@ -239,26 +260,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
         }
 
-        public async ValueTask<(ManagedModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits, DiagnosticData? syntaxError, Solution? solution)>
-            GetUpdatesAsync(bool trackActiveStatements, CancellationToken cancellationToken)
+        public async ValueTask<ManagedModuleUpdates> GetEditAndContinueUpdatesAsync(CancellationToken cancellationToken)
         {
             if (_disabled)
             {
-                return (new ManagedModuleUpdates(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty),
-                        ImmutableArray<DiagnosticData>.Empty,
-                        ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty,
-                        syntaxError: null,
-                        solution: null);
+                return new ManagedModuleUpdates(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty);
             }
 
             var solution = GetCurrentCompileTimeSolution();
-            var activeStatementSpanProvider = trackActiveStatements ? GetActiveStatementSpanProvider(solution) : s_noActiveStatementSpanProvider;
-            var (updates, diagnostics, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+            var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
+            var (updates, _, _, _) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
             _pendingUpdatedSolution = solution;
-            return (updates, diagnostics, rudeEdits, syntaxError, solution);
+            return updates;
         }
 
-        public async Task<SourceSpan?> GetCurrentActiveStatementPositionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
+        public async ValueTask<ManagedHotReloadUpdates> GetHotReloadUpdatesAsync(CancellationToken cancellationToken)
+        {
+            if (_disabled)
+            {
+                return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
+            }
+
+            var solution = GetCurrentCompileTimeSolution();
+            var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, s_noActiveStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+            _pendingUpdatedSolution = solution;
+
+            var updates = moduleUpdates.Updates.SelectAsArray(
+                update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta));
+
+            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, cancellationToken).ConfigureAwait(false);
+
+            return new ManagedHotReloadUpdates(updates, diagnostics);
+        }
+
+        public async ValueTask<SourceSpan?> GetCurrentActiveStatementPositionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
         {
             try
             {
@@ -277,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             }
         }
 
-        public async Task<bool?> IsActiveStatementInExceptionRegionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
+        public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
         {
             try
             {
