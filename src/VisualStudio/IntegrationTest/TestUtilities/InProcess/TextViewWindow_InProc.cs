@@ -373,10 +373,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     continue;
                 }
 
-                if (status == QuerySuggestedActionCompletionStatus.Completed)
-                    break;
+                if (status != QuerySuggestedActionCompletionStatus.Completed)
+                    actionSets = Array.Empty<SuggestedActionSet>();
 
-                actionSets = Array.Empty<SuggestedActionSet>();
                 break;
             }
 
