@@ -613,7 +613,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             node.AddCategory(CodeNodeCategories.Method);
 
-            var isOperator = method.MethodKind == MethodKind.UserDefinedOperator || method.MethodKind == MethodKind.Conversion;
+            var isOperator = method.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion;
             node[DgmlNodeProperties.Icon] = isOperator
                 ? IconHelper.GetIconName("Operator", method.DeclaredAccessibility)
                 : IconHelper.GetIconName("Method", method.DeclaredAccessibility);

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //  2. Compiler diagnostics
             //  3. Non-configurable diagnostics
             if (!descriptor.IsEnabledByDefault ||
-                descriptor.ImmutableCustomTags().Any(tag => tag == WellKnownDiagnosticTags.Compiler || tag == WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.ImmutableCustomTags().Any(tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
             {
                 return false;
             }
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //  2. Compiler diagnostics
             //  3. Non-configurable diagnostics
             if (!descriptor.IsEnabledByDefault ||
-                descriptor.ImmutableCustomTags().Any(tag => tag == WellKnownDiagnosticTags.Compiler || tag == WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.ImmutableCustomTags().Any(tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
             {
                 return ReportDiagnostic.Default;
             }
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //  2. Compiler diagnostics
             //  3. Non-configurable diagnostics
             if (!descriptor.IsEnabledByDefault ||
-                descriptor.ImmutableCustomTags().Any(tag => tag == WellKnownDiagnosticTags.Compiler || tag == WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.ImmutableCustomTags().Any(tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
             {
                 severity = default;
                 return false;

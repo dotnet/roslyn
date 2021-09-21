@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 return syntaxRoot
                     .DescendantNodes(n => !syntaxFacts.IsDeclaration(n))
-                    .Where(n => syntaxFacts.IsNamespaceDeclaration(n))
+                    .Where(n => syntaxFacts.IsBaseNamespaceDeclaration(n))
                     .ToImmutableArray();
             }
         }

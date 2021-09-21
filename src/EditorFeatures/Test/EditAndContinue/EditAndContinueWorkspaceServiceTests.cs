@@ -4043,11 +4043,11 @@ class C
 
             Assert.Empty(result.updates);
 
-            // Syntax error (not reported in diagnostics):
+            // Syntax error is reported in the diagnostics:
             solution = solution.WithDocumentText(documentIdA, SourceText.From(source4, Encoding.UTF8));
 
             result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
-            Assert.Empty(result.diagnostics);
+            Assert.Equal(1, result.diagnostics.Length);
             Assert.Empty(result.updates);
 
             hotReload.EndSession();

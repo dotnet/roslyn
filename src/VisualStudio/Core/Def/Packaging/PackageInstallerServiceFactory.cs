@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 if (_packageSourceProvider != null)
                     return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false).SelectAsArray(r => new PackageSource(r.Key, r.Value));
             }
-            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
+            catch (Exception ex) when (ex is InvalidDataException or InvalidOperationException)
             {
                 // These exceptions can happen when the nuget.config file is broken.
             }
@@ -569,8 +569,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // as we know these languages are safe to build up this index for.
             ProjectState? newState = null;
 
-            if (project?.Language == LanguageNames.CSharp ||
-                project?.Language == LanguageNames.VisualBasic)
+            if (project?.Language is LanguageNames.CSharp or
+                LanguageNames.VisualBasic)
             {
                 var projectGuid = _workspace.GetProjectGuid(projectId);
                 if (projectGuid != Guid.Empty)

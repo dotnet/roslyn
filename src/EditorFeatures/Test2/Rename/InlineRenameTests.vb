@@ -5,7 +5,6 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -1488,92 +1487,6 @@ class C
 
                 Await VerifyRenameOptionChangedSessionCommit(workspace, "M", "Sa", renameOverloads:=True)
                 VerifyFileName(workspace, "Test1")
-            End Using
-        End Function
-
-        <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1142095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142095")>
-        Public Async Function RenameCommitsWhenDebuggingStarts(host As RenameTestHost) As Task
-            Using workspace = CreateWorkspaceWithWaiter(
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true">
-                        <Document>
-                            class [|$$Goo|]
-                            {
-                                void Blah()
-                                {
-                                    [|Goo|] f = new [|Goo|]();
-                                }
-                            }
-                        </Document>
-                    </Project>
-                </Workspace>, host)
-
-                Dim session = StartSession(workspace)
-
-                ' Type a bit in the file
-                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
-
-                textBuffer.Insert(caretPosition, "Bar")
-
-                ' Make sure the RenameService's ActiveSession is still there
-                Dim renameService = workspace.GetService(Of IInlineRenameService)()
-                Assert.NotNull(renameService.ActiveSession)
-
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
-
-                ' Simulate starting a debugging session
-                Dim debuggingService = workspace.Services.GetService(Of IDebuggingWorkspaceService)
-                debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run)
-
-                ' Ensure the rename was committed
-                Assert.Null(renameService.ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
-            End Using
-        End Function
-
-        <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1142095, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1142095")>
-        Public Async Function RenameCommitsWhenExitingDebuggingBreakMode(host As RenameTestHost) As Task
-            Using workspace = CreateWorkspaceWithWaiter(
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true">
-                        <Document>
-                            class [|$$Goo|]
-                            {
-                                void Blah()
-                                {
-                                    [|Goo|] f = new [|Goo|]();
-                                }
-                            }
-                        </Document>
-                    </Project>
-                </Workspace>, host)
-
-                Dim session = StartSession(workspace)
-
-                ' Type a bit in the file
-                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
-                Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
-
-                textBuffer.Insert(caretPosition, "Bar")
-
-                ' Make sure the RenameService's ActiveSession is still there
-                Dim renameService = workspace.GetService(Of IInlineRenameService)()
-                Assert.NotNull(renameService.ActiveSession)
-
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
-
-                ' Simulate ending break mode in the debugger (by stepping or continuing)
-                Dim debuggingService = workspace.Services.GetService(Of IDebuggingWorkspaceService)
-                debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run)
-
-                ' Ensure the rename was committed
-                Assert.Null(renameService.ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, "BarGoo")
             End Using
         End Function
 
