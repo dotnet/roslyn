@@ -364,7 +364,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             var start = DateTime.Now;
             IEnumerable<SuggestedActionSet> actionSets = Array.Empty<SuggestedActionSet>();
-            while (DateTime.Now - start < TimeSpan.FromSeconds(30))
+            while (DateTime.Now - start < Helper.HangMitigatingTimeout)
             {
                 var status = activeSession.TryGetSuggestedActionSets(out actionSets);
                 if (status == QuerySuggestedActionCompletionStatus.CompletedWithoutData)
