@@ -10153,5 +10153,24 @@ class C
 }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewIndexerWithTupleReturnType()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    new (int, int) this[int i] { get => throw null; }
+}
+",
+                code: @"
+class C
+{
+    new  (int, int) this[int i] { get => throw null; }
+}
+");
+        }
     }
 }

@@ -5,6 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -323,8 +324,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.Kind() == SyntaxKind.OpenParenToken)
             {
                 if (previousToken.Kind() == SyntaxKind.NewKeyword &&
-                    previousToken.Parent.IsKind(SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration))
+                    CSharpSyntaxFacts.Instance.IsDeclaration(previousToken.Parent))
                 {
+                    // public new (int, int) M() { ... }
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
 

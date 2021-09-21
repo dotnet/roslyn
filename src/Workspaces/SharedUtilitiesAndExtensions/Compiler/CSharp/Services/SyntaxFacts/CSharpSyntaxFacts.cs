@@ -1275,8 +1275,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
         }
 
-        public bool IsDeclaration(SyntaxNode node)
-            => SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node);
+        public bool IsDeclaration(SyntaxNode? node)
+            => node is not null &&
+               (SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node));
 
         public bool IsTypeDeclaration(SyntaxNode node)
             => SyntaxFacts.IsTypeDeclaration(node.Kind());
