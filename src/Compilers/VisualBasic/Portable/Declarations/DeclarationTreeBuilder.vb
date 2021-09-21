@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' In an attribute context the name might be referenced as the full name (Like 'TypeForwardedToAttribute')
             ' Or the short name (Like 'TypeForwardedTo').
             If inAttribute AndAlso
-               (name.Length + NameOf(System.Attribute).Length) = description.Name.Length AndAlso
+               (name.Length + NameOf(Attribute).Length) = description.Name.Length AndAlso
                description.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase) Then
 
                 Return True
