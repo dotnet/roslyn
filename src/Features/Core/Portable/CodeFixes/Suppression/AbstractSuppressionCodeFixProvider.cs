@@ -115,24 +115,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         private SyntaxToken GetAdjustedTokenForPragmaRestore(SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
         {
             var containingStatement = GetContainingStatement(token);
-            while (true)
-            {
-                if (TokenHasTrailingLineContinuationChar(token))
-                {
-                    indexOfLine = indexOfLine + 1;
-                }
-                else if (containingStatement is not null && containingStatement.GetLastToken() != token)
-                {
-                    indexOfLine = lines.IndexOf(containingStatement.GetLastToken().SpanStart);
-                    containingStatement = null;
-                }
-                else
-                {
-                    break;
-                }
 
-                var line = lines[indexOfLine];
-                token = root.FindToken(line.End);
+            // As per above, the last token of the statement might not be the last token on the line
+            if (containingStatement is not null && containingStatement.GetLastToken() != token)
+            {
+                indexOfLine = lines.IndexOf(containingStatement.GetLastToken().SpanStart);
+            }
+
+            var line = lines[indexOfLine];
+            token = root.FindToken(line.End);
+
+            // VB has line continuation characters that can explicitly extend the line beyond the last
+            // token, so allow for that by just skipping over them
+            while (TokenHasTrailingLineContinuationChar(token))
+            {
+                indexOfLine = indexOfLine + 1;
+                token = root.FindToken(lines[indexOfLine].End, findInsideTrivia: true);
             }
 
             return token;
