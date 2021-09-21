@@ -9835,55 +9835,28 @@ class A
             );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/47125")]
+        [Fact]
+        [WorkItem(47125, "https://github.com/dotnet/roslyn/issues/47125")]
         public void UnmanagedCallersOnlyWithLoopInUsage_3()
         {
-            // Remove UnmanagedCallersOnlyWithLoopInUsage_3_Release when
-            // this is unskipped.
-
             var comp = CreateCompilation(new[] { @"
 #nullable enable
-using System.Runtime.InteropServices;
-class C
-{
-    [UnmanagedCallersOnly(CallConvs = F())]
-    static Type[] F() { }
-}
-", UnmanagedCallersOnlyAttribute });
-
-            comp.VerifyDiagnostics(
-            );
-        }
-
-        [ConditionalFact(typeof(IsRelease))]
-        public void UnmanagedCallersOnlyWithLoopInUsage_3_Release()
-        {
-            // The bug in UnmanagedCallersOnlyWithLoopInUsage_3 is only
-            // triggered by the nullablewalker, which is unconditionally
-            // run in debug mode. We also want to verify the use-site
-            // diagnostic for unmanagedcallersonly does not cause a loop,
-            // so we have a separate version that does not have nullable
-            // enabled and only runs in release to verify. When
-            // https://github.com/dotnet/roslyn/issues/47125 is fixed, this
-            // test can be removed
-
-            var comp = CreateCompilation(new[] { @"
 using System;
 using System.Runtime.InteropServices;
 class C
 {
     [UnmanagedCallersOnly(CallConvs = F())]
-    static Type[] F() => null;
+    static Type[] F() { throw null!; }
 }
 ", UnmanagedCallersOnlyAttribute });
 
             comp.VerifyDiagnostics(
-                // (6,39): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // (7,39): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
                 //     [UnmanagedCallersOnly(CallConvs = F())]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()").WithArguments("C.F()").WithLocation(6, 39),
-                // (6,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()").WithArguments("C.F()").WithLocation(7, 39),
+                // (7,39): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [UnmanagedCallersOnly(CallConvs = F())]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()").WithLocation(6, 39)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()").WithLocation(7, 39)
             );
         }
 
@@ -9915,50 +9888,10 @@ unsafe class C
             );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/47125")]
+        [Fact]
+        [WorkItem(47125, "https://github.com/dotnet/roslyn/issues/47125")]
         public void UnmanagedCallersOnlyWithLoopInUsage_5()
         {
-            var comp = CreateCompilationWithFunctionPointers(new[] { @"
-using System;
-using System.Runtime.InteropServices;
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-class Attr : Attribute
-{
-    public Attr(int i) {}
-}
-unsafe class C
-{
-    [UnmanagedCallersOnly]
-    [Attr(F())]
-    static int F()
-    {
-        return 0;
-    }
-}
-", UnmanagedCallersOnlyAttribute });
-
-            comp.VerifyDiagnostics(
-                // (12,11): error CS8901: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
-                //     [Attr(F())]
-                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "F()", isSuppressed: false).WithArguments("C.F()").WithLocation(12, 11),
-                // (12,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     [Attr(F())]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F()", isSuppressed: false).WithLocation(12, 11)
-            );
-        }
-
-        [ConditionalFact(typeof(IsRelease))]
-        public void UnmanagedCallersOnlyWithLoopInUsage_5_Release()
-        {
-            // The bug in UnmanagedCallersOnlyWithLoopInUsage_5 is only
-            // triggered by the nullablewalker, which is unconditionally
-            // run in debug mode. We also want to verify the use-site
-            // diagnostic for unmanagedcallersonly does not cause a loop,
-            // so we have a separate version that does not have nullable
-            // enabled and only runs in release to verify. When
-            // https://github.com/dotnet/roslyn/issues/47125 is fixed, this
-            // test can be removed
-
             var comp = CreateCompilationWithFunctionPointers(new[] { @"
 using System;
 using System.Runtime.InteropServices;

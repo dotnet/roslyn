@@ -865,74 +865,75 @@ next:;
             return (TypeEarlyWellKnownAttributeData)attributesBag.EarlyDecodedWellKnownAttributeData;
         }
 
-        internal override CSharpAttributeData? EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+        internal override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             bool hasAnyDiagnostics;
-            CSharpAttributeData boundAttribute;
+            CSharpAttributeData? attributeData;
+            BoundAttribute? boundAttribute;
 
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ComImportAttribute))
             {
-                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                if (!boundAttribute.HasErrors)
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!attributeData.HasErrors)
                 {
                     arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().HasComImportAttribute = true;
                     if (!hasAnyDiagnostics)
                     {
-                        return boundAttribute;
+                        return (attributeData, boundAttribute);
                     }
                 }
 
-                return null;
+                return (null, null);
             }
 
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CodeAnalysisEmbeddedAttribute))
             {
-                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                if (!boundAttribute.HasErrors)
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!attributeData.HasErrors)
                 {
                     arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().HasCodeAnalysisEmbeddedAttribute = true;
                     if (!hasAnyDiagnostics)
                     {
-                        return boundAttribute;
+                        return (attributeData, boundAttribute);
                     }
                 }
 
-                return null;
+                return (null, null);
             }
 
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ConditionalAttribute))
             {
-                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                if (!boundAttribute.HasErrors)
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!attributeData.HasErrors)
                 {
-                    string? name = boundAttribute.GetConstructorArgument<string>(0, SpecialType.System_String);
+                    string? name = attributeData.GetConstructorArgument<string>(0, SpecialType.System_String);
                     arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().AddConditionalSymbol(name);
                     if (!hasAnyDiagnostics)
                     {
-                        return boundAttribute;
+                        return (attributeData, boundAttribute);
                     }
                 }
 
-                return null;
+                return (null, null);
             }
 
-            ObsoleteAttributeData obsoleteData;
-            if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+            ObsoleteAttributeData? obsoleteData;
+            if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out attributeData, out boundAttribute, out obsoleteData))
             {
                 if (obsoleteData != null)
                 {
                     arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
                 }
 
-                return boundAttribute;
+                return (attributeData, boundAttribute);
             }
 
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.AttributeUsageAttribute))
             {
-                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                if (!boundAttribute.HasErrors)
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!attributeData.HasErrors)
                 {
-                    AttributeUsageInfo info = this.DecodeAttributeUsageAttribute(boundAttribute, arguments.AttributeSyntax, diagnose: false);
+                    AttributeUsageInfo info = this.DecodeAttributeUsageAttribute(attributeData, arguments.AttributeSyntax, diagnose: false);
                     if (!info.IsNull)
                     {
                         var typeData = arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>();
@@ -943,12 +944,12 @@ next:;
 
                         if (!hasAnyDiagnostics)
                         {
-                            return boundAttribute;
+                            return (attributeData, boundAttribute);
                         }
                     }
                 }
 
-                return null;
+                return (null, null);
             }
 
             // We want to decode this early because it can influence overload resolution, which could affect attribute binding itself. Consider an attribute with these
@@ -961,17 +962,17 @@ next:;
             // is an error scenario regardless (non-constant interpolated string), but it's good to get right as it will affect public API results.
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.InterpolatedStringHandlerAttribute))
             {
-                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                if (!boundAttribute.HasErrors)
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!attributeData.HasErrors)
                 {
                     arguments.GetOrCreateData<TypeEarlyWellKnownAttributeData>().HasInterpolatedStringHandlerAttribute = true;
                     if (!hasAnyDiagnostics)
                     {
-                        return boundAttribute;
+                        return (attributeData, boundAttribute);
                     }
                 }
 
-                return null;
+                return (null, null);
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
