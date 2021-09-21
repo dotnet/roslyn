@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tags;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -90,12 +91,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             if (textBuffer.IsInLspEditorContext())
                 return null;
 
-            var asyncEnabled = _globalOptions.GetOption(SuggestionsOptions.Asynchronous) &&
-                               !_globalOptions.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag);
+            try
+            {
+                var asyncEnabled = _globalOptions.GetOption(SuggestionsOptions.Asynchronous) &&
+                                   !_globalOptions.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag);
+                if (asyncEnabled)
+                    return new AsyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+            }
 
-            return asyncEnabled
-                ? new AsyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry)
-                : new SyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry);
+            return new SyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry);
         }
     }
 }
