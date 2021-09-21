@@ -101,8 +101,6 @@ namespace Microsoft.CodeAnalysis
             where TCompilation : Compilation
         {
             // <Caravela>
-            // GetDiagnostics() has side-effects that some tests are relying on
-            _ = c.GetDiagnostics();
 
             var compilation = c;
 

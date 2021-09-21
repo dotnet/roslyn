@@ -66,7 +66,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false);
             // <Caravela>
             _transformers = new(this, typeof(TransformerAttribute), GetTransformersSupportedLanguages, allowNetFramework: false);
-            _plugins = new(this, Type.GetType($"{CompilerPlugInAttributeTypeNamespace}.{CompilerPlugInAttributeTypeName}, {CompilerPlugInAttributeAssembly}")!, GetTransformersSupportedLanguages, allowNetFramework: false);
+
+            // The declaring assembly might not be loaded in tests.
+            var compilerPlugInAttributeType = Type.GetType($"{CompilerPlugInAttributeTypeNamespace}.{CompilerPlugInAttributeTypeName}, {CompilerPlugInAttributeAssembly}");
+
+            if (compilerPlugInAttributeType != null)
+            {
+                _plugins = new(this, compilerPlugInAttributeType, GetTransformersSupportedLanguages, allowNetFramework: false);
+            }
             // </Caravela>
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
@@ -138,6 +145,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _generators.GetExtensions(LanguageNames.CSharp);
         }
 
+        public override ImmutableArray<ISourceGenerator> GetGenerators(string language)
+        {
+            return _generators.GetExtensions(language);
+        }
+
         // <Caravela>
         public override ImmutableArray<ISourceTransformer> GetTransformers()
         {
@@ -146,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override ImmutableArray<object> GetPlugins()
         {
-            return _plugins.GetExtensions(LanguageNames.CSharp);
+            return _plugins?.GetExtensions(LanguageNames.CSharp) ?? ImmutableArray<object>.Empty;
         }
         // </Caravela>
 
@@ -240,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void AddCompilerPlugins(ImmutableArray<object>.Builder builder, string language)
         {
-            _plugins.AddExtensions(builder, language);
+            _plugins?.AddExtensions(builder, language);
         }
         // </Caravela>
 
