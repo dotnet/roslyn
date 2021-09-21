@@ -93,6 +93,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         protected SyntaxToken GetAdjustedTokenForPragmaDisable(SyntaxToken token, SyntaxNode root, TextLineCollection lines)
         {
             var containingStatement = GetContainingStatement(token);
+
+            // The containing statement might not start on the same line as the token, but we don't want to split
+            // a statement in the middle, so we actually want to use the first token on the line that has the first token
+            // of the statement.
+            //
+            // eg, given: public void M() { int x = 1; }
+            //
+            // When trying to suppress an "unused local" for x, token would be "x", the first token
+            // of the containing statement is "int", but we want the pragma before "public".
             if (containingStatement is not null && containingStatement.GetFirstToken() != token)
             {
                 var indexOfLine = lines.IndexOf(containingStatement.GetFirstToken().SpanStart);
