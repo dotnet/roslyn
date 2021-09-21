@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             ICodeFixService codeFixService,
             Document document,
             TextSpan selection,
+            bool includeSuppressionFixes,
             CodeActionRequestPriority priority,
             bool isBlocking,
             Func<string, IDisposable?> addOperationScope,
@@ -41,14 +42,10 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         {
             // Intentionally switch to a threadpool thread to compute fixes.  We do not want to accidentally
             // run any of this on the UI thread and potentially allow any code to take a dependency on that.
-            //
-            // Only request suppression fixes if we're not in the high priority group.  The high priority group
-            // should not show them as that would cause them to appear higher than normal pri fixes and we
-            // always want these last.
             var fixes = await Task.Run(() => codeFixService.GetFixesAsync(
                 document,
                 selection,
-                includeSuppressionFixes: priority != CodeActionRequestPriority.High,
+                includeSuppressionFixes,
                 priority,
                 isBlocking,
                 addOperationScope,

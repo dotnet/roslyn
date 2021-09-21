@@ -101,8 +101,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                         if (priority != null)
                         {
+                            // Only request suppression fixes if we're not in the lowest priority group.  The other groups
+                            // should not show suppressions them as that would cause them to not appear at the end.
+
                             var allSets = GetCodeFixesAndRefactoringsAsync(
-                                state, requestedActionCategories, document, range, selection, _ => null,
+                                state, requestedActionCategories, document,
+                                range, selection,
+                                addOperationScope: _ => null,
+                                includeSuppressionFixes: priority.Value == CodeActionRequestPriority.Normal,
                                 priority.Value, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
                             await foreach (var set in allSets)
@@ -125,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
+                bool includeSuppressionFixes,
                 CodeActionRequestPriority priority,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
@@ -133,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var fixesTask = GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                    addOperationScope, priority, isBlocking: false, cancellationToken);
+                    addOperationScope, includeSuppressionFixes, priority, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
                     state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
                     addOperationScope, priority, isBlocking: false, cancellationToken);
