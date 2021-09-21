@@ -1699,6 +1699,18 @@ Additional information: {1}</value>
   <data name="This_rule_is_not_configurable" xml:space="preserve">
     <value>This rule is not configurable</value>
   </data>
+  <data name="Inline_Diagnostics_experimental" xml:space="preserve">
+    <value>Inline Diagnostics (experimental)</value>
+  </data>
+  <data name="Display_diagnostics_inline_experimental" xml:space="preserve">
+    <value>Display diagnostics inline (experimental)</value>
+  </data>
+  <data name="at_the_end_of_the_line_of_code" xml:space="preserve">
+    <value>at the end of the line of code</value>
+  </data>
+  <data name="on_the_right_edge_of_the_editor_window" xml:space="preserve">
+    <value>on the right edge of the editor window</value>
+  </data>
   <data name="Multiple_members_are_inherited" xml:space="preserve">
     <value>Multiple members are inherited</value>
   </data>
@@ -1743,6 +1755,12 @@ Additional information: {1}</value>
   </data>
   <data name="Inherited_interfaces" xml:space="preserve">
     <value>Inherited interfaces</value>
+  </data>
+  <data name="Invalid_type_name" xml:space="preserve">
+    <value>Invalid type name</value>
+  </data>
+  <data name="Move_static_members_to_another_type_colon" xml:space="preserve">
+    <value>Move Static Members to Another Type:</value>
   </data>
   <data name="Select_an_appropriate_symbol_to_start_value_tracking" xml:space="preserve">
     <value>Select an appropriate symbol to start value tracking</value>
@@ -1790,18 +1808,8 @@ Additional information: {1}</value>
   <data name="Quick_Actions" xml:space="preserve">
     <value>Quick Actions</value>
   </data>
-  <data name="Language_client_initialization_failed" xml:space="preserve">
-    <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
-    <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
-  </data>
   <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
     <value>Combine inheritance margin with indicator margin</value>
-  </data>
-  <data name="Package_install_canceled" xml:space="preserve">
-    <value>Package install canceled</value>
-  </data>
-  <data name="Package_uninstall_canceled" xml:space="preserve">
-    <value>Package uninstall canceled</value>
   </data>
   <data name="Default_Current_Document" xml:space="preserve">
     <value>Default (Current Document)</value>
@@ -1814,5 +1822,17 @@ Additional information: {1}</value>
   <data name="Default_Open_Documents" xml:space="preserve">
     <value>Default (Open Documents)</value>
     <comment>This text is a menu command</comment>
+  </data>
+  <data name="Suppress_hints_when_argument_matches_parameter_name" xml:space="preserve">
+    <value>Suppress hints when argument matches parameter name</value>
+  </data>
+  <data name="Package_install_canceled" xml:space="preserve">
+    <value>Package install canceled</value>
+  </data>
+  <data name="Package_uninstall_canceled" xml:space="preserve">
+    <value>Package uninstall canceled</value>
+  </data>
+  <data name="Prefer_tuple_swap" xml:space="preserve">
+    <value>Prefer tuple swap</value>
   </data>
 </root>
