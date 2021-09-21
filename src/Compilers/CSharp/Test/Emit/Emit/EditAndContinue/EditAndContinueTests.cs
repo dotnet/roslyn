@@ -52,6 +52,11 @@ class D
 {
     string _str = ""a"";
 }
+[A(""a"")]
+class A : System.Attribute
+{
+    public A(string x = ""a"") {}
+}
 ";
             var source1 = @"
 class C
@@ -63,7 +68,13 @@ class C
 class D
 {
     string _str;
-}";
+}
+[A(null)]
+class A : System.Attribute
+{
+    public A(string x = null) {}
+}
+";
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll.WithNullableContextOptions(NullableContextOptions.Enable));
             var compilation1 = compilation0.WithSource(source1);
 
@@ -73,6 +84,8 @@ class D
             var ctorD1 = compilation1.GetMember<NamedTypeSymbol>("D").InstanceConstructors[0];
             var method0 = compilation0.GetMember<MethodSymbol>("C.F");
             var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var a0 = compilation0.GetMember<NamedTypeSymbol>("A");
+            var a1 = compilation1.GetMember<NamedTypeSymbol>("A");
 
             using var md0 = ModuleMetadata.CreateFromImage(compilation0.EmitToArray());
 
@@ -81,10 +94,18 @@ class D
                 ImmutableArray.Create(
                     SemanticEdit.Create(SemanticEditKind.Update, ctorC0, ctorC1),
                     SemanticEdit.Create(SemanticEditKind.Update, ctorD0, ctorD1),
-                    SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
+                    SemanticEdit.Create(SemanticEditKind.Update, method0, method1),
+                    SemanticEdit.Create(SemanticEditKind.Update, a0, a1)));
 
-            // nullable diagnostics not reported:
-            Assert.Empty(diff1.EmitResult.Diagnostics);
+            // Nullable diagnostics not reported, except for attribute and default parameter values. 
+            // The compiler doesn't have the necessary emit context when analyzing these.
+            diff1.EmitResult.Diagnostics.Verify(
+                // (12,4): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // [A(null)]
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 4),
+                // (15,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     public A(string x = null) {}
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 25));
         }
 
         [Fact]
