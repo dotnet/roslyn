@@ -9,77 +9,77 @@
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
         <source>&amp;Current Document</source>
-        <target state="translated">当前文档(&amp;C)</target>
+        <target state="new">&amp;Current Document</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|CommandName">
         <source>AnalysisScopeCurrentDocument</source>
-        <target state="translated">AnalysisScopeCurrentDocument</target>
+        <target state="new">AnalysisScopeCurrentDocument</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|LocCanonicalName">
         <source>Current Document</source>
-        <target state="translated">当前文档</target>
+        <target state="new">Current Document</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeDefault|ButtonText">
         <source>&amp;Default</source>
-        <target state="translated">默认值(&amp;D)</target>
+        <target state="new">&amp;Default</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeDefault|CommandName">
         <source>AnalysisScopeDefault</source>
-        <target state="translated">AnalysisScopeDefault</target>
+        <target state="new">AnalysisScopeDefault</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeDefault|LocCanonicalName">
         <source>Default</source>
-        <target state="translated">默认值</target>
+        <target state="new">Default</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeEntireSolution|ButtonText">
         <source>&amp;Entire Solution</source>
-        <target state="translated">整个解决方案(&amp;E)</target>
+        <target state="new">&amp;Entire Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeEntireSolution|CommandName">
         <source>AnalysisScopeEntireSolution</source>
-        <target state="translated">AnalysisScopeEntireSolution</target>
+        <target state="new">AnalysisScopeEntireSolution</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeEntireSolution|LocCanonicalName">
         <source>Entire Solution</source>
-        <target state="translated">整个解决方案</target>
+        <target state="new">Entire Solution</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
         <source>&amp;Open Documents</source>
-        <target state="translated">打开文档(&amp;O)</target>
+        <target state="new">&amp;Open Documents</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|CommandName">
         <source>AnalysisScopeOpenDocuments</source>
-        <target state="translated">AnalysisScopeOpenDocuments</target>
+        <target state="new">AnalysisScopeOpenDocuments</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|LocCanonicalName">
         <source>Open Documents</source>
-        <target state="translated">打开文档</target>
+        <target state="new">Open Documents</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeSubMenu|ButtonText">
         <source>Set Analysis Scope</source>
-        <target state="translated">设置分析范围</target>
+        <target state="new">Set Analysis Scope</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeSubMenu|CommandName">
         <source>Set Analysis Scope</source>
-        <target state="translated">设置分析范围</target>
+        <target state="new">Set Analysis Scope</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeSubMenu|LocCanonicalName">
         <source>SetAnalysisScope</source>
-        <target state="translated">SetAnalysisScope</target>
+        <target state="new">SetAnalysisScope</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
@@ -289,7 +289,7 @@
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|ButtonText">
         <source>Remove Unused References...</source>
-        <target state="translated">删除未使用的引用…</target>
+        <target state="translated">删除未使用的引用(&amp;U)…</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRemoveUnusedReferences|CommandName">
@@ -499,32 +499,32 @@
       </trans-unit>
       <trans-unit id="cmdidSyncNamespaces|ButtonText">
         <source>Sync &amp;Namespaces</source>
-        <target state="translated">同步命名空间(&amp;N)</target>
+        <target state="new">Sync &amp;Namespaces</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSyncNamespaces|CommandName">
         <source>SyncNamespaces</source>
-        <target state="translated">SyncNamespaces</target>
+        <target state="new">SyncNamespaces</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSyncNamespaces|LocCanonicalName">
         <source>SyncNamespaces</source>
-        <target state="translated">SyncNamespaces</target>
+        <target state="new">SyncNamespaces</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|ButtonText">
         <source>Track Value Source</source>
-        <target state="translated">跟踪值源</target>
+        <target state="new">Track Value Source</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|CommandName">
         <source>ShowValueTrackingCommandName</source>
-        <target state="translated">ShowValueTrackingCommandName</target>
+        <target state="new">ShowValueTrackingCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
         <source>ViewEditorConfigSettings</source>
-        <target state="translated">ViewEditorConfigSettings</target>
+        <target state="new">ViewEditorConfigSettings</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">
