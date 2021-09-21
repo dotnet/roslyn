@@ -198,11 +198,11 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                     // extension methods should be changed into their static class versions with
                     // full qualifications, then the qualification changed to the new type
                     if (syntaxFacts.IsNameOfAnyMemberAccessExpression(refNode) &&
-                        syntaxFacts.IsAnyMemberAccessExpression(refNode?.Parent) &&
-                        syntaxFacts.IsInvocationExpression(refNode.Parent?.Parent))
+                        syntaxFacts.IsMemberAccessExpression(refNode.Parent) &&
+                        syntaxFacts.IsInvocationExpression(refNode.Parent.Parent))
                     {
                         // get the entire expression, guaranteed not null based on earlier checks
-                        var extensionMethodInvocation = refNode.GetRequiredParent().GetRequiredParent();
+                        var extensionMethodInvocation = refNode.Parent.Parent;
                         // expand using our (possibly outdated) document/syntaxes
                         var expandedExtensionInvocation = await Simplifier.ExpandAsync(
                             extensionMethodInvocation,
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 {
                     // static member access should never be pointer or conditional member access,
                     // so syntax in this block should be of the form 'Class.Member' or 'Class<TArg>.Member'
-                    var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(refNode.Parent);
+                    var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(refNode.GetRequiredParent());
                     if (expression != null)
                     {
                         SyntaxNode replacement;
