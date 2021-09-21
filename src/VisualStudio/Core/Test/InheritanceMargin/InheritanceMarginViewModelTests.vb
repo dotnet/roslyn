@@ -245,7 +245,7 @@ public interface IBar3 : IBar2 { }
                     New MenuItemViewModelData("IBar2", "IBar2", KnownMonikers.InterfacePublic, GetType(TargetMenuItemViewModel)),
                     New MenuItemViewModelData("IBar3", "IBar3", KnownMonikers.InterfacePublic, GetType(TargetMenuItemViewModel)))},
                 {3, New GlyphViewModelData(
-                    KnownMonikers.Implementing,
+                    KnownMonikers.ImplementingImplemented,
                     tooltipTextForIBar2,
                     tooltipTextForIBar2,
                     1,
