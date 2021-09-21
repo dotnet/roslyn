@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
         }
 
-        private void CapabilitiesChanged(
+        private static void CapabilitiesChanged(
             DebuggingSession session,
             ImmutableArray<DocumentId> documentsWithRudeEdits = default)
         {
