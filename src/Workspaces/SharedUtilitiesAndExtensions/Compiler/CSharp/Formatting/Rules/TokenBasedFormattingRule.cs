@@ -323,18 +323,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // some * "(" cases
             if (currentToken.Kind() == SyntaxKind.OpenParenToken)
             {
-                if (previousToken.Kind() == SyntaxKind.NewKeyword &&
-                    CSharpSyntaxFacts.Instance.IsDeclaration(previousToken.Parent))
+                if (previousToken.Kind() == SyntaxKind.NewKeyword)
                 {
-                    // public new (int, int) M() { ... }
-                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                    // new (
+                    //
+                    // 'new' could be a modifier in a declaration, or this could an implicit obj or new-constraint.
+                    var spaces = previousToken.Parent?.Kind() is SyntaxKind.ImplicitArrayCreationExpression or SyntaxKind.ConstructorConstraint ? 0 : 1;
+                    return CreateAdjustSpacesOperation(spaces, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
 
                 if (previousToken.Kind() == SyntaxKind.IdentifierToken ||
                     previousToken.Kind() == SyntaxKind.DefaultKeyword ||
                     previousToken.Kind() == SyntaxKind.BaseKeyword ||
                     previousToken.Kind() == SyntaxKind.ThisKeyword ||
-                    previousToken.Kind() == SyntaxKind.NewKeyword ||
                     previousToken.IsGenericGreaterThanToken() ||
                     currentToken.IsParenInArgumentList())
                 {
