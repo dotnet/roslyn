@@ -13168,6 +13168,168 @@ value:3");
   IL_00f3:  ret
 }");
         }
+        [Fact]
+        public void ParenthesizedAdditiveExpression_05()
+        {
+            var code = @"
+int i1 = 1;
+int i2 = 2;
+int i3 = 3;
+int i4 = 4;
+int i5 = 5;
+int i6 = 6;
+
+string s = /*<bind>*/((($""{i1}"" + $""{i2}"") + $""{i3}"") + ($""{i4}"" + ($""{i5}"" + $""{i6}""))) + (($""{i1}"" + ($""{i2}"" + $""{i3}"")) + (($""{i4}"" + $""{i5}"") + $""{i6}""))/*</bind>*/;
+System.Console.WriteLine(s);";
+
+            var comp = CreateCompilation(code);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123456123456");
+            verifier.VerifyDiagnostics();
+
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(comp, @"
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+  Left:
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '(($""{i1}"" + ... + $""{i6}""))')
+      Left:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i1}"" +  ... ) + $""{i3}""')
+          Left:
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i1}"" + $""{i2}""')
+              Left:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i1}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i1}')
+                        Expression:
+                          ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+              Right:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i2}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i2}')
+                        Expression:
+                          ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+          Right:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i3}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i3}')
+                    Expression:
+                      ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+      Right:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i4}"" + ( ...  + $""{i6}"")')
+          Left:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i4}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i4}')
+                    Expression:
+                      ILocalReferenceOperation: i4 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i4')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+          Right:
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i5}"" + $""{i6}""')
+              Left:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i5}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i5}')
+                        Expression:
+                          ILocalReferenceOperation: i5 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i5')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+              Right:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i6}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i6}')
+                        Expression:
+                          ILocalReferenceOperation: i6 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i6')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+  Right:
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i1}"" +  ...  + $""{i6}"")')
+      Left:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i1}"" + ( ...  + $""{i3}"")')
+          Left:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i1}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i1}')
+                    Expression:
+                      ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+          Right:
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i2}"" + $""{i3}""')
+              Left:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i2}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i2}')
+                        Expression:
+                          ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+              Right:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i3}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i3}')
+                        Expression:
+                          ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+      Right:
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i4}"" +  ... ) + $""{i6}""')
+          Left:
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i4}"" + $""{i5}""')
+              Left:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i4}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i4}')
+                        Expression:
+                          ILocalReferenceOperation: i4 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i4')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+              Right:
+                IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i5}""')
+                  Parts(1):
+                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i5}')
+                        Expression:
+                          ILocalReferenceOperation: i5 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i5')
+                        Alignment:
+                          null
+                        FormatString:
+                          null
+          Right:
+            IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i6}""')
+              Parts(1):
+                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i6}')
+                    Expression:
+                      ILocalReferenceOperation: i6 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i6')
+                    Alignment:
+                      null
+                    FormatString:
+                      null
+");
+        }
 
         [Theory]
         [InlineData(@"$""{1}"", $""{2}""")]
