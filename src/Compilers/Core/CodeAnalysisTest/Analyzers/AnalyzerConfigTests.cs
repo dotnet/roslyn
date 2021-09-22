@@ -2492,7 +2492,7 @@ global_level = abc
         [InlineData("/dir1/dir3/dir4/../dir2/file.cs", false)]
         [InlineData("file.cs", false)]
         [InlineData("", false)]
-        public void EquivilentSourcePathNames(string sourcePath, bool shouldMatch)
+        public void EquivalentSourcePathNames(string sourcePath, bool shouldMatch)
         {
             string sectionName = "/dir1/dir2/file.cs";
 
