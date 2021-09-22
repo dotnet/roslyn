@@ -245,7 +245,7 @@ public interface IBar3 : IBar2 { }
                     New MenuItemViewModelData("IBar2", "IBar2", KnownMonikers.InterfacePublic, GetType(TargetMenuItemViewModel)),
                     New MenuItemViewModelData("IBar3", "IBar3", KnownMonikers.InterfacePublic, GetType(TargetMenuItemViewModel)))},
                 {3, New GlyphViewModelData(
-                    KnownMonikers.Implementing,
+                    KnownMonikers.ImplementingImplemented,
                     tooltipTextForIBar2,
                     tooltipTextForIBar2,
                     1,
@@ -261,6 +261,58 @@ public interface IBar3 : IBar2 { }
                     New MenuItemViewModelData(ServicesVSResources.Inherited_interfaces, ServicesVSResources.Inherited_interfaces, KnownMonikers.Implementing, GetType(HeaderMenuItemViewModel)),
                     New MenuItemViewModelData("IBar1", "IBar1", KnownMonikers.InterfacePublic, GetType(TargetMenuItemViewModel)),
                     New MenuItemViewModelData("IBar2", "IBar2", KnownMonikers.InterfacePublic, GetType(TargetMenuItemViewModel)))}})
+        End Function
+
+        <WpfFact>
+        Public Function TestClassDerivesClass() As Task
+            Dim markup = "
+public class Bar1 {}
+public class Bar2 : Bar1 {}
+public class Bar3 : Bar2 {}"
+
+            Dim tooltipTextForBar1 = String.Format(ServicesVSResources._0_is_inherited, "class Bar1")
+            Dim targetForBar1 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden, ServicesVSResources.Derived_types)).
+                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, "Bar2", Nothing)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, "Bar3", Nothing))
+
+            Dim tooltipTextForBar2 = String.Format(ServicesVSResources._0_is_inherited, "class Bar2")
+            Dim targetForBar2 = ImmutableArray.Create(Of MenuItemViewModel)(
+                New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
+                    Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, "Bar1", Nothing)).
+                        Add(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden, ServicesVSResources.Derived_types)).
+                    Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, "Bar3", Nothing))
+
+            Dim tooltipTextForBar3 = String.Format(ServicesVSResources._0_is_inherited, "class Bar3")
+            Dim targetForBar3 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
+                Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, "Bar1", Nothing)).
+                Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, "Bar2", Nothing))
+
+            Return VerifyAsync(markup, LanguageNames.CSharp, New Dictionary(Of Integer, GlyphViewModelData) From {
+                {2, New GlyphViewModelData(
+                    KnownMonikers.Overridden,
+                    tooltipTextForBar1,
+                    tooltipTextForBar1,
+                    1,
+                    New MenuItemViewModelData(ServicesVSResources.Derived_types, ServicesVSResources.Derived_types, KnownMonikers.Overridden, GetType(HeaderMenuItemViewModel)),
+                    New MenuItemViewModelData("Bar2", "Bar2", KnownMonikers.ClassPublic, GetType(TargetMenuItemViewModel)),
+                    New MenuItemViewModelData("Bar3", "Bar3", KnownMonikers.ClassPublic, GetType(TargetMenuItemViewModel)))},
+                {3, New GlyphViewModelData(
+                    KnownMonikers.OverridingOverridden,
+                    tooltipTextForBar2,
+                    tooltipTextForBar2,
+                    1,
+                    New MenuItemViewModelData(ServicesVSResources.Base_Types, ServicesVSResources.Base_Types, KnownMonikers.Overriding, GetType(HeaderMenuItemViewModel)),
+                    New MenuItemViewModelData("Bar1", "Bar1", KnownMonikers.ClassPublic, GetType(TargetMenuItemViewModel)),
+                    New MenuItemViewModelData(ServicesVSResources.Derived_types, ServicesVSResources.Derived_types, KnownMonikers.Overridden, GetType(HeaderMenuItemViewModel)),
+                    New MenuItemViewModelData("Bar3", "Bar3", KnownMonikers.ClassPublic, GetType(TargetMenuItemViewModel)))},
+                {4, New GlyphViewModelData(
+                    KnownMonikers.Overriding,
+                    tooltipTextForBar3,
+                    tooltipTextForBar3,
+                    1,
+                    New MenuItemViewModelData(ServicesVSResources.Base_Types, ServicesVSResources.Base_Types, KnownMonikers.Overriding, GetType(HeaderMenuItemViewModel)),
+                    New MenuItemViewModelData("Bar1", "Bar1", KnownMonikers.ClassPublic, GetType(TargetMenuItemViewModel)),
+                    New MenuItemViewModelData("Bar2", "Bar2", KnownMonikers.ClassPublic, GetType(TargetMenuItemViewModel)))}})
+
         End Function
 
         <WpfFact>
