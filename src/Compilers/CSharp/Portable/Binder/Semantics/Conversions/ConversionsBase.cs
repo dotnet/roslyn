@@ -1314,13 +1314,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            else if (sourceExpression.GetFunctionType() is { } sourceFunctionType)
-            {
-                if (HasImplicitFunctionTypeConversion(sourceFunctionType, destination, ref useSiteInfo))
-                {
-                    return Conversion.FunctionType;
-                }
-            }
 
             return GetExplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteInfo);
         }

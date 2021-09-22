@@ -6478,7 +6478,7 @@ D4");
         }
 
         [Fact]
-        public void ClassifyConversionFromExpressionToFunctionType()
+        public void ClassifyConversionFromExpression()
         {
             var source =
 @"class Program
