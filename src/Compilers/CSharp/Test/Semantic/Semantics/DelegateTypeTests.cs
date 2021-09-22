@@ -181,10 +181,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(MulticastDelegate)Main").WithArguments("method", "System.MulticastDelegate").WithLocation(9, 17));
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (6,17): warning CS8974: Converting method group 'Main' to non-delegate type 'object'. Did you intend to invoke the method?
-                //         var o = (object)Main;
-                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "(object)Main").WithArguments("Main", "object").WithLocation(6, 17));
+            comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
 @"System.Action
@@ -1419,7 +1416,7 @@ namespace N
 
         [WorkItem(55923, "https://github.com/dotnet/roslyn/issues/55923")]
         [Fact]
-        public void ConvertMethodGroupToObject()
+        public void ConvertMethodGroupToObject_01()
         {
             var source =
 @"class Program
@@ -1466,10 +1463,96 @@ namespace N
                 Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "GetValue").WithArguments("GetValue", "object").WithLocation(6, 20),
                 // (7,13): warning CS8974: Converting method group 'GetValue' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         x = GetValue;
-                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "GetValue").WithArguments("GetValue", "object").WithLocation(7, 13),
-                // (8,13): warning CS8974: Converting method group 'GetValue' to non-delegate type 'object'. Did you intend to invoke the method?
-                //         x = (object)GetValue;
-                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "(object)GetValue").WithArguments("GetValue", "object").WithLocation(8, 13)
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "GetValue").WithArguments("GetValue", "object").WithLocation(7, 13)
+            };
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(55923, "https://github.com/dotnet/roslyn/issues/55923")]
+        [Fact]
+        public void ConvertMethodGroupToObject_02()
+        {
+            var source =
+@"class Program
+{
+    static int F() => 0;
+    static object F1() => F;
+    static object F2() => (object)F;
+    static object F3() { return F; }
+    static object F4() { return (object)F; }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,27): error CS0428: Cannot convert method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
+                //     static object F1() => F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "object").WithLocation(4, 27),
+                // (5,27): error CS0030: Cannot convert type 'method' to 'object'
+                //     static object F2() => (object)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)F").WithArguments("method", "object").WithLocation(5, 27),
+                // (6,33): error CS0428: Cannot convert method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
+                //     static object F3() { return F; }
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "object").WithLocation(6, 33),
+                // (7,33): error CS0030: Cannot convert type 'method' to 'object'
+                //     static object F4() { return (object)F; }
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)F").WithArguments("method", "object").WithLocation(7, 33));
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,27): warning CS8974: Converting method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
+                //     static object F1() => F;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "F").WithArguments("F", "object").WithLocation(4, 27),
+                // (6,33): warning CS8974: Converting method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
+                //     static object F3() { return F; }
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "F").WithArguments("F", "object").WithLocation(6, 33)
+            };
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(55923, "https://github.com/dotnet/roslyn/issues/55923")]
+        [Fact]
+        public void ConvertMethodGroupToObject_03()
+        {
+            var source =
+@"class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        object[] a = new[] { F, (object)F, F };
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0428: Cannot convert method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         object[] a = new[] { F, (object)F, F };
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "object").WithLocation(6, 30),
+                // (6,33): error CS0030: Cannot convert type 'method' to 'object'
+                //         object[] a = new[] { F, (object)F, F };
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(object)F").WithArguments("method", "object").WithLocation(6, 33),
+                // (6,44): error CS0428: Cannot convert method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         object[] a = new[] { F, (object)F, F };
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "object").WithLocation(6, 44));
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,30): warning CS8974: Converting method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         object[] a = new[] { F, (object)F, F };
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "F").WithArguments("F", "object").WithLocation(6, 30),
+                // (6,44): warning CS8974: Converting method group 'F' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         object[] a = new[] { F, (object)F, F };
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "F").WithArguments("F", "object").WithLocation(6, 44)
             };
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);

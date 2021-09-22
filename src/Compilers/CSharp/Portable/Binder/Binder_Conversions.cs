@@ -569,7 +569,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             conversion = Conversions.ClassifyConversionFromExpression(source, delegateType, ref useSiteInfo);
-            bool warnOnMethodGroupConversion = source.Kind == BoundKind.MethodGroup && conversion.Exists && destination.SpecialType == SpecialType.System_Object;
+            bool warnOnMethodGroupConversion =
+                source.Kind == BoundKind.MethodGroup &&
+                !isCast &&
+                conversion.Exists &&
+                destination.SpecialType == SpecialType.System_Object;
             BoundExpression expr;
             if (!conversion.Exists)
             {
