@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
     internal sealed class DotnetStackFrameParser : IStackFrameParser
     {
-        private const string StackTraceStart = "at ";
         private const string StackTraceSymbolAndFileSplit = " in ";
 
         /// <summary>
