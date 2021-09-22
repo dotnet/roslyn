@@ -80,11 +80,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> BreakStateChangedAsync(DebuggingSessionId sessionId, bool inBreakState, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<DocumentId>> BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? inBreakState, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().BreakStateChanged(sessionId, inBreakState, out var documentsToReanalyze);
+                GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState, out var documentsToReanalyze);
                 return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
             }, cancellationToken);
         }
