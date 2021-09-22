@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // See extended comment in GetFormattingChangesAsync for more details on this.
             if (smartIndentOn)
             {
-                if (ch == '{' || ch == '}')
+                if (ch is '{' or '}')
                 {
                     return true;
                 }
@@ -418,8 +418,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ```
             // 
             // This will have the desired effect of keeping these tokens on the same line, but only during typing scenarios.  
-            if (tokenBeforeCaret.Kind() == SyntaxKind.CloseBraceToken ||
-                tokenBeforeCaret.Kind() == SyntaxKind.EndOfFileToken)
+            if (tokenBeforeCaret.Kind() is SyntaxKind.CloseBraceToken or
+                SyntaxKind.EndOfFileToken)
             {
                 return SpecializedCollections.EmptyEnumerable<AbstractFormattingRule>();
             }
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static bool ValidSingleOrMultiCharactersTokenKind(char typedChar, SyntaxKind kind)
             => typedChar switch
             {
-                'n' => kind == SyntaxKind.RegionKeyword || kind == SyntaxKind.EndRegionKeyword,
+                'n' => kind is SyntaxKind.RegionKeyword or SyntaxKind.EndRegionKeyword,
                 't' => kind == SyntaxKind.SelectKeyword,
                 'e' => kind == SyntaxKind.WhereKeyword,
                 _ => true,

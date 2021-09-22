@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // to fetch the #load'ed tree's Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
                 if (originalDocument == null)
                 {
-                    Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
+                    Debug.Assert(solution.Workspace.Kind is WorkspaceKind.Interactive or WorkspaceKind.MiscellaneousFiles);
                     continue;
                 }
 

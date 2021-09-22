@@ -6,6 +6,8 @@
   -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
+  <Import Project="Microsoft.Managed.Core.CurrentVersions.targets" />
+
   <Target Name="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies"
           BeforeTargets="CoreCompile"
           Condition="'@(ReferencePathWithRefAssemblies)' == ''">

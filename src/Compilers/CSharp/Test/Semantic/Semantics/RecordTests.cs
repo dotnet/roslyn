@@ -28322,6 +28322,69 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", property.GetDocumentationCommentXml());
         }
 
+        [Fact, WorkItem(53912, "https://github.com/dotnet/roslyn/issues/53912")]
+        public void XmlDoc_CrefToPositionalProperty_Test53912()
+        {
+            var source = @"
+namespace NamespaceA
+{
+    /// <summary>
+    /// A sample record type
+    /// </summary>
+    /// <param name=""Prop1"">
+    /// A property
+    /// </param>
+    public record LinkDestinationRecord(string Prop1);
+
+    /// <summary>
+    /// Simple class.
+    /// </summary>
+    public class LinkingClass
+    {
+        /// <inheritdoc cref=""LinkDestinationRecord.Prop1"" />
+        public string Prop1A { get; init; }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, assemblyName: "Test");
+
+            var actual = GetDocumentationCommentText(comp);
+            // the cref becomes `P:...`
+            var expected = (@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:NamespaceA.LinkDestinationRecord"">
+            <summary>
+            A sample record type
+            </summary>
+            <param name=""Prop1"">
+            A property
+            </param>
+        </member>
+        <member name=""M:NamespaceA.LinkDestinationRecord.#ctor(System.String)"">
+            <summary>
+            A sample record type
+            </summary>
+            <param name=""Prop1"">
+            A property
+            </param>
+        </member>
+        <member name=""T:NamespaceA.LinkingClass"">
+            <summary>
+            Simple class.
+            </summary>
+        </member>
+        <member name=""P:NamespaceA.LinkingClass.Prop1A"">
+            <inheritdoc cref=""P:NamespaceA.LinkDestinationRecord.Prop1"" />
+        </member>
+    </members>
+</doc>");
+            Assert.Equal(expected, actual);
+        }
+
         [Fact]
         public void XmlDoc_RecordClass()
         {

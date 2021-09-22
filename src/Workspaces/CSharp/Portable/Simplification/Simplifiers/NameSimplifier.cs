@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     name, replacementNode, semanticModel, cancellationToken);
             }
 
-            if (!(symbol is INamespaceOrTypeSymbol))
+            if (symbol is not INamespaceOrTypeSymbol)
             {
                 return false;
             }

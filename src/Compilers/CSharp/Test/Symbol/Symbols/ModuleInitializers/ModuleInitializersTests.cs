@@ -9,8 +9,10 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.ModuleInitializers
@@ -1123,6 +1125,37 @@ class Program
 }
 ";
             CompileAndVerify(source, parseOptions: s_parseOptions, references: new[] { ref1, ref2 }, expectedOutput: "123");
+        }
+
+        [Fact]
+        [WorkItem(56412, "https://github.com/dotnet/roslyn/issues/56412")]
+        public void Issue56412()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C
+{
+    [ModuleInitializer]
+    internal static void M() => Console.WriteLine(""C.M"");
+}
+
+class Program 
+{
+    static void Main() => Console.WriteLine(""Program.Main"");
+}
+
+namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
+";
+
+            CompileAndVerify(
+                source,
+                options: TestOptions.ReleaseExe,
+                emitOptions: EmitOptions.Default.WithDebugInformationFormat(PathUtilities.IsUnixLikePlatform ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb),
+                expectedOutput: @"
+C.M
+Program.Main");
         }
     }
 }

@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-namespace Microsoft.CodeAnalysis.Debugging
+namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal enum DebuggingState
+    internal interface IAccessibilityFacts
     {
-        Design,
-        Run,
-        Break
+        bool CanHaveAccessibility(SyntaxNode declaration);
+        Accessibility GetAccessibility(SyntaxNode declaration);
     }
 }

@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             // "var v = M()" should not be inlined as that could break program semantics.
             if (localDeclarator.Initializer != null)
             {
-                if (!(localDeclarator.Initializer.Value is LiteralExpressionSyntax) &&
-                    !(localDeclarator.Initializer.Value is DefaultExpressionSyntax))
+                if (localDeclarator.Initializer.Value is not LiteralExpressionSyntax and
+                    not DefaultExpressionSyntax)
                 {
                     return;
                 }

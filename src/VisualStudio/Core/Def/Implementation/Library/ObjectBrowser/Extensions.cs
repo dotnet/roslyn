@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             {
                 var builder = new StringBuilder(result);
 
-                while (parentHierarchy != null && !(parentHierarchy is IVsSolution))
+                while (parentHierarchy is not null and not IVsSolution)
                 {
                     if (parentHierarchy.TryGetName(out var parentName))
                     {

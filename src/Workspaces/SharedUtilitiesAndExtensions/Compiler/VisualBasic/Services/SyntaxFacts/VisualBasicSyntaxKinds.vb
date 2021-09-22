@@ -52,6 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property DefaultLiteralExpression As Integer = SyntaxKind.NothingLiteralExpression Implements ISyntaxKinds.DefaultLiteralExpression
         Public ReadOnly Property FalseLiteralExpression As Integer = SyntaxKind.FalseLiteralExpression Implements ISyntaxKinds.FalseLiteralExpression
         Public ReadOnly Property NullLiteralExpression As Integer = SyntaxKind.NothingLiteralExpression Implements ISyntaxKinds.NullLiteralExpression
+        Public ReadOnly Property NumericLiteralExpression As Integer = SyntaxKind.NumericLiteralExpression Implements ISyntaxKinds.NumericLiteralExpression
         Public ReadOnly Property StringLiteralExpression As Integer = SyntaxKind.StringLiteralExpression Implements ISyntaxKinds.StringLiteralExpression
         Public ReadOnly Property TrueLiteralExpression As Integer = SyntaxKind.TrueLiteralExpression Implements ISyntaxKinds.TrueLiteralExpression
 
@@ -60,6 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property BaseExpression As Integer = SyntaxKind.MyBaseExpression Implements ISyntaxKinds.BaseExpression
         Public ReadOnly Property ConditionalAccessExpression As Integer = SyntaxKind.ConditionalAccessExpression Implements ISyntaxKinds.ConditionalAccessExpression
         Public ReadOnly Property ConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.ConditionalExpression
+        Public ReadOnly Property ImplicitObjectCreationExpression As Integer? = Nothing Implements ISyntaxKinds.ImplicitObjectCreationExpression
         Public ReadOnly Property InvocationExpression As Integer = SyntaxKind.InvocationExpression Implements ISyntaxKinds.InvocationExpression
         Public ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression Implements ISyntaxKinds.LogicalAndExpression
         Public ReadOnly Property LogicalOrExpression As Integer = SyntaxKind.OrElseExpression Implements ISyntaxKinds.LogicalOrExpression
@@ -72,6 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property SimpleMemberAccessExpression As Integer = SyntaxKind.SimpleMemberAccessExpression Implements ISyntaxKinds.SimpleMemberAccessExpression
         Public ReadOnly Property TernaryConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.TernaryConditionalExpression
         Public ReadOnly Property ThisExpression As Integer = SyntaxKind.MeExpression Implements ISyntaxKinds.ThisExpression
+        Public ReadOnly Property ThrowExpression As Integer? = Nothing Implements ISyntaxKinds.ThrowExpression
         Public ReadOnly Property TupleExpression As Integer = SyntaxKind.TupleExpression Implements ISyntaxKinds.TupleExpression
 
         Public ReadOnly Property EndOfFileToken As Integer = SyntaxKind.EndOfFileToken Implements ISyntaxKinds.EndOfFileToken
@@ -86,11 +89,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property ExpressionStatement As Integer = SyntaxKind.ExpressionStatement Implements ISyntaxKinds.ExpressionStatement
         Public ReadOnly Property ForEachStatement As Integer = SyntaxKind.ForEachStatement Implements ISyntaxKinds.ForEachStatement
         Public ReadOnly Property LocalDeclarationStatement As Integer = SyntaxKind.LocalDeclarationStatement Implements ISyntaxKinds.LocalDeclarationStatement
+        Public ReadOnly Property LocalFunctionStatement As Integer? = Nothing Implements ISyntaxKinds.LocalFunctionStatement
         Public ReadOnly Property LockStatement As Integer = SyntaxKind.SyncLockStatement Implements ISyntaxKinds.LockStatement
         Public ReadOnly Property ReturnStatement As Integer = SyntaxKind.ReturnStatement Implements ISyntaxKinds.ReturnStatement
+        Public ReadOnly Property ThrowStatement As Integer = SyntaxKind.ThrowStatement Implements ISyntaxKinds.ThrowStatement
         Public ReadOnly Property UsingStatement As Integer = SyntaxKind.UsingStatement Implements ISyntaxKinds.UsingStatement
 
         Public ReadOnly Property Attribute As Integer = SyntaxKind.Attribute Implements ISyntaxKinds.Attribute
+        Public ReadOnly Property ClassDeclaration As Integer = SyntaxKind.ClassBlock Implements ISyntaxKinds.ClassDeclaration
         Public ReadOnly Property Parameter As Integer = SyntaxKind.Parameter Implements ISyntaxKinds.Parameter
         Public ReadOnly Property TypeConstraint As Integer = SyntaxKind.TypeConstraint Implements ISyntaxKinds.TypeConstraint
         Public ReadOnly Property VariableDeclarator As Integer = SyntaxKind.VariableDeclarator Implements ISyntaxKinds.VariableDeclarator

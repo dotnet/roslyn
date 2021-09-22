@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="Use_recursive_patterns">
         <source>Use recursive patterns</source>
-        <target state="new">Use recursive patterns</target>
+        <target state="translated">Usa criteri ricorsivi</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -409,7 +409,7 @@
       </trans-unit>
       <trans-unit id="record_struct">
         <source>record struct</source>
-        <target state="new">record struct</target>
+        <target state="translated">struct di record</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">
