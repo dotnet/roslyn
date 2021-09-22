@@ -2509,8 +2509,7 @@ moreArguments:
                     return Binder.ExternalScope;
 
                 case BoundKind.DiscardExpression:
-                    // same as uninitialized local
-                    return Binder.ExternalScope;
+                    return ((BoundDiscardExpression)expr).ValEscape;
 
                 case BoundKind.DeconstructValuePlaceholder:
                     return ((BoundDeconstructValuePlaceholder)expr).ValEscape;
