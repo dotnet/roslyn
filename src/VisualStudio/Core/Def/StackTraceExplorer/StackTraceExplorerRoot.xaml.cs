@@ -19,16 +19,17 @@ using System.Windows.Shapes;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
-
     /// <summary>
     /// Interaction logic for CallstackExplorerRoot.xaml
     /// </summary>
     internal partial class StackTraceExplorerRoot : UserControl
     {
-        public string EmptyText => ServicesVSResources.Paste_valid_stack_trace;
+        private readonly StackTraceExplorerRootViewModel _viewModel;
 
-        public StackTraceExplorerRoot()
+        public StackTraceExplorerRoot(StackTraceExplorerRootViewModel viewModel)
         {
+            DataContext = _viewModel = viewModel;
+
             InitializeComponent();
             DataObject.AddPastingHandler(this, OnPaste);
         }
@@ -36,37 +37,24 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         private void CommandBinding_OnPaste(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
             => OnPaste();
 
+        internal void OnClear()
+        {
+            _viewModel.SelectedTab?.Content.OnClear();
+        }
+
         private void OnPaste(object sender, DataObjectPastingEventArgs e)
             => OnPaste();
 
-        private void OnPaste()
+        public void OnPaste()
         {
-            if (RootGrid.Children.Count == 0)
-            {
-                return;
-            }
-
-            var content = RootGrid.Children[0];
-            if (content is StackTraceExplorer explorer)
-            {
-                explorer.OnPaste();
-            }
+            _viewModel.OnPaste();
         }
 
-        public void SetChild(FrameworkElement? child)
+        private void Close_Click(object sender, RoutedEventArgs e)
         {
-            RootGrid.Children.Clear();
-
-            if (child is null)
+            if (sender is StackTraceExplorerTab tab)
             {
-                RootGrid.Children.Add(EmptyTextMessage);
-                EmptyTextMessage.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                Grid.SetRow(child, 0);
-                EmptyTextMessage.Visibility = Visibility.Collapsed;
-                RootGrid.Children.Add(child);
+                tab.CloseClick.Execute(null);
             }
         }
     }

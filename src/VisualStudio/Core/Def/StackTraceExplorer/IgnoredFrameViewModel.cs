@@ -26,6 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             _frame = frame;
         }
 
+        public override bool ShowMouseOver => false;
+
         protected override IEnumerable<Inline> CreateInlines()
         {
             var run = MakeClassifiedRun(ClassificationTypeNames.ExcludedCode, _frame.Text);

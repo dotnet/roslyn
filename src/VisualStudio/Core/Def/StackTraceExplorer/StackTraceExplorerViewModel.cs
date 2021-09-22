@@ -41,6 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         public bool IsListVisible => Frames.Count > 0;
         public bool IsInstructionTextVisible => Frames.Count == 0;
+
+        internal void OnClear()
+        {
+            Frames.Clear();
+        }
+
         public string InstructionText => ServicesVSResources.Paste_valid_stack_trace;
 
         public StackTraceExplorerViewModel(IThreadingContext threadingContext, Workspace workspace, ClassificationTypeMap classificationTypeMap, IClassificationFormatMap formatMap)

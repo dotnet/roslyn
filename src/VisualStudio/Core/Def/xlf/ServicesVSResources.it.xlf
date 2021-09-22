@@ -197,6 +197,16 @@
         <target state="translated">Scegliere l'operazione da eseguire sui riferimenti inutilizzati.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Clear">
+        <source>Clear</source>
+        <target state="new">Clear</target>
+        <note>Clear content action</note>
+      </trans-unit>
+      <trans-unit id="Close_tab">
+        <source>Close Tab</source>
+        <target state="new">Close Tab</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Code_Style">
         <source>Code Style</source>
         <target state="translated">Stile codice</target>
@@ -935,6 +945,11 @@
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
         <target state="translated">Preferenze per parentesi:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste">
+        <source>Paste</source>
+        <target state="new">Paste</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">

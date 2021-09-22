@@ -5,59 +5,99 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.LanguageServices.Setup;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
     [Guid(Guids.StackTraceExplorerToolWindowIdString)]
     internal class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommandTarget
     {
-        private readonly StackTraceExplorerRoot _root = new();
+        private bool _initialized;
+        public StackTraceExplorerRoot? Root { get; private set; }
 
-        private StackTraceExplorerViewModel? _viewModel;
-        public StackTraceExplorerViewModel? ViewModel
-        {
-            get => _viewModel;
-            set
-            {
-                if (value is null)
-                {
-                    throw new ArgumentNullException(nameof(ViewModel));
-                }
-
-                _viewModel = value;
-                _root.SetChild(new StackTraceExplorer(_viewModel));
-            }
-        }
         public StackTraceExplorerToolWindow() : base(null)
         {
             Caption = ServicesVSResources.Stack_Trace_Explorer;
-            Content = _root;
+            Content = new DockPanel
+            {
+                LastChildFill = true
+            };
+        }
+
+        public void InitializeIfNeeded(RoslynPackage roslynPackage)
+        {
+            if (_initialized)
+            {
+                return;
+            }
+
+            var workspace = roslynPackage.ComponentModel.GetService<VisualStudioWorkspace>();
+            var formatMapService = roslynPackage.ComponentModel.GetService<IClassificationFormatMapService>();
+            var formatMap = formatMapService.GetClassificationFormatMap(StandardContentTypeNames.Text);
+            var typeMap = roslynPackage.ComponentModel.GetService<ClassificationTypeMap>();
+            var threadingContext = roslynPackage.ComponentModel.GetService<IThreadingContext>();
+
+            Root = new StackTraceExplorerRoot(new StackTraceExplorerRootViewModel(threadingContext, workspace, formatMap, typeMap))
+            {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch
+            };
+
+            var contentRoot = (DockPanel)Content;
+            contentRoot.Children.Add(Root);
+
+            var contextMenu = new ThemedContextMenu();
+            contextMenu.Items.Add(new MenuItem()
+            {
+                Header = ServicesVSResources.Paste,
+                Command = new DelegateCommand(_ => Root.OnPaste()),
+                Icon = new CrispImage()
+                {
+                    Moniker = KnownMonikers.Paste
+                }
+            });
+
+            contextMenu.Items.Add(new MenuItem()
+            {
+                Header = ServicesVSResources.Clear,
+                Command = new DelegateCommand(_ => Root.OnClear()),
+                Icon = new CrispImage()
+                {
+                    Moniker = KnownMonikers.ClearCollection
+                }
+            });
+
+            contentRoot.ContextMenu = contextMenu;
+
+            _initialized = true;
         }
 
         public override void OnToolWindowCreated()
         {
-            if (ViewModel is not null)
+            // Hide the frame by default when VS starts
+            if (Frame is IVsWindowFrame windowFrame)
             {
-                // Paste from the clipboard on toolwindow creation
-                ViewModel.OnPaste();
-            }
-            else if (Frame is IVsWindowFrame windowFrame)
-            {
-                // If we're not initialized don't show the frame
                 windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
             }
         }
 
         int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            if ((nCmdID & (uint)OLECMDID.OLECMDID_PASTE) != 0 ||
-                (nCmdID & (uint)OLECMDID.OLECMDID_PASTESPECIAL) != 0)
-            {
-                ViewModel?.OnPaste();
-            }
+            //if ((nCmdID & (uint)OLECMDID.OLECMDID_PASTE) != 0 ||
+            //    (nCmdID & (uint)OLECMDID.OLECMDID_PASTESPECIAL) != 0)
+            //{
+            //    ViewModel?.OnPaste();
+            //}
 
             return VSConstants.S_OK;
         }

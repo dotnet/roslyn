@@ -16,13 +16,11 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     internal class StackTraceExplorerCommandHandler
     {
         private readonly RoslynPackage _package;
-        private readonly IThreadingContext _threadingContext;
         private static StackTraceExplorerCommandHandler? _instance;
 
-        private StackTraceExplorerCommandHandler(RoslynPackage package, IThreadingContext threadingContext)
+        private StackTraceExplorerCommandHandler(RoslynPackage package)
         {
             _package = package;
-            _threadingContext = threadingContext;
         }
 
         private void Execute(object sender, EventArgs e)
@@ -36,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
             // Paste current clipboard contents on showing
             // the window
-            window.ViewModel?.OnPaste();
+            window.Root?.OnPaste();
         }
 
         private StackTraceExplorerToolWindow GetOrInitializeWindow()
@@ -50,15 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 throw new NotSupportedException("Cannot create tool window");
             }
 
-            if (window.ViewModel is null)
-            {
-                var workspace = _package.ComponentModel.GetService<VisualStudioWorkspace>();
-                var formatMapService = _package.ComponentModel.GetService<IClassificationFormatMapService>();
-                var formatMap = formatMapService.GetClassificationFormatMap(StandardContentTypeNames.Text);
-                var typeMap = _package.ComponentModel.GetService<ClassificationTypeMap>();
-
-                window.ViewModel = new(_threadingContext, workspace, typeMap, formatMap);
-            }
+            window.InitializeIfNeeded(_package);
 
             return window;
         }
@@ -70,8 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 return;
             }
 
-            var threadingContext = package.ComponentModel.GetService<IThreadingContext>();
-            _instance = new(package, threadingContext);
+            _instance = new(package);
 
             // Initialize the window on startup
             _instance.GetOrInitializeWindow();

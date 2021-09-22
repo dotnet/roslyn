@@ -22,7 +22,25 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <ListView ItemsSource="{Binding Frames}" Grid.Row="0" SelectedItem="{Binding Selection, Mode=TwoWay}" MouseDoubleClick="ListViewItem_MouseDoubleClick" Visibility="{Binding IsListVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <ListView 
+            ItemsSource="{Binding Frames}" 
+            Grid.Row="0" 
+            SelectedItem="{Binding Selection, Mode=TwoWay}" 
+            MouseDoubleClick="ListViewItem_MouseDoubleClick" 
+            Visibility="{Binding IsListVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+            BorderThickness="0"
+            Background="Transparent">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ShowMouseOver}" Value="False">
+                            <DataTrigger.Setters>
+                                <Setter Property="IsHitTestVisible" Value="False" />
+                            </DataTrigger.Setters>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate DataType="{x:Type local:FrameViewModel}">
                     <utils:BindableTextBlock InlineCollection="{Binding Inlines}" />

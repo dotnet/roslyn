@@ -28,6 +28,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
             var newList = (IList<Inline>)e.NewValue;
 
             textBlock.Inlines.Clear();
+
+            if (newList is null)
+            {
+                return;
+            }
+
             foreach (var inline in newList)
             {
                 textBlock.Inlines.Add(inline);

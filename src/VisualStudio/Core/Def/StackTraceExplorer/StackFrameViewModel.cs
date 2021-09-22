@@ -50,6 +50,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             _workspace = workspace;
         }
 
+        public override bool ShowMouseOver => true;
+
         public void NavigateToClass()
         {
             var cancellationToken = _threadingContext.DisposalToken;

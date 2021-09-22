@@ -17,6 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         private readonly IClassificationFormatMap _formatMap;
         private readonly ClassificationTypeMap _classificationTypeMap;
 
+        public abstract bool ShowMouseOver { get; }
+
         public FrameViewModel(IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
         {
             _formatMap = formatMap;
