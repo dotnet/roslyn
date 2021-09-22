@@ -15,6 +15,8 @@ using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
+using static Microsoft.CodeAnalysis.UnitTests.SolutionUtilities;
+using static Microsoft.CodeAnalysis.UnitTests.WorkspaceTestUtilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
