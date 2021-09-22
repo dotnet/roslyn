@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.PDB;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -49,10 +50,13 @@ class Library
             var programTree = ParseSyntaxTree(programCode, path: "Program.cs", encoding: Encoding.UTF8);
             var libraryTree = ParseSyntaxTree(libraryCode, path: "Library.cs", encoding: Encoding.UTF8);
 
-            Compilation comp = CSharpCompilation.Create("Compilation", new[] { programTree, libraryTree }, new[] { MscorlibRef }, options: TestOptions.DebugDll);
-
+            // Syntax trees must be added in alphabetical order because WindowsPDB does not reorder trees, but PortablePDB does reorder them alphabetically.
+            Compilation comp = CSharpCompilation.Create("Compilation", new[] { libraryTree, programTree }, new[] { MscorlibRef }, options: TestOptions.DebugDll);
+            
             comp = CaravelaCompilerTest.ExecuteTransformer(comp, new InterleaveStatementsTransformer());
-
+            
+            
+            // Check that we can emit.
             var result = comp.Emit(Stream.Null, pdbStream: Stream.Null);
             result.Diagnostics.Verify();
             Assert.True(result.Success);
@@ -63,15 +67,28 @@ class Library
             comp.VerifyPdb($@"
 <symbols>
   <files>
-    <file id=""1"" name=""Library.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""{BitConverter.ToString(libraryHash)}"" />
-    <file id=""2"" name=""Program.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""{BitConverter.ToString(programHash)}"" />
+    <file id=""1"" name=""Library.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""D7-A8-FA-7A-39-91-65-8D-15-11-B5-17-91-FA-DA-06-F4-32-9E-91"" />
+    <file id=""2"" name=""Program.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""C7-BE-1D-CD-D3-47-76-98-55-B9-9E-28-7F-42-BE-68-7F-F3-D7-07"" />
   </files>
   <methods>
-    <method containingType=""Program"" name=""Main"">
+    <method containingType=""Library"" name=""M"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""1"" />
         </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
+        <entry offset=""0xc"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xd"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+    <method containingType=""Program"" name=""Main"">
+      <customDebugInfo>
+        <forward declaringType=""Library"" methodName=""M"" />
         <encLocalSlotMap>
           <slot kind=""0"" offset=""85"" />
           <slot kind=""0"" offset=""160"" />
@@ -92,21 +109,10 @@ class Library
         <entry offset=""0x75"" hidden=""true"" document=""2"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x76"">
-        <namespace name=""System"" />
         <local name=""hello"" il_index=""0"" il_start=""0x0"" il_end=""0x76"" attributes=""0"" />
         <local name=""world"" il_index=""1"" il_start=""0x0"" il_end=""0x76"" attributes=""0"" />
         <local name=""helloWorld"" il_index=""2"" il_start=""0x0"" il_end=""0x76"" attributes=""0"" />
       </scope>
-    </method>
-    <method containingType=""Library"" name=""M"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""Main"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""39"" document=""1"" />
-        <entry offset=""0xc"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
-      </sequencePoints>
     </method>
   </methods>
 </symbols>");
@@ -117,8 +123,8 @@ class Library
             public void Execute(TransformerContext context)
             {
                 var trees = context.Compilation.SyntaxTrees.ToList();
-                var programTree = trees[0];
-                var libraryTree = trees[1];
+                var programTree = trees.Single(t=>t.FilePath=="Program.cs");
+                var libraryTree = trees.Single(t=>t.FilePath=="Library.cs");
 
                 var stepStatement = libraryTree.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().Single();
 

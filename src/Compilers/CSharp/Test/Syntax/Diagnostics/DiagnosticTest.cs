@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact(Skip = "MockSyntaxTree.GetRoot is not implemented, which is not compatible with Caravela.Compiler.")]
+        [Fact(Skip = "Caravela: MockSyntaxTree.GetRoot is not implemented, which is not compatible with Caravela.Compiler.")]
         public void TestDiagnostic()
         {
             MockMessageProvider provider = new MockMessageProvider();
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(di2, d1.Info);
         }
 
-        [Fact(Skip = "MockSyntaxTree.GetRoot is not implemented, which is not compatible with Caravela.Compiler.")]
+        [Fact(Skip = "Caravela: MockSyntaxTree.GetRoot is not implemented, which is not compatible with Caravela.Compiler.")]
         public void TestCustomErrorInfo()
         {
             MockMessageProvider provider = new MockMessageProvider();
