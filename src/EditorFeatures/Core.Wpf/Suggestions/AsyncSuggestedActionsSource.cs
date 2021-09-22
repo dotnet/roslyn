@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         }
 
                         // Ensure we always complete the collector even if we didn't add any items to it.
-                        // This ensures that we unblock the UI from displaying all the results for that 
+                        // This ensures that we unblock the UI from displaying all the results for that
                         // priority class.
                         collector.Complete();
                         completedCollectors.Add(collector);

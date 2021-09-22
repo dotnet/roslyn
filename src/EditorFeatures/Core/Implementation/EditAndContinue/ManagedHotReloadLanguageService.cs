@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         }
 
         private readonly EditAndContinueLanguageService _encService;
-        private readonly DebuggerService _debuggerService;
 
         /// <summary>
         /// Import <see cref="IHostWorkspaceProvider"/> and <see cref="IManagedHotReloadService"/> lazily so that the host does not need to implement them
@@ -61,29 +60,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
             Lazy<IManagedHotReloadService> hotReloadService)
         {
-            _encService = new EditAndContinueLanguageService(workspaceProvider, diagnosticService, diagnosticUpdateSource);
-            _debuggerService = new DebuggerService(hotReloadService);
+            _encService = new EditAndContinueLanguageService(workspaceProvider, new Lazy<IManagedEditAndContinueDebuggerService>(() => new DebuggerService(hotReloadService)), diagnosticService, diagnosticUpdateSource);
         }
 
         public EditAndContinueLanguageService Service => _encService;
 
         public ValueTask StartSessionAsync(CancellationToken cancellationToken)
-            => _encService.StartSessionAsync(_debuggerService, cancellationToken);
+            => _encService.StartSessionAsync(cancellationToken);
 
-        public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
-        {
-            var (moduleUpdates, diagnosticData, rudeEdits, syntaxError, solution) = await _encService.GetUpdatesAsync(trackActiveStatements: false, cancellationToken).ConfigureAwait(false);
-            if (solution == null)
-            {
-                return new ManagedHotReloadUpdates(ImmutableArray<ManagedHotReloadUpdate>.Empty, ImmutableArray<ManagedHotReloadDiagnostic>.Empty);
-            }
-
-            var updates = moduleUpdates.Updates.SelectAsArray(
-                update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta, update.UpdatedTypes));
-            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, cancellationToken).ConfigureAwait(false);
-
-            return new ManagedHotReloadUpdates(updates, diagnostics);
-        }
+        public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+            => _encService.GetHotReloadUpdatesAsync(cancellationToken);
 
         public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
             => _encService.CommitUpdatesAsync(cancellationToken);

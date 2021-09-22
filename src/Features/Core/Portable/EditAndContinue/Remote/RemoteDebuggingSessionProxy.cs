@@ -41,19 +41,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private IEditAndContinueWorkspaceService GetLocalService()
             => _workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
-        public async ValueTask BreakStateChangedAsync(IDiagnosticAnalyzerService diagnosticService, bool inBreakState, CancellationToken cancellationToken)
+        public async ValueTask BreakStateOrCapabilitiesChangedAsync(IDiagnosticAnalyzerService diagnosticService, bool? inBreakState, CancellationToken cancellationToken)
         {
             ImmutableArray<DocumentId> documentsToReanalyze;
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                GetLocalService().BreakStateChanged(_sessionId, inBreakState, out documentsToReanalyze);
+                GetLocalService().BreakStateOrCapabilitiesChanged(_sessionId, inBreakState, out documentsToReanalyze);
             }
             else
             {
                 var documentsToReanalyzeOpt = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DocumentId>>(
-                    (service, cancallationToken) => service.BreakStateChangedAsync(_sessionId, inBreakState, cancellationToken),
+                    (service, cancallationToken) => service.BreakStateOrCapabilitiesChangedAsync(_sessionId, inBreakState, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : ImmutableArray<DocumentId>.Empty;
