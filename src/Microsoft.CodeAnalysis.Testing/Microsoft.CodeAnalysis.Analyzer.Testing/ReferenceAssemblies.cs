@@ -878,13 +878,61 @@ namespace Microsoft.CodeAnalysis.Testing
                         "net6.0",
                         new PackageIdentity(
                             "Microsoft.NETCore.App.Ref",
-                            "6.0.0-preview.6.21352.12"),
+                            "6.0.0-rc.1.21451.13"),
                         Path.Combine("ref", "net6.0"));
                 });
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60Windows =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.WindowsDesktop.App.Ref", "6.0.0-rc.1.21451.3"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60Android =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.Android.Ref", "31.0.100-rc.1.12"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60iOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.iOS.Ref", "15.0.100-rc.1.1534"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60MacOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.macOS.Ref", "12.0.100-rc.1.1534"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60MacCatalyst =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.MacCatalyst.Ref", "15.0.100-rc.1.1534"))));
+
+            private static readonly Lazy<ReferenceAssemblies> _lazyNet60TvOS =
+                new Lazy<ReferenceAssemblies>(() =>
+                    Net60.AddPackages(
+                        ImmutableArray.Create(
+                            new PackageIdentity("Microsoft.tvOS.Ref", "15.0.100-rc.1.1534"))));
 
             public static ReferenceAssemblies Net50 => _lazyNet50.Value;
 
             public static ReferenceAssemblies Net60 => _lazyNet60.Value;
+
+            public static ReferenceAssemblies Net60Windows => _lazyNet60Windows.Value;
+
+            public static ReferenceAssemblies Net60Android => _lazyNet60Android.Value;
+
+            public static ReferenceAssemblies Net60iOS => _lazyNet60iOS.Value;
+
+            public static ReferenceAssemblies Net60MacOS => _lazyNet60MacOS.Value;
+
+            public static ReferenceAssemblies Net60MacCatalyst => _lazyNet60MacCatalyst.Value;
+
+            public static ReferenceAssemblies Net60TvOS => _lazyNet60TvOS.Value;
         }
 
         public static class NetStandard
