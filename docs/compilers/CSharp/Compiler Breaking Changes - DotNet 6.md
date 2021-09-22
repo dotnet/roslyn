@@ -44,12 +44,14 @@ These are _function_type_conversions_.
     class A
     {
         public void M(Func<int> f) { }
+        public object this[Func<int> f] => null;
         public static A operator+(A a, Func<int> f) => a;
     }
 
     class B : A
     {
         public void M(Expression e) { }
+        public object this[Delegate d] => null;
         public static B operator+(B b, Delegate d) => b;
     }
 
@@ -60,8 +62,9 @@ These are _function_type_conversions_.
         static void Main()
         {
             var b = new B();
-            b.M(() => 1); // C#9: A.M(); C#10: B.M()
-            _ = b + F;    // C#9: A.operator+(); C#10: B.operator+()
+            b.M(() => 1);   // C#9: A.M(); C#10: B.M()
+            _ = b[() => 2]; // C#9: A.this[]; C#10: B.this[]
+            _ = b + F;      // C#9: A.operator+(); C#10: B.operator+()
         }
     }
     ```

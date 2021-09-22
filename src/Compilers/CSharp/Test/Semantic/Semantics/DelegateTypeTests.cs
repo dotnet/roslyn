@@ -3759,6 +3759,48 @@ B.F2(Expression e)";
         }
 
         [Fact]
+        public void OverloadResolution_45()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class A
+{
+    public object this[Func<int> f] => Report(""A.this[Func<int> f]"");
+    public static object Report(string message) { Console.WriteLine(message); return null; }
+}
+class B1 : A
+{
+    public object this[Delegate d] => Report(""B1.this[Delegate d]"");
+}
+class B2 : A
+{
+    public object this[Expression e] => Report(""B2.this[Expression e]"");
+}
+class Program
+{
+    static void Main()
+    {
+        var b1 = new B1();
+        _ = b1[() => 1];
+        var b2 = new B2();
+        _ = b2[() => 2];
+    }
+}";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+@"A.this[Func<int> f]
+A.this[Func<int> f]");
+
+            // Breaking change from C#9 which binds to methods from A.
+            var expectedOutput =
+@"B1.this[Delegate d]
+B2.this[Expression e]";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void BestCommonType_01()
         {
             var source =
