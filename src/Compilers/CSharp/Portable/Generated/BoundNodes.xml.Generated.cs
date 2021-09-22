@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ConstructorMethodBody,
         ExpressionWithNullability,
         WithExpression,
-        // <Caravela>
+        // <Caravela> This change is generated. See Modifications.md for details.
         GetRuntimeHandleExpression,
         // </Caravela>
     }
@@ -7996,7 +7996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    // <Caravela>
+    // <Caravela> This change is generated. See Modifications.md for details.
     internal sealed partial class BoundGetRuntimeHandleExpression : BoundExpression
     {
         public BoundGetRuntimeHandleExpression(SyntaxNode syntax, Symbol symbol, TypeSymbol? type, bool hasErrors)
@@ -8447,7 +8447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitExpressionWithNullability((BoundExpressionWithNullability)node, arg);
                 case BoundKind.WithExpression:
                     return VisitWithExpression((BoundWithExpression)node, arg);
-                // <Caravela>
+                // <Caravela> This change is generated. See Modifications.md for details.
                 case BoundKind.GetRuntimeHandleExpression:
                     return VisitGetRuntimeHandleExpression((BoundGetRuntimeHandleExpression)node, arg);
                 // </Caravela>
@@ -8661,7 +8661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitConstructorMethodBody(BoundConstructorMethodBody node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitExpressionWithNullability(BoundExpressionWithNullability node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitWithExpression(BoundWithExpression node, A arg) => this.DefaultVisit(node, arg);
-        // <Caravela>
+        // <Caravela> This change is generated. See Modifications.md for details.
         public virtual R VisitGetRuntimeHandleExpression(BoundGetRuntimeHandleExpression node, A arg) => this.DefaultVisit(node, arg);
         // </Caravela>
     }
@@ -8870,7 +8870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitConstructorMethodBody(BoundConstructorMethodBody node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitExpressionWithNullability(BoundExpressionWithNullability node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitWithExpression(BoundWithExpression node) => this.DefaultVisit(node);
-        // <Caravela>
+        // <Caravela> This change is generated. See Modifications.md for details.
         public virtual BoundNode? VisitGetRuntimeHandleExpression(BoundGetRuntimeHandleExpression node) => this.DefaultVisit(node);
         // </Caravela>
     }
@@ -9796,7 +9796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.InitializerExpression);
             return null;
         }
-        // <Caravela>
+        // <Caravela> This change is generated. See Modifications.md for details.
         public override BoundNode? VisitGetRuntimeHandleExpression(BoundGetRuntimeHandleExpression node) => null;
         // </Caravela>
     }
@@ -11000,7 +11000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(receiver, node.CloneMethod, initializerExpression, type);
         }
-        // <Caravela>
+        // <Caravela> This change is generated. See Modifications.md for details.
         public override BoundNode? VisitGetRuntimeHandleExpression(BoundGetRuntimeHandleExpression node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
@@ -13392,7 +13392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        // <Caravela>
+        // <Caravela> This change is generated. See Modifications.md for details.
         public override BoundNode? VisitGetRuntimeHandleExpression(BoundGetRuntimeHandleExpression node)
         {
             Symbol symbol = GetUpdatedSymbol(node, node.Symbol);
@@ -15274,8 +15274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
-        
-        // <Caravela>
+        // <Caravela> This change is generated. See Modifications.md for details.
         public override TreeDumperNode VisitGetRuntimeHandleExpression(BoundGetRuntimeHandleExpression node, object? arg) => new TreeDumperNode("getRuntimeHandleExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("symbol", node.Symbol, null),

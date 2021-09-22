@@ -2113,7 +2113,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GlobalKeyword: break;
                 default: throw new ArgumentException(nameof(identifier));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
             return (IdentifierNameSyntax)Syntax.InternalSyntax.SyntaxFactory.IdentifierName((Syntax.InternalSyntax.SyntaxToken)identifier.Node!).CreateRed();
         }
 
@@ -2123,9 +2125,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left == null) throw new ArgumentNullException(nameof(left));
             if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
             if (right == null) throw new ArgumentNullException(nameof(right));
+            // <Caravela> This change is generated. See Modifications.md for details.
             left = Caravela.Compiler.TreeTracker.TrackIfNeeded(left);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             dotToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(dotToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             right = Caravela.Compiler.TreeTracker.TrackIfNeeded(right);
+            // </Caravela>
             return (QualifiedNameSyntax)Syntax.InternalSyntax.SyntaxFactory.QualifiedName((Syntax.InternalSyntax.NameSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)right.Green).CreateRed();
         }
 
@@ -2138,8 +2146,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (typeArgumentList == null) throw new ArgumentNullException(nameof(typeArgumentList));
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             typeArgumentList = Caravela.Compiler.TreeTracker.TrackIfNeeded(typeArgumentList);
+            // </Caravela>
             return (GenericNameSyntax)Syntax.InternalSyntax.SyntaxFactory.GenericName((Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.TypeArgumentListSyntax)typeArgumentList.Green).CreateRed();
         }
 
@@ -2156,8 +2168,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             lessThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(lessThanToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             greaterThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(greaterThanToken);
+            // </Caravela>
             return (TypeArgumentListSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeArgumentList((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, arguments.Node.ToGreenSeparatedList<Syntax.InternalSyntax.TypeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
@@ -2171,9 +2187,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (alias == null) throw new ArgumentNullException(nameof(alias));
             if (colonColonToken.Kind() != SyntaxKind.ColonColonToken) throw new ArgumentException(nameof(colonColonToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
+            // <Caravela> This change is generated. See Modifications.md for details.
             alias = Caravela.Compiler.TreeTracker.TrackIfNeeded(alias);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonColonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonColonToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
             return (AliasQualifiedNameSyntax)Syntax.InternalSyntax.SyntaxFactory.AliasQualifiedName((Syntax.InternalSyntax.IdentifierNameSyntax)alias.Green, (Syntax.InternalSyntax.SyntaxToken)colonColonToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)name.Green).CreateRed();
         }
 
@@ -2208,7 +2230,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.VoidKeyword: break;
                 default: throw new ArgumentException(nameof(keyword));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
             return (PredefinedTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.PredefinedType((Syntax.InternalSyntax.SyntaxToken)keyword.Node!).CreateRed();
         }
 
@@ -2216,7 +2240,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ArrayTypeSyntax ArrayType(TypeSyntax elementType, SyntaxList<ArrayRankSpecifierSyntax> rankSpecifiers)
         {
             if (elementType == null) throw new ArgumentNullException(nameof(elementType));
+            // <Caravela> This change is generated. See Modifications.md for details.
             elementType = Caravela.Compiler.TreeTracker.TrackIfNeeded(elementType);
+            // </Caravela>
             return (ArrayTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.ArrayType((Syntax.InternalSyntax.TypeSyntax)elementType.Green, rankSpecifiers.Node.ToGreenList<Syntax.InternalSyntax.ArrayRankSpecifierSyntax>()).CreateRed();
         }
 
@@ -2229,8 +2255,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
+            // </Caravela>
             return (ArrayRankSpecifierSyntax)Syntax.InternalSyntax.SyntaxFactory.ArrayRankSpecifier((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, sizes.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -2243,8 +2273,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (elementType == null) throw new ArgumentNullException(nameof(elementType));
             if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             elementType = Caravela.Compiler.TreeTracker.TrackIfNeeded(elementType);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             asteriskToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(asteriskToken);
+            // </Caravela>
             return (PointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.PointerType((Syntax.InternalSyntax.TypeSyntax)elementType.Green, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!).CreateRed();
         }
 
@@ -2258,10 +2292,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (asteriskToken.Kind() != SyntaxKind.AsteriskToken) throw new ArgumentException(nameof(asteriskToken));
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
+            // <Caravela> This change is generated. See Modifications.md for details.
             delegateKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(delegateKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             asteriskToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(asteriskToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             callingConvention = Caravela.Compiler.TreeTracker.TrackIfNeeded(callingConvention);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+            // </Caravela>
             return (FunctionPointerTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerType((Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)asteriskToken.Node!, callingConvention == null ? null : (Syntax.InternalSyntax.FunctionPointerCallingConventionSyntax)callingConvention.Green, (Syntax.InternalSyntax.FunctionPointerParameterListSyntax)parameterList.Green).CreateRed();
         }
 
@@ -2278,8 +2320,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             lessThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(lessThanToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             greaterThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(greaterThanToken);
+            // </Caravela>
             return (FunctionPointerParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerParameterList((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.FunctionPointerParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
@@ -2296,8 +2342,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UnmanagedKeyword: break;
                 default: throw new ArgumentException(nameof(managedOrUnmanagedKeyword));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             managedOrUnmanagedKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(managedOrUnmanagedKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             unmanagedCallingConventionList = Caravela.Compiler.TreeTracker.TrackIfNeeded(unmanagedCallingConventionList);
+            // </Caravela>
             return (FunctionPointerCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerCallingConvention((Syntax.InternalSyntax.SyntaxToken)managedOrUnmanagedKeyword.Node!, unmanagedCallingConventionList == null ? null : (Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionListSyntax)unmanagedCallingConventionList.Green).CreateRed();
         }
 
@@ -2310,8 +2360,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
+            // </Caravela>
             return (FunctionPointerUnmanagedCallingConventionListSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerUnmanagedCallingConventionList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, callingConventions.Node.ToGreenSeparatedList<Syntax.InternalSyntax.FunctionPointerUnmanagedCallingConventionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -2323,7 +2377,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static FunctionPointerUnmanagedCallingConventionSyntax FunctionPointerUnmanagedCallingConvention(SyntaxToken name)
         {
             if (name.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(name));
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
             return (FunctionPointerUnmanagedCallingConventionSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerUnmanagedCallingConvention((Syntax.InternalSyntax.SyntaxToken)name.Node!).CreateRed();
         }
 
@@ -2332,8 +2388,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (elementType == null) throw new ArgumentNullException(nameof(elementType));
             if (questionToken.Kind() != SyntaxKind.QuestionToken) throw new ArgumentException(nameof(questionToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             elementType = Caravela.Compiler.TreeTracker.TrackIfNeeded(elementType);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             questionToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(questionToken);
+            // </Caravela>
             return (NullableTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.NullableType((Syntax.InternalSyntax.TypeSyntax)elementType.Green, (Syntax.InternalSyntax.SyntaxToken)questionToken.Node!).CreateRed();
         }
 
@@ -2346,8 +2406,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (TupleTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.TupleType((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, elements.Node.ToGreenSeparatedList<Syntax.InternalSyntax.TupleElementSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2365,8 +2429,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(identifier));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
             return (TupleElementSyntax)Syntax.InternalSyntax.SyntaxFactory.TupleElement((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken?)identifier.Node).CreateRed();
         }
 
@@ -2378,7 +2446,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static OmittedTypeArgumentSyntax OmittedTypeArgument(SyntaxToken omittedTypeArgumentToken)
         {
             if (omittedTypeArgumentToken.Kind() != SyntaxKind.OmittedTypeArgumentToken) throw new ArgumentException(nameof(omittedTypeArgumentToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             omittedTypeArgumentToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(omittedTypeArgumentToken);
+            // </Caravela>
             return (OmittedTypeArgumentSyntax)Syntax.InternalSyntax.SyntaxFactory.OmittedTypeArgument((Syntax.InternalSyntax.SyntaxToken)omittedTypeArgumentToken.Node!).CreateRed();
         }
 
@@ -2397,9 +2467,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(readOnlyKeyword));
             }
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Caravela> This change is generated. See Modifications.md for details.
             refKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(refKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             readOnlyKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(readOnlyKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
             return (RefTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.RefType((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)readOnlyKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -2413,9 +2489,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (ParenthesizedExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedExpression((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2428,8 +2510,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (TupleExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.TupleExpression((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, arguments.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ArgumentSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2467,8 +2553,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (operand == null) throw new ArgumentNullException(nameof(operand));
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operand = Caravela.Compiler.TreeTracker.TrackIfNeeded(operand);
+            // </Caravela>
             return (PrefixUnaryExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.PrefixUnaryExpression(kind, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)operand.Green).CreateRed();
         }
 
@@ -2496,8 +2586,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (awaitKeyword.Kind() != SyntaxKind.AwaitKeyword) throw new ArgumentException(nameof(awaitKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             awaitKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(awaitKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (AwaitExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AwaitExpression((Syntax.InternalSyntax.SyntaxToken)awaitKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -2523,8 +2617,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ExclamationToken: break;
                 default: throw new ArgumentException(nameof(operatorToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             operand = Caravela.Compiler.TreeTracker.TrackIfNeeded(operand);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
             return (PostfixUnaryExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.PostfixUnaryExpression(kind, (Syntax.InternalSyntax.ExpressionSyntax)operand.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!).CreateRed();
         }
 
@@ -2558,9 +2656,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (name == null) throw new ArgumentNullException(nameof(name));
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
             return (MemberAccessExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.MemberAccessExpression(kind, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)name.Green).CreateRed();
         }
 
@@ -2582,9 +2686,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (operatorToken.Kind() != SyntaxKind.QuestionToken) throw new ArgumentException(nameof(operatorToken));
             if (whenNotNull == null) throw new ArgumentNullException(nameof(whenNotNull));
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             whenNotNull = Caravela.Compiler.TreeTracker.TrackIfNeeded(whenNotNull);
+            // </Caravela>
             return (ConditionalAccessExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ConditionalAccessExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)whenNotNull.Green).CreateRed();
         }
 
@@ -2597,8 +2707,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operatorToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(operatorToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
             return (MemberBindingExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.MemberBindingExpression((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)name.Green).CreateRed();
         }
 
@@ -2610,7 +2724,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)
         {
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            // <Caravela> This change is generated. See Modifications.md for details.
             argumentList = Caravela.Compiler.TreeTracker.TrackIfNeeded(argumentList);
+            // </Caravela>
             return (ElementBindingExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ElementBindingExpression((Syntax.InternalSyntax.BracketedArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -2622,9 +2738,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static RangeExpressionSyntax RangeExpression(ExpressionSyntax? leftOperand, SyntaxToken operatorToken, ExpressionSyntax? rightOperand)
         {
             if (operatorToken.Kind() != SyntaxKind.DotDotToken) throw new ArgumentException(nameof(operatorToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             leftOperand = Caravela.Compiler.TreeTracker.TrackIfNeeded(leftOperand);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             rightOperand = Caravela.Compiler.TreeTracker.TrackIfNeeded(rightOperand);
+            // </Caravela>
             return (RangeExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.RangeExpression(leftOperand == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)leftOperand.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, rightOperand == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)rightOperand.Green).CreateRed();
         }
 
@@ -2640,7 +2762,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ImplicitElementAccessSyntax ImplicitElementAccess(BracketedArgumentListSyntax argumentList)
         {
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            // <Caravela> This change is generated. See Modifications.md for details.
             argumentList = Caravela.Compiler.TreeTracker.TrackIfNeeded(argumentList);
+            // </Caravela>
             return (ImplicitElementAccessSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitElementAccess((Syntax.InternalSyntax.BracketedArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -2703,9 +2827,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (right == null) throw new ArgumentNullException(nameof(right));
+            // <Caravela> This change is generated. See Modifications.md for details.
             left = Caravela.Compiler.TreeTracker.TrackIfNeeded(left);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             right = Caravela.Compiler.TreeTracker.TrackIfNeeded(right);
+            // </Caravela>
             return (BinaryExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.BinaryExpression(kind, (Syntax.InternalSyntax.ExpressionSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)right.Green).CreateRed();
         }
 
@@ -2777,9 +2907,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (right == null) throw new ArgumentNullException(nameof(right));
+            // <Caravela> This change is generated. See Modifications.md for details.
             left = Caravela.Compiler.TreeTracker.TrackIfNeeded(left);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             right = Caravela.Compiler.TreeTracker.TrackIfNeeded(right);
+            // </Caravela>
             return (AssignmentExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AssignmentExpression(kind, (Syntax.InternalSyntax.ExpressionSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)right.Green).CreateRed();
         }
 
@@ -2813,11 +2949,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (whenTrue == null) throw new ArgumentNullException(nameof(whenTrue));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
             if (whenFalse == null) throw new ArgumentNullException(nameof(whenFalse));
+            // <Caravela> This change is generated. See Modifications.md for details.
             condition = Caravela.Compiler.TreeTracker.TrackIfNeeded(condition);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             questionToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(questionToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             whenTrue = Caravela.Compiler.TreeTracker.TrackIfNeeded(whenTrue);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             whenFalse = Caravela.Compiler.TreeTracker.TrackIfNeeded(whenFalse);
+            // </Caravela>
             return (ConditionalExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ConditionalExpression((Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)questionToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)whenTrue.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)whenFalse.Green).CreateRed();
         }
 
@@ -2829,7 +2975,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ThisExpressionSyntax ThisExpression(SyntaxToken token)
         {
             if (token.Kind() != SyntaxKind.ThisKeyword) throw new ArgumentException(nameof(token));
+            // <Caravela> This change is generated. See Modifications.md for details.
             token = Caravela.Compiler.TreeTracker.TrackIfNeeded(token);
+            // </Caravela>
             return (ThisExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ThisExpression((Syntax.InternalSyntax.SyntaxToken)token.Node!).CreateRed();
         }
 
@@ -2841,7 +2989,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BaseExpressionSyntax BaseExpression(SyntaxToken token)
         {
             if (token.Kind() != SyntaxKind.BaseKeyword) throw new ArgumentException(nameof(token));
+            // <Caravela> This change is generated. See Modifications.md for details.
             token = Caravela.Compiler.TreeTracker.TrackIfNeeded(token);
+            // </Caravela>
             return (BaseExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.BaseExpression((Syntax.InternalSyntax.SyntaxToken)token.Node!).CreateRed();
         }
 
@@ -2876,7 +3026,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DefaultKeyword: break;
                 default: throw new ArgumentException(nameof(token));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             token = Caravela.Compiler.TreeTracker.TrackIfNeeded(token);
+            // </Caravela>
             return (LiteralExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.LiteralExpression(kind, (Syntax.InternalSyntax.SyntaxToken)token.Node!).CreateRed();
         }
 
@@ -2905,10 +3057,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (MakeRefExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.MakeRefExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2923,10 +3083,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (RefTypeExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.RefTypeExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2943,12 +3111,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (comma.Kind() != SyntaxKind.CommaToken) throw new ArgumentException(nameof(comma));
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             comma = Caravela.Compiler.TreeTracker.TrackIfNeeded(comma);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (RefValueExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.RefValueExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)comma.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -2974,10 +3154,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (CheckedExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.CheckedExpression(kind, (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3000,10 +3188,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (DefaultExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.DefaultExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3018,10 +3214,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (TypeOfExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeOfExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3036,10 +3240,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (SizeOfExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SizeOfExpression((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3052,8 +3264,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             argumentList = Caravela.Compiler.TreeTracker.TrackIfNeeded(argumentList);
+            // </Caravela>
             return (InvocationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.InvocationExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -3066,8 +3282,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             argumentList = Caravela.Compiler.TreeTracker.TrackIfNeeded(argumentList);
+            // </Caravela>
             return (ElementAccessExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ElementAccessExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.BracketedArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -3080,8 +3300,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (ArgumentListSyntax)Syntax.InternalSyntax.SyntaxFactory.ArgumentList((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, arguments.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ArgumentSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3094,8 +3318,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
+            // </Caravela>
             return (BracketedArgumentListSyntax)Syntax.InternalSyntax.SyntaxFactory.BracketedArgumentList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, arguments.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ArgumentSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -3115,9 +3343,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(refKindKeyword));
             }
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             nameColon = Caravela.Compiler.TreeTracker.TrackIfNeeded(nameColon);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             refKindKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(refKindKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (ArgumentSyntax)Syntax.InternalSyntax.SyntaxFactory.Argument(nameColon == null ? null : (Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, (Syntax.InternalSyntax.SyntaxToken?)refKindKeyword.Node, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3130,8 +3364,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+            // </Caravela>
             return (NameColonSyntax)Syntax.InternalSyntax.SyntaxFactory.NameColon((Syntax.InternalSyntax.IdentifierNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -3148,8 +3386,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (designation == null) throw new ArgumentNullException(nameof(designation));
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             designation = Caravela.Compiler.TreeTracker.TrackIfNeeded(designation);
+            // </Caravela>
             return (DeclarationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.DeclarationExpression((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -3160,10 +3402,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (CastExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.CastExpression((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3176,10 +3426,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (delegateKeyword.Kind() != SyntaxKind.DelegateKeyword) throw new ArgumentException(nameof(delegateKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
+            // <Caravela> This change is generated. See Modifications.md for details.
             delegateKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(delegateKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             block = Caravela.Compiler.TreeTracker.TrackIfNeeded(block);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expressionBody = Caravela.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
+            // </Caravela>
             return (AnonymousMethodExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AnonymousMethodExpression(modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
@@ -3188,10 +3446,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parameter == null) throw new ArgumentNullException(nameof(parameter));
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameter = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameter);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             arrowToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(arrowToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             block = Caravela.Compiler.TreeTracker.TrackIfNeeded(block);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expressionBody = Caravela.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
+            // </Caravela>
             return (SimpleLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleLambdaExpression(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.ParameterSyntax)parameter.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
@@ -3208,8 +3474,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (refKeyword.Kind() != SyntaxKind.RefKeyword) throw new ArgumentException(nameof(refKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             refKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(refKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (RefExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.RefExpression((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3222,10 +3492,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             arrowToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(arrowToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             block = Caravela.Compiler.TreeTracker.TrackIfNeeded(block);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expressionBody = Caravela.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
+            // </Caravela>
             return (ParenthesizedLambdaExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedLambdaExpression(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, (Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, block == null ? null : (Syntax.InternalSyntax.BlockSyntax)block.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expressionBody.Green).CreateRed();
         }
 
@@ -3251,8 +3529,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
             return (InitializerExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.InitializerExpression(kind, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, expressions.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -3265,9 +3547,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            // <Caravela> This change is generated. See Modifications.md for details.
             newKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(newKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             argumentList = Caravela.Compiler.TreeTracker.TrackIfNeeded(argumentList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             initializer = Caravela.Compiler.TreeTracker.TrackIfNeeded(initializer);
+            // </Caravela>
             return (ImplicitObjectCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitObjectCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3284,10 +3572,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Caravela> This change is generated. See Modifications.md for details.
             newKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(newKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             argumentList = Caravela.Compiler.TreeTracker.TrackIfNeeded(argumentList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             initializer = Caravela.Compiler.TreeTracker.TrackIfNeeded(initializer);
+            // </Caravela>
             return (ObjectCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ObjectCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, argumentList == null ? null : (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3305,9 +3601,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (withKeyword.Kind() != SyntaxKind.WithKeyword) throw new ArgumentException(nameof(withKeyword));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             withKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(withKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             initializer = Caravela.Compiler.TreeTracker.TrackIfNeeded(initializer);
+            // </Caravela>
             return (WithExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.WithExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)withKeyword.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3319,8 +3621,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AnonymousObjectMemberDeclaratorSyntax AnonymousObjectMemberDeclarator(NameEqualsSyntax? nameEquals, ExpressionSyntax expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             nameEquals = Caravela.Compiler.TreeTracker.TrackIfNeeded(nameEquals);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (AnonymousObjectMemberDeclaratorSyntax)Syntax.InternalSyntax.SyntaxFactory.AnonymousObjectMemberDeclarator(nameEquals == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)nameEquals.Green, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3334,9 +3640,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             newKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(newKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
             return (AnonymousObjectCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.AnonymousObjectCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, initializers.Node.ToGreenSeparatedList<Syntax.InternalSyntax.AnonymousObjectMemberDeclaratorSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -3349,9 +3661,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Caravela> This change is generated. See Modifications.md for details.
             newKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(newKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             initializer = Caravela.Compiler.TreeTracker.TrackIfNeeded(initializer);
+            // </Caravela>
             return (ArrayCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.ArrayTypeSyntax)type.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3370,10 +3688,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
+            // <Caravela> This change is generated. See Modifications.md for details.
             newKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(newKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             initializer = Caravela.Compiler.TreeTracker.TrackIfNeeded(initializer);
+            // </Caravela>
             return (ImplicitArrayCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, commas.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3390,9 +3716,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (stackAllocKeyword.Kind() != SyntaxKind.StackAllocKeyword) throw new ArgumentException(nameof(stackAllocKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Caravela> This change is generated. See Modifications.md for details.
             stackAllocKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(stackAllocKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             initializer = Caravela.Compiler.TreeTracker.TrackIfNeeded(initializer);
+            // </Caravela>
             return (StackAllocArrayCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.StackAllocArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)stackAllocKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, initializer == null ? null : (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3411,10 +3743,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
             if (initializer == null) throw new ArgumentNullException(nameof(initializer));
+            // <Caravela> This change is generated. See Modifications.md for details.
             stackAllocKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(stackAllocKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             initializer = Caravela.Compiler.TreeTracker.TrackIfNeeded(initializer);
+            // </Caravela>
             return (ImplicitStackAllocArrayCreationExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ImplicitStackAllocArrayCreationExpression((Syntax.InternalSyntax.SyntaxToken)stackAllocKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!, (Syntax.InternalSyntax.InitializerExpressionSyntax)initializer.Green).CreateRed();
         }
 
@@ -3427,8 +3767,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (fromClause == null) throw new ArgumentNullException(nameof(fromClause));
             if (body == null) throw new ArgumentNullException(nameof(body));
+            // <Caravela> This change is generated. See Modifications.md for details.
             fromClause = Caravela.Compiler.TreeTracker.TrackIfNeeded(fromClause);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             body = Caravela.Compiler.TreeTracker.TrackIfNeeded(body);
+            // </Caravela>
             return (QueryExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.QueryExpression((Syntax.InternalSyntax.FromClauseSyntax)fromClause.Green, (Syntax.InternalSyntax.QueryBodySyntax)body.Green).CreateRed();
         }
 
@@ -3436,8 +3780,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static QueryBodySyntax QueryBody(SyntaxList<QueryClauseSyntax> clauses, SelectOrGroupClauseSyntax selectOrGroup, QueryContinuationSyntax? continuation)
         {
             if (selectOrGroup == null) throw new ArgumentNullException(nameof(selectOrGroup));
+            // <Caravela> This change is generated. See Modifications.md for details.
             selectOrGroup = Caravela.Compiler.TreeTracker.TrackIfNeeded(selectOrGroup);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             continuation = Caravela.Compiler.TreeTracker.TrackIfNeeded(continuation);
+            // </Caravela>
             return (QueryBodySyntax)Syntax.InternalSyntax.SyntaxFactory.QueryBody(clauses.Node.ToGreenList<Syntax.InternalSyntax.QueryClauseSyntax>(), (Syntax.InternalSyntax.SelectOrGroupClauseSyntax)selectOrGroup.Green, continuation == null ? null : (Syntax.InternalSyntax.QueryContinuationSyntax)continuation.Green).CreateRed();
         }
 
@@ -3452,11 +3800,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (inKeyword.Kind() != SyntaxKind.InKeyword) throw new ArgumentException(nameof(inKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             fromKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(fromKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             inKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(inKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (FromClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.FromClause((Syntax.InternalSyntax.SyntaxToken)fromKeyword.Node!, type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)inKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3479,10 +3837,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (equalsToken.Kind() != SyntaxKind.EqualsToken) throw new ArgumentException(nameof(equalsToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             letKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(letKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             equalsToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(equalsToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (LetClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.LetClause((Syntax.InternalSyntax.SyntaxToken)letKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3505,16 +3871,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftExpression == null) throw new ArgumentNullException(nameof(leftExpression));
             if (equalsKeyword.Kind() != SyntaxKind.EqualsKeyword) throw new ArgumentException(nameof(equalsKeyword));
             if (rightExpression == null) throw new ArgumentNullException(nameof(rightExpression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             joinKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(joinKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             inKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(inKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             inExpression = Caravela.Compiler.TreeTracker.TrackIfNeeded(inExpression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             onKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(onKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             leftExpression = Caravela.Compiler.TreeTracker.TrackIfNeeded(leftExpression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             equalsKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(equalsKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             rightExpression = Caravela.Compiler.TreeTracker.TrackIfNeeded(rightExpression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             into = Caravela.Compiler.TreeTracker.TrackIfNeeded(into);
+            // </Caravela>
             return (JoinClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.JoinClause((Syntax.InternalSyntax.SyntaxToken)joinKeyword.Node!, type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)inKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)inExpression.Green, (Syntax.InternalSyntax.SyntaxToken)onKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)leftExpression.Green, (Syntax.InternalSyntax.SyntaxToken)equalsKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)rightExpression.Green, into == null ? null : (Syntax.InternalSyntax.JoinIntoClauseSyntax)into.Green).CreateRed();
         }
 
@@ -3535,8 +3921,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (intoKeyword.Kind() != SyntaxKind.IntoKeyword) throw new ArgumentException(nameof(intoKeyword));
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            // <Caravela> This change is generated. See Modifications.md for details.
             intoKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(intoKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
             return (JoinIntoClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.JoinIntoClause((Syntax.InternalSyntax.SyntaxToken)intoKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!).CreateRed();
         }
 
@@ -3553,8 +3943,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (whereKeyword.Kind() != SyntaxKind.WhereKeyword) throw new ArgumentException(nameof(whereKeyword));
             if (condition == null) throw new ArgumentNullException(nameof(condition));
+            // <Caravela> This change is generated. See Modifications.md for details.
             whereKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(whereKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             condition = Caravela.Compiler.TreeTracker.TrackIfNeeded(condition);
+            // </Caravela>
             return (WhereClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.WhereClause((Syntax.InternalSyntax.SyntaxToken)whereKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green).CreateRed();
         }
 
@@ -3566,7 +3960,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static OrderByClauseSyntax OrderByClause(SyntaxToken orderByKeyword, SeparatedSyntaxList<OrderingSyntax> orderings)
         {
             if (orderByKeyword.Kind() != SyntaxKind.OrderByKeyword) throw new ArgumentException(nameof(orderByKeyword));
+            // <Caravela> This change is generated. See Modifications.md for details.
             orderByKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(orderByKeyword);
+            // </Caravela>
             return (OrderByClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.OrderByClause((Syntax.InternalSyntax.SyntaxToken)orderByKeyword.Node!, orderings.Node.ToGreenSeparatedList<Syntax.InternalSyntax.OrderingSyntax>()).CreateRed();
         }
 
@@ -3591,8 +3987,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(ascendingOrDescendingKeyword));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             ascendingOrDescendingKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(ascendingOrDescendingKeyword);
+            // </Caravela>
             return (OrderingSyntax)Syntax.InternalSyntax.SyntaxFactory.Ordering(kind, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken?)ascendingOrDescendingKeyword.Node).CreateRed();
         }
 
@@ -3613,8 +4013,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (selectKeyword.Kind() != SyntaxKind.SelectKeyword) throw new ArgumentException(nameof(selectKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             selectKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(selectKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (SelectClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.SelectClause((Syntax.InternalSyntax.SyntaxToken)selectKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3629,10 +4033,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (groupExpression == null) throw new ArgumentNullException(nameof(groupExpression));
             if (byKeyword.Kind() != SyntaxKind.ByKeyword) throw new ArgumentException(nameof(byKeyword));
             if (byExpression == null) throw new ArgumentNullException(nameof(byExpression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             groupKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(groupKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             groupExpression = Caravela.Compiler.TreeTracker.TrackIfNeeded(groupExpression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             byKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(byKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             byExpression = Caravela.Compiler.TreeTracker.TrackIfNeeded(byExpression);
+            // </Caravela>
             return (GroupClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.GroupClause((Syntax.InternalSyntax.SyntaxToken)groupKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)groupExpression.Green, (Syntax.InternalSyntax.SyntaxToken)byKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)byExpression.Green).CreateRed();
         }
 
@@ -3646,9 +4058,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (intoKeyword.Kind() != SyntaxKind.IntoKeyword) throw new ArgumentException(nameof(intoKeyword));
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (body == null) throw new ArgumentNullException(nameof(body));
+            // <Caravela> This change is generated. See Modifications.md for details.
             intoKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(intoKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             body = Caravela.Compiler.TreeTracker.TrackIfNeeded(body);
+            // </Caravela>
             return (QueryContinuationSyntax)Syntax.InternalSyntax.SyntaxFactory.QueryContinuation((Syntax.InternalSyntax.SyntaxToken)intoKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.QueryBodySyntax)body.Green).CreateRed();
         }
 
@@ -3664,7 +4082,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static OmittedArraySizeExpressionSyntax OmittedArraySizeExpression(SyntaxToken omittedArraySizeExpressionToken)
         {
             if (omittedArraySizeExpressionToken.Kind() != SyntaxKind.OmittedArraySizeExpressionToken) throw new ArgumentException(nameof(omittedArraySizeExpressionToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             omittedArraySizeExpressionToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(omittedArraySizeExpressionToken);
+            // </Caravela>
             return (OmittedArraySizeExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.OmittedArraySizeExpression((Syntax.InternalSyntax.SyntaxToken)omittedArraySizeExpressionToken.Node!).CreateRed();
         }
 
@@ -3682,8 +4102,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(stringStartToken));
             }
             if (stringEndToken.Kind() != SyntaxKind.InterpolatedStringEndToken) throw new ArgumentException(nameof(stringEndToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             stringStartToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(stringStartToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             stringEndToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(stringEndToken);
+            // </Caravela>
             return (InterpolatedStringExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.InterpolatedStringExpression((Syntax.InternalSyntax.SyntaxToken)stringStartToken.Node!, contents.Node.ToGreenList<Syntax.InternalSyntax.InterpolatedStringContentSyntax>(), (Syntax.InternalSyntax.SyntaxToken)stringEndToken.Node!).CreateRed();
         }
 
@@ -3701,9 +4125,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (isKeyword.Kind() != SyntaxKind.IsKeyword) throw new ArgumentException(nameof(isKeyword));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             isKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(isKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             pattern = Caravela.Compiler.TreeTracker.TrackIfNeeded(pattern);
+            // </Caravela>
             return (IsPatternExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.IsPatternExpression((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)isKeyword.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
@@ -3716,8 +4146,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (throwKeyword.Kind() != SyntaxKind.ThrowKeyword) throw new ArgumentException(nameof(throwKeyword));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             throwKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(throwKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (ThrowExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.ThrowExpression((Syntax.InternalSyntax.SyntaxToken)throwKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3730,8 +4164,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (whenKeyword.Kind() != SyntaxKind.WhenKeyword) throw new ArgumentException(nameof(whenKeyword));
             if (condition == null) throw new ArgumentNullException(nameof(condition));
+            // <Caravela> This change is generated. See Modifications.md for details.
             whenKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(whenKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             condition = Caravela.Compiler.TreeTracker.TrackIfNeeded(condition);
+            // </Caravela>
             return (WhenClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.WhenClause((Syntax.InternalSyntax.SyntaxToken)whenKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green).CreateRed();
         }
 
@@ -3743,7 +4181,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DiscardPatternSyntax DiscardPattern(SyntaxToken underscoreToken)
         {
             if (underscoreToken.Kind() != SyntaxKind.UnderscoreToken) throw new ArgumentException(nameof(underscoreToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             underscoreToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(underscoreToken);
+            // </Caravela>
             return (DiscardPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.DiscardPattern((Syntax.InternalSyntax.SyntaxToken)underscoreToken.Node!).CreateRed();
         }
 
@@ -3756,8 +4196,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (designation == null) throw new ArgumentNullException(nameof(designation));
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             designation = Caravela.Compiler.TreeTracker.TrackIfNeeded(designation);
+            // </Caravela>
             return (DeclarationPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.DeclarationPattern((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -3766,8 +4210,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (varKeyword.Kind() != SyntaxKind.VarKeyword) throw new ArgumentException(nameof(varKeyword));
             if (designation == null) throw new ArgumentNullException(nameof(designation));
+            // <Caravela> This change is generated. See Modifications.md for details.
             varKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(varKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             designation = Caravela.Compiler.TreeTracker.TrackIfNeeded(designation);
+            // </Caravela>
             return (VarPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.VarPattern((Syntax.InternalSyntax.SyntaxToken)varKeyword.Node!, (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -3778,10 +4226,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new RecursivePatternSyntax instance.</summary>
         public static RecursivePatternSyntax RecursivePattern(TypeSyntax? type, PositionalPatternClauseSyntax? positionalPatternClause, PropertyPatternClauseSyntax? propertyPatternClause, VariableDesignationSyntax? designation)
         {
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             positionalPatternClause = Caravela.Compiler.TreeTracker.TrackIfNeeded(positionalPatternClause);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             propertyPatternClause = Caravela.Compiler.TreeTracker.TrackIfNeeded(propertyPatternClause);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             designation = Caravela.Compiler.TreeTracker.TrackIfNeeded(designation);
+            // </Caravela>
             return (RecursivePatternSyntax)Syntax.InternalSyntax.SyntaxFactory.RecursivePattern(type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, positionalPatternClause == null ? null : (Syntax.InternalSyntax.PositionalPatternClauseSyntax)positionalPatternClause.Green, propertyPatternClause == null ? null : (Syntax.InternalSyntax.PropertyPatternClauseSyntax)propertyPatternClause.Green, designation == null ? null : (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -3794,8 +4250,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (PositionalPatternClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.PositionalPatternClause((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, subpatterns.Node.ToGreenSeparatedList<Syntax.InternalSyntax.SubpatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3808,8 +4268,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
             return (PropertyPatternClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.PropertyPatternClause((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, subpatterns.Node.ToGreenSeparatedList<Syntax.InternalSyntax.SubpatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -3821,8 +4285,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SubpatternSyntax Subpattern(NameColonSyntax? nameColon, PatternSyntax pattern)
         {
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            // <Caravela> This change is generated. See Modifications.md for details.
             nameColon = Caravela.Compiler.TreeTracker.TrackIfNeeded(nameColon);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             pattern = Caravela.Compiler.TreeTracker.TrackIfNeeded(pattern);
+            // </Caravela>
             return (SubpatternSyntax)Syntax.InternalSyntax.SyntaxFactory.Subpattern(nameColon == null ? null : (Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
@@ -3834,7 +4302,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ConstantPatternSyntax ConstantPattern(ExpressionSyntax expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (ConstantPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstantPattern((Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3844,9 +4314,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             pattern = Caravela.Compiler.TreeTracker.TrackIfNeeded(pattern);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (ParenthesizedPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedPattern((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -3868,8 +4344,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (RelationalPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.RelationalPattern((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -3877,7 +4357,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypePatternSyntax TypePattern(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
             return (TypePatternSyntax)Syntax.InternalSyntax.SyntaxFactory.TypePattern((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -3898,9 +4380,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(operatorToken));
             }
             if (right == null) throw new ArgumentNullException(nameof(right));
+            // <Caravela> This change is generated. See Modifications.md for details.
             left = Caravela.Compiler.TreeTracker.TrackIfNeeded(left);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             right = Caravela.Compiler.TreeTracker.TrackIfNeeded(right);
+            // </Caravela>
             return (BinaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.BinaryPattern(kind, (Syntax.InternalSyntax.PatternSyntax)left.Green, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.PatternSyntax)right.Green).CreateRed();
         }
 
@@ -3921,8 +4409,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operatorToken.Kind() != SyntaxKind.NotKeyword) throw new ArgumentException(nameof(operatorToken));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             pattern = Caravela.Compiler.TreeTracker.TrackIfNeeded(pattern);
+            // </Caravela>
             return (UnaryPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.UnaryPattern((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
@@ -3934,7 +4426,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static InterpolatedStringTextSyntax InterpolatedStringText(SyntaxToken textToken)
         {
             if (textToken.Kind() != SyntaxKind.InterpolatedStringTextToken) throw new ArgumentException(nameof(textToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             textToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(textToken);
+            // </Caravela>
             return (InterpolatedStringTextSyntax)Syntax.InternalSyntax.SyntaxFactory.InterpolatedStringText((Syntax.InternalSyntax.SyntaxToken)textToken.Node!).CreateRed();
         }
 
@@ -3948,11 +4442,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             alignmentClause = Caravela.Compiler.TreeTracker.TrackIfNeeded(alignmentClause);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             formatClause = Caravela.Compiler.TreeTracker.TrackIfNeeded(formatClause);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
             return (InterpolationSyntax)Syntax.InternalSyntax.SyntaxFactory.Interpolation((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, alignmentClause == null ? null : (Syntax.InternalSyntax.InterpolationAlignmentClauseSyntax)alignmentClause.Green, formatClause == null ? null : (Syntax.InternalSyntax.InterpolationFormatClauseSyntax)formatClause.Green, (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -3968,8 +4472,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static InterpolationAlignmentClauseSyntax InterpolationAlignmentClause(SyntaxToken commaToken, ExpressionSyntax value)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
+            // <Caravela> This change is generated. See Modifications.md for details.
             commaToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(commaToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             value = Caravela.Compiler.TreeTracker.TrackIfNeeded(value);
+            // </Caravela>
             return (InterpolationAlignmentClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.InterpolationAlignmentClause((Syntax.InternalSyntax.SyntaxToken)commaToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)value.Green).CreateRed();
         }
 
@@ -3977,8 +4485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static InterpolationFormatClauseSyntax InterpolationFormatClause(SyntaxToken colonToken, SyntaxToken formatStringToken)
         {
             if (formatStringToken.Kind() != SyntaxKind.InterpolatedStringTextToken) throw new ArgumentException(nameof(formatStringToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             formatStringToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(formatStringToken);
+            // </Caravela>
             return (InterpolationFormatClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.InterpolationFormatClause((Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.SyntaxToken)formatStringToken.Node!).CreateRed();
         }
 
@@ -3990,7 +4502,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static GlobalStatementSyntax GlobalStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, StatementSyntax statement)
         {
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            // <Caravela> This change is generated. See Modifications.md for details.
             statement = Caravela.Compiler.TreeTracker.TrackIfNeeded(statement);
+            // </Caravela>
             return (GlobalStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.GlobalStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4003,8 +4517,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
             return (BlockSyntax)Syntax.InternalSyntax.SyntaxFactory.Block(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, statements.Node.ToGreenList<Syntax.InternalSyntax.StatementSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -4030,13 +4548,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             returnType = Caravela.Compiler.TreeTracker.TrackIfNeeded(returnType);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             typeParameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             body = Caravela.Compiler.TreeTracker.TrackIfNeeded(body);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expressionBody = Caravela.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (LocalFunctionStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.LocalFunctionStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)returnType.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -4069,10 +4601,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (declaration == null) throw new ArgumentNullException(nameof(declaration));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             awaitKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(awaitKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             usingKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(usingKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             declaration = Caravela.Compiler.TreeTracker.TrackIfNeeded(declaration);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (LocalDeclarationStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.LocalDeclarationStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken?)usingKeyword.Node, modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4088,7 +4628,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
             return (VariableDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.VariableDeclaration((Syntax.InternalSyntax.TypeSyntax)type.Green, variables.Node.ToGreenSeparatedList<Syntax.InternalSyntax.VariableDeclaratorSyntax>()).CreateRed();
         }
 
@@ -4100,9 +4642,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static VariableDeclaratorSyntax VariableDeclarator(SyntaxToken identifier, BracketedArgumentListSyntax? argumentList, EqualsValueClauseSyntax? initializer)
         {
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             argumentList = Caravela.Compiler.TreeTracker.TrackIfNeeded(argumentList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             initializer = Caravela.Compiler.TreeTracker.TrackIfNeeded(initializer);
+            // </Caravela>
             return (VariableDeclaratorSyntax)Syntax.InternalSyntax.SyntaxFactory.VariableDeclarator((Syntax.InternalSyntax.SyntaxToken)identifier.Node!, argumentList == null ? null : (Syntax.InternalSyntax.BracketedArgumentListSyntax)argumentList.Green, initializer == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)initializer.Green).CreateRed();
         }
 
@@ -4119,8 +4667,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (equalsToken.Kind() != SyntaxKind.EqualsToken) throw new ArgumentException(nameof(equalsToken));
             if (value == null) throw new ArgumentNullException(nameof(value));
+            // <Caravela> This change is generated. See Modifications.md for details.
             equalsToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(equalsToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             value = Caravela.Compiler.TreeTracker.TrackIfNeeded(value);
+            // </Caravela>
             return (EqualsValueClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.EqualsValueClause((Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)value.Green).CreateRed();
         }
 
@@ -4132,7 +4684,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SingleVariableDesignationSyntax SingleVariableDesignation(SyntaxToken identifier)
         {
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
             return (SingleVariableDesignationSyntax)Syntax.InternalSyntax.SyntaxFactory.SingleVariableDesignation((Syntax.InternalSyntax.SyntaxToken)identifier.Node!).CreateRed();
         }
 
@@ -4140,7 +4694,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DiscardDesignationSyntax DiscardDesignation(SyntaxToken underscoreToken)
         {
             if (underscoreToken.Kind() != SyntaxKind.UnderscoreToken) throw new ArgumentException(nameof(underscoreToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             underscoreToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(underscoreToken);
+            // </Caravela>
             return (DiscardDesignationSyntax)Syntax.InternalSyntax.SyntaxFactory.DiscardDesignation((Syntax.InternalSyntax.SyntaxToken)underscoreToken.Node!).CreateRed();
         }
 
@@ -4153,8 +4709,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (ParenthesizedVariableDesignationSyntax)Syntax.InternalSyntax.SyntaxFactory.ParenthesizedVariableDesignation((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, variables.Node.ToGreenSeparatedList<Syntax.InternalSyntax.VariableDesignationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -4167,8 +4727,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (ExpressionStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ExpressionStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4184,7 +4748,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static EmptyStatementSyntax EmptyStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken semicolonToken)
         {
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (EmptyStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.EmptyStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4202,9 +4768,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             statement = Caravela.Compiler.TreeTracker.TrackIfNeeded(statement);
+            // </Caravela>
             return (LabeledStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.LabeledStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4239,10 +4811,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(caseOrDefaultKeyword));
             }
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             gotoKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(gotoKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             caseOrDefaultKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(caseOrDefaultKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (GotoStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.GotoStatement(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)gotoKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)caseOrDefaultKeyword.Node, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4261,8 +4841,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (breakKeyword.Kind() != SyntaxKind.BreakKeyword) throw new ArgumentException(nameof(breakKeyword));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             breakKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(breakKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (BreakStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.BreakStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)breakKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4279,8 +4863,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (continueKeyword.Kind() != SyntaxKind.ContinueKeyword) throw new ArgumentException(nameof(continueKeyword));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             continueKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(continueKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (ContinueStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ContinueStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)continueKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4297,9 +4885,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (returnKeyword.Kind() != SyntaxKind.ReturnKeyword) throw new ArgumentException(nameof(returnKeyword));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             returnKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(returnKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (ReturnStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ReturnStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)returnKeyword.Node!, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4318,9 +4912,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (throwKeyword.Kind() != SyntaxKind.ThrowKeyword) throw new ArgumentException(nameof(throwKeyword));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             throwKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(throwKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (ThrowStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ThrowStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)throwKeyword.Node!, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4351,10 +4951,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(returnOrBreakKeyword));
             }
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             yieldKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(yieldKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             returnOrBreakKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(returnOrBreakKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (YieldStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.YieldStatement(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)yieldKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)returnOrBreakKeyword.Node!, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4384,11 +4992,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            // <Caravela> This change is generated. See Modifications.md for details.
             whileKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(whileKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             condition = Caravela.Compiler.TreeTracker.TrackIfNeeded(condition);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             statement = Caravela.Compiler.TreeTracker.TrackIfNeeded(statement);
+            // </Caravela>
             return (WhileStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.WhileStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)whileKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4410,13 +5028,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             doKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(doKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             statement = Caravela.Compiler.TreeTracker.TrackIfNeeded(statement);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             whileKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(whileKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             condition = Caravela.Compiler.TreeTracker.TrackIfNeeded(condition);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (DoStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.DoStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)doKeyword.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green, (Syntax.InternalSyntax.SyntaxToken)whileKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4437,14 +5069,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (secondSemicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(secondSemicolonToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            // <Caravela> This change is generated. See Modifications.md for details.
             forKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(forKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             declaration = Caravela.Compiler.TreeTracker.TrackIfNeeded(declaration);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             firstSemicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(firstSemicolonToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             condition = Caravela.Compiler.TreeTracker.TrackIfNeeded(condition);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             secondSemicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(secondSemicolonToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             statement = Caravela.Compiler.TreeTracker.TrackIfNeeded(statement);
+            // </Caravela>
             return (ForStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ForStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)forKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, declaration == null ? null : (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, initializers.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)firstSemicolonToken.Node!, condition == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)secondSemicolonToken.Node!, incrementors.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4473,15 +5121,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            // <Caravela> This change is generated. See Modifications.md for details.
             awaitKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(awaitKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             forEachKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(forEachKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             inKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(inKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             statement = Caravela.Compiler.TreeTracker.TrackIfNeeded(statement);
+            // </Caravela>
             return (ForEachStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ForEachStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)forEachKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)inKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4513,14 +5179,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            // <Caravela> This change is generated. See Modifications.md for details.
             awaitKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(awaitKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             forEachKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(forEachKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             variable = Caravela.Compiler.TreeTracker.TrackIfNeeded(variable);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             inKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(inKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             statement = Caravela.Compiler.TreeTracker.TrackIfNeeded(statement);
+            // </Caravela>
             return (ForEachVariableStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.ForEachVariableStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)forEachKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)variable.Green, (Syntax.InternalSyntax.SyntaxToken)inKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4545,13 +5227,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            // <Caravela> This change is generated. See Modifications.md for details.
             awaitKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(awaitKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             usingKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(usingKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             declaration = Caravela.Compiler.TreeTracker.TrackIfNeeded(declaration);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             statement = Caravela.Compiler.TreeTracker.TrackIfNeeded(statement);
+            // </Caravela>
             return (UsingStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.UsingStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)awaitKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, declaration == null ? null : (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, expression == null ? null : (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4571,11 +5267,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (declaration == null) throw new ArgumentNullException(nameof(declaration));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            // <Caravela> This change is generated. See Modifications.md for details.
             fixedKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(fixedKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             declaration = Caravela.Compiler.TreeTracker.TrackIfNeeded(declaration);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             statement = Caravela.Compiler.TreeTracker.TrackIfNeeded(statement);
+            // </Caravela>
             return (FixedStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.FixedStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)fixedKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4603,8 +5309,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(keyword));
             }
             if (block == null) throw new ArgumentNullException(nameof(block));
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             block = Caravela.Compiler.TreeTracker.TrackIfNeeded(block);
+            // </Caravela>
             return (CheckedStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.CheckedStatement(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.BlockSyntax)block.Green).CreateRed();
         }
 
@@ -4631,8 +5341,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (unsafeKeyword.Kind() != SyntaxKind.UnsafeKeyword) throw new ArgumentException(nameof(unsafeKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
+            // <Caravela> This change is generated. See Modifications.md for details.
             unsafeKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(unsafeKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             block = Caravela.Compiler.TreeTracker.TrackIfNeeded(block);
+            // </Caravela>
             return (UnsafeStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.UnsafeStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)unsafeKeyword.Node!, (Syntax.InternalSyntax.BlockSyntax)block.Green).CreateRed();
         }
 
@@ -4654,11 +5368,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            // <Caravela> This change is generated. See Modifications.md for details.
             lockKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(lockKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             statement = Caravela.Compiler.TreeTracker.TrackIfNeeded(statement);
+            // </Caravela>
             return (LockStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.LockStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)lockKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4678,12 +5402,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            // <Caravela> This change is generated. See Modifications.md for details.
             ifKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(ifKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             condition = Caravela.Compiler.TreeTracker.TrackIfNeeded(condition);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             statement = Caravela.Compiler.TreeTracker.TrackIfNeeded(statement);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             @else = Caravela.Compiler.TreeTracker.TrackIfNeeded(@else);
+            // </Caravela>
             return (IfStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.IfStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)ifKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green, @else == null ? null : (Syntax.InternalSyntax.ElseClauseSyntax)@else.Green).CreateRed();
         }
 
@@ -4700,8 +5436,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (elseKeyword.Kind() != SyntaxKind.ElseKeyword) throw new ArgumentException(nameof(elseKeyword));
             if (statement == null) throw new ArgumentNullException(nameof(statement));
+            // <Caravela> This change is generated. See Modifications.md for details.
             elseKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(elseKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             statement = Caravela.Compiler.TreeTracker.TrackIfNeeded(statement);
+            // </Caravela>
             return (ElseClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.ElseClause((Syntax.InternalSyntax.SyntaxToken)elseKeyword.Node!, (Syntax.InternalSyntax.StatementSyntax)statement.Green).CreateRed();
         }
 
@@ -4728,12 +5468,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             switchKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(switchKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
             return (SwitchStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.SwitchStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)switchKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)openParenToken.Node, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken?)closeParenToken.Node, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, sections.Node.ToGreenList<Syntax.InternalSyntax.SwitchSectionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -4752,10 +5504,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (keyword.Kind() != SyntaxKind.CaseKeyword) throw new ArgumentException(nameof(keyword));
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             pattern = Caravela.Compiler.TreeTracker.TrackIfNeeded(pattern);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             whenClause = Caravela.Compiler.TreeTracker.TrackIfNeeded(whenClause);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+            // </Caravela>
             return (CasePatternSwitchLabelSyntax)Syntax.InternalSyntax.SyntaxFactory.CasePatternSwitchLabel((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.PatternSyntax)pattern.Green, whenClause == null ? null : (Syntax.InternalSyntax.WhenClauseSyntax)whenClause.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -4772,9 +5532,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (keyword.Kind() != SyntaxKind.CaseKeyword) throw new ArgumentException(nameof(keyword));
             if (value == null) throw new ArgumentNullException(nameof(value));
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             value = Caravela.Compiler.TreeTracker.TrackIfNeeded(value);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+            // </Caravela>
             return (CaseSwitchLabelSyntax)Syntax.InternalSyntax.SyntaxFactory.CaseSwitchLabel((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)value.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -4786,8 +5552,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DefaultSwitchLabelSyntax DefaultSwitchLabel(SyntaxToken keyword, SyntaxToken colonToken)
         {
             if (keyword.Kind() != SyntaxKind.DefaultKeyword) throw new ArgumentException(nameof(keyword));
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+            // </Caravela>
             return (DefaultSwitchLabelSyntax)Syntax.InternalSyntax.SyntaxFactory.DefaultSwitchLabel((Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -4802,10 +5572,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (switchKeyword.Kind() != SyntaxKind.SwitchKeyword) throw new ArgumentException(nameof(switchKeyword));
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             governingExpression = Caravela.Compiler.TreeTracker.TrackIfNeeded(governingExpression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             switchKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(switchKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
             return (SwitchExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.SwitchExpression((Syntax.InternalSyntax.ExpressionSyntax)governingExpression.Green, (Syntax.InternalSyntax.SyntaxToken)switchKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, arms.Node.ToGreenSeparatedList<Syntax.InternalSyntax.SwitchExpressionArmSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -4823,10 +5601,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
             if (equalsGreaterThanToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(equalsGreaterThanToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             pattern = Caravela.Compiler.TreeTracker.TrackIfNeeded(pattern);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             whenClause = Caravela.Compiler.TreeTracker.TrackIfNeeded(whenClause);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             equalsGreaterThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(equalsGreaterThanToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (SwitchExpressionArmSyntax)Syntax.InternalSyntax.SyntaxFactory.SwitchExpressionArm((Syntax.InternalSyntax.PatternSyntax)pattern.Green, whenClause == null ? null : (Syntax.InternalSyntax.WhenClauseSyntax)whenClause.Green, (Syntax.InternalSyntax.SyntaxToken)equalsGreaterThanToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -4843,9 +5629,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (tryKeyword.Kind() != SyntaxKind.TryKeyword) throw new ArgumentException(nameof(tryKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
+            // <Caravela> This change is generated. See Modifications.md for details.
             tryKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(tryKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             block = Caravela.Compiler.TreeTracker.TrackIfNeeded(block);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             @finally = Caravela.Compiler.TreeTracker.TrackIfNeeded(@finally);
+            // </Caravela>
             return (TryStatementSyntax)Syntax.InternalSyntax.SyntaxFactory.TryStatement(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken)tryKeyword.Node!, (Syntax.InternalSyntax.BlockSyntax)block.Green, catches.Node.ToGreenList<Syntax.InternalSyntax.CatchClauseSyntax>(), @finally == null ? null : (Syntax.InternalSyntax.FinallyClauseSyntax)@finally.Green).CreateRed();
         }
 
@@ -4864,10 +5656,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (catchKeyword.Kind() != SyntaxKind.CatchKeyword) throw new ArgumentException(nameof(catchKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
+            // <Caravela> This change is generated. See Modifications.md for details.
             catchKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(catchKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             declaration = Caravela.Compiler.TreeTracker.TrackIfNeeded(declaration);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             filter = Caravela.Compiler.TreeTracker.TrackIfNeeded(filter);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             block = Caravela.Compiler.TreeTracker.TrackIfNeeded(block);
+            // </Caravela>
             return (CatchClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.CatchClause((Syntax.InternalSyntax.SyntaxToken)catchKeyword.Node!, declaration == null ? null : (Syntax.InternalSyntax.CatchDeclarationSyntax)declaration.Green, filter == null ? null : (Syntax.InternalSyntax.CatchFilterClauseSyntax)filter.Green, (Syntax.InternalSyntax.BlockSyntax)block.Green).CreateRed();
         }
 
@@ -4891,10 +5691,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(identifier));
             }
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (CatchDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.CatchDeclaration((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken?)identifier.Node, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -4913,10 +5721,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (filterExpression == null) throw new ArgumentNullException(nameof(filterExpression));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             whenKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(whenKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             filterExpression = Caravela.Compiler.TreeTracker.TrackIfNeeded(filterExpression);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (CatchFilterClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.CatchFilterClause((Syntax.InternalSyntax.SyntaxToken)whenKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)filterExpression.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -4929,8 +5745,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (finallyKeyword.Kind() != SyntaxKind.FinallyKeyword) throw new ArgumentException(nameof(finallyKeyword));
             if (block == null) throw new ArgumentNullException(nameof(block));
+            // <Caravela> This change is generated. See Modifications.md for details.
             finallyKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(finallyKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             block = Caravela.Compiler.TreeTracker.TrackIfNeeded(block);
+            // </Caravela>
             return (FinallyClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.FinallyClause((Syntax.InternalSyntax.SyntaxToken)finallyKeyword.Node!, (Syntax.InternalSyntax.BlockSyntax)block.Green).CreateRed();
         }
 
@@ -4942,7 +5762,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CompilationUnitSyntax CompilationUnit(SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<AttributeListSyntax> attributeLists, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken endOfFileToken)
         {
             if (endOfFileToken.Kind() != SyntaxKind.EndOfFileToken) throw new ArgumentException(nameof(endOfFileToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfFileToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfFileToken);
+            // </Caravela>
             return (CompilationUnitSyntax)Syntax.InternalSyntax.SyntaxFactory.CompilationUnit(externs.Node.ToGreenList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), usings.Node.ToGreenList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)endOfFileToken.Node!).CreateRed();
         }
 
@@ -4961,10 +5783,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (aliasKeyword.Kind() != SyntaxKind.AliasKeyword) throw new ArgumentException(nameof(aliasKeyword));
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             externKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(externKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             aliasKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(aliasKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (ExternAliasDirectiveSyntax)Syntax.InternalSyntax.SyntaxFactory.ExternAliasDirective((Syntax.InternalSyntax.SyntaxToken)externKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)aliasKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -4988,12 +5818,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (usingKeyword.Kind() != SyntaxKind.UsingKeyword) throw new ArgumentException(nameof(usingKeyword));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             globalKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(globalKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             usingKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(usingKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             staticKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(staticKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             alias = Caravela.Compiler.TreeTracker.TrackIfNeeded(alias);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (UsingDirectiveSyntax)Syntax.InternalSyntax.SyntaxFactory.UsingDirective((Syntax.InternalSyntax.SyntaxToken?)globalKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)usingKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)staticKeyword.Node, alias == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)alias.Green, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -5018,11 +5860,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             namespaceKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(namespaceKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (NamespaceDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.NamespaceDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)namespaceKeyword.Node!, (Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, externs.Node.ToGreenList<Syntax.InternalSyntax.ExternAliasDirectiveSyntax>(), usings.Node.ToGreenList<Syntax.InternalSyntax.UsingDirectiveSyntax>(), members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5039,9 +5891,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             target = Caravela.Compiler.TreeTracker.TrackIfNeeded(target);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
+            // </Caravela>
             return (AttributeListSyntax)Syntax.InternalSyntax.SyntaxFactory.AttributeList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, target == null ? null : (Syntax.InternalSyntax.AttributeTargetSpecifierSyntax)target.Green, attributes.Node.ToGreenSeparatedList<Syntax.InternalSyntax.AttributeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -5057,8 +5915,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AttributeTargetSpecifierSyntax AttributeTargetSpecifier(SyntaxToken identifier, SyntaxToken colonToken)
         {
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+            // </Caravela>
             return (AttributeTargetSpecifierSyntax)Syntax.InternalSyntax.SyntaxFactory.AttributeTargetSpecifier((Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -5070,8 +5932,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AttributeSyntax Attribute(NameSyntax name, AttributeArgumentListSyntax? argumentList)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             argumentList = Caravela.Compiler.TreeTracker.TrackIfNeeded(argumentList);
+            // </Caravela>
             return (AttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.Attribute((Syntax.InternalSyntax.NameSyntax)name.Green, argumentList == null ? null : (Syntax.InternalSyntax.AttributeArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -5084,8 +5950,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (AttributeArgumentListSyntax)Syntax.InternalSyntax.SyntaxFactory.AttributeArgumentList((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, arguments.Node.ToGreenSeparatedList<Syntax.InternalSyntax.AttributeArgumentSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -5097,9 +5967,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AttributeArgumentSyntax AttributeArgument(NameEqualsSyntax? nameEquals, NameColonSyntax? nameColon, ExpressionSyntax expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             nameEquals = Caravela.Compiler.TreeTracker.TrackIfNeeded(nameEquals);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             nameColon = Caravela.Compiler.TreeTracker.TrackIfNeeded(nameColon);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (AttributeArgumentSyntax)Syntax.InternalSyntax.SyntaxFactory.AttributeArgument(nameEquals == null ? null : (Syntax.InternalSyntax.NameEqualsSyntax)nameEquals.Green, nameColon == null ? null : (Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -5112,8 +5988,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (equalsToken.Kind() != SyntaxKind.EqualsToken) throw new ArgumentException(nameof(equalsToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             equalsToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(equalsToken);
+            // </Caravela>
             return (NameEqualsSyntax)Syntax.InternalSyntax.SyntaxFactory.NameEquals((Syntax.InternalSyntax.IdentifierNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!).CreateRed();
         }
 
@@ -5130,8 +6010,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             lessThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(lessThanToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             greaterThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(greaterThanToken);
+            // </Caravela>
             return (TypeParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeParameterList((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.TypeParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
@@ -5150,8 +6034,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(varianceKeyword));
             }
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            // <Caravela> This change is generated. See Modifications.md for details.
             varianceKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(varianceKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
             return (TypeParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeParameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)varianceKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!).CreateRed();
         }
 
@@ -5176,13 +6064,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             typeParameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             baseList = Caravela.Compiler.TreeTracker.TrackIfNeeded(baseList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (ClassDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ClassDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5211,13 +6113,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             typeParameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             baseList = Caravela.Compiler.TreeTracker.TrackIfNeeded(baseList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (StructDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.StructDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5246,13 +6162,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             typeParameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             baseList = Caravela.Compiler.TreeTracker.TrackIfNeeded(baseList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (InterfaceDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.InterfaceDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5303,15 +6233,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             classOrStructKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(classOrStructKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             typeParameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             baseList = Caravela.Compiler.TreeTracker.TrackIfNeeded(baseList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (RecordDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.RecordDeclaration(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)classOrStructKeyword.Node, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5348,12 +6296,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             enumKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(enumKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             baseList = Caravela.Compiler.TreeTracker.TrackIfNeeded(baseList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (EnumDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.EnumDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)enumKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, baseList == null ? null : (Syntax.InternalSyntax.BaseListSyntax)baseList.Green, (Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, members.Node.ToGreenSeparatedList<Syntax.InternalSyntax.EnumMemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5377,12 +6337,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
             if (parameterList == null) throw new ArgumentNullException(nameof(parameterList));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             delegateKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(delegateKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             returnType = Caravela.Compiler.TreeTracker.TrackIfNeeded(returnType);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             typeParameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (DelegateDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.DelegateDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)delegateKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)returnType.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -5402,8 +6374,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static EnumMemberDeclarationSyntax EnumMemberDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken identifier, EqualsValueClauseSyntax? equalsValue)
         {
             if (identifier.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(identifier));
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             equalsValue = Caravela.Compiler.TreeTracker.TrackIfNeeded(equalsValue);
+            // </Caravela>
             return (EnumMemberDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.EnumMemberDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, equalsValue == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)equalsValue.Green).CreateRed();
         }
 
@@ -5419,7 +6395,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BaseListSyntax BaseList(SyntaxToken colonToken, SeparatedSyntaxList<BaseTypeSyntax> types)
         {
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+            // </Caravela>
             return (BaseListSyntax)Syntax.InternalSyntax.SyntaxFactory.BaseList((Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, types.Node.ToGreenSeparatedList<Syntax.InternalSyntax.BaseTypeSyntax>()).CreateRed();
         }
 
@@ -5431,7 +6409,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SimpleBaseTypeSyntax SimpleBaseType(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
             return (SimpleBaseTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.SimpleBaseType((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -5440,8 +6420,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             argumentList = Caravela.Compiler.TreeTracker.TrackIfNeeded(argumentList);
+            // </Caravela>
             return (PrimaryConstructorBaseTypeSyntax)Syntax.InternalSyntax.SyntaxFactory.PrimaryConstructorBaseType((Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -5455,9 +6439,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (whereKeyword.Kind() != SyntaxKind.WhereKeyword) throw new ArgumentException(nameof(whereKeyword));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             whereKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(whereKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+            // </Caravela>
             return (TypeParameterConstraintClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeParameterConstraintClause((Syntax.InternalSyntax.SyntaxToken)whereKeyword.Node!, (Syntax.InternalSyntax.IdentifierNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, constraints.Node.ToGreenSeparatedList<Syntax.InternalSyntax.TypeParameterConstraintSyntax>()).CreateRed();
         }
 
@@ -5479,9 +6469,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (newKeyword.Kind() != SyntaxKind.NewKeyword) throw new ArgumentException(nameof(newKeyword));
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             newKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(newKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (ConstructorConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstructorConstraint((Syntax.InternalSyntax.SyntaxToken)newKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -5510,8 +6506,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(questionToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             classOrStructKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(classOrStructKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             questionToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(questionToken);
+            // </Caravela>
             return (ClassOrStructConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.ClassOrStructConstraint(kind, (Syntax.InternalSyntax.SyntaxToken)classOrStructKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken?)questionToken.Node).CreateRed();
         }
 
@@ -5531,7 +6531,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypeConstraintSyntax TypeConstraint(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
             return (TypeConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeConstraint((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -5539,7 +6541,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DefaultConstraintSyntax DefaultConstraint(SyntaxToken defaultKeyword)
         {
             if (defaultKeyword.Kind() != SyntaxKind.DefaultKeyword) throw new ArgumentException(nameof(defaultKeyword));
+            // <Caravela> This change is generated. See Modifications.md for details.
             defaultKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(defaultKeyword);
+            // </Caravela>
             return (DefaultConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.DefaultConstraint((Syntax.InternalSyntax.SyntaxToken)defaultKeyword.Node!).CreateRed();
         }
 
@@ -5552,8 +6556,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (declaration == null) throw new ArgumentNullException(nameof(declaration));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             declaration = Caravela.Compiler.TreeTracker.TrackIfNeeded(declaration);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (FieldDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.FieldDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -5571,9 +6579,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (eventKeyword.Kind() != SyntaxKind.EventKeyword) throw new ArgumentException(nameof(eventKeyword));
             if (declaration == null) throw new ArgumentNullException(nameof(declaration));
             if (semicolonToken.Kind() != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             eventKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(eventKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             declaration = Caravela.Compiler.TreeTracker.TrackIfNeeded(declaration);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (EventFieldDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.EventFieldDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)eventKeyword.Node!, (Syntax.InternalSyntax.VariableDeclarationSyntax)declaration.Green, (Syntax.InternalSyntax.SyntaxToken)semicolonToken.Node!).CreateRed();
         }
 
@@ -5590,8 +6604,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             dotToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(dotToken);
+            // </Caravela>
             return (ExplicitInterfaceSpecifierSyntax)Syntax.InternalSyntax.SyntaxFactory.ExplicitInterfaceSpecifier((Syntax.InternalSyntax.NameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node!).CreateRed();
         }
 
@@ -5611,14 +6629,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             returnType = Caravela.Compiler.TreeTracker.TrackIfNeeded(returnType);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             explicitInterfaceSpecifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(explicitInterfaceSpecifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             typeParameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             body = Caravela.Compiler.TreeTracker.TrackIfNeeded(body);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expressionBody = Caravela.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (MethodDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.MethodDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)returnType.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5673,13 +6707,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             returnType = Caravela.Compiler.TreeTracker.TrackIfNeeded(returnType);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             body = Caravela.Compiler.TreeTracker.TrackIfNeeded(body);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expressionBody = Caravela.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (OperatorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.OperatorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)returnType.Green, (Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5709,13 +6757,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             implicitOrExplicitKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(implicitOrExplicitKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             body = Caravela.Compiler.TreeTracker.TrackIfNeeded(body);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expressionBody = Caravela.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (ConversionOperatorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ConversionOperatorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)implicitOrExplicitKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5738,12 +6800,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             initializer = Caravela.Compiler.TreeTracker.TrackIfNeeded(initializer);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             body = Caravela.Compiler.TreeTracker.TrackIfNeeded(body);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expressionBody = Caravela.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (ConstructorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstructorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, initializer == null ? null : (Syntax.InternalSyntax.ConstructorInitializerSyntax)initializer.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5776,9 +6850,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(thisOrBaseKeyword));
             }
             if (argumentList == null) throw new ArgumentNullException(nameof(argumentList));
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             thisOrBaseKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(thisOrBaseKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             argumentList = Caravela.Compiler.TreeTracker.TrackIfNeeded(argumentList);
+            // </Caravela>
             return (ConstructorInitializerSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstructorInitializer(kind, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.SyntaxToken)thisOrBaseKeyword.Node!, (Syntax.InternalSyntax.ArgumentListSyntax)argumentList.Green).CreateRed();
         }
 
@@ -5806,12 +6886,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             tildeToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(tildeToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             body = Caravela.Compiler.TreeTracker.TrackIfNeeded(body);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expressionBody = Caravela.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (DestructorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.DestructorDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)tildeToken.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5838,13 +6930,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             explicitInterfaceSpecifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(explicitInterfaceSpecifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             accessorList = Caravela.Compiler.TreeTracker.TrackIfNeeded(accessorList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expressionBody = Caravela.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             initializer = Caravela.Compiler.TreeTracker.TrackIfNeeded(initializer);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (PropertyDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.PropertyDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)type.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, accessorList == null ? null : (Syntax.InternalSyntax.AccessorListSyntax)accessorList.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, initializer == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)initializer.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5865,8 +6971,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (arrowToken.Kind() != SyntaxKind.EqualsGreaterThanToken) throw new ArgumentException(nameof(arrowToken));
             if (expression == null) throw new ArgumentNullException(nameof(expression));
+            // <Caravela> This change is generated. See Modifications.md for details.
             arrowToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(arrowToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expression = Caravela.Compiler.TreeTracker.TrackIfNeeded(expression);
+            // </Caravela>
             return (ArrowExpressionClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.ArrowExpressionClause((Syntax.InternalSyntax.SyntaxToken)arrowToken.Node!, (Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
 
@@ -5886,12 +6996,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             eventKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(eventKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             explicitInterfaceSpecifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(explicitInterfaceSpecifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             accessorList = Caravela.Compiler.TreeTracker.TrackIfNeeded(accessorList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (EventDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.EventDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)eventKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, accessorList == null ? null : (Syntax.InternalSyntax.AccessorListSyntax)accessorList.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5919,13 +7041,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             explicitInterfaceSpecifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(explicitInterfaceSpecifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             thisKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(thisKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameterList = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             accessorList = Caravela.Compiler.TreeTracker.TrackIfNeeded(accessorList);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expressionBody = Caravela.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (IndexerDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.IndexerDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)type.Green, explicitInterfaceSpecifier == null ? null : (Syntax.InternalSyntax.ExplicitInterfaceSpecifierSyntax)explicitInterfaceSpecifier.Green, (Syntax.InternalSyntax.SyntaxToken)thisKeyword.Node!, (Syntax.InternalSyntax.BracketedParameterListSyntax)parameterList.Green, accessorList == null ? null : (Syntax.InternalSyntax.AccessorListSyntax)accessorList.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -5942,8 +7078,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBraceToken.Kind() != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
             if (closeBraceToken.Kind() != SyntaxKind.CloseBraceToken) throw new ArgumentException(nameof(closeBraceToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBraceToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+            // </Caravela>
             return (AccessorListSyntax)Syntax.InternalSyntax.SyntaxFactory.AccessorList((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node!, accessors.Node.ToGreenList<Syntax.InternalSyntax.AccessorDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node!).CreateRed();
         }
 
@@ -5980,10 +7120,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(semicolonToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             keyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(keyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             body = Caravela.Compiler.TreeTracker.TrackIfNeeded(body);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             expressionBody = Caravela.Compiler.TreeTracker.TrackIfNeeded(expressionBody);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             semicolonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+            // </Caravela>
             return (AccessorDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.AccessorDeclaration(kind, attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, body == null ? null : (Syntax.InternalSyntax.BlockSyntax)body.Green, expressionBody == null ? null : (Syntax.InternalSyntax.ArrowExpressionClauseSyntax)expressionBody.Green, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
         }
 
@@ -6012,8 +7160,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (ParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.ParameterList((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -6026,8 +7178,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
+            // </Caravela>
             return (BracketedParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.BracketedParameterList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -6044,9 +7200,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ArgListKeyword: break;
                 default: throw new ArgumentException(nameof(identifier));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             @default = Caravela.Compiler.TreeTracker.TrackIfNeeded(@default);
+            // </Caravela>
             return (ParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, @default == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
         }
 
@@ -6058,7 +7220,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static FunctionPointerParameterSyntax FunctionPointerParameter(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
             return (FunctionPointerParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.FunctionPointerParameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -6069,7 +7233,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new IncompleteMemberSyntax instance.</summary>
         public static IncompleteMemberSyntax IncompleteMember(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type)
         {
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
             return (IncompleteMemberSyntax)Syntax.InternalSyntax.SyntaxFactory.IncompleteMember(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -6099,7 +7265,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(kind));
             }
             if (endOfComment.Kind() != SyntaxKind.EndOfDocumentationCommentToken) throw new ArgumentException(nameof(endOfComment));
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfComment = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfComment);
+            // </Caravela>
             return (DocumentationCommentTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.DocumentationCommentTrivia(kind, content.Node.ToGreenList<Syntax.InternalSyntax.XmlNodeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)endOfComment.Node!).CreateRed();
         }
 
@@ -6111,7 +7279,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypeCrefSyntax TypeCref(TypeSyntax type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
             return (TypeCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.TypeCref((Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -6121,9 +7291,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (container == null) throw new ArgumentNullException(nameof(container));
             if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
             if (member == null) throw new ArgumentNullException(nameof(member));
+            // <Caravela> This change is generated. See Modifications.md for details.
             container = Caravela.Compiler.TreeTracker.TrackIfNeeded(container);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             dotToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(dotToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             member = Caravela.Compiler.TreeTracker.TrackIfNeeded(member);
+            // </Caravela>
             return (QualifiedCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.QualifiedCref((Syntax.InternalSyntax.TypeSyntax)container.Green, (Syntax.InternalSyntax.SyntaxToken)dotToken.Node!, (Syntax.InternalSyntax.MemberCrefSyntax)member.Green).CreateRed();
         }
 
@@ -6135,8 +7311,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static NameMemberCrefSyntax NameMemberCref(TypeSyntax name, CrefParameterListSyntax? parameters)
         {
             if (name == null) throw new ArgumentNullException(nameof(name));
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameters = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameters);
+            // </Caravela>
             return (NameMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.NameMemberCref((Syntax.InternalSyntax.TypeSyntax)name.Green, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();
         }
 
@@ -6148,8 +7328,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IndexerMemberCrefSyntax IndexerMemberCref(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax? parameters)
         {
             if (thisKeyword.Kind() != SyntaxKind.ThisKeyword) throw new ArgumentException(nameof(thisKeyword));
+            // <Caravela> This change is generated. See Modifications.md for details.
             thisKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(thisKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameters = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameters);
+            // </Caravela>
             return (IndexerMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.IndexerMemberCref((Syntax.InternalSyntax.SyntaxToken)thisKeyword.Node!, parameters == null ? null : (Syntax.InternalSyntax.CrefBracketedParameterListSyntax)parameters.Green).CreateRed();
         }
 
@@ -6187,9 +7371,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.TrueKeyword: break;
                 default: throw new ArgumentException(nameof(operatorToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameters = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameters);
+            // </Caravela>
             return (OperatorMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.OperatorMemberCref((Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();
         }
 
@@ -6212,10 +7402,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (operatorKeyword.Kind() != SyntaxKind.OperatorKeyword) throw new ArgumentException(nameof(operatorKeyword));
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Caravela> This change is generated. See Modifications.md for details.
             implicitOrExplicitKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(implicitOrExplicitKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             operatorKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(operatorKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             parameters = Caravela.Compiler.TreeTracker.TrackIfNeeded(parameters);
+            // </Caravela>
             return (ConversionOperatorMemberCrefSyntax)Syntax.InternalSyntax.SyntaxFactory.ConversionOperatorMemberCref((Syntax.InternalSyntax.SyntaxToken)implicitOrExplicitKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)operatorKeyword.Node!, (Syntax.InternalSyntax.TypeSyntax)type.Green, parameters == null ? null : (Syntax.InternalSyntax.CrefParameterListSyntax)parameters.Green).CreateRed();
         }
 
@@ -6232,8 +7430,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openParenToken.Kind() != SyntaxKind.OpenParenToken) throw new ArgumentException(nameof(openParenToken));
             if (closeParenToken.Kind() != SyntaxKind.CloseParenToken) throw new ArgumentException(nameof(closeParenToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openParenToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeParenToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeParenToken);
+            // </Caravela>
             return (CrefParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.CrefParameterList((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.CrefParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node!).CreateRed();
         }
 
@@ -6246,8 +7448,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             openBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             closeBracketToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
+            // </Caravela>
             return (CrefBracketedParameterListSyntax)Syntax.InternalSyntax.SyntaxFactory.CrefBracketedParameterList((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, parameters.Node.ToGreenSeparatedList<Syntax.InternalSyntax.CrefParameterSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!).CreateRed();
         }
 
@@ -6267,8 +7473,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(refKindKeyword));
             }
             if (type == null) throw new ArgumentNullException(nameof(type));
+            // <Caravela> This change is generated. See Modifications.md for details.
             refKindKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(refKindKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             type = Caravela.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Caravela>
             return (CrefParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.CrefParameter((Syntax.InternalSyntax.SyntaxToken?)refKindKeyword.Node, (Syntax.InternalSyntax.TypeSyntax)type.Green).CreateRed();
         }
 
@@ -6281,8 +7491,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (startTag == null) throw new ArgumentNullException(nameof(startTag));
             if (endTag == null) throw new ArgumentNullException(nameof(endTag));
+            // <Caravela> This change is generated. See Modifications.md for details.
             startTag = Caravela.Compiler.TreeTracker.TrackIfNeeded(startTag);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endTag = Caravela.Compiler.TreeTracker.TrackIfNeeded(endTag);
+            // </Caravela>
             return (XmlElementSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlElement((Syntax.InternalSyntax.XmlElementStartTagSyntax)startTag.Green, content.Node.ToGreenList<Syntax.InternalSyntax.XmlNodeSyntax>(), (Syntax.InternalSyntax.XmlElementEndTagSyntax)endTag.Green).CreateRed();
         }
 
@@ -6296,9 +7510,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             lessThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(lessThanToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             greaterThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(greaterThanToken);
+            // </Caravela>
             return (XmlElementStartTagSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlElementStartTag((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, (Syntax.InternalSyntax.XmlNameSyntax)name.Green, attributes.Node.ToGreenList<Syntax.InternalSyntax.XmlAttributeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
@@ -6316,9 +7536,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lessThanSlashToken.Kind() != SyntaxKind.LessThanSlashToken) throw new ArgumentException(nameof(lessThanSlashToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (greaterThanToken.Kind() != SyntaxKind.GreaterThanToken) throw new ArgumentException(nameof(greaterThanToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             lessThanSlashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(lessThanSlashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             greaterThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(greaterThanToken);
+            // </Caravela>
             return (XmlElementEndTagSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlElementEndTag((Syntax.InternalSyntax.SyntaxToken)lessThanSlashToken.Node!, (Syntax.InternalSyntax.XmlNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)greaterThanToken.Node!).CreateRed();
         }
 
@@ -6332,9 +7558,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (lessThanToken.Kind() != SyntaxKind.LessThanToken) throw new ArgumentException(nameof(lessThanToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (slashGreaterThanToken.Kind() != SyntaxKind.SlashGreaterThanToken) throw new ArgumentException(nameof(slashGreaterThanToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             lessThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(lessThanToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             slashGreaterThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(slashGreaterThanToken);
+            // </Caravela>
             return (XmlEmptyElementSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlEmptyElement((Syntax.InternalSyntax.SyntaxToken)lessThanToken.Node!, (Syntax.InternalSyntax.XmlNameSyntax)name.Green, attributes.Node.ToGreenList<Syntax.InternalSyntax.XmlAttributeSyntax>(), (Syntax.InternalSyntax.SyntaxToken)slashGreaterThanToken.Node!).CreateRed();
         }
 
@@ -6350,8 +7582,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static XmlNameSyntax XmlName(XmlPrefixSyntax? prefix, SyntaxToken localName)
         {
             if (localName.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(localName));
+            // <Caravela> This change is generated. See Modifications.md for details.
             prefix = Caravela.Compiler.TreeTracker.TrackIfNeeded(prefix);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             localName = Caravela.Compiler.TreeTracker.TrackIfNeeded(localName);
+            // </Caravela>
             return (XmlNameSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlName(prefix == null ? null : (Syntax.InternalSyntax.XmlPrefixSyntax)prefix.Green, (Syntax.InternalSyntax.SyntaxToken)localName.Node!).CreateRed();
         }
 
@@ -6368,8 +7604,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (prefix.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(prefix));
             if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             prefix = Caravela.Compiler.TreeTracker.TrackIfNeeded(prefix);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             colonToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+            // </Caravela>
             return (XmlPrefixSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlPrefix((Syntax.InternalSyntax.SyntaxToken)prefix.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
         }
 
@@ -6398,10 +7638,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DoubleQuoteToken: break;
                 default: throw new ArgumentException(nameof(endQuoteToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             equalsToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(equalsToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             startQuoteToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(startQuoteToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endQuoteToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endQuoteToken);
+            // </Caravela>
             return (XmlTextAttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlTextAttribute((Syntax.InternalSyntax.XmlNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.SyntaxToken)startQuoteToken.Node!, textTokens.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)endQuoteToken.Node!).CreateRed();
         }
 
@@ -6431,11 +7679,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DoubleQuoteToken: break;
                 default: throw new ArgumentException(nameof(endQuoteToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             equalsToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(equalsToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             startQuoteToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(startQuoteToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             cref = Caravela.Compiler.TreeTracker.TrackIfNeeded(cref);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endQuoteToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endQuoteToken);
+            // </Caravela>
             return (XmlCrefAttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlCrefAttribute((Syntax.InternalSyntax.XmlNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.SyntaxToken)startQuoteToken.Node!, (Syntax.InternalSyntax.CrefSyntax)cref.Green, (Syntax.InternalSyntax.SyntaxToken)endQuoteToken.Node!).CreateRed();
         }
 
@@ -6461,11 +7719,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DoubleQuoteToken: break;
                 default: throw new ArgumentException(nameof(endQuoteToken));
             }
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             equalsToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(equalsToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             startQuoteToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(startQuoteToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endQuoteToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endQuoteToken);
+            // </Caravela>
             return (XmlNameAttributeSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlNameAttribute((Syntax.InternalSyntax.XmlNameSyntax)name.Green, (Syntax.InternalSyntax.SyntaxToken)equalsToken.Node!, (Syntax.InternalSyntax.SyntaxToken)startQuoteToken.Node!, (Syntax.InternalSyntax.IdentifierNameSyntax)identifier.Green, (Syntax.InternalSyntax.SyntaxToken)endQuoteToken.Node!).CreateRed();
         }
 
@@ -6492,8 +7760,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (startCDataToken.Kind() != SyntaxKind.XmlCDataStartToken) throw new ArgumentException(nameof(startCDataToken));
             if (endCDataToken.Kind() != SyntaxKind.XmlCDataEndToken) throw new ArgumentException(nameof(endCDataToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             startCDataToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(startCDataToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endCDataToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endCDataToken);
+            // </Caravela>
             return (XmlCDataSectionSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlCDataSection((Syntax.InternalSyntax.SyntaxToken)startCDataToken.Node!, textTokens.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)endCDataToken.Node!).CreateRed();
         }
 
@@ -6507,9 +7779,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (startProcessingInstructionToken.Kind() != SyntaxKind.XmlProcessingInstructionStartToken) throw new ArgumentException(nameof(startProcessingInstructionToken));
             if (name == null) throw new ArgumentNullException(nameof(name));
             if (endProcessingInstructionToken.Kind() != SyntaxKind.XmlProcessingInstructionEndToken) throw new ArgumentException(nameof(endProcessingInstructionToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             startProcessingInstructionToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(startProcessingInstructionToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endProcessingInstructionToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endProcessingInstructionToken);
+            // </Caravela>
             return (XmlProcessingInstructionSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlProcessingInstruction((Syntax.InternalSyntax.SyntaxToken)startProcessingInstructionToken.Node!, (Syntax.InternalSyntax.XmlNameSyntax)name.Green, textTokens.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)endProcessingInstructionToken.Node!).CreateRed();
         }
 
@@ -6526,8 +7804,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (lessThanExclamationMinusMinusToken.Kind() != SyntaxKind.XmlCommentStartToken) throw new ArgumentException(nameof(lessThanExclamationMinusMinusToken));
             if (minusMinusGreaterThanToken.Kind() != SyntaxKind.XmlCommentEndToken) throw new ArgumentException(nameof(minusMinusGreaterThanToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             lessThanExclamationMinusMinusToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(lessThanExclamationMinusMinusToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             minusMinusGreaterThanToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(minusMinusGreaterThanToken);
+            // </Caravela>
             return (XmlCommentSyntax)Syntax.InternalSyntax.SyntaxFactory.XmlComment((Syntax.InternalSyntax.SyntaxToken)lessThanExclamationMinusMinusToken.Node!, textTokens.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)minusMinusGreaterThanToken.Node!).CreateRed();
         }
 
@@ -6542,10 +7824,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ifKeyword.Kind() != SyntaxKind.IfKeyword) throw new ArgumentException(nameof(ifKeyword));
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             ifKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(ifKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             condition = Caravela.Compiler.TreeTracker.TrackIfNeeded(condition);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (IfDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.IfDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)ifKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive, branchTaken, conditionValue).CreateRed();
         }
 
@@ -6560,10 +7850,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (elifKeyword.Kind() != SyntaxKind.ElifKeyword) throw new ArgumentException(nameof(elifKeyword));
             if (condition == null) throw new ArgumentNullException(nameof(condition));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             elifKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(elifKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             condition = Caravela.Compiler.TreeTracker.TrackIfNeeded(condition);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (ElifDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.ElifDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)elifKeyword.Node!, (Syntax.InternalSyntax.ExpressionSyntax)condition.Green, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive, branchTaken, conditionValue).CreateRed();
         }
 
@@ -6577,9 +7875,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (elseKeyword.Kind() != SyntaxKind.ElseKeyword) throw new ArgumentException(nameof(elseKeyword));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             elseKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(elseKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (ElseDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.ElseDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)elseKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive, branchTaken).CreateRed();
         }
 
@@ -6593,9 +7897,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (endIfKeyword.Kind() != SyntaxKind.EndIfKeyword) throw new ArgumentException(nameof(endIfKeyword));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endIfKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(endIfKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (EndIfDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.EndIfDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)endIfKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6609,9 +7919,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (regionKeyword.Kind() != SyntaxKind.RegionKeyword) throw new ArgumentException(nameof(regionKeyword));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             regionKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(regionKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (RegionDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.RegionDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)regionKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6625,9 +7941,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (endRegionKeyword.Kind() != SyntaxKind.EndRegionKeyword) throw new ArgumentException(nameof(endRegionKeyword));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endRegionKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(endRegionKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (EndRegionDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.EndRegionDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)endRegionKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6641,9 +7963,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (errorKeyword.Kind() != SyntaxKind.ErrorKeyword) throw new ArgumentException(nameof(errorKeyword));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             errorKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(errorKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (ErrorDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.ErrorDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)errorKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6657,9 +7985,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (warningKeyword.Kind() != SyntaxKind.WarningKeyword) throw new ArgumentException(nameof(warningKeyword));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             warningKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(warningKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (WarningDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.WarningDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)warningKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6672,9 +8006,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             identifier = Caravela.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (BadDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.BadDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6689,10 +8029,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (defineKeyword.Kind() != SyntaxKind.DefineKeyword) throw new ArgumentException(nameof(defineKeyword));
             if (name.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(name));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             defineKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(defineKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (DefineDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.DefineDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)defineKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)name.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6711,10 +8059,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (undefKeyword.Kind() != SyntaxKind.UndefKeyword) throw new ArgumentException(nameof(undefKeyword));
             if (name.Kind() != SyntaxKind.IdentifierToken) throw new ArgumentException(nameof(name));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             undefKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(undefKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             name = Caravela.Compiler.TreeTracker.TrackIfNeeded(name);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (UndefDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.UndefDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)undefKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)name.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6745,11 +8101,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(file));
             }
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             lineKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(lineKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             line = Caravela.Compiler.TreeTracker.TrackIfNeeded(line);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             file = Caravela.Compiler.TreeTracker.TrackIfNeeded(file);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (LineDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.LineDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)lineKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)line.Node!, (Syntax.InternalSyntax.SyntaxToken?)file.Node, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6774,11 +8140,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(disableOrRestoreKeyword));
             }
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             pragmaKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(pragmaKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             warningKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(warningKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             disableOrRestoreKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(disableOrRestoreKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (PragmaWarningDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.PragmaWarningDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)pragmaKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)warningKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)disableOrRestoreKeyword.Node!, errorCodes.Node.ToGreenSeparatedList<Syntax.InternalSyntax.ExpressionSyntax>(), (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6800,13 +8176,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (guid.Kind() != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(guid));
             if (bytes.Kind() != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(bytes));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             pragmaKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(pragmaKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             checksumKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(checksumKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             file = Caravela.Compiler.TreeTracker.TrackIfNeeded(file);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             guid = Caravela.Compiler.TreeTracker.TrackIfNeeded(guid);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             bytes = Caravela.Compiler.TreeTracker.TrackIfNeeded(bytes);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (PragmaChecksumDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.PragmaChecksumDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)pragmaKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)checksumKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)file.Node!, (Syntax.InternalSyntax.SyntaxToken)guid.Node!, (Syntax.InternalSyntax.SyntaxToken)bytes.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6821,10 +8211,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (referenceKeyword.Kind() != SyntaxKind.ReferenceKeyword) throw new ArgumentException(nameof(referenceKeyword));
             if (file.Kind() != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(file));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             referenceKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(referenceKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             file = Caravela.Compiler.TreeTracker.TrackIfNeeded(file);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (ReferenceDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.ReferenceDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)referenceKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)file.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6839,10 +8237,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (loadKeyword.Kind() != SyntaxKind.LoadKeyword) throw new ArgumentException(nameof(loadKeyword));
             if (file.Kind() != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(file));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             loadKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(loadKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             file = Caravela.Compiler.TreeTracker.TrackIfNeeded(file);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (LoadDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.LoadDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)loadKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)file.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6856,9 +8262,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
             if (exclamationToken.Kind() != SyntaxKind.ExclamationToken) throw new ArgumentException(nameof(exclamationToken));
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             exclamationToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(exclamationToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (ShebangDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.ShebangDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)exclamationToken.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 
@@ -6886,11 +8298,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default: throw new ArgumentException(nameof(targetToken));
             }
             if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+            // <Caravela> This change is generated. See Modifications.md for details.
             hashToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             nullableKeyword = Caravela.Compiler.TreeTracker.TrackIfNeeded(nullableKeyword);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             settingToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(settingToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             targetToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(targetToken);
+            // </Caravela>
+            // <Caravela> This change is generated. See Modifications.md for details.
             endOfDirectiveToken = Caravela.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+            // </Caravela>
             return (NullableDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.NullableDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)nullableKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)settingToken.Node!, (Syntax.InternalSyntax.SyntaxToken?)targetToken.Node, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
         }
 

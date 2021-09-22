@@ -1215,7 +1215,9 @@ namespace CSharpSyntaxGenerator
                 WriteLine(");");
                 WriteLine("var annotations = GetAnnotations();");
                 // <Caravela>
+                WriteLine("// <Caravela> This change is generated. See Modifications.md for details.");
                 WriteLine("Caravela.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);");
+                WriteLine("// </Caravela>");
                 // </Caravela>
                 WriteLine("return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;");
                 CloseBlock();
@@ -1600,7 +1602,9 @@ namespace CSharpSyntaxGenerator
                 }
                 else
                 {
+                    WriteLine("// <Caravela> This change is generated. See Modifications.md for details.");
                     WriteLine($"{CamelCase(field.Name)} = Caravela.Compiler.TreeTracker.TrackIfNeeded({CamelCase(field.Name)});");
+                    WriteLine("// </Caravela>");
                 }
             }
             // </Caravela>

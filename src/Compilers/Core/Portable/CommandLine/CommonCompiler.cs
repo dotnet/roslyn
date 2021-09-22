@@ -968,8 +968,14 @@ namespace Microsoft.CodeAnalysis
 
         protected string? GetTransformedFilesOutputDirectory(AnalyzerConfigOptionsProvider options)
         {
-            options.GlobalOptions.TryGetValue("build_property.CaravelaCompilerTransformedFilesOutputPath", out var transformedFilesOutputDirectory);
-            return FileUtilities.ResolveRelativePath(transformedFilesOutputDirectory, _workingDirectory);
+            if (!options.GlobalOptions.TryGetValue("build_property.CaravelaCompilerTransformedFilesOutputPath", out var transformedFilesOutputDirectory))
+            {
+                return null;
+            }
+            else
+            {
+                return FileUtilities.ResolveRelativePath(transformedFilesOutputDirectory, _workingDirectory);
+            }
         }
         // </Caravela>
 

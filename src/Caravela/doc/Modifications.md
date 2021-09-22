@@ -44,6 +44,13 @@ But if we instead created a new block that contained the declaration from the tr
 Tree tracker is called from several places in the code base, most interestingly from Syntax.xml.Main.Generated.cs and Syntax.xml.Syntax.Generated.cs. 
 Note that if you need to modify the .Generated.cs files, you should make your changes in `SourceWriter` in the CSharpSyntaxGenerator project.
 
+We have also added a node in `BoundNodes.xml`. To make it obvious in the generated files that this node is added in Caravela, we have modified the `Model.cs` and `BoundNodeClassWriter.cs` in BoundTreeGeneratorProject.
+
+There are two ways the code is generated:
+
+- The code generated to CSharpSyntaxGenerator.SourceGenerator folder is generated using a source generator in project Microsoft.CodeAnalysis.CSharp.csproj.
+- The rest is generated using `eng\generate-compiler-code.cmd` command.
+
 Tree tracker is then used when emitting PDBs (in `CodeGenerator`) and when handling diagnostics (in `CSDiagnostic` and `CSharpDiagnosticFilter`).
 
 ## Caravela.Compiler.Shared

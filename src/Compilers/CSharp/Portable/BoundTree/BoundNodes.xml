@@ -2179,8 +2179,10 @@
     <Field Name="InitializerExpression" Type="BoundObjectInitializerExpressionBase" />
   </Node>
 
-  <Node Name="BoundGetRuntimeHandleExpression" Base="BoundExpression">
+  <!-- <Caravela> -->
+  <Node Name="BoundGetRuntimeHandleExpression" Base="BoundExpression" IsCaravelaSpecific="1">
     <Field Name="Symbol" Type="Symbol" Null="disallow" />
   </Node>
+  <!-- </Caravela> -->
 
 </Tree>
