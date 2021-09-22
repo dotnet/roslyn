@@ -80,13 +80,16 @@ static class SC { }
             CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(whenWave5);
         }
 
-        [Fact(
-            Skip = @"Any syntax diagnostics are lost when a node is updated using the Roslyn API.
-                In practice, this only affects this single warning for Caravela, because it's the only *syntax* warning
-                (if there are syntax errors, transformations are not executed).
-                The test transformer could be changed to use internal Roslyn APIs to preserve this warning,
-                but any real transformer couldn't use those, so it wouldn't be testing anything useful."
-            )]
+        [Fact(Skip = @"Caravela: CS8848 does not work")]
+        /*
+            <Caravela>
+            Any syntax diagnostics are lost when a node is updated using the Roslyn API.
+            In practice, this only affects this single warning for Caravela, because it's the only *syntax* warning
+            (if there are syntax errors, transformations are not executed).
+            The test transformer could be changed to use internal Roslyn APIs to preserve this warning,
+            but any real transformer couldn't use those, so it wouldn't be testing anything useful.
+            </Caravela>
+        */
         public void WRN_PrecedenceInversion()
         {
             var source = @"

@@ -101,7 +101,10 @@ namespace Microsoft.CodeAnalysis
             where TCompilation : Compilation
         {
             // <Caravela>
-
+            
+            // GetDiagnostics() has side-effects that some tests are relying on (e.g. UnusedGlobalUsingNamespace_02 reads comp2.UsageOfUsingsRecordedInTrees).
+            _ = c.GetDiagnostics();
+            
             var compilation = c;
 
             if (CaravelaCompilerTest.ShouldExecuteTransformer)
@@ -110,8 +113,11 @@ namespace Microsoft.CodeAnalysis
                 var diagnosticBag = new DiagnosticBag();
                 compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnosticBag);
                 if (!CommonCompiler.HasUnsuppressableErrors(diagnosticBag))
-                    compilation = (TCompilation)CaravelaCompilerTest.ExecuteTransformer(compilation, new
-CaravelaCompilerTest.TokenPerLineTransformer());
+                {
+                    compilation = (TCompilation)CaravelaCompilerTest.ExecuteTransformer(
+                        compilation, 
+                        new CaravelaCompilerTest.TokenPerLineTransformer());
+                }
             }
 
             var diagnostics = compilation.GetDiagnostics();

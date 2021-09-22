@@ -20,7 +20,7 @@ namespace Roslyn.Test.Utilities
 
         public static Compilation ExecuteTransformer(Compilation compilation, ISourceTransformer transformer)
         {
-            var transformers = ImmutableArray.Create<ISourceTransformer>(transformer);
+            var transformers = ImmutableArray.Create(transformer);
             var diagnostics = new DiagnosticBag();
 
             CSharpCompiler.RunTransformers(

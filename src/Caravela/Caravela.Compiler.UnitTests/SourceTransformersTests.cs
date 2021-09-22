@@ -190,7 +190,10 @@ config_transformer_class_name = ConfigTestClass
                     File.ReadAllText("TransformerOrderTransformers.cs"),
                     references: new[] { MetadataReference.CreateFromFile(typeof(TransformerOrderAttribute).Assembly.Location) })
                     .Emit(orderStream);
-                result.Diagnostics.Verify();
+                result.Diagnostics.Verify(               
+                    // (2,1): hidden CS8019: Unnecessary using directive.
+                    // using Microsoft.CodeAnalysis;
+                    Diagnostic(Microsoft.CodeAnalysis.CSharp.ErrorCode.HDN_UnusedUsingDirective, "using Microsoft.CodeAnalysis;").WithLocation(2, 1));
                 Assert.True(result.Success);
             }
 
