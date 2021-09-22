@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
-        <target state="new">Analyzer Defaults</target>
+        <target state="translated">アナライザーの既定値</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzers">
@@ -149,7 +149,7 @@
       </trans-unit>
       <trans-unit id="Calculating">
         <source>Calculating...</source>
-        <target state="new">Calculating...</target>
+        <target state="translated">計算しています...</target>
         <note>Used in UI to represent progress in the context of loading items. </note>
       </trans-unit>
       <trans-unit id="Calculating_dependents">
@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="Combine_inheritance_margin_with_indicator_margin">
         <source>Combine inheritance margin with indicator margin</source>
-        <target state="new">Combine inheritance margin with indicator margin</target>
+        <target state="translated">継承の余白とインジケーターの余白を組み合わせる</target>
         <note />
       </trans-unit>
       <trans-unit id="Comments">
@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
         <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
-        <target state="new">Compute Quick Actions asynchronously (experimental, requires restart)</target>
+        <target state="translated">クイック アクションを非同期で計算する (試験的、再起動が必要)</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -259,22 +259,22 @@
       </trans-unit>
       <trans-unit id="Default_Current_Document">
         <source>Default (Current Document)</source>
-        <target state="new">Default (Current Document)</target>
+        <target state="translated">既定値 (現在のドキュメント)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Default_Entire_Solution">
         <source>Default (Entire Solution)</source>
-        <target state="new">Default (Entire Solution)</target>
+        <target state="translated">既定値 (ソリューション全体)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Default_Open_Documents">
         <source>Default (Open Documents)</source>
-        <target state="new">Default (Open Documents)</target>
+        <target state="translated">既定値 (ドキュメントを開く)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Derived_types">
         <source>Derived types</source>
-        <target state="new">Derived types</target>
+        <target state="translated">派生型</target>
         <note />
       </trans-unit>
       <trans-unit id="Disabled">
@@ -414,7 +414,7 @@
       </trans-unit>
       <trans-unit id="Implemented_interfaces">
         <source>Implemented interfaces</source>
-        <target state="new">Implemented interfaces</target>
+        <target state="translated">実装されたインターフェイス</target>
         <note />
       </trans-unit>
       <trans-unit id="Implemented_members">
@@ -429,7 +429,7 @@
       </trans-unit>
       <trans-unit id="Implementing_types">
         <source>Implementing types</source>
-        <target state="new">Implementing types</target>
+        <target state="translated">実装する型</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
@@ -459,7 +459,7 @@
       </trans-unit>
       <trans-unit id="Inheritance_Margin">
         <source>Inheritance Margin</source>
-        <target state="new">Inheritance Margin</target>
+        <target state="translated">継承の余白</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Diagnostics_experimental">
@@ -469,12 +469,12 @@
       </trans-unit>
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
-        <target state="new">Inherited interfaces</target>
+        <target state="translated">継承されたインターフェイス</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
-        <target state="new">Inline Hints</target>
+        <target state="translated">インラインのヒント</target>
         <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
@@ -549,7 +549,7 @@
       </trans-unit>
       <trans-unit id="Location">
         <source>Location</source>
-        <target state="new">Location</target>
+        <target state="translated">場所</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -614,12 +614,12 @@
       </trans-unit>
       <trans-unit id="Namespace_declarations">
         <source>Namespace declarations</source>
-        <target state="new">Namespace declarations</target>
+        <target state="translated">名前空間の宣言</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespaces_have_been_updated">
         <source>Namespaces have been updated.</source>
-        <target state="new">Namespaces have been updated.</target>
+        <target state="translated">名前空間が更新されました。</target>
         <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
@@ -794,7 +794,7 @@
       </trans-unit>
       <trans-unit id="No_namespaces_needed_updating">
         <source>No namespaces needed updating.</source>
-        <target state="new">No namespaces needed updating.</target>
+        <target state="translated">更新する必要のある名前空間はありません。</target>
         <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="No_unused_references_were_found">
@@ -849,12 +849,12 @@
       </trans-unit>
       <trans-unit id="Package_install_canceled">
         <source>Package install canceled</source>
-        <target state="new">Package install canceled</target>
+        <target state="translated">パッケージのインストールが取り消されました</target>
         <note />
       </trans-unit>
       <trans-unit id="Package_uninstall_canceled">
         <source>Package uninstall canceled</source>
-        <target state="new">Package uninstall canceled</target>
+        <target state="translated">パッケージのアンインストールが取り消されました</target>
         <note />
       </trans-unit>
       <trans-unit id="Packages">
@@ -969,7 +969,7 @@
       </trans-unit>
       <trans-unit id="Quick_Actions">
         <source>Quick Actions</source>
-        <target state="new">Quick Actions</target>
+        <target state="translated">クイック アクション</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -1044,7 +1044,7 @@
       </trans-unit>
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
         <source>Run code analysis in separate process (requires restart)</source>
-        <target state="new">Run code analysis in separate process (requires restart)</target>
+        <target state="translated">別のプロセスでコード分析を実行する (再起動が必要)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1074,7 +1074,7 @@
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
         <source>Select an appropriate symbol to start value tracking</source>
-        <target state="new">Select an appropriate symbol to start value tracking</target>
+        <target state="translated">値の追跡を開始するための適切なシンボルを選択します</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination">
@@ -1134,7 +1134,7 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_indexers">
         <source>Show hints for indexers</source>
-        <target state="new">Show hints for indexers</target>
+        <target state="translated">インデクサーのヒントを表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
@@ -1159,7 +1159,7 @@
       </trans-unit>
       <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
         <source>Skip analyzers for implicitly triggered builds</source>
-        <target state="new">Skip analyzers for implicitly triggered builds</target>
+        <target state="translated">暗黙的にトリガーされたビルドに対してアナライザーをスキップします</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
@@ -1194,7 +1194,7 @@
       </trans-unit>
       <trans-unit id="Sync_Namespaces">
         <source>Sync Namespaces</source>
-        <target state="new">Sync Namespaces</target>
+        <target state="translated">名前空間の同期</target>
         <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
@@ -1234,7 +1234,7 @@
       </trans-unit>
       <trans-unit id="This_rule_is_not_configurable">
         <source>This rule is not configurable</source>
-        <target state="new">This rule is not configurable</target>
+        <target state="translated">このルールは構成できません</target>
         <note />
       </trans-unit>
       <trans-unit id="Title">
@@ -1264,7 +1264,7 @@
       </trans-unit>
       <trans-unit id="Underline_reassigned_variables">
         <source>Underline reassigned variables</source>
-        <target state="new">Underline reassigned variables</target>
+        <target state="translated">再割り当てされる変数に下線を引く</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -1279,7 +1279,7 @@
       </trans-unit>
       <trans-unit id="Updating_namspaces">
         <source>Updating namespaces...</source>
-        <target state="new">Updating namespaces...</target>
+        <target state="translated">名前空間を更新しています...</target>
         <note>"namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Updating_project_references">
@@ -1314,7 +1314,7 @@
       </trans-unit>
       <trans-unit id="Value_Tracking">
         <source>Value Tracking</source>
-        <target state="new">Value Tracking</target>
+        <target state="translated">値の追跡</target>
         <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
       </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
@@ -1349,7 +1349,7 @@
       </trans-unit>
       <trans-unit id="Visual_Studio_Settings">
         <source>Visual Studio Settings</source>
-        <target state="new">Visual Studio Settings</target>
+        <target state="translated">Visual Studio の設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning">
@@ -1379,7 +1379,7 @@
       </trans-unit>
       <trans-unit id="Whitespace">
         <source>Whitespace</source>
-        <target state="new">Whitespace</target>
+        <target state="translated">空白</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_change_the_signature">
@@ -2750,7 +2750,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources</source>
-        <target state="needs-review-translation">逆コンパイルされたソースへのナビゲーションを有効にする (試験段階)</target>
+        <target state="translated">逆コンパイルされたソースへのナビゲーションを有効にする</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

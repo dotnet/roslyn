@@ -12904,6 +12904,7 @@ format:
 ");
         }
 
+
         [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
         [InlineData(@"$""{h1}{h2}""")]
         [InlineData(@"$""{h1}"" + $""{h2}""")]
