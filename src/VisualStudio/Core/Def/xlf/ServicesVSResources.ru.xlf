@@ -1242,6 +1242,11 @@
         <target state="new">Stack Trace Explorer</target>
         <note>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</note>
       </trans-unit>
+      <trans-unit id="Stack_trace_0">
+        <source>Stack Trace {0}</source>
+        <target state="new">Stack Trace {0}</target>
+        <note>Header for numbered stack trace view tabs</note>
+      </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Рекомендация</target>

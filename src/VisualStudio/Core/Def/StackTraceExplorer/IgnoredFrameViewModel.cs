@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         protected override IEnumerable<Inline> CreateInlines()
         {
-            var run = MakeClassifiedRun(ClassificationTypeNames.ExcludedCode, _frame.Text);
+            var run = MakeClassifiedRun(ClassificationTypeNames.ExcludedCode, _frame.OriginalText);
             yield return run;
         }
     }

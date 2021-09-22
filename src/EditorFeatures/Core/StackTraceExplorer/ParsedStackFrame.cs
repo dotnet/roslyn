@@ -15,21 +15,16 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
     /// </summary>
     internal class ParsedStackFrame : ParsedFrame
     {
-        public ParsedStackFrame(string originalLine, TextSpan classSpan, TextSpan methodSpan, TextSpan argsSpan)
+        public ParsedStackFrame(string originalText, TextSpan classSpan, TextSpan methodSpan, TextSpan argsSpan)
+            : base(originalText)
         {
             Contract.ThrowIfTrue(classSpan.IsEmpty);
             Contract.ThrowIfTrue(methodSpan.IsEmpty);
 
-            OriginalLine = originalLine;
             ClassSpan = classSpan;
             MethodSpan = methodSpan;
             ArgsSpan = argsSpan;
         }
-
-        /// <summary>
-        /// The original text that this line was parsed from
-        /// </summary>
-        public string OriginalLine { get; }
 
         /// <summary>
         /// The full classname parsed from the line. 
@@ -51,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 
         public virtual async Task<ISymbol?> ResolveSymbolAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var className = OriginalLine[ClassSpan.Start..ClassSpan.End];
-            var methodName = OriginalLine[MethodSpan.Start..MethodSpan.End];
+            var className = OriginalText[ClassSpan.Start..ClassSpan.End];
+            var methodName = OriginalText[MethodSpan.Start..MethodSpan.End];
 
             var symbolName = $"{className}.{methodName}";
 

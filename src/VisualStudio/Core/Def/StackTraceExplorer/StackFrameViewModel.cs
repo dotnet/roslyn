@@ -187,10 +187,10 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         protected override IEnumerable<Inline> CreateInlines()
         {
-            var textUntilSymbol = _frame.OriginalLine[.._frame.ClassSpan.Start];
+            var textUntilSymbol = _frame.OriginalText[.._frame.ClassSpan.Start];
             yield return MakeClassifiedRun(ClassificationTypeNames.Text, textUntilSymbol);
 
-            var classText = _frame.OriginalLine[_frame.ClassSpan.Start.._frame.ClassSpan.End];
+            var classText = _frame.OriginalText[_frame.ClassSpan.Start.._frame.ClassSpan.End];
 
             var classLink = new Hyperlink();
             classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, classText));
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             // +1 to the argspan end because we want to include the closing paren
             var argEndIndex = _frame.ArgsSpan.End + 1;
 
-            var methodText = _frame.OriginalLine[_frame.MethodSpan.Start..argEndIndex];
+            var methodText = _frame.OriginalText[_frame.MethodSpan.Start..argEndIndex];
             var methodLink = new Hyperlink();
             var methodClassifiedText = new ClassifiedText(ClassificationTypeNames.MethodName, methodText);
             methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, methodText));
@@ -215,11 +215,11 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 var textBetweenSpan = new TextSpan(argEndIndex, textBetweenLength);
                 if (textBetweenSpan.Length > 0)
                 {
-                    var textBetween = _frame.OriginalLine.Substring(textBetweenSpan.Start, textBetweenSpan.Length);
+                    var textBetween = _frame.OriginalText.Substring(textBetweenSpan.Start, textBetweenSpan.Length);
                     yield return new Run(textBetween);
                 }
 
-                var fileText = _frame.OriginalLine[frameWithFile.FileSpan.Start..frameWithFile.FileSpan.End];
+                var fileText = _frame.OriginalText[frameWithFile.FileSpan.Start..frameWithFile.FileSpan.End];
                 var fileHyperlink = new Hyperlink();
                 fileHyperlink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileText));
                 fileHyperlink.RequestNavigate += (s, e) => NavigateToFile();
@@ -227,16 +227,16 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 yield return fileHyperlink;
 
                 var end = frameWithFile.FileSpan.End;
-                if (end < _frame.OriginalLine.Length)
+                if (end < _frame.OriginalText.Length)
                 {
-                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.OriginalLine[..end]);
+                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.OriginalText[..end]);
                 }
             }
             else
             {
-                if (argEndIndex < _frame.OriginalLine.Length)
+                if (argEndIndex < _frame.OriginalText.Length)
                 {
-                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.OriginalLine[argEndIndex..]);
+                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.OriginalText[argEndIndex..]);
                 }
             }
         }
@@ -275,7 +275,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             var fileLineResult = _frame as ParsedFrameWithFile;
             Contract.ThrowIfNull(fileLineResult);
 
-            var fileText = _frame.OriginalLine.Substring(fileLineResult.FileSpan.Start, fileLineResult.FileSpan.Length);
+            var fileText = _frame.OriginalText.Substring(fileLineResult.FileSpan.Start, fileLineResult.FileSpan.Length);
             Debug.Assert(fileText.Contains(':'));
 
             var splitIndex = fileText.LastIndexOf(':');
