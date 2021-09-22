@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             Contract.ThrowIfNull(syntaxTree);
 
-            if (position >= syntaxTree.Length)
+            if (position > syntaxTree.Length)
             {
                 return default;
             }

@@ -267,7 +267,7 @@ if (true)
 
         [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestRegionEndShowsStartRegionMessage()
+        public async Task RegionEndShowsStartRegionMessage()
         {
             await TestAsync(
 @"
@@ -275,6 +275,100 @@ if (true)
 #end$$region", "#region Start");
         }
 
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("$$#endregion")]
+        [InlineData("#$$endregion")]
+        [InlineData("#endregion$$")]
+        [InlineData("#endregion$$ ")]
+        [InlineData("#endregion $$")]
+        [InlineData("#endregion\r\n$$")]
+        public async Task RegionEndShowsStartRegionMessageAtDifferentPositions(string endRegion)
+        {
+            await TestAsync(
+@$"
+#region Start
+{endRegion}", "#region Start");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("$$ #endregion")]
+        [InlineData("# $$ endregion")]
+        public async Task RegionEndHasNoQuickinfo(string endRegion)
+        {
+            await TestAsync(
+@$"
+#region Start
+{endRegion}", "");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task RegionEndHasNoQuickinfo_MissingRegionStart_1()
+        {
+            await TestAsync(
+@$"#end$$region", "");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task RegionEndHasNoQuickinfo_MissingRegionStart_2()
+        {
+            await TestAsync(
+@$"
+#region Start
+#endregion
+#end$$region", "");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task RegionEndShowsRegionStart_Nesting_1()
+        {
+            await TestAsync(
+@$"
+#region Start1
+#region Start2
+#endregion
+#end$$region", "#region Start1");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task RegionEndShowsRegionStart_Nesting_2()
+        {
+            await TestAsync(
+@$"
+#region Start1
+#region Start2
+#end$$region
+#endregion", "#region Start2");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task RegionEndShowsRegionStart_Blocks_1()
+        {
+            await TestAsync(
+@$"
+#region Start1
+#end$$region
+#region Start2
+#endregion", "#region Start1");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task RegionEndShowsRegionStart_Blocks_2()
+        {
+            await TestAsync(
+@$"
+#region Start1
+#endregion
+#region Start2
+#end$$region", "#region Start2");
+        }
 
         private static QuickInfoProvider CreateProvider()
             => new CSharpSyntacticQuickInfoProvider();

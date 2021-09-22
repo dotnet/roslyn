@@ -43,7 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 case SyntaxKind.CloseBraceToken:
                     break;
                 case SyntaxKind.EndRegionKeyword:
+                case SyntaxKind.HashToken:
+                case SyntaxKind.EndOfDirectiveToken:
                     return BuildQuickInfoEndRegion(token, cancellationToken);
+                case SyntaxKind.EndOfFileToken:
+                    var endRegionKeyword = token.LeadingTrivia.LastOrDefault().GetStructure()?.ChildTokens().FirstOrDefault(t => t.IsKind(SyntaxKind.EndRegionKeyword));
+                    return endRegionKeyword.HasValue
+                        ? BuildQuickInfoEndRegion(endRegionKeyword.Value, cancellationToken)
+                        : null;
                 default:
                     return null;
             }
@@ -87,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
         private static QuickInfoItem? BuildQuickInfoEndRegion(SyntaxToken token, CancellationToken cancellationToken)
         {
-            if (token.Parent is DirectiveTriviaSyntax directiveTrivia)
+            if (token.Parent is EndRegionDirectiveTriviaSyntax endRegionDirectiveTrivia)
             {
-                var regionStart = directiveTrivia.GetMatchingDirective(cancellationToken);
+                var regionStart = endRegionDirectiveTrivia.GetMatchingDirective(cancellationToken);
                 if (regionStart is not null)
                 {
                     return QuickInfoItem.Create(token.Span, relatedSpans: ImmutableArray.Create(regionStart.Span));
