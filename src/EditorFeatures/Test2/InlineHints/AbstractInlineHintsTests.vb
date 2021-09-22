@@ -66,5 +66,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 ValidateSpans(hostDocument, producedTags)
             End Using
         End Function
+
+        'Protected Async Function VerifyTypeHintsDoubleClick(test As XElement, Optional optionIsEnabled As Boolean = True, Optional ephemeral As Boolean = False) As Task
+        '    Using workspace = TestWorkspace.Create(test)
+        '        WpfTestRunner.RequireWpfFact($"{NameOf(AbstractInlineHintsTests)}.{NameOf(Me.VerifyTypeHints)} creates asynchronous taggers")
+
+        '        Dim language = workspace.CurrentSolution.Projects().First().Language
+        '        workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+        '        workspace.Options.WithChangedOption(InlineHintsOptions.EnabledForTypes, language, optionIsEnabled AndAlso Not ephemeral).
+        '                          WithChangedOption(InlineHintsOptions.DisplayAllOverride, ephemeral)))
+
+        '        Dim hostDocument = workspace.Documents.Single()
+        '        Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
+        '        Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
+        '        Dim tagService = document.GetRequiredLanguageService(Of IInlineTypeHintsService)
+        '        Dim typeHints = Await tagService.GetInlineHintsAsync(document, New Text.TextSpan(0, snapshot.Length), New CancellationToken())
+
+        '        For Each hint In typeHints
+        '            hint.ReplacementTextChange.Value.
+        '        Next
+        '    End Using
+        'End Function
     End Class
 End Namespace

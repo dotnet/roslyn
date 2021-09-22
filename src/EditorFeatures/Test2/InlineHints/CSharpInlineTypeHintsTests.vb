@@ -461,5 +461,25 @@ class A
 
             Await VerifyTypeHints(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestDoubleClickOnNonOverwriteType() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main() 
+    {
+        var {|int :|}i = 0;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input)
+        End Function
     End Class
 End Namespace
