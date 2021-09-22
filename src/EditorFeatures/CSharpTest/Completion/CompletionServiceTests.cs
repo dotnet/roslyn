@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -49,7 +50,7 @@ namespace N
             MarkupTestFile.GetPosition(sourceMarkup.NormalizeLineEndings(), out var source, out int? position);
 
             var generatorRanCount = 0;
-            var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => { generatorRanCount++; });
+            var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => Interlocked.Increment(ref generatorRanCount));
 
             using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartalSemantics();
             var analyzerReference = new TestGeneratorReference(generator);
@@ -76,7 +77,7 @@ namespace N
             var newOptions = options.WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true);
             var (completionList, _) = await compeltionService.GetCompletionsInternalAsync(document, position.Value, options: newOptions);
 
-            // We expect compeltion to run on frozen partial semantic, which won't run source generator.
+            // We expect completion to run on frozen partial semantic, which won't run source generator.
             Assert.Equal(0, generatorRanCount);
 
             var expectedItem = forkBeforeFreeze ? "C2" : "C1";
