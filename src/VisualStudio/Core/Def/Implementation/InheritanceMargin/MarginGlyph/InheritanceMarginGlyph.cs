@@ -58,6 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             Click += InheritanceMargin_OnClick;
             MouseEnter += InheritanceMargin_OnMouseEnter;
             MouseLeave += InheritanceMargin_OnMouseLeave;
+            KeyUp += OnKeyUp;
 
             Resources.Add(ToolTipStyleKey, new Style(typeof(ToolTip))
             {
@@ -157,9 +158,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 ResetBorderToInitialColor();
             }
-            // Move the focus back to textView when the context menu is closed.
-            // It ensures the focus won't be left at the margin
-            ResetFocus();
         }
 
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
@@ -189,6 +187,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         {
             this.Background = Brushes.Transparent;
             this.BorderBrush = Brushes.Transparent;
+        }
+
+        private void OnKeyUp(object sender, KeyEventArgs e)
+        {
+            // Move the focus back to textView when the Esc is pressed
+            // It ensures the focus won't be left at the margin
+            if (e.Key == Key.Escape)
+            {
+               ResetFocus();
+            }
         }
 
         private void ResetFocus()
