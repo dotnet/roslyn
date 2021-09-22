@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
     internal static class ICodeFixServiceExtensions
     {
-        public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, Document document, TextSpan range, bool includeConfigurationFixes, CancellationToken cancellationToken)
-            => service.GetFixesAsync(document, range, includeConfigurationFixes, isBlocking: false, cancellationToken);
+        public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, Document document, TextSpan range, bool includeSuppressionFixes, CancellationToken cancellationToken)
+            => service.GetFixesAsync(document, range, includeSuppressionFixes, isBlocking: false, cancellationToken);
 
-        public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, Document document, TextSpan range, bool includeConfigurationFixes, bool isBlocking, CancellationToken cancellationToken)
-            => service.GetFixesAsync(document, range, includeConfigurationFixes, CodeActionRequestPriority.None, isBlocking, addOperationScope: _ => null, cancellationToken);
+        public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, Document document, TextSpan range, bool includeSuppressionFixes, bool isBlocking, CancellationToken cancellationToken)
+            => service.GetFixesAsync(document, range, includeSuppressionFixes, CodeActionRequestPriority.None, isBlocking, addOperationScope: _ => null, cancellationToken);
     }
 }
