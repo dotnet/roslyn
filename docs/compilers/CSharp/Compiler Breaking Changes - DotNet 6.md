@@ -9,7 +9,7 @@
     ```
 
 2. In C# 10, lambda expressions and method groups with inferred type are implicitly convertible to `System.MulticastDelegate`, and bases classes and interfaces of `System.MulticastDelegate` including `object`,
-and lambda expressions are implicitly convertible to `System.Linq.Expressions.Expression` and `System.Linq.Expressions.LambdaExpression`.
+and lambda expressions and method groups are implicitly convertible to `System.Linq.Expressions.Expression` and `System.Linq.Expressions.LambdaExpression`.
 These are _function_type_conversions_.
 
     The new implicit conversions may change overload resolution in cases where the compiler searches iteratively for overloads and stops at the first type or namespace scope containing any applicable overloads.
@@ -69,7 +69,7 @@ These are _function_type_conversions_.
     }
     ```
 
-3. In C#10, a method group with inferred _function_type_ has an implicit _function_type_conversion_ to `System.Linq.Expressions.Expression` and `System.Linq.Expressions.LambdaExpression`, even though the method group cannot be realized as an `Expression`.
+    c. Method group conversion to `Expression` or `LambdaExpression`
 
     ```csharp
     using System;
@@ -91,7 +91,7 @@ These are _function_type_conversions_.
     }
     ```
 
-4. In C#10, a lambda expression with inferred type may contribute an argument type that affects overload resolution.
+3. In C#10, a lambda expression with inferred type may contribute an argument type that affects overload resolution.
 
     ```csharp
     using System;
