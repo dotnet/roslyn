@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -63,6 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.Diagnostics = diagnostics;
             this.slotAllocatorOpt = slotAllocatorOpt;
             this._placeholderMap = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
+        }
+
+        public override BoundNode DefaultVisit(BoundNode node)
+        {
+            Debug.Fail($"Override the visitor for {node.Kind}");
+            return base.DefaultVisit(node);
         }
 
         /// <summary>
@@ -261,6 +267,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 node.ResultKind,
                 rewrittenType);
         }
+
+        public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+        {
+            // Local rewriter should have already rewritten interpolated strings into their final form of calls and gotos
+            Debug.Assert(node.InterpolatedStringHandlerData is null);
+
+            return node.Update(
+                node.OperatorKind,
+                node.ConstantValue,
+                VisitMethodSymbol(node.Method),
+                VisitType(node.ConstrainedToType),
+                node.ResultKind,
+                (BoundExpression)Visit(node.Left),
+                (BoundExpression)Visit(node.Right),
+                VisitType(node.Type));
+        }
+
+        public override BoundNode VisitUnaryOperator(BoundUnaryOperator node)
+            => node.Update(
+                node.OperatorKind,
+                (BoundExpression)Visit(node.Operand),
+                node.ConstantValueOpt,
+                VisitMethodSymbol(node.MethodOpt),
+                VisitType(node.ConstrainedToTypeOpt),
+                node.ResultKind,
+                VisitType(node.Type));
+
+        public override BoundNode? VisitConversion(BoundConversion node)
+        {
+            var conversion = node.Conversion;
+
+            if (conversion.Method is not null)
+            {
+                conversion = conversion.SetConversionMethod(VisitMethodSymbol(conversion.Method));
+            }
+
+            return node.Update(
+                (BoundExpression)Visit(node.Operand),
+                conversion,
+                node.IsBaseConversion,
+                node.Checked,
+                node.ExplicitCastInCode,
+                node.ConstantValueOpt,
+                node.ConversionGroupOpt,
+                VisitType(node.Type));
+        }
+
+        public override BoundNode? VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
+            => node.Update(
+                node.OperatorKind,
+                VisitMethodSymbol(node.LogicalOperator),
+                VisitMethodSymbol(node.TrueOperator),
+                VisitMethodSymbol(node.FalseOperator),
+                VisitType(node.ConstrainedToTypeOpt),
+                node.ResultKind,
+                (BoundExpression)Visit(node.Left),
+                (BoundExpression)Visit(node.Right),
+                VisitType(node.Type));
 
         private MethodSymbol GetMethodWrapperForBaseNonVirtualCall(MethodSymbol methodBeingCalled, SyntaxNode syntax)
         {
