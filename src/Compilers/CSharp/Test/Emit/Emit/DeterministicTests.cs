@@ -462,7 +462,7 @@ public unsafe struct UnsafeStructNUMBER1
             byte[] result = null;
 
             var sourceBuilder = ArrayBuilder<string>.GetInstance();
-            int max = 10;
+            int max = 100;
             for (int i = 0; i < max; i++)
             {
                 int j = (i + 7) % max;
@@ -481,7 +481,7 @@ public unsafe struct UnsafeStructNUMBER1
                 .WithOverflowChecks(false)
                 .WithModuleName(assemblyName);
 
-            for (int j = 0; j < 10; j++)
+            for (int j = 0; j < 100; j++)
             {
                 var comp = CreateCompilation(source1, options: opt, assemblyName: assemblyName);
                 comp.VerifyDiagnostics();
@@ -505,12 +505,6 @@ public unsafe struct UnsafeStructNUMBER1
                 {
                     Assert.Equal(result, newResult);
                 }
-
-                using var reader = new PEReader(newResult.ToImmutableArray());
-                var metadataReader = reader.GetMetadataReader();
-                Guid mvidFromModuleDefinition = metadataReader.GetGuid(metadataReader.GetModuleDefinition().Mvid);
-                var expectedMvid = Guid.Parse("3193def2-1c2d-4f79-a85d-bb1c561ee869");
-                Assert.Equal(expectedMvid, mvidFromModuleDefinition);
             }
         }
 
