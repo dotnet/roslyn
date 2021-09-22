@@ -23,19 +23,29 @@ namespace Microsoft.CodeAnalysis.AddImport
             foreach (var packageSource in packageSources)
             {
                 // If the user has multiple sources from nuget.org, we only need one of them to be special
-                if (!foundNugetOrg)
+                if (!foundNugetOrg && IsNugetOrg(packageSource.Source))
                 {
-                    var host = new Uri(packageSource.Source).Host;
-                    if (host.Equals(NugetOrg, StringComparison.OrdinalIgnoreCase) ||
-                        host.EndsWith($".{NugetOrg}", StringComparison.OrdinalIgnoreCase))
-                    {
-                        foundNugetOrg = true;
-                        yield return (NugetOrgSourceName, packageSource.Source);
-                    }
+                    foundNugetOrg = true;
+                    yield return (NugetOrgSourceName, packageSource.Source);
                 }
-
-                yield return (packageSource.Name, packageSource.Source);
+                else
+                {
+                    yield return (packageSource.Name, packageSource.Source);
+                }
             }
+        }
+
+        private static bool IsNugetOrg(string sourceUrl)
+        {
+            if (!Uri.TryCreate(sourceUrl, UriKind.Absolute, out var uri))
+            {
+                return false;
+            }
+
+            // The default source url for nuget.org is "api.nuget.org" so the first case catches everything
+            // but the check is a little more expansive just to avoid a maintenance burden.
+            return uri.Host.EndsWith($".{NugetOrg}", StringComparison.OrdinalIgnoreCase)
+                || uri.Host.Equals(NugetOrg, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
