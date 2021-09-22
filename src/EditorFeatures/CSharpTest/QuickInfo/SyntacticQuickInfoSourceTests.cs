@@ -265,6 +265,17 @@ if (true)
 {");
         }
 
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRegionEndShowsStartRegionMessage()
+        {
+            await TestAsync(
+@"
+#region Start
+#end$$region", "#region Start");
+        }
+
+
         private static QuickInfoProvider CreateProvider()
             => new CSharpSyntacticQuickInfoProvider();
 

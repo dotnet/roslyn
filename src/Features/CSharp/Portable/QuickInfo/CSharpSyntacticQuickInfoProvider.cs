@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,18 +29,23 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
         protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
             QuickInfoContext context,
             SyntaxToken token)
-            => Task.FromResult(BuildQuickInfo(token));
+            => Task.FromResult(BuildQuickInfo(token, context.CancellationToken));
 
         protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
             CommonQuickInfoContext context,
             SyntaxToken token)
-            => Task.FromResult(BuildQuickInfo(token));
+            => Task.FromResult(BuildQuickInfo(token, context.CancellationToken));
 
-        private static QuickInfoItem? BuildQuickInfo(SyntaxToken token)
+        private static QuickInfoItem? BuildQuickInfo(SyntaxToken token, CancellationToken cancellationToken)
         {
-            if (token.Kind() != SyntaxKind.CloseBraceToken)
+            switch (token.Kind())
             {
-                return null;
+                case SyntaxKind.CloseBraceToken:
+                    break;
+                case SyntaxKind.EndRegionKeyword:
+                    return BuildQuickInfoEndRegion(token, cancellationToken);
+                default:
+                    return null;
             }
 
             // Don't show for interpolations
@@ -77,6 +83,20 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             // encode document spans that correspond to the text to show
             var spans = ImmutableArray.Create(TextSpan.FromBounds(spanStart, spanEnd));
             return QuickInfoItem.Create(token.Span, relatedSpans: spans);
+        }
+
+        private static QuickInfoItem? BuildQuickInfoEndRegion(SyntaxToken token, CancellationToken cancellationToken)
+        {
+            if (token.Parent is DirectiveTriviaSyntax directiveTrivia)
+            {
+                var regionStart = directiveTrivia.GetMatchingDirective(cancellationToken);
+                if (regionStart is not null)
+                {
+                    return QuickInfoItem.Create(token.Span, relatedSpans: ImmutableArray.Create(regionStart.Span));
+                }
+            }
+
+            return null;
         }
 
         private static bool IsScopeBlock(SyntaxNode node)
