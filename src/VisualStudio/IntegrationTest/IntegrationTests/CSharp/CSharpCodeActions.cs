@@ -512,7 +512,6 @@ namespace NS
             {
                 "Rename 'P2' to 'Foober'",
                 "Goober - using N;",
-                "Generate type 'Foober'",
                 "Generate class 'Foober' in new file",
                 "Generate class 'Foober'",
                 "Generate nested class 'Foober'",
