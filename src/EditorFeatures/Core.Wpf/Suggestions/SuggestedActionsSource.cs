@@ -189,7 +189,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     Task.WhenAll(fixesTask, refactoringsTask).WaitAndGetResult(cancellationToken);
 
-                    return ConvertToSuggestedActionSets(state, selection,
+                    return ConvertToSuggestedActionSets(
+                        state, selection,
                         fixesTask.WaitAndGetResult(cancellationToken),
                         refactoringsTask.WaitAndGetResult(cancellationToken));
                 }

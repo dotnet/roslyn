@@ -232,11 +232,6 @@
         <target state="translated">Komentarze</target>
         <note />
       </trans-unit>
-      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
-        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
-        <target state="translated">Asynchroniczne szybkie akcje środowiska obliczeniowego (eksperymentalne, wymaga ponownego uruchomienia)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Zawierająca składowa</target>
@@ -285,6 +280,11 @@
       <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
         <source>Display all hints while pressing Alt+F1</source>
         <target state="translated">Wyświetl wszystkie wskazówki po naciśnięciu klawiszy Alt+F1</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_diagnostics_inline_experimental">
+        <source>Display diagnostics inline (experimental)</source>
+        <target state="new">Display diagnostics inline (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -462,6 +462,11 @@
         <target state="translated">Dziedziczone interfejsy</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="new">Inline Diagnostics (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">Wskazówki w tekście</target>
@@ -487,6 +492,11 @@
         <target state="translated">Wprowadź niezdefiniowane zmienne TODO</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
       </trans-unit>
+      <trans-unit id="Invalid_type_name">
+        <source>Invalid type name</source>
+        <target state="new">Invalid type name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">Źródło elementu</target>
@@ -506,11 +516,6 @@
         <source>Kind</source>
         <target state="translated">Rodzaj</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Language_client_initialization_failed">
-        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
-        <target state="translated">Zainicjowanie języka {0} zakończyło się niepowodzeniem. Stan = {1}. Wyjątek = {2}</target>
-        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
@@ -560,6 +565,11 @@
       <trans-unit id="Modifier_preferences_colon">
         <source>Modifier preferences:</source>
         <target state="translated">Preferencje modyfikatora:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type_colon">
+        <source>Move Static Members to Another Type:</source>
+        <target state="new">Move Static Members to Another Type:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -937,6 +947,11 @@
         <target state="translated">Preferuj statyczne funkcje lokalne</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_tuple_swap">
+        <source>Prefer tuple swap</source>
+        <target state="new">Prefer tuple swap</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Projects">
         <source>Projects</source>
         <target state="translated">Projekty</target>
@@ -1150,6 +1165,11 @@
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
         <target state="translated">Sugestia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
+        <source>Suppress hints when argument matches parameter name</source>
+        <target state="new">Suppress hints when argument matches parameter name</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
@@ -1490,6 +1510,11 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">Element „{0}” zostanie zmieniony na publiczny.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="at_the_end_of_the_line_of_code">
+        <source>at the end of the line of code</source>
+        <target state="new">at the end of the line of code</target>
         <note />
       </trans-unit>
       <trans-unit id="generated_by_0_suffix">
@@ -2516,6 +2541,11 @@ Dodatkowe informacje: {1}</target>
       <trans-unit id="When_inserting_properties_events_and_methods_place_them">
         <source>When inserting properties, events and methods, place them:</source>
         <target state="translated">W przypadku wstawiania właściwości, zdarzeń i metod umieszczaj je:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="on_the_right_edge_of_the_editor_window">
+        <source>on the right edge of the editor window</source>
+        <target state="new">on the right edge of the editor window</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">

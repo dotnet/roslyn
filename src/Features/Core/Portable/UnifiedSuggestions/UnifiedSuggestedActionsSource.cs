@@ -43,7 +43,13 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // Intentionally switch to a threadpool thread to compute fixes.  We do not want to accidentally
             // run any of this on the UI thread and potentially allow any code to take a dependency on that.
             var fixes = await Task.Run(() => codeFixService.GetFixesAsync(
-                document, selection, includeSuppressionFixes, priority, isBlocking, addOperationScope, cancellationToken), cancellationToken).ConfigureAwait(false);
+                document,
+                selection,
+                includeSuppressionFixes,
+                priority,
+                isBlocking,
+                addOperationScope,
+                cancellationToken), cancellationToken).ConfigureAwait(false);
 
             var filteredFixes = fixes.WhereAsArray(c => c.Fixes.Length > 0);
             var organizedFixes = OrganizeFixes(workspace, filteredFixes);
@@ -387,9 +393,9 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             bool filterOutsideSelection,
             CancellationToken cancellationToken)
         {
-            // It may seem strange that we kick off a task, but then immediately 'Wait' on 
-            // it. However, it's deliberate.  We want to make sure that the code runs on 
-            // the background so that no one takes an accidentally dependency on running on 
+            // It may seem strange that we kick off a task, but then immediately 'Wait' on
+            // it. However, it's deliberate.  We want to make sure that the code runs on
+            // the background so that no one takes an accidentally dependency on running on
             // the UI thread.
             var refactorings = await Task.Run(
                 () => codeRefactoringService.GetRefactoringsAsync(
@@ -482,7 +488,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             // An action set:
             // - gets the the same priority as the highest priority action within in.
             // - gets `applicableToSpan` of the first action:
-            //   - E.g. the `applicableToSpan` closest to current selection might be a more correct 
+            //   - E.g. the `applicableToSpan` closest to current selection might be a more correct
             //     choice. All actions created by one Refactoring have usually the same `applicableSpan`
             //     and therefore the complexity of determining the closest one isn't worth the benefit
             //     of slightly more correct orderings in certain edge cases.
@@ -588,7 +594,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         private static ImmutableArray<UnifiedSuggestedActionSet> InlineActionSetsIfDesirable(
             ImmutableArray<UnifiedSuggestedActionSet> allActionSets)
         {
-            // If we only have a single set of items, and that set only has three max suggestion 
+            // If we only have a single set of items, and that set only has three max suggestion
             // offered. Then we can consider inlining any nested actions into the top level list.
             // (but we only do this if the parent of the nested actions isn't invokable itself).
             if (allActionSets.Sum(a => a.Actions.Count()) > 3)
