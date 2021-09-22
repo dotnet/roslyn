@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             DebuggingSession debuggingSession,
             ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions,
             EditSessionTelemetry telemetry,
+            AsyncLazy<ActiveStatementsMap>? lazyActiveStatementMap,
             bool inBreakState)
         {
             DebuggingSession = debuggingSession;
@@ -105,9 +106,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Telemetry = telemetry;
             InBreakState = inBreakState;
 
-            BaseActiveStatements = inBreakState ?
+            BaseActiveStatements = lazyActiveStatementMap ?? (inBreakState ?
                 new AsyncLazy<ActiveStatementsMap>(GetBaseActiveStatementsAsync, cacheResult: true) :
-                new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty);
+                new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty));
 
             Capabilities = new AsyncLazy<EditAndContinueCapabilities>(GetCapabilitiesAsync, cacheResult: true);
             Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements, Capabilities);
@@ -718,6 +719,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var oldSolution = DebuggingSession.LastCommittedSolution;
 
                 var isBlocked = false;
+                var hasEmitErrors = false;
                 foreach (var newProject in solution.Projects)
                 {
                     await PopulateChangedAndAddedDocumentsAsync(oldSolution, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
@@ -904,7 +906,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     else
                     {
                         // error
-                        isBlocked = true;
+                        isBlocked = hasEmitErrors = true;
                     }
 
                     // TODO: https://github.com/dotnet/roslyn/issues/36061
@@ -929,7 +931,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 var update = isBlocked ?
-                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError) :
+                    SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable(), syntaxError, hasEmitErrors) :
                     new SolutionUpdate(
                         new ManagedModuleUpdates(
                             (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
