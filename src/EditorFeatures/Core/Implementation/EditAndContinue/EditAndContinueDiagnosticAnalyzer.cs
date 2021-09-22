@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
@@ -37,23 +39,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document designTimeDocument, CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
+            var workspace = designTimeDocument.Project.Solution.Workspace;
 
-            // do not load EnC service and its dependencies if the app is not running:
-            var debuggingService = workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
-            if (debuggingService.CurrentDebuggingState == DebuggingState.Design)
+            if (workspace.Services.HostServices is not IMefHostExportProvider mefServices)
             {
-                return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+                return ImmutableArray<Diagnostic>.Empty;
             }
 
-            return AnalyzeSemanticsImplAsync(workspace, document, cancellationToken);
-        }
+            // avoid creating and synchronizing compile-time solution if the Hot Reload/EnC session is not active
+            if (mefServices.GetExports<ManagedEditAndContinueLanguageService>().SingleOrDefault()?.Value.Service.IsSessionActive != true &&
+                mefServices.GetExports<ManagedHotReloadLanguageService>().SingleOrDefault()?.Value.Service.IsSessionActive != true)
+            {
+                return ImmutableArray<Diagnostic>.Empty;
+            }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsImplAsync(Workspace workspace, Document designTimeDocument, CancellationToken cancellationToken)
-        {
             var designTimeSolution = designTimeDocument.Project.Solution;
             var compileTimeSolution = workspace.Services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(designTimeSolution);
 
