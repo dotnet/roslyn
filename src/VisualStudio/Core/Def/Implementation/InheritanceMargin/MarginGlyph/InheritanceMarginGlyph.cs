@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // It ensures the focus won't be left at the margin
             if (e.Key == Key.Escape)
             {
-               ResetFocus();
+                ResetFocus();
             }
         }
 
