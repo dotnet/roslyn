@@ -647,60 +647,65 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion ClassifyStandardImplicitConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var conversion = ClassifyStandardImplicitConversionInternal(source, destination, ref useSiteInfo);
+            var conversion = classifyConversion(source, destination, ref useSiteInfo);
             Debug.Assert(conversion.Kind == ConversionKind.NoConversion || IsStandardImplicitConversionFromType(conversion.Kind));
             return conversion;
-        }
 
-        private Conversion ClassifyStandardImplicitConversionInternal(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            Debug.Assert((object)source != null);
-            Debug.Assert((object)destination != null);
-            Debug.Assert(source is not FunctionTypeSymbol);
-
-            if (HasIdentityConversionInternal(source, destination))
+            Conversion classifyConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                return Conversion.Identity;
-            }
+                Debug.Assert((object)source != null);
+                Debug.Assert((object)destination != null);
 
-            if (HasImplicitNumericConversion(source, destination))
-            {
-                return Conversion.ImplicitNumeric;
-            }
+                if (HasIdentityConversionInternal(source, destination))
+                {
+                    return Conversion.Identity;
+                }
 
-            var nullableConversion = ClassifyImplicitNullableConversion(source, destination, ref useSiteInfo);
-            if (nullableConversion.Exists)
-            {
-                return nullableConversion;
-            }
+                if (HasImplicitNumericConversion(source, destination))
+                {
+                    return Conversion.ImplicitNumeric;
+                }
 
-            if (HasImplicitReferenceConversion(source, destination, ref useSiteInfo))
-            {
-                return Conversion.ImplicitReference;
-            }
+                var nullableConversion = ClassifyImplicitNullableConversion(source, destination, ref useSiteInfo);
+                if (nullableConversion.Exists)
+                {
+                    return nullableConversion;
+                }
 
-            if (HasBoxingConversion(source, destination, ref useSiteInfo))
-            {
-                return Conversion.Boxing;
-            }
+                if (source is FunctionTypeSymbol)
+                {
+                    Debug.Assert(false);
+                    return Conversion.NoConversion;
+                }
 
-            if (HasImplicitPointerToVoidConversion(source, destination))
-            {
-                return Conversion.PointerToVoid;
-            }
+                if (HasImplicitReferenceConversion(source, destination, ref useSiteInfo))
+                {
+                    return Conversion.ImplicitReference;
+                }
 
-            if (HasImplicitPointerConversion(source, destination, ref useSiteInfo))
-            {
-                return Conversion.ImplicitPointer;
-            }
+                if (HasBoxingConversion(source, destination, ref useSiteInfo))
+                {
+                    return Conversion.Boxing;
+                }
 
-            var tupleConversion = ClassifyImplicitTupleConversion(source, destination, ref useSiteInfo);
-            if (tupleConversion.Exists)
-            {
-                return tupleConversion;
-            }
+                if (HasImplicitPointerToVoidConversion(source, destination))
+                {
+                    return Conversion.PointerToVoid;
+                }
 
-            return Conversion.NoConversion;
+                if (HasImplicitPointerConversion(source, destination, ref useSiteInfo))
+                {
+                    return Conversion.ImplicitPointer;
+                }
+
+                var tupleConversion = ClassifyImplicitTupleConversion(source, destination, ref useSiteInfo);
+                if (tupleConversion.Exists)
+                {
+                    return tupleConversion;
+                }
+
+                return Conversion.NoConversion;
+            }
         }
 
         private Conversion ClassifyImplicitBuiltInConversionSlow(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
