@@ -206,12 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression argument,
             bool isLeftOfAssignment)
         {
-            // Lowered code:
-            // ref var receiver = receiverExpr;
-            // int length = receiver.length;
-            // int index = argument.GetOffset(length);
-            // receiver[index];
-
             var F = _factory;
 
             Debug.Assert(receiver.Type is { });

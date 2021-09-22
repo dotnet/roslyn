@@ -3089,11 +3089,70 @@ static class SideEffect
         Console.WriteLine(i2);
     }
 }
-", TestOptions.ReleaseExe); ;
+", TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput:
 @"Get
 GetIdx
 Length
+Indexer get
+3
+");
+        }
+
+        [Fact]
+        [WorkItem(54085, "https://github.com/dotnet/roslyn/issues/54085")]
+        public void OrderOfEvaluation_02()
+        {
+            var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
+using System;
+
+class CollectionX
+{
+    private int[] _array = new[] { 1, 2, 3 };
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Length"");
+            return _array.Length;
+        }
+    }
+
+    public ref int this[int index]
+    {
+        get
+        {
+            Console.WriteLine(""Indexer get"");
+            return ref _array[index];
+        }
+    }
+}
+
+static class SideEffect
+{
+    static CollectionX Get()
+    {
+        Console.WriteLine(""Get"");
+        return new CollectionX();
+    }
+    static int GetIdx()
+    {
+        Console.WriteLine(""GetIdx"");
+        return 1;
+    }
+
+    public static void Main()
+    {
+        int i2 =  Get()[^GetIdx()];
+        Console.WriteLine(i2);
+    }
+}
+", TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"Get
+Length
+GetIdx
 Indexer get
 3
 ");
