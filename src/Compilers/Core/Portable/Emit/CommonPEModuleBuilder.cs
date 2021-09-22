@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (_synthesizedTypeMembers.TryGetValue(container, out var defs))
             {
-                compileEmitTypes = defs.NestedTypes.OrderBy(t => t.Name);
+                compileEmitTypes = defs.NestedTypes?.OrderBy(t => t.Name);
             }
 
             if (declareTypes == null)
