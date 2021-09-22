@@ -103,7 +103,7 @@ These are _function_type_conversions_.
 
         static void Main()
         {
-            F(() => () => 1, 2); // C#9: ok; C#10: ambiguous
+            F(() => () => 1, 2); // C#9: F(Func<Func<object>>, int); C#10: ambiguous
         }
     }
     ```
