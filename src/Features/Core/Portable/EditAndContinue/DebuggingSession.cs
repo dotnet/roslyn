@@ -131,6 +131,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             _baselineAccessLock.ExitWriteLock();
             _baselineAccessLock.Dispose();
+
+            if (Interlocked.Exchange(ref _pendingUpdate, null) != null)
+            {
+                throw new InvalidOperationException($"Pending update has not been committed or discarded.");
+            }
         }
 
         internal void ThrowIfDisposed()
@@ -151,13 +156,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 update.NonRemappableRegions));
 
             // commit/discard was not called:
-            Contract.ThrowIfFalse(previousPendingUpdate == null);
+            if (previousPendingUpdate != null)
+            {
+                throw new InvalidOperationException($"Previous update has not been committed or discarded.");
+            }
         }
 
         private PendingSolutionUpdate RetrievePendingUpdate()
         {
             var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
-            Contract.ThrowIfNull(pendingUpdate);
+            if (pendingUpdate == null)
+            {
+                throw new InvalidOperationException($"No pending update.");
+            }
+
             return pendingUpdate;
         }
 
