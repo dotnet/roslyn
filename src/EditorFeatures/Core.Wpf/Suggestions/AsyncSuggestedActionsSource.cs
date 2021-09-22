@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         if (priority != null)
                         {
                             var allSets = GetCodeFixesAndRefactoringsAsync(
-                                state, requestedActionCategories, document, range, selection, _ => null,
+                                state, requestedActionCategories, document, range, selection, _ => null, includeSuppressionFixes: false,
                                 priority.Value, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
                             await foreach (var set in allSets)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         }
 
                         // Ensure we always complete the collector even if we didn't add any items to it.
-                        // This ensures that we unblock the UI from displaying all the results for that 
+                        // This ensures that we unblock the UI from displaying all the results for that
                         // priority class.
                         collector.Complete();
                         completedCollectors.Add(collector);
@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
+                bool includeSuppressionFixes,
                 CodeActionRequestPriority priority,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
@@ -133,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var fixesTask = GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                    addOperationScope, priority, isBlocking: false, cancellationToken);
+                    addOperationScope, includeSuppressionFixes, priority, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
                     state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
                     addOperationScope, priority, isBlocking: false, cancellationToken);

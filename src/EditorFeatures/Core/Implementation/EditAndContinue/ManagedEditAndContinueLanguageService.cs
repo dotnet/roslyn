@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
     internal sealed class ManagedEditAndContinueLanguageService : IManagedEditAndContinueLanguageService, IEditAndContinueSolutionProvider
     {
-        private readonly Lazy<IManagedEditAndContinueDebuggerService> _debuggerService;
         private readonly EditAndContinueLanguageService _encService;
 
         /// <summary>
@@ -37,8 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
             Lazy<IManagedEditAndContinueDebuggerService> debuggerService)
         {
-            _encService = new EditAndContinueLanguageService(workspaceProvider, diagnosticService, diagnosticUpdateSource);
-            _debuggerService = debuggerService;
+            _encService = new EditAndContinueLanguageService(workspaceProvider, debuggerService, diagnosticService, diagnosticUpdateSource);
         }
 
         public EditAndContinueLanguageService Service => _encService;
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 return Task.CompletedTask;
             }
 
-            return _encService.StartSessionAsync(_debuggerService.Value, cancellationToken).AsTask();
+            return _encService.StartSessionAsync(cancellationToken).AsTask();
         }
 
         public Task EnterBreakStateAsync(CancellationToken cancellationToken)
@@ -75,14 +73,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public Task<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
             => _encService.HasChangesAsync(sourceFilePath, cancellationToken).AsTask();
 
-        public async Task<ManagedModuleUpdates> GetManagedModuleUpdatesAsync(CancellationToken cancellationToken)
-            => (await _encService.GetUpdatesAsync(trackActiveStatements: true, cancellationToken).ConfigureAwait(false)).updates;
+        public Task<ManagedModuleUpdates> GetManagedModuleUpdatesAsync(CancellationToken cancellationToken)
+            => _encService.GetEditAndContinueUpdatesAsync(cancellationToken).AsTask();
 
         public Task<SourceSpan?> GetCurrentActiveStatementPositionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
-            => _encService.GetCurrentActiveStatementPositionAsync(instruction, cancellationToken);
+            => _encService.GetCurrentActiveStatementPositionAsync(instruction, cancellationToken).AsTask();
 
         public Task<bool?> IsActiveStatementInExceptionRegionAsync(ManagedInstructionId instruction, CancellationToken cancellationToken)
-            => _encService.IsActiveStatementInExceptionRegionAsync(instruction, cancellationToken);
+            => _encService.IsActiveStatementInExceptionRegionAsync(instruction, cancellationToken).AsTask();
 
         public event Action<Solution> SolutionCommitted
         {

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             ImmutableArray<DocumentId> documentsWithRudeEdits = default)
         {
             _debuggerService.GetActiveStatementsImpl = () => activeStatements.NullToEmpty();
-            session.BreakStateChanged(inBreakState: true, out var documentsToReanalyze);
+            session.BreakStateOrCapabilitiesChanged(inBreakState: true, out var documentsToReanalyze);
             AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
         }
 
@@ -180,7 +180,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             ImmutableArray<DocumentId> documentsWithRudeEdits = default)
         {
             _debuggerService.GetActiveStatementsImpl = () => ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
-            session.BreakStateChanged(inBreakState: false, out var documentsToReanalyze);
+            session.BreakStateOrCapabilitiesChanged(inBreakState: false, out var documentsToReanalyze);
+            AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
+        }
+
+        private static void CapabilitiesChanged(
+            DebuggingSession session,
+            ImmutableArray<DocumentId> documentsWithRudeEdits = default)
+        {
+            session.BreakStateOrCapabilitiesChanged(inBreakState: null, out var documentsToReanalyze);
             AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
         }
 
@@ -1696,8 +1704,9 @@ class C { int Y => 2; }
             EndDebuggingSession(debuggingSession);
         }
 
-        [Fact]
-        public async Task Capabilities()
+        [Theory]
+        [CombinatorialData]
+        public async Task Capabilities(bool breakState)
         {
             var source1 = "class C { void M() { } }";
             var source2 = "[System.Obsolete]class C { void M() { } }";
@@ -1720,21 +1729,39 @@ class C { int Y => 2; }
             var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
             AssertEx.Empty(diagnostics);
 
-            EnterBreakState(debuggingSession);
+            if (breakState)
+            {
+                EnterBreakState(debuggingSession);
+            }
 
             diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
             AssertEx.Empty(diagnostics);
 
             // attach to additional processes - at least one process that does not allow updating custom attributes:
-            ExitBreakState(debuggingSession);
+            if (breakState)
+            {
+                ExitBreakState(debuggingSession);
+            }
+
             _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
-            EnterBreakState(debuggingSession);
+
+            if (breakState)
+            {
+                EnterBreakState(debuggingSession);
+            }
+            else
+            {
+                CapabilitiesChanged(debuggingSession);
+            }
 
             diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
             AssertEx.Equal(new[] { "ENC0101: " + string.Format(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.class_) },
                diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
-            ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+            if (breakState)
+            {
+                ExitBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+            }
 
             diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
             AssertEx.Equal(new[] { "ENC0101: " + string.Format(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.class_) },
@@ -1743,12 +1770,23 @@ class C { int Y => 2; }
             // detach from processes that do not allow updating custom attributes:
             _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline", "ChangeCustomAttributes");
 
-            EnterBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+            if (breakState)
+            {
+                EnterBreakState(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+            }
+            else
+            {
+                CapabilitiesChanged(debuggingSession, documentsWithRudeEdits: ImmutableArray.Create(documentId));
+            }
 
             diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
             AssertEx.Empty(diagnostics);
 
-            ExitBreakState(debuggingSession);
+            if (breakState)
+            {
+                ExitBreakState(debuggingSession);
+            }
+
             EndDebuggingSession(debuggingSession);
         }
 
@@ -3922,7 +3960,7 @@ class C
             await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.EmitSolutionUpdateAsync(solution, s_noActiveSpans, CancellationToken.None));
             await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.GetCurrentActiveStatementPositionAsync(solution, s_noActiveSpans, instructionId: default, CancellationToken.None));
             await Assert.ThrowsAsync<ObjectDisposedException>(async () => await debuggingSession.IsActiveStatementInExceptionRegionAsync(solution, instructionId: default, CancellationToken.None));
-            Assert.Throws<ObjectDisposedException>(() => debuggingSession.BreakStateChanged(inBreakState: true, out _));
+            Assert.Throws<ObjectDisposedException>(() => debuggingSession.BreakStateOrCapabilitiesChanged(inBreakState: true, out _));
             Assert.Throws<ObjectDisposedException>(() => debuggingSession.DiscardSolutionUpdate());
             Assert.Throws<ObjectDisposedException>(() => debuggingSession.CommitSolutionUpdate(out _));
             Assert.Throws<ObjectDisposedException>(() => debuggingSession.EndSession(out _, out _));

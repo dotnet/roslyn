@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<Solution, ManagedInstructionId, bool?>? IsActiveStatementInExceptionRegionImpl;
         public Action<Document>? OnSourceFileUpdatedImpl;
         public ActionOut<ImmutableArray<DocumentId>>? CommitSolutionUpdateImpl;
-        public ActionOut<bool, ImmutableArray<DocumentId>>? BreakStateChangesImpl;
+        public ActionOut<bool?, ImmutableArray<DocumentId>>? BreakStateOrCapabilitiesChangedImpl;
         public Action? DiscardSolutionUpdateImpl;
         public Func<Document, ActiveStatementSpanProvider, ImmutableArray<Diagnostic>>? GetDocumentDiagnosticsImpl;
 
@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
         }
 
-        public void BreakStateChanged(DebuggingSessionId sessionId, bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
-            BreakStateChangesImpl?.Invoke(inBreakState, out documentsToReanalyze);
+            BreakStateOrCapabilitiesChangedImpl?.Invoke(inBreakState, out documentsToReanalyze);
         }
 
         public void CommitSolutionUpdate(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
