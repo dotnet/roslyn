@@ -489,11 +489,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-
-        void FilterDiagnostics(DiagnosticBag diagnostics)
-        {
-            
-        }
         // </Caravela>
     }
 }

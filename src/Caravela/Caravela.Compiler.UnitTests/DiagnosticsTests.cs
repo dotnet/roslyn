@@ -104,69 +104,89 @@ namespace Caravela.Compiler.UnitTests
             Assert.DoesNotContain("warning CS0169: The field 'C._f' is never used", output);
             Assert.DoesNotContain("warning CS0169: The field 'D._f' is never used", output);
         }
-    }
 
-    internal class WarningForEachClassAnalyzer : DiagnosticAnalyzer
-    {
-        private readonly StringWriter? _outWriter;
-
-        private readonly DiagnosticDescriptor _warning = new("MY001", "", "Found a class '{0}'.",
-            "test", DiagnosticSeverity.Warning, true);
-
-        private readonly DiagnosticDescriptor _error = new("MY002", "", "Found a class '{0}'.",
-            "test", DiagnosticSeverity.Error, true);
-
-        public WarningForEachClassAnalyzer(StringWriter? outWriter = null)
+        [Fact]
+        public void SourceCodeCanReferenceGeneratedCode()
         {
-            _outWriter = outWriter;
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C {  D _d;  }");
+
+            var args = new[] { "/t:library", src.Path };
+
+            var transformers = new ISourceTransformer[] { new AppendTransformer("class D { }") }
+                .ToImmutableArray();
+            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+            var output = outWriter.ToString();
+
+            Assert.Equal(0, exitCode);
         }
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(_warning, _error);
 
-        public override void Initialize(AnalysisContext context)
+        private class WarningForEachClassAnalyzer : DiagnosticAnalyzer
         {
-            context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
-            _outWriter?.WriteLine("Analyzer initialized.");
-        }
+            private readonly StringWriter? _outWriter;
 
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
-        {
-            _outWriter?.WriteLine("Analyzing syntax tree.");
+            private readonly DiagnosticDescriptor _warning = new("MY001", "", "Found a class '{0}'.",
+                "test", DiagnosticSeverity.Warning, true);
 
-            foreach (var c in context.Tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
+            private readonly DiagnosticDescriptor _error = new("MY002", "", "Found a class '{0}'.",
+                "test", DiagnosticSeverity.Error, true);
+
+            public WarningForEachClassAnalyzer(StringWriter? outWriter = null)
             {
-                _outWriter?.WriteLine($"Analyzing '{c.Identifier.Text}'.");
-                context.ReportDiagnostic(Diagnostic.Create(_warning, c.Location, c.Identifier.Text));
-                context.ReportDiagnostic(Diagnostic.Create(_error, c.Location, c.Identifier.Text));
+                _outWriter = outWriter;
+            }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+                ImmutableArray.Create(_warning, _error);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
+                _outWriter?.WriteLine("Analyzer initialized.");
+            }
+
+            private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
+            {
+                _outWriter?.WriteLine("Analyzing syntax tree.");
+
+                foreach (var c in context.Tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
+                {
+                    _outWriter?.WriteLine($"Analyzing '{c.Identifier.Text}'.");
+                    context.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(_warning, c.Location, c.Identifier.Text));
+                    context.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(_error, c.Location, c.Identifier.Text));
+                }
             }
         }
-    }
 
-    internal class AppendTransformer : ISourceTransformer
-    {
-        private readonly CompilationUnitSyntax _newCode;
-
-        public AppendTransformer(string newCode)
+        private class AppendTransformer : ISourceTransformer
         {
-            _newCode = (CompilationUnitSyntax)SyntaxFactory.ParseSyntaxTree(newCode).GetRoot()!;
+            private readonly CompilationUnitSyntax _newCode;
+
+            public AppendTransformer(string newCode)
+            {
+                _newCode = (CompilationUnitSyntax)SyntaxFactory.ParseSyntaxTree(newCode).GetRoot()!;
+            }
+
+            public void Execute(TransformerContext context)
+            {
+                var syntaxTree = context.Compilation.SyntaxTrees.Single();
+                var oldRoot = (CompilationUnitSyntax)syntaxTree.GetRoot();
+                var newRoot = oldRoot.AddMembers(_newCode.Members.ToArray());
+                var modifiedSyntaxTree = syntaxTree.WithRootAndOptions(newRoot, syntaxTree.Options);
+                context.Compilation = context.Compilation.ReplaceSyntaxTree(syntaxTree, modifiedSyntaxTree);
+            }
         }
 
-        public void Execute(TransformerContext context)
+        private  class SuppressAnythingTransformer : ISourceTransformer
         {
-            var syntaxTree = context.Compilation.SyntaxTrees.Single();
-            var oldRoot = (CompilationUnitSyntax)syntaxTree.GetRoot();
-            var newRoot = oldRoot.AddMembers(_newCode.Members.ToArray());
-            var modifiedSyntaxTree = syntaxTree.WithRootAndOptions(newRoot, syntaxTree.Options);
-            context.Compilation = context.Compilation.ReplaceSyntaxTree(syntaxTree, modifiedSyntaxTree);
-        }
-    }
-
-    internal class SuppressAnythingTransformer : ISourceTransformer
-    {
-        public void Execute(TransformerContext context)
-        {
-            context.RegisterDiagnosticFilter(request => request.Suppress());
+            public void Execute(TransformerContext context)
+            {
+                context.RegisterDiagnosticFilter(request => request.Suppress());
+            }
         }
     }
 }
