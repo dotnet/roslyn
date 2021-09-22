@@ -1843,6 +1843,7 @@ class G
             var delta = updates.Updates.Single();
             Assert.Empty(delta.UpdatedTypes);
 
+            debuggingSession.DiscardSolutionUpdate();
             EndDebuggingSession(debuggingSession);
         }
 
