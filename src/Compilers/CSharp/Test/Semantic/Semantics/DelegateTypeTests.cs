@@ -6477,6 +6477,63 @@ D4");
             Assert.Equal(expectedType, type.ToTestDisplayString());
         }
 
+        [Fact]
+        public void ClassifyConversionFromExpressionToFunctionType()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        object o = () => 1;
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var funcOfT = comp.GetWellKnownType(WellKnownType.System_Func_T);
+            var tree = comp.SyntaxTrees[0];
+            var expr = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+            model = ((CSharpSemanticModel)model).GetMemberModel(expr);
+
+            verifyConversions(model, expr, comp.GetSpecialType(SpecialType.System_MulticastDelegate).GetPublicSymbol(), ConversionKind.FunctionType, ConversionKind.FunctionType);
+            verifyConversions(model, expr, comp.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression).GetPublicSymbol(), ConversionKind.FunctionType, ConversionKind.FunctionType);
+            verifyConversions(model, expr, getFunctionType(funcOfT.Construct(comp.GetSpecialType(SpecialType.System_Int32))), ConversionKind.FunctionType, ConversionKind.FunctionType);
+            verifyConversions(model, expr, getFunctionType(funcOfT.Construct(comp.GetSpecialType(SpecialType.System_Object))), ConversionKind.NoConversion, ConversionKind.NoConversion);
+
+            static ITypeSymbol getFunctionType(NamedTypeSymbol delegateType)
+            {
+                return new FunctionTypeSymbol_PublicModel(new FunctionTypeSymbol(delegateType));
+            }
+
+            static void verifyConversions(SemanticModel model, ExpressionSyntax expr, ITypeSymbol destination, ConversionKind expectedImplicitKind, ConversionKind expectedExplicitKind)
+            {
+                Assert.Equal(expectedImplicitKind, model.ClassifyConversion(expr, destination, isExplicitInSource: false).Kind);
+                Assert.Equal(expectedExplicitKind, model.ClassifyConversion(expr, destination, isExplicitInSource: true).Kind);
+            }
+        }
+
+        private sealed class FunctionTypeSymbol_PublicModel : Symbols.PublicModel.TypeSymbol
+        {
+            private readonly FunctionTypeSymbol _underlying;
+
+            internal FunctionTypeSymbol_PublicModel(FunctionTypeSymbol underlying) :
+                base(nullableAnnotation: default)
+            {
+                _underlying = underlying;
+            }
+
+            internal override TypeSymbol UnderlyingTypeSymbol => _underlying;
+            internal override NamespaceOrTypeSymbol UnderlyingNamespaceOrTypeSymbol => _underlying;
+            internal override Symbol UnderlyingSymbol => _underlying;
+
+            protected override void Accept(SymbolVisitor visitor) => throw new NotImplementedException();
+            protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor) => throw new NotImplementedException();
+            protected override ITypeSymbol WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation) => this;
+        }
+
         [WorkItem(56407, "https://github.com/dotnet/roslyn/issues/56407")]
         [Fact]
         public void UserDefinedConversions_01()

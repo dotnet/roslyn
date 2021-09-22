@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            else if (sourceExpression.GetFunctionType() is { })
+            else if (sourceExpression.GetFunctionType() is { } sourceFunctionType)
             {
-                if (IsValidFunctionTypeConversionTarget(destination, ref useSiteInfo))
+                if (HasImplicitFunctionTypeConversion(sourceFunctionType, destination, ref useSiteInfo))
                 {
                     return Conversion.FunctionType;
                 }
@@ -181,11 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Helper method that calls <see cref="ClassifyImplicitConversionFromType"/> or
-        /// <see cref="HasImplicitFunctionTypeConversion"/> depending on whether the
+        /// <see cref="HasImplicitFunctionTypeToFunctionTypeConversion"/> depending on whether the
         /// types are <see cref="FunctionTypeSymbol"/> instances.
         /// Used by method type inference and best common type only.
         /// </summary>
-        public Conversion ClassifyImplicitConversionFromTypeOrImplicitFunctionTypeConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public Conversion ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var sourceFunctionType = source as FunctionTypeSymbol;
             var destinationFunctionType = destination as FunctionTypeSymbol;
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (sourceFunctionType is { } && destinationFunctionType is { })
             {
-                return HasImplicitFunctionTypeConversion(sourceFunctionType, destinationFunctionType, ref useSiteInfo) ?
+                return HasImplicitFunctionTypeToFunctionTypeConversion(sourceFunctionType, destinationFunctionType, ref useSiteInfo) ?
                     Conversion.FunctionType :
                     Conversion.NoConversion;
             }
@@ -1314,9 +1314,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            else if (sourceExpression.GetFunctionType() is { })
+            else if (sourceExpression.GetFunctionType() is { } sourceFunctionType)
             {
-                if (IsValidFunctionTypeConversionTarget(destination, ref useSiteInfo))
+                if (HasImplicitFunctionTypeConversion(sourceFunctionType, destination, ref useSiteInfo))
                 {
                     return Conversion.FunctionType;
                 }
@@ -2669,6 +2669,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private bool HasImplicitFunctionTypeConversion(FunctionTypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (destination is FunctionTypeSymbol destinationFunctionType)
+            {
+                return HasImplicitFunctionTypeToFunctionTypeConversion(source, destinationFunctionType, ref useSiteInfo);
+            }
+
+            return IsValidFunctionTypeConversionTarget(destination, ref useSiteInfo);
+        }
+
         internal bool IsValidFunctionTypeConversionTarget(TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (destination.SpecialType == SpecialType.System_MulticastDelegate)
@@ -2691,7 +2701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool HasImplicitFunctionTypeConversion(FunctionTypeSymbol sourceType, FunctionTypeSymbol destinationType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool HasImplicitFunctionTypeToFunctionTypeConversion(FunctionTypeSymbol sourceType, FunctionTypeSymbol destinationType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var sourceDelegate = sourceType.GetInternalDelegateType();
             var destinationDelegate = destinationType.GetInternalDelegateType();
