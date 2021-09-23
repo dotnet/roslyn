@@ -244,50 +244,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Continue For
                     End If
 
-                    result = result Or GetQuickAttributes(QuickAttributeChecker.GetFinalName(simpleImportsClause.Name), InAttribute:=False)
+                    result = result Or QuickAttriubuteHelpers.GetQuickAttributes(QuickAttributeChecker.GetFinalName(simpleImportsClause.Name), inAttribute:=False)
                 Next
             Next
 
             Return result
-        End Function
-
-        Private Shared Function GetQuickAttributes(name As String, inAttribute As Boolean) As QuickAttributes
-            Dim result = QuickAttributes.None
-
-            If Matches(name, inAttribute, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
-                result = result Or QuickAttributes.Extension
-            ElseIf Matches(name, inAttribute, AttributeDescription.ObsoleteAttribute) Then
-                result = result Or QuickAttributes.Obsolete
-            ElseIf Matches(name, inAttribute, AttributeDescription.DeprecatedAttribute) Then
-                result = result Or QuickAttributes.Obsolete
-            ElseIf Matches(name, inAttribute, AttributeDescription.ExperimentalAttribute) Then
-                result = result Or QuickAttributes.Obsolete
-            ElseIf Matches(name, inAttribute, AttributeDescription.MyGroupCollectionAttribute) Then
-                result = result Or QuickAttributes.TypeIdentifier
-            ElseIf Matches(name, inAttribute, AttributeDescription.TypeIdentifierAttribute) Then
-                result = result Or QuickAttributes.MyGroupCollection
-            End If
-
-            Return result
-        End Function
-
-        Private Shared Function Matches(name As String, inAttribute As Boolean, description As AttributeDescription) As Boolean
-            Debug.Assert(description.Name.EndsWith(NameOf(System.Attribute)))
-
-            If IdentifierComparison.Comparer.Equals(name, description.Name) Then
-                Return True
-            End If
-
-            ' In an attribute context the name might be referenced as the full name (Like 'TypeForwardedToAttribute')
-            ' Or the short name (Like 'TypeForwardedTo').
-            If inAttribute AndAlso
-               (name.Length + NameOf(Attribute).Length) = description.Name.Length AndAlso
-               description.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase) Then
-
-                Return True
-            End If
-
-            Return False
         End Function
 
         ' Given a set of single declarations, get the sets of global and non-global declarations.
@@ -613,7 +574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim result = QuickAttributes.None
             For Each attributeList In attributeLists
                 For Each attribute In attributeList.Attributes
-                    result = result Or GetQuickAttributes(QuickAttributeChecker.GetFinalName(attribute.Name), inAttribute:=True)
+                    result = result Or QuickAttriubuteHelpers.GetQuickAttributes(QuickAttributeChecker.GetFinalName(attribute.Name), inAttribute:=True)
                 Next
             Next
 

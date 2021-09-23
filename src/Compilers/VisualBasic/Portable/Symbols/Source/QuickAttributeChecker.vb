@@ -135,4 +135,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         MyGroupCollection = 1 << 2
         TypeIdentifier = 1 << 3
     End Enum
+
+    Friend Class QuickAttriubuteHelpers
+        ''' <summary>
+        ''' Returns the <see cref="QuickAttributes"/> that corresponds to the particular type 
+        ''' <paramref name="name"/> passed in.  If <paramref name="inAttribute"/> Is <see langword="true"/>
+        ''' then the name will be checked both as-Is as well as with the 'Attribute' suffix.
+        ''' </summary>
+        Public Shared Function GetQuickAttributes(name As String, inAttribute As Boolean) As QuickAttributes
+            Dim result = QuickAttributes.None
+
+            If Matches(name, inAttribute, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
+                result = result Or QuickAttributes.Extension
+            ElseIf Matches(name, inAttribute, AttributeDescription.ObsoleteAttribute) Then
+                result = result Or QuickAttributes.Obsolete
+            ElseIf Matches(name, inAttribute, AttributeDescription.DeprecatedAttribute) Then
+                result = result Or QuickAttributes.Obsolete
+            ElseIf Matches(name, inAttribute, AttributeDescription.ExperimentalAttribute) Then
+                result = result Or QuickAttributes.Obsolete
+            ElseIf Matches(name, inAttribute, AttributeDescription.MyGroupCollectionAttribute) Then
+                result = result Or QuickAttributes.TypeIdentifier
+            ElseIf Matches(name, inAttribute, AttributeDescription.TypeIdentifierAttribute) Then
+                result = result Or QuickAttributes.MyGroupCollection
+            End If
+
+            Return result
+        End Function
+
+        Private Shared Function Matches(name As String, inAttribute As Boolean, description As AttributeDescription) As Boolean
+            Debug.Assert(description.Name.EndsWith(NameOf(System.Attribute)))
+
+            If IdentifierComparison.Comparer.Equals(name, description.Name) Then
+                Return True
+            End If
+
+            ' In an attribute context the name might be referenced as the full name (Like 'TypeForwardedToAttribute')
+            ' Or the short name (Like 'TypeForwardedTo').
+            If inAttribute AndAlso
+               (name.Length + NameOf(Attribute).Length) = description.Name.Length AndAlso
+               description.Name.StartsWith(name, StringComparison.OrdinalIgnoreCase) Then
+
+                Return True
+            End If
+
+            Return False
+        End Function
+    End Class
 End Namespace
