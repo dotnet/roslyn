@@ -150,6 +150,28 @@ Delta: Gamma: Beta: Test B
             Assert.Equal(@"", actual);
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void AssemblyLoading_DependencyInDifferentDirectory()
+        {
+            StringBuilder sb = new StringBuilder();
+            var loader = new DefaultAnalyzerAssemblyLoader();
+
+            var tempDir = Temp.CreateDirectory();
+
+            var deltaFile = tempDir.CreateFile("Delta.dll").CopyContentFrom(_testFixture.Delta1.Path);
+            loader.AddDependencyLocation(deltaFile.Path);
+            loader.AddDependencyLocation(_testFixture.Gamma.Path);
+            Assembly gamma = loader.LoadFromPath(_testFixture.Gamma.Path);
+
+            var b = gamma.CreateInstance("Gamma.G")!;
+            var writeMethod = b.GetType().GetMethod("Write")!;
+            writeMethod.Invoke(b, new object[] { sb, "Test G" });
+
+            var actual = sb.ToString();
+            Assert.Equal(@"Delta: Gamma: Test G
+", actual);
+        }
+
         [Fact]
         public void AssemblyLoading_MultipleVersions()
         {
