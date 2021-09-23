@@ -518,7 +518,8 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
         public static ImmutableArray<UnifiedSuggestedActionSet> FilterAndOrderActionSets(
             ImmutableArray<UnifiedSuggestedActionSet> fixes,
             ImmutableArray<UnifiedSuggestedActionSet> refactorings,
-            TextSpan? selectionOpt)
+            TextSpan? selectionOpt,
+            int currentActionCount)
         {
             // Get the initial set of action sets, with refactorings and fixes appropriately
             // ordered against each other.
@@ -528,7 +529,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 
             // Now that we have the entire set of action sets, inline, sort and filter
             // them appropriately against each other.
-            var allActionSets = InlineActionSetsIfDesirable(result);
+            var allActionSets = InlineActionSetsIfDesirable(result, currentActionCount);
             var orderedActionSets = OrderActionSets(allActionSets, selectionOpt);
             var filteredSets = FilterActionSetsByTitle(orderedActionSets);
 
@@ -592,17 +593,15 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             => new(set.CategoryName, set.Actions, set.Title, priority, set.ApplicableToSpan);
 
         private static ImmutableArray<UnifiedSuggestedActionSet> InlineActionSetsIfDesirable(
-            ImmutableArray<UnifiedSuggestedActionSet> allActionSets)
+            ImmutableArray<UnifiedSuggestedActionSet> allActionSets,
+            int currentActionCount)
         {
             // If we only have a single set of items, and that set only has three max suggestion
             // offered. Then we can consider inlining any nested actions into the top level list.
             // (but we only do this if the parent of the nested actions isn't invokable itself).
-            if (allActionSets.Sum(a => a.Actions.Count()) > 3)
-            {
-                return allActionSets;
-            }
-
-            return allActionSets.SelectAsArray(InlineActions);
+            return currentActionCount + allActionSets.Sum(a => a.Actions.Count()) > 3
+                ? allActionSets
+                : allActionSets.SelectAsArray(InlineActions);
         }
 
         private static UnifiedSuggestedActionSet InlineActions(UnifiedSuggestedActionSet actionSet)

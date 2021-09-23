@@ -464,6 +464,7 @@ public class P2 { }");
             {
                 "using System.IO;",
                 "Rename 'P2' to 'Stream'",
+                "Generate type 'Foober'",
                 "System.IO.Stream",
                 "Generate class 'Stream' in new file",
                 "Generate class 'Stream'",

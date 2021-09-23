@@ -192,13 +192,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return ConvertToSuggestedActionSets(
                         state, selection,
                         fixesTask.WaitAndGetResult(cancellationToken),
-                        refactoringsTask.WaitAndGetResult(cancellationToken));
+                        refactoringsTask.WaitAndGetResult(cancellationToken),
+                        currentActionCount: 0);
                 }
             }
 
-            protected IEnumerable<SuggestedActionSet> ConvertToSuggestedActionSets(ReferenceCountedDisposable<State> state, TextSpan? selection, ImmutableArray<UnifiedSuggestedActionSet> fixes, ImmutableArray<UnifiedSuggestedActionSet> refactorings)
+            protected IEnumerable<SuggestedActionSet> ConvertToSuggestedActionSets(
+                ReferenceCountedDisposable<State> state,
+                TextSpan? selection,
+                ImmutableArray<UnifiedSuggestedActionSet> fixes,
+                ImmutableArray<UnifiedSuggestedActionSet> refactorings,
+                int currentActionCount)
             {
-                var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
+                var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection, currentActionCount);
                 return filteredSets.SelectAsArray(s => ConvertToSuggestedActionSet(s, state.Target.Owner, state.Target.SubjectBuffer)).WhereNotNull();
             }
 

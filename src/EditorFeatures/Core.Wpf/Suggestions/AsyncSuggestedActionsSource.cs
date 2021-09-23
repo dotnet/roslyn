@@ -89,6 +89,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     if (document is null)
                         return;
 
+                    // Keep track of how many actions we've put in the lightbulb at each priority level.  We do
+                    // this as each priority level will both sort and inline actions.  However, we don't want to
+                    // inline actions at each priority if it's going to make the total number of actions too high.
+                    // This does mean we might inline actions from a higher priority group, and then disable 
+                    // inlining for lower pri groups.  However, intuitively, that is what we want.  More important
+                    // items should be pushed higher up, and less important items shouldn't take up that much space.
+                    var currentActionCount = 0;
+
                     // Collectors are in priority order.  So just walk them from highest to lowest.
                     foreach (var collector in collectors)
                     {
@@ -109,10 +117,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 range, selection,
                                 addOperationScope: _ => null,
                                 includeSuppressionFixes: priority.Value == CodeActionRequestPriority.Normal,
-                                priority.Value, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
+                                priority.Value,
+                                currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
                             await foreach (var set in allSets)
+                            {
+                                currentActionCount += set.Actions.Count();
                                 collector.Add(set);
+                            }
                         }
 
                         // Ensure we always complete the collector even if we didn't add any items to it.
@@ -133,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Func<string, IDisposable?> addOperationScope,
                 bool includeSuppressionFixes,
                 CodeActionRequestPriority priority,
+                int currentActionCount,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
                 var workspace = document.Project.Solution.Workspace;
@@ -146,7 +159,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     addOperationScope, priority, isBlocking: false, cancellationToken);
 
                 await Task.WhenAll(fixesTask, refactoringsTask).ConfigureAwait(false);
-                foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes: await fixesTask.ConfigureAwait(false), refactorings: await refactoringsTask.ConfigureAwait(false)))
+
+                var fixes = await fixesTask.ConfigureAwait(false);
+                var refactorings = await refactoringsTask.ConfigureAwait(false);
+                foreach (var set in ConvertToSuggestedActionSets(state, selection, fixes, refactorings, currentActionCount))
                     yield return set;
             }
         }

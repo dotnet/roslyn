@@ -233,7 +233,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, CodeActionRequestPriority.None, isBlocking: false,
                 addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
-            var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(codeFixes, codeRefactorings, textSpan);
+            var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(
+                codeFixes, codeRefactorings, textSpan, currentActionCount: 0);
             return actionSets;
         }
 
