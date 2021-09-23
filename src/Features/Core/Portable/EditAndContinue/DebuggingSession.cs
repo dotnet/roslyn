@@ -109,7 +109,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Id = id;
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
-            EditSession = new EditSession(this, nonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, _editSessionTelemetry, inBreakState: false);
+
+            EditSession = new EditSession(
+                this,
+                nonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
+                _editSessionTelemetry,
+                lazyActiveStatementMap: null,
+                inBreakState: false);
+
             ReportDiagnostics = reportDiagnostics;
         }
 
@@ -131,6 +138,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             _baselineAccessLock.ExitWriteLock();
             _baselineAccessLock.Dispose();
+
+            if (Interlocked.Exchange(ref _pendingUpdate, null) != null)
+            {
+                throw new InvalidOperationException($"Pending update has not been committed or discarded.");
+            }
         }
 
         internal void ThrowIfDisposed()
@@ -151,13 +163,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 update.NonRemappableRegions));
 
             // commit/discard was not called:
-            Contract.ThrowIfFalse(previousPendingUpdate == null);
+            if (previousPendingUpdate != null)
+            {
+                throw new InvalidOperationException($"Previous update has not been committed or discarded.");
+            }
         }
 
         private PendingSolutionUpdate RetrievePendingUpdate()
         {
             var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
-            Contract.ThrowIfNull(pendingUpdate);
+            if (pendingUpdate == null)
+            {
+                throw new InvalidOperationException($"No pending update.");
+            }
+
             return pendingUpdate;
         }
 
@@ -180,15 +199,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Dispose();
         }
 
-        public void BreakStateChanged(bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void BreakStateOrCapabilitiesChanged(bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
             => RestartEditSession(nonRemappableRegions: null, inBreakState, out documentsToReanalyze);
 
-        internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+        internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             ThrowIfDisposed();
 
             EndEditSession(out documentsToReanalyze);
-            EditSession = new EditSession(this, nonRemappableRegions ?? EditSession.NonRemappableRegions, EditSession.Telemetry, inBreakState);
+
+            EditSession = new EditSession(
+                this,
+                nonRemappableRegions ?? EditSession.NonRemappableRegions,
+                EditSession.Telemetry,
+                (inBreakState == null) ? EditSession.BaseActiveStatements : null,
+                inBreakState ?? EditSession.InBreakState);
         }
 
         private ImmutableArray<IDisposable> GetBaselineModuleReaders()

@@ -2315,11 +2315,7 @@ unsafe class Test
         Span<double> obj2 = stackalloc double[2] { 1, 1.2 };
         _ = stackalloc double[2] { 1, 1.2 };
     }
-}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,13): error CS8353: A result of a stackalloc expression of type 'Span<double>' cannot be used in this context because it may be exposed outside of the containing method
-                //         _ = stackalloc double[2] { 1, 1.2 };
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc double[2] { 1, 1.2 }").WithArguments("System.Span<double>").WithLocation(9, 13)
-                );
+}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -2425,11 +2421,7 @@ unsafe class Test
         Span<double> obj2 = stackalloc[] { 1, 1.2 };
         _ = stackalloc[] { 1, 1.2 };
     }
-}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (9,13): error CS8353: A result of a stackalloc expression of type 'Span<double>' cannot be used in this context because it may be exposed outside of the containing method
-                //         _ = stackalloc[] { 1, 1.2 };
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc[] { 1, 1.2 }").WithArguments("System.Span<double>").WithLocation(9, 13)
-                );
+}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
