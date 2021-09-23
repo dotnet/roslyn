@@ -1437,6 +1437,16 @@
         <target state="translated">El argumento InterpolatedStringHandlerArgument no tiene ningún efecto cuando se aplica a parámetros lambda y se omitirá en el sitio de llamada.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MethGrpToNonDel">
+        <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
+        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MethGrpToNonDel_Title">
+        <source>Converting method group to non-delegate type</source>
+        <target state="new">Converting method group to non-delegate type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">El parámetro "{0}" debe tener un valor que no sea NULL al salir porque el parámetro "{1}" no es NULL.</target>

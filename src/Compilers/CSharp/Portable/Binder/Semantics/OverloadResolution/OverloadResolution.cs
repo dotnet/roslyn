@@ -1634,24 +1634,6 @@ outerDefault:
             worse.Free();
         }
 
-        // Merge upstream/dev15.6.x
-#if false
-        // Return the parameter type corresponding to the given argument index.
-        private TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
-        {
-            RefKind discarded;
-            return GetParameterType(argIndex, result, parameters, out discarded);
-        }
-
-        // Return the parameter type corresponding to the given argument index.
-        private TypeSymbol GetParameterType(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, out RefKind refKind)
-        {
-            int paramIndex = result.ParameterFromArgument(argIndex);
-            ParameterSymbol parameter = parameters[paramIndex];
-            refKind = parameter.RefKind;
-            var type = _binder.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(parameter).TypeSymbol;
-
-#endif
         /// <summary>
         /// Returns the parameter type (considering params).
         /// </summary>
@@ -1678,6 +1660,7 @@ outerDefault:
             return parameters[paramIndex];
         }
 
+#nullable enable
         private BetterResult BetterFunctionMember<TMember>(
             MemberResolutionResult<TMember> m1,
             MemberResolutionResult<TMember> m2,
@@ -1688,6 +1671,16 @@ outerDefault:
             Debug.Assert(m1.Result.IsValid);
             Debug.Assert(m2.Result.IsValid);
             Debug.Assert(arguments != null);
+
+            // Prefer overloads that did not use the inferred type of lambdas or method groups
+            // to infer generic method type arguments or to convert arguments.
+            switch (RequiredFunctionType(m1), RequiredFunctionType(m2))
+            {
+                case (false, true):
+                    return BetterResult.Left;
+                case (true, false):
+                    return BetterResult.Right;
+            }
 
             // Omit ref feature for COM interop: We can pass arguments by value for ref parameters if we are calling a method/property on an instance of a COM imported type.
             // We should have ignored the 'ref' on the parameter while determining the applicability of argument for the given method call.
@@ -2113,6 +2106,29 @@ outerDefault:
             return PreferValOverInOrRefInterpolatedHandlerParameters(arguments, m1, m1LeastOverriddenParameters, m2, m2LeastOverriddenParameters);
         }
 
+        /// <summary>
+        /// Returns true if the overload required a function type conversion to infer
+        /// generic method type arguments or to convert to parameter types.
+        /// </summary>
+        private static bool RequiredFunctionType<TMember>(MemberResolutionResult<TMember> m)
+            where TMember : Symbol
+        {
+            Debug.Assert(m.Result.IsValid);
+
+            if (m.HasTypeArgumentInferredFromFunctionType)
+            {
+                return true;
+            }
+
+            var conversionsOpt = m.Result.ConversionsOpt;
+            if (conversionsOpt.IsDefault)
+            {
+                return false;
+            }
+
+            return conversionsOpt.Any(c => c.Kind == ConversionKind.FunctionType);
+        }
+
         private static BetterResult PreferValOverInOrRefInterpolatedHandlerParameters<TMember>(
             ArrayBuilder<BoundExpression> arguments,
             MemberResolutionResult<TMember> m1,
@@ -2176,6 +2192,7 @@ outerDefault:
                     _ => false
                 };
         }
+#nullable disable
 
         private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, out int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
         {
@@ -2447,6 +2464,16 @@ outerDefault:
                     case (_, ConversionKind.InterpolatedStringHandler):
                         return BetterResult.Right;
                 }
+            }
+
+            switch ((conv1.Kind, conv2.Kind))
+            {
+                case (ConversionKind.FunctionType, ConversionKind.FunctionType):
+                    break;
+                case (_, ConversionKind.FunctionType):
+                    return BetterResult.Left;
+                case (ConversionKind.FunctionType, _):
+                    return BetterResult.Right;
             }
 
             // Given an implicit conversion C1 that converts from an expression E to a type T1, 
@@ -3398,6 +3425,7 @@ outerDefault:
             bool ignoreOpenTypes;
             MethodSymbol method;
             EffectiveParameters effectiveParameters;
+            bool hasTypeArgumentsInferredFromFunctionType = false;
             if (member.Kind == SymbolKind.Method && (method = (MethodSymbol)(Symbol)member).Arity > 0)
             {
                 if (typeArgumentsBuilder.Count == 0 && arguments.HasDynamicArgument && !inferWithDynamic)
@@ -3432,6 +3460,7 @@ outerDefault:
                                             leastOverriddenMethod.ConstructedFrom.TypeParameters,
                                             arguments,
                                             originalEffectiveParameters,
+                                            out hasTypeArgumentsInferredFromFunctionType,
                                             out inferenceError,
                                             ref useSiteInfo);
                         if (typeArguments.IsDefault)
@@ -3510,7 +3539,7 @@ outerDefault:
                 ignoreOpenTypes: ignoreOpenTypes,
                 completeResults: completeResults,
                 useSiteInfo: ref useSiteInfo);
-            return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult);
+            return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult, hasTypeArgumentsInferredFromFunctionType);
         }
 
         private ImmutableArray<TypeWithAnnotations> InferMethodTypeArguments(
@@ -3518,6 +3547,7 @@ outerDefault:
             ImmutableArray<TypeParameterSymbol> originalTypeParameters,
             AnalyzedArguments arguments,
             EffectiveParameters originalEffectiveParameters,
+            out bool hasTypeArgumentsInferredFromFunctionType,
             out MemberAnalysisResult error,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -3540,6 +3570,7 @@ outerDefault:
 
             if (inferenceResult.Success)
             {
+                hasTypeArgumentsInferredFromFunctionType = inferenceResult.HasTypeArgumentInferredFromFunctionType;
                 error = default(MemberAnalysisResult);
                 return inferenceResult.InferredTypeArguments;
             }
@@ -3554,11 +3585,13 @@ outerDefault:
                     useSiteInfo: ref useSiteInfo);
                 if (inferredFromFirstArgument.IsDefault)
                 {
+                    hasTypeArgumentsInferredFromFunctionType = false;
                     error = MemberAnalysisResult.TypeInferenceExtensionInstanceArgumentFailed();
                     return default(ImmutableArray<TypeWithAnnotations>);
                 }
             }
 
+            hasTypeArgumentsInferredFromFunctionType = false;
             error = MemberAnalysisResult.TypeInferenceFailed();
             return default(ImmutableArray<TypeWithAnnotations>);
         }
