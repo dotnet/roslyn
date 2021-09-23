@@ -4082,6 +4082,69 @@ public class Bar : BaseClass
 
         [Fact]
         [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullFieldToClassBeforeDirective1()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public int ba[||]r = 10;
+    #region Hello
+    public int Goo = 10;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int bar = 10;
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int Goo = 10;
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullFieldToClassBeforeDirective2()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public int bar = 10;
+    #region Hello
+    public int Go[||]o = 10;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 10;
+}
+
+public class Bar : BaseClass
+{
+    public int bar = 10;
+
+    #region Hello
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
         public Task TestPullFieldToClassBeforeDirective()
         {
             var text = @"
