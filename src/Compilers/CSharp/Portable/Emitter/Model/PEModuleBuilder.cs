@@ -208,13 +208,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        public sealed override List<(Cci.ITypeDefinition, Cci.DebugSourceDocument[])> GetTypeToDebugDocumentMap(EmitContext context)
+        public sealed override ImmutableArray<(Cci.ITypeDefinition, ImmutableArray<Cci.DebugSourceDocument>)> GetTypeToDebugDocumentMap(EmitContext context)
         {
             var debugDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
             var methodDocumentList = PooledHashSet<Cci.DebugSourceDocument>.GetInstance();
-            var result = new List<(Cci.ITypeDefinition, Cci.DebugSourceDocument[])>();
+            var result = ArrayBuilder<(Cci.ITypeDefinition, ImmutableArray<Cci.DebugSourceDocument>)>.GetInstance();
 
-            var namespacesAndTypesToProcess = new Stack<NamespaceOrTypeSymbol>();
+            var namespacesAndTypesToProcess = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
             namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace);
             while (namespacesAndTypesToProcess.Count > 0)
             {
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                         if (debugDocuments.Count > 0)
                         {
-                            result.Add((typeDefinition, debugDocuments.ToArray()));
+                            result.Add((typeDefinition, debugDocuments.ToImmutable()));
                         }
 
                         debugDocuments.Clear();
@@ -276,9 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                 }
             }
+
+            namespacesAndTypesToProcess.Free();
             debugDocuments.Free();
             methodDocumentList.Free();
-            return result;
+            return result.ToImmutableAndFree();
         }
 
         /// <summary>

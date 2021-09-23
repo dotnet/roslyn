@@ -637,12 +637,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return container.GetSynthesizedNestedTypes()
         End Function
 
-        Public Overrides Function GetTypeToDebugDocumentMap(context As EmitContext) As List(Of (Cci.ITypeDefinition, Cci.DebugSourceDocument()))
-            Dim result = New List(Of (Cci.ITypeDefinition, Cci.DebugSourceDocument()))
+        Public Overrides Function GetTypeToDebugDocumentMap(context As EmitContext) As ImmutableArray(Of (Cci.ITypeDefinition, ImmutableArray(Of Cci.DebugSourceDocument)))
+            Dim result = ArrayBuilder(Of (Cci.ITypeDefinition, ImmutableArray(Of Cci.DebugSourceDocument))).GetInstance()
             Dim debugDocuments = ArrayBuilder(Of Cci.DebugSourceDocument).GetInstance()
             Dim methodDocumentList = PooledHashSet(Of Cci.DebugSourceDocument).GetInstance()
 
-            Dim namespacesAndTypesToProcess = New Stack(Of NamespaceOrTypeSymbol)()
+            Dim namespacesAndTypesToProcess = ArrayBuilder(Of NamespaceOrTypeSymbol).GetInstance()
             namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace)
 
             While namespacesAndTypesToProcess.Count > 0
@@ -688,7 +688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         Next
 
                         If debugDocuments.Count > 0 Then
-                            result.Add((typeDefinition, debugDocuments.ToArray()))
+                            result.Add((typeDefinition, debugDocuments.ToImmutable()))
                         End If
                         debugDocuments.Clear()
                         methodDocumentList.Clear()
@@ -697,10 +697,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End Select
             End While
 
+            namespacesAndTypesToProcess.Free()
             debugDocuments.Free()
             methodDocumentList.Free()
 
-            Return result
+            Return result.ToImmutableAndFree()
         End Function
 
         Private Shared Sub GetDocumentsForMethods(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typeDefinition As Cci.ITypeDefinition, context As EmitContext)
