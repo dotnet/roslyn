@@ -499,6 +499,26 @@ if (true)
 #end$$if", "#if DEBUG#elif RELEASE");
         }
 
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task EndIfHasNoQuickinfo_MissingIf_1()
+        {
+            await TestAsync(
+@$"
+#end$$if", "");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task EndIfHasNoQuickinfo_MissingIf_2()
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+#endif
+#end$$if", "");
+        }
+
         private static QuickInfoProvider CreateProvider()
             => new CSharpSyntacticQuickInfoProvider();
 
