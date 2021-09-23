@@ -83,7 +83,8 @@ regular expression;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">Satır içi ipuçlarını göster;
+        <target state="translated">Yeniden atanan değişkenleri altını çiz;
+Satır içi ipuçlarını göster;
 Kapatılan dosyalara ilişkin tanılamaları göster;
 Normal ifadeyi renklendir; 
 İmlecin altındaki ilgili bileşenleri vurgula; 
@@ -130,7 +131,8 @@ otomatik özellikleri tercih et;
 normal ifade;
 normal ifade;
 Gelişmiş renkleri kullan;
-Düzenleyici Renk Düzeni;</target>
+Düzenleyici Renk Düzeni;
+İçe Aktarma Kenar Boşluğu;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
