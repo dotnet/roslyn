@@ -277,8 +277,10 @@ if (true)
 
         [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("$$ #endregion")]
         [InlineData("$$#endregion")]
         [InlineData("#$$endregion")]
+        [InlineData("# $$ endregion")]
         [InlineData("#endregion$$")]
         [InlineData("#endregion$$ ")]
         [InlineData("#endregion $$")]
@@ -293,18 +295,6 @@ if (true)
 @$"
 #region Start
 {endRegion}", "#region Start");
-        }
-
-        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
-        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        [InlineData("$$ #endregion")]
-        [InlineData("# $$ endregion")]
-        public async Task RegionEndHasNoQuickinfo(string endRegion)
-        {
-            await TestAsync(
-@$"
-#region Start
-{endRegion}", "");
         }
 
         [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
