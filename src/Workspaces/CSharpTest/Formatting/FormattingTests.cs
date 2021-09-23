@@ -10115,5 +10115,44 @@ namespace NS;
     class C { }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnLambda()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var f = [Attribute] () => { };
+",
+                code: @"
+var f =  [Attribute] () => { };
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnLambdaWithExplicitType()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var f = [Attribute] int () => 1;
+",
+                code: @"
+var f =  [Attribute] int () => 1;
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnLambdaInInvocation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+f([Attribute] () => { });
+",
+                code: @"
+f( [Attribute] () => { });
+");
+        }
     }
 }

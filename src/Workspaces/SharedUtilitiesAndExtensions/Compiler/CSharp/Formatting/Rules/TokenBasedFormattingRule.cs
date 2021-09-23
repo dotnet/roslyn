@@ -371,6 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // * [
             if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
+                !currentToken.Parent.IsKind(SyntaxKind.AttributeList) &&
                 !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
                 if (previousToken.IsOpenBraceOfAccessorList() ||
