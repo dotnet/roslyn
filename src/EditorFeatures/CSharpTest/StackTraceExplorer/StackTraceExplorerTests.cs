@@ -61,6 +61,7 @@ namespace ConsoleApp4
         public static void Overload(int i) => throw new Exception();
         public static void Overload(string s) => throw new Exception();
         public static void Overload(MyClass myClass) => myClass.ThrowAtOne();
+        public static void ThrowGeneric<T>(T value) => throw new Exception();
     }
 }
 ";
@@ -98,6 +99,7 @@ namespace ConsoleApp4
         [InlineData("ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#", "ConsoleApp4.MyClass.ThrowAtOne")]
         [InlineData(@"   at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26", "ConsoleApp4.MyClass.ThrowAtOne")]
         [InlineData(@"at ConsoleApp4.MyClass.ThrowAtOne()", "ConsoleApp4.MyClass.ThrowAtOne")]
+        [InlineData(@"at ConsoleApp4.MyOtherClass.ThrowGeneric<string>(string.Empty)", "ConsoleApp4.MyOtherClass.ThrowGeneric")]
         public async Task TestSymbolFound(string inputLine, string symbolText)
         {
             var workspace = CreateWorkspace();
@@ -203,7 +205,7 @@ namespace ConsoleApp4
         [Fact]
         public async Task TestActivityLog()
         {
-            var activityLogException = @"Exception occurred while loading solution options: System.Runtime.InteropServices.COMException (0x8000FFFF): Catastrophic failure (Exception from HRESULT: 0x8000FFFF (E_UNEXPECTED))&#x000D;&#x000A;   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)&#x000D;&#x000A;   at Microsoft.VisualStudio.Shell.Package.Initialize()&#x000D;&#x000A;--- End of stack trace from previous location where exception was thrown ---&#x000D;&#x000A;   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()&#x000D;&#x000A;   at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)";
+            var activityLogException = @"Exception occurred while loading solution options: System.Runtime.InteropServices.COMException (0x8000FFFF): Catastrophic failure (Exception from HRESULT: 0x8000FFFF (E_UNEXPECTED))&#x000D;&#x000A;   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)&#x000D;&#x000A;   at Microsoft.VisualStudio.Shell.Package.Initialize()&#x000D;&#x000A;--- End of stack trace from previous location where exception was thrown ---&#x000D;&#x000A;   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw&lt;string&gt;()&#x000D;&#x000A;   at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)";
 
             var result = await StackTraceAnalyzer.AnalyzeAsync(activityLogException, CancellationToken.None);
             Assert.Equal(6, result.ParsedFrames.Length);
@@ -226,7 +228,7 @@ namespace ConsoleApp4
 
             var parsedFrame5 = result.ParsedFrames[4] as ParsedStackFrame;
             AssertEx.NotNull(parsedFrame5);
-            Assert.Equal(@"at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()", parsedFrame5.OriginalText);
+            Assert.Equal(@"at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw<string>()", parsedFrame5.OriginalText);
 
             var parsedFrame6 = result.ParsedFrames[5] as ParsedStackFrame;
             AssertEx.NotNull(parsedFrame6);

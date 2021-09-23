@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
                 line = line[skipCharacters..];
             }
 
-            var regex = new Regex(@"(?<class>([a-zA-Z0-9_]+\.)+)(?<method>[a-zA-Z0-9_]+)\((?<args>.*)\).*");
+            var regex = new Regex(@"(?<class>([a-zA-Z0-9_<>]+\.)+)(?<method>[a-zA-Z0-9_<>]+)\((?<args>.*)\).*");
             if (!regex.IsMatch(line))
             {
                 return false;

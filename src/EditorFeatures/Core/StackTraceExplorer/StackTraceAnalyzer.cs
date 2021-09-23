@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,45 +49,13 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 
         private static IEnumerable<string> SplitLines(string callstack)
         {
-            // ActivityLog.xml line split
-            if (callstack.Contains("&#x000D;&#x000A;"))
-            {
-                return SplitLines(callstack, "&#x000D;&#x000A;");
-            }
+            // if the callstack comes from ActivityLog.xml it has been
+            // encoding to be passed over HTTP. This should only decode 
+            // specific characters like "&gt;" and "&lt;" to their "normal"
+            // equivalents ">" and "<" so we can parse correctly
+            callstack = WebUtility.HtmlDecode(callstack);
 
             return callstack.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        }
-
-        /// <summary>
-        /// netstandard2.0 doesn't have a split that takes a string as the split character, 
-        /// so write our own I guess :/
-        /// </summary>
-        private static IEnumerable<string> SplitLines(string callstack, string splitString)
-        {
-            var lastIndex = 0;
-            var index = callstack.IndexOf(splitString);
-
-            while (index >= 0)
-            {
-                var length = index - lastIndex;
-                var subString = callstack.Substring(lastIndex, length);
-                if (!string.IsNullOrEmpty(subString))
-                {
-                    yield return subString;
-                }
-
-                // Skip over the characters in the string we're splitting on
-                index += splitString.Length;
-
-                lastIndex = index;
-                index = callstack.IndexOf(splitString, lastIndex + 1);
-            }
-
-            // Return any leftover string after finding all instances of splitString
-            if (lastIndex >= 0 && lastIndex < callstack.Length)
-            {
-                yield return callstack.Substring(lastIndex);
-            }
         }
     }
 }
