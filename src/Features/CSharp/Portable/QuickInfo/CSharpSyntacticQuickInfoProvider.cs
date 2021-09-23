@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             return nearbyTrivia.IsSingleOrMultiLineComment();
         }
 
-        private static QuickInfoItem? ll(SyntaxToken token, CancellationToken cancellationToken)
+        private static QuickInfoItem? BuildQuickInfoDirectives(SyntaxToken token, CancellationToken cancellationToken)
         {
             if (token.Parent is EndRegionDirectiveTriviaSyntax endRegionDirectiveTrivia)
             {
