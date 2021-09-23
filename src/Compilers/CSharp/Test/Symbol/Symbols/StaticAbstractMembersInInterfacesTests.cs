@@ -26651,7 +26651,6 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            // Conversions aren't flagged due to https://github.com/dotnet/roslyn/issues/54113.
             compilation1.VerifyDiagnostics(
                 // (6,11): error CS0570: 'I1.M1()' is not supported by the language
                 //         T.M1();
