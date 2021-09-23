@@ -5093,11 +5093,105 @@ class Program
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_06()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+interface I<T> { }
+class Program
+{
+    static void F1<T>(Func<T, T> f) { }
+    static void F2<T>(Func<T, I<T>> f) { }
+    static void F3<T>(Func<I<T>, T> f) { }
+    static void F4<T>(Func<I<T>, I<T>> f) { }
+    static void F5<T>(Expression<Func<T, T>> e) { }
+    static void F6<T>(Expression<Func<T, I<T>>> e) { }
+    static void F7<T>(Expression<Func<I<T>, T>> e) { }
+    static void F8<T>(Expression<Func<I<T>, I<T>>> e) { }
+    static void Main()
+    {
+        F1(int (int i) => default);
+        F2(I<int> (int i) => default);
+        F3(int (I<int> i) => default);
+        F4(I<int> (I<int> i) => default);
+        F5(int (int i) => default);
+        F6(I<int> (int i) => default);
+        F7(int (I<int> i) => default);
+        F8(I<int> (I<int> i) => default);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_07()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+interface I<T> { }
+class Program
+{
+    static void F1<T>(Func<T, T> f) { }
+    static void F2<T>(Func<T, I<T>> f) { }
+    static void F3<T>(Func<I<T>, T> f) { }
+    static void F4<T>(Func<I<T>, I<T>> f) { }
+    static void F5<T>(Expression<Func<T, T>> e) { }
+    static void F6<T>(Expression<Func<T, I<T>>> e) { }
+    static void F7<T>(Expression<Func<I<T>, T>> e) { }
+    static void F8<T>(Expression<Func<I<T>, I<T>>> e) { }
+    static void Main()
+    {
+        F1(int (object i) => default);
+        F2(I<int> (object i) => default);
+        F3(object (I<int> i) => default);
+        F4(I<object> (I<int> i) => default);
+        F5(object (int i) => default);
+        F6(I<object> (int i) => default);
+        F7(int (I<object> i) => default);
+        F8(I<int> (I<object> i) => default);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,9): error CS0411: The type arguments for method 'Program.F1<T>(Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F1(int (object i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Func<T, T>)").WithLocation(16, 9),
+                // (17,9): error CS0411: The type arguments for method 'Program.F2<T>(Func<T, I<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F2(I<int> (object i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Func<T, I<T>>)").WithLocation(17, 9),
+                // (18,9): error CS0411: The type arguments for method 'Program.F3<T>(Func<I<T>, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F3(object (I<int> i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F3").WithArguments("Program.F3<T>(System.Func<I<T>, T>)").WithLocation(18, 9),
+                // (19,9): error CS0411: The type arguments for method 'Program.F4<T>(Func<I<T>, I<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F4(I<object> (I<int> i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F4").WithArguments("Program.F4<T>(System.Func<I<T>, I<T>>)").WithLocation(19, 9),
+                // (20,9): error CS0411: The type arguments for method 'Program.F5<T>(Expression<Func<T, T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F5(object (int i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F5").WithArguments("Program.F5<T>(System.Linq.Expressions.Expression<System.Func<T, T>>)").WithLocation(20, 9),
+                // (21,9): error CS0411: The type arguments for method 'Program.F6<T>(Expression<Func<T, I<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F6(I<object> (int i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F6").WithArguments("Program.F6<T>(System.Linq.Expressions.Expression<System.Func<T, I<T>>>)").WithLocation(21, 9),
+                // (22,9): error CS0411: The type arguments for method 'Program.F7<T>(Expression<Func<I<T>, T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F7(int (I<object> i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F7").WithArguments("Program.F7<T>(System.Linq.Expressions.Expression<System.Func<I<T>, T>>)").WithLocation(22, 9),
+                // (23,9): error CS0411: The type arguments for method 'Program.F8<T>(Expression<Func<I<T>, I<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F8(I<int> (I<object> i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F8").WithArguments("Program.F8<T>(System.Linq.Expressions.Expression<System.Func<I<T>, I<T>>>)").WithLocation(23, 9));
+        }
+
         // Variance in inference from explicit return type is disallowed
         // (see https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-06-21.md).
         [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
         [Fact]
-        public void TypeInference_ExplicitReturnType_06()
+        public void TypeInference_ExplicitReturnType_08()
         {
             var source =
 @"using System;

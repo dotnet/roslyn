@@ -1497,13 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var delegateReturnType = delegateInvokeMethod.ReturnTypeWithAnnotations;
-            if (!delegateReturnType.HasType)
-            {
-                return;
-            }
-
-            ExactInference(anonymousFunctionReturnType, delegateReturnType, ref useSiteInfo);
+            ExactInference(anonymousFunctionReturnType, delegateInvokeMethod.ReturnTypeWithAnnotations, ref useSiteInfo);
         }
 #nullable disable
 
