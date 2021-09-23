@@ -134,6 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Obsolete = 1 << 1
         MyGroupCollection = 1 << 2
         TypeIdentifier = 1 << 3
+        Last = TypeIdentifier
     End Enum
 
     Friend Class QuickAttriubuteHelpers
@@ -143,6 +144,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' then the name will be checked both as-Is as well as with the 'Attribute' suffix.
         ''' </summary>
         Public Shared Function GetQuickAttributes(name As String, inAttribute As Boolean) As QuickAttributes
+            ' Update this code if we add New quick attributes.
+            Debug.Assert(QuickAttributes.Last = QuickAttributes.TypeIdentifier)
+
             Dim result = QuickAttributes.None
 
             If Matches(name, inAttribute, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
