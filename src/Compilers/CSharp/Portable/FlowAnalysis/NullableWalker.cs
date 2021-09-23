@@ -873,8 +873,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameterState = state[slot];
                 if (hasNotNull && parameterState.MayBeNull())
                 {
+                    Location location;
+                    if (syntaxOpt is BlockSyntax blockSyntax)
+                    {
+                        location = blockSyntax.CloseBraceToken.GetLocation();
+                    }
+                    else
+                    {
+                        location = syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation();
+                    }
+
                     // Parameter '{name}' must have a non-null value when exiting.
-                    Diagnostics.Add(ErrorCode.WRN_ParameterDisallowsNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), parameter.Name);
+                    Diagnostics.Add(ErrorCode.WRN_ParameterDisallowsNull, location, parameter.Name);
                 }
                 else
                 {
@@ -6852,6 +6862,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    Action<string> x = (object o) => { }; // error CS1661: Cannot convert lambda expression to delegate type 'Action<string>' because the parameter types do not match the delegate parameter types
             //    Action<object> y = (object? o) => { }; // warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'Action<object>'.
             // https://github.com/dotnet/roslyn/issues/35564: Consider relaxing and allow implicit conversions of nullability (as we do for method group conversions).
+
+            if (lambda.Syntax is LambdaExpressionSyntax lambdaSyntax)
+            {
+                int start = lambdaSyntax.SpanStart;
+                location = Location.Create(lambdaSyntax.SyntaxTree, new Text.TextSpan(start, lambdaSyntax.ArrowToken.Span.End - start));
+            }
 
             if (SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 compilation,

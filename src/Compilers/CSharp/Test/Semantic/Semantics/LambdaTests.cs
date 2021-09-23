@@ -4151,10 +4151,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (8,27): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
                 //         Func<object> a1 = [return: MaybeNull] () => null;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: MaybeNull] () => null").WithArguments("lambda expression", "System.Func<object>").WithLocation(8, 27),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: MaybeNull] () =>").WithArguments("lambda expression", "System.Func<object>").WithLocation(8, 27),
                 // (9,28): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object?>' (possibly because of nullability attributes).
                 //         Func<object?> a2 = [return: NotNull] () => null;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: NotNull] () => null").WithArguments("lambda expression", "System.Func<object?>").WithLocation(9, 28),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: NotNull] () =>").WithArguments("lambda expression", "System.Func<object?>").WithLocation(9, 28),
                 // (9,52): warning CS8603: Possible null reference return.
                 //         Func<object?> a2 = [return: NotNull] () => null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(9, 52)
@@ -4197,13 +4197,13 @@ class Program
             comp.VerifyDiagnostics(
                 // (13,27): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
                 //         Func<object> f1 = [return: MaybeNull] () => null; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: MaybeNull] () => null").WithArguments("lambda expression", "System.Func<object>").WithLocation(13, 27),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: MaybeNull] () =>").WithArguments("lambda expression", "System.Func<object>").WithLocation(13, 27),
                 // (14,17): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D1' (possibly because of nullability attributes).
                 //         D1 f2 = [return: MaybeNull] () => null; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: MaybeNull] () => null").WithArguments("lambda expression", "D1").WithLocation(14, 17),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: MaybeNull] () =>").WithArguments("lambda expression", "D1").WithLocation(14, 17),
                 // (16,17): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D3' (possibly because of nullability attributes).
                 //         D3 f4 = [return: MaybeNull] () => null; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: MaybeNull] () => null").WithArguments("lambda expression", "D3").WithLocation(16, 17),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: MaybeNull] () =>").WithArguments("lambda expression", "D3").WithLocation(16, 17),
                 // (18,51): warning CS8603: Possible null reference return.
                 //         Func<object> f5 = [return: NotNull] () => null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(18, 51),
@@ -4212,7 +4212,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(19, 41),
                 // (20,17): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
                 //         D2 f7 = [return: NotNull] () => null; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: NotNull] () => null").WithArguments("lambda expression", "D2").WithLocation(20, 17),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: NotNull] () =>").WithArguments("lambda expression", "D2").WithLocation(20, 17),
                 // (20,41): warning CS8603: Possible null reference return.
                 //         D2 f7 = [return: NotNull] () => null; // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(20, 41),
@@ -4221,7 +4221,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(21, 41),
                 // (23,28): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object?>' (possibly because of nullability attributes).
                 //         Func<object?> f9 = [return: NotNull] () => null; // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: NotNull] () => null").WithArguments("lambda expression", "System.Func<object?>").WithLocation(23, 28),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: NotNull] () =>").WithArguments("lambda expression", "System.Func<object?>").WithLocation(23, 28),
                 // (23,52): warning CS8603: Possible null reference return.
                 //         Func<object?> f9 = [return: NotNull] () => null; // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(23, 52),
@@ -4230,7 +4230,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(24, 42),
                 // (25,18): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
                 //         D2 f11 = [return: NotNull] () => null; // 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: NotNull] () => null").WithArguments("lambda expression", "D2").WithLocation(25, 18),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: NotNull] () =>").WithArguments("lambda expression", "D2").WithLocation(25, 18),
                 // (25,42): warning CS8603: Possible null reference return.
                 //         D2 f11 = [return: NotNull] () => null; // 6
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(25, 42),
@@ -4274,42 +4274,42 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition, NotNullAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (13,53): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
+                // (13,30): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object>' (possibly because of nullability attributes).
                 //         _ = new Func<object>([return: MaybeNull] () => null); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "=>").WithArguments("lambda expression", "System.Func<object>").WithLocation(13, 53),
-                // (14,43): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D1' (possibly because of nullability attributes).
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: MaybeNull] () =>").WithArguments("lambda expression", "System.Func<object>").WithLocation(13, 30),
+                // (14,20): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D1' (possibly because of nullability attributes).
                 //         _ = new D1([return: MaybeNull] () => null); // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "=>").WithArguments("lambda expression", "D1").WithLocation(14, 43),
-                // (16,43): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D3' (possibly because of nullability attributes).
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: MaybeNull] () =>").WithArguments("lambda expression", "D1").WithLocation(14, 20),
+                // (16,20): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D3' (possibly because of nullability attributes).
                 //         _ = new D3([return: MaybeNull] () => null); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "=>").WithArguments("lambda expression", "D3").WithLocation(16, 43),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: MaybeNull] () =>").WithArguments("lambda expression", "D3").WithLocation(16, 20),
                 // (18,54): warning CS8603: Possible null reference return.
                 //         _ = new Func<object>([return: NotNull] () => null);
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(18, 54),
                 // (19,44): warning CS8603: Possible null reference return.
                 //         _ = new D1([return: NotNull] () => null);
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(19, 44),
-                // (20,41): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
+                // (20,20): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
                 //         _ = new D2([return: NotNull] () => null); // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "=>").WithArguments("lambda expression", "D2").WithLocation(20, 41),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: NotNull] () =>").WithArguments("lambda expression", "D2").WithLocation(20, 20),
                 // (20,44): warning CS8603: Possible null reference return.
                 //         _ = new D2([return: NotNull] () => null); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(20, 44),
                 // (21,44): warning CS8603: Possible null reference return.
                 //         _ = new D3([return: NotNull] () => null);
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(21, 44),
-                // (23,52): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object?>' (possibly because of nullability attributes).
+                // (23,31): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object?>' (possibly because of nullability attributes).
                 //         _ = new Func<object?>([return: NotNull] () => null); // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "=>").WithArguments("lambda expression", "System.Func<object?>").WithLocation(23, 52),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: NotNull] () =>").WithArguments("lambda expression", "System.Func<object?>").WithLocation(23, 31),
                 // (23,55): warning CS8603: Possible null reference return.
                 //         _ = new Func<object?>([return: NotNull] () => null); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(23, 55),
                 // (24,44): warning CS8603: Possible null reference return.
                 //         _ = new D1([return: NotNull] () => null);
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(24, 44),
-                // (25,41): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
+                // (25,20): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
                 //         _ = new D2([return: NotNull] () => null); // 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "=>").WithArguments("lambda expression", "D2").WithLocation(25, 41),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "[return: NotNull] () =>").WithArguments("lambda expression", "D2").WithLocation(25, 20),
                 // (25,44): warning CS8603: Possible null reference return.
                 //         _ = new D2([return: NotNull] () => null); // 6
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(25, 44),
@@ -4355,22 +4355,22 @@ class Program
             comp.VerifyDiagnostics(
                 // (13,29): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'Action<object>' (possibly because of nullability attributes).
                 //         Action<object> x1 = ([AllowNull] object o) => { }; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([AllowNull] object o) => { }").WithArguments("o", "lambda expression", "System.Action<object>").WithLocation(13, 29),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([AllowNull] object o) =>").WithArguments("o", "lambda expression", "System.Action<object>").WithLocation(13, 29),
                 // (14,17): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D1' (possibly because of nullability attributes).
                 //         D1 x2 = ([AllowNull] object o) => { }; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([AllowNull] object o) => { }").WithArguments("o", "lambda expression", "D1").WithLocation(14, 17),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([AllowNull] object o) =>").WithArguments("o", "lambda expression", "D1").WithLocation(14, 17),
                 // (16,17): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D3' (possibly because of nullability attributes).
                 //         D3 x4 = ([AllowNull] object o) => { }; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([AllowNull] object o) => { }").WithArguments("o", "lambda expression", "D3").WithLocation(16, 17),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([AllowNull] object o) =>").WithArguments("o", "lambda expression", "D3").WithLocation(16, 17),
                 // (20,17): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
                 //         D2 x7 = ([DisallowNull] object o) => { }; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([DisallowNull] object o) => { }").WithArguments("o", "lambda expression", "D2").WithLocation(20, 17),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([DisallowNull] object o) =>").WithArguments("o", "lambda expression", "D2").WithLocation(20, 17),
                 // (23,30): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
                 //         Action<object?> x9 = ([DisallowNull] object? o) => { }; // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([DisallowNull] object? o) => { }").WithArguments("o", "lambda expression", "System.Action<object?>").WithLocation(23, 30),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([DisallowNull] object? o) =>").WithArguments("o", "lambda expression", "System.Action<object?>").WithLocation(23, 30),
                 // (25,18): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
                 //         D2 x11 = ([DisallowNull] object? o) => { }; // 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([DisallowNull] object? o) => { }").WithArguments("o", "lambda expression", "D2").WithLocation(25, 18)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([DisallowNull] object? o) =>").WithArguments("o", "lambda expression", "D2").WithLocation(25, 18)
                 );
         }
 
@@ -4405,7 +4405,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(14, 83),
                 // (17,17): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D3' (possibly because of nullability attributes).
                 //         D3 f4 = [return: NotNullIfNotNull("o")] (object? o) => null; // 2, 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, @"[return: NotNullIfNotNull(""o"")] (object? o) => null").WithArguments("lambda expression", "D3").WithLocation(17, 17),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, @"[return: NotNullIfNotNull(""o"")] (object? o) =>").WithArguments("lambda expression", "D3").WithLocation(17, 17),
                 // (18,64): warning CS8603: Possible null reference return.
                 //         D4 f5 = [return: NotNullIfNotNull("o")] (object? o) => null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(18, 64)
@@ -4446,24 +4446,24 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition });
             comp.VerifyDiagnostics(
-                // (13,55): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'Action<object>' (possibly because of nullability attributes).
+                // (13,32): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'Action<object>' (possibly because of nullability attributes).
                 //         _ = new Action<object>(([AllowNull] object o) => { }); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "=>").WithArguments("o", "lambda expression", "System.Action<object>").WithLocation(13, 55),
-                // (14,43): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D1' (possibly because of nullability attributes).
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([AllowNull] object o) =>").WithArguments("o", "lambda expression", "System.Action<object>").WithLocation(13, 32),
+                // (14,20): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D1' (possibly because of nullability attributes).
                 //         _ = new D1(([AllowNull] object o) => { }); // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "=>").WithArguments("o", "lambda expression", "D1").WithLocation(14, 43),
-                // (16,43): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D3' (possibly because of nullability attributes).
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([AllowNull] object o) =>").WithArguments("o", "lambda expression", "D1").WithLocation(14, 20),
+                // (16,20): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D3' (possibly because of nullability attributes).
                 //         _ = new D3(([AllowNull] object o) => { }); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "=>").WithArguments("o", "lambda expression", "D3").WithLocation(16, 43),
-                // (20,46): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([AllowNull] object o) =>").WithArguments("o", "lambda expression", "D3").WithLocation(16, 20),
+                // (20,20): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
                 //         _ = new D2(([DisallowNull] object o) => { }); // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "=>").WithArguments("o", "lambda expression", "D2").WithLocation(20, 46),
-                // (23,60): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([DisallowNull] object o) =>").WithArguments("o", "lambda expression", "D2").WithLocation(20, 20),
+                // (23,33): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
                 //         _ = new Action<object?>(([DisallowNull] object? o) => { }); // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "=>").WithArguments("o", "lambda expression", "System.Action<object?>").WithLocation(23, 60),
-                // (25,47): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([DisallowNull] object? o) =>").WithArguments("o", "lambda expression", "System.Action<object?>").WithLocation(23, 33),
+                // (25,20): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
                 //         _ = new D2(([DisallowNull] object? o) => { }); // 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "=>").WithArguments("o", "lambda expression", "D2").WithLocation(25, 47)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([DisallowNull] object? o) =>").WithArguments("o", "lambda expression", "D2").WithLocation(25, 20)
                 );
         }
 
@@ -4486,13 +4486,13 @@ class Program
             comp.VerifyDiagnostics(
                 // (8,29): warning CS8622: Nullability of reference types in type of parameter 'x' of 'lambda expression' doesn't match the target delegate 'Action<object>' (possibly because of nullability attributes).
                 //         Action<object> a1 = ([AllowNull] x) => { x.ToString(); };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([AllowNull] x) => { x.ToString(); }").WithArguments("x", "lambda expression", "System.Action<object>").WithLocation(8, 29),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([AllowNull] x) =>").WithArguments("x", "lambda expression", "System.Action<object>").WithLocation(8, 29),
                 // (8,50): warning CS8602: Dereference of a possibly null reference.
                 //         Action<object> a1 = ([AllowNull] x) => { x.ToString(); };
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 50),
                 // (9,30): warning CS8622: Nullability of reference types in type of parameter 'x' of 'lambda expression' doesn't match the target delegate 'Action<object?>' (possibly because of nullability attributes).
                 //         Action<object?> a2 = ([DisallowNull] x) => { x.ToString(); };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([DisallowNull] x) => { x.ToString(); }").WithArguments("x", "lambda expression", "System.Action<object?>").WithLocation(9, 30)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([DisallowNull] x) =>").WithArguments("x", "lambda expression", "System.Action<object?>").WithLocation(9, 30)
                 );
         }
 
@@ -4681,11 +4681,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (10,15): warning CS8622: Nullability of reference types in type of parameter 'obj' of 'lambda expression' doesn't match the target delegate 'D' (possibly because of nullability attributes).
                 //         D d = ([NotNullWhen(true)] out object? obj) =>
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, @"([NotNullWhen(true)] out object? obj) =>
-            {
-                obj = null;
-                return true;
-            }").WithArguments("obj", "lambda expression", "D").WithLocation(10, 15),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "([NotNullWhen(true)] out object? obj) =>").WithArguments("obj", "lambda expression", "D").WithLocation(10, 15),
                 // (13,17): warning CS8762: Parameter 'obj' must have a non-null value when exiting with 'true'.
                 //                 return true;
                 Diagnostic(ErrorCode.WRN_ParameterConditionallyDisallowsNull, "return true;").WithArguments("obj", "true").WithLocation(13, 17)
@@ -4831,7 +4827,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (9,28): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string?>' (possibly because of nullability attributes).
                 //         Func<string?> f3 = string () => default!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string () => default!").WithArguments("lambda expression", "System.Func<string?>").WithLocation(9, 28));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string () =>").WithArguments("lambda expression", "System.Func<string?>").WithLocation(9, 28));
         }
 
         [Fact]
@@ -4855,7 +4851,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (10,39): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string>' (possibly because of nullability attributes).
                 //         Expression<Func<string>> e3 = string? () => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () => default").WithArguments("lambda expression", "System.Func<string>").WithLocation(10, 39));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () =>").WithArguments("lambda expression", "System.Func<string>").WithLocation(10, 39));
         }
 
         [Fact]
@@ -4915,16 +4911,16 @@ class Program
             comp.VerifyDiagnostics(
                 // (9,28): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string?>' (possibly because of nullability attributes).
                 //         Func<string?> f2 = string () => throw null!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string () => throw null!").WithArguments("lambda expression", "System.Func<string?>").WithLocation(9, 28),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string () =>").WithArguments("lambda expression", "System.Func<string?>").WithLocation(9, 28),
                 // (10,27): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string>' (possibly because of nullability attributes).
                 //         Func<string> f3 = string? () => throw null!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () => throw null!").WithArguments("lambda expression", "System.Func<string>").WithLocation(10, 27),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () =>").WithArguments("lambda expression", "System.Func<string>").WithLocation(10, 27),
                 // (13,31): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<S<object?>>' (possibly because of nullability attributes).
                 //         Func<S<object?>> f6 = S<object> () => throw null!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "S<object> () => throw null!").WithArguments("lambda expression", "System.Func<S<object?>>").WithLocation(13, 31),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "S<object> () =>").WithArguments("lambda expression", "System.Func<S<object?>>").WithLocation(13, 31),
                 // (14,30): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<S<object>>' (possibly because of nullability attributes).
                 //         Func<S<object>> f7 = S<object?> () => throw null!;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "S<object?> () => throw null!").WithArguments("lambda expression", "System.Func<S<object>>").WithLocation(14, 30));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "S<object?> () =>").WithArguments("lambda expression", "System.Func<S<object>>").WithLocation(14, 30));
         }
 
         [Fact]
@@ -4953,16 +4949,16 @@ class Program
             comp.VerifyDiagnostics(
                 // (10,30): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D1<S<object?>>' (possibly because of nullability attributes).
                 //         D1<S<object?>> f2 = (ref S<object> () => throw null!);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref S<object> () => throw null!").WithArguments("lambda expression", "D1<S<object?>>").WithLocation(10, 30),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref S<object> () =>").WithArguments("lambda expression", "D1<S<object?>>").WithLocation(10, 30),
                 // (11,29): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D1<S<object>>' (possibly because of nullability attributes).
                 //         D1<S<object>> f3 = (ref S<object?> () => throw null!);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref S<object?> () => throw null!").WithArguments("lambda expression", "D1<S<object>>").WithLocation(11, 29),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref S<object?> () =>").WithArguments("lambda expression", "D1<S<object>>").WithLocation(11, 29),
                 // (14,30): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D2<S<object?>>' (possibly because of nullability attributes).
                 //         D2<S<object?>> f6 = (ref readonly S<object> () => throw null!);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref readonly S<object> () => throw null!").WithArguments("lambda expression", "D2<S<object?>>").WithLocation(14, 30),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref readonly S<object> () =>").WithArguments("lambda expression", "D2<S<object?>>").WithLocation(14, 30),
                 // (15,29): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D2<S<object>>' (possibly because of nullability attributes).
                 //         D2<S<object>> f7 = (ref readonly S<object?> () => throw null!);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref readonly S<object?> () => throw null!").WithArguments("lambda expression", "D2<S<object>>").WithLocation(15, 29));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "ref readonly S<object?> () =>").WithArguments("lambda expression", "D2<S<object>>").WithLocation(15, 29));
         }
 
         [Fact]
@@ -5193,13 +5189,13 @@ class Program
             comp.VerifyDiagnostics(
                 // (7,28): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string?>' (possibly because of nullability attributes).
                 //         Func<string?> f1 = string () => { if (x is null) return x; return y; };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string () => { if (x is null) return x; return y; }").WithArguments("lambda expression", "System.Func<string?>").WithLocation(7, 28),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string () =>").WithArguments("lambda expression", "System.Func<string?>").WithLocation(7, 28),
                 // (7,65): warning CS8603: Possible null reference return.
                 //         Func<string?> f1 = string () => { if (x is null) return x; return y; };
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x").WithLocation(7, 65),
                 // (8,27): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string>' (possibly because of nullability attributes).
                 //         Func<string> f2 = string? () => { if (x is not null) return x; return y; };
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () => { if (x is not null) return x; return y; }").WithArguments("lambda expression", "System.Func<string>").WithLocation(8, 27));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () =>").WithArguments("lambda expression", "System.Func<string>").WithLocation(8, 27));
         }
 
         [Fact]
