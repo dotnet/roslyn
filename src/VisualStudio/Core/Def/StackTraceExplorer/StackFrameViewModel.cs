@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             try
             {
-                var document = GetDocument(out var lineNumber);
+                var (document, lineNumber) = GetDocumentAndLine();
 
                 if (document is not null)
                 {
@@ -184,76 +184,54 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         protected override IEnumerable<Inline> CreateInlines()
         {
-            var textUntilSymbol = _frame.OriginalText[.._frame.ClassSpan.Start];
-            yield return MakeClassifiedRun(ClassificationTypeNames.Text, textUntilSymbol);
-
-            var classText = _frame.OriginalText[_frame.ClassSpan.Start.._frame.ClassSpan.End];
+            yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.GetLeadingText());
 
             var classLink = new Hyperlink();
-            classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, classText));
+            classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, _frame.GetClassText()));
             classLink.Click += (s, a) => NavigateToClass();
             classLink.RequestNavigate += (s, a) => NavigateToClass();
             yield return classLink;
 
-            // +1 to the argspan end because we want to include the closing paren
-            var argEndIndex = _frame.ArgsSpan.End + 1;
 
-            var methodText = _frame.OriginalText[_frame.MethodSpan.Start..argEndIndex];
             var methodLink = new Hyperlink();
-            var methodClassifiedText = new ClassifiedText(ClassificationTypeNames.MethodName, methodText);
-            methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, methodText));
+            methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, _frame.GetMethodText()));
             methodLink.Click += (s, a) => NavigateToSymbol();
             methodLink.RequestNavigate += (s, a) => NavigateToSymbol();
             yield return methodLink;
 
             if (_frame is ParsedFrameWithFile frameWithFile)
             {
-                var textBetweenLength = frameWithFile.FileSpan.Start - argEndIndex;
-                var textBetweenSpan = new TextSpan(argEndIndex, textBetweenLength);
-                if (textBetweenSpan.Length > 0)
+                var textBetween = frameWithFile.GetTextBetweenTypeAndFile();
+                if (!string.IsNullOrEmpty(textBetween))
                 {
-                    var textBetween = _frame.OriginalText.Substring(textBetweenSpan.Start, textBetweenSpan.Length);
-                    yield return new Run(textBetween);
+                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, textBetween);
                 }
 
-                var fileText = _frame.OriginalText[frameWithFile.FileSpan.Start..frameWithFile.FileSpan.End];
+                var fileText = frameWithFile.GetFileText();
                 var fileHyperlink = new Hyperlink();
                 fileHyperlink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileText));
                 fileHyperlink.RequestNavigate += (s, e) => NavigateToFile();
                 fileHyperlink.Click += (s, e) => NavigateToFile();
                 yield return fileHyperlink;
+            }
 
-                var end = frameWithFile.FileSpan.End;
-                if (end < _frame.OriginalText.Length)
-                {
-                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.OriginalText[..end]);
-                }
-            }
-            else
-            {
-                if (argEndIndex < _frame.OriginalText.Length)
-                {
-                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.OriginalText[argEndIndex..]);
-                }
-            }
+            yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.GetTrailingText());
         }
 
-        private Document? GetDocument(out int lineNumber)
+        private (Document? document, int lineNumber) GetDocumentAndLine()
         {
             if (_cachedDocument is not null)
             {
-                lineNumber = _cachedLineNumber;
-                return _cachedDocument;
+                return (_cachedDocument, _cachedLineNumber);
             }
 
-            var potentialMatches = GetFileMatches(out _cachedLineNumber);
-            if (potentialMatches.Any())
+            if (_frame is not ParsedFrameWithFile frameWithFile)
             {
-                _cachedDocument = potentialMatches.First();
+                return (null, 0);
             }
 
-            lineNumber = _cachedLineNumber;
-            return _cachedDocument;
+            (_cachedDocument, _cachedLineNumber) = frameWithFile.GetDocumentAndLine(_workspace.CurrentSolution);
+            return (_cachedDocument, _cachedLineNumber);
         }
 
         private async Task<ISymbol?> GetSymbolAsync(CancellationToken cancellationToken)
@@ -265,46 +243,6 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
             _cachedSymbol = await _frame.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
             return _cachedSymbol;
-        }
-
-        private ImmutableArray<Document> GetFileMatches(out int lineNumber)
-        {
-            var fileLineResult = _frame as ParsedFrameWithFile;
-            Contract.ThrowIfNull(fileLineResult);
-
-            var fileText = _frame.OriginalText.Substring(fileLineResult.FileSpan.Start, fileLineResult.FileSpan.Length);
-            Debug.Assert(fileText.Contains(':'));
-
-            var splitIndex = fileText.LastIndexOf(':');
-
-            var fileName = fileText[..splitIndex];
-            var lineNumberText = fileText[(splitIndex + 1)..];
-
-            var numberRegex = new Regex("[0-9]+");
-            var match = numberRegex.Match(lineNumberText);
-            lineNumber = int.Parse(match.Value);
-
-            var documentName = Path.GetFileName(fileName);
-            var potentialMatches = new HashSet<Document>();
-
-            var solution = _workspace.CurrentSolution;
-            foreach (var project in solution.Projects)
-            {
-                foreach (var document in project.Documents)
-                {
-                    if (document.FilePath == fileName)
-                    {
-                        return ImmutableArray.Create(document);
-                    }
-
-                    else if (document.Name == documentName)
-                    {
-                        potentialMatches.Add(document);
-                    }
-                }
-            }
-
-            return potentialMatches.ToImmutableArray();
         }
     }
 }

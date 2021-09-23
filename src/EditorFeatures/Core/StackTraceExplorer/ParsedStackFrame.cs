@@ -73,5 +73,39 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 
             return null;
         }
+
+        /// <summary>
+        /// Gets all of the text prior to the <see cref="ClassSpan"/>
+        /// </summary>
+        /// <returns></returns>
+        public string GetLeadingText()
+        {
+            return OriginalText[..ClassSpan.Start];
+        }
+
+        /// <summary>
+        /// Gets the text representing the fully qualified class name
+        /// </summary>
+        public string GetClassText()
+        {
+            return OriginalText[ClassSpan.Start..ClassSpan.End];
+        }
+
+        /// <summary>
+        /// Gets the method text, including the arguments to the method
+        /// </summary>
+        public string GetMethodText()
+        {
+
+            return OriginalText[MethodSpan.Start..ArgEndIndex];
+        }
+
+        public virtual string GetTrailingText()
+        {
+            return OriginalText[ArgEndIndex..];
+        }
+
+        // +1 to the argspan end because we want to include the closing paren
+        protected int ArgEndIndex => ArgsSpan.End + 1;
     }
 }
