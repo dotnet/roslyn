@@ -464,7 +464,6 @@ public class P2 { }");
             {
                 "using System.IO;",
                 "Rename 'P2' to 'Stream'",
-                "Generate type 'Foober'",
                 "System.IO.Stream",
                 "Generate class 'Stream' in new file",
                 "Generate class 'Stream'",
@@ -513,6 +512,7 @@ namespace NS
             {
                 "Rename 'P2' to 'Foober'",
                 "Goober - using N;",
+                "Generate type 'Foober'",
                 "Generate class 'Foober' in new file",
                 "Generate class 'Foober'",
                 "Generate nested class 'Foober'",

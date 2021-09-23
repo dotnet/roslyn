@@ -593,15 +593,15 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             => new(set.CategoryName, set.Actions, set.Title, priority, set.ApplicableToSpan);
 
         private static ImmutableArray<UnifiedSuggestedActionSet> InlineActionSetsIfDesirable(
-            ImmutableArray<UnifiedSuggestedActionSet> allActionSets,
+            ImmutableArray<UnifiedSuggestedActionSet> actionSets,
             int currentActionCount)
         {
             // If we only have a single set of items, and that set only has three max suggestion
             // offered. Then we can consider inlining any nested actions into the top level list.
             // (but we only do this if the parent of the nested actions isn't invokable itself).
-            return currentActionCount + allActionSets.Sum(a => a.Actions.Count()) > 3
-                ? allActionSets
-                : allActionSets.SelectAsArray(InlineActions);
+            return currentActionCount + actionSets.Sum(a => a.Actions.Count()) > 3
+                ? actionSets
+                : actionSets.SelectAsArray(InlineActions);
         }
 
         private static UnifiedSuggestedActionSet InlineActions(UnifiedSuggestedActionSet actionSet)
