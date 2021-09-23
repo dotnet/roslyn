@@ -42,7 +42,7 @@
 "Name"="Microsoft.VisualStudio.LanguageServices.ValueTracking.ValueTrackingToolWindow"
 @="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
 
-// The option page configuration is duplicated in RoslynPackage
+// The tool window configuration is duplicated in RoslynPackage
 // [ProvideToolWindow(typeof(StackTraceExplorer.StackTraceExplorerToolWindow))]
 [$RootKey$\ToolWindows\{7FF2AB69-0A20-4BF5-BAEF-24D9EB6969E1}]
 "Name"="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer.StackTraceExplorerToolWindow"

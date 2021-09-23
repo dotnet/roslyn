@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             _formatMap = formatMap;
             _classificationTypeMap = typeMap;
         }
+
         public ImmutableArray<Inline> Inlines => CreateInlines().ToImmutableArray();
 
         protected abstract IEnumerable<Inline> CreateInlines();
