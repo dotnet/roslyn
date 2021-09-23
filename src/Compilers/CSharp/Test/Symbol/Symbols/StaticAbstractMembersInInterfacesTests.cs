@@ -26661,7 +26661,10 @@ class Test
                 Diagnostic(ErrorCode.ERR_BindToBogus, "+x").WithArguments("I1.operator +(I1)").WithLocation(7, 13),
                 // (8,13): error CS0570: 'I1.operator +(I1, I1)' is not supported by the language
                 //         _ = x + y;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "x + y").WithArguments("I1.operator +(I1, I1)").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "x + y").WithArguments("I1.operator +(I1, I1)").WithLocation(8, 13),
+                // (14,16): error CS0570: 'I2<T>.implicit operator int(T)' is not supported by the language
+                //         return x;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "x").WithArguments("I2<T>.implicit operator int(T)").WithLocation(14, 16)
                 );
         }
 
