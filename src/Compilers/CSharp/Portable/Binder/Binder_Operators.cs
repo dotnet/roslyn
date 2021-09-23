@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leaveUnconvertedIfInterpolatedString
                 && kind == BinaryOperatorKind.Addition
                 && left is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true }
-                && right is BoundUnconvertedInterpolatedString)
+                && right is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true })
             {
                 Debug.Assert(right.Type.SpecialType == SpecialType.System_String);
                 var stringConstant = FoldBinaryOperator(node, BinaryOperatorKind.StringConcatenation, left, right, right.Type, diagnostics);
@@ -712,29 +712,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return convertedBinaryOperator;
             }
 
-            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
-            BoundBinaryOperator? current = unconvertedBinaryOperator;
+            var result = doRebind(diagnostics, unconvertedBinaryOperator);
+            return result;
 
-            while (current != null)
+            BoundExpression doRebind(BindingDiagnosticBag diagnostics, BoundBinaryOperator? current)
             {
-                Debug.Assert(current.IsUnconvertedInterpolatedStringAddition);
-                stack.Push(current);
-                current = current.Left as BoundBinaryOperator;
+                var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+                while (current != null)
+                {
+                    Debug.Assert(current.IsUnconvertedInterpolatedStringAddition);
+                    stack.Push(current);
+                    current = current.Left as BoundBinaryOperator;
+                }
+
+                Debug.Assert(stack.Count > 0 && stack.Peek().Left is BoundUnconvertedInterpolatedString);
+
+                BoundExpression? left = null;
+                while (stack.TryPop(out current))
+                {
+                    var right = current.Right switch
+                    {
+                        BoundUnconvertedInterpolatedString s => s,
+                        BoundBinaryOperator b => doRebind(diagnostics, b),
+                        _ => throw ExceptionUtilities.UnexpectedValue(current.Right.Kind)
+                    };
+                    left = BindSimpleBinaryOperator((BinaryExpressionSyntax)current.Syntax, diagnostics, left ?? current.Left, right, leaveUnconvertedIfInterpolatedString: false);
+                }
+
+                Debug.Assert(left != null);
+                Debug.Assert(stack.Count == 0);
+                stack.Free();
+                return left;
             }
-
-            Debug.Assert(stack.Count > 0 && stack.Peek().Left is BoundUnconvertedInterpolatedString);
-
-            BoundExpression? left = null;
-            while (stack.TryPop(out current))
-            {
-                Debug.Assert(current.Right is BoundUnconvertedInterpolatedString);
-                left = BindSimpleBinaryOperator((BinaryExpressionSyntax)current.Syntax, diagnostics, left ?? current.Left, current.Right, leaveUnconvertedIfInterpolatedString: false);
-            }
-
-            Debug.Assert(left != null);
-            Debug.Assert(stack.Count == 0);
-            stack.Free();
-            return left;
         }
 #nullable disable
 

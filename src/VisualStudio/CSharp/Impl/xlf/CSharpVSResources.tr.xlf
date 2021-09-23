@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Block_scoped">
         <source>Block scoped</source>
-        <target state="new">Block scoped</target>
+        <target state="translated">Blok kapsama alındı</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="File_scoped">
         <source>File scoped</source>
-        <target state="new">File scoped</target>
+        <target state="translated">Dosya kapsama alındı</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
-        <target state="new">Prefer 'null' check over type check</target>
+        <target state="translated">Tür denetimi yerine 'null' denetimini tercih edin</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">

@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             for (var i = 0; i < text.Length; i++)
             {
-                if (text[i] != ' ' && text[i] != '\t')
+                if (text[i] is not ' ' and not '\t')
                 {
                     return i;
                 }

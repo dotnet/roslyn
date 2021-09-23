@@ -161,12 +161,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNumericLiteral(SyntaxToken token);
         bool IsVerbatimStringLiteral(SyntaxToken token);
 
-        bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent);
-        bool IsTypeNamedDynamic(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent);
         bool IsUsingOrExternOrImport([NotNullWhen(true)] SyntaxNode? node);
         bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node);
         bool IsGlobalModuleAttribute([NotNullWhen(true)] SyntaxNode? node);
-        bool IsDeclaration(SyntaxNode node);
+        bool IsDeclaration([NotNullWhen(true)] SyntaxNode? node);
         bool IsTypeDeclaration(SyntaxNode node);
 
         bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node);
@@ -176,11 +174,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsElastic(SyntaxTrivia trivia);
         bool IsPragmaDirective(SyntaxTrivia trivia, out bool isDisable, out bool isActive, out SeparatedSyntaxList<SyntaxNode> errorCodes);
 
-        bool IsSingleLineCommentTrivia(SyntaxTrivia trivia);
-        bool IsMultiLineCommentTrivia(SyntaxTrivia trivia);
-        bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia);
-        bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia);
-        bool IsShebangDirectiveTrivia(SyntaxTrivia trivia);
         bool IsPreprocessorDirective(SyntaxTrivia trivia);
 
         bool IsDocumentationComment(SyntaxNode node);
@@ -395,7 +388,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsInConstructor(SyntaxNode node);
         bool IsMethodLevelMember([NotNullWhen(true)] SyntaxNode? node);
         bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node);
-        bool HasIncompleteParentMember([NotNullWhen(true)] SyntaxNode? node);
 
         /// <summary>
         /// A block that has no semantics other than introducing a new scope. That is only C# BlockSyntax.
@@ -512,11 +504,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         void GetPartsOfRecursivePattern(SyntaxNode node, out SyntaxNode? type, out SyntaxNode? positionalPart, out SyntaxNode? propertyPart, out SyntaxNode? designation);
         void GetPartsOfUnaryPattern(SyntaxNode node, out SyntaxToken operatorToken, out SyntaxNode pattern);
 
-        // Violation.  This is a feature level API.
-        SyntaxNode? GetNextExecutableStatement(SyntaxNode statement);
-
-        bool ContainsInterleavedDirective(SyntaxNode node, CancellationToken cancellationToken);
-        bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
+        bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken);
 
         SyntaxTokenList GetModifiers(SyntaxNode? node);
 
@@ -529,8 +517,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         // Violation.  This is a feature level API.
         SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token);
-
-        bool SpansPreprocessorDirective(IEnumerable<SyntaxNode> nodes);
 
         bool IsParameterNameXmlElementSyntax([NotNullWhen(true)] SyntaxNode? node);
 

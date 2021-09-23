@@ -17,15 +17,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 {
     internal class InheritanceMarginGlyphViewModel
     {
+        private readonly ClassificationTypeMap _classificationTypeMap;
+        private readonly IClassificationFormatMap _classificationFormatMap;
+        private readonly InheritanceMarginTag _tag;
+        private TextBlock? _lazyToolTipTextBlock;
+
         /// <summary>
         /// ImageMoniker used for the margin.
         /// </summary>
-        public ImageMoniker ImageMoniker { get; }
+        public ImageMoniker ImageMoniker => _tag.Moniker;
 
         /// <summary>
         /// Tooltip for the margin.
         /// </summary>
-        public TextBlock ToolTipTextBlock { get; }
+        public TextBlock ToolTipTextBlock
+        {
+            get
+            {
+                if (_lazyToolTipTextBlock is null)
+                {
+                    var members = _tag.MembersOnLine;
+                    if (members.Length == 1)
+                    {
+                        var member = _tag.MembersOnLine[0];
+
+                        // Here we want to show a classified text with loc text,
+                        // e.g. 'Bar' is inherited.
+                        // But the classified text are inlines, so can't directly use string.format to generate the string
+                        var inlines = member.DisplayTexts.ToInlines(_classificationFormatMap, _classificationTypeMap);
+                        var startOfThePlaceholder = ServicesVSResources._0_is_inherited.IndexOf("{0}", StringComparison.Ordinal);
+                        var prefixString = ServicesVSResources._0_is_inherited[..startOfThePlaceholder];
+                        var suffixString = ServicesVSResources._0_is_inherited[(startOfThePlaceholder + "{0}".Length)..];
+                        inlines.Insert(0, new Run(prefixString));
+                        inlines.Add(new Run(suffixString));
+                        var toolTipTextBlock = inlines.ToTextBlock(_classificationFormatMap);
+                        toolTipTextBlock.FlowDirection = FlowDirection.LeftToRight;
+
+                        _lazyToolTipTextBlock = toolTipTextBlock;
+                    }
+                    else
+                    {
+                        _lazyToolTipTextBlock = new TextBlock
+                        {
+                            Text = ServicesVSResources.Multiple_members_are_inherited
+                        };
+                    }
+                }
+
+                return _lazyToolTipTextBlock;
+            }
+        }
 
         /// <summary>
         /// Text used for automation.
@@ -42,16 +83,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// </summary>
         public double ScaleFactor { get; }
 
-        // Internal for testing purpose
-        internal InheritanceMarginGlyphViewModel(
-            ImageMoniker imageMoniker,
-            TextBlock toolTipTextBlock,
+        private InheritanceMarginGlyphViewModel(
+            InheritanceMarginTag tag,
+            ClassificationTypeMap classificationTypeMap,
+            IClassificationFormatMap classificationFormatMap,
             string automationName,
             double scaleFactor,
             ImmutableArray<MenuItemViewModel> menuItemViewModels)
         {
-            ImageMoniker = imageMoniker;
-            ToolTipTextBlock = toolTipTextBlock;
+            _classificationTypeMap = classificationTypeMap;
+            _classificationFormatMap = classificationFormatMap;
+            _tag = tag;
             AutomationName = automationName;
             MenuItemViewModels = menuItemViewModels;
             ScaleFactor = scaleFactor;
@@ -72,33 +114,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 var member = tag.MembersOnLine[0];
 
-                // Here we want to show a classified text with loc text,
-                // e.g. 'Bar' is inherited.
-                // But the classified text are inlines, so can't directly use string.format to generate the string
-                var inlines = member.DisplayTexts.ToInlines(classificationFormatMap, classificationTypeMap);
-                var startOfThePlaceholder = ServicesVSResources._0_is_inherited.IndexOf("{0}", StringComparison.Ordinal);
-                var prefixString = ServicesVSResources._0_is_inherited[..startOfThePlaceholder];
-                var suffixString = ServicesVSResources._0_is_inherited[(startOfThePlaceholder + "{0}".Length)..];
-                inlines.Insert(0, new Run(prefixString));
-                inlines.Add(new Run(suffixString));
-                var toolTipTextBlock = inlines.ToTextBlock(classificationFormatMap);
-                toolTipTextBlock.FlowDirection = FlowDirection.LeftToRight;
-
                 var automationName = string.Format(ServicesVSResources._0_is_inherited, member.DisplayTexts.JoinText());
                 var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForSingleMember(member.TargetItems);
-                return new InheritanceMarginGlyphViewModel(tag.Moniker, toolTipTextBlock, automationName, scaleFactor, menuItemViewModels);
+                return new InheritanceMarginGlyphViewModel(tag, classificationTypeMap, classificationFormatMap, automationName, scaleFactor, menuItemViewModels);
             }
             else
             {
-                var textBlock = new TextBlock
-                {
-                    Text = ServicesVSResources.Multiple_members_are_inherited
-                };
-
                 // Same automation name can't be set for control for accessibility purpose. So add the line number info.
                 var automationName = string.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
                 var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForMultipleMembers(tag.MembersOnLine);
-                return new InheritanceMarginGlyphViewModel(tag.Moniker, textBlock, automationName, scaleFactor, menuItemViewModels);
+                return new InheritanceMarginGlyphViewModel(tag, classificationTypeMap, classificationFormatMap, automationName, scaleFactor, menuItemViewModels);
             }
         }
     }

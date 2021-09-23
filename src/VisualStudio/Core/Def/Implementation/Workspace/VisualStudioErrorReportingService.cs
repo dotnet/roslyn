@@ -5,22 +5,40 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     internal partial class VisualStudioErrorReportingService : IErrorReportingService
     {
+        private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly IInfoBarService _infoBarService;
+        private readonly SVsServiceProvider _serviceProvider;
 
-        public VisualStudioErrorReportingService(IInfoBarService infoBarService)
-            => _infoBarService = infoBarService;
+        public VisualStudioErrorReportingService(
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IInfoBarService infoBarService,
+            SVsServiceProvider serviceProvider)
+        {
+            _threadingContext = threadingContext;
+            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
+            _infoBarService = infoBarService;
+            _serviceProvider = serviceProvider;
+        }
 
         public string HostDisplayName => "Visual Studio";
 
-        public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
+        public void ShowGlobalErrorInfo(string message, Exception? exception, params InfoBarUI[] items)
         {
+            var detailedMessage = exception is null ? "" : GetFormattedExceptionStack(exception);
+            LogGlobalErrorToActivityLog(message, detailedMessage);
             _infoBarService.ShowInfoBar(message, items);
 
             // Have to use KeyValueLogMessage so it gets reported in telemetry
@@ -46,7 +64,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     closeAfterAction: true));
             }
 
-            ShowGlobalErrorInfo(message, infoBarUIs.ToArray());
+            ShowGlobalErrorInfo(message, exception, infoBarUIs.ToArray());
+        }
+
+        private void LogGlobalErrorToActivityLog(string message, string? detailedError)
+        {
+            _ = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+            {
+                using var _ = _listener.BeginAsyncOperation(nameof(LogGlobalErrorToActivityLog));
+
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+
+                var activityLog = await ((IAsyncServiceProvider)_serviceProvider).GetServiceAsync<SVsActivityLog, IVsActivityLog>().ConfigureAwait(true);
+                activityLog.LogEntry(
+                    (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
+                    nameof(VisualStudioErrorReportingService),
+                    string.Join(Environment.NewLine, message, detailedError));
+            });
         }
     }
 }

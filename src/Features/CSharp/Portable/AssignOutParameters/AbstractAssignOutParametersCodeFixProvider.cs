@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 
             if (location is ExpressionSyntax)
             {
-                return location.Parent is ArrowExpressionClauseSyntax || location.Parent is LambdaExpressionSyntax;
+                return location.Parent is ArrowExpressionClauseSyntax or LambdaExpressionSyntax;
             }
 
             return false;
