@@ -10100,7 +10100,7 @@ _ = this is[ 0,.. var  rest ];
 {
     void M()
     {
-        _ = this is [0, ..var rest];
+        _ = this is [0, .. var rest];
     }
 }";
             await AssertFormatAsync(expectedCode, code);
@@ -10120,7 +10120,7 @@ _ = this is[ 0,.. {Count: >0} and var  rest ];
 {
     void M()
     {
-        _ = this is [0, ..{ Count: > 0 } and var rest];
+        _ = this is [0, .. { Count: > 0 } and var rest];
     }
 }";
             await AssertFormatAsync(expectedCode, code);

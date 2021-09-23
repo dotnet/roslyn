@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ..var x
             if (previousKind == SyntaxKind.DotDotToken && previousParentKind == SyntaxKind.SlicePattern)
             {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
             // No space after $" and $@" and @$" at the start of an interpolated string
