@@ -198,7 +198,7 @@ public class C
 
                 AssertEx.NotNull(symbol, $"Couldn't find symbol to go-to-def for.");
 
-                var service = project.GetRequiredLanguageService<IPdbSourceDocumentNavigationService>();
+                var service = workspace.GetService<IPdbSourceDocumentNavigationService>();
                 var file = await service.GetPdbSourceDocumentAsync(project, symbol, CancellationToken.None);
 
                 AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.MetadataAsSource;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
-    internal interface IPdbSourceDocumentNavigationService : ILanguageService
+    internal interface IPdbSourceDocumentNavigationService
     {
         Task<MetadataAsSourceFile?> GetPdbSourceDocumentAsync(Project project, ISymbol symbol, CancellationToken cancellationToken);
     }
