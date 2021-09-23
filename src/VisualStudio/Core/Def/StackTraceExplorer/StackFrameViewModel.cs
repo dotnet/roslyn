@@ -14,6 +14,9 @@ using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.GoToDefinition;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.StackTraceExplorer;
@@ -32,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         private readonly ParsedStackFrame _frame;
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
         private ISymbol? _cachedSymbol;
         private Document? _cachedDocument;
@@ -42,12 +46,14 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             IThreadingContext threadingContext,
             Workspace workspace,
             IClassificationFormatMap formatMap,
-            ClassificationTypeMap typeMap)
+            ClassificationTypeMap typeMap,
+            IStreamingFindUsagesPresenter streamingPresenter)
             : base(formatMap, typeMap)
         {
             _frame = frame;
             _threadingContext = threadingContext;
             _workspace = workspace;
+            _streamingPresenter = streamingPresenter;
         }
 
         public override bool ShowMouseOver => true;
@@ -119,28 +125,19 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     return;
                 }
 
-                var sourceLocation = symbol.Locations.FirstOrDefault(l => l.IsInSource);
-                if (sourceLocation is null || sourceLocation.SourceTree is null)
+                var success = GoToDefinitionHelpers.TryGoToDefinition(
+                    symbol,
+                    _workspace.CurrentSolution,
+                    _threadingContext,
+                    _streamingPresenter,
+                    thirdPartyNavigationAllowed: true,
+                    cancellationToken: cancellationToken);
+
+                if (!success)
                 {
                     // Show some dialog?
                     return;
                 }
-
-                var navigationService = _workspace.Services.GetService<IDocumentNavigationService>();
-                if (navigationService is null)
-                {
-                    return;
-                }
-
-                // While navigating do not activate the tab, which will change focus from the tool window
-                var options = _workspace.Options
-                        .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
-                        .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
-
-                var document = _workspace.CurrentSolution.GetRequiredDocument(sourceLocation.SourceTree);
-
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                navigationService.TryNavigateToSpan(_workspace, document.Id, sourceLocation.SourceSpan, options, cancellationToken);
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
             {

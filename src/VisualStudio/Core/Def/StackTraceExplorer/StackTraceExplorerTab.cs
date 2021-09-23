@@ -5,6 +5,7 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
@@ -22,11 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         public event EventHandler? OnClosed;
         public bool IsEmpty => _stackExplorerVM.Frames.Count == 0;
 
-        public StackTraceExplorerTab(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap, int nameIndex)
+        public StackTraceExplorerTab(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap, IStreamingFindUsagesPresenter streamingFindUsagesPresenter, int nameIndex)
         {
             NameIndex = nameIndex;
 
-            _stackExplorerVM = new StackTraceExplorerViewModel(threadingContext, workspace, typeMap, formatMap);
+            _stackExplorerVM = new StackTraceExplorerViewModel(threadingContext, workspace, typeMap, formatMap, streamingFindUsagesPresenter);
             Content = new StackTraceExplorer(_stackExplorerVM);
 
             CloseClick = new DelegateCommand(_ =>
