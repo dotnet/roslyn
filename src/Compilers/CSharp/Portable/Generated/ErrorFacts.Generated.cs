@@ -278,6 +278,7 @@
                 case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
                 case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                 case ErrorCode.WRN_CompileTimeCheckedOverflow:
+                case ErrorCode.WRN_MethGrpToNonDel:
                     return true;
                 default:
                     return false;
