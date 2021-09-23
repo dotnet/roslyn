@@ -283,6 +283,10 @@ if (true)
         [InlineData("#endregion$$ ")]
         [InlineData("#endregion $$")]
         [InlineData("#endregion\r\n$$")]
+        [InlineData("#endregion$$ End")]
+        [InlineData("#endregion $$End")]
+        [InlineData("#endregion En$$d")]
+        [InlineData("#endregion End$$")]
         public async Task RegionEndShowsStartRegionMessageAtDifferentPositions(string endRegion)
         {
             await TestAsync(

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             SyntaxToken token)
         {
             if (token != default &&
-                token.Span.IntersectsWith(context.Position))
+                token.FullSpan.IntersectsWith(context.Position))
             {
                 return await BuildQuickInfoAsync(context, token).ConfigureAwait(false);
             }
