@@ -55,11 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!decl.HasAnyAttributes)
                     continue;
 
-                if (quickAttributes != null)
-                {
-                    if ((decl.QuickAttributes & quickAttributes.Value) == 0)
-                        continue;
-                }
+                if (quickAttributes != null && (decl.QuickAttributes & quickAttributes.Value) == 0)
+                    continue;
 
                 var syntaxRef = decl.SyntaxReference;
                 var typeDecl = syntaxRef.GetSyntax();
