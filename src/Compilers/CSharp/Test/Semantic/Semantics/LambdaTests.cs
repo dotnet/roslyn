@@ -4375,6 +4375,69 @@ class Program
         }
 
         [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        public void LambdaAttributes_NullableAttributes_AnonymousFunctionConversion_Parameter_ConditionalAttributes()
+        {
+            var source =
+@"#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+delegate bool D1([MaybeNullWhen(true)] out object o);
+delegate bool D2([MaybeNullWhen(false)] out object o);
+delegate bool D3([NotNullWhen(true)] out object? o);
+
+class Program
+{
+    static void Main()
+    {
+        D1 x1 = bool ([MaybeNullWhen(true)] out object o) => throw null!;
+        D1 x2 = bool ([MaybeNullWhen(false)] out object o) => throw null!; // 1
+        D1 x3 = bool ([MaybeNull] out object o) => throw null!; // 2
+        D1 x4 = bool (out object? o) => throw null!; // 3
+
+        D2 x5 = bool ([MaybeNullWhen(true)] out object o) => throw null!; // 4
+        D2 x6 = bool ([MaybeNullWhen(false)] out object o) => throw null!;
+        D2 x7 = bool ([MaybeNull] out object o) => throw null!; // 5
+        D2 x8 = bool (out object? o) => throw null!; // 6
+
+        D3 x9 = bool ([MaybeNullWhen(true)] out object o) => throw null!; // 7
+        D3 x10 = bool ([MaybeNullWhen(false)] out object o) => throw null!;
+        D3 x11 = bool ([MaybeNull] out object o) => throw null!; // 8
+        D3 x12 = bool (out object? o) => throw null!; // 9
+    }
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullWhenAttributeDefinition, NotNullWhenAttributeDefinition, MaybeNullAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (13,17): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D1' (possibly because of nullability attributes).
+                //         D1 x2 = bool ([MaybeNullWhen(false)] out object o) => throw null!; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "bool ([MaybeNullWhen(false)] out object o) =>").WithArguments("o", "lambda expression", "D1").WithLocation(13, 17),
+                // (14,17): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D1' (possibly because of nullability attributes).
+                //         D1 x3 = bool ([MaybeNull] out object o) => throw null!; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "bool ([MaybeNull] out object o) =>").WithArguments("o", "lambda expression", "D1").WithLocation(14, 17),
+                // (15,17): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D1' (possibly because of nullability attributes).
+                //         D1 x4 = bool (out object? o) => throw null!; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "bool (out object? o) =>").WithArguments("o", "lambda expression", "D1").WithLocation(15, 17),
+                // (17,17): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
+                //         D2 x5 = bool ([MaybeNullWhen(true)] out object o) => throw null!; // 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "bool ([MaybeNullWhen(true)] out object o) =>").WithArguments("o", "lambda expression", "D2").WithLocation(17, 17),
+                // (19,17): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
+                //         D2 x7 = bool ([MaybeNull] out object o) => throw null!; // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "bool ([MaybeNull] out object o) =>").WithArguments("o", "lambda expression", "D2").WithLocation(19, 17),
+                // (20,17): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D2' (possibly because of nullability attributes).
+                //         D2 x8 = bool (out object? o) => throw null!; // 6
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "bool (out object? o) =>").WithArguments("o", "lambda expression", "D2").WithLocation(20, 17),
+                // (22,17): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D3' (possibly because of nullability attributes).
+                //         D3 x9 = bool ([MaybeNullWhen(true)] out object o) => throw null!; // 7
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "bool ([MaybeNullWhen(true)] out object o) =>").WithArguments("o", "lambda expression", "D3").WithLocation(22, 17),
+                // (24,18): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D3' (possibly because of nullability attributes).
+                //         D3 x11 = bool ([MaybeNull] out object o) => throw null!; // 8
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "bool ([MaybeNull] out object o) =>").WithArguments("o", "lambda expression", "D3").WithLocation(24, 18),
+                // (25,18): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D3' (possibly because of nullability attributes).
+                //         D3 x12 = bool (out object? o) => throw null!; // 9
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "bool (out object? o) =>").WithArguments("o", "lambda expression", "D3").WithLocation(25, 18)
+                );
+        }
+
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
         public void LambdaAttributes_NullableAttributes_AnonymousFunctionConversion_NotNullIfNotNull()
         {
             var source =
