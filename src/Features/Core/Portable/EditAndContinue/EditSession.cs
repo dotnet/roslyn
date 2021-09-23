@@ -123,6 +123,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(emitResult.Success);
             Debug.Assert(emitResult.Baseline is not null);
 
+            // if there were no changed types then there is nothing to check
+            if (emitResult.ChangedTypes.Length == 0)
+            {
+                return null;
+            }
+
             var capabilities = await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false);
             if (!capabilities.HasFlag(EditAndContinueCapabilities.NewTypeDefinition))
             {

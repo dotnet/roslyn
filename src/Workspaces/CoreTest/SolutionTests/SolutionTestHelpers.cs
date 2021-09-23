@@ -32,30 +32,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace;
         }
 
-        public static Workspace CreateWorkspaceWithPartalSemantics(Type[]? additionalParts = null)
-            => new WorkspaceWithPartialSemantics(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
-
-        private class WorkspaceWithPartialSemantics : Workspace
-        {
-            public WorkspaceWithPartialSemantics(HostServices hostServices) : base(hostServices, workspaceKind: nameof(WorkspaceWithPartialSemantics))
-            {
-            }
-
-            protected internal override bool PartialSemanticsEnabled => true;
-        }
-
-        public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp)
-        {
-            var id = ProjectId.CreateNewId();
-            return solution.AddProject(
-                ProjectInfo.Create(
-                    id,
-                    VersionStamp.Default,
-                    name: "TestProject",
-                    assemblyName: "TestProject",
-                    language: languageName)).GetRequiredProject(id);
-        }
-
 #nullable disable
 
         public static void TestProperty<T, TValue>(T instance, Func<T, TValue, T> factory, Func<T, TValue> getter, TValue validNonDefaultValue, bool defaultThrows = false)

@@ -1791,6 +1791,63 @@ class C { int Y => 2; }
         }
 
         [Fact]
+        [WorkItem(56431, "https://github.com/dotnet/roslyn/issues/56431")]
+        public async Task Capabilities_NoTypesEmitted()
+        {
+            var sourceV1 = @"
+/* GENERATE:
+class G
+{
+    int M()
+    {
+        return 1;
+    }
+}
+*/
+";
+            var sourceV2 = @"
+/* GENERATE:
+class G
+{
+    // a change that won't cause a type to be emitted
+    int M()
+    {
+        return 1;
+    }
+}
+*/
+";
+
+            var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
+
+            using var _ = CreateWorkspace(out var solution, out var service);
+            (solution, var document1) = AddDefaultTestProject(solution, sourceV1, generator);
+
+            var moduleId = EmitLibrary(sourceV1, generator: generator);
+            LoadLibraryToDebuggee(moduleId);
+
+            // attached to processes that doesn't allow creating new types
+            _debuggerService.GetCapabilitiesImpl = () => ImmutableArray.Create("Baseline");
+
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            // change the source
+            solution = solution.WithDocumentText(document1.Id, SourceText.From(sourceV2, Encoding.UTF8));
+
+            // validate solution update status and emit
+            var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+            Assert.Empty(emitDiagnostics);
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+
+            // check that no types have been updated. this used to throw
+            var delta = updates.Updates.Single();
+            Assert.Empty(delta.UpdatedTypes);
+
+            debuggingSession.DiscardSolutionUpdate();
+            EndDebuggingSession(debuggingSession);
+        }
+
+        [Fact]
         public async Task Capabilities_SynthesizedNewType()
         {
             var source1 = "class C { void M() { } }";

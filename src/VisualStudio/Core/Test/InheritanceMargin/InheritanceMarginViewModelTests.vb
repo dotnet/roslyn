@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.Remoting.Messaging
 Imports System.Threading
 Imports System.Windows
 Imports System.Windows.Documents
@@ -275,6 +276,7 @@ public class Bar3 : Bar2 {}"
                 Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, "Bar2", Nothing)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, "Bar3", Nothing))
 
             Dim tooltipTextForBar2 = String.Format(ServicesVSResources._0_is_inherited, "class Bar2")
+
             Dim targetForBar2 = ImmutableArray.Create(Of MenuItemViewModel)(
                 New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding, ServicesVSResources.Base_Types)).
                     Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, "Bar1", Nothing)).
