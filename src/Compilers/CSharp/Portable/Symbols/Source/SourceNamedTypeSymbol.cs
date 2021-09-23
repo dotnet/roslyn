@@ -771,7 +771,7 @@ next:;
         {
             // if the compilation has any global aliases to these quick attributes, then we have to return
             // all the attributes on the decl.  For example, if there is a `global using X = Y;` and 
-            // then we have to return any attributes on the type as they might say `[Y]`.
+            // then we have to return any attributes on the type as they might say `[X]`.
             if (quickAttributes != null)
             {
                 foreach (var decl in this.DeclaringCompilation.MergedRootDeclaration.Declarations)
