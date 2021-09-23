@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
             installerServiceMock.Setup(i => i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray<string>.Empty);
             installerServiceMock.Setup(i => i.TryGetPackageSources()).Returns(packageSources);
-            installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<IProgressTracker>(), It.IsAny<CancellationToken>()))
-                                .Returns(true);
+            installerServiceMock.Setup(s => s.TryInstallPackageAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<IProgressTracker>(), It.IsAny<CancellationToken>()))
+                                .Returns(Task.FromResult(true));
 
             var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
@@ -93,8 +93,8 @@ class C
             installerServiceMock.Setup(i => i.IsInstalled(It.IsAny<Workspace>(), It.IsAny<ProjectId>(), "NuGetPackage")).Returns(false);
             installerServiceMock.Setup(i => i.GetInstalledVersions("NuGetPackage")).Returns(ImmutableArray<string>.Empty);
             installerServiceMock.Setup(i => i.TryGetPackageSources()).Returns(packageSources);
-            installerServiceMock.Setup(s => s.TryInstallPackage(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<IProgressTracker>(), It.IsAny<CancellationToken>()))
-                                .Returns(true);
+            installerServiceMock.Setup(s => s.TryInstallPackageAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<string>(), "NuGetPackage", It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<IProgressTracker>(), It.IsAny<CancellationToken>()))
+                                .Returns(Task.FromResult(true));
 
             var packageServiceMock = new Mock<ISymbolSearchService>(MockBehavior.Strict);
             packageServiceMock.Setup(s => s.FindReferenceAssembliesWithTypeAsync("NuGetType", 0, It.IsAny<CancellationToken>()))
