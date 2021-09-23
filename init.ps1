@@ -67,6 +67,7 @@ Param (
 )
 
 $EnvVars = @{}
+$PrependPath = @()
 
 if (!$NoPrerequisites) {
     if (!$NoNuGetCredProvider) {
@@ -129,7 +130,7 @@ try {
         $EnvVars['LocLanguages'] = "JPN"
     }
 
-    & "$PSScriptRoot/tools/Set-EnvVars.ps1" -Variables $EnvVars | Out-Null
+    & "$PSScriptRoot/tools/Set-EnvVars.ps1" -Variables $EnvVars -PrependPath $PrependPath | Out-Null
 }
 catch {
     Write-Error $error[0]

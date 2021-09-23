@@ -1,1 +1,12 @@
-<RunSettings />
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="blame" enabled="True">
+        <Configuration>
+          <CollectDump DumpType="full" />
+          <CollectDumpOnTestSessionHang TestTimeout="30000" DumpType="full" />
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
