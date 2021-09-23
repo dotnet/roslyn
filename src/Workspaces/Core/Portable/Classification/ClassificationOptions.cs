@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Classification
     internal readonly struct ClassificationOptions
     {
         [ExportOptionProvider, Shared]
-        internal sealed class Definition : IOptionProvider
+        internal sealed class Metadata : IOptionProvider
         {
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Definition()
+            public Metadata()
             {
             }
 
@@ -41,6 +41,6 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         public static ClassificationOptions From(OptionSet options, string language)
-            => new(options.GetOption(Definition.ClassifyReassignedVariables, language));
+            => new(options.GetOption(Metadata.ClassifyReassignedVariables, language));
     }
 }
