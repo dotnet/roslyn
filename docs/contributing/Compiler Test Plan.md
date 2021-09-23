@@ -137,7 +137,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
 
 - Live Unit Testing (instrumentation)
 
-- VS Templates
+- Engage with VS Templates team (if applicable)
 
 # Eric's cheatsheet
 
