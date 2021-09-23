@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, classifiedSpans, isFullyLoaded, cancellationToken).ConfigureAwait(false))
                 return;
 
-            var options = ClassificationOptions.From(document.Project.Solution.Options, document.Project.Language);
+            var options = ClassificationOptions.From(document.Project);
             await classificationService.AddSemanticClassificationsAsync(
                 document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
         }

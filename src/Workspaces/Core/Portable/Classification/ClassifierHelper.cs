@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 return default;
             }
 
-            var options = ClassificationOptions.From(document.Project.Solution.Options, document.Project.Language);
+            var options = ClassificationOptions.From(document.Project);
 
             // Call out to the individual language to classify the chunk of text around the
             // reference. We'll get both the syntactic and semantic spans for this region.

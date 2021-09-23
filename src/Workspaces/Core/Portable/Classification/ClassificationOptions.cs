@@ -40,6 +40,9 @@ namespace Microsoft.CodeAnalysis.Classification
             ClassifyReassignedVariables = classifyReassignedVariables;
         }
 
+        public static ClassificationOptions From(Project project)
+            => From(project.Solution.Options, project.Language);
+
         public static ClassificationOptions From(OptionSet options, string language)
             => new(options.GetOption(Metadata.ClassifyReassignedVariables, language));
     }
