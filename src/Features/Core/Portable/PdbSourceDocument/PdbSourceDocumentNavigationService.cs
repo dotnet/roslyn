@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -12,21 +14,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
-    internal abstract class AbstractPdbSourceDocumentNavigationService : IPdbSourceDocumentNavigationService
+    [ExportWorkspaceService(typeof(IPdbSourceDocumentNavigationService), ServiceLayer.Host), Shared]
+    internal class PdbSourceDocumentNavigationService : IPdbSourceDocumentNavigationService
     {
         private MetadataAsSourceWorkspace? _workspace;
         private readonly IPdbFileLocatorService _pdbFileLocatorService;
         private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
 
-        protected abstract string LanguageName { get; }
-
-        protected AbstractPdbSourceDocumentNavigationService(IPdbFileLocatorService pdbFileLocatorService, IPdbSourceDocumentLoaderService pdbSourceDocumentLoaderService)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public PdbSourceDocumentNavigationService(IPdbFileLocatorService pdbFileLocatorService, IPdbSourceDocumentLoaderService pdbSourceDocumentLoaderService)
         {
             _pdbFileLocatorService = pdbFileLocatorService;
             _pdbSourceDocumentLoaderService = pdbSourceDocumentLoaderService;
@@ -49,13 +54,27 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 return null;
 
             using var dllStream = File.OpenRead(dllPath);
-            var filePaths = GetSourcePaths(symbol, dllStream, pdbStream);
+
+            using var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream, MetadataStreamOptions.LeaveOpen);
+            var pdbReader = pdbReaderProvider.GetMetadataReader();
+
+            //using var dllReaderProvider = MetadataReaderProvider.FromMetadataStream(dllStream, leaveOpen: true);   // TODO: Fails with "System.BadImageFormatException : Invalid COR20 header signature.", from tests at least
+            using var dllReaderProvider = ModuleMetadata.CreateFromStream(dllStream, leaveOpen: true);
+            var dllReader = dllReaderProvider.GetMetadataReader();
+
+            var filePaths = GetSourcePaths(symbol, dllReader, pdbReader);
             if (filePaths.Length == 0)
                 return null;
 
-            // TODO: Do we need our own workspace?
-            //       We should probably cache things from the same document
-            //       Does each assembly get its own project added to that workspace?
+            // If we have something to navigate to, then we need to construct a project etc. so for that we'll need compiler options
+            var commandLineArguments = RetreiveCompilerOptions(pdbReader, out var languageName);
+
+            if (languageName is null)
+                return null;
+
+            // TODO: Do we need our own workspace? - No, use metadata as source
+            //       We should probably cache things from the same document? - yes, and assembly etc.
+            //       Does each assembly get its own project added to that workspace? - each assembly gets its own project, and has to be distinct from the MAS project it might get
             if (_workspace == null)
             {
                 _workspace = new MetadataAsSourceWorkspace(null!, project.Solution.Workspace.Services.HostServices);
@@ -63,9 +82,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var projectId = ProjectId.CreateNewId();
-            var languageServices = _workspace.Services.GetLanguageServices(LanguageName);
-            var compilationOptions = languageServices.CompilationFactory!.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
-            var parseOptions = languageServices.GetRequiredService<ISyntaxTreeFactoryService>().GetDefaultParseOptionsWithLatestLanguageVersion();
+            var languageServices = _workspace.Services.GetLanguageServices(languageName!);
+
+            var parser = languageServices.GetRequiredService<ICommandLineParserService>();
+            var arguments = parser.Parse(commandLineArguments, baseDirectory: null, isInteractive: false, sdkDirectory: null);
+
+            var compilationOptions = arguments.CompilationOptions;
+            var parseOptions = arguments.ParseOptions;
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
 
             var documentInfos = filePaths.Select(filePath => DocumentInfo.Create(
@@ -79,7 +102,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 VersionStamp.Default,
                 name: assemblyName,
                 assemblyName: assemblyName,
-                language: LanguageName,
+                language: languageName,
                 compilationOptions: compilationOptions,
                 parseOptions: parseOptions,
                 documents: documentInfos,
@@ -94,16 +117,58 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return new MetadataAsSourceFile(navigateDocument!.FilePath, navigateLocation, navigateDocument!.Name + " [from PDB]", navigateDocument.FilePath);
         }
 
-        // TODO: Move everything below this point to a service? Or just a static class?
-        private static string[] GetSourcePaths(ISymbol symbol, Stream dllStream, Stream pdbStream)
+        private static IEnumerable<string> RetreiveCompilerOptions(MetadataReader pdbReader, out string? languageName)
         {
-            using var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream, MetadataStreamOptions.LeaveOpen);
-            var pdbReader = pdbReaderProvider.GetMetadataReader();
+            languageName = null;
 
-            //using var dllReaderProvider = MetadataReaderProvider.FromMetadataStream(dllStream, leaveOpen: true);   // TODO: Fails with "System.BadImageFormatException : Invalid COR20 header signature.", from tests at least
-            using var dllReaderProvider = ModuleMetadata.CreateFromStream(dllStream, leaveOpen: true);
-            var dllReader = dllReaderProvider.GetMetadataReader();
+            using var _ = ArrayBuilder<string>.GetInstance(out var options);
+            foreach (var handle in pdbReader.GetCustomDebugInformation(EntityHandle.ModuleDefinition))
+            {
+                var customDebugInformation = pdbReader.GetCustomDebugInformation(handle);
+                if (pdbReader.GetGuid(customDebugInformation.Kind) == PortableCustomDebugInfoKinds.CompilationOptions)
+                {
+                    var blobReader = pdbReader.GetBlobReader(customDebugInformation.Value);
 
+                    // Compiler flag bytes are UTF-8 null-terminated key-value pairs
+                    var nullIndex = blobReader.IndexOf(0);
+                    while (nullIndex >= 0)
+                    {
+                        var key = blobReader.ReadUTF8(nullIndex);
+
+                        // Skip the null terminator
+                        blobReader.ReadByte();
+
+                        nullIndex = blobReader.IndexOf(0);
+                        var value = blobReader.ReadUTF8(nullIndex);
+
+                        // key and value now have strings containing serialized compiler flag information
+                        options.Add($"/{TranslateKey(key)}:{value}");
+
+                        if (key == "language")
+                        {
+                            languageName = value;
+                        }
+
+                        // Skip the null terminator
+                        blobReader.ReadByte();
+                        nullIndex = blobReader.IndexOf(0);
+                    }
+                }
+            }
+
+            return options.ToImmutable();
+        }
+
+        private static string TranslateKey(string key)
+            => key switch
+            {
+                "output-kind" => "target",
+                _ => key
+            };
+
+        // TODO: Move everything below this point to a service? Or just a static class?
+        private static string[] GetSourcePaths(ISymbol symbol, MetadataReader dllReader, MetadataReader pdbReader)
+        {
             var documentHandles = FindSourceDocuments(symbol, dllReader, pdbReader);
 
             var result = documentHandles.Select(h => pdbReader.GetString(pdbReader.GetDocument(h).Name)).ToArray();
@@ -232,17 +297,17 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             {
                 var cdi = pdbReader.GetCustomDebugInformation(cdiHandle);
                 var guid = pdbReader.GetGuid(cdi.Kind);
-                if (guid == PortableCustomDebugInfoKinds.TypeDocuments)
-                {
-                    if (((TypeDefinitionHandle)cdi.Parent).Equals(typeDefHandle))
-                    {
-                        var reader = pdbReader.GetBlobReader(cdi.Value);
-                        while (reader.RemainingBytes > 0)
-                        {
-                            docList.Add(MetadataTokens.DocumentHandle(reader.ReadCompressedInteger()));
-                        }
-                    }
-                }
+                //if (guid == PortableCustomDebugInfoKinds.TypeDocuments)
+                //{
+                //    if (((TypeDefinitionHandle)cdi.Parent).Equals(typeDefHandle))
+                //    {
+                //        var reader = pdbReader.GetBlobReader(cdi.Value);
+                //        while (reader.RemainingBytes > 0)
+                //        {
+                //            docList.Add(MetadataTokens.DocumentHandle(reader.ReadCompressedInteger()));
+                //        }
+                //    }
+                //}
             }
 
             // We don't necessarily have all of the documents associated with the type
