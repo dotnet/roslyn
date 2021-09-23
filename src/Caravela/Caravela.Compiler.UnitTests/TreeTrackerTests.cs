@@ -22,7 +22,7 @@ namespace Caravela.Compiler.UnitTests
         {
             var originalBlock = (BlockSyntax)SyntaxFactory.ParseStatement("{ int i; }");
 
-            var block = TreeTracker.AnnotateNodeAndChildren(originalBlock);
+            var block = TreeTracker.AnnotateNodeAndChildren(originalBlock, null!);
 
             block = block.AddStatements(SyntaxFactory.ParseStatement("i++;"));
 
@@ -36,7 +36,7 @@ namespace Caravela.Compiler.UnitTests
         {
             var originalBlock = (BlockSyntax)SyntaxFactory.ParseStatement("{ int i; }");
 
-            var block = TreeTracker.AnnotateNodeAndChildren(originalBlock);
+            var block = TreeTracker.AnnotateNodeAndChildren(originalBlock, null!);
 
             block = SyntaxFactory.Block(block.Statements.Append(SyntaxFactory.ParseStatement("i++;")));
 

@@ -13,7 +13,7 @@ public interface ISourceTransformer
     /// <summary>
     /// Called to perform source transformation.
     /// </summary>
-    Compilation Execute(TransformerContext context);
+    void Execute(TransformerContext context);
 }
 ```
 
@@ -36,12 +36,12 @@ Attribute that has to be applied to any `ISourceTransformer`.
 ### `TransformerContext`
 
 ```c#
-public class TransformerContext
+public sealed class TransformerContext
 {
     /// <summary>
-    /// Get the current <see cref="Compilation"/> at the time of execution.
+    /// Gets or sets the <see cref="Compilation"/>.
     /// </summary>
-    public Compilation Compilation { get; }
+    public Compilation Compilation { get; set; }
 
     /// <summary>
     /// Allows access to global options provided by an analyzer config,

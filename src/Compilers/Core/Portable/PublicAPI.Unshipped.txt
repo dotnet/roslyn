@@ -1,4 +1,13 @@
 *REMOVED*Microsoft.CodeAnalysis.SyntaxNode.IsEquivalentTo(Microsoft.CodeAnalysis.SyntaxNode! other) -> bool
+Caravela.Compiler.DiagnosticRequest
+Caravela.Compiler.DiagnosticRequest.Compilation.get -> Microsoft.CodeAnalysis.Compilation?
+Caravela.Compiler.DiagnosticRequest.Diagnostic.get -> Microsoft.CodeAnalysis.Diagnostic!
+Caravela.Compiler.DiagnosticRequest.IsSuppressed.get -> bool
+Caravela.Compiler.DiagnosticRequest.Suppress() -> void
+Caravela.Compiler.DiagnosticRequest.SyntaxNode.get -> Microsoft.CodeAnalysis.SyntaxNode?
+Caravela.Compiler.ISourceTransformer.Execute(Caravela.Compiler.TransformerContext! context) -> void
+Caravela.Compiler.TransformerContext.Compilation.set -> void
+Caravela.Compiler.TransformerContext.RegisterDiagnosticFilter(System.Action<Caravela.Compiler.DiagnosticRequest!>! filter) -> void
 const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeAssembly = "Caravela.Framework.Sdk" -> string!
 const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeNamespace = "Caravela.Framework.Impl.Sdk" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.PrintMembersMethodName = "PrintMembers" -> string!
@@ -43,7 +52,6 @@ virtual Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetGeneratorsForAll
 abstract Microsoft.CodeAnalysis.Compilation.GetUsedAssemblyReferences(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference!>
 Caravela.Compiler.TransformerContext.Plugins.get -> System.Collections.Immutable.ImmutableArray<object>
 Caravela.Compiler.ISourceTransformer
-Caravela.Compiler.ISourceTransformer.Execute(Caravela.Compiler.TransformerContext context) -> Microsoft.CodeAnalysis.Compilation
 Caravela.Compiler.TransformerAttribute
 Caravela.Compiler.TransformerAttribute.TransformerAttribute() -> void
 Caravela.Compiler.TransformerOrderAttribute

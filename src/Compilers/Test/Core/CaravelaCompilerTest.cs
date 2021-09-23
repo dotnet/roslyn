@@ -20,11 +20,12 @@ namespace Roslyn.Test.Utilities
 
         public static Compilation ExecuteTransformer(Compilation compilation, ISourceTransformer transformer)
         {
-            var transformers = ImmutableArray.Create<ISourceTransformer>(transformer);
+            var transformers = ImmutableArray.Create(transformer);
             var diagnostics = new DiagnosticBag();
 
-            var result = CSharpCompiler.RunTransformers(
-                ref compilation, transformers, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, null!, null!);
+            CSharpCompiler.RunTransformers(
+                compilation, transformers, ImmutableArray.Create<object>(), CompilerAnalyzerConfigOptionsProvider.Empty, diagnostics, null!, null!, 
+                out _, out var result, out _);
 
             diagnostics.ToReadOnlyAndFree().Verify();
 
@@ -33,7 +34,7 @@ namespace Roslyn.Test.Utilities
 
         public class TokenPerLineTransformer : ISourceTransformer
         {
-            public Compilation Execute(TransformerContext context)
+            public void Execute(TransformerContext context)
             {
                 static SyntaxToken ChangeWhitespace(SyntaxToken token)
                 {
@@ -64,7 +65,7 @@ namespace Roslyn.Test.Utilities
 
                     compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(newRoot, tree.Options));
                 }
-                return compilation;
+                context.Compilation=  compilation;
             }
         }
     }

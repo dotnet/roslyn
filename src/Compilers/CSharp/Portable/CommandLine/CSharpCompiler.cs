@@ -406,46 +406,59 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // <Caravela>
-        private protected override Compilation RunTransformers(
-            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
-            DiagnosticBag diagnostics)
+        private protected override void RunTransformers(
+            Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
+            DiagnosticBag diagnostics,  out Compilation annotatedInputCompilation, out Compilation outputCompilation, out ImmutableArray<Action<DiagnosticRequest>> diagnosticFilters)
         {
             var resources = Arguments.ManifestResources.ToList();
 
-            var result = RunTransformers(ref input, transformers, plugins, analyzerConfigProvider, diagnostics, resources, AssemblyLoader);
+            RunTransformers(inputCompilation, transformers, plugins, analyzerConfigProvider, diagnostics, resources, AssemblyLoader, out annotatedInputCompilation,
+                out outputCompilation, out diagnosticFilters );
 
             Arguments.ManifestResources = resources.ToImmutableArray();
-
-            return result;
         }
 
-        internal static Compilation RunTransformers(
-            ref Compilation input, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
-            DiagnosticBag diagnostics, IList<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
+        internal static void RunTransformers(
+            Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider,
+            DiagnosticBag diagnostics, IList<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader, out Compilation annotatedInputCompilation, out Compilation outputCompilation,
+            out ImmutableArray<Action<DiagnosticRequest>> diagnosticFilters )
         {
+            
+
             // if there are no transformers, don't do anything, not even annotating
             if (transformers.IsEmpty)
             {
-                return input;
+                annotatedInputCompilation = inputCompilation;
+                outputCompilation = inputCompilation;
+                diagnosticFilters = ImmutableArray<Action<DiagnosticRequest>>.Empty;
+                
+                return;
             }
 
+            // Add tracking annotations to the input tree.
+            annotatedInputCompilation = inputCompilation;
             if (!ShouldDebugTransformedCode(analyzerConfigProvider))
             {
                 // mark old trees as debuggable
-                foreach (var tree in input.SyntaxTrees)
+                foreach (var tree in inputCompilation.SyntaxTrees)
                 {
-                    input = input.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot()), tree.Options));
+                    annotatedInputCompilation = annotatedInputCompilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(), inputCompilation), tree.Options));
                 }
             }
 
-            var compilation = input;
+            // Execute the transformers.
+            outputCompilation = annotatedInputCompilation;
+
+            var diagnosticFiltersBuilder = ImmutableArray.CreateBuilder<Action<DiagnosticRequest>>();
 
             foreach (var transformer in transformers)
             {
                 try
                 {
-                    var context = new TransformerContext(compilation, plugins, analyzerConfigProvider.GlobalOptions, manifestResources, diagnostics, assemblyLoader);
-                    compilation = transformer.Execute(context);
+                    var context = new TransformerContext(outputCompilation, plugins, analyzerConfigProvider.GlobalOptions, manifestResources, diagnostics, assemblyLoader);
+                    transformer.Execute(context);
+                    outputCompilation = context.Compilation;
+                    diagnosticFiltersBuilder.AddRange(context.DiagnosticFilters);
                 }
                 catch (Exception ex)
                 {
@@ -455,25 +468,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            diagnosticFilters = diagnosticFiltersBuilder.ToImmutable();
+
             if (!ShouldDebugTransformedCode(analyzerConfigProvider))
             {
                 // mark new trees as not debuggable
                 // in Debug mode, also mark transformed trees as undebuggable "poison", which triggers assert if used in a sequence point
-                foreach (var tree in compilation.SyntaxTrees)
+                foreach (var tree in outputCompilation.SyntaxTrees)
                 {
                     if (TreeTracker.IsAnnotated(tree.GetRoot()))
                     {
 #if DEBUG
                         TreeTracker.MarkAsUndebuggable(tree);
 #endif
-                        continue;
                     }
-
-                    compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(), null), tree.Options));
+                    else
+                    {
+                        outputCompilation = outputCompilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(TreeTracker.AnnotateNodeAndChildren(tree.GetRoot(), null, outputCompilation), tree.Options));
+                    }
                 }
             }
-
-            return compilation;
         }
         // </Caravela>
     }
