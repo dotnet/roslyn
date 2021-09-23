@@ -332,7 +332,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var remoteWorkspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices(), WorkspaceKind.RemoteWorkspace);
             var optionService = remoteWorkspace.Services.GetRequiredService<IOptionService>();
-            var options = new SerializableOptionSet(optionService, ImmutableHashSet<IOption>.Empty, ImmutableDictionary<OptionKey, object>.Empty, ImmutableHashSet<OptionKey>.Empty);
+            var options = new SerializableOptionSet(optionService, ImmutableDictionary<OptionKey, object>.Empty, ImmutableHashSet<OptionKey>.Empty);
 
             // this shouldn't throw exception
             remoteWorkspace.TrySetCurrentSolution(solutionInfo, workspaceVersion: 1, options, out var solution);
