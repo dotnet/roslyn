@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsUsingOrExternOrImport([NotNullWhen(true)] SyntaxNode? node);
         bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node);
         bool IsGlobalModuleAttribute([NotNullWhen(true)] SyntaxNode? node);
-        bool IsDeclaration(SyntaxNode node);
+        bool IsDeclaration([NotNullWhen(true)] SyntaxNode? node);
         bool IsTypeDeclaration(SyntaxNode node);
 
         bool IsUsingAliasDirective([NotNullWhen(true)] SyntaxNode? node);

@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
         <source>caller argument expression</source>
-        <target state="new">caller argument expression</target>
+        <target state="translated">expressão do argumento do chamador</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -520,22 +520,22 @@
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</target>
+        <target state="translated">O CallerArgumentExpressionAttribute aplicado ao parâmetro '{0}' não terá efeito. Ele é aplicado com um nome de parâmetro inválido.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
         <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</target>
+        <target state="translated">O CallerArgumentExpressionAttribute aplicado ao parâmetro não terá efeito. Ele é aplicado com um nome de parâmetro inválido.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</target>
+        <target state="translated">O CallerArgumentExpressionAttribute aplicado ao parâmetro '{0}' não terá efeito porque é de autorreferência.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
         <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</target>
+        <target state="translated">O CallerArgumentExpressionAttribute aplicado ao parâmetro não terá efeito porque é de autorreferência.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
