@@ -370,6 +370,135 @@ if (true)
 #end$$region", "#region Start2");
         }
 
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task EndIfShowsIfCondition_1()
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+#end$$if", "#if DEBUG");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task EndIfShowsIfCondition_2()
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+#else
+#end$$if", "#if DEBUG");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task EndIfShowsElIfCondition()
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+#elif RELEASE
+#end$$if", "#if DEBUG#elif RELEASE");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ElseShowsIfCondition()
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+#el$$se
+#endif", "#if DEBUG");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ElseShowsElIfCondition_1()
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+#elif RELEASE
+#el$$se
+#endif", "#if DEBUG#elif RELEASE");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ElseShowsElIfCondition_2()
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+#elif RELEASE
+#elif DEMO
+#el$$se
+#endif", "#if DEBUG#elif RELEASE#elif DEMO");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ElIfShowsIfCondition()
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+#el$$if RELEASE
+#endif", "#if DEBUG");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task EndIfShowsIfNested_1()
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+#if RELEASE
+#end$$if
+#endif", "#if RELEASE");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task EndIfShowsIfNested_2()
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+#if RELEASE
+#endif
+#end$$if", "#if DEBUG");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task EndIfShowsIfNested_3()
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+#elif RELEASE
+#if DEMO
+#end$$if
+#endif", "#if DEMO");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task EndIfShowsIfNested_4()
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+#elif RELEASE
+#if DEMO
+#endif
+#end$$if", "#if DEBUG#elif RELEASE");
+        }
+
         private static QuickInfoProvider CreateProvider()
             => new CSharpSyntacticQuickInfoProvider();
 

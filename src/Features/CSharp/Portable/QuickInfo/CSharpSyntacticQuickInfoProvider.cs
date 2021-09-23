@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
 
@@ -41,20 +42,26 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             switch (token.Kind())
             {
                 case SyntaxKind.CloseBraceToken:
-                    break;
-                case SyntaxKind.EndRegionKeyword:
+                    return BuildQuickInfoCloseBrace(token);
                 case SyntaxKind.HashToken:
+                case SyntaxKind.EndRegionKeyword:
+                case SyntaxKind.EndIfKeyword:
+                case SyntaxKind.ElseKeyword:
+                case SyntaxKind.ElifKeyword:
                 case SyntaxKind.EndOfDirectiveToken:
-                    return BuildQuickInfoEndRegion(token, cancellationToken);
+                    return BuildQuickInfoDirectives(token, cancellationToken);
                 case SyntaxKind.EndOfFileToken:
                     var endRegionKeyword = token.LeadingTrivia.LastOrDefault().GetStructure()?.ChildTokens().FirstOrDefault(t => t.IsKind(SyntaxKind.EndRegionKeyword));
                     return endRegionKeyword.HasValue
-                        ? BuildQuickInfoEndRegion(endRegionKeyword.Value, cancellationToken)
+                        ? BuildQuickInfoDirectives(endRegionKeyword.Value, cancellationToken)
                         : null;
                 default:
                     return null;
             }
+        }
 
+        private static QuickInfoItem? BuildQuickInfoCloseBrace(SyntaxToken token)
+        {
             // Don't show for interpolations
             if (token.Parent.IsKind(SyntaxKind.Interpolation, out InterpolationSyntax? interpolation) &&
                 interpolation.CloseBraceToken == token)
@@ -90,20 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             // encode document spans that correspond to the text to show
             var spans = ImmutableArray.Create(TextSpan.FromBounds(spanStart, spanEnd));
             return QuickInfoItem.Create(token.Span, relatedSpans: spans);
-        }
-
-        private static QuickInfoItem? BuildQuickInfoEndRegion(SyntaxToken token, CancellationToken cancellationToken)
-        {
-            if (token.Parent is EndRegionDirectiveTriviaSyntax endRegionDirectiveTrivia)
-            {
-                var regionStart = endRegionDirectiveTrivia.GetMatchingDirective(cancellationToken);
-                if (regionStart is not null)
-                {
-                    return QuickInfoItem.Create(token.Span, relatedSpans: ImmutableArray.Create(regionStart.Span));
-                }
-            }
-
-            return null;
         }
 
         private static bool IsScopeBlock(SyntaxNode node)
@@ -151,6 +144,44 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             }
 
             return nearbyTrivia.IsSingleOrMultiLineComment();
+        }
+
+        private static QuickInfoItem? BuildQuickInfoDirectives(SyntaxToken token, CancellationToken cancellationToken)
+        {
+            if (token.Parent is EndRegionDirectiveTriviaSyntax endRegionDirectiveTrivia)
+            {
+                var regionStart = endRegionDirectiveTrivia.GetMatchingDirective(cancellationToken);
+                if (regionStart is not null)
+                {
+                    return QuickInfoItem.Create(token.Span, relatedSpans: ImmutableArray.Create(regionStart.Span));
+                }
+            }
+
+            if (token.Parent is ElifDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax)
+            {
+                var directiveTrivia = (DirectiveTriviaSyntax)token.Parent;
+                var matchingDirectives = directiveTrivia.GetMatchingConditionalDirectives(cancellationToken);
+                using var _ = ArrayBuilder<TextSpan>.GetInstance(matchingDirectives.Count, out var builder);
+                foreach (var match in matchingDirectives)
+                {
+                    if (match.SpanStart >= directiveTrivia.SpanStart)
+                    {
+                        break;
+                    }
+
+                    if (match is IfDirectiveTriviaSyntax or ElifDirectiveTriviaSyntax)
+                    {
+                        builder.Add(match.Span);
+                    }
+                }
+
+                if (builder.Count > 0)
+                {
+                    return QuickInfoItem.Create(token.Span, relatedSpans: builder.ToImmutableArray());
+                }
+            }
+
+            return null;
         }
     }
 }
