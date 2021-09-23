@@ -50,11 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 case SyntaxKind.ElifKeyword:
                 case SyntaxKind.EndOfDirectiveToken:
                     return BuildQuickInfoDirectives(token, cancellationToken);
-                case SyntaxKind.EndOfFileToken:
-                    var endRegionKeyword = token.LeadingTrivia.LastOrDefault().GetStructure()?.ChildTokens().FirstOrDefault(t => t.IsKind(SyntaxKind.EndRegionKeyword));
-                    return endRegionKeyword.HasValue
-                        ? BuildQuickInfoDirectives(endRegionKeyword.Value, cancellationToken)
-                        : null;
                 default:
                     return null;
             }

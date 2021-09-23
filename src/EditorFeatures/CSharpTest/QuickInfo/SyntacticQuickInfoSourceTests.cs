@@ -277,18 +277,13 @@ if (true)
 
         [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
         [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        [InlineData("$$ #endregion")]
         [InlineData("$$#endregion")]
         [InlineData("#$$endregion")]
         [InlineData("# $$ endregion")]
-        [InlineData("#endregion$$")]
         [InlineData("#endregion$$ ")]
-        [InlineData("#endregion $$")]
-        [InlineData("#endregion\r\n$$")]
         [InlineData("#endregion$$ End")]
         [InlineData("#endregion $$End")]
         [InlineData("#endregion En$$d")]
-        [InlineData("#endregion End$$")]
         public async Task RegionEndShowsStartRegionMessageAtDifferentPositions(string endRegion)
         {
             await TestAsync(
