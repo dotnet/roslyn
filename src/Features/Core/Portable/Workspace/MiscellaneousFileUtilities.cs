@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
             var projectId = ProjectId.CreateNewId(debugName: "Miscellaneous Files Project for " + filePath);
             var documentId = DocumentId.CreateNewId(projectId, debugName: filePath);
 
-            var sourceCodeKind = GetSourceCodeKind(parseOptions, fileExtension, languageInformation);
+            var sourceCodeKind = parseOptions?.Kind ?? SourceCodeKind.Regular;
             var documentInfo = DocumentInfo.Create(
                 documentId,
                 filePath,
@@ -90,20 +90,6 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces
             return compilationOptions
                 .WithMetadataReferenceResolver(referenceResolver)
                 .WithSourceReferenceResolver(new SourceFileResolver(searchPaths: ImmutableArray<string>.Empty, baseDirectory));
-        }
-
-        private static SourceCodeKind GetSourceCodeKind(
-            ParseOptions? parseOptions,
-            string fileExtension,
-            LanguageInformation languageInformation)
-        {
-            if (parseOptions != null)
-            {
-                return parseOptions.Kind;
-            }
-
-            return string.Equals(fileExtension, languageInformation.ScriptExtension, StringComparison.OrdinalIgnoreCase) ?
-                SourceCodeKind.Script : SourceCodeKind.Regular;
         }
     }
 

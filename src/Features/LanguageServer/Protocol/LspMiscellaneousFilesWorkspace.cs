@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// </summary>
     internal class LspMiscellaneousFilesWorkspace : Workspace
     {
-        private const string LspMiscellaneousFilesWorkspaceKind = nameof(LspMiscellaneousFilesWorkspaceKind);
-
         private static readonly LanguageInformation s_csharpLanguageInformation = new(LanguageNames.CSharp, ".csx");
         private static readonly LanguageInformation s_vbLanguageInformation = new(LanguageNames.VisualBasic, ".vbx");
 
@@ -42,20 +40,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private readonly ILspLogger _logger;
 
-        public LspMiscellaneousFilesWorkspace(ILspLogger logger) : base(MefHostServices.DefaultHost, LspMiscellaneousFilesWorkspaceKind)
+        public LspMiscellaneousFilesWorkspace(ILspLogger logger) : base(MefHostServices.DefaultHost, WorkspaceKind.MiscellaneousFiles)
         {
             _logger = logger;
         }
 
         /// <summary>
         /// Takes in a file URI and text and creates a misc project and document for the file.
+        /// 
+        /// Calls to this method and <see cref="TryRemoveMiscellaneousDocument(Uri)"/> are made
+        /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
         public Document? AddMiscellaneousDocument(Uri uri)
         {
             var uriAbsolutePath = uri.AbsolutePath;
             if (!s_extensionToLanguageInformation.TryGetValue(Path.GetExtension(uriAbsolutePath), out var languageInformation))
             {
-                // Only log a warning here since throwing here could take down the LSP server.
+                // Only log here since throwing here could take down the LSP server.
                 _logger.TraceError($"Could not find language information for {uri} with absolute path {uriAbsolutePath}");
                 return null;
             }
@@ -68,28 +69,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;
-            return CurrentSolution.GetDocument(id);
+            return CurrentSolution.GetRequiredDocument(id);
         }
 
+        /// <summary>
+        /// Removes a document with the matching file path from this workspace.
+        /// 
+        /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri)"/> are made
+        /// from LSP text sync request handling which do not run concurrently.
+        /// </summary>
         public void TryRemoveMiscellaneousDocument(Uri uri)
         {
             var uriAbsolutePath = uri.AbsolutePath;
 
             // We only add misc files to this workspace using the absolute file path.
-            var matchingDocuments = CurrentSolution.GetDocumentIdsWithFilePath(uriAbsolutePath);
-            if (matchingDocuments.Any())
+            var matchingDocument = CurrentSolution.GetDocumentIdsWithFilePath(uriAbsolutePath).SingleOrDefault();
+            if (matchingDocument != null)
             {
-                foreach (var documentId in matchingDocuments)
-                {
-                    OnDocumentRemoved(documentId);
+                OnDocumentRemoved(matchingDocument);
 
-                    // Also remove the project if it has no documents.
-                    var project = CurrentSolution.GetRequiredProject(documentId.ProjectId);
-                    if (!project.HasDocuments)
-                    {
-                        OnProjectRemoved(project.Id);
-                    }
-                }
+                // Also remove the project - we always create a new project for each misc file we add
+                // so it should never have other documents in it.
+                var project = CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
+                OnProjectRemoved(project.Id);
             }
         }
 
