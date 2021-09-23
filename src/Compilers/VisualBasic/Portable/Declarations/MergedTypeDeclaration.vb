@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Continue For
                 End If
 
-                ' if caller is askign for particular quick attributes, don't bother going to syntax
+                ' if caller is asking for particular quick attributes, don't bother going to syntax
                 ' unless the type actually could expose that attribute.
                 If quickAttributes IsNot Nothing AndAlso
                    (decl.QuickAttributes And quickAttributes.Value) <> 0 Then
