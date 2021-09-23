@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (isGlobal != global)
                     continue;
 
-                result |= GetQuickAttributes(directive.Name.GetUnqualifiedName().Identifier.ValueText, inAttribute: false);
+                result |= QuickAttributeHelpers.GetQuickAttributes(directive.Name.GetUnqualifiedName().Identifier.ValueText, inAttribute: false);
             }
 
             return result;
@@ -692,46 +692,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var attributeList in attributeLists)
             {
                 foreach (var attribute in attributeList.Attributes)
-                    result |= GetQuickAttributes(attribute.Name.GetUnqualifiedName().Identifier.ValueText, inAttribute: true);
+                    result |= QuickAttributeHelpers.GetQuickAttributes(attribute.Name.GetUnqualifiedName().Identifier.ValueText, inAttribute: true);
             }
 
             return result;
-        }
-
-        private static QuickAttributes GetQuickAttributes(string name, bool inAttribute)
-        {
-            var result = QuickAttributes.None;
-            if (Matches(AttributeDescription.TypeIdentifierAttribute))
-                result |= QuickAttributes.TypeIdentifier;
-            else if (Matches(AttributeDescription.TypeForwardedToAttribute))
-                result |= QuickAttributes.TypeForwardedTo;
-            else if (Matches(AttributeDescription.AssemblyKeyNameAttribute))
-                result |= QuickAttributes.AssemblyKeyName;
-            else if (Matches(AttributeDescription.AssemblyKeyFileAttribute))
-                result |= QuickAttributes.AssemblyKeyFile;
-            else if (Matches(AttributeDescription.AssemblySignatureKeyAttribute))
-                result |= QuickAttributes.AssemblySignatureKey;
-
-            return result;
-
-            bool Matches(AttributeDescription attributeDescription)
-            {
-                Debug.Assert(attributeDescription.Name.EndsWith(nameof(System.Attribute)));
-
-                if (name == attributeDescription.Name)
-                    return true;
-
-                // In an attribute context the name might be referenced as the full name (like 'TypeForwardedToAttribute')
-                // or the short name (like 'TypeForwardedTo').
-                if (inAttribute &&
-                    (name.Length + nameof(System.Attribute).Length) == attributeDescription.Name.Length &&
-                    attributeDescription.Name.StartsWith(name))
-                {
-                    return true;
-                }
-
-                return false;
-            }
         }
 
         private static readonly ObjectPool<ImmutableSegmentedDictionary<string, VoidResult>.Builder> s_memberNameBuilderPool =
