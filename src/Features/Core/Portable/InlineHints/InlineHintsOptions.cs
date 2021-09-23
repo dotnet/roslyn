@@ -75,6 +75,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
                 defaultValue: true,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent"));
 
+        public static readonly PerLanguageOption2<bool> SuppressForParametersThatMatchArgumentName =
+            new(nameof(InlineHintsOptions),
+                nameof(SuppressForParametersThatMatchArgumentName),
+                defaultValue: true,
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchArgumentName"));
+
         public static readonly PerLanguageOption2<bool> EnabledForTypes =
             new(nameof(InlineHintsOptions),
                 nameof(EnabledForTypes),

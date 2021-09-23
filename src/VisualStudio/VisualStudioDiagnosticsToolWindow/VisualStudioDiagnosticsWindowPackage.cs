@@ -92,10 +92,8 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             }
 
             // set logger at start up
-            var optionService = componentModel.GetService<IGlobalOptionService>();
-            var remoteClientProvider = workspace.Services.GetService<IRemoteHostClientProvider>();
-
-            PerformanceLoggersPage.SetLoggers(optionService, _threadingContext, remoteClientProvider);
+            var globalOptions = componentModel.GetService<IGlobalOptionService>();
+            PerformanceLoggersPage.SetLoggers(globalOptions, _threadingContext, workspace.Services);
         }
         #endregion
 

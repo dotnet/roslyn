@@ -80,11 +80,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> BreakStateChangedAsync(DebuggingSessionId sessionId, bool inBreakState, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<DocumentId>> BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? inBreakState, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().BreakStateChanged(sessionId, inBreakState, out var documentsToReanalyze);
+                GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState, out var documentsToReanalyze);
                 return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
             }, cancellationToken);
         }
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
                     var diagnostics = ImmutableArray.Create(DiagnosticData.Create(diagnostic, solution.Options));
 
-                    return new EmitSolutionUpdateResults.Data(updates, diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty);
+                    return new EmitSolutionUpdateResults.Data(updates, diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty, syntaxError: null);
                 }
             }, cancellationToken);
         }

@@ -89,13 +89,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private PendingSolutionUpdate? _pendingUpdate;
         private Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
-#pragma warning disable IDE0052 // Remove unread private members
         /// <summary>
         /// Last array of module updates generated during the debugging session.
         /// Useful for crash dump diagnostics.
         /// </summary>
         private ImmutableArray<ManagedModuleUpdate> _lastModuleUpdatesLog;
-#pragma warning restore
 
         internal DebuggingSession(
             DebuggingSessionId id,
@@ -111,7 +109,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Id = id;
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
-            EditSession = new EditSession(this, nonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, _editSessionTelemetry, inBreakState: false);
+
+            EditSession = new EditSession(
+                this,
+                nonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
+                _editSessionTelemetry,
+                lazyActiveStatementMap: null,
+                inBreakState: false);
+
             ReportDiagnostics = reportDiagnostics;
         }
 
@@ -133,6 +138,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             _baselineAccessLock.ExitWriteLock();
             _baselineAccessLock.Dispose();
+
+            if (Interlocked.Exchange(ref _pendingUpdate, null) != null)
+            {
+                throw new InvalidOperationException($"Pending update has not been committed or discarded.");
+            }
         }
 
         internal void ThrowIfDisposed()
@@ -153,13 +163,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 update.NonRemappableRegions));
 
             // commit/discard was not called:
-            Contract.ThrowIfFalse(previousPendingUpdate == null);
+            if (previousPendingUpdate != null)
+            {
+                throw new InvalidOperationException($"Previous update has not been committed or discarded.");
+            }
         }
 
         private PendingSolutionUpdate RetrievePendingUpdate()
         {
             var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
-            Contract.ThrowIfNull(pendingUpdate);
+            if (pendingUpdate == null)
+            {
+                throw new InvalidOperationException($"No pending update.");
+            }
+
             return pendingUpdate;
         }
 
@@ -182,15 +199,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Dispose();
         }
 
-        public void BreakStateChanged(bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void BreakStateOrCapabilitiesChanged(bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
             => RestartEditSession(nonRemappableRegions: null, inBreakState, out documentsToReanalyze);
 
-        internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+        internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             ThrowIfDisposed();
 
             EndEditSession(out documentsToReanalyze);
-            EditSession = new EditSession(this, nonRemappableRegions ?? EditSession.NonRemappableRegions, EditSession.Telemetry, inBreakState);
+
+            EditSession = new EditSession(
+                this,
+                nonRemappableRegions ?? EditSession.NonRemappableRegions,
+                EditSession.Telemetry,
+                (inBreakState == null) ? EditSession.BaseActiveStatements : null,
+                inBreakState ?? EditSession.InBreakState);
         }
 
         private ImmutableArray<IDisposable> GetBaselineModuleReaders()
@@ -488,7 +511,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Note that we may return empty deltas if all updates have been deferred.
             // The debugger will still call commit or discard on the update batch.
-            return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics, solutionUpdate.DocumentsWithRudeEdits);
+            return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics, solutionUpdate.DocumentsWithRudeEdits, solutionUpdate.SyntaxError);
         }
 
         private void LogSolutionUpdate(SolutionUpdate update)
@@ -608,10 +631,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Analyze changed documents in projects containing active statements:
                 foreach (var projectId in projectIds)
                 {
+                    var oldProject = LastCommittedSolution.GetProject(projectId);
+                    if (oldProject == null)
+                    {
+                        // document is in a project that's been added to the solution
+                        continue;
+                    }
+
                     var newProject = solution.GetRequiredProject(projectId);
                     var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
-
-                    await foreach (var documentId in EditSession.GetChangedDocumentsAsync(LastCommittedSolution, newProject, cancellationToken).ConfigureAwait(false))
+                    await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
@@ -716,7 +745,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var oldProject = LastCommittedSolution.GetProject(newProject.Id);
                 if (oldProject == null)
                 {
-                    // project has been added, no changes in active statement spans:
+                    // TODO: https://github.com/dotnet/roslyn/issues/1204
+                    // Enumerate all documents of the new project.
                     return ImmutableArray<ActiveStatementSpan>.Empty;
                 }
 
@@ -741,7 +771,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 adjustedMappedSpans.AddRange(newDocumentActiveStatementSpans);
 
                 // Update tracking spans to the latest known locations of the active statements contained in changed documents based on their analysis.
-                await foreach (var unmappedDocumentId in EditSession.GetChangedDocumentsAsync(LastCommittedSolution, newProject, cancellationToken).ConfigureAwait(false))
+                await foreach (var unmappedDocumentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
                 {
                     var newUnmappedDocument = await newSolution.GetRequiredDocumentAsync(unmappedDocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
@@ -910,7 +940,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var oldProject = LastCommittedSolution.GetProject(projectId);
                     if (oldProject == null)
                     {
-                        // project has been added (should have no active statements under normal circumstances)
+                        // TODO: https://github.com/dotnet/roslyn/issues/1204
+                        // project has been added - it may have active statements if the project was unloaded when debugging session started but the sources 
+                        // correspond to the PDB.
                         return null;
                     }
 
@@ -921,7 +953,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         return null;
                     }
 
-                    documentId = await GetChangedDocumentContainingUnmappedActiveStatementAsync(activeStatementsMap, LastCommittedSolution, newProject, baseActiveStatement, cancellationToken).ConfigureAwait(false);
+                    documentId = await GetChangedDocumentContainingUnmappedActiveStatementAsync(activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -933,7 +965,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     async Task GetTaskAsync(ProjectId projectId)
                     {
                         var newProject = newSolution.GetRequiredProject(projectId);
-                        var id = await GetChangedDocumentContainingUnmappedActiveStatementAsync(activeStatementsMap, LastCommittedSolution, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false);
+                        var oldProject = LastCommittedSolution.GetProject(projectId);
+
+                        // TODO: https://github.com/dotnet/roslyn/issues/1204
+                        // oldProject == null ==> project has been added - it may have active statements if the project was unloaded when debugging session started but the sources 
+                        // correspond to the PDB.
+                        var id = (oldProject != null) ? await GetChangedDocumentContainingUnmappedActiveStatementAsync(
+                        activeStatementsMap, LastCommittedSolution, oldProject, newProject, baseActiveStatement, linkedTokenSource.Token).ConfigureAwait(false) : null;
+
                         Interlocked.CompareExchange(ref documentId, id, null);
                         if (id != null)
                         {
@@ -963,11 +1002,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         // Enumerate all changed documents in the project whose module contains the active statement.
         // For each such document enumerate all #line directives to find which maps code to the span that contains the active statement.
-        private static async ValueTask<DocumentId?> GetChangedDocumentContainingUnmappedActiveStatementAsync(ActiveStatementsMap baseActiveStatements, CommittedSolution oldSolution, Project newProject, ActiveStatement activeStatement, CancellationToken cancellationToken)
+        private static async ValueTask<DocumentId?> GetChangedDocumentContainingUnmappedActiveStatementAsync(ActiveStatementsMap baseActiveStatements, CommittedSolution oldSolution, Project oldProject, Project newProject, ActiveStatement activeStatement, CancellationToken cancellationToken)
         {
+            Debug.Assert(oldProject.Id == newProject.Id);
             var analyzer = newProject.LanguageServices.GetRequiredService<IEditAndContinueAnalyzer>();
 
-            await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldSolution, newProject, cancellationToken).ConfigureAwait(false))
+            await foreach (var documentId in EditSession.GetChangedDocumentsAsync(oldProject, newProject, cancellationToken).ConfigureAwait(false))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

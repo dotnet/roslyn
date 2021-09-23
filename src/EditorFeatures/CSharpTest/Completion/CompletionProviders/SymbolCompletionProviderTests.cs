@@ -2240,7 +2240,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
-        public async Task NotAfterAsyncLocalFunctionWithTwoAsyncs()
+        public async Task AfterAsyncLocalFunctionWithTwoAsyncs()
         {
             var markup = @"
 using System;
@@ -2252,7 +2252,7 @@ class C
     }
 }
 ";
-            await VerifyItemIsAbsentAsync(markup, "String");
+            await VerifyItemExistsAsync(markup, "String");
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
@@ -3430,7 +3430,7 @@ class C
             var expectedDescription =
 $@"({FeaturesResources.local_variable}) 'a a
 
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{  }}";
 
             await VerifyItemExistsAsync(markup, "a", expectedDescription);

@@ -449,7 +449,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     var child = VisualTreeHelper.GetChild(rootObject, i);
 
-                    if (child != null && child is T)
+                    if (child is not null and T)
                         yield return (T)child;
 
                     foreach (var descendant in FindDescendants<T>(child))

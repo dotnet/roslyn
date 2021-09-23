@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             NavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken);
         }
 
-        protected void NavigateToPosition(Workspace workspace, DocumentId? documentId, int position, int virtualSpace, CancellationToken cancellationToken)
+        protected void NavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();

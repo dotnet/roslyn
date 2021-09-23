@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -41,14 +42,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public event EventHandler<EventArgs>? SuggestedActionsChanged;
 
+            public readonly IGlobalOptionService GlobalOptions;
+
             protected SuggestedActionsSource(
                 IThreadingContext threadingContext,
+                IGlobalOptionService globalOptions,
                 SuggestedActionsSourceProvider owner,
                 ITextView textView,
                 ITextBuffer textBuffer,
                 ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry)
                 : base(threadingContext)
             {
+                GlobalOptions = globalOptions;
+
                 _suggestedActionCategoryRegistry = suggestedActionCategoryRegistry;
                 _state = new ReferenceCountedDisposable<State>(new State(this, owner, textView, textBuffer));
 
@@ -173,14 +179,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     // We convert the code fixes and refactorings to UnifiedSuggestedActionSets instead of
                     // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
-                    var fixes = GetCodeFixesAsync(
+                    var fixesTask = GetCodeFixesAsync(
                         state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                        addOperationScope, CodeActionRequestPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
-                    var refactorings = GetRefactoringsAsync(
-                        state, supportsFeatureService, requestedActionCategories, workspace, document, selection,
-                        addOperationScope, CodeActionRequestPriority.None, isBlocking: true, cancellationToken).WaitAndGetResult(cancellationToken);
+                        addOperationScope, includeSuppressionFixes: true, CodeActionRequestPriority.None,
+                        isBlocking: true, cancellationToken);
+                    var refactoringsTask = GetRefactoringsAsync(
+                        state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
+                        addOperationScope, CodeActionRequestPriority.None, isBlocking: true, cancellationToken);
 
-                    return ConvertToSuggestedActionSets(state, selection, fixes, refactorings);
+                    Task.WhenAll(fixesTask, refactoringsTask).WaitAndGetResult(cancellationToken);
+
+                    return ConvertToSuggestedActionSets(state, selection,
+                        fixesTask.WaitAndGetResult(cancellationToken),
+                        refactoringsTask.WaitAndGetResult(cancellationToken));
                 }
             }
 
@@ -252,6 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Document document,
                 SnapshotSpan range,
                 Func<string, IDisposable?> addOperationScope,
+                bool includeSuppressionFixes,
                 CodeActionRequestPriority priority,
                 bool isBlocking,
                 CancellationToken cancellationToken)
@@ -265,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                     workspace, state.Target.Owner._codeFixService, document, range.Span.ToTextSpan(),
-                    priority, isBlocking, addOperationScope, cancellationToken).AsTask();
+                    includeSuppressionFixes, priority, isBlocking, addOperationScope, cancellationToken).AsTask();
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
@@ -287,6 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ReferenceCountedDisposable<State> state,
                 ITextBufferSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
+                IGlobalOptionService globalOptions,
                 Workspace workspace,
                 Document document,
                 TextSpan? selection,
@@ -302,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return SpecializedTasks.EmptyImmutableArray<UnifiedSuggestedActionSet>();
                 }
 
-                if (!workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
+                if (!globalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
                     state.Target.Owner._codeRefactoringService == null ||
                     !supportsFeatureService.SupportsRefactorings(state.Target.SubjectBuffer))
                 {

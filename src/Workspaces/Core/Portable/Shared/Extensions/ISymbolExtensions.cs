@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (memberSymbol is IMethodSymbol methodSymbol)
                 {
-                    if (methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor)
+                    if (methodSymbol.MethodKind is MethodKind.Constructor or MethodKind.StaticConstructor)
                     {
                         var baseType = memberSymbol.ContainingType.BaseType;
 #nullable disable // Can 'baseType' be null here? https://github.com/dotnet/roslyn/issues/39166

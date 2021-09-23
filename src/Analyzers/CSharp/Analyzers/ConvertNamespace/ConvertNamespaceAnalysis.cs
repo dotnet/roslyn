@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
             // even if we could offer this here, we have to make sure it would be legal.  A file scoped namespace is
             // only legal if it's the only namespace in the file and there are no top level statements.
-            var tooManyNamespaces = root.DescendantNodesAndSelf(n => n is CompilationUnitSyntax || n is BaseNamespaceDeclarationSyntax)
+            var tooManyNamespaces = root.DescendantNodesAndSelf(n => n is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax)
                                         .OfType<BaseNamespaceDeclarationSyntax>()
                                         .Take(2)
                                         .Count() != 1;

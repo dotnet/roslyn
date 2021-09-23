@@ -4031,11 +4031,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected override BoundBinaryOperator? PushBinaryOperatorInterpolatedStringChildren(BoundBinaryOperator node, ArrayBuilder<BoundInterpolatedString> stack)
+        protected override void VisitInterpolatedStringBinaryOperatorNode(BoundBinaryOperator node)
         {
-            var result = base.PushBinaryOperatorInterpolatedStringChildren(node, stack);
             SetNotNullResult(node);
-            return result;
         }
 
         /// <summary>
@@ -5310,25 +5308,45 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool parameterHasNotNullIfNotNull = !IsAnalyzingAttribute && !parametersOpt.IsDefault && parametersOpt.Any(p => !p.NotNullIfParameterNotNull.IsEmpty);
             var notNullParametersBuilder = parameterHasNotNullIfNotNull ? ArrayBuilder<ParameterSymbol>.GetInstance() : null;
-            if (!node.HasErrors && !parametersOpt.IsDefault)
+            if (!parametersOpt.IsDefault)
             {
                 // Visit conversions, inbound assignments including pre-conditions
                 ImmutableHashSet<string>? returnNotNullIfParameterNotNull = IsAnalyzingAttribute ? null : method?.ReturnNotNullIfParameterNotNull;
                 for (int i = 0; i < results.Length; i++)
                 {
+                    var argumentNoConversion = argumentsNoConversions[i];
+                    var argument = i < arguments.Length ? arguments[i] : argumentNoConversion;
+
+                    if (argument is not BoundConversion && argumentNoConversion is BoundLambda lambda)
+                    {
+                        Debug.Assert(node.HasErrors);
+                        Debug.Assert((object)argument == argumentNoConversion);
+                        // 'VisitConversion' only visits a lambda when the lambda has an AnonymousFunction conversion.
+                        // This lambda doesn't have a conversion, so we need to visit it here.
+                        VisitLambda(lambda, delegateTypeOpt: null, results[i].StateForLambda);
+                        continue;
+                    }
+
                     (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
                         GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded);
                     if (parameter is null)
                     {
+                        // If this assert fails, we are missing necessary info to visit the
+                        // conversion of a target typed conditional or switch.
+                        Debug.Assert(argumentNoConversion is not (BoundConditionalOperator { WasTargetTyped: true } or BoundConvertedSwitchExpression { WasTargetTyped: true })
+                            && _conditionalInfoForConversionOpt?.ContainsKey(argumentNoConversion) is null or false);
+
+                        // If this assert fails, it means we failed to visit a lambda for error recovery above.
+                        Debug.Assert(argumentNoConversion is not BoundLambda);
+
                         continue;
                     }
 
-                    var argumentNoConversion = argumentsNoConversions[i];
-                    var argument = i < arguments.Length ? arguments[i] : argumentsNoConversions[i];
-
-                    // we disable nullable warnings on default arguments
+                    // We disable diagnostics when:
+                    // 1. the containing call has errors (to reduce cascading diagnostics)
+                    // 2. on implicit default arguments (since that's really only an issue with the declaration)
                     var previousDisableDiagnostics = _disableDiagnostics;
-                    _disableDiagnostics |= defaultArguments[i];
+                    _disableDiagnostics |= node.HasErrors || defaultArguments[i];
 
                     VisitArgumentConversionAndInboundAssignmentsAndPreConditions(
                         GetConversionIfApplicable(argument, argumentNoConversion),
@@ -5351,19 +5369,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             shouldReturnNotNull = true;
                         }
-                    }
-                }
-            }
-            else
-            {
-                // Normally we delay visiting the lambda until we can visit it along with its conversion.
-                // Since we can't visit its conversion here, or it doesn't have one, we dig back in and
-                // visit the lambda here to ensure all nodes have nullability info for public API
-                for (int i = 0; i < results.Length; i++)
-                {
-                    if (argumentsNoConversions[i] is BoundLambda lambda)
-                    {
-                        VisitLambda(lambda, delegateTypeOpt: null, results[i].StateForLambda);
                     }
                 }
             }
@@ -6143,7 +6148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.DefaultLiteral:
                     case BoundKind.DefaultExpression:
                     case BoundKind.Literal:
-                        return (expr.ConstantValue?.IsNull != false) ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
+                        return expr.ConstantValue == ConstantValue.NotAvailable || !expr.ConstantValue.IsNull || expr.IsSuppressed ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
                     case BoundKind.ExpressionWithNullability:
                         return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                     case BoundKind.MethodGroup:

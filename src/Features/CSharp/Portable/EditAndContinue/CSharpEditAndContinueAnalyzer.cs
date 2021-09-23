@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override IEnumerable<SyntaxNode> GetVariableUseSites(IEnumerable<SyntaxNode> roots, ISymbol localOrParameter, SemanticModel model, CancellationToken cancellationToken)
         {
-            Debug.Assert(localOrParameter is IParameterSymbol || localOrParameter is ILocalSymbol || localOrParameter is IRangeVariableSymbol);
+            Debug.Assert(localOrParameter is IParameterSymbol or ILocalSymbol or IRangeVariableSymbol);
 
             // not supported (it's non trivial to find all places where "this" is used):
             Debug.Assert(!localOrParameter.IsThisParameter());
@@ -573,8 +573,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             if (oldBody is ExpressionSyntax || newBody is ExpressionSyntax || (oldBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement) && newBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement)))
             {
-                Debug.Assert(oldBody is ExpressionSyntax || oldBody is BlockSyntax);
-                Debug.Assert(newBody is ExpressionSyntax || newBody is BlockSyntax);
+                Debug.Assert(oldBody is ExpressionSyntax or BlockSyntax);
+                Debug.Assert(newBody is ExpressionSyntax or BlockSyntax);
 
                 // The matching algorithm requires the roots to match each other.
                 // Lambda bodies, field/property initializers, and method/property/indexer/operator expression-bodies may also be lambda expressions.
@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override bool IsDeclarationWithInitializer(SyntaxNode declaration)
-            => declaration is VariableDeclaratorSyntax { Initializer: not null } || declaration is PropertyDeclarationSyntax { Initializer: not null };
+            => declaration is VariableDeclaratorSyntax { Initializer: not null } or PropertyDeclarationSyntax { Initializer: not null };
 
         internal override bool IsRecordPrimaryConstructorParameter(SyntaxNode declaration)
             => declaration is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax } };
@@ -1478,8 +1478,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return false;
             }
 
-            Debug.Assert(oldParameters.Length == 1 || oldParameters.Length == 2);
-            Debug.Assert(newParameters.Length == 1 || newParameters.Length == 2);
+            Debug.Assert(oldParameters.Length is 1 or 2);
+            Debug.Assert(newParameters.Length is 1 or 2);
 
             // The types of the lambdas have to be the same if present.
             // The element selector may be added/removed.
@@ -2860,7 +2860,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             // switch expression does not have sequence points (active statements):
-            if (!(oldActiveStatement.Parent!.Parent!.Parent is SwitchStatementSyntax oldSwitch))
+            if (oldActiveStatement.Parent!.Parent!.Parent is not SwitchStatementSyntax oldSwitch)
             {
                 return;
             }

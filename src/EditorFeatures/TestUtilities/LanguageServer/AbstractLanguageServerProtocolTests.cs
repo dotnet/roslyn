@@ -38,35 +38,8 @@ namespace Roslyn.Test.Utilities
     {
         // TODO: remove WPF dependency (IEditorInlineRenameService)
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
-            .AddParts(typeof(TestLspWorkspaceRegistrationService))
             .AddParts(typeof(TestDocumentTrackingService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
-
-        [Export(typeof(ILspWorkspaceRegistrationService)), PartNotDiscoverable]
-        internal class TestLspWorkspaceRegistrationService : ILspWorkspaceRegistrationService
-        {
-            private Workspace? _workspace;
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestLspWorkspaceRegistrationService()
-            {
-            }
-
-            public ImmutableArray<Workspace> GetAllRegistrations()
-            {
-                Contract.ThrowIfNull(_workspace, "No workspace has been registered");
-
-                return ImmutableArray.Create(_workspace);
-            }
-
-            public void Register(Workspace workspace)
-            {
-                Contract.ThrowIfTrue(_workspace != null);
-
-                _workspace = workspace;
-            }
-        }
 
         private class TestSpanMapperProvider : IDocumentServiceProvider
         {
@@ -187,7 +160,7 @@ namespace Roslyn.Test.Utilities
                 Kind = kind,
                 Name = name,
                 Location = location,
-                Icon = ProtocolConversions.GetImageIdFromGlyph(glyph)
+                Icon = VSLspExtensionConversions.GetImageIdFromGlyph(glyph)
             };
 
             if (containerName != null)
