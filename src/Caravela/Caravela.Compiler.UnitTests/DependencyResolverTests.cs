@@ -81,7 +81,7 @@ namespace Caravela.Compiler.UnitTests
 
     class TransformerBase : ISourceTransformer
     {
-        public Compilation Execute(TransformerContext context) => throw new NotImplementedException();
+        public void Execute(TransformerContext context) => throw new NotImplementedException();
     }
 
     class T1 : TransformerBase { }

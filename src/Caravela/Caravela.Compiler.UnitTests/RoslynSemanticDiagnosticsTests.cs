@@ -775,6 +775,7 @@ namespace Caravela.Compiler.UnitTests.Diagnostics
         }
     }
 
+    /* Disabled because it's so slow.
     [Trait("Category", "OuterLoop")]
     public class CaravelaCompilerOverloadResolutionPerfTests : OverloadResolutionPerfTests
     {
@@ -786,6 +787,7 @@ namespace Caravela.Compiler.UnitTests.Diagnostics
             base.Dispose();
         }
     }
+    */
 
     [Trait("Category", "OuterLoop")]
     public class CaravelaCompilerOverloadResolutionTests : OverloadResolutionTests

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -47,9 +48,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // <Caravela>
-            if (TreeTracker.GetPreTransformationLocation(d.Location) is { } location)
+            // Translate the location of the diagnostic back to the source tree.
+            var reportedDiagnostic = TreeTracker.MapDiagnostic(d);
+            if ( reportedDiagnostic == null )
             {
-                d = d.WithLocation(location);
+                // Warnings from generate code are ignored.
+                return null;
+            }
+            else
+            {
+                d = reportedDiagnostic;
             }
             // </Caravela>
 
