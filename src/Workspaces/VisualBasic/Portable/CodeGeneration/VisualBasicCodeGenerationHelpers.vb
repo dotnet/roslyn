@@ -210,6 +210,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return result
         End Function
 
+        ''' <summary>
+        ''' Try use the existing syntax node and generate a new syntax node for the given <param name="symbol"/>.
+        ''' Note: the returned syntax node might be modified, which means its parent information might be missing.
+        ''' </summary>
         Public Function GetReuseableSyntaxNodeForSymbol(Of T As SyntaxNode)(symbol As ISymbol, options As CodeGenerationOptions) As T
             ThrowIfNull(symbol)
 
@@ -223,6 +227,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     If declarationStatementNode IsNot Nothing
                         Dim declarationBlockFromBegin = declarationStatementNode.GetDeclarationBlockFromBegin()
                         Return TryCast(RemoveLeadingDirectiveTrivia(declarationBlockFromBegin), T)
+                    End If
+                End If
+
+                Dim modifiedIdentifierNode = TryCast(reusableNode, ModifiedIdentifierSyntax)
+                If modifiedIdentifierNode IsNot Nothing AndAlso symbol.IsKind(SymbolKind.Field) AndAlso GetType(T) Is GetType(FieldDeclarationSyntax) Then
+                    Dim variableDeclarator = TryCast(modifiedIdentifierNode.Parent, VariableDeclaratorSyntax)
+                    If variableDeclarator IsNot Nothing Then
+                        Dim fieldDecl = TryCast(variableDeclarator.Parent, FieldDeclarationSyntax)
+                        If fieldDecl IsNot Nothing Then
+                            Dim names = SyntaxFactory.SingletonSeparatedList(modifiedIdentifierNode)
+                            Dim newVariableDeclarator = variableDeclarator.WithNames(names)
+                            Return TryCast(RemoveLeadingDirectiveTrivia(
+                                fieldDecl.WithDeclarators(SyntaxFactory.SingletonSeparatedList(newVariableDeclarator))), T)
+                        End If
                     End If
                 End If
 

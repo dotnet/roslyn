@@ -263,13 +263,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return result;
         }
 
+        /// <summary>
+        /// Try use the existing syntax node and generate a new syntax node for the given <param name="symbol"/>.
+        /// Note: the returned syntax node might be modified, which means its parent information might be missing.
+        /// </summary>
         public static T GetReuseableSyntaxNodeForSymbol<T>(ISymbol symbol, CodeGenerationOptions options) where T : SyntaxNode
         {
             Contract.ThrowIfNull(symbol);
 
-            if (options is { ReuseSyntax: true } && symbol.DeclaringSyntaxReferences.Length == 1)
+            if (options is not null && options.ReuseSyntax && symbol.DeclaringSyntaxReferences.Length == 1)
             {
                 var reusableSyntaxNode = symbol.DeclaringSyntaxReferences[0].GetSyntax();
+
+                if (symbol is IFieldSymbol
+                    && typeof(T) == typeof(FieldDeclarationSyntax)
+                    && reusableSyntaxNode is VariableDeclaratorSyntax variableDeclaratorNode
+                    && reusableSyntaxNode.Parent is VariableDeclarationSyntax variableDeclarationNode
+                    && reusableSyntaxNode.Parent.Parent is FieldDeclarationSyntax fieldDeclarationNode)
+                {
+                    return RemoveLeadingDirectiveTrivia(
+                        fieldDeclarationNode.WithDeclaration(
+                            variableDeclarationNode.WithVariables(SyntaxFactory.SingletonSeparatedList(variableDeclaratorNode)))) as T;
+                }
+
                 return RemoveLeadingDirectiveTrivia(reusableSyntaxNode) as T;
             }
 

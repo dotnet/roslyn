@@ -68,13 +68,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function GenerateFieldDeclaration(field As IFieldSymbol,
                                                         destination As CodeGenerationDestination,
                                                         options As CodeGenerationOptions) As FieldDeclarationSyntax
-            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of ModifiedIdentifierSyntax)(field, options)
+            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of FieldDeclarationSyntax)(field, options)
             If reusableSyntax IsNot Nothing Then
-                Return SyntaxFactory.FieldDeclaration(
-                    AttributeGenerator.GenerateAttributeBlocks(field.GetAttributes(), options),
-                    GenerateModifiers(field, destination, options),
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.VariableDeclarator(reusableSyntax)))
+                return reusableSyntax
             End If
 
             Dim initializerNode = TryCast(CodeGenerationFieldInfo.GetInitializer(field), ExpressionSyntax)

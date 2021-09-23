@@ -2905,14 +2905,16 @@ public class Derived : Base
         <Document FilePath = ""File1.cs"">
 public class Base
 {
-}       </Document>
+}
+        </Document>
         <Document FilePath = ""File2.cs"">
 using System;
 
 public class Derived : Base
 {
-    public Uri en[||]dpoint = new Uri(""http://localhost"");
-}       </Document>
+    public var en[||]dpoint = new Uri(""http://localhost"");
+}
+        </Document>
     </Project>
 </Workspace>
 ";
@@ -2923,14 +2925,16 @@ public class Derived : Base
 
 public class Base
 {
-    public Uri endpoint = new Uri(""http://localhost"");
-}       </Document>
+    public var endpoint = new Uri(""http://localhost"");
+}
+        </Document>
         <Document FilePath = ""File2.cs"">
 using System;
 
 public class Derived : Base
 {
-}       </Document>
+}
+        </Document>
     </Project>
 </Workspace>
 ";
@@ -2950,14 +2954,12 @@ public class Base
 }
         </Document>
         <Document FilePath = ""File2.cs"">
-<![CDATA[
 using System.Linq;
 
 public class Derived : Base
 {
-    public IEnumerable<int> ran[||]ge = Enumerable.Range(0, 5);
+    public var ran[||]ge = Enumerable.Range(0, 5);
 }
-        ]]>
         </Document>
     </Project>
 </Workspace>
@@ -2965,13 +2967,12 @@ public class Derived : Base
             var expected = @"
 <Workspace>
     <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
-        <Document FilePath = ""File1.cs""><![CDATA[using System.Linq;
+        <Document FilePath = ""File1.cs"">using System.Linq;
 
 public class Base
 {
-    public IEnumerable<int> range = Enumerable.Range(0, 5);
+    public var range = Enumerable.Range(0, 5);
 }
-        ]]>
         </Document>
         <Document FilePath = ""File2.cs"">
 using System.Linq;
@@ -4040,6 +4041,40 @@ public class Bar : BaseClass
 {
     #region Hello
     public void Goo() { }
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullMethodToClassBeforeDirective2()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public void Hello() { }
+
+    #region Hello
+    public void G[||]oo() { }
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+
+    public void Goo() { }
+}
+
+public class Bar : BaseClass
+{
+    public void Hello() { }
+
+    #region Hello
     #endregion
 }";
             return TestInRegularAndScriptAsync(text, expected);
