@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // report only if this is an unsafe *nullability* difference
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.Locations[0]);
                 },
-                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, blameAttributes, arg) =>
+                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.Locations[0], new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },

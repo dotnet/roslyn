@@ -6837,7 +6837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arg.targetType);
             }
 
-            void reportBadDelegateParameter(BindingDiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol parameter, int _, bool topLevel, (TypeSymbol targetType, Location location) arg)
+            void reportBadDelegateParameter(BindingDiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol parameter, bool topLevel, (TypeSymbol targetType, Location location) arg)
             {
                 ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, arg.location,
                     GetParameterAsDiagnosticArgument(parameter),
@@ -6846,66 +6846,70 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportNullabilityMismatchWithTargetDelegate(Location location, NamedTypeSymbol delegateType, BoundLambda lambda)
+        private void ReportNullabilityMismatchWithTargetDelegate(Location location, NamedTypeSymbol delegateType, UnboundLambda unboundLambda)
         {
-            MethodSymbol targetInvokeMethod = delegateType.DelegateInvokeMethod;
-            MethodSymbol sourceInvokeMethod = (MethodSymbol)lambda.ExpressionSymbol;
-            UnboundLambda unboundLambda = lambda.UnboundLambda;
-
-            if (targetInvokeMethod is null ||
-                targetInvokeMethod.ParameterCount != sourceInvokeMethod.ParameterCount)
+            if (!unboundLambda.HasExplicitlyTypedParameterList)
             {
                 return;
             }
 
-            // Parameter nullability is expected to match exactly. This corresponds to the behavior of initial binding.
-            //    Action<string> x = (object o) => { }; // error CS1661: Cannot convert lambda expression to delegate type 'Action<string>' because the parameter types do not match the delegate parameter types
-            //    Action<object> y = (object? o) => { }; // warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'Action<object>'.
-            // https://github.com/dotnet/roslyn/issues/35564: Consider relaxing and allow implicit conversions of nullability (as we do for method group conversions).
-
-            if (lambda.Syntax is LambdaExpressionSyntax lambdaSyntax)
-            {
-                int start = lambdaSyntax.SpanStart;
-                location = Location.Create(lambdaSyntax.SyntaxTree, new Text.TextSpan(start, lambdaSyntax.ArrowToken.Span.End - start));
-            }
-
-            if (SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
-                compilation,
-                targetInvokeMethod,
-                sourceInvokeMethod,
-                new BindingDiagnosticBag(Diagnostics),
-                reportBadDelegateReturn,
-                reportBadDelegateParameter,
-                extraArgument: location,
-                invokedAsExtensionMethod: false))
+            var invoke = delegateType?.DelegateInvokeMethod;
+            if (invoke is null)
             {
                 return;
             }
 
-            SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
-                compilation,
-                sourceInvokeMethod,
-                targetInvokeMethod,
-                new BindingDiagnosticBag(Diagnostics),
-                reportBadDelegateReturn,
-                reportBadDelegateParameter,
-                extraArgument: location,
-                invokedAsExtensionMethod: false);
+            Debug.Assert(delegateType is object);
 
-            void reportBadDelegateReturn(BindingDiagnosticBag bag, MethodSymbol targetInvokeMethod, MethodSymbol sourceInvokeMethod, bool topLevel, Location location)
+            if (unboundLambda.HasExplicitReturnType(out _, out var returnType) &&
+                IsNullabilityMismatch(invoke.ReturnTypeWithAnnotations, returnType, requireIdentity: true))
             {
                 ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, location,
                     unboundLambda.MessageID.Localize(),
                     delegateType);
             }
 
-            void reportBadDelegateParameter(BindingDiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol _, int parameterIndex, bool topLevel, Location location)
+            int count = Math.Min(invoke.ParameterCount, unboundLambda.ParameterCount);
+            for (int i = 0; i < count; i++)
             {
-                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
-                    unboundLambda.ParameterName(parameterIndex),
-                    unboundLambda.MessageID.Localize(),
-                    delegateType);
+                var invokeParameter = invoke.Parameters[i];
+                // Parameter nullability is expected to match exactly. This corresponds to the behavior of initial binding.
+                //    Action<string> x = (object o) => { }; // error CS1661: Cannot convert lambda expression to delegate type 'Action<string>' because the parameter types do not match the delegate parameter types
+                //    Action<object> y = (object? o) => { }; // warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'Action<object>'.
+                // https://github.com/dotnet/roslyn/issues/35564: Consider relaxing and allow implicit conversions of nullability.
+                // (Compare with method group conversions which pass `requireIdentity: false`.)
+                if (IsNullabilityMismatch(invokeParameter.TypeWithAnnotations, unboundLambda.ParameterTypeWithAnnotations(i), requireIdentity: true))
+                {
+                    // Should the warning be reported using location of specific lambda parameter?
+                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
+                        unboundLambda.ParameterName(i),
+                        unboundLambda.MessageID.Localize(),
+                        delegateType);
+                }
             }
+        }
+
+        private bool IsNullabilityMismatch(TypeWithAnnotations source, TypeWithAnnotations destination, bool requireIdentity)
+        {
+            if (!HasTopLevelNullabilityConversion(source, destination, requireIdentity))
+            {
+                return true;
+            }
+            if (requireIdentity)
+            {
+                return IsNullabilityMismatch(source, destination);
+            }
+            var sourceType = source.Type;
+            var destinationType = destination.Type;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return !_conversions.ClassifyImplicitConversionFromType(sourceType, destinationType, ref discardedUseSiteInfo).Exists;
+        }
+
+        private bool HasTopLevelNullabilityConversion(TypeWithAnnotations source, TypeWithAnnotations destination, bool requireIdentity)
+        {
+            return requireIdentity ?
+                _conversions.HasTopLevelNullabilityIdentityConversion(source, destination) :
+                _conversions.HasTopLevelNullabilityImplicitConversion(source, destination);
         }
 
         /// <summary>
@@ -7014,7 +7018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitLambda(lambda, delegateType, stateForLambda);
                         if (reportRemainingWarnings)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, delegateType, lambda);
+                            ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, delegateType, lambda.UnboundLambda);
                         }
 
                         TrackAnalyzedNullabilityThroughConversionGroup(targetTypeWithNullability.ToTypeWithState(), conversionOpt, conversionOperand);
@@ -7719,7 +7723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SetNotNullResult(lambda);
                         if (!lambda.IsSuppressed)
                         {
-                            ReportNullabilityMismatchWithTargetDelegate(lambda.Symbol.DiagnosticLocation, delegateType, lambda);
+                            ReportNullabilityMismatchWithTargetDelegate(lambda.Symbol.DiagnosticLocation, delegateType, lambda.UnboundLambda);
                         }
                     }
                     break;

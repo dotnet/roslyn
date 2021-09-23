@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal delegate void ReportMismatchInReturnType<TArg>(BindingDiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, bool topLevel, TArg arg);
-    internal delegate void ReportMismatchInParameterType<TArg>(BindingDiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol parameter, int parameterIndex, bool topLevel, TArg arg);
+    internal delegate void ReportMismatchInParameterType<TArg>(BindingDiagnosticBag bag, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol parameter, bool topLevel, TArg arg);
 
     internal partial class SourceMemberContainerTypeSymbol
     {
@@ -1185,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location);
 
         static readonly ReportMismatchInParameterType<Location> ReportBadParameter =
-            (BindingDiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, int _, bool topLevel, Location location)
+            (BindingDiagnosticBag diagnostics, MethodSymbol overriddenMethod, MethodSymbol overridingMethod, ParameterSymbol overridingParameter, bool topLevel, Location location)
             => diagnostics.Add(
                 topLevel ? ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride : ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride,
                 location,
@@ -1256,8 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var baseParameter = baseParameters[i];
                     var baseParameterType = baseParameter.TypeWithAnnotations;
-                    int parameterIndex = i + overrideParameterOffset;
-                    var overrideParameter = overrideParameters[parameterIndex];
+                    var overrideParameter = overrideParameters[i + overrideParameterOffset];
                     var overrideParameterType = getNotNullIfNotNullOutputType(overrideParameter.TypeWithAnnotations, overrideParameter.NotNullIfParameterNotNull);
                     // check nested nullability
                     if (!isValidNullableConversion(
@@ -1266,7 +1265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             baseParameterType.Type,
                             overrideParameterType.Type))
                     {
-                        reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, parameterIndex, false, extraArgument);
+                        reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, false, extraArgument);
                         hasErrors = true;
                     }
                     // check top-level nullability including flow analysis annotations
@@ -1277,7 +1276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             overrideParameterType,
                             overrideParameter.FlowAnalysisAnnotations))
                     {
-                        reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, parameterIndex, true, extraArgument);
+                        reportMismatchInParameterType(diagnostics, baseMethod, overrideMethod, overrideParameter, true, extraArgument);
                         hasErrors = true;
                     }
                 }
