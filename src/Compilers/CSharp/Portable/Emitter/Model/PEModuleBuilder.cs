@@ -295,8 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         /// <summary>
-        /// Gets a list of documents from the method definitions in this type, and also outputs whether there are
-        /// any methods that don't have document info (ie don't have any IL)
+        /// Gets a list of documents from the method definitions in this type
         /// </summary>
         private static void GetDocumentsForMethods(PooledHashSet<Cci.DebugSourceDocument> documentList, Cci.ITypeDefinition typeDefinition, EmitContext context)
         {
