@@ -24,6 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
         public void StartListening(Workspace workspace, object _)
         {
+            // The lsp misc files workspace has the MiscellaneousFiles workspace kind,
+            // but we don't actually want to mark it as a registered workspace in VS since we
+            // prefer the actual MiscellaneousFilesWorkspace.
+            if (workspace is LspMiscellaneousFilesWorkspace)
+            {
+                return;
+            }
+
             _lspWorkspaceRegistrationService.Register(workspace);
         }
     }

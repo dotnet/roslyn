@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -86,6 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             RequestTelemetryLogger telemetryLogger,
             ClientCapabilities clientCapabilities,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspMiscellaneousFilesWorkspace lspMiscellaneousFilesWorkspace,
             Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)>? solutionCache,
             IDocumentChangeTracker? documentChangeTracker,
             ImmutableArray<string> supportedLanguages,
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // There are multiple possible solutions that we could be interested in, so we need to find the document
                 // first and then get the solution from there. If we're not given a document, this will return the default
                 // solution
-                document = FindDocument(logger, telemetryLogger, lspWorkspaceRegistrationService, textDocument, clientName);
+                document = FindDocument(logger, telemetryLogger, lspWorkspaceRegistrationService, lspMiscellaneousFilesWorkspace, textDocument, clientName);
 
                 if (document is not null)
                 {
@@ -148,32 +148,61 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ILspLogger logger,
             RequestTelemetryLogger telemetryLogger,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspMiscellaneousFilesWorkspace lspMiscFilesWorkspace,
             TextDocumentIdentifier textDocument,
             string? clientName)
         {
             logger.TraceInformation($"Finding document corresponding to {textDocument.Uri}");
 
-            using var workspaceKinds = TemporaryArray<string?>.Empty;
-            foreach (var workspace in lspWorkspaceRegistrationService.GetAllRegistrations())
+            var document = TryGetDocumentFromRegisteredWorkspaces(textDocument, clientName, lspWorkspaceRegistrationService, telemetryLogger, logger);
+            if (document != null)
             {
-                workspaceKinds.Add(workspace.Kind);
-                var documents = workspace.CurrentSolution.GetDocuments(textDocument.Uri, clientName, logger);
+                return document;
+            }
+
+            // If the document was not in a registered workspace, try to retrieve from the LSP misc files workspace.
+            document = TryGetDocumentFromWorkspace(textDocument, clientName, lspMiscFilesWorkspace);
+            return document;
+
+            static Document? TryGetDocumentFromRegisteredWorkspaces(
+                TextDocumentIdentifier textDocument,
+                string? clientName,
+                ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+                RequestTelemetryLogger telemetryLogger,
+                ILspLogger logger)
+            {
+                var registeredWorkspaces = lspWorkspaceRegistrationService.GetAllRegistrations();
+                foreach (var workspace in registeredWorkspaces)
+                {
+                    var document = TryGetDocumentFromWorkspace(textDocument, clientName, workspace);
+                    if (document != null)
+                    {
+                        telemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspace.Kind);
+                        logger.TraceInformation($"Using document from workspace {workspace.Kind}: {document.FilePath}");
+                        return document;
+                    }
+                }
+
+                // We didn't find the document in a registered workspace, record a telemetry notification that we did not find it.
+                var searchedWorkspaceKinds = string.Join(";", registeredWorkspaces.SelectAsArray(w => w.Kind));
+                logger.TraceWarning($"Creating a miscellaneous file for '{textDocument.Uri}' as it was found in a registered workspace (searched {searchedWorkspaceKinds}, with client name '{clientName}'.");
+                telemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
+
+                return null;
+            }
+
+            static Document? TryGetDocumentFromWorkspace(TextDocumentIdentifier identifier, string? clientName, Workspace workspace)
+            {
+                var documents = workspace.CurrentSolution.GetDocuments(identifier.Uri, clientName);
 
                 if (!documents.IsEmpty)
                 {
-                    var document = documents.FindDocumentInProjectContext(textDocument);
-                    logger.TraceInformation($"Found document in workspace {workspace.Kind}: {document.FilePath}");
-                    telemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspace.Kind);
+                    var document = documents.FindDocumentInProjectContext(identifier);
                     return document;
                 }
+
+                return null;
             }
-
-            var searchedWorkspaceKinds = string.Join(";", workspaceKinds.ToImmutableAndClear());
-            logger.TraceWarning($"No document found for '{textDocument.Uri}' after looking in {searchedWorkspaceKinds} workspaces, with client name '{clientName}'.");
-
-            telemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
-
-            return null;
         }
 
         /// <summary>
