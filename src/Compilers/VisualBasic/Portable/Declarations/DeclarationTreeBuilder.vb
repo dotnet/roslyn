@@ -568,8 +568,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 quickAttributes:=quickAttributes Or _aliasedQuickAttributes)
         End Function
 
-
-
         Private Shared Function GetQuickAttributes(attributeLists As SyntaxList(Of AttributeListSyntax)) As QuickAttributes
             Dim result = QuickAttributes.None
             For Each attributeList In attributeLists
