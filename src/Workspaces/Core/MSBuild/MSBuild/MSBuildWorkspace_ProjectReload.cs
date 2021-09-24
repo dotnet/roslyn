@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 foreach (var projectId in updatedProjectIds)
                 {
                     _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectReloaded, oldSolution, solution, projectId);
-                    updatedProjects.Add(solution.GetRequiredProject(projectId));
+                    updatedProjects.Add(solution.GetProject(projectId)!);
                 }
 
                 return updatedProjects.ToImmutableAndFree();
@@ -49,40 +49,23 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private static async Task<Project> UpdateProjectAsync(Project project, ProjectInfo newProjectInfo, ProjectStateChecksums oldCheckSum, ProjectStateChecksums newCheckSum)
         {
             // changed info
-            if (oldCheckSum.Info != newCheckSum.Info)
-            {
-                project = UpdateProjectAttributes(project, newProjectInfo.Attributes);
-            }
+            project = UpdateProjectAttributes(project, newProjectInfo.Attributes);
 
             // changed compilation options
-            if (oldCheckSum.CompilationOptions != newCheckSum.CompilationOptions)
-            {
-                project = project.WithCompilationOptions(newProjectInfo.CompilationOptions!);
-            }
+            project = project.WithCompilationOptions(newProjectInfo.CompilationOptions!);
 
             // changed parse options
-            if (oldCheckSum.ParseOptions != newCheckSum.ParseOptions)
-            {
-                project = project.WithParseOptions(newProjectInfo.ParseOptions!);
-            }
+            project = project.WithParseOptions(newProjectInfo.ParseOptions!);
 
             // changed project references
-            if (oldCheckSum.ProjectReferences.Checksum != newCheckSum.ProjectReferences.Checksum)
-            {
-                project = project.WithProjectReferences(newProjectInfo.ProjectReferences);
-            }
+            project = project.WithProjectReferences(newProjectInfo.ProjectReferences);
 
             // changed metadata references
-            if (oldCheckSum.MetadataReferences.Checksum != newCheckSum.MetadataReferences.Checksum)
-            {
-                project = project.WithMetadataReferences(newProjectInfo.MetadataReferences);
-            }
+            project = project.WithMetadataReferences(newProjectInfo.MetadataReferences);
 
             // changed analyzer references
-            if (oldCheckSum.AnalyzerReferences.Checksum != newCheckSum.AnalyzerReferences.Checksum)
-            {
-                project = project.WithAnalyzerReferences(newProjectInfo.AnalyzerReferences);
-            }
+            project = project.WithAnalyzerReferences(newProjectInfo.AnalyzerReferences);
+
 
             // changed documents
             if (oldCheckSum.Documents.Checksum != newCheckSum.Documents.Checksum)
@@ -90,7 +73,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 project = await UpdateDocumentsAsync(
                     project,
                     newProjectInfo.Documents,
-                    project.State.DocumentStates.States,
+                    project.State.DocumentStates,
                     oldCheckSum.Documents,
                     newCheckSum.Documents,
                     (solution, documents) => solution.AddDocuments(documents),
@@ -103,7 +86,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 project = await UpdateDocumentsAsync(
                     project,
                     newProjectInfo.AdditionalDocuments,
-                    project.State.AdditionalDocumentStates.States,
+                    project.State.AdditionalDocumentStates,
                     oldCheckSum.AdditionalDocuments,
                     newCheckSum.AdditionalDocuments,
                     (solution, documents) => solution.AddAdditionalDocuments(documents),
@@ -116,7 +99,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 project = await UpdateDocumentsAsync(
                     project,
                     newProjectInfo.AnalyzerConfigDocuments,
-                    project.State.AnalyzerConfigDocumentStates.States,
+                    project.State.AnalyzerConfigDocumentStates,
                     oldCheckSum.AnalyzerConfigDocuments,
                     newCheckSum.AnalyzerConfigDocuments,
                     (solution, documents) => solution.AddAnalyzerConfigDocuments(documents),
@@ -134,62 +117,28 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.IsSubmission == attributes.IsSubmission);
             var projectId = project.Id;
 
-            if (project.State.ProjectInfo.Attributes.Name != attributes.Name)
-            {
-                project = project.Solution.WithProjectName(projectId, attributes.Name).GetProject(projectId)!;
-            }
-
-            if (project.State.ProjectInfo.Attributes.AssemblyName != attributes.AssemblyName)
-            {
-                project = project.Solution.WithProjectAssemblyName(projectId, attributes.AssemblyName).GetProject(projectId)!;
-            }
-
-            if (project.State.ProjectInfo.Attributes.FilePath != attributes.FilePath)
-            {
-                project = project.Solution.WithProjectFilePath(projectId, attributes.FilePath).GetProject(projectId)!;
-            }
-
-            if (project.State.ProjectInfo.Attributes.OutputFilePath != attributes.OutputFilePath)
-            {
-                project = project.Solution.WithProjectOutputFilePath(projectId, attributes.OutputFilePath).GetProject(projectId)!;
-            }
-
-            if (project.State.ProjectInfo.Attributes.OutputRefFilePath != attributes.OutputRefFilePath)
-            {
-                project = project.Solution.WithProjectOutputRefFilePath(projectId, attributes.OutputRefFilePath).GetProject(projectId)!;
-            }
-
-            if (project.State.ProjectInfo.Attributes.CompilationOutputInfo != attributes.CompilationOutputInfo)
-            {
-                project = project.Solution.WithProjectCompilationOutputInfo(project.Id, attributes.CompilationOutputInfo).GetProject(project.Id)!;
-            }
-
-            if (project.State.ProjectInfo.Attributes.DefaultNamespace != attributes.DefaultNamespace)
-            {
-                project = project.Solution.WithProjectDefaultNamespace(projectId, attributes.DefaultNamespace).GetProject(projectId)!;
-            }
-
-            if (project.State.ProjectInfo.Attributes.HasAllInformation != attributes.HasAllInformation)
-            {
-                project = project.Solution.WithHasAllInformation(projectId, attributes.HasAllInformation).GetProject(projectId)!;
-            }
-
-            if (project.State.ProjectInfo.Attributes.RunAnalyzers != attributes.RunAnalyzers)
-            {
-                project = project.Solution.WithRunAnalyzers(projectId, attributes.RunAnalyzers).GetProject(projectId)!;
-            }
+            project = project.Solution.WithProjectName(projectId, attributes.Name).GetProject(projectId)!;
+            project = project.Solution.WithProjectAssemblyName(projectId, attributes.AssemblyName).GetProject(projectId)!;
+            project = project.Solution.WithProjectFilePath(projectId, attributes.FilePath).GetProject(projectId)!;
+            project = project.Solution.WithProjectOutputFilePath(projectId, attributes.OutputFilePath).GetProject(projectId)!;
+            project = project.Solution.WithProjectOutputRefFilePath(projectId, attributes.OutputRefFilePath).GetProject(projectId)!;
+            project = project.Solution.WithProjectCompilationOutputInfo(project.Id, attributes.CompilationOutputInfo).GetProject(project.Id)!;
+            project = project.Solution.WithProjectDefaultNamespace(projectId, attributes.DefaultNamespace).GetProject(projectId)!;
+            project = project.Solution.WithHasAllInformation(projectId, attributes.HasAllInformation).GetProject(projectId)!;
+            project = project.Solution.WithRunAnalyzers(projectId, attributes.RunAnalyzers).GetProject(projectId)!;
 
             return project;
         }
 
-        private static async Task<Project> UpdateDocumentsAsync(
+        private static async Task<Project> UpdateDocumentsAsync<TTextDocumentState>(
                 Project project,
                 IReadOnlyList<DocumentInfo> documentInfos,
-                IEnumerable<TextDocumentState> existingTextDocumentStates,
+                TextDocumentStates<TTextDocumentState> existingTextDocumentStates,
                 ChecksumCollection oldChecksums,
                 ChecksumCollection newChecksums,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
                 Func<Solution, DocumentId, Solution> removeDocument)
+            where TTextDocumentState : TextDocumentState
         {
             using var olds = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
             using var news = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
@@ -291,10 +240,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return map;
         }
 
-        private static async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync(IEnumerable<TextDocumentState> states, HashSet<Checksum> documents)
+        private static async Task<Dictionary<DocumentId, DocumentStateChecksums>> GetDocumentMapAsync<TTextDocumentState>(TextDocumentStates<TTextDocumentState> states, HashSet<Checksum> documents)
+            where TTextDocumentState : TextDocumentState
         {
             var map = new Dictionary<DocumentId, DocumentStateChecksums>();
-            foreach (var state in states)
+            foreach (var (_, state) in states.States)
             {
                 var documentChecksums = await state.GetStateChecksumsAsync(default).ConfigureAwait(false);
                 if (documents.Contains(documentChecksums.Checksum))
