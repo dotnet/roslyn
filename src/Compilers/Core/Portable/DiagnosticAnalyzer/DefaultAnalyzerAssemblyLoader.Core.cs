@@ -139,27 +139,38 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Debug.Assert(paths.Any());
+                // A matching assembly in this directory was specified via /analyzer.
                 if (paths.Contains(assemblyPath))
                 {
                     return LoadFromAssemblyPath(_loader.GetPathToLoad(assemblyPath));
                 }
 
+                AssemblyName? bestCandidateName = null;
+                string? bestCandidatePath = null;
                 // The assembly isn't expected to be found at 'assemblyPath',
-                // but some assembly with the same name is known to the loader.
+                // but some assembly with the same simple name is known to the loader.
                 foreach (var candidatePath in paths)
                 {
-                    // Note: we assume that the assembly really can be found at this path,
-                    // and that calling GetAssemblyName doesn't cause us to hold a lock on the file
+                    // Note: we assume that the assembly really can be found at 'candidatePath'
+                    // (without 'GetPathToLoad'), and that calling GetAssemblyName doesn't cause us
+                    // to hold a lock on the file. This prevents unnecessary shadow copies.
                     var candidateName = AssemblyName.GetAssemblyName(candidatePath);
-                    // checking FullName ensures that version and PublicKeyToken match exactly
+                    // Checking FullName ensures that version and PublicKeyToken match exactly.
                     if (candidateName.FullName.Equals(assemblyName.FullName, StringComparison.OrdinalIgnoreCase))
                     {
                         return LoadFromAssemblyPath(_loader.GetPathToLoad(candidatePath));
                     }
+                    else if (bestCandidateName is null || bestCandidateName.Version < candidateName.Version)
+                    {
+                        bestCandidateName = candidateName;
+                        bestCandidatePath = candidatePath;
+                    }
                 }
 
-                // None of the candidate paths contained a compatible version of the assembly.
-                return null;
+                Debug.Assert(bestCandidateName != null);
+                Debug.Assert(bestCandidatePath != null);
+
+                return LoadFromAssemblyPath(_loader.GetPathToLoad(bestCandidatePath));
             }
 
             protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
