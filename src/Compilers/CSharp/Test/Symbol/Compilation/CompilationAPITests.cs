@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,11 +26,10 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using VB = Microsoft.CodeAnalysis.VisualBasic;
-using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
-using System.Security.Cryptography;
 using static Roslyn.Test.Utilities.TestHelpers;
 using static Roslyn.Test.Utilities.TestMetadata;
+using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
+using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
