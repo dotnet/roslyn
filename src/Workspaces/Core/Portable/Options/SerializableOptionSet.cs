@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly ImmutableHashSet<OptionKey> _changedOptionKeysNonSerializable;
 
         /// <summary>
-        /// Set of languages references in <see cref="_serializableOptionValues"/>.  Cached
+        /// Set of languages referenced in <see cref="_serializableOptionValues"/>.  Cached
         /// only so we can shortcircuit <see cref="UnionWithLanguages"/>.
         /// </summary>
         private readonly Lazy<ImmutableHashSet<string>> _languages;
