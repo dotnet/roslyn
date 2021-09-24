@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whites
             yield return WhitespaceSetting.Create(FormattingOptions2.IndentationSize, EditorFeaturesResources.Indentation_Size, editorConfigOptions, visualStudioOptions, updater, FileName);
             yield return WhitespaceSetting.Create(FormattingOptions2.NewLine, EditorFeaturesResources.New_Line, editorConfigOptions, visualStudioOptions, updater, FileName);
             yield return WhitespaceSetting.Create(FormattingOptions2.InsertFinalNewLine, EditorFeaturesResources.Insert_Final_Newline, editorConfigOptions, visualStudioOptions, updater, FileName);
-            yield return WhitespaceSetting.Create(CodeStyleOptions2.OperatorPlacementWhenWrapping, "Operator Placement When Wrapping", editorConfigOptions, visualStudioOptions, updater, FileName);
+            yield return WhitespaceSetting.Create(CodeStyleOptions2.OperatorPlacementWhenWrapping, ServicesVSResources.Operator_placement_when_wrapping, editorConfigOptions, visualStudioOptions, updater, FileName);
         }
     }
 }

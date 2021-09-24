@@ -114,9 +114,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
         private IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.RequireAccessibilityModifiers,
-                description: "Require Accessibility Modifiers",
+                description: ServicesVSResources.Require_accessibility_modifiers,
                 enumValues: new[] { AccessibilityModifiersRequired.Always, AccessibilityModifiersRequired.ForNonInterfaceMembers, AccessibilityModifiersRequired.Never, AccessibilityModifiersRequired.OmitIfDefault },
-                valueDescriptions: new[] { "Always", "For Non Interface Members", "Never", "Omit If Default" },
+                valueDescriptions: new[] { ServicesVSResources.Always, ServicesVSResources.For_non_interface_members, ServicesVSResources.Never, ServicesVSResources.Omit_if_default },
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferInferredTupleNames, description: ServicesVSResources.Prefer_inferred_tuple_names, options, visualStudioOptions, updater, FileName);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, description: ServicesVSResources.Prefer_inferred_anonymous_type_member_names, options, visualStudioOptions, updater, FileName);
             yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCompoundAssignment, description: ServicesVSResources.Prefer_compound_assignments, options, visualStudioOptions, updater, FileName);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferSimplifiedInterpolation, description: "Prefer Simplified Interpolation", options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferSimplifiedInterpolation, description: ServicesVSResources.Prefer_simplified_interpolation, options, visualStudioOptions, updater, FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetParenthesesCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
         {
             yield return CodeStyleSetting.Create(
                 option: CodeStyleOptions2.PreferNamespaceAndFolderMatchStructure,
-                description: "Prefer Namespace And Folder Match Structure",
+                description: ServicesVSResources.Prefer_namespace_and_folder_match_structure,
                 editorConfigOptions: options, visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
 
             yield return CodeStyleSetting.Create(
