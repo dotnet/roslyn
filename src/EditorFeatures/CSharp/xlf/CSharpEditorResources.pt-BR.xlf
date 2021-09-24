@@ -374,7 +374,7 @@
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
-        <target state="new">Prefer 'null' check over type check</target>
+        <target state="translated">Preferir a verificação 'nula' à verificação de tipo</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">

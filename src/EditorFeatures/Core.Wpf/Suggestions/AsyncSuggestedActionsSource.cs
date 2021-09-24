@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     internal partial class SuggestedActionsSourceProvider
     {
-        private partial class AsyncSuggestedActionsSource : SuggestedActionsSource, ISuggestedActionsSourceExperimental
+        private partial class AsyncSuggestedActionsSource : SuggestedActionsSource, IAsyncSuggestedActionsSource
         {
             public AsyncSuggestedActionsSource(
                 IThreadingContext threadingContext,
@@ -38,20 +40,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
             }
 
-            public async IAsyncEnumerable<SuggestedActionSet> GetSuggestedActionsAsync(
+            public async Task GetSuggestedActionsAsync(
                 ISuggestedActionCategorySet requestedActionCategories,
                 SnapshotSpan range,
-                [EnumeratorCancellation] CancellationToken cancellationToken)
+                ImmutableArray<ISuggestedActionSetCollector> collectors,
+                CancellationToken cancellationToken)
             {
                 AssertIsForeground();
+                using var _ = ArrayBuilder<ISuggestedActionSetCollector>.GetInstance(out var completedCollectors);
+                try
+                {
+                    await GetSuggestedActionsWorkerAsync(
+                        requestedActionCategories, range, collectors, completedCollectors, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    // Always ensure that all the collectors are marked as complete so we don't hang the UI.
+                    foreach (var collector in collectors)
+                    {
+                        if (!completedCollectors.Contains(collector))
+                            collector.Complete();
+                    }
+                }
+            }
 
+            private async Task GetSuggestedActionsWorkerAsync(
+                ISuggestedActionCategorySet requestedActionCategories,
+                SnapshotSpan range,
+                ImmutableArray<ISuggestedActionSetCollector> collectors,
+                ArrayBuilder<ISuggestedActionSetCollector> completedCollectors,
+                CancellationToken cancellationToken)
+            {
+                AssertIsForeground();
                 using var state = SourceState.TryAddReference();
                 if (state is null)
-                    yield break;
+                    return;
 
                 var workspace = state.Target.Workspace;
                 if (workspace is null)
-                    yield break;
+                    return;
 
                 var selection = TryGetCodeRefactoringSelection(state, range);
                 await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
@@ -60,21 +87,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document is null)
-                        yield break;
+                        return;
 
-                    // Compute and return the high pri set of fixes and refactorings first so the user
-                    // can act on them immediately without waiting on the regular set.
-                    var highPriSet = GetCodeFixesAndRefactoringsAsync(
-                        state, requestedActionCategories, document, range, selection, _ => null,
-                        CodeActionRequestPriority.High, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
-                    await foreach (var set in highPriSet)
-                        yield return set;
+                    // Collectors are in priority order.  So just walk them from highest to lowest.
+                    foreach (var collector in collectors)
+                    {
+                        var priority = collector.Priority switch
+                        {
+                            VisualStudio.Utilities.DefaultOrderings.Highest => CodeActionRequestPriority.High,
+                            VisualStudio.Utilities.DefaultOrderings.Default => CodeActionRequestPriority.Normal,
+                            _ => (CodeActionRequestPriority?)null,
+                        };
 
-                    var lowPriSet = GetCodeFixesAndRefactoringsAsync(
-                        state, requestedActionCategories, document, range, selection, _ => null,
-                        CodeActionRequestPriority.Normal, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
-                    await foreach (var set in lowPriSet)
-                        yield return set;
+                        if (priority != null)
+                        {
+                            var allSets = GetCodeFixesAndRefactoringsAsync(
+                                state, requestedActionCategories, document, range, selection, _ => null, includeSuppressionFixes: false,
+                                priority.Value, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
+
+                            await foreach (var set in allSets)
+                                collector.Add(set);
+                        }
+
+                        // Ensure we always complete the collector even if we didn't add any items to it.
+                        // This ensures that we unblock the UI from displaying all the results for that
+                        // priority class.
+                        collector.Complete();
+                        completedCollectors.Add(collector);
+                    }
                 }
             }
 
@@ -85,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
+                bool includeSuppressionFixes,
                 CodeActionRequestPriority priority,
                 [EnumeratorCancellation] CancellationToken cancellationToken)
             {
@@ -93,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var fixesTask = GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                    addOperationScope, priority, isBlocking: false, cancellationToken);
+                    addOperationScope, includeSuppressionFixes, priority, isBlocking: false, cancellationToken);
                 var refactoringsTask = GetRefactoringsAsync(
                     state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
                     addOperationScope, priority, isBlocking: false, cancellationToken);

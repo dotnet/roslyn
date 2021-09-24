@@ -85,6 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // Effective boolean value to determine if analyzers should be executed based on _runAnalyzersPropertyValue and _runAnalyzersDuringLiveAnalysisPropertyValue.
         private bool _runAnalyzers = true;
 
+        /// <summary>
+        /// The full list of all metadata references this project has. References that have internally been converted to project references
+        /// will still be in this.
+        /// </summary>
         private readonly Dictionary<string, ImmutableArray<MetadataReferenceProperties>> _allMetadataReferences = new();
 
         /// <summary>

@@ -1233,6 +1233,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclaration
+            If node Is Nothing Then
+                Return False
+            End If
+
             ' From the Visual Basic language spec:
             ' NamespaceMemberDeclaration  :=
             '    NamespaceDeclaration  |
