@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 description: ServicesVSResources.Prefer_braces,
                 enumValues: new[] { PreferBracesPreference.Always, PreferBracesPreference.None, PreferBracesPreference.WhenMultiline },
                 valueDescriptions: new[] { ServicesVSResources.Yes, ServicesVSResources.No, CSharpVSResources.When_on_multiple_lines },
-                editorConfigOptions: editorConfigOptions, visualStudioOptions: visualStudioOptions,updater: updaterService, fileName: FileName);
+                editorConfigOptions: editorConfigOptions, visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
 
             yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.NamespaceDeclarations,
                 description: ServicesVSResources.Namespace_declarations,
