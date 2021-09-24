@@ -144,12 +144,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static Uri GetUriFromFilePath(string? filePath)
         {
             if (filePath is null)
-            {
                 throw new ArgumentNullException(nameof(filePath));
-            }
 
             return new Uri(filePath, UriKind.Absolute);
         }
+
+        public static Uri? TryGetUriFromFilePath(string? filePath)
+            => Uri.TryCreate(filePath, UriKind.Absolute, out var uri) ? uri : null;
 
         public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
         {
@@ -297,30 +298,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             var result = await GetMappedSpanResultAsync(document, ImmutableArray.Create(textSpan), cancellationToken).ConfigureAwait(false);
             if (result == null)
-            {
-                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
-            }
+                return await TryConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
 
             var mappedSpan = result.Value.Single();
             if (mappedSpan.IsDefault)
-            {
-                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
-            }
+                return await TryConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
+
+            var uri = TryGetUriFromFilePath(mappedSpan.FilePath);
+            if (uri == null)
+                return null;
 
             return new LSP.Location
             {
-                Uri = GetUriFromFilePath(mappedSpan.FilePath),
+                Uri = uri,
                 Range = MappedSpanResultToRange(mappedSpan)
             };
 
-            static async Task<LSP.Location> ConvertTextSpanToLocation(
+            static async Task<LSP.Location?> TryConvertTextSpanToLocation(
                 Document document,
                 TextSpan span,
                 bool isStale,
                 CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var uri = document.TryGetURI();
+                if (uri == null)
+                    return null;
 
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (isStale)
                 {
                     // in the case of a stale item, the span may be out of bounds of the document. Cap
@@ -331,7 +335,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                         Math.Min(text.Length, span.End));
                 }
 
-                return ConvertTextSpanWithTextToLocation(span, text, document.GetURI());
+                return ConvertTextSpanWithTextToLocation(span, text, uri);
             }
 
             static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, Uri documentUri)

@@ -20,9 +20,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal static class Extensions
     {
         public static Uri GetURI(this TextDocument document)
-        {
-            return ProtocolConversions.GetUriFromFilePath(document.FilePath);
-        }
+            => ProtocolConversions.GetUriFromFilePath(document.FilePath);
+
+        public static Uri? TryGetURI(this TextDocument document)
+            => ProtocolConversions.TryGetUriFromFilePath(document.FilePath);
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
             => GetDocuments(solution, documentUri, clientName: null, logger: null);
