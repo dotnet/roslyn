@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            Assert.Equal(26, dataSnapShot.Length);
+            Assert.Equal(31, dataSnapShot.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            Assert.Equal(30, dataSnapShot.Length);
+            Assert.Equal(33, dataSnapShot.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
             var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
-            Assert.Equal(5, dataSnapShot.Length);
+            Assert.Equal(6, dataSnapShot.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
