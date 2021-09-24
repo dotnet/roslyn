@@ -331,16 +331,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable roaming settings to avoid interference from the online user profile
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"")).WaitForExit();
 
-                // HACK: 16.10P2 contains an LSP client bug where on solution closed, server activation tasks that are not already completed / cancelled
-                // do not properly get cancelled.  When a new solution is opened these incomplete server ativation tasks are not cleared.
-                // Any feature that waits for LSP server activations to complete will hang on the old incomplete server activation tasks.
-                //
-                // The roslyn C# always active server and intellicode's refactorings LSP server are the only LSP servers active on C# files in 16.10p2.
-                // To work around potential hangs where the intellicode server activation does not complete before solution close, we disable their LSP server entirely.
-                // To work around potential hangs in the roslyn C# server, we wait for the async listener around the LSP server activation to complete before proceeding.
-                // Editor tracking bug (to be fixed in 16.10P3) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1322125
-                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\\IntelliCode\" Refactorings string \"0*System.Int32*2\"")).WaitForExit();
-
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
 
