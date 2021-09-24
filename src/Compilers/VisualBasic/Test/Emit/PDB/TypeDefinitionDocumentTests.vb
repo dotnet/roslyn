@@ -257,6 +257,41 @@ End Class
             TestTypeDefinitionDocuments({source})
         End Sub
 
+        <Fact>
+        Public Sub ExternalSourceDirectives()
+            Dim source As String = "
+Class C
+#ExternalSource (""C.vb"", 1)
+    Public Sub M()
+    End Sub
+#End ExternalSource
+End Class
+
+Class D
+#ExternalSource (""D.vb"", 1)
+    Private _x As Integer = 1
+    Private Property Y As Integer = 1
+#End ExternalSource
+End Class
+
+#ExternalSource (""E.vb"", 1)
+Class E
+    Public Sub M()
+    End Sub
+End Class
+#End ExternalSource
+
+#ExternalSource (""F.vb"", 1)
+Class F
+End Class
+#End ExternalSource
+"
+            TestTypeDefinitionDocuments({source},
+                              ("C", "1.vb"),
+                              ("D", "1.vb"),
+                              ("F", "F.vb"))
+        End Sub
+
         Public Shared Sub TestTypeDefinitionDocuments(sources As String(), ParamArray expected As (String, String)())
             Dim trees = sources.Select(Function(s, i) SyntaxFactory.ParseSyntaxTree(s, path:=$"{i + 1}.vb", encoding:=Encoding.UTF8)).ToArray()
             Dim compilation = CreateCompilation(trees, options:=TestOptions.DebugDll)

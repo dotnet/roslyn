@@ -688,8 +688,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                 Continue For
                             End If
 
-                            Dim span = loc.GetLineSpan()
-                            Dim debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=Nothing)
+                            Dim span = loc.GetMappedLineSpan()
+                            Dim debugDocument = DebugDocumentsBuilder.GetOrAddDebugDocument(span.Path, basePath:=Nothing, AddressOf CreateDebugDocumentForFile)
 
                             If debugDocument IsNot Nothing AndAlso Not methodDocumentList.Contains(debugDocument) Then
                                 debugDocuments.Add(debugDocument)
@@ -709,6 +709,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             namespacesAndTypesToProcess.Free()
             debugDocuments.Free()
             methodDocumentList.Free()
+        End Function
+
+        Private Shared Function CreateDebugDocumentForFile(normalizedPath As String) As Cci.DebugSourceDocument
+            Return New Cci.DebugSourceDocument(normalizedPath, Cci.DebugSourceDocument.CorSymLanguageTypeCSharp)
         End Function
 
         Private Shared Sub GetDocumentsForMethods(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typeDefinition As Cci.ITypeDefinition, context As EmitContext)

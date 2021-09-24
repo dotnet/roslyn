@@ -355,6 +355,46 @@ class C
             TestTypeDefinitionDocuments(new[] { source });
         }
 
+        [Fact]
+        public void LineDirectives()
+        {
+            string source = @"
+class C
+{
+#line 1 ""C.cs""
+    void M()
+    {
+    }
+#line default
+}
+
+class D
+{
+#line 1 ""D.cs""
+    private int _x = 1;
+    private int X { get; set; } = 1;
+}
+
+#line 1 ""E.cs""
+class E
+{
+    void M()
+    {
+    }
+}
+
+#line 1 ""F.cs""
+class F
+{
+}
+";
+
+            TestTypeDefinitionDocuments(new[] { source },
+                ("C", "1.cs"),
+                ("D", "1.cs"),
+                ("F", "F.cs"));
+        }
+
         private static void TestTypeDefinitionDocuments(string[] sources, params (string typeName, string documentName)[] expected)
         {
             var trees = sources.Select((s, i) => SyntaxFactory.ParseSyntaxTree(s, path: $"{i + 1}.cs", encoding: Encoding.UTF8)).ToArray();

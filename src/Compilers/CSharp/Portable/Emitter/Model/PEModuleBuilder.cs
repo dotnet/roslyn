@@ -266,8 +266,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                 continue;
                             }
 
-                            var span = loc.GetLineSpan();
-                            var debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: null);
+                            var span = loc.GetMappedLineSpan();
+                            var debugDocument = DebugDocumentsBuilder.GetOrAddDebugDocument(span.Path, basePath: null, CreateDebugDocumentForFile);
 
                             // If we have a debug document that is already referenced by method debug info then we don't need to include it
                             if (debugDocument is not null && !methodDocumentList.Contains(debugDocument))
@@ -292,6 +292,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             namespacesAndTypesToProcess.Free();
             debugDocuments.Free();
             methodDocumentList.Free();
+        }
+
+        private static Cci.DebugSourceDocument CreateDebugDocumentForFile(string normalizedPath)
+        {
+            return new Cci.DebugSourceDocument(normalizedPath, Cci.DebugSourceDocument.CorSymLanguageTypeCSharp);
         }
 
         /// <summary>
