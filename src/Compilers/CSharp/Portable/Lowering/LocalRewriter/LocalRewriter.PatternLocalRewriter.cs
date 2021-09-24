@@ -316,6 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, access);
                         }
 
+                    case BoundDagNegativeBranchEvaluation:
                     default:
                         throw ExceptionUtilities.UnexpectedValue(evaluation);
                 }
@@ -368,6 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isLeftOfAssignment: false);
                 }
             }
+#nullable disable
 
             /// <summary>
             /// Return the boolean expression to be evaluated for the given test. Returns `null` if the test is trivially true.

@@ -746,9 +746,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so that it is processed only once. This object identity uniqueness will be important later when we
             // start mutating the DagState nodes to compute successors and BoundDecisionDagNodes
             // for each one. That is why we have to use an equivalence relation in the dictionary `uniqueState`.
-            DagState uniqifyState(ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            DagState uniqifyState(ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues, bool negativeLengthBranch = false)
             {
-                var state = new DagState(cases, remainingValues);
+                var state = new DagState(cases, remainingValues, negativeLengthBranch);
                 if (uniqueState.TryGetValue(state, out DagState? existingState))
                 {
                     // We found an existing state that matches.  Update its set of possible remaining values
@@ -804,6 +804,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (workList.Count != 0)
             {
                 DagState state = workList.Pop();
+                if (state.RequiresNegativeLength)
+                {
+                    continue;
+                }
+
                 RoslynDebug.Assert(state.SelectedTest == null);
                 RoslynDebug.Assert(state.TrueBranch == null);
                 RoslynDebug.Assert(state.FalseBranch == null);
@@ -837,6 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+
                     // Select the next test to do at this state, and compute successor states
                     switch (state.SelectedTest = state.ComputeSelectedTest())
                     {
@@ -864,9 +870,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 out ImmutableArray<StateForCase> whenFalseDecisions,
                                 out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
                                 out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
+                                out bool negativeWhenTrueBranch,
+                                out bool negativeWhenFalseBranch,
                                 ref foundExplicitNullTest);
-                            state.TrueBranch = uniqifyState(whenTrueDecisions, whenTrueValues);
-                            state.FalseBranch = uniqifyState(whenFalseDecisions, whenFalseValues);
+                            state.TrueBranch = negativeWhenTrueBranch ? uniqifyStateForNegativeBranch(d, whenTrueDecisions, whenTrueValues) : uniqifyState(whenTrueDecisions, whenTrueValues, negativeWhenTrueBranch);
+                            state.FalseBranch = negativeWhenFalseBranch ? uniqifyStateForNegativeBranch(d, whenFalseDecisions, whenFalseValues) : uniqifyState(whenFalseDecisions, whenFalseValues, negativeWhenFalseBranch);
                             if (foundExplicitNullTest && d is BoundDagNonNullTest { IsExplicitTest: false } t)
                             {
                                 // Turn an "implicit" non-null test into an explicit one
@@ -881,6 +889,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             workList.Free();
             return new DecisionDag(initialState);
+
+            // We create two states chained together and with the first one marked with RequiresNegativeLength
+            // (which is a no-op state to mark this branch as requiring negative Length)
+            DagState uniqifyStateForNegativeBranch(BoundDagTest lengthTest, ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            {
+                var finalState = uniqifyState(cases, remainingValues);
+                var intermediateState = uniqifyState(cases, remainingValues, negativeLengthBranch: true);
+                intermediateState.SelectedTest = new BoundDagNegativeBranchEvaluation(lengthTest.Syntax, lengthTest.Input);
+                intermediateState.TrueBranch = finalState;
+                return intermediateState;
+            }
         }
 
         /// <summary>
@@ -918,6 +937,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = sortedStates.Length - 1; i >= 0; i--)
             {
                 var state = sortedStates[i];
+                if (state.RequiresNegativeLength)
+                {
+                    Debug.Assert(state.SelectedTest is not null);
+                    var e = (BoundDagNegativeBranchEvaluation)state.SelectedTest;
+                    BoundDecisionDagNode? next = state.TrueBranch!.Dag;
+                    RoslynDebug.Assert(next is { });
+                    RoslynDebug.Assert(state.FalseBranch == null);
+                    state.Dag = uniqifyDagNode(new BoundEvaluationDecisionDagNode(e.Syntax, e, next));
+                    continue;
+                }
+
                 if (state.Cases.IsDefaultOrEmpty)
                 {
                     state.Dag = defaultDecision;
@@ -1004,6 +1034,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ImmutableArray<StateForCase> whenFalse,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenTrueValues,
             out ImmutableDictionary<BoundDagTemp, IValueSet> whenFalseValues,
+            out bool negativeWhenTrueBranch,
+            out bool negativeWhenFalseBranch,
             ref bool foundExplicitNullTest)
         {
             ImmutableArray<StateForCase> cases = state.Cases;
@@ -1017,6 +1049,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // against a non-constant value).
             whenTrueValues.TryGetValue(test.Input, out IValueSet? whenTrueValuesOpt);
             whenFalseValues.TryGetValue(test.Input, out IValueSet? whenFalseValuesOpt);
+
+            // If the test is a Length/Count test, we'll identify which branches are "negative" (ie. only possible if length could be negative) 
+            detectNegativeBranch(test, whenTrueValuesOpt, out negativeWhenTrueBranch);
+            detectNegativeBranch(test, whenFalseValuesOpt, out negativeWhenFalseBranch);
+
             foreach (var stateForCase in cases)
             {
                 SplitCase(
@@ -1035,6 +1072,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             whenTrue = whenTrueBuilder.ToImmutableAndFree();
             whenFalse = whenFalseBuilder.ToImmutableAndFree();
+
+            static void detectNegativeBranch(BoundDagTest test, IValueSet? valuesOpt, out bool negativeBranch)
+            {
+                // TODO2
+                if (test.Input.Source is not BoundDagPropertyEvaluation { IsLengthOrCount: true }
+                    || valuesOpt is null) // TODO2
+                {
+                    negativeBranch = false;
+                    return;
+                }
+
+                // If the remaining values for the Length/Count being tested are all negative,
+                // then we're dealing with a negative branch
+                var nonNegativeIntegers = ValueSetFactory.ForLength.Related(BinaryOperatorKind.GreaterThanOrEqual, 0);
+                negativeBranch = valuesOpt.Intersect(nonNegativeIntegers).IsEmpty;
+                return;
+            }
         }
 
         private static (
@@ -1587,9 +1641,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (DagState state in allStates)
                 {
-                    bool isFail = state.Cases.IsEmpty;
-                    bool starred = isFail || state.Cases.First().PatternIsSatisfied;
-                    result.Append($"{(starred ? "*" : "")}State " + stateIdentifierMap[state] + (isFail ? " FAIL" : ""));
+                    bool isNegative = state.RequiresNegativeLength;
+                    bool isFail = !isNegative && state.Cases.IsEmpty;
+                    bool starred = !isNegative && (isFail || state.Cases.First().PatternIsSatisfied);
+                    result.Append($"{(starred ? "*" : "")}State " + stateIdentifierMap[state] + (isFail ? " FAIL" : "") + (isNegative ? " NEGATIVE" : ""));
                     var remainingValues = state.RemainingValues.Select(kvp => $"{tempName(kvp.Key)}:{kvp.Value}");
                     result.AppendLine($"{(remainingValues.Any() ? " REMAINING " + string.Join(" ", remainingValues) : "")}");
 
@@ -1700,10 +1755,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public readonly ImmutableArray<StateForCase> Cases;
 
-            public DagState(ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues)
+            /// <summary>
+            /// To record that a branch of the DAG requires a negative Length, we add a DAG state which sets this flag on that branch. 
+            /// </summary>
+            public readonly bool RequiresNegativeLength;
+
+            public DagState(ImmutableArray<StateForCase> cases, ImmutableDictionary<BoundDagTemp, IValueSet> remainingValues, bool requiresNegativeLength)
             {
                 this.Cases = cases;
                 this.RemainingValues = remainingValues;
+                this.RequiresNegativeLength = requiresNegativeLength;
             }
 
             // If not a leaf node or a when clause, the test that will be taken at this node of the
@@ -1731,6 +1792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal void UpdateRemainingValues(ImmutableDictionary<BoundDagTemp, IValueSet> newRemainingValues)
             {
+                // TODO2 handle RequiresNegativeLength
                 this.RemainingValues = newRemainingValues;
                 this.SelectedTest = null;
                 this.TrueBranch = null;
@@ -1753,12 +1815,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 RoslynDebug.Assert(x is { });
                 RoslynDebug.Assert(y is { });
-                return x == y || x.Cases.SequenceEqual(y.Cases, (a, b) => a.Equals(b));
+                return x == y ||
+                    (x.Cases.SequenceEqual(y.Cases, (a, b) => a.Equals(b)) && x.RequiresNegativeLength == y.RequiresNegativeLength);
             }
 
             public int GetHashCode(DagState x)
             {
-                return Hash.Combine(Hash.CombineValues(x.Cases), x.Cases.Length);
+                return Hash.Combine(x.RequiresNegativeLength, Hash.Combine(Hash.CombineValues(x.Cases), x.Cases.Length));
             }
         }
 
@@ -2004,37 +2067,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public override Tests RewriteNestedLengthTests()
                 {
                     BoundDagTest test = Test;
-                    if (test.Input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e)
+                    if (test.Input.Source is BoundDagPropertyEvaluation { IsLengthOrCount: true } e &&
+                        TryGetTopLevelLengthTemp(e) is (BoundDagTemp lengthTemp, int offset))
                     {
-                        if (e.Syntax.IsKind(SyntaxKind.ListPattern))
+                        // If this is a nested length test in a slice subpattern, update the matched
+                        // value based on the number of additional elements in the containing list.
+                        switch (test)
                         {
-                            // Normally this kind of test is never created, we do this here because we're rewriting nested tests
-                            // to check the top-level length instead. If we never create this test, the length temp gets removed.
-                            if (test is BoundDagRelationalTest t)
-                            {
+                            case BoundDagValueTest t when !t.Value.IsBad:
                                 Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                Debug.Assert(t.Relation == BinaryOperatorKind.GreaterThanOrEqual);
-                                Debug.Assert(t.Value.Int32Value >= 0);
-                                if (t.Value.Int32Value == 0)
-                                    return True.Instance;
-                            }
-                        }
-
-                        if (TryGetTopLevelLengthTemp(e) is (BoundDagTemp lengthTemp, int offset))
-                        {
-                            // If this is a nested length test in a slice subpattern, update the matched
-                            // value based on the number of additional elements in the containing list.
-                            switch (test)
-                            {
-                                case BoundDagValueTest t when !t.Value.IsBad:
-                                    Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                    return knownResult(BinaryOperatorKind.Equal, t.Value, offset) ??
-                                           new One(new BoundDagValueTest(t.Syntax, safeAdd(t.Value, offset), lengthTemp));
-                                case BoundDagRelationalTest t when !t.Value.IsBad:
-                                    Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-                                    return knownResult(t.Relation, t.Value, offset) ??
-                                           new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind, safeAdd(t.Value, offset), lengthTemp));
-                            }
+                                return knownResult(BinaryOperatorKind.Equal, t.Value, offset) ??
+                                       new One(new BoundDagValueTest(t.Syntax, safeAdd(t.Value, offset), lengthTemp));
+                            case BoundDagRelationalTest t when !t.Value.IsBad:
+                                Debug.Assert(t.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
+                                return knownResult(t.Relation, t.Value, offset) ??
+                                       new One(new BoundDagRelationalTest(t.Syntax, t.OperatorKind, safeAdd(t.Value, offset), lengthTemp));
                         }
                     }
 
@@ -2055,7 +2102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     static ConstantValue safeAdd(ConstantValue constant, int offset)
                     {
                         int value = constant.Int32Value;
-                        Debug.Assert(value >= 0); // Tests with negative values should never be created.
                         Debug.Assert(offset >= 0); // The number of elements in a list is always non-negative.
                         // We don't expect offset to be very large, but the value could
                         // be anything given that it comes from a constant in the source.

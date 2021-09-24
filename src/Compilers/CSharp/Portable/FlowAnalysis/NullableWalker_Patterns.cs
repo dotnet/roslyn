@@ -505,6 +505,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 case BoundDagAssignmentEvaluation e:
                                     break;
+                                case BoundDagNegativeBranchEvaluation e:
+                                    break;
                                 default:
                                     throw ExceptionUtilities.UnexpectedValue(p.Evaluation.Kind);
                             }

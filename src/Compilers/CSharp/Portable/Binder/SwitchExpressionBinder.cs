@@ -61,17 +61,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             defaultLabel = new GeneratedLabelSymbol("default");
             decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
             var reachableLabels = decisionDag.ReachableLabels;
+            var reachableWithoutNegativeBranchLabels = decisionDag.ReachableWithoutNegativeBranchLabels;
             bool hasErrors = false;
             foreach (BoundSwitchExpressionArm arm in switchArms)
             {
                 hasErrors |= arm.HasErrors;
-                if (!hasErrors && !reachableLabels.Contains(arm.Label))
+                if (hasErrors)
+                {
+                    continue;
+                }
+
+                if (reachableLabels.Contains(arm.Label))
+                {
+                    if (!reachableWithoutNegativeBranchLabels.Contains(arm.Label))
+                    {
+                        // TODO2 should this be LangVer-dependent?
+                        diagnostics.Add(ErrorCode.WRN_SwitchArmSubsumedIfNonNegativeLength, arm.Pattern.Syntax.Location);
+                    }
+                }
+                else
                 {
                     diagnostics.Add(ErrorCode.ERR_SwitchArmSubsumed, arm.Pattern.Syntax.Location);
                 }
             }
 
-            if (!reachableLabels.Contains(defaultLabel))
+            if (!reachableWithoutNegativeBranchLabels.Contains(defaultLabel))
             {
                 // switch expression is exhaustive; no default label needed.
                 defaultLabel = null;
@@ -82,9 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
 
             // We only report exhaustive warnings when the default label is reachable through some series of
-            // tests that do not include a test in which the value is known to be null.  Handling paths with
-            // nulls is the job of the nullable walker.
-            bool wasAcyclic = TopologicalSort.TryIterativeSort<BoundDecisionDagNode>(SpecializedCollections.SingletonEnumerable(decisionDag.RootNode), nonNullSuccessors, out var nodes);
+            // tests that:
+            // - do not include a test in which the value is known to be null.  Handling paths with nulls is the job of the nullable walker.
+            // - do not include a negative branch marker.  Graphs with negative branch markers get a different warning.
+            bool wasAcyclic = TopologicalSort.TryIterativeSort(SpecializedCollections.SingletonEnumerable(decisionDag.RootNode), nonNullSuccessors, out var nodes);
             // Since decisionDag.RootNode is acyclic by construction, its subset of nodes sorted here cannot be cyclic
             Debug.Assert(wasAcyclic);
             foreach (var n in nodes)
@@ -119,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case BoundDagExplicitNullTest t: // checks that the input is null
                                 return ImmutableArray.Create(p.WhenFalse);
                             default:
-                                return BoundDecisionDag.Successors(n);
+                                return BoundDecisionDag.SuccessorsExceptNegatives(n);
                         }
                     default:
                         return BoundDecisionDag.Successors(n);

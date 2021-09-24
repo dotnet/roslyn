@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DagIndexerEvaluation,
         DagSliceEvaluation,
         DagAssignmentEvaluation,
+        DagNegativeBranchEvaluation,
         SwitchSection,
         SwitchLabel,
         SequencePointExpression,
@@ -5298,6 +5299,31 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundDagNegativeBranchEvaluation : BoundDagEvaluation
+    {
+        public BoundDagNegativeBranchEvaluation(SyntaxNode syntax, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagNegativeBranchEvaluation, syntax, input, hasErrors || input.HasErrors())
+        {
+
+            RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+        }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagNegativeBranchEvaluation(this);
+
+        public BoundDagNegativeBranchEvaluation Update(BoundDagTemp input)
+        {
+            if (input != this.Input)
+            {
+                var result = new BoundDagNegativeBranchEvaluation(this.Syntax, input, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal sealed partial class BoundSwitchSection : BoundStatementList
     {
         public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
@@ -8703,6 +8729,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDagSliceEvaluation((BoundDagSliceEvaluation)node, arg);
                 case BoundKind.DagAssignmentEvaluation:
                     return VisitDagAssignmentEvaluation((BoundDagAssignmentEvaluation)node, arg);
+                case BoundKind.DagNegativeBranchEvaluation:
+                    return VisitDagNegativeBranchEvaluation((BoundDagNegativeBranchEvaluation)node, arg);
                 case BoundKind.SwitchSection:
                     return VisitSwitchSection((BoundSwitchSection)node, arg);
                 case BoundKind.SwitchLabel:
@@ -9001,6 +9029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagSliceEvaluation(BoundDagSliceEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitDagNegativeBranchEvaluation(BoundDagNegativeBranchEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchSection(BoundSwitchSection node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchLabel(BoundSwitchLabel node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSequencePointExpression(BoundSequencePointExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -9217,6 +9246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagSliceEvaluation(BoundDagSliceEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitDagNegativeBranchEvaluation(BoundDagNegativeBranchEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchSection(BoundSwitchSection node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchLabel(BoundSwitchLabel node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSequencePointExpression(BoundSequencePointExpression node) => this.DefaultVisit(node);
@@ -9875,6 +9905,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node)
         {
             this.Visit(node.Target);
+            this.Visit(node.Input);
+            return null;
+        }
+        public override BoundNode? VisitDagNegativeBranchEvaluation(BoundDagNegativeBranchEvaluation node)
+        {
             this.Visit(node.Input);
             return null;
         }
@@ -11023,6 +11058,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp target = (BoundDagTemp)this.Visit(node.Target);
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             return node.Update(target, input);
+        }
+        public override BoundNode? VisitDagNegativeBranchEvaluation(BoundDagNegativeBranchEvaluation node)
+        {
+            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
+            return node.Update(input);
         }
         public override BoundNode? VisitSwitchSection(BoundSwitchSection node)
         {
@@ -15171,6 +15211,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node, object? arg) => new TreeDumperNode("dagAssignmentEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("target", null, new TreeDumperNode[] { Visit(node.Target, null) }),
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitDagNegativeBranchEvaluation(BoundDagNegativeBranchEvaluation node, object? arg) => new TreeDumperNode("dagNegativeBranchEvaluation", null, new TreeDumperNode[]
+        {
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

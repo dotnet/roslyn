@@ -5197,6 +5197,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SwitchArmSubsumed" xml:space="preserve">
     <value>The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.</value>
   </data>
+  <data name="WRN_SwitchArmSubsumedIfNonNegativeLength" xml:space="preserve">
+    <value>The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.</value>
+  </data>
+  <data name="WRN_SwitchArmSubsumedIfNonNegativeLength_Title" xml:space="preserve">
+    <value>The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.</value>
+  </data>
   <data name="ERR_PatternWrongType" xml:space="preserve">
     <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}'.</value>
   </data>
@@ -6000,6 +6006,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_IsPatternAlways_Title" xml:space="preserve">
     <value>The input always matches the provided pattern.</value>
+  </data>
+  <data name="WRN_IsPatternImpossibleIfNonNegativeLength" xml:space="preserve">
+    <value>An expression of type '{0}' can never match the provided pattern assuming non-negative length for countable and indexable types.</value>
+  </data>
+  <data name="WRN_IsPatternImpossibleIfNonNegativeLength_Title" xml:space="preserve">
+    <value>The input can never match the provided pattern assuming non-negative length for countable and indexable types.</value>
+  </data>
+  <data name="WRN_IsPatternAlwaysIfNonNegativeLength" xml:space="preserve">
+    <value>An expression of type '{0}' always matches the provided pattern assuming non-negative length for countable and indexable types.</value>
+  </data>
+  <data name="WRN_IsPatternAlwaysIfNonNegativeLength_Title" xml:space="preserve">
+    <value>The input always matches the provided pattern assuming non-negative length for countable and indexable types.</value>
   </data>
   <data name="WRN_GivenExpressionNeverMatchesPattern" xml:space="preserve">
     <value>The given expression never matches the provided pattern.</value>

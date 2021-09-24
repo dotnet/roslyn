@@ -193,6 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (test)
                 {
                     case BoundDagAssignmentEvaluation:
+                    case BoundDagNegativeBranchEvaluation:
+                        // TODO2
                         return;
                     case BoundDagEvaluation eval:
                         {

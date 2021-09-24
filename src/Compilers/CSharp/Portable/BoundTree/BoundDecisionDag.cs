@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundDecisionDag
     {
         private ImmutableHashSet<LabelSymbol> _reachableLabels;
+        private ImmutableHashSet<LabelSymbol> _reachableWithoutNegativeBranchLabels;
         private ImmutableArray<BoundDecisionDagNode> _topologicallySortedNodes;
 
         internal static ImmutableArray<BoundDecisionDagNode> Successors(BoundDecisionDagNode node)
@@ -57,6 +58,59 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return _reachableLabels;
             }
+        }
+
+
+        /// <summary>
+        /// A "negative branch" is a branch where only negative lengths get binned into.
+        /// When assuming that lengths are non-negatives, those branches are ignored in the graph,
+        /// and only a subset of reachable labels are still reachable.
+        /// </summary>
+        public ImmutableHashSet<LabelSymbol> ReachableWithoutNegativeBranchLabels
+        {
+            get
+            {
+                if (_reachableWithoutNegativeBranchLabels == null)
+                {
+                    var root = SpecializedCollections.SingletonEnumerable(this.RootNode);
+                    bool wasAcyclic = TopologicalSort.TryIterativeSort(root, SuccessorsExceptNegatives, out ImmutableArray<BoundDecisionDagNode> reachableNodes);
+                    Debug.Assert(wasAcyclic);
+
+                    var result = ImmutableHashSet.CreateBuilder<LabelSymbol>(Symbols.SymbolEqualityComparer.ConsiderEverything);
+                    foreach (var node in reachableNodes)
+                    {
+                        if (node is BoundLeafDecisionDagNode leaf)
+                        {
+                            // TODO2 can we get into a situation with two equivalent leaves (one negative and one not)? Probably yes, in an `or` situation. Fixed, but needs test.
+                            result.Add(leaf.Label);
+                        }
+                    }
+
+                    _reachableWithoutNegativeBranchLabels = result.ToImmutableHashSet();
+                }
+
+                return _reachableWithoutNegativeBranchLabels;
+            }
+        }
+
+        internal static ImmutableArray<BoundDecisionDagNode> SuccessorsExceptNegatives(BoundDecisionDagNode node)
+        {
+            if (node is BoundTestDecisionDagNode decision)
+            {
+                return (decision.WhenTrue, decision.WhenFalse) switch
+                {
+                    (BoundEvaluationDecisionDagNode { Evaluation: BoundDagNegativeBranchEvaluation }, BoundEvaluationDecisionDagNode { Evaluation: BoundDagNegativeBranchEvaluation })
+                        => ImmutableArray<BoundDecisionDagNode>.Empty,
+                    (BoundEvaluationDecisionDagNode { Evaluation: BoundDagNegativeBranchEvaluation }, var whenFalse)
+                        => ImmutableArray.Create(whenFalse),
+                    (var whenTrue, BoundEvaluationDecisionDagNode { Evaluation: BoundDagNegativeBranchEvaluation })
+                        => ImmutableArray.Create(whenTrue),
+                    (var whenTrue, var whenFalse)
+                        => ImmutableArray.Create(whenTrue, whenFalse)
+                };
+            }
+
+            return Successors(node);
         }
 
         /// <summary>

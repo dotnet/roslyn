@@ -787,7 +787,7 @@ namespace Roslyn.Test.Utilities
         /// <inheritdoc cref="Multiple(System.Action[])"/>
         public static void Multiple(bool includeStackTrace, params Action[] assertions)
         {
-            List<(int, Exception)> exceptions = null;
+            List<(int Index, Exception)> exceptions = null;
 
             // Run assertions in reverse order so that line numbers don't change as we adjust the baseline.
             for (int index = assertions.Length - 1; index >= 0; --index)
@@ -806,7 +806,7 @@ namespace Roslyn.Test.Utilities
                 return;
 
             var stringBuilder = new StringBuilder($"{exceptions.Count} out of {assertions.Length} assertions failed.");
-            foreach (var (index, ex) in exceptions)
+            foreach (var (index, ex) in exceptions.OrderBy(e => e.Index))
             {
                 var stack = ex.StackTrace.Split(new[] { "\r\n" }, StringSplitOptions.None);
                 stringBuilder

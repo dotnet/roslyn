@@ -57,13 +57,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDag decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
                 this.Compilation, pattern.Syntax, expression, innerPattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
 
-            if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is { } constantResult)
+            if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is ({ } constantResult, var isWeakConstantResult))
             {
                 if (!constantResult)
                 {
                     Debug.Assert(expression.Type is object);
-                    diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
-                    hasErrors = true;
+                    if (isWeakConstantResult)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, node.Location, expression.Type);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
+                        hasErrors = true;
+                    }
                 }
                 else
                 {
@@ -79,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundNegatedPattern _:
                         case BoundBinaryPattern _:
                             Debug.Assert(expression.Type is object);
-                            diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
+                            diagnostics.Add(isWeakConstantResult ? ErrorCode.WRN_IsPatternAlwaysIfNonNegativeLength : ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
                             break;
                         case BoundDiscardPattern _:
                             // we do not give a warning on this because it is an existing scenario, and it should
@@ -94,8 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (expression.ConstantValue != null)
             {
+                // TODO2
                 decisionDag = decisionDag.SimplifyDecisionDagIfConstantInput(expression);
-                if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is { } simplifiedResult)
+                if (!hasErrors && getConstantResult(decisionDag, negated, whenTrueLabel, whenFalseLabel) is ({ } simplifiedResult, var isWeakSimplifiedResult))
                 {
                     if (!simplifiedResult)
                     {
@@ -125,17 +133,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundIsPatternExpression(
                 node, expression, pattern, negated, decisionDag, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, boolType, hasErrors);
 
-            static bool? getConstantResult(BoundDecisionDag decisionDag, bool negated, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel)
+            static (bool? Result, bool IsWeakResult) getConstantResult(BoundDecisionDag decisionDag, bool negated, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel)
             {
+                // TODO2 discount null tests from analysis
                 if (!decisionDag.ReachableLabels.Contains(whenTrueLabel))
                 {
-                    return negated;
+                    return (negated, false);
                 }
                 else if (!decisionDag.ReachableLabels.Contains(whenFalseLabel))
                 {
-                    return !negated;
+                    return (!negated, false);
                 }
-                return null;
+                else if (!decisionDag.ReachableWithoutNegativeBranchLabels.Contains(whenTrueLabel))
+                {
+                    return (negated, true);
+                }
+                else if (!decisionDag.ReachableWithoutNegativeBranchLabels.Contains(whenFalseLabel))
+                {
+                    return (!negated, true);
+                }
+                return (null, false);
             }
         }
 

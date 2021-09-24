@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly IValueSetFactory<decimal> ForDecimal = DecimalValueSetFactory.Instance;
         internal static readonly IValueSetFactory<int> ForNint = NintValueSetFactory.Instance;
         internal static readonly IValueSetFactory<uint> ForNuint = NuintValueSetFactory.Instance;
-        internal static readonly IValueSetFactory<int> ForLength = NonNegativeIntValueSetFactory.Instance;
+        internal static readonly IValueSetFactory<int> ForLength = NumericValueSetFactory<int, IntTC>.Instance; // TODO2
 
         public static IValueSetFactory? ForSpecialType(SpecialType specialType, bool isNative = false)
         {

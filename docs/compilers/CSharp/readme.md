@@ -1,5 +1,6 @@
 Breaking changes (newest release on top):
 
+- [.NET 7](https://github.com/dotnet/roslyn/blob/main/docs/compilers/CSharp/Compiler%20Breaking%20Changes%20-%20DotNet%207.md)
 - [.NET 6 and Visual Studio 2022](https://github.com/dotnet/roslyn/blob/main/docs/compilers/CSharp/Compiler%20Breaking%20Changes%20-%20DotNet%206.md)
 - [Minor releases following .NET 5 and Visual Studio 2019 version 16.9](https://github.com/dotnet/roslyn/blob/main/docs/compilers/CSharp/Compiler%20Breaking%20Changes%20-%20post%20DotNet%205.md)
 - [.NET 5 and Visual Studio 2019 version 16.9](https://github.com/dotnet/roslyn/blob/main/docs/compilers/CSharp/Compiler%20Breaking%20Changes%20-%20DotNet%205.md)

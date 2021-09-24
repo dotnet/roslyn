@@ -279,6 +279,9 @@
                 case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                 case ErrorCode.WRN_CompileTimeCheckedOverflow:
                 case ErrorCode.WRN_MethGrpToNonDel:
+                case ErrorCode.WRN_SwitchArmSubsumedIfNonNegativeLength:
+                case ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength:
+                case ErrorCode.WRN_IsPatternAlwaysIfNonNegativeLength:
                     return true;
                 default:
                     return false;

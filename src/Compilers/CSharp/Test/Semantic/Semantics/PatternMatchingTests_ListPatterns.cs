@@ -74,7 +74,7 @@ public class X
             AssertEx.Multiple(
                 () => verifier.VerifyIL("X.Test(System.Span<char>)", @"
 {
-  // Code size       69 (0x45)
+  // Code size       76 (0x4c)
   .maxstack  4
   .locals init (char V_0, //first
                 System.Span<char> V_1, //others
@@ -87,95 +87,103 @@ public class X
   IL_0004:  call       ""int System.Span<char>.Length.get""
   IL_0009:  stloc.s    V_4
   IL_000b:  ldloc.s    V_4
-  IL_000d:  ldc.i4.1
-  IL_000e:  ble.un.s   IL_0036
-  IL_0010:  ldloca.s   V_3
-  IL_0012:  ldc.i4.0
-  IL_0013:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0018:  ldind.u2
-  IL_0019:  stloc.0
-  IL_001a:  ldloca.s   V_3
-  IL_001c:  ldc.i4.1
-  IL_001d:  ldloc.s    V_4
-  IL_001f:  ldc.i4.2
-  IL_0020:  sub
-  IL_0021:  call       ""System.Span<char> System.Span<char>.Slice(int, int)""
-  IL_0026:  stloc.1
-  IL_0027:  ldloca.s   V_3
-  IL_0029:  ldloc.s    V_4
-  IL_002b:  ldc.i4.1
-  IL_002c:  sub
-  IL_002d:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0032:  ldind.u2
-  IL_0033:  stloc.2
-  IL_0034:  br.s       IL_0038
-  IL_0036:  ldc.i4.1
-  IL_0037:  ret
-  IL_0038:  ldloc.0
-  IL_0039:  ldloc.2
-  IL_003a:  bne.un.s   IL_0043
-  IL_003c:  ldloc.1
-  IL_003d:  call       ""bool X.Test(System.Span<char>)""
-  IL_0042:  ret
-  IL_0043:  ldc.i4.0
-  IL_0044:  ret
+  IL_000d:  ldc.i4.2
+  IL_000e:  bge.s      IL_0017
+  IL_0010:  ldloc.s    V_4
+  IL_0012:  ldc.i4.1
+  IL_0013:  ble.un.s   IL_003d
+  IL_0015:  br.s       IL_003d
+  IL_0017:  ldloca.s   V_3
+  IL_0019:  ldc.i4.0
+  IL_001a:  call       ""ref char System.Span<char>.this[int].get""
+  IL_001f:  ldind.u2
+  IL_0020:  stloc.0
+  IL_0021:  ldloca.s   V_3
+  IL_0023:  ldc.i4.1
+  IL_0024:  ldloc.s    V_4
+  IL_0026:  ldc.i4.2
+  IL_0027:  sub
+  IL_0028:  call       ""System.Span<char> System.Span<char>.Slice(int, int)""
+  IL_002d:  stloc.1
+  IL_002e:  ldloca.s   V_3
+  IL_0030:  ldloc.s    V_4
+  IL_0032:  ldc.i4.1
+  IL_0033:  sub
+  IL_0034:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0039:  ldind.u2
+  IL_003a:  stloc.2
+  IL_003b:  br.s       IL_003f
+  IL_003d:  ldc.i4.1
+  IL_003e:  ret
+  IL_003f:  ldloc.0
+  IL_0040:  ldloc.2
+  IL_0041:  bne.un.s   IL_004a
+  IL_0043:  ldloc.1
+  IL_0044:  call       ""bool X.Test(System.Span<char>)""
+  IL_0049:  ret
+  IL_004a:  ldc.i4.0
+  IL_004b:  ret
 }
 "),
                 () => verifier.VerifyIL("X.Test(char[])", @"
 {
-  // Code size       72 (0x48)
-  .maxstack  4
-  .locals init (char V_0, //first
-                char[] V_1, //others
-                char V_2, //last
-                char[] V_3,
-                int V_4)
-  IL_0000:  ldarg.0
-  IL_0001:  stloc.3
-  IL_0002:  ldloc.3
-  IL_0003:  brfalse.s  IL_0046
-  IL_0005:  ldloc.3
-  IL_0006:  callvirt   ""int System.Array.Length.get""
-  IL_000b:  stloc.s    V_4
-  IL_000d:  ldloc.s    V_4
-  IL_000f:  ldc.i4.1
-  IL_0010:  ble.un.s   IL_0039
-  IL_0012:  ldloc.3
-  IL_0013:  ldc.i4.0
-  IL_0014:  ldelem.u2
-  IL_0015:  stloc.0
-  IL_0016:  ldloc.3
-  IL_0017:  ldc.i4.1
-  IL_0018:  ldc.i4.0
-  IL_0019:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001e:  ldc.i4.1
-  IL_001f:  ldc.i4.1
-  IL_0020:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0025:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_002a:  call       ""char[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<char>(char[], System.Range)""
-  IL_002f:  stloc.1
-  IL_0030:  ldloc.3
-  IL_0031:  ldloc.s    V_4
-  IL_0033:  ldc.i4.1
-  IL_0034:  sub
-  IL_0035:  ldelem.u2
-  IL_0036:  stloc.2
-  IL_0037:  br.s       IL_003b
-  IL_0039:  ldc.i4.1
-  IL_003a:  ret
-  IL_003b:  ldloc.0
-  IL_003c:  ldloc.2
-  IL_003d:  bne.un.s   IL_0046
-  IL_003f:  ldloc.1
-  IL_0040:  call       ""bool X.Test(char[])""
-  IL_0045:  ret
-  IL_0046:  ldc.i4.0
-  IL_0047:  ret
-}
+      // Code size       79 (0x4f)
+      .maxstack  4
+      .locals init (char V_0, //first
+                    char[] V_1, //others
+                    char V_2, //last
+                    char[] V_3,
+                    int V_4)
+      IL_0000:  ldarg.0
+      IL_0001:  stloc.3
+      IL_0002:  ldloc.3
+      IL_0003:  brfalse.s  IL_004d
+      IL_0005:  ldloc.3
+      IL_0006:  callvirt   ""int System.Array.Length.get""
+      IL_000b:  stloc.s    V_4
+      IL_000d:  ldloc.s    V_4
+      IL_000f:  ldc.i4.2
+      IL_0010:  bge.s      IL_0019
+      IL_0012:  ldloc.s    V_4
+      IL_0014:  ldc.i4.1
+      IL_0015:  ble.un.s   IL_0040
+      IL_0017:  br.s       IL_0040
+      IL_0019:  ldloc.3
+      IL_001a:  ldc.i4.0
+      IL_001b:  ldelem.u2
+      IL_001c:  stloc.0
+      IL_001d:  ldloc.3
+      IL_001e:  ldc.i4.1
+      IL_001f:  ldc.i4.0
+      IL_0020:  newobj     ""System.Index..ctor(int, bool)""
+      IL_0025:  ldc.i4.1
+      IL_0026:  ldc.i4.1
+      IL_0027:  newobj     ""System.Index..ctor(int, bool)""
+      IL_002c:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+      IL_0031:  call       ""char[] System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray<char>(char[], System.Range)""
+      IL_0036:  stloc.1
+      IL_0037:  ldloc.3
+      IL_0038:  ldloc.s    V_4
+      IL_003a:  ldc.i4.1
+      IL_003b:  sub
+      IL_003c:  ldelem.u2
+      IL_003d:  stloc.2
+      IL_003e:  br.s       IL_0042
+      IL_0040:  ldc.i4.1
+      IL_0041:  ret
+      IL_0042:  ldloc.0
+      IL_0043:  ldloc.2
+      IL_0044:  bne.un.s   IL_004d
+      IL_0046:  ldloc.1
+      IL_0047:  call       ""bool X.Test(char[])""
+      IL_004c:  ret
+      IL_004d:  ldc.i4.0
+      IL_004e:  ret
+    }
 "),
                 () => verifier.VerifyIL("X.Test(string)", @"
 {
-  // Code size       66 (0x42)
+  // Code size       73 (0x49)
   .maxstack  4
   .locals init (char V_0, //first
                 string V_1, //others
@@ -185,41 +193,45 @@ public class X
   IL_0000:  ldarg.0
   IL_0001:  stloc.3
   IL_0002:  ldloc.3
-  IL_0003:  brfalse.s  IL_0040
+  IL_0003:  brfalse.s  IL_0047
   IL_0005:  ldloc.3
   IL_0006:  callvirt   ""int string.Length.get""
   IL_000b:  stloc.s    V_4
   IL_000d:  ldloc.s    V_4
-  IL_000f:  ldc.i4.1
-  IL_0010:  ble.un.s   IL_0033
-  IL_0012:  ldloc.3
-  IL_0013:  ldc.i4.0
-  IL_0014:  callvirt   ""char string.this[int].get""
-  IL_0019:  stloc.0
-  IL_001a:  ldloc.3
-  IL_001b:  ldc.i4.1
-  IL_001c:  ldloc.s    V_4
-  IL_001e:  ldc.i4.2
-  IL_001f:  sub
-  IL_0020:  callvirt   ""string string.Substring(int, int)""
-  IL_0025:  stloc.1
-  IL_0026:  ldloc.3
-  IL_0027:  ldloc.s    V_4
-  IL_0029:  ldc.i4.1
-  IL_002a:  sub
-  IL_002b:  callvirt   ""char string.this[int].get""
-  IL_0030:  stloc.2
-  IL_0031:  br.s       IL_0035
-  IL_0033:  ldc.i4.1
-  IL_0034:  ret
-  IL_0035:  ldloc.0
-  IL_0036:  ldloc.2
-  IL_0037:  bne.un.s   IL_0040
-  IL_0039:  ldloc.1
-  IL_003a:  call       ""bool X.Test(string)""
-  IL_003f:  ret
-  IL_0040:  ldc.i4.0
-  IL_0041:  ret
+  IL_000f:  ldc.i4.2
+  IL_0010:  bge.s      IL_0019
+  IL_0012:  ldloc.s    V_4
+  IL_0014:  ldc.i4.1
+  IL_0015:  ble.un.s   IL_003a
+  IL_0017:  br.s       IL_003a
+  IL_0019:  ldloc.3
+  IL_001a:  ldc.i4.0
+  IL_001b:  callvirt   ""char string.this[int].get""
+  IL_0020:  stloc.0
+  IL_0021:  ldloc.3
+  IL_0022:  ldc.i4.1
+  IL_0023:  ldloc.s    V_4
+  IL_0025:  ldc.i4.2
+  IL_0026:  sub
+  IL_0027:  callvirt   ""string string.Substring(int, int)""
+  IL_002c:  stloc.1
+  IL_002d:  ldloc.3
+  IL_002e:  ldloc.s    V_4
+  IL_0030:  ldc.i4.1
+  IL_0031:  sub
+  IL_0032:  callvirt   ""char string.this[int].get""
+  IL_0037:  stloc.2
+  IL_0038:  br.s       IL_003c
+  IL_003a:  ldc.i4.1
+  IL_003b:  ret
+  IL_003c:  ldloc.0
+  IL_003d:  ldloc.2
+  IL_003e:  bne.un.s   IL_0047
+  IL_0040:  ldloc.1
+  IL_0041:  call       ""bool X.Test(string)""
+  IL_0046:  ret
+  IL_0047:  ldc.i4.0
+  IL_0048:  ret
 }
 ")
                 );
@@ -484,128 +496,160 @@ True
             AssertEx.Multiple(
                 () => verifier.VerifyIL("X.Test1", @"
 {
-  // Code size       41 (0x29)
+  // Code size       48 (0x30)
   .maxstack  4
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0027
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""int Test1.Count.get""
-  IL_0009:  pop
-  IL_000a:  ldarg.0
-  IL_000b:  ldc.i4.0
-  IL_000c:  ldc.i4.0
-  IL_000d:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0012:  ldc.i4.0
-  IL_0013:  ldc.i4.1
-  IL_0014:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0019:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_001e:  callvirt   ""int Test1.this[System.Range].get""
-  IL_0023:  ldc.i4.1
-  IL_0024:  ceq
-  IL_0026:  ret
-  IL_0027:  ldc.i4.0
-  IL_0028:  ret
-}"),
-                () => verifier.VerifyIL("X.Test2", @"
-{
-  // Code size       42 (0x2a)
-  .maxstack  4
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0028
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""int Test2.Count.get""
-  IL_0009:  pop
-  IL_000a:  ldarg.0
-  IL_000b:  ldc.i4.0
-  IL_000c:  ldc.i4.0
-  IL_000d:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0012:  ldc.i4.0
-  IL_0013:  ldc.i4.1
-  IL_0014:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0019:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_001e:  ldc.i4.5
-  IL_001f:  callvirt   ""int Test2.this[System.Range, int].get""
-  IL_0024:  ldc.i4.1
-  IL_0025:  ceq
-  IL_0027:  ret
-  IL_0028:  ldc.i4.0
-  IL_0029:  ret
-}"),
-                () => verifier.VerifyIL("X.Test3", @"
-{
-  // Code size       46 (0x2e)
-  .maxstack  4
+  .locals init (bool V_0)
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_002c
   IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""int Test3.Count.get""
-  IL_0009:  pop
-  IL_000a:  ldarg.0
-  IL_000b:  ldc.i4.0
-  IL_000c:  ldc.i4.0
-  IL_000d:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0012:  ldc.i4.0
-  IL_0013:  ldc.i4.1
-  IL_0014:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0019:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_001e:  call       ""int[] System.Array.Empty<int>()""
-  IL_0023:  callvirt   ""int Test3.this[System.Range, params int[]].get""
+  IL_0004:  callvirt   ""int Test1.Count.get""
+  IL_0009:  ldc.i4.0
+  IL_000a:  blt.s      IL_0028
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldc.i4.1
+  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
+  IL_001b:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0020:  callvirt   ""int Test1.this[System.Range].get""
+  IL_0025:  ldc.i4.1
+  IL_0026:  bne.un.s   IL_002c
   IL_0028:  ldc.i4.1
-  IL_0029:  ceq
-  IL_002b:  ret
+  IL_0029:  stloc.0
+  IL_002a:  br.s       IL_002e
   IL_002c:  ldc.i4.0
-  IL_002d:  ret
+  IL_002d:  stloc.0
+  IL_002e:  ldloc.0
+  IL_002f:  ret
+}"),
+                () => verifier.VerifyIL("X.Test2", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  4
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_002d
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""int Test2.Count.get""
+  IL_0009:  ldc.i4.0
+  IL_000a:  blt.s      IL_0029
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldc.i4.1
+  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
+  IL_001b:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0020:  ldc.i4.5
+  IL_0021:  callvirt   ""int Test2.this[System.Range, int].get""
+  IL_0026:  ldc.i4.1
+  IL_0027:  bne.un.s   IL_002d
+  IL_0029:  ldc.i4.1
+  IL_002a:  stloc.0
+  IL_002b:  br.s       IL_002f
+  IL_002d:  ldc.i4.0
+  IL_002e:  stloc.0
+  IL_002f:  ldloc.0
+  IL_0030:  ret
+}"),
+                () => verifier.VerifyIL("X.Test3", @"
+{
+  // Code size       53 (0x35)
+  .maxstack  4
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0031
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""int Test3.Count.get""
+  IL_0009:  ldc.i4.0
+  IL_000a:  blt.s      IL_002d
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldc.i4.1
+  IL_0016:  newobj     ""System.Index..ctor(int, bool)""
+  IL_001b:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0020:  call       ""int[] System.Array.Empty<int>()""
+  IL_0025:  callvirt   ""int Test3.this[System.Range, params int[]].get""
+  IL_002a:  ldc.i4.1
+  IL_002b:  bne.un.s   IL_0031
+  IL_002d:  ldc.i4.1
+  IL_002e:  stloc.0
+  IL_002f:  br.s       IL_0033
+  IL_0031:  ldc.i4.0
+  IL_0032:  stloc.0
+  IL_0033:  ldloc.0
+  IL_0034:  ret
 }"),
                 () => verifier.VerifyIL("X.Test4", @"
 {
-  // Code size       54 (0x36)
+  // Code size       61 (0x3d)
   .maxstack  7
+  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0034
+  IL_0001:  brfalse.s  IL_0039
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test4.Count.get""
-  IL_0009:  pop
-  IL_000a:  ldarg.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  newarr     ""System.Range""
-  IL_0011:  dup
-  IL_0012:  ldc.i4.0
-  IL_0013:  ldc.i4.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  blt.s      IL_0035
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  newarr     ""System.Range""
+  IL_0013:  dup
   IL_0014:  ldc.i4.0
-  IL_0015:  newobj     ""System.Index..ctor(int, bool)""
-  IL_001a:  ldc.i4.0
-  IL_001b:  ldc.i4.1
-  IL_001c:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0021:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0026:  stelem     ""System.Range""
-  IL_002b:  callvirt   ""int Test4.this[params System.Range[]].get""
-  IL_0030:  ldc.i4.1
-  IL_0031:  ceq
-  IL_0033:  ret
-  IL_0034:  ldc.i4.0
-  IL_0035:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ldc.i4.0
+  IL_0017:  newobj     ""System.Index..ctor(int, bool)""
+  IL_001c:  ldc.i4.0
+  IL_001d:  ldc.i4.1
+  IL_001e:  newobj     ""System.Index..ctor(int, bool)""
+  IL_0023:  newobj     ""System.Range..ctor(System.Index, System.Index)""
+  IL_0028:  stelem     ""System.Range""
+  IL_002d:  callvirt   ""int Test4.this[params System.Range[]].get""
+  IL_0032:  ldc.i4.1
+  IL_0033:  bne.un.s   IL_0039
+  IL_0035:  ldc.i4.1
+  IL_0036:  stloc.0
+  IL_0037:  br.s       IL_003b
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.0
+  IL_003b:  ldloc.0
+  IL_003c:  ret
 }"),
                 () => verifier.VerifyIL("X.Test5", @"
 {
-  // Code size       26 (0x1a)
+  // Code size       35 (0x23)
   .maxstack  4
-  .locals init (int V_0)
+  .locals init (int V_0,
+                bool V_1)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0018
+  IL_0001:  brfalse.s  IL_001f
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""int Test5.Count.get""
   IL_0009:  stloc.0
-  IL_000a:  ldarg.0
+  IL_000a:  ldloc.0
   IL_000b:  ldc.i4.0
-  IL_000c:  ldloc.0
-  IL_000d:  ldc.i4.0
-  IL_000e:  sub
-  IL_000f:  callvirt   ""int Test5.Slice(int, int)""
-  IL_0014:  ldc.i4.1
-  IL_0015:  ceq
-  IL_0017:  ret
-  IL_0018:  ldc.i4.0
-  IL_0019:  ret
+  IL_000c:  blt.s      IL_001b
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldloc.0
+  IL_0011:  ldc.i4.0
+  IL_0012:  sub
+  IL_0013:  callvirt   ""int Test5.Slice(int, int)""
+  IL_0018:  ldc.i4.1
+  IL_0019:  bne.un.s   IL_001f
+  IL_001b:  ldc.i4.1
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0021
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.1
+  IL_0021:  ldloc.1
+  IL_0022:  ret
 }")
             );
         }
@@ -1501,16 +1545,17 @@ class X
         _ = a is [.., >0] and [<0];   // 7
         _ = a is [.., >0, _] and [_, <=0, ..];
         _ = new { a } is { a.Length:-1 }; // 8
-        _ = a is [..{ Length: -1 }];  // 9
-        _ = a is [..{ Length: < -1 }];  // 10
-        _ = a is [..{ Length: <= -1 }]; // 11
+        _ = a is [..] and { Length: -1 };  // 9
+        _ = a is [..{ Length: -1 }];  // 10
+        _ = a is [..{ Length: < -1 }];  // 11
+        _ = a is [..{ Length: <= -1 }]; // 12
         _ = a is [..{ Length: >= -1 }];
         _ = a is [..{ Length: > -1 }];
-        _ = a is [_, _, ..{ Length: int.MaxValue - 1 }]; // 12
+        _ = a is [_, _, ..{ Length: int.MaxValue - 1 }]; // 13
         _ = a is [_, _, ..{ Length: <= int.MaxValue - 1 }];
-        _ = a is [_, _, ..{ Length: >= int.MaxValue - 1 }]; // 13
+        _ = a is [_, _, ..{ Length: >= int.MaxValue - 1 }]; // 14
         _ = a is [_, _, ..{ Length: < int.MaxValue - 1 }];
-        _ = a is [_, _, ..{ Length: > int.MaxValue - 1 }]; // 14
+        _ = a is [_, _, ..{ Length: > int.MaxValue - 1 }]; // 15
         _ = a is { LongLength: -1 };
         _ = (Array)a is { Length: -1 };
         _ = mdarray is { Length: -1 };
@@ -1610,32 +1655,33 @@ class X
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithListPatterns);
+            var compilation = CreateCompilation(source);
             compilation.VerifyEmitDiagnostics(
-                // (28,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                // (28,13): warning CS9204: An expression of type 'T' can never match the provided pattern assuming non-negative length for countable and indexable types.
                 //         _ = t is { Count: -1 }; // 1
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Count: -1 }").WithArguments("T").WithLocation(28, 13),
-                // (29,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+                Diagnostic(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, "t is { Count: -1 }").WithArguments("T").WithLocation(28, 13),
+                // (29,13): warning CS9204: An expression of type '<anonymous type: T t>' can never match the provided pattern assuming non-negative length for countable and indexable types.
                 //         _ = new { t } is { t.Count: -1 }; // 2
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Count: -1 }").WithArguments("<anonymous type: T t>").WithLocation(29, 13),
-                // (33,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                Diagnostic(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, "new { t } is { t.Count: -1 }").WithArguments("<anonymous type: T t>").WithLocation(29, 13),
+                // (33,13): warning CS9204: An expression of type 'T' can never match the provided pattern assuming non-negative length for countable and indexable types.
                 //         _ = t is { Length: -1 }; // 3
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(33, 13),
-                // (34,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+                Diagnostic(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, "t is { Length: -1 }").WithArguments("T").WithLocation(33, 13),
+                // (34,13): warning CS9204: An expression of type '<anonymous type: T t>' can never match the provided pattern assuming non-negative length for countable and indexable types.
                 //         _ = new { t } is { t.Length: -1 }; // 4
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(34, 13),
-                // (38,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                Diagnostic(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(34, 13),
+                // (38,13): warning CS9204: An expression of type 'T' can never match the provided pattern assuming non-negative length for countable and indexable types.
                 //         _ = t is { Length: -1 }; // 5
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Length: -1 }").WithArguments("T").WithLocation(38, 13),
-                // (39,13): error CS8518: An expression of type 'T' can never match the provided pattern.
+                Diagnostic(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, "t is { Length: -1 }").WithArguments("T").WithLocation(38, 13),
+                // (39,13): warning CS9204: An expression of type 'T' can never match the provided pattern assuming non-negative length for countable and indexable types.
                 //         _ = t is { Count: -1 }; // 6
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "t is { Count: -1 }").WithArguments("T").WithLocation(39, 13),
-                // (40,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+                Diagnostic(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, "t is { Count: -1 }").WithArguments("T").WithLocation(39, 13),
+                // (40,13): warning CS9204: An expression of type '<anonymous type: T t>' can never match the provided pattern assuming non-negative length for countable and indexable types.
                 //         _ = new { t } is { t.Count: -1 }; // 7
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Count: -1 }").WithArguments("<anonymous type: T t>").WithLocation(40, 13),
-                // (41,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
+                Diagnostic(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, "new { t } is { t.Count: -1 }").WithArguments("<anonymous type: T t>").WithLocation(40, 13),
+                // (41,13): warning CS9204: An expression of type '<anonymous type: T t>' can never match the provided pattern assuming non-negative length for countable and indexable types.
                 //         _ = new { t } is { t.Length: -1 }; // 8
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(41, 13));
+                Diagnostic(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(41, 13)
+                );
         }
 
         [Fact]
@@ -3013,31 +3059,432 @@ class C
             var verifier = CompileAndVerify(comp);
             string expectedIl = @"
 {
-  // Code size       26 (0x1a)
+  // Code size       29 (0x1d)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""int System.Span<int>.Length.get""
   IL_0007:  stloc.0
   IL_0008:  ldloc.0
-  IL_0009:  brfalse.s  IL_0011
-  IL_000b:  ldloc.0
-  IL_000c:  ldc.i4.1
-  IL_000d:  beq.s      IL_0014
-  IL_000f:  br.s       IL_0017
-  IL_0011:  ldc.i4.1
-  IL_0012:  pop
-  IL_0013:  ret
-  IL_0014:  ldc.i4.2
+  IL_0009:  ldc.i4.1
+  IL_000a:  blt.s      IL_0012
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  beq.s      IL_0017
+  IL_0010:  br.s       IL_001a
+  IL_0012:  ldloc.0
+  IL_0013:  pop
+  IL_0014:  ldc.i4.1
   IL_0015:  pop
   IL_0016:  ret
-  IL_0017:  ldc.i4.3
+  IL_0017:  ldc.i4.2
   IL_0018:  pop
   IL_0019:  ret
+  IL_001a:  ldc.i4.3
+  IL_001b:  pop
+  IL_001c:  ret
 }
 ";
             verifier.VerifyIL("C.Test1", expectedIl);
             verifier.VerifyIL("C.Test2", expectedIl);
         }
+
+        [Fact]
+        public void LengthPattern_OneSpecificNegativeValue()
+        {
+            var src = @"
+int[] a = null;
+_ = a is { Length: -1 };
+
+_ = a switch
+{
+    { Length: -1 } => 0,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,5): warning CS9204: An expression of type 'int[]' can never match the provided pattern assuming non-negative length for countable and indexable types.
+                // _ = a is { Length: -1 };
+                Diagnostic(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, "a is { Length: -1 }").WithArguments("int[]").WithLocation(3, 5),
+                // (5,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+                // _ = a switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(5, 7),
+                // (7,5): warning CS9203: The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.
+                //     { Length: -1 } => 0,
+                Diagnostic(ErrorCode.WRN_SwitchArmSubsumedIfNonNegativeLength, "{ Length: -1 }").WithLocation(7, 5)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_OneSpecificNegativeValue_Not()
+        {
+            var src = @"
+int[] a = null;
+_ = a is not { Length: -1 };
+
+_ = a switch
+{
+    not { Length: -1 } => 0,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,5): warning CS9205: An expression of type 'int[]' always matches the provided pattern assuming non-negative length for countable and indexable types.
+                // _ = a is not { Length: -1 };
+                Diagnostic(ErrorCode.WRN_IsPatternAlwaysIfNonNegativeLength, "a is not { Length: -1 }").WithArguments("int[]").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_OneSpecificNegativeValue_NestedNot()
+        {
+            var src = @"
+#nullable enable
+int[] a = null!;
+_ = a is { Length: not -1 };
+
+_ = a switch
+{
+    { Length: not -1 } => 0,
+};
+";
+            // TODO2 should have a negative-length warning (need to remove null paths from analysis?)
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (6,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                // _ = a switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(6, 7)
+                );
+            Assert.True(false);
+        }
+
+        [Fact]
+        public void LengthPattern_OneSpecificNegativeValue_NestedNot_WithNullHandling()
+        {
+            var src = @"
+int[] a = null;
+_ = a is null or { Length: not -1 };
+
+_ = a switch
+{
+    null => 0,
+    { Length: not -1 } => 0,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,5): warning CS9205: An expression of type 'int[]' always matches the provided pattern assuming non-negative length for countable and indexable types.
+                // _ = a is null or { Length: not -1 };
+                Diagnostic(ErrorCode.WRN_IsPatternAlwaysIfNonNegativeLength, "a is null or { Length: not -1 }").WithArguments("int[]").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_DuplicateNegativeTest()
+        {
+            var src = @"
+int[] a = null;
+_ = a is { Length: -1 } or { Length: -1 };
+
+_ = a switch
+{
+    { Length: -1 } => 1,
+    { Length: -1 } => 2,
+    _ => 3,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,5): warning CS9204: An expression of type 'int[]' can never match the provided pattern assuming non-negative length for countable and indexable types.
+                // _ = a is { Length: -1 } or { Length: -1 };
+                Diagnostic(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, "a is { Length: -1 } or { Length: -1 }").WithArguments("int[]").WithLocation(3, 5),
+                // (7,5): warning CS9203: The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.
+                //     { Length: -1 } => 1,
+                Diagnostic(ErrorCode.WRN_SwitchArmSubsumedIfNonNegativeLength, "{ Length: -1 }").WithLocation(7, 5),
+                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     { Length: -1 } => 2,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: -1 }").WithLocation(8, 5)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_NegativeRangeTest()
+        {
+            var src = @"
+int[] a = null;
+_ = a is { Length: < 0 };
+
+_ = a switch
+{
+    { Length: < 0 } => 0,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,5): warning CS9204: An expression of type 'int[]' can never match the provided pattern assuming non-negative length for countable and indexable types.
+                // _ = a is { Length: < 0 };
+                Diagnostic(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, "a is { Length: < 0 }").WithArguments("int[]").WithLocation(3, 5),
+                // (5,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+                // _ = a switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(5, 7),
+                // (7,5): warning CS9203: The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.
+                //     { Length: < 0 } => 0,
+                Diagnostic(ErrorCode.WRN_SwitchArmSubsumedIfNonNegativeLength, "{ Length: < 0 }").WithLocation(7, 5)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_Switch_NegativeRangeTestByElimination()
+        {
+            var src = @"
+int[] a = null;
+_ = a switch
+{
+    { Length: 0 } => 1,
+    { Length: <= 0 } => 2,
+    _ => 3,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (6,5): warning CS9203: The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.
+                //     { Length: <= 0 } => 2,
+                Diagnostic(ErrorCode.WRN_SwitchArmSubsumedIfNonNegativeLength, "{ Length: <= 0 }").WithLocation(6, 5)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_OneLengthTest_Complete()
+        {
+            var src = @"
+int[] a = null;
+_ = a switch
+{
+    { Length: >= 0 } => 1,
+};
+
+_ = a is { Length: >= 0 };
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LengthPattern_OneLengthTest_Incomplete()
+        {
+            var src = @"
+int[] a = null;
+_ = a switch // 1
+{
+    { Length: < 1 } => 1,
+};
+
+_ = a switch // 2
+{
+    { Length: > 1 } => 2,
+};
+
+";
+            // TODO2 glad we didn't offer -1, but how did that work?
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 1 }' is not covered.
+                // _ = a switch // 1
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 1 }").WithLocation(3, 7),
+                // (8,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 0 }' is not covered.
+                // _ = a switch // 2
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 0 }").WithLocation(8, 7)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_NoExhaustivenessCheckOnNegativeValues()
+        {
+            var src = @"
+int[] a = null;
+_ = a switch
+{
+    { Length: >= 0 } => 0,
+    { Length: -1 } => 1,
+};
+
+_ = a switch // 2
+{
+    { Length: 0 } => 0,
+    { Length: 1 } => 0,
+    { Length: 2 } => 0,
+    { Length: 3 } => 0,
+    { Length: -1 } => 3,
+};
+
+_ = a switch
+{
+    { Length: 0 } => 0,
+    { Length: > 0 } => 0,
+    { Length: -1 } => 4,
+};
+";
+            // Note: just because you have a test that only useful if length could be negative doesn't mean
+            // we start producing exhaustivenss warnings on negative values you missed
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (6,5): warning CS9203: The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.
+                //     { Length: -1 } => 1,
+                Diagnostic(ErrorCode.WRN_SwitchArmSubsumedIfNonNegativeLength, "{ Length: -1 }").WithLocation(6, 5),
+                // (9,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 4 }' is not covered.
+                // _ = a switch // 2
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 4 }").WithLocation(9, 7),
+                // (15,5): warning CS9203: The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.
+                //     { Length: -1 } => 3,
+                Diagnostic(ErrorCode.WRN_SwitchArmSubsumedIfNonNegativeLength, "{ Length: -1 }").WithLocation(15, 5),
+                // (22,5): warning CS9203: The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.
+                //     { Length: -1 } => 4,
+                Diagnostic(ErrorCode.WRN_SwitchArmSubsumedIfNonNegativeLength, "{ Length: -1 }").WithLocation(22, 5)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_OneLengthTest_WithNullability_Complete()
+        {
+            var src = @"
+#nullable enable
+int[] a = null!;
+_ = a switch
+{
+    null => 0,
+    { Length: >= 0 } => 1,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LengthPattern_TwoLengthTests_Incomplete()
+        {
+            var src = @"
+#nullable enable
+int[] a = null!;
+_ = a switch
+{
+    { Length: 0 } => 1,
+    { Length: > 0 } => 2,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,7): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                // _ = a switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(4, 7)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_TwoLengthTests_Complete()
+        {
+            var src = @"
+#nullable enable
+int[] a = null!;
+_ = a switch
+{
+    null => 0,
+    { Length: 0 } => 1,
+    { Length: > 0 } => 2,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LengthPattern_IsIncomplete()
+        {
+            var src = @"
+int[] a = null;
+_ = a is null or { Length: >= 0};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,5): warning CS9205: An expression of type 'int[]' always matches the provided pattern assuming non-negative length for countable and indexable types.
+                // _ = a is null or { Length: >= 0};
+                Diagnostic(ErrorCode.WRN_IsPatternAlwaysIfNonNegativeLength, "a is null or { Length: >= 0}").WithArguments("int[]").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_Evaluation()
+        {
+            var source = @"
+using System;
+public class X
+{
+    public static void Main()
+    {
+        Console.WriteLine(""X(0):"");
+        var x = new X(0);
+        M(x);
+
+        Console.WriteLine(""null:"");
+        x = null;
+        M(x);
+
+        Console.WriteLine(""X(-1):"");
+        x = new X(-1);
+        M(x);
+    }
+    public static void M(X x)
+    {
+        Console.WriteLine($""-> {x is [..] and { Length: -1 }}"");  // TODO2
+        Console.WriteLine($""-> {x is [..{ Length: -1 }]}"");  // 2
+        Console.WriteLine($""-> {x is null or ([..] and { Length: -1 })}"");  // 2
+        Console.WriteLine($""-> {x is null or [..{ Length: -1 }]}"");  // 2
+    }
+
+    public X(int length)
+    {
+        _length = length;
+    }
+    private int _length;
+    public int Length { get { Console.Write(""Length ""); return _length; } }
+    public int this[int index] => throw null;
+    public X Slice(int i, int j) { Console.Write(""Slice ""); return this; }
+}
+";
+            // TODO2 why is Length getting evaluated twice?
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+X(0):
+Length -> False
+Length Slice Length -> False
+Length -> False
+Length Slice Length -> False
+null:
+-> False
+-> False
+-> True
+-> True
+X(-1):
+Length -> True
+Length -> True
+Length -> True
+Length -> True
+");
+            verifier.VerifyDiagnostics(
+                // (21,33): warning CS9204: An expression of type 'X' can never match the provided pattern assuming non-negative length for countable and indexable types.
+                //         Console.WriteLine($"-> {x is [..] and { Length: -1 }}");  // TODO2
+                Diagnostic(ErrorCode.WRN_IsPatternImpossibleIfNonNegativeLength, "x is [..] and { Length: -1 }").WithArguments("X").WithLocation(21, 33)
+                );
+        }
+
+        // TODO2 test more nullability scenarios?
+        // TODO2 condition on LangVer
+
+        //        (a, b) switch
+        //   {
+        //      (0, { Length: >= 0 }) => 0, // shouldn't complain because there's a pure negative test later on
+        //      (1, { Length: not 0 }
+        //and
+        //{ Length: < 1 }) => 1,
+        //	  (1, _) => 0
+        //   }
     }
 }

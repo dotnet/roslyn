@@ -1472,6 +1472,26 @@
         <target state="new">Converting method group to non-delegate type</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_IsPatternAlwaysIfNonNegativeLength">
+        <source>An expression of type '{0}' always matches the provided pattern assuming non-negative length for countable and indexable types.</source>
+        <target state="new">An expression of type '{0}' always matches the provided pattern assuming non-negative length for countable and indexable types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsPatternAlwaysIfNonNegativeLength_Title">
+        <source>The input always matches the provided pattern assuming non-negative length for countable and indexable types.</source>
+        <target state="new">The input always matches the provided pattern assuming non-negative length for countable and indexable types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsPatternImpossibleIfNonNegativeLength">
+        <source>An expression of type '{0}' can never match the provided pattern assuming non-negative length for countable and indexable types.</source>
+        <target state="new">An expression of type '{0}' can never match the provided pattern assuming non-negative length for countable and indexable types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_IsPatternImpossibleIfNonNegativeLength_Title">
+        <source>The input can never match the provided pattern assuming non-negative length for countable and indexable types.</source>
+        <target state="new">The input can never match the provided pattern assuming non-negative length for countable and indexable types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">Parametr „{0}” musi mieć wartość inną niż null podczas kończenia działania, ponieważ parametr „{1}” ma wartość inną niż null.</target>
@@ -1535,6 +1555,16 @@
       <trans-unit id="WRN_ReturnNotNullIfNotNull_Title">
         <source>Return value must be non-null because parameter is non-null.</source>
         <target state="translated">Wartość zwracana musi być inna niż null, ponieważ parametr ma wartość inną niż null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchArmSubsumedIfNonNegativeLength">
+        <source>The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.</source>
+        <target state="new">The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchArmSubsumedIfNonNegativeLength_Title">
+        <source>The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.</source>
+        <target state="new">The pattern is unreachable assuming non-negative length for countable and indexable types. Switch exhaustiveness is not checked for such negative values.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue">

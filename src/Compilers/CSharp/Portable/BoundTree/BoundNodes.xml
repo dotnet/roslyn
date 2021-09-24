@@ -1454,6 +1454,9 @@
   <Node Name="BoundDagAssignmentEvaluation" Base="BoundDagEvaluation">
     <Field Name="Target" Type="BoundDagTemp"/>
   </Node>
+  <!-- This evaluation is just a marker for negative branches (it is a no-op) -->
+  <Node Name="BoundDagNegativeBranchEvaluation" Base="BoundDagEvaluation">
+  </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>

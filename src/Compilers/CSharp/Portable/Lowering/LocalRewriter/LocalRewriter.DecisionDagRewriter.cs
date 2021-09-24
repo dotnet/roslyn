@@ -1093,7 +1093,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-#nullable disable
 
             /// <summary>
             /// Translate the decision dag for node, given that it will be followed by the translation for nextNode.
@@ -1106,9 +1105,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundEvaluationDecisionDagNode evaluationNode:
                         {
                             var e = evaluationNode.Evaluation;
+                            if (e is BoundDagNegativeBranchEvaluation)
+                            {
+                                return;
+                            }
+
                             if (e is not BoundDagAssignmentEvaluation)
                             {
-                                BoundExpression sideEffect = LowerEvaluation(e);
+                                BoundExpression? sideEffect = LowerEvaluation(e);
                                 Debug.Assert(sideEffect != null);
                                 _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
 

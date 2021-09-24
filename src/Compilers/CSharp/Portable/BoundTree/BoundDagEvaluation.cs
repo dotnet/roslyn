@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagSliceEvaluation e => (Symbol?)e.SliceMethod ?? e.IndexerAccess?.Indexer,
                     BoundDagIndexerEvaluation e => e.IndexerSymbol ?? e.IndexerAccess?.Indexer,
                     BoundDagAssignmentEvaluation => null,
+                    BoundDagNegativeBranchEvaluation => null,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
             }
