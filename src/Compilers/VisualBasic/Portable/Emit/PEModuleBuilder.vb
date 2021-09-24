@@ -720,7 +720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             For Each method In typeMethods
                 Dim body = method.GetBody(context)
-                If body Is Nothing OrElse body.SequencePoints.IsEmpty Then
+                If body Is Nothing Then
                     Continue For
                 End If
 

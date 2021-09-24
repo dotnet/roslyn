@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             foreach (var method in typeMethods)
             {
                 var body = method.GetBody(context);
-                if (body is null || body.SequencePoints.IsEmpty)
+                if (body is null)
                 {
                     continue;
                 }
