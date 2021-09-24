@@ -853,7 +853,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        void EnforceParameterNotNullOnExit(SyntaxNode? syntaxOpt, LocalState state)
+        private void EnforceNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement)
+        {
+            var parameters = this.MethodParameters;
+
+            if (!parameters.IsEmpty)
+            {
+                if (pendingReturn.IsConditionalState)
+                {
+                    if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                    {
+                        EnforceParameterNotNullWhenOnExit(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
+                        return;
+                    }
+
+                    if (!pendingReturn.StateWhenTrue.Reachable || !pendingReturn.StateWhenFalse.Reachable)
+                    {
+                        return;
+                    }
+
+                    foreach (var parameter in parameters)
+                    {
+                        // For non-constant values, only complain if we were able to analyze a difference for this parameter between two branches
+                        if (GetOrCreateSlot(parameter) is > 0 and var slot && pendingReturn.StateWhenTrue[slot] != pendingReturn.StateWhenFalse[slot])
+                        {
+                            ReportParameterIfBadConditionalState(returnStatement.Syntax, parameter, sense: true, stateWhen: pendingReturn.StateWhenTrue);
+                            ReportParameterIfBadConditionalState(returnStatement.Syntax, parameter, sense: false, stateWhen: pendingReturn.StateWhenFalse);
+                        }
+                    }
+                }
+                else if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                {
+                    // example: return (bool)true;
+                    EnforceParameterNotNullWhenOnExit(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
+                    return;
+                }
+            }
+        }
+
+        private void EnforceParameterNotNullOnExit(SyntaxNode? syntaxOpt, LocalState state)
         {
             if (!state.Reachable)
             {
@@ -893,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        void EnforceParameterNotNullWhenOnExit(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense, LocalState stateWhen)
+        private void EnforceParameterNotNullWhenOnExit(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense, LocalState stateWhen)
         {
             if (!stateWhen.Reachable)
             {
@@ -906,46 +944,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        void EnforceNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement)
-        {
-            var parameters = this.MethodParameters;
 
-            if (!parameters.IsEmpty)
-            {
-                if (pendingReturn.IsConditionalState)
-                {
-                    if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
-                    {
-                        EnforceParameterNotNullWhenOnExit(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
-                        return;
-                    }
-
-                    if (!pendingReturn.StateWhenTrue.Reachable || !pendingReturn.StateWhenFalse.Reachable)
-                    {
-                        return;
-                    }
-
-                    foreach (var parameter in parameters)
-                    {
-                        // For non-constant values, only complain if we were able to analyze a difference for this parameter between two branches
-                        if (GetOrCreateSlot(parameter) is > 0 and var slot && pendingReturn.StateWhenTrue[slot] != pendingReturn.StateWhenFalse[slot])
-                        {
-                            ReportParameterIfBadConditionalState(returnStatement.Syntax, parameter, sense: true, stateWhen: pendingReturn.StateWhenTrue);
-                            ReportParameterIfBadConditionalState(returnStatement.Syntax, parameter, sense: false, stateWhen: pendingReturn.StateWhenFalse);
-                        }
-                    }
-                }
-                else if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
-                {
-                    // example: return (bool)true;
-                    EnforceParameterNotNullWhenOnExit(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
-                    return;
-                }
-            }
-        }
-
-
-        void ReportParameterIfBadConditionalState(SyntaxNode syntax, ParameterSymbol parameter, bool sense, LocalState stateWhen)
+        private void ReportParameterIfBadConditionalState(SyntaxNode syntax, ParameterSymbol parameter, bool sense, LocalState stateWhen)
         {
             if (parameterHasBadConditionalState(parameter, sense, stateWhen))
             {
@@ -6860,6 +6860,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(delegateType is object);
+            if (unboundLambda.Syntax is LambdaExpressionSyntax lambdaSyntax)
+            {
+                int start = lambdaSyntax.SpanStart;
+                location = Location.Create(lambdaSyntax.SyntaxTree, new Text.TextSpan(start, lambdaSyntax.ArrowToken.Span.End - start));
+            }
 
             if (unboundLambda.HasExplicitReturnType(out _, out var returnType) &&
                 IsNullabilityMismatch(invoke.ReturnTypeWithAnnotations, returnType, requireIdentity: true))
