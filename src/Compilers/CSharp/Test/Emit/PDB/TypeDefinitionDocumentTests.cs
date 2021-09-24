@@ -299,6 +299,62 @@ record R(int X)
                 ("IsExternalInit", "2.cs"));
         }
 
+        [Fact]
+        public void Enum()
+        {
+            string source = @"
+enum E
+{
+}
+
+enum E2
+{
+    A,
+    B
+}
+";
+
+            TestTypeDefinitionDocuments(new[] { source },
+                ("E", "1.cs"),
+                ("E2", "1.cs"));
+        }
+
+
+        [Fact]
+        public void Delegate()
+        {
+            string source = @"
+delegate void D(int a);
+
+class C
+{
+    void M()
+    {
+        var x = (int a, ref int b) => a;
+    }
+}
+";
+
+            TestTypeDefinitionDocuments(new[] { source },
+                ("D", "1.cs"));
+        }
+
+        [Fact]
+        public void AnonymousTypes()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        var x = new { Goo = 1, Bar = ""Hi"" };
+    }
+}
+";
+
+            TestTypeDefinitionDocuments(new[] { source });
+        }
+
         private static void TestTypeDefinitionDocuments(string[] sources, params (string typeName, string documentName)[] expected)
         {
             var trees = sources.Select((s, i) => SyntaxFactory.ParseSyntaxTree(s, path: $"{i + 1}.cs", encoding: Encoding.UTF8)).ToArray();
@@ -319,7 +375,7 @@ record R(int X)
                          where pdbReader.GetGuid(entry.Kind).Equals(PortableCustomDebugInfoKinds.TypeDefinitionDocuments)
                          select (typeName: GetTypeName(entry.Parent), documentName: GetDocumentNames(entry.Value));
 
-            AssertEx.Equal(expected, actual, itemSeparator: ", ", itemInspector: i => $"(\"{i.typeName}\", \"{i.documentName}\")");
+            AssertEx.Equal(expected, actual, itemSeparator: ",\n", itemInspector: i => $"(\"{i.typeName}\", \"{i.documentName}\")");
 
             string GetTypeName(EntityHandle handle)
             {

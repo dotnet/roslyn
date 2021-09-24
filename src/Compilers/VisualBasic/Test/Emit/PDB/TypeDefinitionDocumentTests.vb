@@ -214,6 +214,49 @@ End Interface
                               ("I2", "1.vb, 2.vb"))
         End Sub
 
+        <Fact>
+        Public Sub [Enum]()
+            Dim source As String = "
+Enum E
+    A
+    B
+End Enum
+"
+            TestTypeDefinitionDocuments({source},
+                              ("E", "1.vb"))
+        End Sub
+
+        <Fact>
+        Public Sub [Delegate]()
+            Dim source As String = "
+Delegate Sub D(a As Integer)
+
+Class C
+    Public Sub M()
+        Dim y = (
+        Function(ByRef a As Integer)
+            Return a
+        End Function
+        )
+    End Sub
+End Class
+"
+            TestTypeDefinitionDocuments({source},
+                              ("D", "1.vb"))
+        End Sub
+
+        <Fact>
+        Public Sub AnonymousType()
+            Dim source As String = "
+Public Class C
+    Public Sub M()
+       Dim x = New With { .Goo = 1, .Bar = ""Hi"" }
+    End Sub
+End Class
+"
+            TestTypeDefinitionDocuments({source})
+        End Sub
+
         Public Shared Sub TestTypeDefinitionDocuments(sources As String(), ParamArray expected As (String, String)())
             Dim trees = sources.Select(Function(s, i) SyntaxFactory.ParseSyntaxTree(s, path:=$"{i + 1}.vb", encoding:=Encoding.UTF8)).ToArray()
             Dim compilation = CreateCompilation(trees, options:=TestOptions.DebugDll)
