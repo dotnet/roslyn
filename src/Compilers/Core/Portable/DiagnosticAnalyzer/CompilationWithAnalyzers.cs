@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             else if (!analysisScope.IsSyntacticSingleFileAnalysis)
             {
                 var mappedModel = _compilation.GetSemanticModel(analysisScope.FilterFileOpt!.Value.SourceTree!);
-                _ = mappedModel.GetDiagnostics(cancellationToken: cancellationToken);
+                _ = mappedModel.GetDiagnostics(analysisScope.FilterSpanOpt, cancellationToken);
             }
         }
 
