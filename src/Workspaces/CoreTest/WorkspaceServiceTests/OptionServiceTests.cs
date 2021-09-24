@@ -292,15 +292,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
                 static void VerifyChangedOptionsCore(SerializableOptionSet serializableOptionSet, OptionKey optionKey, bool expectedChangedOption)
                 {
-                    var changedOptions = serializableOptionSet.GetChangedOptions();
                     if (expectedChangedOption)
                     {
-                        var changedOptionKey = Assert.Single(changedOptions);
-                        Assert.Equal(optionKey, changedOptionKey);
+                        Assert.True(serializableOptionSet.OptionKeyToValue.ContainsKey(optionKey));
                     }
                     else
                     {
-                        Assert.Empty(changedOptions);
+                        Assert.False(serializableOptionSet.OptionKeyToValue.ContainsKey(optionKey));
                     }
                 }
             }
@@ -328,10 +326,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
             var serializableOptionSet = optionService.GetSerializableOptionsSnapshot(languages);
-            var changedOptions = serializableOptionSet.GetChangedOptions();
-            var changedOptionKey = Assert.Single(changedOptions);
-            Assert.Equal(optionKey, changedOptionKey);
-            Assert.Equal(newOptionValue, serializableOptionSet.GetOption(changedOptionKey));
+            Assert.Equal(newOptionValue, serializableOptionSet.GetOption(optionKey));
         }
 
         [Fact, WorkItem(1128126, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1128126")]
@@ -358,10 +353,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var languages = ImmutableHashSet.Create(LanguageNames.CSharp);
             var serializableOptionSet = optionService.GetSerializableOptionsSnapshot(languages);
-            var changedOptions = serializableOptionSet.GetChangedOptions();
-            var changedOptionKey = Assert.Single(changedOptions);
-            Assert.Equal(optionKey, changedOptionKey);
-            Assert.Equal(newOptionValue, serializableOptionSet.GetOption(changedOptionKey));
+            Assert.Equal(newOptionValue, serializableOptionSet.GetOption(optionKey));
         }
 
         [Fact]

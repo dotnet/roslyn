@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
             private readonly object? _value;
             public TestOptionSet(CodeStyleOption2<T> value) => _value = value;
             public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value) => this;
-            internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet) => Array.Empty<OptionKey>();
             private protected override object? GetOptionCore(OptionKey optionKey) => _value;
         }
     }

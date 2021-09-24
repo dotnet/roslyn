@@ -756,8 +756,10 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var recoveredSolution = await validator.GetSolutionAsync(scope);
 
-            // option should be exactly same
-            Assert.Equal(0, recoveredSolution.Options.GetChangedOptions(workspace.Options).Count());
+            var originalOptions = ((SerializableOptionSet)workspace.Options).OptionKeyToValue;
+            var currentOptions = ((SerializableOptionSet)recoveredSolution.Options).OptionKeyToValue;
+
+            Assert.Equal(originalOptions, currentOptions);
 
             verifyOptionValues(workspace.Options);
             verifyOptionValues(recoveredSolution.Options);
