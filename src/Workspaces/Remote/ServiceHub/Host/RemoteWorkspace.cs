@@ -314,8 +314,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 ClearSolutionData();
 
                 OnSolutionAdded(solutionInfo);
-<<<<<<< HEAD
-=======
 
                 // The call to SetOptions will ensure that the options get pushed into the remote IOptionService
                 // store.  However, we still update our current solution with the options passed in.  This is
@@ -329,7 +327,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 // A better fix in the future is to make all options pure data and remove the general concept of
                 // any part of the system eliding information about any options that have their 'default' value.
                 // https://github.com/dotnet/roslyn/issues/55728
->>>>>>> langOptionSet
                 this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
                 SetOptions(options);
 
