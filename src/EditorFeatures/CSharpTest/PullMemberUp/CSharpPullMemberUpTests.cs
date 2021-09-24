@@ -4155,7 +4155,7 @@ public class BaseClass
 public class Bar : BaseClass
 {
     #region Hello
-    public int G[||]oo = 100;
+    public int G[||]oo = 100, Hoo;
     #endregion
 }";
             var expected = @"
@@ -4166,8 +4166,8 @@ public class BaseClass
 
 public class Bar : BaseClass
 {
-
     #region Hello
+    public int Hoo;
     #endregion
 }";
             return TestInRegularAndScriptAsync(text, expected);
