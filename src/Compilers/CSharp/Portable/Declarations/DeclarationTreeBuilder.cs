@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (node.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind == SourceCodeKind.Regular));
 
             if (members.Count == 0)
+            {
                 return ImmutableArray<SingleNamespaceOrTypeDeclaration>.Empty;
+            }
 
             // We look for members that are not allowed in a namespace. 
             // If there are any we create an implicit class to wrap them.
@@ -82,16 +84,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var topLevelStatement = global.Statement;
 
                     if (!topLevelStatement.IsKind(SyntaxKind.EmptyStatement))
+                    {
                         hasNonEmptyGlobalStatement = true;
+                    }
 
                     if (!hasAwaitExpressions)
+                    {
                         hasAwaitExpressions = SyntaxFacts.HasAwaitOperations(topLevelStatement);
+                    }
 
                     if (!isIterator)
+                    {
                         isIterator = SyntaxFacts.HasYieldOperations(topLevelStatement);
+                    }
 
                     if (!hasReturnWithExpression)
+                    {
                         hasReturnWithExpression = SyntaxFacts.HasReturnWithExpression(topLevelStatement);
+                    }
                 }
                 else if (!hasGlobalMembers && member.Kind() != SyntaxKind.IncompleteMember)
                 {
@@ -211,11 +221,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             IList<ReferenceDirectiveTriviaSyntax> directiveNodes = compilationUnit.GetReferenceDirectives(
                 d => !d.File.ContainsDiagnostics && !string.IsNullOrEmpty(d.File.ValueText));
             if (directiveNodes.Count == 0)
+            {
                 return ImmutableArray<ReferenceDirective>.Empty;
+            }
 
             var directives = ArrayBuilder<ReferenceDirective>.GetInstance(directiveNodes.Count);
             foreach (var directiveNode in directiveNodes)
+            {
                 directives.Add(new ReferenceDirective(directiveNode.File.ValueText, new SourceLocation(directiveNode)));
+            }
 
             return directives.ToImmutableAndFree();
         }
@@ -269,11 +283,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var directive in usings)
             {
                 if (directive.Alias == null)
+                {
                     continue;
+                }
 
                 var isGlobal = directive.GlobalKeyword.Kind() != SyntaxKind.None;
                 if (isGlobal != global)
+                {
                     continue;
+                }
 
                 result |= QuickAttributeHelpers.GetQuickAttributes(directive.Name.GetUnqualifiedName().Identifier.ValueText, inAttribute: false);
             }
@@ -284,7 +302,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SingleNamespaceOrTypeDeclaration VisitCompilationUnit(CompilationUnitSyntax compilationUnit)
         {
             if (_syntaxTree.Options.Kind != SourceCodeKind.Regular)
+            {
                 return CreateScriptRootDeclaration(compilationUnit);
+            }
 
             _nonGlobalAliasedQuickAttributes = GetNonGlobalAliasedQuickAttributes(compilationUnit);
 
@@ -299,7 +319,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var member in compilationUnit.Members)
             {
                 if (member is BaseNamespaceDeclarationSyntax @namespace)
+                {
                     result |= GetNonGlobalAliasedQuickAttributes(@namespace);
+                }
             }
 
             return result;
@@ -311,7 +333,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var member in @namespace.Members)
             {
                 if (member is BaseNamespaceDeclarationSyntax child)
+                {
                     result |= GetNonGlobalAliasedQuickAttributes(child);
+                }
             }
 
             return result;
@@ -424,7 +448,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(node.Parent is CompilationUnitSyntax);
                     var compilationUnit = (CompilationUnitSyntax)node.Parent;
                     if (node != compilationUnit.Members[0])
+                    {
                         diagnostics.Add(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, node.Name.GetLocation());
+                    }
                 }
             }
             else
@@ -434,7 +460,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //      namespace X.Y;
                 //      namespace A.B { }
                 if (node.Parent is FileScopedNamespaceDeclarationSyntax)
+                {
                     diagnostics.Add(ErrorCode.ERR_FileScopedAndNormalNamespace, node.Name.GetLocation());
+                }
             }
 
             if (ContainsGeneric(node.Name))
@@ -444,13 +472,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (ContainsAlias(node.Name))
+            {
                 diagnostics.Add(ErrorCode.ERR_UnexpectedAliasedName, node.Name.GetLocation());
+            }
 
             if (node.AttributeLists.Count > 0)
+            {
                 diagnostics.Add(ErrorCode.ERR_BadModifiersOnNamespace, node.AttributeLists[0].GetLocation());
+            }
 
             if (node.Modifiers.Count > 0)
+            {
                 diagnostics.Add(ErrorCode.ERR_BadModifiersOnNamespace, node.Modifiers[0].GetLocation());
+            }
 
             foreach (var directive in node.Usings)
             {
@@ -540,11 +574,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SingleTypeDeclaration.TypeDeclarationFlags.None;
 
             if (node.BaseList != null)
+            {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations;
+            }
 
             var diagnostics = DiagnosticBag.GetInstance();
             if (node.Arity == 0)
+            {
                 Symbol.ReportErrorIfHasConstraints(node.ConstraintClauses, diagnostics);
+            }
 
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
                                                     ref declFlags);
@@ -576,7 +614,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<SingleTypeDeclaration> VisitTypeChildren(TypeDeclarationSyntax node)
         {
             if (node.Members.Count == 0)
+            {
                 return ImmutableArray<SingleTypeDeclaration>.Empty;
+            }
 
             var children = ArrayBuilder<SingleTypeDeclaration>.GetInstance();
             foreach (var member in node.Members)
@@ -596,7 +636,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
             if (node.Arity == 0)
+            {
                 Symbol.ReportErrorIfHasConstraints(node.ConstraintClauses, diagnostics);
+            }
 
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 
@@ -626,7 +668,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SingleTypeDeclaration.TypeDeclarationFlags.None;
 
             if (node.BaseList != null)
+            {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations;
+            }
 
             ImmutableSegmentedDictionary<string, VoidResult> memberNames = GetEnumMemberNames(members, ref declFlags);
 
@@ -654,7 +698,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var attributeList in attributeLists)
             {
                 foreach (var attribute in attributeList.Attributes)
+                {
                     result |= QuickAttributeHelpers.GetQuickAttributes(attribute.Name.GetUnqualifiedName().Identifier.ValueText, inAttribute: true);
+                }
             }
 
             return result;
@@ -677,18 +723,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var memberNamesBuilder = s_memberNameBuilderPool.Allocate();
             if (cnt != 0)
+            {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
+            }
 
             bool anyMemberHasAttributes = false;
             foreach (var member in members)
             {
                 memberNamesBuilder.TryAdd(member.Identifier.ValueText);
                 if (!anyMemberHasAttributes && member.AttributeLists.Any())
+                {
                     anyMemberHasAttributes = true;
+                }
             }
 
             if (anyMemberHasAttributes)
+            {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
+            }
 
             return ToImmutableAndFree(memberNamesBuilder);
         }
@@ -710,20 +762,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This data is used to determine if a type needs to have its members materialized
                 // as part of extension method lookup.
                 if (!anyMethodHadExtensionSyntax && CheckMethodMemberForExtensionSyntax(member))
+                {
                     anyMethodHadExtensionSyntax = true;
+                }
 
                 if (!anyMemberHasAttributes && CheckMemberForAttributes(member))
+                {
                     anyMemberHasAttributes = true;
+                }
             }
 
             if (anyMethodHadExtensionSyntax)
+            {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasExtensionMethodSyntax;
+            }
 
             if (anyMemberHasAttributes)
+            {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes;
+            }
 
             if (anyNonTypeMembers)
+            {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
+            }
 
             return ToImmutableAndFree(memberNameBuilder);
         }
@@ -745,7 +807,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         foreach (var modifier in firstParameter.Modifiers)
                         {
                             if (modifier.Kind == SyntaxKind.ThisKeyword)
+                            {
                                 return true;
+                            }
                         }
                     }
                 }
@@ -791,7 +855,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!hasAttributes && baseProp.AccessorList != null)
                     {
                         foreach (var accessor in baseProp.AccessorList.Accessors)
+                        {
                             hasAttributes |= accessor.AttributeLists.Any();
+                        }
                     }
 
                     return hasAttributes;
@@ -811,7 +877,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ((Syntax.InternalSyntax.FieldDeclarationSyntax)member).Declaration.Variables;
                     int numFieldDeclarators = fieldDeclarators.Count;
                     for (int i = 0; i < numFieldDeclarators; i++)
+                    {
                         set.TryAdd(fieldDeclarators[i].Identifier.ValueText);
+                    }
 
                     break;
 
@@ -821,7 +889,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ((Syntax.InternalSyntax.EventFieldDeclarationSyntax)member).Declaration.Variables;
                     int numEventDeclarators = eventDeclarators.Count;
                     for (int i = 0; i < numEventDeclarators; i++)
+                    {
                         set.TryAdd(eventDeclarators[i].Identifier.ValueText);
+                    }
 
                     break;
 
@@ -833,7 +903,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // from the list of member names.
                     var methodDecl = (Syntax.InternalSyntax.MethodDeclarationSyntax)member;
                     if (methodDecl.ExplicitInterfaceSpecifier == null)
+                    {
                         set.TryAdd(methodDecl.Identifier.ValueText);
+                    }
 
                     break;
 
@@ -842,7 +914,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Handle in the same way as explicit method implementations
                     var propertyDecl = (Syntax.InternalSyntax.PropertyDeclarationSyntax)member;
                     if (propertyDecl.ExplicitInterfaceSpecifier == null)
+                    {
                         set.TryAdd(propertyDecl.Identifier.ValueText);
+                    }
 
                     break;
 
@@ -851,7 +925,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Handle in the same way as explicit method implementations
                     var eventDecl = (Syntax.InternalSyntax.EventDeclarationSyntax)member;
                     if (eventDecl.ExplicitInterfaceSpecifier == null)
+                    {
                         set.TryAdd(eventDecl.Identifier.ValueText);
+                    }
 
                     break;
 
@@ -904,7 +980,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.GlobalStatement:
                     if (!skipGlobalStatements)
+                    {
                         anyNonTypeMembers = true;
+                    }
 
                     break;
             }
