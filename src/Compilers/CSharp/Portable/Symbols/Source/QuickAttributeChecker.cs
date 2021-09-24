@@ -162,15 +162,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var result = QuickAttributes.None;
             if (matches(AttributeDescription.TypeIdentifierAttribute))
+            {
                 result |= QuickAttributes.TypeIdentifier;
+            }
             else if (matches(AttributeDescription.TypeForwardedToAttribute))
+            {
                 result |= QuickAttributes.TypeForwardedTo;
+            }
             else if (matches(AttributeDescription.AssemblyKeyNameAttribute))
+            {
                 result |= QuickAttributes.AssemblyKeyName;
+            }
             else if (matches(AttributeDescription.AssemblyKeyFileAttribute))
+            {
                 result |= QuickAttributes.AssemblyKeyFile;
+            }
             else if (matches(AttributeDescription.AssemblySignatureKeyAttribute))
+            {
                 result |= QuickAttributes.AssemblySignatureKey;
+            }
 
             return result;
 
@@ -179,7 +189,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(attributeDescription.Name.EndsWith(nameof(System.Attribute)));
 
                 if (name == attributeDescription.Name)
+                {
                     return true;
+                }
 
                 // In an attribute context the name might be referenced as the full name (like 'TypeForwardedToAttribute')
                 // or the short name (like 'TypeForwardedTo').
