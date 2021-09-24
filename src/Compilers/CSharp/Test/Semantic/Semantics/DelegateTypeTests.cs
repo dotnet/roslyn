@@ -5259,6 +5259,198 @@ class Program
             comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_09()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static T F1<T>(Func<T, T> f) => default!;
+    static T F2<T>(Expression<Func<T, T>> e) => default!;
+    static void Main()
+    {
+        F1(object (x1) => x1).ToString();
+        F2(object (x2) => x2).ToString();
+        F1(object? (y1) => y1).ToString();
+        F2(object? (y2) => y2).ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1(object? (y1) => y1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(object? (y1) => y1)").WithLocation(12, 9),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2(object? (y2) => y2).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(object? (y2) => y2)").WithLocation(13, 9));
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_10()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static T F1<T>(Func<T, T> f) => default!;
+    static T F2<T>(Expression<Func<T, T>> e) => default!;
+    static void Main()
+    {
+        F1(
+#nullable disable
+            object (x1) =>
+#nullable enable
+                x1).ToString();
+        F2(
+#nullable disable
+            object (x2) =>
+#nullable enable
+                x2).ToString();
+        F1(
+#nullable disable
+            object
+#nullable enable
+                (y1) => y1).ToString();
+        F2(
+#nullable disable
+            object
+#nullable enable
+                (y2) => y2).ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_11()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static T F1<T>(Func<T, T> f) => default!;
+    static T F2<T>(Expression<Func<T, T>> e) => default!;
+    static void Main()
+    {
+        var x1 = F1(
+#nullable enable
+            object?
+#nullable disable
+                (x1) =>
+#nullable enable
+                x1);
+        var x2 = F2(
+#nullable enable
+            object?
+#nullable disable
+                (x2) =>
+#nullable enable
+                x2);
+        var y1 = F1(
+#nullable enable
+            object
+#nullable disable
+                (y1) =>
+#nullable enable
+                y1);
+        var y2 = F2(
+#nullable enable
+            object
+#nullable disable
+                (y2) =>
+#nullable enable
+                y2);
+        x1.ToString();
+        x2.ToString();
+        y1.ToString();
+        y2.ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (38,9): warning CS8602: Dereference of a possibly null reference.
+                //         x1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(38, 9),
+                // (39,9): warning CS8602: Dereference of a possibly null reference.
+                //         x2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(39, 9));
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_12()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static T F1<T>(Func<T, T> f) => default!;
+    static T F2<T>(Expression<Func<T, T>> e) => default!;
+    static void Main()
+    {
+        var x1 = F1(object (object x1) => x1);
+        var x2 = F1(object (object? x2) => x2);
+        var x3 = F1(object? (object x3) => x3);
+        var x4 = F1(object? (object? x4) => x4);
+        var y1 = F2(object (object y1) => y1);
+        var y2 = F2(object (object? y2) => y2);
+        var y3 = F2(object? (object y3) => y3);
+        var y4 = F2(object? (object? y4) => y4);
+        x1.ToString();
+        x2.ToString();
+        x3.ToString();
+        x4.ToString();
+        y1.ToString();
+        y2.ToString();
+        y3.ToString();
+        y4.ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,21): warning CS8622: Nullability of reference types in type of parameter 'x2' of 'lambda expression' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+                //         var x2 = F1(object (object? x2) => x2);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "object (object? x2) => x2").WithArguments("x2", "lambda expression", "System.Func<object, object>").WithLocation(11, 21),
+                // (11,44): warning CS8603: Possible null reference return.
+                //         var x2 = F1(object (object? x2) => x2);
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x2").WithLocation(11, 44),
+                // (12,21): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+                //         var x3 = F1(object? (object x3) => x3);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "object? (object x3) => x3").WithArguments("lambda expression", "System.Func<object, object>").WithLocation(12, 21),
+                // (15,21): warning CS8622: Nullability of reference types in type of parameter 'y2' of 'lambda expression' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+                //         var y2 = F2(object (object? y2) => y2);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "object (object? y2) => y2").WithArguments("y2", "lambda expression", "System.Func<object, object>").WithLocation(15, 21),
+                // (15,44): warning CS8603: Possible null reference return.
+                //         var y2 = F2(object (object? y2) => y2);
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y2").WithLocation(15, 44),
+                // (16,21): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+                //         var y3 = F2(object? (object y3) => y3);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "object? (object y3) => y3").WithArguments("lambda expression", "System.Func<object, object>").WithLocation(16, 21),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         x4.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(21, 9),
+                // (25,9): warning CS8602: Dereference of a possibly null reference.
+                //         y4.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y4").WithLocation(25, 9));
+        }
+
         [Fact]
         public void Variance_01()
         {
