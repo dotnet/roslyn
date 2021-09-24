@@ -784,7 +784,7 @@ End Function",
             End If
         End Sub
 
-#If Not NET6_0_OR_GREATER Then
+#If NET472 Then
         <ConditionalFact(GetType(WindowsDesktopOnly))>
         <WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
         Public Sub RefAssembly_InvariantToResourceChanges_RefOut()

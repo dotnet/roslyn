@@ -932,7 +932,7 @@ public class C
             }
         }
 
-#if !NET6_0_OR_GREATER
+#if NET472
         [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
         public void RefAssembly_InvariantToResourceChanges()

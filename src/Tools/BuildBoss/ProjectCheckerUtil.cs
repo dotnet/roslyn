@@ -289,7 +289,7 @@ namespace BuildBoss
                     case "net20":
                     case "net472":
                     case "netcoreapp3.1":
-                    case "net5.0":
+                    case "net6.0":
                         continue;
                 }
 

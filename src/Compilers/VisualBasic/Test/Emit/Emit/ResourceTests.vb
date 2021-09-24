@@ -198,7 +198,7 @@ End Class
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_UnableToOpenResourceFile1).WithArguments("file", CodeAnalysisResources.ResourceDataProviderShouldReturnNonNullStream))
         End Sub
 
-#If Not NET6_0_OR_GREATER Then
+#If NET472 Then
         <ConditionalFact(GetType(WindowsDesktopOnly))>
         Public Sub AddManagedResource()
             ' Use a unique guid as a compilation name to prevent conflicts with other assemblies loaded via Assembly.ReflectionOnlyLoad:
@@ -396,7 +396,7 @@ End Module
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DuplicateResourceName1).WithArguments("A"))
         End Sub
 
-#If Not NET6_0_OR_GREATER Then
+#If NET472 Then
         <ConditionalFact(GetType(WindowsDesktopOnly))>
         Public Sub AddResourceToModule()
             Dim source =

@@ -74,7 +74,7 @@ function Run-IOperation($coreDir, $ioperationProject) {
   $operationsDir = Join-Path $coreDir "Operations"
   $operationsXml = Join-Path $operationsDir "OperationInterfaces.xml"
   $generationDir = Join-Path $coreDir "Generated"
-  $targetFramework = "net5.0"
+  $targetFramework = "net6.0"
 
   if (-not $test) {
     Run-Tool $ioperationProject "`"$operationsXml`" `"$generationDir`"" $targetFramework
@@ -91,7 +91,7 @@ function Run-GetTextCore($generatedDir) {
   $syntaxTextFilePath = Join-Path $generatedDir "Syntax.xml.GetText.Generated.vb"
 
   Create-Directory $generatedDir
-  Run-Tool $basicSyntaxProject "`"$syntaxFilePath`" `"$syntaxTextFilePath`" /gettext" "netcoreapp3.1"
+  Run-Tool $basicSyntaxProject "`"$syntaxFilePath`" `"$syntaxTextFilePath`" /gettext" "net6.0"
 }
 
 function Run-GetText() {
