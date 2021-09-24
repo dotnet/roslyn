@@ -55,9 +55,12 @@ static class Utils
     }
 }";
 
-        private static readonly string s_expressionOfTDelegateTypeName = ExecutionConditionUtil.IsDesktop ?
+        private static readonly string s_expressionOfTDelegate0ArgTypeName = ExecutionConditionUtil.IsDesktop ?
             "System.Linq.Expressions.Expression`1" :
             "System.Linq.Expressions.Expression0`1";
+        private static readonly string s_expressionOfTDelegate1ArgTypeName = ExecutionConditionUtil.IsDesktop ?
+            "System.Linq.Expressions.Expression`1" :
+            "System.Linq.Expressions.Expression1`1";
 
         [Fact]
         public void LanguageVersion()
@@ -393,8 +396,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 26));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-$@"{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+$@"{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -426,8 +429,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression").WithLocation(9, 32));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-$@"{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+$@"{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -550,7 +553,7 @@ class Program
 }";
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"System.Func`1[System.Action]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Action]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Action]]
 ");
         }
 
@@ -4715,7 +4718,7 @@ class Program
 
             string expectedOutput =
 $@"System.Func`1[System.Int32]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]";
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
         }
@@ -4749,7 +4752,7 @@ class Program
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"System.Func`1[System.Int32]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]");
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]");
         }
 
         [Fact]
@@ -5042,7 +5045,7 @@ class Program
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"System.Action`1[System.Int32]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -5077,9 +5080,9 @@ System.Func`1[System.Int32]
 System.Func`1[System.Int32]
 System.Func`1[System.Int32]
 System.Func`1[System.Int32]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -5113,10 +5116,10 @@ $@"System.Func`1[System.Int32]
 System.Func`1[System.Int32]
 System.Func`1[System.Int32]
 System.Func`1[System.Int32]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -5705,11 +5708,582 @@ class Program
         }
 
         [Fact]
-        public void Variance()
+        public void TypeInference_ExplicitReturnType_01()
         {
             var source =
 @"using System;
-delegate void StringAction(string s);
+using System.Linq.Expressions;
+class Program
+{
+    static void F1<T>(Func<T> f) { Console.WriteLine(f.GetType()); }
+    static void F2<T>(Expression<Func<T>> e) { Console.WriteLine(e.GetType()); }
+    static void Main()
+    {
+        F1(int () => throw new Exception());
+        F2(int () => default);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(int () => throw new Exception());
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(9, 12),
+                // (10,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(int () => default);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(10, 12));
+
+            var expectedOutput =
+$@"System.Func`1[System.Int32]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_02()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void F1<T>(Func<T, T> f) { Console.WriteLine(f.GetType()); }
+    static void F2<T>(Expression<Func<T, T>> e) { Console.WriteLine(e.GetType()); }
+    static void Main()
+    {
+        F1(int (i) => i);
+        F2(string (s) => s);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(int (i) => i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(9, 12),
+                // (10,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (s) => s);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(10, 12));
+
+            var expectedOutput =
+$@"System.Func`2[System.Int32,System.Int32]
+{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.String,System.String]]
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_03()
+        {
+            var source =
+@"using System;
+delegate ref T D1<T>(T t);
+delegate ref readonly T D2<T>(T t);
+class Program
+{
+    static void F1<T>(D1<T> d) { Console.WriteLine(d.GetType()); }
+    static void F2<T>(D2<T> d) { Console.WriteLine(d.GetType()); }
+    static void Main()
+    {
+        F1((ref int (i) => ref i));
+        F2((ref readonly string (s) => ref s));
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (10,13): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1((ref int (i) => ref i));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ref int").WithArguments("lambda return type", "10.0").WithLocation(10, 13),
+                // (10,32): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref or out parameter
+                //         F1((ref int (i) => ref i));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(10, 32),
+                // (11,13): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2((ref readonly string (s) => ref s));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ref readonly string").WithArguments("lambda return type", "10.0").WithLocation(11, 13),
+                // (11,44): error CS8166: Cannot return a parameter by reference 's' because it is not a ref or out parameter
+                //         F2((ref readonly string (s) => ref s));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "s").WithArguments("s").WithLocation(11, 44));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,32): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref or out parameter
+                //         F1((ref int (i) => ref i));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(10, 32),
+                // (11,44): error CS8166: Cannot return a parameter by reference 's' because it is not a ref or out parameter
+                //         F2((ref readonly string (s) => ref s));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "s").WithArguments("s").WithLocation(11, 44)
+            };
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_04()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void F1<T>(Func<T, T> x, T y) { Console.WriteLine(x.GetType()); }
+    static void F2<T>(Expression<Func<T, T>> x, T y) { Console.WriteLine(x.GetType()); }
+    static void Main()
+    {
+        F1(object (o) => o, 1);
+        F1(int (i) => i, 2);
+        F2(object (o) => o, string.Empty);
+        F2(string (s) => s, string.Empty);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(object (o) => o, 1);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object").WithArguments("lambda return type", "10.0").WithLocation(9, 12),
+                // (10,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(int (i) => i, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(10, 12),
+                // (11,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(object (o) => o, string.Empty);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object").WithArguments("lambda return type", "10.0").WithLocation(11, 12),
+                // (12,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (s) => s, string.Empty);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(12, 12));
+
+            var expectedOutput =
+$@"System.Func`2[System.Object,System.Object]
+System.Func`2[System.Int32,System.Int32]
+{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Object,System.Object]]
+{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.String,System.String]]
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_05()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void F1<T>(Func<T, T> x, T y) { Console.WriteLine(x.GetType()); }
+    static void F2<T>(Expression<Func<T, T>> x, T y) { Console.WriteLine(x.GetType()); }
+    static void Main()
+    {
+        F1(int (i) => i, (object)1);
+        F2(string (s) => s, (object)2);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'Program.F1<T>(Func<T, T>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F1(int (i) => i, (object)1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Func<T, T>, T)").WithLocation(9, 9),
+                // (9,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(int (i) => i, (object)1);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(9, 12),
+                // (10,9): error CS0411: The type arguments for method 'Program.F2<T>(Expression<Func<T, T>>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F2(string (s) => s, (object)2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Linq.Expressions.Expression<System.Func<T, T>>, T)").WithLocation(10, 9),
+                // (10,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (s) => s, (object)2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(10, 12));
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,9): error CS0411: The type arguments for method 'Program.F1<T>(Func<T, T>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F1(int (i) => i, (object)1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Func<T, T>, T)").WithLocation(9, 9),
+                // (10,9): error CS0411: The type arguments for method 'Program.F2<T>(Expression<Func<T, T>>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F2(string (s) => s, (object)2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Linq.Expressions.Expression<System.Func<T, T>>, T)").WithLocation(10, 9)
+            };
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_06()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+interface I<T> { }
+class Program
+{
+    static void F1<T>(Func<T, T> f) { }
+    static void F2<T>(Func<T, I<T>> f) { }
+    static void F3<T>(Func<I<T>, T> f) { }
+    static void F4<T>(Func<I<T>, I<T>> f) { }
+    static void F5<T>(Expression<Func<T, T>> e) { }
+    static void F6<T>(Expression<Func<T, I<T>>> e) { }
+    static void F7<T>(Expression<Func<I<T>, T>> e) { }
+    static void F8<T>(Expression<Func<I<T>, I<T>>> e) { }
+    static void Main()
+    {
+        F1(int (int i) => default);
+        F2(I<int> (int i) => default);
+        F3(int (I<int> i) => default);
+        F4(I<int> (I<int> i) => default);
+        F5(int (int i) => default);
+        F6(I<int> (int i) => default);
+        F7(int (I<int> i) => default);
+        F8(I<int> (I<int> i) => default);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_07()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+interface I<T> { }
+class Program
+{
+    static void F1<T>(Func<T, T> f) { }
+    static void F2<T>(Func<T, I<T>> f) { }
+    static void F3<T>(Func<I<T>, T> f) { }
+    static void F4<T>(Func<I<T>, I<T>> f) { }
+    static void F5<T>(Expression<Func<T, T>> e) { }
+    static void F6<T>(Expression<Func<T, I<T>>> e) { }
+    static void F7<T>(Expression<Func<I<T>, T>> e) { }
+    static void F8<T>(Expression<Func<I<T>, I<T>>> e) { }
+    static void Main()
+    {
+        F1(int (object i) => default);
+        F2(I<int> (object i) => default);
+        F3(object (I<int> i) => default);
+        F4(I<object> (I<int> i) => default);
+        F5(object (int i) => default);
+        F6(I<object> (int i) => default);
+        F7(int (I<object> i) => default);
+        F8(I<int> (I<object> i) => default);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,9): error CS0411: The type arguments for method 'Program.F1<T>(Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F1(int (object i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Func<T, T>)").WithLocation(16, 9),
+                // (17,9): error CS0411: The type arguments for method 'Program.F2<T>(Func<T, I<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F2(I<int> (object i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Func<T, I<T>>)").WithLocation(17, 9),
+                // (18,9): error CS0411: The type arguments for method 'Program.F3<T>(Func<I<T>, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F3(object (I<int> i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F3").WithArguments("Program.F3<T>(System.Func<I<T>, T>)").WithLocation(18, 9),
+                // (19,9): error CS0411: The type arguments for method 'Program.F4<T>(Func<I<T>, I<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F4(I<object> (I<int> i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F4").WithArguments("Program.F4<T>(System.Func<I<T>, I<T>>)").WithLocation(19, 9),
+                // (20,9): error CS0411: The type arguments for method 'Program.F5<T>(Expression<Func<T, T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F5(object (int i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F5").WithArguments("Program.F5<T>(System.Linq.Expressions.Expression<System.Func<T, T>>)").WithLocation(20, 9),
+                // (21,9): error CS0411: The type arguments for method 'Program.F6<T>(Expression<Func<T, I<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F6(I<object> (int i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F6").WithArguments("Program.F6<T>(System.Linq.Expressions.Expression<System.Func<T, I<T>>>)").WithLocation(21, 9),
+                // (22,9): error CS0411: The type arguments for method 'Program.F7<T>(Expression<Func<I<T>, T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F7(int (I<object> i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F7").WithArguments("Program.F7<T>(System.Linq.Expressions.Expression<System.Func<I<T>, T>>)").WithLocation(22, 9),
+                // (23,9): error CS0411: The type arguments for method 'Program.F8<T>(Expression<Func<I<T>, I<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F8(I<int> (I<object> i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F8").WithArguments("Program.F8<T>(System.Linq.Expressions.Expression<System.Func<I<T>, I<T>>>)").WithLocation(23, 9));
+        }
+
+        // Variance in inference from explicit return type is disallowed
+        // (see https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-06-21.md).
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_08()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void F1<T>(Func<T, T> x, Func<T, T> y) { Console.WriteLine(x.GetType()); }
+    static void F2<T>(Expression<Func<T, T>> x, Expression<Func<T, T>> y) { Console.WriteLine(x.GetType()); }
+    static void Main()
+    {
+        F1(int (x) => x, int (y) => y);
+        F1(object (x) => x, int (y) => y);
+        F2(string (x) => x, string (y) => y);
+        F2(string (x) => x, object (y) => y);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(int (x) => x, int (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(9, 12),
+                // (9,26): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(int (x) => x, int (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(9, 26),
+                // (10,9): error CS0411: The type arguments for method 'Program.F1<T>(Func<T, T>, Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F1(object (x) => x, int (y) => y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Func<T, T>, System.Func<T, T>)").WithLocation(10, 9),
+                // (10,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(object (x) => x, int (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object").WithArguments("lambda return type", "10.0").WithLocation(10, 12),
+                // (10,29): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(object (x) => x, int (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(10, 29),
+                // (11,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (x) => x, string (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(11, 12),
+                // (11,29): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (x) => x, string (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(11, 29),
+                // (12,9): error CS0411: The type arguments for method 'Program.F2<T>(Expression<Func<T, T>>, Expression<Func<T, T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F2(string (x) => x, object (y) => y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Linq.Expressions.Expression<System.Func<T, T>>, System.Linq.Expressions.Expression<System.Func<T, T>>)").WithLocation(12, 9),
+                // (12,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (x) => x, object (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(12, 12),
+                // (12,29): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (x) => x, object (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object").WithArguments("lambda return type", "10.0").WithLocation(12, 29));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,9): error CS0411: The type arguments for method 'Program.F1<T>(Func<T, T>, Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F1(object (x) => x, int (y) => y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Func<T, T>, System.Func<T, T>)").WithLocation(10, 9),
+                // (12,9): error CS0411: The type arguments for method 'Program.F2<T>(Expression<Func<T, T>>, Expression<Func<T, T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F2(string (x) => x, object (y) => y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Linq.Expressions.Expression<System.Func<T, T>>, System.Linq.Expressions.Expression<System.Func<T, T>>)").WithLocation(12, 9)
+            };
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_09()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static T F1<T>(Func<T, T> f) => default!;
+    static T F2<T>(Expression<Func<T, T>> e) => default!;
+    static void Main()
+    {
+        F1(object (x1) => x1).ToString();
+        F2(object (x2) => x2).ToString();
+        F1(object? (y1) => y1).ToString();
+        F2(object? (y2) => y2).ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1(object? (y1) => y1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(object? (y1) => y1)").WithLocation(12, 9),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2(object? (y2) => y2).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(object? (y2) => y2)").WithLocation(13, 9));
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_10()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static T F1<T>(Func<T, T> f) => default!;
+    static T F2<T>(Expression<Func<T, T>> e) => default!;
+    static void Main()
+    {
+        F1(
+#nullable disable
+            object (x1) =>
+#nullable enable
+                x1).ToString();
+        F2(
+#nullable disable
+            object (x2) =>
+#nullable enable
+                x2).ToString();
+        F1(
+#nullable disable
+            object
+#nullable enable
+                (y1) => y1).ToString();
+        F2(
+#nullable disable
+            object
+#nullable enable
+                (y2) => y2).ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_11()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static T F1<T>(Func<T, T> f) => default!;
+    static T F2<T>(Expression<Func<T, T>> e) => default!;
+    static void Main()
+    {
+        var x1 = F1(
+#nullable enable
+            object?
+#nullable disable
+                (x1) =>
+#nullable enable
+                x1);
+        var x2 = F2(
+#nullable enable
+            object?
+#nullable disable
+                (x2) =>
+#nullable enable
+                x2);
+        var y1 = F1(
+#nullable enable
+            object
+#nullable disable
+                (y1) =>
+#nullable enable
+                y1);
+        var y2 = F2(
+#nullable enable
+            object
+#nullable disable
+                (y2) =>
+#nullable enable
+                y2);
+        x1.ToString();
+        x2.ToString();
+        y1.ToString();
+        y2.ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (38,9): warning CS8602: Dereference of a possibly null reference.
+                //         x1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(38, 9),
+                // (39,9): warning CS8602: Dereference of a possibly null reference.
+                //         x2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(39, 9));
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_12()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static T F1<T>(Func<T, T> f) => default!;
+    static T F2<T>(Expression<Func<T, T>> e) => default!;
+    static void Main()
+    {
+        var x1 = F1(object (object x1) => x1);
+        var x2 = F1(object (object? x2) => x2);
+        var x3 = F1(object? (object x3) => x3);
+        var x4 = F1(object? (object? x4) => x4);
+        var y1 = F2(object (object y1) => y1);
+        var y2 = F2(object (object? y2) => y2);
+        var y3 = F2(object? (object y3) => y3);
+        var y4 = F2(object? (object? y4) => y4);
+        x1.ToString();
+        x2.ToString();
+        x3.ToString();
+        x4.ToString();
+        y1.ToString();
+        y2.ToString();
+        y3.ToString();
+        y4.ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,21): warning CS8622: Nullability of reference types in type of parameter 'x2' of 'lambda expression' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+                //         var x2 = F1(object (object? x2) => x2);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "object (object? x2) => x2").WithArguments("x2", "lambda expression", "System.Func<object, object>").WithLocation(11, 21),
+                // (11,44): warning CS8603: Possible null reference return.
+                //         var x2 = F1(object (object? x2) => x2);
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x2").WithLocation(11, 44),
+                // (12,21): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+                //         var x3 = F1(object? (object x3) => x3);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "object? (object x3) => x3").WithArguments("lambda expression", "System.Func<object, object>").WithLocation(12, 21),
+                // (15,21): warning CS8622: Nullability of reference types in type of parameter 'y2' of 'lambda expression' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+                //         var y2 = F2(object (object? y2) => y2);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "object (object? y2) => y2").WithArguments("y2", "lambda expression", "System.Func<object, object>").WithLocation(15, 21),
+                // (15,44): warning CS8603: Possible null reference return.
+                //         var y2 = F2(object (object? y2) => y2);
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y2").WithLocation(15, 44),
+                // (16,21): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+                //         var y3 = F2(object? (object y3) => y3);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "object? (object y3) => y3").WithArguments("lambda expression", "System.Func<object, object>").WithLocation(16, 21),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         x4.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(21, 9),
+                // (25,9): warning CS8602: Dereference of a possibly null reference.
+                //         y4.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y4").WithLocation(25, 9));
+        }
+
+        [Fact]
+        public void Variance_01()
+        {
+            var source =
+@"using System;
 class Program
 {
     static void Main()
@@ -5722,12 +6296,33 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,29): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
+                // (8,29): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
                 //         Action<string> a3 = (object o) => { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(9, 29),
-                // (9,37): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(8, 29),
+                // (8,37): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
                 //         Action<string> a3 = (object o) => { };
-                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(9, 37));
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(8, 37));
+        }
+
+        [Fact]
+        public void Variance_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Func<object> f1 = () => string.Empty;
+        Func<object> f2 = string () => string.Empty;
+        Func<object> f3 = (Func<string>)(() => string.Empty);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,27): error CS8934: Cannot convert lambda expression to type 'Func<object>' because the return type does not match the delegate return type
+                //         Func<object> f2 = string () => string.Empty;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "string () => string.Empty").WithArguments("lambda expression", "System.Func<object>").WithLocation(7, 27));
         }
 
         [Fact]
