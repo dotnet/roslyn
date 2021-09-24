@@ -1577,11 +1577,6 @@
         <target state="translated">基底類型</target>
         <note />
       </trans-unit>
-      <trans-unit id="Miscellaneous_Files">
-        <source>Miscellaneous Files</source>
-        <target state="translated">其他檔案</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Could_not_find_project_0">
         <source>Could not find project '{0}'</source>
         <target state="translated">找不到專案 '{0}'</target>

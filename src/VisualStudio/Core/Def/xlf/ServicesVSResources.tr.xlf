@@ -1577,11 +1577,6 @@
         <target state="translated">Temel Türler</target>
         <note />
       </trans-unit>
-      <trans-unit id="Miscellaneous_Files">
-        <source>Miscellaneous Files</source>
-        <target state="translated">Diğer Dosyalar</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Could_not_find_project_0">
         <source>Could not find project '{0}'</source>
         <target state="translated">'{0}' adlı proje bulunamadı</target>
