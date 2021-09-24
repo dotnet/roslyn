@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Continue For
                     End If
 
-                    result = result Or QuickAttriubuteHelpers.GetQuickAttributes(QuickAttributeChecker.GetFinalName(simpleImportsClause.Name), inAttribute:=False)
+                    result = result Or QuickAttributeHelpers.GetQuickAttributes(QuickAttributeChecker.GetFinalName(simpleImportsClause.Name), inAttribute:=False)
                 Next
             Next
 
@@ -574,7 +574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim result = QuickAttributes.None
             For Each attributeList In attributeLists
                 For Each attribute In attributeList.Attributes
-                    result = result Or QuickAttriubuteHelpers.GetQuickAttributes(QuickAttributeChecker.GetFinalName(attribute.Name), inAttribute:=True)
+                    result = result Or QuickAttributeHelpers.GetQuickAttributes(QuickAttributeChecker.GetFinalName(attribute.Name), inAttribute:=True)
                 Next
             Next
 

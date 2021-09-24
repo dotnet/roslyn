@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Last = TypeIdentifier
     End Enum
 
-    Friend Class QuickAttriubuteHelpers
+    Friend Class QuickAttributeHelpers
         ''' <summary>
         ''' Returns the <see cref="QuickAttributes"/> that corresponds to the particular type 
         ''' <paramref name="name"/> passed in.  If <paramref name="inAttribute"/> Is <see langword="true"/>
