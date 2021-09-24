@@ -892,7 +892,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         set.TryAdd(eventDeclarators[i].Identifier.ValueText);
                     }
-
                     break;
 
                 case SyntaxKind.MethodDeclaration:
@@ -906,7 +905,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         set.TryAdd(methodDecl.Identifier.ValueText);
                     }
-
                     break;
 
                 case SyntaxKind.PropertyDeclaration:
@@ -917,7 +915,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         set.TryAdd(propertyDecl.Identifier.ValueText);
                     }
-
                     break;
 
                 case SyntaxKind.EventDeclaration:
@@ -928,7 +925,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         set.TryAdd(eventDecl.Identifier.ValueText);
                     }
-
                     break;
 
                 case SyntaxKind.ConstructorDeclaration:
@@ -983,7 +979,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         anyNonTypeMembers = true;
                     }
-
                     break;
             }
         }
