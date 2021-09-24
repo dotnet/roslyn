@@ -34,16 +34,6 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly ImmutableDictionary<OptionKey, object?> _serializableOptionValues;
 
         /// <summary>
-        /// Set of changed options in this option set which are serializable.
-        /// </summary>
-        private readonly ImmutableHashSet<OptionKey> _changedOptionKeysSerializable;
-
-        /// <summary>
-        /// Set of changed options in this option set which are non-serializable.
-        /// </summary>
-        private readonly ImmutableHashSet<OptionKey> _changedOptionKeysNonSerializable;
-
-        /// <summary>
         /// Set of languages references in <see cref="_serializableOptionValues"/>.  Cached
         /// only so we can shortcircuit <see cref="UnionWithLanguages"/>.
         /// </summary>
@@ -51,27 +41,19 @@ namespace Microsoft.CodeAnalysis.Options
 
         private SerializableOptionSet(
             WorkspaceOptionSet workspaceOptionSet,
-            ImmutableDictionary<OptionKey, object?> values,
-            ImmutableHashSet<OptionKey> changedOptionKeysSerializable,
-            ImmutableHashSet<OptionKey> changedOptionKeysNonSerializable)
+            ImmutableDictionary<OptionKey, object?> values)
         {
             _workspaceOptionSet = workspaceOptionSet;
             _serializableOptionValues = values;
-            _changedOptionKeysSerializable = changedOptionKeysSerializable;
-            _changedOptionKeysNonSerializable = changedOptionKeysNonSerializable;
 
             Debug.Assert(values.Keys.All(ShouldSerialize));
-            Debug.Assert(changedOptionKeysSerializable.All(optionKey => ShouldSerialize(optionKey)));
-            Debug.Assert(changedOptionKeysNonSerializable.All(optionKey => !ShouldSerialize(optionKey)));
-
             _languages = new Lazy<ImmutableHashSet<string>>(() => this.GetLanguagesAndValuesToSerialize().languages);
         }
 
         internal SerializableOptionSet(
             IOptionService optionService,
-            ImmutableDictionary<OptionKey, object?> values,
-            ImmutableHashSet<OptionKey> changedOptionKeysSerializable)
-            : this(new WorkspaceOptionSet(optionService), values, changedOptionKeysSerializable, changedOptionKeysNonSerializable: ImmutableHashSet<OptionKey>.Empty)
+            ImmutableDictionary<OptionKey, object?> values)
+            : this(new WorkspaceOptionSet(optionService), values)
         {
         }
 
@@ -92,18 +74,11 @@ namespace Microsoft.CodeAnalysis.Options
             var newOptionSet = _workspaceOptionSet.OptionService.GetSerializableOptionsSnapshot(languages);
 
             // Then apply all the changed options from the current option set to the new option set.
-            foreach (var changedOption in this.GetChangedOptions())
-            {
-                var valueInNewOptionSet = newOptionSet.GetOption(changedOption);
-                var changedValueInThisOptionSet = this.GetOption(changedOption);
+            var builder = newOptionSet._serializableOptionValues.ToBuilder();
+            foreach (var (optionKey, optionValue) in _serializableOptionValues)
+                builder[optionKey] = optionValue;
 
-                if (!Equals(changedValueInThisOptionSet, valueInNewOptionSet))
-                {
-                    newOptionSet = (SerializableOptionSet)newOptionSet.WithChangedOption(changedOption, changedValueInThisOptionSet);
-                }
-            }
-
-            return newOptionSet;
+            return new SerializableOptionSet(_workspaceOptionSet, builder.ToImmutable());
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
@@ -130,56 +105,48 @@ namespace Microsoft.CodeAnalysis.Options
             if (Equals(value, currentValue))
             {
                 // Return a cloned option set as the public API 'WithChangedOption' guarantees a new option set is returned.
-                return new SerializableOptionSet(
-                    _workspaceOptionSet, _serializableOptionValues, _changedOptionKeysSerializable, _changedOptionKeysNonSerializable);
+                return new SerializableOptionSet(_workspaceOptionSet, _serializableOptionValues);
             }
 
             WorkspaceOptionSet workspaceOptionSet;
             ImmutableDictionary<OptionKey, object?> serializableOptionValues;
-            ImmutableHashSet<OptionKey> changedOptionKeysSerializable;
-            ImmutableHashSet<OptionKey> changedOptionKeysNonSerializable;
             if (ShouldSerialize(optionKey))
             {
                 workspaceOptionSet = _workspaceOptionSet;
                 serializableOptionValues = _serializableOptionValues.SetItem(optionKey, value);
-                changedOptionKeysSerializable = _changedOptionKeysSerializable.Add(optionKey);
-                changedOptionKeysNonSerializable = _changedOptionKeysNonSerializable;
             }
             else
             {
                 workspaceOptionSet = (WorkspaceOptionSet)_workspaceOptionSet.WithChangedOption(optionKey, value);
                 serializableOptionValues = _serializableOptionValues;
-                changedOptionKeysSerializable = _changedOptionKeysSerializable;
-                changedOptionKeysNonSerializable = _changedOptionKeysNonSerializable.Add(optionKey);
             }
 
-            return new SerializableOptionSet(
-                workspaceOptionSet, serializableOptionValues, changedOptionKeysSerializable, changedOptionKeysNonSerializable);
+            return new SerializableOptionSet(workspaceOptionSet, serializableOptionValues);
         }
 
-        /// <summary>
-        /// Gets a list of all the options that were changed.
-        /// </summary>
-        internal IEnumerable<OptionKey> GetChangedOptions()
-            => _changedOptionKeysSerializable.Concat(_changedOptionKeysNonSerializable);
+        ///// <summary>
+        ///// Gets a list of all the options that were changed.
+        ///// </summary>
+        //internal IEnumerable<OptionKey> GetChangedOptions()
+        //    => _changedOptionKeysSerializable.Concat(_changedOptionKeysNonSerializable);
 
-        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet? optionSet)
-        {
-            if (optionSet == this)
-            {
-                yield break;
-            }
+        //internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet? optionSet)
+        //{
+        //    if (optionSet == this)
+        //    {
+        //        yield break;
+        //    }
 
-            foreach (var key in GetChangedOptions())
-            {
-                var currentValue = optionSet?.GetOption(key);
-                var changedValue = this.GetOption(key);
-                if (!object.Equals(currentValue, changedValue))
-                {
-                    yield return key;
-                }
-            }
-        }
+        //    foreach (var key in GetChangedOptions())
+        //    {
+        //        var currentValue = optionSet?.GetOption(key);
+        //        var changedValue = this.GetOption(key);
+        //        if (!object.Equals(currentValue, changedValue))
+        //        {
+        //            yield return key;
+        //        }
+        //    }
+        //}
 
         private (ImmutableHashSet<string> languages, SortedDictionary<OptionKey, (OptionValueKind, object?)> values) GetLanguagesAndValuesToSerialize()
         {
