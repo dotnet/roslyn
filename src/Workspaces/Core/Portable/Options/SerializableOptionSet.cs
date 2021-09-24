@@ -106,8 +106,8 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         private bool ShouldSerialize(OptionKey optionKey)
-            => _serializableOptionValues.ContainsKey(optionKey) &&
-               (!optionKey.Option.IsPerLanguage || RemoteSupportedLanguages.IsSupported(optionKey.Language!));
+            => _serializableOptions.Contains(optionKey.Option) &&
+               (!optionKey.Option.IsPerLanguage || RemoteSupportedLanguages.IsSupported(optionKey.Language));
 
         public override OptionSet WithChangedOption(OptionKey optionKey, object? value)
         {
