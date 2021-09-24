@@ -779,7 +779,9 @@ next:;
                     if (decl is RootSingleNamespaceDeclaration rootNamespaceDecl)
                     {
                         if ((rootNamespaceDecl.GlobalAliasedQuickAttributes & quickAttributes) != 0)
+                        {
                             return declaration.GetAttributeDeclarations(quickAttributes: null);
+                        }
                     }
                 }
             }
