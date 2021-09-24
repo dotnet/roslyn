@@ -685,7 +685,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 var id = GraphNodeIdCreation.GetIdForDocument(document);
 
-                var node = _graph.Nodes.GetOrCreate(id, document.FilePath, CodeNodeCategories.ProjectItem);
+                var node = _graph.Nodes.GetOrCreate(id, fileName, CodeNodeCategories.ProjectItem);
 
                 _nodeToContextDocumentMap[node] = document;
                 _nodeToContextProjectMap[node] = document.Project;
