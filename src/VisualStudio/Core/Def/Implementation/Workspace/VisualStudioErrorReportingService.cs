@@ -76,6 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
                 var activityLog = await ((IAsyncServiceProvider)_serviceProvider).GetServiceAsync<SVsActivityLog, IVsActivityLog>().ConfigureAwait(true);
+                Assumes.Present(activityLog);
+
                 activityLog.LogEntry(
                     (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
                     nameof(VisualStudioErrorReportingService),
