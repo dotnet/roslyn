@@ -586,8 +586,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeExplicitParameterTypeInferences(BoundExpression argument, TypeWithAnnotations target, ExactOrBoundsKind kind, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            // SPEC: * If Ei is an anonymous function, an explicit type parameter
-            // SPEC:   inference is made from Ei to Ti.
+            // SPEC: * If Ei is an anonymous function, and Ti is a delegate type or expression tree type,
+            // SPEC:   an explicit type parameter inference is made from Ei to Ti and
+            // SPEC:   an explicit return type inference is made from Ei to Ti.
 
             // (We cannot make an output type inference from a method group
             // at this time because we have no fixed types yet to use for
