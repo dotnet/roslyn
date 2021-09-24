@@ -9686,7 +9686,7 @@ X = 1,
         {
             var code = @"class C
 {
-    void M([My][My]  int x)
+    void M([My] [My]  int x)
     {
     }
 }";
@@ -10126,6 +10126,36 @@ var f = [Attribute] () => { };
 ",
                 code: @"
 var f =  [Attribute] () => { };
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnLambda_TwoAttributes()
+        {
+            await AssertFormatAsync(
+                expected: @"
+var f = [Attribute][Attribute2] () => { };
+",
+                code: @"
+var f =  [Attribute]  [Attribute2] () => { };
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56543, "https://github.com/dotnet/roslyn/issues/56543")]
+        public async Task FormatAttributeOnMethod_TwoAttributes()
+        {
+            await AssertFormatAsync(
+                expected: @"
+[Attribute][Attribute2]
+void M()
+{ }
+",
+                code: @"
+  [Attribute]  [Attribute2]
+void M()
+{ }
 ");
         }
 

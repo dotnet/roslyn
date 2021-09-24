@@ -238,6 +238,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 {
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
+
+                // [Attribute1]$$ [Attribute2]
+                if (currentToken.IsKind(SyntaxKind.OpenBracketToken) &&
+                    currentToken.Parent.IsKind(SyntaxKind.AttributeList))
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
             }
 
             // For spacing delimiters - after colon
