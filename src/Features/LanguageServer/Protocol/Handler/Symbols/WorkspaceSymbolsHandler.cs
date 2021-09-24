@@ -7,13 +7,11 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -79,17 +77,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private class LSPNavigateToCallback : INavigateToSearchCallback
         {
+            private readonly RequestContext _context;
             private readonly BufferedProgress<SymbolInformation> _progress;
 
-            public LSPNavigateToCallback(BufferedProgress<SymbolInformation> progress)
+            public LSPNavigateToCallback(
+                RequestContext context,
+                BufferedProgress<SymbolInformation> progress)
             {
+                _context = context;
                 _progress = progress;
             }
 
             public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
             {
                 var location = await ProtocolConversions.TextSpanToLocationAsync(
-                    result.NavigableItem.Document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, cancellationToken).ConfigureAwait(false);
+                    result.NavigableItem.Document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, _context, cancellationToken).ConfigureAwait(false);
                 if (location == null)
                     return;
 

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -149,8 +150,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return new Uri(filePath, UriKind.Absolute);
         }
 
-        public static Uri? TryGetUriFromFilePath(string? filePath)
-            => Uri.TryCreate(filePath, UriKind.Absolute, out var uri) ? uri : null;
+        public static Uri? TryGetUriFromFilePath(string? filePath, RequestContext? context = null)
+        {
+            if (Uri.TryCreate(filePath, UriKind.Absolute, out var uri))
+                return uri;
+
+            context?.TraceInformation($"Could not convert '{filePath}' to uri");
+            return null;
+        }
 
         public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
         {
@@ -290,21 +297,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documentEdits;
         }
 
-        public static async Task<LSP.Location?> TextSpanToLocationAsync(
+        public static Task<LSP.Location?> TextSpanToLocationAsync(
             Document document,
             TextSpan textSpan,
             bool isStale,
             CancellationToken cancellationToken)
         {
+            return TextSpanToLocationAsync(document, textSpan, isStale, context: null, cancellationToken);
+        }
+
+        public static async Task<LSP.Location?> TextSpanToLocationAsync(
+            Document document,
+            TextSpan textSpan,
+            bool isStale,
+            RequestContext? context,
+            CancellationToken cancellationToken)
+        {
             var result = await GetMappedSpanResultAsync(document, ImmutableArray.Create(textSpan), cancellationToken).ConfigureAwait(false);
             if (result == null)
-                return await TryConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
+                return await TryConvertTextSpanToLocation(document, textSpan, isStale, context, cancellationToken).ConfigureAwait(false);
 
             var mappedSpan = result.Value.Single();
             if (mappedSpan.IsDefault)
-                return await TryConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
+                return await TryConvertTextSpanToLocation(document, textSpan, isStale, context, cancellationToken).ConfigureAwait(false);
 
-            var uri = TryGetUriFromFilePath(mappedSpan.FilePath);
+            var uri = TryGetUriFromFilePath(mappedSpan.FilePath, context);
             if (uri == null)
                 return null;
 
@@ -318,9 +335,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Document document,
                 TextSpan span,
                 bool isStale,
+                RequestContext context,
                 CancellationToken cancellationToken)
             {
-                var uri = document.TryGetURI();
+                var uri = document.TryGetURI(context);
                 if (uri == null)
                     return null;
 
