@@ -267,12 +267,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             }
 
                             var span = loc.GetMappedLineSpan();
-                            var debugDocument = DebugDocumentsBuilder.GetOrAddDebugDocument(span.Path, basePath: null, CreateDebugDocumentForFile);
-
-                            // If we have a debug document that is already referenced by method debug info then we don't need to include it
-                            if (debugDocument is not null && !methodDocumentList.Contains(debugDocument))
+                            if (span.Path.Length > 0)
                             {
-                                debugDocuments.Add(debugDocument);
+                                var debugDocument = DebugDocumentsBuilder.GetOrAddDebugDocument(span.Path, basePath: null, CreateDebugDocumentForFile);
+
+                                // If we have a debug document that is already referenced by method debug info then we don't need to include it
+                                if (debugDocument is not null && !methodDocumentList.Contains(debugDocument))
+                                {
+                                    debugDocuments.Add(debugDocument);
+                                }
                             }
                         }
 

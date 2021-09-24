@@ -689,10 +689,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             End If
 
                             Dim span = loc.GetMappedLineSpan()
-                            Dim debugDocument = DebugDocumentsBuilder.GetOrAddDebugDocument(span.Path, basePath:=Nothing, AddressOf CreateDebugDocumentForFile)
+                            If span.Path.Length > 0 Then
+                                Dim debugDocument = DebugDocumentsBuilder.GetOrAddDebugDocument(span.Path, basePath:=Nothing, AddressOf CreateDebugDocumentForFile)
 
-                            If debugDocument IsNot Nothing AndAlso Not methodDocumentList.Contains(debugDocument) Then
-                                debugDocuments.Add(debugDocument)
+                                If debugDocument IsNot Nothing AndAlso Not methodDocumentList.Contains(debugDocument) Then
+                                    debugDocuments.Add(debugDocument)
+                                End If
                             End If
                         Next
 
