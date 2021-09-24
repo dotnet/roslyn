@@ -1845,4 +1845,10 @@ Additional information: {1}</value>
   <data name="Require_accessibility_modifiers" xml:space="preserve">
     <value>Require accessibility modifiers</value>
   </data>
+  <data name="Beginning_of_line" xml:space="preserve">
+    <value>Beginning of line</value>
+  </data>
+  <data name="End_of_line" xml:space="preserve">
+    <value>End of line</value>
+  </data>
 </root>

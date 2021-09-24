@@ -132,6 +132,11 @@
         <target state="translated">Étendue de l'analyse en arrière-plan :</target>
         <note />
       </trans-unit>
+      <trans-unit id="Beginning_of_line">
+        <source>Beginning of line</source>
+        <target state="new">Beginning of line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Bitness32">
         <source>32-bit</source>
         <target state="translated">32 bits</target>
@@ -350,6 +355,11 @@
       <trans-unit id="Enabled">
         <source>Enabled</source>
         <target state="translated">Activé</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="End_of_line">
+        <source>End of line</source>
+        <target state="new">End of line</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
