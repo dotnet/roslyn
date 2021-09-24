@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -23,24 +24,15 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
         /// on expected stacktrace form
         /// </remarks>
 
-        public static bool TryParseMethodSignature(string line, int skipCharacters, out TextSpan classSpan, out TextSpan methodSpan, out TextSpan argsSpan)
+        public static bool TryParseMethodSignature(string line, int start, int end, out TextSpan classSpan, out TextSpan methodSpan, out TextSpan argsSpan)
         {
-            Contract.ThrowIfTrue(skipCharacters < 0);
-
             classSpan = default;
             methodSpan = default;
             argsSpan = default;
 
-            if (skipCharacters > 0)
-            {
-                line = line[skipCharacters..];
-            }
+            line = line[start..end];
 
-            var regex = new Regex(@"(?<class>([a-zA-Z0-9_<>]+\.)+)(?<method>[a-zA-Z0-9_<>]+)\((?<args>.*)\).*");
-            if (!regex.IsMatch(line))
-            {
-                return false;
-            }
+            var regex = new Regex(@"(?<class>([a-zA-Z0-9_<\s,>]+\.)+)(?<method>[a-zA-Z0-9_<\s,>]+)\((?<args>.*)\).*");
 
             var match = regex.Match(line);
             if (!match.Success)
@@ -62,11 +54,11 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 
             var argsGroup = match.Groups["args"];
 
-            classSpan = new TextSpan(skipCharacters + classGroup.Index, classGroup.Length);
-            methodSpan = new TextSpan(skipCharacters + methodGroup.Index, methodGroup.Length);
+            classSpan = new TextSpan(start + classGroup.Index, classGroup.Length);
+            methodSpan = new TextSpan(start + methodGroup.Index, methodGroup.Length);
             argsSpan = argsGroup.Success
-                ? new TextSpan(skipCharacters + argsGroup.Index, argsGroup.Length)
-                : new TextSpan(skipCharacters + methodGroup.Index + methodGroup.Length, 0); // Default to a 0 length span at the end of the method text
+                ? new TextSpan(start + argsGroup.Index, argsGroup.Length)
+                : new TextSpan(start + methodGroup.Index + methodGroup.Length, 0); // Default to a 0 length span at the end of the method text
 
             return true;
         }

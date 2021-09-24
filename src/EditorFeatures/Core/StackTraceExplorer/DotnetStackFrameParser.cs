@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
     internal sealed class DotnetStackFrameParser : IStackFrameParser
     {
+        private const string StackTraceAtStart = "at ";
         private const string StackTraceSymbolAndFileSplit = " in ";
 
         /// <summary>
@@ -19,7 +20,22 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
         public bool TryParseLine(string line, [NotNullWhen(true)] out ParsedFrame? parsedFrame)
         {
             parsedFrame = null;
-            var success = StackFrameParserHelpers.TryParseMethodSignature(line, skipCharacters: 0, out var classSpan, out var methodSpan, out var argsSpan);
+
+            var atIndex = line.IndexOf(StackTraceAtStart);
+
+            if (atIndex < 0)
+            {
+                return false;
+            }
+
+            var start = atIndex + StackTraceAtStart.Length;
+
+            var endIndex = line.IndexOf(StackTraceSymbolAndFileSplit);
+            var end = endIndex > 0
+                ? endIndex
+                : line.Length;
+
+            var success = StackFrameParserHelpers.TryParseMethodSignature(line, start: start, end: end, out var classSpan, out var methodSpan, out var argsSpan);
 
             if (!success)
             {
@@ -27,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
             }
 
             // The line has " in <filename>:line <line number>"
-            if (line.Contains(StackTraceSymbolAndFileSplit))
+            if (endIndex > 0)
             {
-                var fileInformationStart = line.IndexOf(StackTraceSymbolAndFileSplit) + StackTraceSymbolAndFileSplit.Length;
+                var fileInformationStart = endIndex + StackTraceSymbolAndFileSplit.Length;
                 var fileInformationSpan = new TextSpan(fileInformationStart, line.Length - fileInformationStart);
 
                 parsedFrame = new ParsedFrameWithFile(line, classSpan, methodSpan, argsSpan, fileInformationSpan);

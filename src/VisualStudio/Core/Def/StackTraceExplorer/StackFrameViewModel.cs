@@ -79,28 +79,12 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 // Use the parent class instead of the method to navigate to
                 symbol = symbol.ContainingSymbol;
 
-                var sourceLocation = symbol.Locations.FirstOrDefault(l => l.IsInSource);
-                if (sourceLocation is null || sourceLocation.SourceTree is null)
+                var success = NavigateToSymbol(symbol, cancellationToken);
+                if (!success)
                 {
-                    // Show some dialog?
+                    // show some dialog?
                     return;
                 }
-
-                var navigationService = _workspace.Services.GetService<IDocumentNavigationService>();
-                if (navigationService is null)
-                {
-                    return;
-                }
-
-                // While navigating do not activate the tab, which will change focus from the tool window
-                var options = _workspace.Options
-                        .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
-                        .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
-
-                var document = _workspace.CurrentSolution.GetRequiredDocument(sourceLocation.SourceTree);
-
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                navigationService.TryNavigateToSpan(_workspace, document.Id, sourceLocation.SourceSpan, options, cancellationToken);
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
             {
@@ -125,13 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     return;
                 }
 
-                var success = GoToDefinitionHelpers.TryGoToDefinition(
-                    symbol,
-                    _workspace.CurrentSolution,
-                    _threadingContext,
-                    _streamingPresenter,
-                    thirdPartyNavigationAllowed: true,
-                    cancellationToken: cancellationToken);
+                var success = NavigateToSymbol(symbol, cancellationToken);
 
                 if (!success)
                 {
@@ -143,6 +121,15 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             {
             }
         }
+
+        private bool NavigateToSymbol(ISymbol symbol, CancellationToken cancellationToken)
+            => GoToDefinitionHelpers.TryGoToDefinition(
+                    symbol,
+                    _workspace.CurrentSolution,
+                    _threadingContext,
+                    _streamingPresenter,
+                    thirdPartyNavigationAllowed: true,
+                    cancellationToken: cancellationToken);
 
         public void NavigateToFile()
         {
@@ -192,7 +179,6 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             classLink.RequestNavigate += (s, a) => NavigateToClass();
             yield return classLink;
 
-
             var methodLink = new Hyperlink();
             methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, _frame.GetMethodText()));
             methodLink.Click += (s, a) => NavigateToSymbol();
@@ -207,9 +193,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     yield return MakeClassifiedRun(ClassificationTypeNames.Text, textBetween);
                 }
 
-                var fileText = frameWithFile.GetFileText();
                 var fileHyperlink = new Hyperlink();
-                fileHyperlink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileText));
+                fileHyperlink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, frameWithFile.GetFileText()));
                 fileHyperlink.RequestNavigate += (s, e) => NavigateToFile();
                 fileHyperlink.Click += (s, e) => NavigateToFile();
                 yield return fileHyperlink;

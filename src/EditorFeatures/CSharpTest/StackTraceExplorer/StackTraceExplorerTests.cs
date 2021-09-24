@@ -63,6 +63,13 @@ namespace ConsoleApp4
         public static void Overload(MyClass myClass) => myClass.ThrowAtOne();
         public static void ThrowGeneric<T>(T value) => throw new Exception();
     }
+
+    static class GenericClass<T, U> 
+    {
+        public static void Throw<T>(T t) => throw new Exception();
+        public static void Throw<T, U>(T t, U u) => throw new Exception();
+        public static void Throw<T, U, V>(T t, U u, V v) => throw new Exception();
+    }
 }
 ";
 
@@ -78,7 +85,10 @@ namespace ConsoleApp4
 
             var type = compilation!.GetTypeByMetadataName(className);
             Assert.NotNull(type);
-            var method = type!.GetMembers().Single(n => n.Name == methodName);
+            var members = type!.GetMembers();
+            var symbolsAndDisplayNames = members.Select(m => (m, m.ToDisplayString()));
+            var symbolsAndMethodNames = symbolsAndDisplayNames.Select(p => (symbol: p.Item1, name: p.Item2.Split('.').Last()));
+            var method = symbolsAndMethodNames.Single(p => p.name == methodName).symbol;
             return method;
         }
 
@@ -96,10 +106,13 @@ namespace ConsoleApp4
         }
 
         [Theory]
-        [InlineData("ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#", "ConsoleApp4.MyClass.ThrowAtOne")]
-        [InlineData(@"   at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26", "ConsoleApp4.MyClass.ThrowAtOne")]
-        [InlineData(@"at ConsoleApp4.MyClass.ThrowAtOne()", "ConsoleApp4.MyClass.ThrowAtOne")]
-        [InlineData(@"at ConsoleApp4.MyOtherClass.ThrowGeneric<string>(string.Empty)", "ConsoleApp4.MyOtherClass.ThrowGeneric")]
+        [InlineData("ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#", "ConsoleApp4.MyClass.ThrowAtOne()")]
+        [InlineData(@"   at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26", "ConsoleApp4.MyClass.ThrowAtOne()")]
+        [InlineData(@"at ConsoleApp4.MyClass.ThrowAtOne()", "ConsoleApp4.MyClass.ThrowAtOne()")]
+        [InlineData(@"at ConsoleApp4.MyOtherClass.ThrowGeneric<string>(string.Empty)", "ConsoleApp4.MyOtherClass.ThrowGeneric<T>(T)")]
+        [InlineData(@"at ConsoleApp4.GenericClass<T, U>.Throw<T>()", "ConsoleApp4.GenericClass`2.Throw<T>(T)")]
+        [InlineData(@"at ConsoleApp4.GenericClass<T, U>.Throw<T, U>()", "ConsoleApp4.GenericClass`2.Throw<T, U>(T, U)")]
+        [InlineData(@"at ConsoleApp4.GenericClass<T, U>.Throw<T, U, V>(V v)", "ConsoleApp4.GenericClass`2.Throw<T, U, V>(T, U, V)")]
         public async Task TestSymbolFound(string inputLine, string symbolText)
         {
             var workspace = CreateWorkspace();
