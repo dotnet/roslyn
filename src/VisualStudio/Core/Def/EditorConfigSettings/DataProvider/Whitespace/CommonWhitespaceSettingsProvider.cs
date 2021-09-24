@@ -4,11 +4,13 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whitespace
 {
@@ -33,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Whites
             yield return WhitespaceSetting.Create(FormattingOptions2.IndentationSize, EditorFeaturesResources.Indentation_Size, editorConfigOptions, visualStudioOptions, updater, FileName);
             yield return WhitespaceSetting.Create(FormattingOptions2.NewLine, EditorFeaturesResources.New_Line, editorConfigOptions, visualStudioOptions, updater, FileName);
             yield return WhitespaceSetting.Create(FormattingOptions2.InsertFinalNewLine, EditorFeaturesResources.Insert_Final_Newline, editorConfigOptions, visualStudioOptions, updater, FileName);
+            yield return WhitespaceSetting.Create(CodeStyleOptions2.OperatorPlacementWhenWrapping, "Operator Placement When Wrapping", editorConfigOptions, visualStudioOptions, updater, FileName);
         }
     }
 }
