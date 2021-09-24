@@ -5,7 +5,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net5.0;netcoreapp3.1;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0;netcoreapp3.1;net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <!-- Automatically generate the necessary assembly binding redirects -->
