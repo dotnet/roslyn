@@ -230,7 +230,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 directives.Add(new ReferenceDirective(directiveNode.File.ValueText, new SourceLocation(directiveNode)));
             }
-
             return directives.ToImmutableAndFree();
         }
 
