@@ -637,8 +637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return container.GetSynthesizedNestedTypes()
         End Function
 
-        Public Overrides Function GetTypeToDebugDocumentMap(context As EmitContext) As ImmutableArray(Of (Cci.ITypeDefinition, ImmutableArray(Of Cci.DebugSourceDocument)))
-            Dim result = ArrayBuilder(Of (Cci.ITypeDefinition, ImmutableArray(Of Cci.DebugSourceDocument))).GetInstance()
+        Public Overrides Iterator Function GetTypeToDebugDocumentMap(context As EmitContext) As IEnumerable(Of (Cci.ITypeDefinition, ImmutableArray(Of Cci.DebugSourceDocument)))
             Dim debugDocuments = ArrayBuilder(Of Cci.DebugSourceDocument).GetInstance()
             Dim methodDocumentList = PooledHashSet(Of Cci.DebugSourceDocument).GetInstance()
 
@@ -670,9 +669,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         End If
 
                     Case SymbolKind.NamedType
+                        Debug.Assert(debugDocuments.Count = 0)
+                        Debug.Assert(methodDocumentList.Count = 0)
+
                         Dim typeDefinition = DirectCast(symbol.GetCciAdapter(), Cci.ITypeDefinition)
                         GetDocumentsForMethods(methodDocumentList, typeDefinition, context)
-
 
                         For Each loc In symbol.Locations
                             If Not loc.IsInSource Then
@@ -688,7 +689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         Next
 
                         If debugDocuments.Count > 0 Then
-                            result.Add((typeDefinition, debugDocuments.ToImmutable()))
+                            Yield (typeDefinition, debugDocuments.ToImmutable())
                         End If
                         debugDocuments.Clear()
                         methodDocumentList.Clear()
@@ -700,8 +701,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             namespacesAndTypesToProcess.Free()
             debugDocuments.Free()
             methodDocumentList.Free()
-
-            Return result.ToImmutableAndFree()
         End Function
 
         Private Shared Sub GetDocumentsForMethods(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typeDefinition As Cci.ITypeDefinition, context As EmitContext)

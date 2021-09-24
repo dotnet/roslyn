@@ -208,11 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        public sealed override ImmutableArray<(Cci.ITypeDefinition, ImmutableArray<Cci.DebugSourceDocument>)> GetTypeToDebugDocumentMap(EmitContext context)
+        public sealed override IEnumerable<(Cci.ITypeDefinition, ImmutableArray<Cci.DebugSourceDocument>)> GetTypeToDebugDocumentMap(EmitContext context)
         {
             var debugDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
             var methodDocumentList = PooledHashSet<Cci.DebugSourceDocument>.GetInstance();
-            var result = ArrayBuilder<(Cci.ITypeDefinition, ImmutableArray<Cci.DebugSourceDocument>)>.GetInstance();
 
             var namespacesAndTypesToProcess = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
             namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace);
@@ -244,6 +243,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         }
                         break;
                     case SymbolKind.NamedType:
+                        Debug.Assert(debugDocuments.Count == 0);
+                        Debug.Assert(methodDocumentList.Count == 0);
+
                         var typeDefinition = (Cci.ITypeDefinition)symbol.GetCciAdapter();
                         GetDocumentsForMethods(methodDocumentList, typeDefinition, context);
 
@@ -266,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                         if (debugDocuments.Count > 0)
                         {
-                            result.Add((typeDefinition, debugDocuments.ToImmutable()));
+                            yield return (typeDefinition, debugDocuments.ToImmutable());
                         }
 
                         debugDocuments.Clear();
@@ -280,7 +282,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             namespacesAndTypesToProcess.Free();
             debugDocuments.Free();
             methodDocumentList.Free();
-            return result.ToImmutableAndFree();
         }
 
         /// <summary>
