@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 
@@ -18,16 +17,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public static void Log(OptionSet oldOptions, OptionSet newOptions)
         {
-            foreach (var optionKey in newOptions.GetChangedOptions(oldOptions))
+            if (oldOptions is not SerializableOptionSet serializableOldOptions ||
+                newOptions is not SerializableOptionSet serializableNewOptions)
             {
-                var oldValue = oldOptions.GetOption(optionKey);
-                var currentValue = newOptions.GetOption(optionKey);
+                return;
+            }
 
-                Logger.Log(FunctionId.Run_Environment_Options, Create(optionKey, oldValue, currentValue));
+            var oldMap = serializableOldOptions.OptionKeyToValue;
+            var newMap = serializableNewOptions.OptionKeyToValue;
+
+            foreach (var optionKey in oldMap.Keys.Union(newMap.Keys))
+            {
+                var oldValue = oldMap.TryGetValue(optionKey, out var v1) ? v1 : null;
+                var newValue = newMap.TryGetValue(optionKey, out var v2) ? v2 : null;
+
+                Logger.Log(FunctionId.Run_Environment_Options, Create(optionKey, oldValue, newValue));
             }
         }
 
-        private static KeyValueLogMessage Create(OptionKey optionKey, object oldValue, object currentValue)
+        private static KeyValueLogMessage Create(OptionKey optionKey, object? oldValue, object? currentValue)
         {
             return KeyValueLogMessage.Create(m =>
             {
@@ -37,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             });
         }
 
-        private static string CreateOptionValue(object oldValue, object currentValue)
+        private static string CreateOptionValue(object? oldValue, object? currentValue)
         {
             var oldString = GetOptionValue(oldValue);
             var newString = GetOptionValue(currentValue);
@@ -45,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return oldString + "->" + newString;
         }
 
-        private static string GetOptionValue(object oldValue)
+        private static string GetOptionValue(object? oldValue)
             => oldValue == null ? "[null]" : oldValue.ToString();
     }
 }

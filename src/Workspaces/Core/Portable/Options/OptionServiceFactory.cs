@@ -208,13 +208,6 @@ namespace Microsoft.CodeAnalysis.Options
 
                 public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
                     => new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
-
-                internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-                {
-                    // GetChangedOptions only needs to be supported for OptionSets that need to be compared during application,
-                    // but that's already enforced it must be a full SerializableOptionSet.
-                    throw new NotSupportedException();
-                }
             }
         }
     }

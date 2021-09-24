@@ -34,15 +34,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             return new TestOptionSet(_values.SetItem(optionAndLanguage, value));
         }
-
-        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-        {
-            foreach (var (key, value) in _values)
-            {
-                var currentValue = optionSet.GetOption(key);
-                if (!object.Equals(currentValue, value))
-                    yield return key;
-            }
-        }
     }
 }

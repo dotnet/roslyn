@@ -426,9 +426,8 @@ namespace Microsoft.CodeAnalysis.Options
 
             lock (_gate)
             {
-                foreach (var optionKey in changedOptionKeys)
+                foreach (var (optionKey, newValue) in serializableOptionSet.OptionKeyToValue)
                 {
-                    var newValue = optionSet.GetOption(optionKey);
                     var currentValue = this.GetOption(optionKey);
 
                     if (object.Equals(currentValue, newValue))
@@ -439,7 +438,6 @@ namespace Microsoft.CodeAnalysis.Options
 
                     // The value is actually changing, so update
                     changedOptions.Add(new OptionChangedEventArgs(optionKey, newValue));
-
                     SetOptionCore(optionKey, newValue);
                 }
             }

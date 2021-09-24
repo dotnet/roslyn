@@ -53,8 +53,5 @@ namespace Microsoft.CodeAnalysis.Options
             Debug.Assert((language ?? _language) == _language, $"Use of a {nameof(DocumentOptionSet)} is not expected to differ from the language it was constructed with.");
             return _backingOptionSet.AsAnalyzerConfigOptions(optionService, language ?? _language);
         }
-
-        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-            => _backingOptionSet.GetChangedOptions(optionSet);
     }
 }

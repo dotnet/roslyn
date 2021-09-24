@@ -46,8 +46,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return new AnalyzerConfigOptionsImpl(_analyzerConfigOptions, _optionSet.AsAnalyzerConfigOptions(optionService, language));
         }
-
-        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-            => throw new NotImplementedException();
     }
 }

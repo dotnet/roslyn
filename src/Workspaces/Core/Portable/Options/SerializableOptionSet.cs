@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// Prefetched option values applicable for <see cref="_languages"/>.
         /// </summary>
-        private readonly ImmutableDictionary<OptionKey, object?> _serializableOptionValues;
+        public readonly ImmutableDictionary<OptionKey, object?> OptionKeyToValue;
 
         /// <summary>
-        /// Set of languages references in <see cref="_serializableOptionValues"/>.  Cached
+        /// Set of languages references in <see cref="OptionKeyToValue"/>.  Cached
         /// only so we can shortcircuit <see cref="UnionWithLanguages"/>.
         /// </summary>
         private readonly Lazy<ImmutableHashSet<string>> _languages;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Options
             ImmutableDictionary<OptionKey, object?> values)
         {
             _workspaceOptionSet = workspaceOptionSet;
-            _serializableOptionValues = values;
+            OptionKeyToValue = values;
 
             Debug.Assert(values.Keys.All(ShouldSerialize));
             _languages = new Lazy<ImmutableHashSet<string>>(() => this.GetLanguagesAndValuesToSerialize().languages);
@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis.Options
             : this(new WorkspaceOptionSet(optionService), values)
         {
         }
+
+        internal SerializableOptionSet With(ImmutableDictionary<OptionKey, object?> optionKeyToValue)
+            => new SerializableOptionSet(_workspaceOptionSet, optionKeyToValue);
 
         /// <summary>
         /// Returns an option set with all the serializable option values prefetched for given <paramref name="languages"/>,
@@ -74,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Options
             var newOptionSet = _workspaceOptionSet.OptionService.GetSerializableOptionsSnapshot(languages);
 
             // Then apply all the changed options from the current option set to the new option set.
-            var builder = newOptionSet._serializableOptionValues.ToBuilder();
-            foreach (var (optionKey, optionValue) in _serializableOptionValues)
+            var builder = newOptionSet.OptionKeyToValue.ToBuilder();
+            foreach (var (optionKey, optionValue) in OptionKeyToValue)
                 builder[optionKey] = optionValue;
 
             return new SerializableOptionSet(_workspaceOptionSet, builder.ToImmutable());
@@ -84,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Options
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowLocks = false)]
         private protected override object? GetOptionCore(OptionKey optionKey)
         {
-            if (_serializableOptionValues.TryGetValue(optionKey, out var value))
+            if (OptionKeyToValue.TryGetValue(optionKey, out var value))
             {
                 return value;
             }
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         private bool ShouldSerialize(OptionKey optionKey)
-            => _serializableOptionValues.ContainsKey(optionKey) &&
+            => OptionKeyToValue.ContainsKey(optionKey) &&
                (!optionKey.Option.IsPerLanguage || RemoteSupportedLanguages.IsSupported(optionKey.Language));
 
         public override OptionSet WithChangedOption(OptionKey optionKey, object? value)
@@ -105,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Options
             if (Equals(value, currentValue))
             {
                 // Return a cloned option set as the public API 'WithChangedOption' guarantees a new option set is returned.
-                return new SerializableOptionSet(_workspaceOptionSet, _serializableOptionValues);
+                return new SerializableOptionSet(_workspaceOptionSet, OptionKeyToValue);
             }
 
             WorkspaceOptionSet workspaceOptionSet;
@@ -113,33 +116,15 @@ namespace Microsoft.CodeAnalysis.Options
             if (ShouldSerialize(optionKey))
             {
                 workspaceOptionSet = _workspaceOptionSet;
-                serializableOptionValues = _serializableOptionValues.SetItem(optionKey, value);
+                serializableOptionValues = OptionKeyToValue.SetItem(optionKey, value);
             }
             else
             {
                 workspaceOptionSet = (WorkspaceOptionSet)_workspaceOptionSet.WithChangedOption(optionKey, value);
-                serializableOptionValues = _serializableOptionValues;
+                serializableOptionValues = OptionKeyToValue;
             }
 
             return new SerializableOptionSet(workspaceOptionSet, serializableOptionValues);
-        }
-
-        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet? optionSet)
-        {
-            if (optionSet == this)
-            {
-                yield break;
-            }
-
-            foreach (var key in GetChangedOptions())
-            {
-                var currentValue = optionSet?.GetOption(key);
-                var changedValue = this.GetOption(key);
-                if (!object.Equals(currentValue, changedValue))
-                {
-                    yield return key;
-                }
-            }
         }
 
         private (ImmutableHashSet<string> languages, SortedDictionary<OptionKey, (OptionValueKind, object?)> values) GetLanguagesAndValuesToSerialize()
@@ -147,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Options
             var valuesBuilder = new SortedDictionary<OptionKey, (OptionValueKind, object?)>(OptionKeyComparer.Instance);
             var languages = ImmutableHashSet<string>.Empty;
 
-            foreach (var (optionKey, value) in _serializableOptionValues)
+            foreach (var (optionKey, value) in OptionKeyToValue)
             {
                 Debug.Assert(ShouldSerialize(optionKey));
 
