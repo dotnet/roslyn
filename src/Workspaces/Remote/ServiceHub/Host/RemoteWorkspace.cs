@@ -326,6 +326,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 //
                 // A better fix in the future is to make all options pure data and remove the general concept of
                 // any part of the system eliding information about any options that have their 'default' value.
+                // https://github.com/dotnet/roslyn/issues/55728
                 this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
                 SetOptions(options);
 
