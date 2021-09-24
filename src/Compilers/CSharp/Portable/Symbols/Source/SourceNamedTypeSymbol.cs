@@ -776,12 +776,10 @@ next:;
             {
                 foreach (var decl in this.DeclaringCompilation.MergedRootDeclaration.Declarations)
                 {
-                    if (decl is RootSingleNamespaceDeclaration rootNamespaceDecl)
+                    if (decl is RootSingleNamespaceDeclaration rootNamespaceDecl &&
+                        (rootNamespaceDecl.GlobalAliasedQuickAttributes & quickAttributes) != 0)
                     {
-                        if ((rootNamespaceDecl.GlobalAliasedQuickAttributes & quickAttributes) != 0)
-                        {
-                            return declaration.GetAttributeDeclarations(quickAttributes: null);
-                        }
+                        return declaration.GetAttributeDeclarations(quickAttributes: null);
                     }
                 }
             }
