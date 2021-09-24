@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var searcher = NavigateToSearcher.Create(
                 solution,
                 _asyncListener,
-                new LSPNavigateToCallback(progress),
+                new LSPNavigateToCallback(context, progress),
                 request.Query,
                 searchCurrentDocument: false,
                 s_supportedKinds,

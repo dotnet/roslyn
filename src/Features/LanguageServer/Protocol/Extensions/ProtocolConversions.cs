@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Document document,
                 TextSpan span,
                 bool isStale,
-                RequestContext context,
+                RequestContext? context,
                 CancellationToken cancellationToken)
             {
                 var uri = document.TryGetURI(context);
