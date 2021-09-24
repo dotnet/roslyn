@@ -139,6 +139,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End SyncLock
         End Function
 
+        Public Function UnadviseFileChangesAsync(cookies As IReadOnlyCollection(Of UInteger), Optional cancellationToken As CancellationToken = Nothing) As Task(Of String()) Implements IVsAsyncFileChangeEx.UnadviseFileChangesAsync
+            Dim paths As New List(Of String)()
+
+            SyncLock _lock
+                For Each cookie In cookies
+                    Dim path = _watchedFiles.FirstOrDefault(Function(t) t.Cookie = cookie).Path
+
+                    Marshal.ThrowExceptionForHR(UnadviseFileChange(cookie))
+
+                    paths.Add(path)
+                Next
+            End SyncLock
+
+            Return Task.FromResult(paths.ToArray())
+        End Function
+
         Public Function AdviseDirChangeAsync(directory As String, watchSubdirectories As Boolean, sink As IVsFreeThreadedFileChangeEvents2, Optional cancellationToken As CancellationToken = Nothing) As Task(Of UInteger) Implements IVsAsyncFileChangeEx.AdviseDirChangeAsync
             Dim cookie As UInteger
             Marshal.ThrowExceptionForHR(AdviseDirChange(directory, If(watchSubdirectories, 1, 0), sink, cookie))
@@ -153,6 +169,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
                 Return Task.FromResult(path)
             End SyncLock
+        End Function
+
+        Public Function UnadviseDirChangesAsync(cookies As IReadOnlyCollection(Of UInteger), Optional cancellationToken As CancellationToken = Nothing) As Task(Of String()) Implements IVsAsyncFileChangeEx.UnadviseDirChangesAsync
+            Dim paths As New List(Of String)()
+
+            SyncLock _lock
+                For Each cookie In cookies
+                    Dim path = _watchedFiles.FirstOrDefault(Function(t) t.Cookie = cookie).Path
+
+                    Marshal.ThrowExceptionForHR(UnadviseFileChange(cookie))
+
+                    paths.Add(path)
+                Next
+            End SyncLock
+
+            Return Task.FromResult(paths.ToArray())
         End Function
 
         Public Function SyncFileAsync(filename As String, Optional cancellationToken As CancellationToken = Nothing) As Tasks.Task Implements IVsAsyncFileChangeEx.SyncFileAsync
