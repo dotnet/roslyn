@@ -235,6 +235,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 editorConfigOptions,
                 visualStudioOptions,
                 updaterService, FileName);
+
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine,
+                description: CSharpVSResources.Allow_embedded_statements_on_same_line,
+                editorConfigOptions,
+                visualStudioOptions,
+                updaterService, FileName);
+
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces,
+                description: CSharpVSResources.Allow_blank_lines_between_consecutive_braces,
+                editorConfigOptions,
+                visualStudioOptions,
+                updaterService, FileName);
+
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer,
+                description: CSharpVSResources.Allow_bank_line_after_colon_in_constructor_initializer,
+                editorConfigOptions,
+                visualStudioOptions,
+                updaterService, FileName);
         }
     }
 }
