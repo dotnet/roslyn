@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;
@@ -216,11 +217,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 if (preferredLocation?.SourceTree != null)
                 {
                     var lineSpan = preferredLocation.GetLineSpan();
-                    var sourceLocation = new SourceLocation(
+                    var sourceLocation = TryCreateSourceLocation(
                         preferredLocation.SourceTree.FilePath,
-                        new Position(lineSpan.StartLinePosition.Line, lineSpan.StartLinePosition.Character),
-                        new Position(lineSpan.EndLinePosition.Line, lineSpan.EndLinePosition.Character));
-                    node[CodeNodeProperties.SourceLocation] = sourceLocation;
+                        lineSpan.Span);
+                    if (sourceLocation != null)
+                        node[CodeNodeProperties.SourceLocation] = sourceLocation.Value;
                 }
 
                 // Keep track of this as a node we have added. Note this is a HashSet, so if the node was already added
@@ -742,6 +743,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (existing != null)
                 return null;
 
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
+            var sourceLocation = TryCreateSourceLocation(document.FilePath, span);
+            if (sourceLocation == null)
+                return null;
+
             var symbolNode = _graph.Nodes.GetOrCreate(id);
 
             symbolNode.Label = label;
@@ -750,17 +757,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             symbolNode[RoslynGraphProperties.ContextDocumentId] = document.Id;
             symbolNode[RoslynGraphProperties.ContextProjectId] = project.Id;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
-
-            symbolNode[CodeNodeProperties.SourceLocation] = new SourceLocation(
-                document.FilePath,
-                new Position(span.Start.Line, span.Start.Character),
-                new Position(span.End.Line, span.End.Character));
+            symbolNode[CodeNodeProperties.SourceLocation] = sourceLocation.Value;
 
             this.AddLink(documentNode, GraphCommonSchema.Contains, symbolNode, cancellationToken);
 
             return symbolNode;
+        }
+
+        public static SourceLocation? TryCreateSourceLocation(string path, LinePositionSpan span)
+        {
+            // SourceLocation's constructor attempts to create an absolute uri.  So if we can't do that
+            // bail out immediately.
+            if (!Uri.TryCreate(path, UriKind.Absolute, out var uri))
+                return null;
+
+            return new SourceLocation(
+                uri,
+                new Position(span.Start.Line, span.Start.Character),
+                new Position(span.End.Line, span.End.Character));
         }
 
         private static string? GetIconString(Glyph glyph)

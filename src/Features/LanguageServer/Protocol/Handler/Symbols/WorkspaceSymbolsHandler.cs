@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     result.NavigableItem.Document, result.NavigableItem.SourceSpan, result.NavigableItem.IsStale, cancellationToken).ConfigureAwait(false);
                 if (location == null)
                     return;
-                
+
                 Contract.ThrowIfNull(location);
                 _progress.Report(new VSSymbolInformation
                 {
