@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         private bool ShouldSerialize(OptionKey optionKey)
-            => _serializableOptions.Contains(optionKey.Option) &&
+            => _serializableOptionValues.ContainsKey(optionKey) &&
                (!optionKey.Option.IsPerLanguage || RemoteSupportedLanguages.IsSupported(optionKey.Language));
 
         public override OptionSet WithChangedOption(OptionKey optionKey, object? value)
@@ -124,29 +124,23 @@ namespace Microsoft.CodeAnalysis.Options
             return new SerializableOptionSet(workspaceOptionSet, serializableOptionValues);
         }
 
-        ///// <summary>
-        ///// Gets a list of all the options that were changed.
-        ///// </summary>
-        //internal IEnumerable<OptionKey> GetChangedOptions()
-        //    => _changedOptionKeysSerializable.Concat(_changedOptionKeysNonSerializable);
+        internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet? optionSet)
+        {
+            if (optionSet == this)
+            {
+                yield break;
+            }
 
-        //internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet? optionSet)
-        //{
-        //    if (optionSet == this)
-        //    {
-        //        yield break;
-        //    }
-
-        //    foreach (var key in GetChangedOptions())
-        //    {
-        //        var currentValue = optionSet?.GetOption(key);
-        //        var changedValue = this.GetOption(key);
-        //        if (!object.Equals(currentValue, changedValue))
-        //        {
-        //            yield return key;
-        //        }
-        //    }
-        //}
+            foreach (var key in GetChangedOptions())
+            {
+                var currentValue = optionSet?.GetOption(key);
+                var changedValue = this.GetOption(key);
+                if (!object.Equals(currentValue, changedValue))
+                {
+                    yield return key;
+                }
+            }
+        }
 
         private (ImmutableHashSet<string> languages, SortedDictionary<OptionKey, (OptionValueKind, object?)> values) GetLanguagesAndValuesToSerialize()
         {
@@ -227,10 +221,6 @@ namespace Microsoft.CodeAnalysis.Options
                     writer.WriteValue(value);
                 }
             }
-
-            writer.WriteInt32(_changedOptionKeysSerializable.Count);
-            foreach (var changedKey in _changedOptionKeysSerializable.OrderBy(OptionKeyComparer.Instance))
-                SerializeOptionKey(changedKey);
 
             return;
 
@@ -334,21 +324,10 @@ namespace Microsoft.CodeAnalysis.Options
                 builder[optionKey] = optionValue;
             }
 
-            count = reader.ReadInt32();
-            var changedKeysBuilder = ImmutableHashSet.CreateBuilder<OptionKey>();
-            for (var i = 0; i < count; i++)
-            {
-                if (TryDeserializeOptionKey(reader, lookup) is { } optionKey)
-                    changedKeysBuilder.Add(optionKey);
-            }
-
             var serializableOptionValues = builder.ToImmutable();
-            var changedOptionKeysSerializable = changedKeysBuilder.ToImmutable();
             var workspaceOptionSet = new WorkspaceOptionSet(optionService);
 
-            return new SerializableOptionSet(
-                workspaceOptionSet, serializableOptionValues, changedOptionKeysSerializable,
-                changedOptionKeysNonSerializable: ImmutableHashSet<OptionKey>.Empty);
+            return new SerializableOptionSet(workspaceOptionSet, serializableOptionValues);
 
             static OptionKey? TryDeserializeOptionKey(ObjectReader reader, ILookup<string, IOption> lookup)
             {

@@ -121,8 +121,6 @@ namespace Microsoft.CodeAnalysis.Options
                 (this, optionService));
         }
 
-        internal abstract IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet);
-
         private protected virtual AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
             => new AnalyzerConfigOptionsImpl(this, optionService, language);
     }

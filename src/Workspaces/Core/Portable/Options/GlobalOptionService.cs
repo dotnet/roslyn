@@ -267,10 +267,7 @@ namespace Microsoft.CodeAnalysis.Options
             Debug.Assert(languages.All(RemoteSupportedLanguages.IsSupported));
             var serializableOptions = GetRegisteredSerializableOptions(languages);
             var serializableOptionValues = GetSerializableOptionValues(serializableOptions, languages);
-            var changedOptionsKeysSerializable = _changedOptionKeys
-                .Where(key => serializableOptions.Contains(key.Option) && (!key.Option.IsPerLanguage || languages.Contains(key.Language!)))
-                .ToImmutableHashSet();
-            return new SerializableOptionSet(optionService, serializableOptionValues, changedOptionsKeysSerializable);
+            return new SerializableOptionSet(optionService, serializableOptionValues);
         }
 
         private ImmutableDictionary<OptionKey, object?> GetSerializableOptionValues(ImmutableHashSet<IOption> optionKeys, ImmutableHashSet<string> languages)
@@ -419,12 +416,11 @@ namespace Microsoft.CodeAnalysis.Options
 
         public void SetOptions(OptionSet optionSet)
         {
-            var changedOptionKeys = optionSet switch
-            {
-                null => throw new ArgumentNullException(nameof(optionSet)),
-                SerializableOptionSet serializableOptionSet => serializableOptionSet.GetChangedOptions(),
-                _ => throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(optionSet))
-            };
+            if (optionSet == null)
+                throw new ArgumentNullException(nameof(optionSet));
+
+            if (optionSet is not SerializableOptionSet serializableOptionSet)
+                throw new ArgumentException(WorkspacesResources.Options_did_not_come_from_specified_Solution, paramName: nameof(optionSet));
 
             var changedOptions = new List<OptionChangedEventArgs>();
 
