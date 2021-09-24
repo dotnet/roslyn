@@ -591,8 +591,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeExplicitParameterTypeInferences(BoundExpression argument, TypeWithAnnotations target, ExactOrBoundsKind kind, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            // SPEC: * If Ei is an anonymous function, an explicit type parameter
-            // SPEC:   inference is made from Ei to Ti.
+            // SPEC: * If Ei is an anonymous function, and Ti is a delegate type or expression tree type,
+            // SPEC:   an explicit type parameter inference is made from Ei to Ti and
+            // SPEC:   an explicit return type inference is made from Ei to Ti.
 
             // (We cannot make an output type inference from a method group
             // at this time because we have no fixed types yet to use for
@@ -606,6 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (argument.Kind == BoundKind.UnboundLambda && target.Type.GetDelegateType() is { })
             {
                 ExplicitParameterTypeInference(argument, target, ref useSiteInfo);
+                ExplicitReturnTypeInference(argument, target, ref useSiteInfo);
             }
             else if (argument.Kind != BoundKind.TupleLiteral ||
                 !MakeExplicitParameterTypeInferences((BoundTupleLiteral)argument, target, kind, ref useSiteInfo))
@@ -1413,6 +1415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type;
         }
 
+#nullable enable
         ////////////////////////////////////////////////////////////////////////////////
         //
         // Explicit parameter type inferences
@@ -1442,7 +1445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var delegateType = target.Type.GetDelegateType();
-            if ((object)delegateType == null)
+            if (delegateType is null)
             {
                 return;
             }
@@ -1471,6 +1474,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExactInference(anonymousFunction.ParameterTypeWithAnnotations(i), delegateParameters[i].TypeWithAnnotations, ref useSiteInfo);
             }
         }
+
+        private void ExplicitReturnTypeInference(BoundExpression source, TypeWithAnnotations target, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(source != null);
+            Debug.Assert(target.HasType);
+
+            // SPEC: An explicit type return type inference is made from an expression
+            // SPEC: E to a type T in the following way.
+            // SPEC: If E is an anonymous function with explicit return type Ur and
+            // SPEC: T is a delegate type or expression tree type with return type Vr then
+            // SPEC: an exact inference is made from Ur to Vr.
+
+            if (source.Kind != BoundKind.UnboundLambda)
+            {
+                return;
+            }
+
+            UnboundLambda anonymousFunction = (UnboundLambda)source;
+            if (!anonymousFunction.HasExplicitReturnType(out _, out TypeWithAnnotations anonymousFunctionReturnType))
+            {
+                return;
+            }
+
+            var delegateInvokeMethod = target.Type.GetDelegateType()?.DelegateInvokeMethod();
+            if (delegateInvokeMethod is null)
+            {
+                return;
+            }
+
+            ExactInference(anonymousFunctionReturnType, delegateInvokeMethod.ReturnTypeWithAnnotations, ref useSiteInfo);
+        }
+#nullable disable
 
         ////////////////////////////////////////////////////////////////////////////////
         //

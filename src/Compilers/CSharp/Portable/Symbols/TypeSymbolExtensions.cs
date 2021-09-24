@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static ImmutableArray<ParameterSymbol> DelegateParameters(this TypeSymbol type)
         {
             var invokeMethod = type.DelegateInvokeMethod();
-            if ((object)invokeMethod == null)
+            if (invokeMethod is null)
             {
                 return default(ImmutableArray<ParameterSymbol>);
             }
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        public static MethodSymbol DelegateInvokeMethod(this TypeSymbol type)
+        public static MethodSymbol? DelegateInvokeMethod(this TypeSymbol type)
         {
             RoslynDebug.Assert((object)type != null);
             RoslynDebug.Assert(type.IsDelegateType() || type.IsExpressionTree());
