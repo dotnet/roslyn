@@ -880,7 +880,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         set.TryAdd(fieldDeclarators[i].Identifier.ValueText);
                     }
-
                     break;
 
                 case SyntaxKind.EventFieldDeclaration:
