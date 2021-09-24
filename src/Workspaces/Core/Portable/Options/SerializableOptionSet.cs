@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Options
             Debug.Assert(changedOptionKeysSerializable.All(optionKey => ShouldSerialize(optionKey)));
             Debug.Assert(changedOptionKeysNonSerializable.All(optionKey => !ShouldSerialize(optionKey)));
 
-            _languages = new Lazy<ImmutableHashSet<string>>(() => this.GetLanguagesAndValuesToSerialize().languages);
+            _languages = new Lazy<ImmutableHashSet<string>>(() => this.GetLanguagesAndValuesToSerialize(includeValues: false).languages);
         }
 
         internal SerializableOptionSet(
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        private (ImmutableHashSet<string> languages, SortedDictionary<OptionKey, (OptionValueKind, object?)> values) GetLanguagesAndValuesToSerialize()
+        private (ImmutableHashSet<string> languages, SortedDictionary<OptionKey, (OptionValueKind, object?)> values) GetLanguagesAndValuesToSerialize(bool includeValues)
         {
             var valuesBuilder = new SortedDictionary<OptionKey, (OptionValueKind, object?)>(OptionKeyComparer.Instance);
             var languages = ImmutableHashSet<string>.Empty;
@@ -205,26 +205,29 @@ namespace Microsoft.CodeAnalysis.Options
                 if (optionKey.Language != null)
                     languages = languages.Add(optionKey.Language);
 
-                OptionValueKind kind;
-                switch (value)
+                if (includeValues)
                 {
-                    case ICodeStyleOption:
-                        if (optionKey.Option.Type.GenericTypeArguments.Length != 1)
-                            continue;
+                    OptionValueKind kind;
+                    switch (value)
+                    {
+                        case ICodeStyleOption:
+                            if (optionKey.Option.Type.GenericTypeArguments.Length != 1)
+                                continue;
 
-                        kind = OptionValueKind.CodeStyleOption;
-                        break;
+                            kind = OptionValueKind.CodeStyleOption;
+                            break;
 
-                    case NamingStylePreferences:
-                        kind = OptionValueKind.NamingStylePreferences;
-                        break;
+                        case NamingStylePreferences:
+                            kind = OptionValueKind.NamingStylePreferences;
+                            break;
 
-                    default:
-                        kind = value != null && value.GetType().IsEnum ? OptionValueKind.Enum : OptionValueKind.Object;
-                        break;
+                        default:
+                            kind = value != null && value.GetType().IsEnum ? OptionValueKind.Enum : OptionValueKind.Object;
+                            break;
+                    }
+
+                    valuesBuilder.Add(optionKey, (kind, value));
                 }
-
-                valuesBuilder.Add(optionKey, (kind, value));
             }
 
             return (languages, valuesBuilder);
@@ -241,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Options
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var (languages, values) = this.GetLanguagesAndValuesToSerialize();
+            var (languages, values) = this.GetLanguagesAndValuesToSerialize(includeValues: true);
 
             writer.WriteInt32(languages.Count);
             foreach (var language in languages.Order())
@@ -428,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             public ImmutableHashSet<string> Languages
-                => _serializableOptionSet.GetLanguagesAndValuesToSerialize().languages;
+                => _serializableOptionSet.GetLanguagesAndValuesToSerialize(includeValues: true).languages;
         }
 
         private enum OptionValueKind
