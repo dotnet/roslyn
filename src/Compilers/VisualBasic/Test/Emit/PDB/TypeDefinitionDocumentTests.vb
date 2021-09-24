@@ -28,6 +28,22 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub NestedClassWithMethod()
+            Dim source As String = "
+Class C
+    Class N
+        Public Shared Sub A()
+            System.Console.WriteLine()
+        End Sub
+    End Class
+End Class
+"
+            TestTypeDefinitionDocuments({source},
+                              ("C", "1.vb"))
+        End Sub
+
+
+        <Fact>
         Public Sub EmptyClass()
             Dim source As String = "
 Class O
@@ -35,6 +51,19 @@ End Class
 "
             TestTypeDefinitionDocuments({source},
                               ("O", "1.vb"))
+        End Sub
+
+        <Fact>
+        Public Sub EmptyNestedClass()
+            Dim source As String = "
+Class O
+    Class N
+    End Class
+End Class
+"
+            TestTypeDefinitionDocuments({source},
+                              ("O", "1.vb"),
+                              ("N", "1.vb"))
         End Sub
 
         <Fact>

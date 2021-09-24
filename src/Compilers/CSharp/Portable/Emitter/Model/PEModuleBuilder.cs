@@ -243,6 +243,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         }
                         break;
                     case SymbolKind.NamedType:
+                        // Make sure any nested types are also processed
+                        foreach (var member in symbol.GetMembers())
+                        {
+                            if (member.Kind is SymbolKind.NamedType)
+                            {
+                                namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
+                            }
+                        }
+
+                        // Now process this type
                         Debug.Assert(debugDocuments.Count == 0);
                         Debug.Assert(methodDocumentList.Count == 0);
 

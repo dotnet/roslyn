@@ -35,6 +35,25 @@ class M
         }
 
         [Fact]
+        public void NestedClassWithMethod()
+        {
+            string source = @"
+class C
+{
+    class N
+    {
+        public static void A()
+        {
+            System.Console.WriteLine();
+        }
+    }
+}
+";
+            TestTypeDefinitionDocuments(new[] { source },
+                ("C", "1.cs"));
+        }
+
+        [Fact]
         public void EmptyClass()
         {
             string source = @"
@@ -44,6 +63,23 @@ class O
 ";
             TestTypeDefinitionDocuments(new[] { source },
                 ("O", "1.cs"));
+        }
+
+
+        [Fact]
+        public void EmptyNestedClass()
+        {
+            string source = @"
+class O
+{
+    class N
+    {
+    }
+}
+";
+            TestTypeDefinitionDocuments(new[] { source },
+                ("O", "1.cs"),
+                ("N", "1.cs"));
         }
 
         [Fact]

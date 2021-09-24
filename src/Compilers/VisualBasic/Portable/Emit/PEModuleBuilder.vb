@@ -669,6 +669,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         End If
 
                     Case SymbolKind.NamedType
+                        ' Make sure any nested types are also processed
+                        For Each member In symbol.GetMembers()
+                            If member.Kind = SymbolKind.NamedType Then
+                                namespacesAndTypesToProcess.Push(DirectCast(member, NamespaceOrTypeSymbol))
+                            End If
+                        Next
+
+                        'Now process this type
                         Debug.Assert(debugDocuments.Count = 0)
                         Debug.Assert(methodDocumentList.Count = 0)
 
