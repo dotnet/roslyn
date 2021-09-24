@@ -29,12 +29,7 @@ namespace Microsoft.CodeAnalysis.Options
         private readonly WorkspaceOptionSet _workspaceOptionSet;
 
         /// <summary>
-        /// All serializable options.
-        /// </summary>
-        private readonly ImmutableHashSet<IOption> _serializableOptions;
-
-        /// <summary>
-        /// Prefetched option values for all <see cref="_serializableOptions"/>.
+        /// Prefetched option values applicable for <see cref="_languages"/>.
         /// </summary>
         private readonly ImmutableDictionary<OptionKey, object?> _serializableOptionValues;
 
@@ -56,13 +51,11 @@ namespace Microsoft.CodeAnalysis.Options
 
         private SerializableOptionSet(
             WorkspaceOptionSet workspaceOptionSet,
-            ImmutableHashSet<IOption> serializableOptions,
             ImmutableDictionary<OptionKey, object?> values,
             ImmutableHashSet<OptionKey> changedOptionKeysSerializable,
             ImmutableHashSet<OptionKey> changedOptionKeysNonSerializable)
         {
             _workspaceOptionSet = workspaceOptionSet;
-            _serializableOptions = serializableOptions;
             _serializableOptionValues = values;
             _changedOptionKeysSerializable = changedOptionKeysSerializable;
             _changedOptionKeysNonSerializable = changedOptionKeysNonSerializable;
@@ -76,10 +69,9 @@ namespace Microsoft.CodeAnalysis.Options
 
         internal SerializableOptionSet(
             IOptionService optionService,
-            ImmutableHashSet<IOption> serializableOptions,
             ImmutableDictionary<OptionKey, object?> values,
             ImmutableHashSet<OptionKey> changedOptionKeysSerializable)
-            : this(new WorkspaceOptionSet(optionService), serializableOptions, values, changedOptionKeysSerializable, changedOptionKeysNonSerializable: ImmutableHashSet<OptionKey>.Empty)
+            : this(new WorkspaceOptionSet(optionService), values, changedOptionKeysSerializable, changedOptionKeysNonSerializable: ImmutableHashSet<OptionKey>.Empty)
         {
         }
 
@@ -126,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         private bool ShouldSerialize(OptionKey optionKey)
-            => _serializableOptions.Contains(optionKey.Option) &&
+            => _serializableOptionValues.ContainsKey(optionKey) &&
                (!optionKey.Option.IsPerLanguage || RemoteSupportedLanguages.IsSupported(optionKey.Language));
 
         public override OptionSet WithChangedOption(OptionKey optionKey, object? value)
@@ -138,8 +130,8 @@ namespace Microsoft.CodeAnalysis.Options
             if (Equals(value, currentValue))
             {
                 // Return a cloned option set as the public API 'WithChangedOption' guarantees a new option set is returned.
-                return new SerializableOptionSet(_workspaceOptionSet, _serializableOptions,
-                    _serializableOptionValues, _changedOptionKeysSerializable, _changedOptionKeysNonSerializable);
+                return new SerializableOptionSet(
+                    _workspaceOptionSet, _serializableOptionValues, _changedOptionKeysSerializable, _changedOptionKeysNonSerializable);
             }
 
             WorkspaceOptionSet workspaceOptionSet;
@@ -161,8 +153,8 @@ namespace Microsoft.CodeAnalysis.Options
                 changedOptionKeysNonSerializable = _changedOptionKeysNonSerializable.Add(optionKey);
             }
 
-            return new SerializableOptionSet(workspaceOptionSet, _serializableOptions,
-                serializableOptionValues, changedOptionKeysSerializable, changedOptionKeysNonSerializable);
+            return new SerializableOptionSet(
+                workspaceOptionSet, serializableOptionValues, changedOptionKeysSerializable, changedOptionKeysNonSerializable);
         }
 
         /// <summary>
@@ -197,9 +189,6 @@ namespace Microsoft.CodeAnalysis.Options
             foreach (var (optionKey, value) in _serializableOptionValues)
             {
                 Debug.Assert(ShouldSerialize(optionKey));
-
-                if (!_serializableOptions.Contains(optionKey.Option))
-                    continue;
 
                 Debug.Assert(!optionKey.Option.IsPerLanguage || RemoteSupportedLanguages.IsSupported(optionKey.Language));
                 if (optionKey.Language != null)
@@ -394,8 +383,8 @@ namespace Microsoft.CodeAnalysis.Options
             var workspaceOptionSet = new WorkspaceOptionSet(optionService);
 
             return new SerializableOptionSet(
-                workspaceOptionSet, serializableOptions, serializableOptionValues,
-                changedOptionKeysSerializable, changedOptionKeysNonSerializable: ImmutableHashSet<OptionKey>.Empty);
+                workspaceOptionSet, serializableOptionValues, changedOptionKeysSerializable,
+                changedOptionKeysNonSerializable: ImmutableHashSet<OptionKey>.Empty);
 
             static OptionKey? TryDeserializeOptionKey(ObjectReader reader, ILookup<string, IOption> lookup)
             {
