@@ -161,20 +161,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(QuickAttributes.Last == QuickAttributes.AssemblySignatureKey);
 
             var result = QuickAttributes.None;
-            if (Matches(AttributeDescription.TypeIdentifierAttribute))
+            if (matches(AttributeDescription.TypeIdentifierAttribute))
                 result |= QuickAttributes.TypeIdentifier;
-            else if (Matches(AttributeDescription.TypeForwardedToAttribute))
+            else if (matches(AttributeDescription.TypeForwardedToAttribute))
                 result |= QuickAttributes.TypeForwardedTo;
-            else if (Matches(AttributeDescription.AssemblyKeyNameAttribute))
+            else if (matches(AttributeDescription.AssemblyKeyNameAttribute))
                 result |= QuickAttributes.AssemblyKeyName;
-            else if (Matches(AttributeDescription.AssemblyKeyFileAttribute))
+            else if (matches(AttributeDescription.AssemblyKeyFileAttribute))
                 result |= QuickAttributes.AssemblyKeyFile;
-            else if (Matches(AttributeDescription.AssemblySignatureKeyAttribute))
+            else if (matches(AttributeDescription.AssemblySignatureKeyAttribute))
                 result |= QuickAttributes.AssemblySignatureKey;
 
             return result;
 
-            bool Matches(AttributeDescription attributeDescription)
+            bool matches(AttributeDescription attributeDescription)
             {
                 Debug.Assert(attributeDescription.Name.EndsWith(nameof(System.Attribute)));
 
