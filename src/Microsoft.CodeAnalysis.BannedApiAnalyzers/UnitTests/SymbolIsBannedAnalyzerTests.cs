@@ -126,6 +126,32 @@ End Class");
         }
 
         [Fact]
+        public async Task DiagnosticReportedForDuplicateBannedApiLinesInDifferentFiles()
+        {
+            var test = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { @"" },
+                    AdditionalFiles =
+                    {
+                        ("BannedSymbols.txt", @"{|#0:T:System.Console|}") ,
+                        ("BannedSymbols.Other.txt", @"{|#1:T:System.Console|}")
+                    },
+                },
+                ExpectedDiagnostics =
+                {
+                    new DiagnosticResult(SymbolIsBannedAnalyzer.DuplicateBannedSymbolRule)
+                        .WithLocation(0)
+                        .WithLocation(1)
+                        .WithArguments("System.Console")
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact]
         public async Task CSharp_BannedApiFile_MessageIncludedInDiagnostic()
         {
             var source = @"
@@ -242,10 +268,12 @@ namespace N
                         ("OtherFile.txt", @"T:N.NotBanned")
                     },
                 },
+                ExpectedDiagnostics =
+                {
+                    GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedA", ""),
+                    GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedB", "")
+                }
             };
-
-            test.ExpectedDiagnostics.Add(GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedA", ""));
-            test.ExpectedDiagnostics.Add(GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedB", ""));
 
             await test.RunAsync();
         }
@@ -1117,10 +1145,12 @@ End Namespace";
                         ("OtherFile.txt", @"T:N.NotBanned")
                     },
                 },
+                ExpectedDiagnostics =
+                {
+                    GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedA", ""),
+                    GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedB", "")
+                }
             };
-
-            test.ExpectedDiagnostics.Add(GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedA", ""));
-            test.ExpectedDiagnostics.Add(GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedB", ""));
 
             await test.RunAsync();
         }
