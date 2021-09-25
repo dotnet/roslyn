@@ -55,9 +55,12 @@ static class Utils
     }
 }";
 
-        private static readonly string s_expressionOfTDelegateTypeName = ExecutionConditionUtil.IsDesktop ?
+        private static readonly string s_expressionOfTDelegate0ArgTypeName = ExecutionConditionUtil.IsDesktop ?
             "System.Linq.Expressions.Expression`1" :
             "System.Linq.Expressions.Expression0`1";
+        private static readonly string s_expressionOfTDelegate1ArgTypeName = ExecutionConditionUtil.IsDesktop ?
+            "System.Linq.Expressions.Expression`1" :
+            "System.Linq.Expressions.Expression1`1";
 
         [Fact]
         public void LanguageVersion()
@@ -393,8 +396,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Linq.Expressions.Expression").WithLocation(9, 26));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-$@"{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+$@"{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -426,8 +429,8 @@ class Program
                 Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "System.Linq.Expressions.LambdaExpression").WithLocation(9, 32));
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
-$@"{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+$@"{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -550,7 +553,7 @@ class Program
 }";
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"System.Func`1[System.Action]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Action]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Action]]
 ");
         }
 
@@ -4715,7 +4718,7 @@ class Program
 
             string expectedOutput =
 $@"System.Func`1[System.Int32]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]";
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
         }
@@ -4749,7 +4752,7 @@ class Program
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"System.Func`1[System.Int32]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]");
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]");
         }
 
         [Fact]
@@ -5042,7 +5045,7 @@ class Program
 
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
 $@"System.Action`1[System.Int32]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -5077,9 +5080,9 @@ System.Func`1[System.Int32]
 System.Func`1[System.Int32]
 System.Func`1[System.Int32]
 System.Func`1[System.Int32]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -5113,10 +5116,10 @@ $@"System.Func`1[System.Int32]
 System.Func`1[System.Int32]
 System.Func`1[System.Int32]
 System.Func`1[System.Int32]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
-{s_expressionOfTDelegateTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
 ");
         }
 
@@ -5705,11 +5708,582 @@ class Program
         }
 
         [Fact]
-        public void Variance()
+        public void TypeInference_ExplicitReturnType_01()
         {
             var source =
 @"using System;
-delegate void StringAction(string s);
+using System.Linq.Expressions;
+class Program
+{
+    static void F1<T>(Func<T> f) { Console.WriteLine(f.GetType()); }
+    static void F2<T>(Expression<Func<T>> e) { Console.WriteLine(e.GetType()); }
+    static void Main()
+    {
+        F1(int () => throw new Exception());
+        F2(int () => default);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(int () => throw new Exception());
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(9, 12),
+                // (10,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(int () => default);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(10, 12));
+
+            var expectedOutput =
+$@"System.Func`1[System.Int32]
+{s_expressionOfTDelegate0ArgTypeName}[System.Func`1[System.Int32]]
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_02()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void F1<T>(Func<T, T> f) { Console.WriteLine(f.GetType()); }
+    static void F2<T>(Expression<Func<T, T>> e) { Console.WriteLine(e.GetType()); }
+    static void Main()
+    {
+        F1(int (i) => i);
+        F2(string (s) => s);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(int (i) => i);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(9, 12),
+                // (10,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (s) => s);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(10, 12));
+
+            var expectedOutput =
+$@"System.Func`2[System.Int32,System.Int32]
+{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.String,System.String]]
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_03()
+        {
+            var source =
+@"using System;
+delegate ref T D1<T>(T t);
+delegate ref readonly T D2<T>(T t);
+class Program
+{
+    static void F1<T>(D1<T> d) { Console.WriteLine(d.GetType()); }
+    static void F2<T>(D2<T> d) { Console.WriteLine(d.GetType()); }
+    static void Main()
+    {
+        F1((ref int (i) => ref i));
+        F2((ref readonly string (s) => ref s));
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (10,13): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1((ref int (i) => ref i));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ref int").WithArguments("lambda return type", "10.0").WithLocation(10, 13),
+                // (10,32): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref or out parameter
+                //         F1((ref int (i) => ref i));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(10, 32),
+                // (11,13): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2((ref readonly string (s) => ref s));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "ref readonly string").WithArguments("lambda return type", "10.0").WithLocation(11, 13),
+                // (11,44): error CS8166: Cannot return a parameter by reference 's' because it is not a ref or out parameter
+                //         F2((ref readonly string (s) => ref s));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "s").WithArguments("s").WithLocation(11, 44));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,32): error CS8166: Cannot return a parameter by reference 'i' because it is not a ref or out parameter
+                //         F1((ref int (i) => ref i));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "i").WithArguments("i").WithLocation(10, 32),
+                // (11,44): error CS8166: Cannot return a parameter by reference 's' because it is not a ref or out parameter
+                //         F2((ref readonly string (s) => ref s));
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "s").WithArguments("s").WithLocation(11, 44)
+            };
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_04()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void F1<T>(Func<T, T> x, T y) { Console.WriteLine(x.GetType()); }
+    static void F2<T>(Expression<Func<T, T>> x, T y) { Console.WriteLine(x.GetType()); }
+    static void Main()
+    {
+        F1(object (o) => o, 1);
+        F1(int (i) => i, 2);
+        F2(object (o) => o, string.Empty);
+        F2(string (s) => s, string.Empty);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(object (o) => o, 1);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object").WithArguments("lambda return type", "10.0").WithLocation(9, 12),
+                // (10,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(int (i) => i, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(10, 12),
+                // (11,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(object (o) => o, string.Empty);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object").WithArguments("lambda return type", "10.0").WithLocation(11, 12),
+                // (12,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (s) => s, string.Empty);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(12, 12));
+
+            var expectedOutput =
+$@"System.Func`2[System.Object,System.Object]
+System.Func`2[System.Int32,System.Int32]
+{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.Object,System.Object]]
+{s_expressionOfTDelegate1ArgTypeName}[System.Func`2[System.String,System.String]]
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_05()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void F1<T>(Func<T, T> x, T y) { Console.WriteLine(x.GetType()); }
+    static void F2<T>(Expression<Func<T, T>> x, T y) { Console.WriteLine(x.GetType()); }
+    static void Main()
+    {
+        F1(int (i) => i, (object)1);
+        F2(string (s) => s, (object)2);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS0411: The type arguments for method 'Program.F1<T>(Func<T, T>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F1(int (i) => i, (object)1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Func<T, T>, T)").WithLocation(9, 9),
+                // (9,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(int (i) => i, (object)1);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(9, 12),
+                // (10,9): error CS0411: The type arguments for method 'Program.F2<T>(Expression<Func<T, T>>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F2(string (s) => s, (object)2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Linq.Expressions.Expression<System.Func<T, T>>, T)").WithLocation(10, 9),
+                // (10,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (s) => s, (object)2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(10, 12));
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,9): error CS0411: The type arguments for method 'Program.F1<T>(Func<T, T>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F1(int (i) => i, (object)1);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Func<T, T>, T)").WithLocation(9, 9),
+                // (10,9): error CS0411: The type arguments for method 'Program.F2<T>(Expression<Func<T, T>>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F2(string (s) => s, (object)2);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Linq.Expressions.Expression<System.Func<T, T>>, T)").WithLocation(10, 9)
+            };
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_06()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+interface I<T> { }
+class Program
+{
+    static void F1<T>(Func<T, T> f) { }
+    static void F2<T>(Func<T, I<T>> f) { }
+    static void F3<T>(Func<I<T>, T> f) { }
+    static void F4<T>(Func<I<T>, I<T>> f) { }
+    static void F5<T>(Expression<Func<T, T>> e) { }
+    static void F6<T>(Expression<Func<T, I<T>>> e) { }
+    static void F7<T>(Expression<Func<I<T>, T>> e) { }
+    static void F8<T>(Expression<Func<I<T>, I<T>>> e) { }
+    static void Main()
+    {
+        F1(int (int i) => default);
+        F2(I<int> (int i) => default);
+        F3(int (I<int> i) => default);
+        F4(I<int> (I<int> i) => default);
+        F5(int (int i) => default);
+        F6(I<int> (int i) => default);
+        F7(int (I<int> i) => default);
+        F8(I<int> (I<int> i) => default);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_07()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+interface I<T> { }
+class Program
+{
+    static void F1<T>(Func<T, T> f) { }
+    static void F2<T>(Func<T, I<T>> f) { }
+    static void F3<T>(Func<I<T>, T> f) { }
+    static void F4<T>(Func<I<T>, I<T>> f) { }
+    static void F5<T>(Expression<Func<T, T>> e) { }
+    static void F6<T>(Expression<Func<T, I<T>>> e) { }
+    static void F7<T>(Expression<Func<I<T>, T>> e) { }
+    static void F8<T>(Expression<Func<I<T>, I<T>>> e) { }
+    static void Main()
+    {
+        F1(int (object i) => default);
+        F2(I<int> (object i) => default);
+        F3(object (I<int> i) => default);
+        F4(I<object> (I<int> i) => default);
+        F5(object (int i) => default);
+        F6(I<object> (int i) => default);
+        F7(int (I<object> i) => default);
+        F8(I<int> (I<object> i) => default);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (16,9): error CS0411: The type arguments for method 'Program.F1<T>(Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F1(int (object i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Func<T, T>)").WithLocation(16, 9),
+                // (17,9): error CS0411: The type arguments for method 'Program.F2<T>(Func<T, I<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F2(I<int> (object i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Func<T, I<T>>)").WithLocation(17, 9),
+                // (18,9): error CS0411: The type arguments for method 'Program.F3<T>(Func<I<T>, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F3(object (I<int> i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F3").WithArguments("Program.F3<T>(System.Func<I<T>, T>)").WithLocation(18, 9),
+                // (19,9): error CS0411: The type arguments for method 'Program.F4<T>(Func<I<T>, I<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F4(I<object> (I<int> i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F4").WithArguments("Program.F4<T>(System.Func<I<T>, I<T>>)").WithLocation(19, 9),
+                // (20,9): error CS0411: The type arguments for method 'Program.F5<T>(Expression<Func<T, T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F5(object (int i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F5").WithArguments("Program.F5<T>(System.Linq.Expressions.Expression<System.Func<T, T>>)").WithLocation(20, 9),
+                // (21,9): error CS0411: The type arguments for method 'Program.F6<T>(Expression<Func<T, I<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F6(I<object> (int i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F6").WithArguments("Program.F6<T>(System.Linq.Expressions.Expression<System.Func<T, I<T>>>)").WithLocation(21, 9),
+                // (22,9): error CS0411: The type arguments for method 'Program.F7<T>(Expression<Func<I<T>, T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F7(int (I<object> i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F7").WithArguments("Program.F7<T>(System.Linq.Expressions.Expression<System.Func<I<T>, T>>)").WithLocation(22, 9),
+                // (23,9): error CS0411: The type arguments for method 'Program.F8<T>(Expression<Func<I<T>, I<T>>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F8(I<int> (I<object> i) => default);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F8").WithArguments("Program.F8<T>(System.Linq.Expressions.Expression<System.Func<I<T>, I<T>>>)").WithLocation(23, 9));
+        }
+
+        // Variance in inference from explicit return type is disallowed
+        // (see https://github.com/dotnet/csharplang/blob/main/meetings/2021/LDM-2021-06-21.md).
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_08()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void F1<T>(Func<T, T> x, Func<T, T> y) { Console.WriteLine(x.GetType()); }
+    static void F2<T>(Expression<Func<T, T>> x, Expression<Func<T, T>> y) { Console.WriteLine(x.GetType()); }
+    static void Main()
+    {
+        F1(int (x) => x, int (y) => y);
+        F1(object (x) => x, int (y) => y);
+        F2(string (x) => x, string (y) => y);
+        F2(string (x) => x, object (y) => y);
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(int (x) => x, int (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(9, 12),
+                // (9,26): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(int (x) => x, int (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(9, 26),
+                // (10,9): error CS0411: The type arguments for method 'Program.F1<T>(Func<T, T>, Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F1(object (x) => x, int (y) => y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Func<T, T>, System.Func<T, T>)").WithLocation(10, 9),
+                // (10,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(object (x) => x, int (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object").WithArguments("lambda return type", "10.0").WithLocation(10, 12),
+                // (10,29): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F1(object (x) => x, int (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "int").WithArguments("lambda return type", "10.0").WithLocation(10, 29),
+                // (11,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (x) => x, string (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(11, 12),
+                // (11,29): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (x) => x, string (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(11, 29),
+                // (12,9): error CS0411: The type arguments for method 'Program.F2<T>(Expression<Func<T, T>>, Expression<Func<T, T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F2(string (x) => x, object (y) => y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Linq.Expressions.Expression<System.Func<T, T>>, System.Linq.Expressions.Expression<System.Func<T, T>>)").WithLocation(12, 9),
+                // (12,12): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (x) => x, object (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(12, 12),
+                // (12,29): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         F2(string (x) => x, object (y) => y);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object").WithArguments("lambda return type", "10.0").WithLocation(12, 29));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,9): error CS0411: The type arguments for method 'Program.F1<T>(Func<T, T>, Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F1(object (x) => x, int (y) => y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F1").WithArguments("Program.F1<T>(System.Func<T, T>, System.Func<T, T>)").WithLocation(10, 9),
+                // (12,9): error CS0411: The type arguments for method 'Program.F2<T>(Expression<Func<T, T>>, Expression<Func<T, T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         F2(string (x) => x, object (y) => y);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(System.Linq.Expressions.Expression<System.Func<T, T>>, System.Linq.Expressions.Expression<System.Func<T, T>>)").WithLocation(12, 9)
+            };
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_09()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static T F1<T>(Func<T, T> f) => default!;
+    static T F2<T>(Expression<Func<T, T>> e) => default!;
+    static void Main()
+    {
+        F1(object (x1) => x1).ToString();
+        F2(object (x2) => x2).ToString();
+        F1(object? (y1) => y1).ToString();
+        F2(object? (y2) => y2).ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1(object? (y1) => y1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(object? (y1) => y1)").WithLocation(12, 9),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         F2(object? (y2) => y2).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(object? (y2) => y2)").WithLocation(13, 9));
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_10()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static T F1<T>(Func<T, T> f) => default!;
+    static T F2<T>(Expression<Func<T, T>> e) => default!;
+    static void Main()
+    {
+        F1(
+#nullable disable
+            object (x1) =>
+#nullable enable
+                x1).ToString();
+        F2(
+#nullable disable
+            object (x2) =>
+#nullable enable
+                x2).ToString();
+        F1(
+#nullable disable
+            object
+#nullable enable
+                (y1) => y1).ToString();
+        F2(
+#nullable disable
+            object
+#nullable enable
+                (y2) => y2).ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_11()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static T F1<T>(Func<T, T> f) => default!;
+    static T F2<T>(Expression<Func<T, T>> e) => default!;
+    static void Main()
+    {
+        var x1 = F1(
+#nullable enable
+            object?
+#nullable disable
+                (x1) =>
+#nullable enable
+                x1);
+        var x2 = F2(
+#nullable enable
+            object?
+#nullable disable
+                (x2) =>
+#nullable enable
+                x2);
+        var y1 = F1(
+#nullable enable
+            object
+#nullable disable
+                (y1) =>
+#nullable enable
+                y1);
+        var y2 = F2(
+#nullable enable
+            object
+#nullable disable
+                (y2) =>
+#nullable enable
+                y2);
+        x1.ToString();
+        x2.ToString();
+        y1.ToString();
+        y2.ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (38,9): warning CS8602: Dereference of a possibly null reference.
+                //         x1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(38, 9),
+                // (39,9): warning CS8602: Dereference of a possibly null reference.
+                //         x2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(39, 9));
+        }
+
+        [WorkItem(54257, "https://github.com/dotnet/roslyn/issues/54257")]
+        [Fact]
+        public void TypeInference_ExplicitReturnType_12()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Linq.Expressions;
+class Program
+{
+    static T F1<T>(Func<T, T> f) => default!;
+    static T F2<T>(Expression<Func<T, T>> e) => default!;
+    static void Main()
+    {
+        var x1 = F1(object (object x1) => x1);
+        var x2 = F1(object (object? x2) => x2);
+        var x3 = F1(object? (object x3) => x3);
+        var x4 = F1(object? (object? x4) => x4);
+        var y1 = F2(object (object y1) => y1);
+        var y2 = F2(object (object? y2) => y2);
+        var y3 = F2(object? (object y3) => y3);
+        var y4 = F2(object? (object? y4) => y4);
+        x1.ToString();
+        x2.ToString();
+        x3.ToString();
+        x4.ToString();
+        y1.ToString();
+        y2.ToString();
+        y3.ToString();
+        y4.ToString();
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,21): warning CS8622: Nullability of reference types in type of parameter 'x2' of 'lambda expression' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+                //         var x2 = F1(object (object? x2) => x2);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "object (object? x2) => x2").WithArguments("x2", "lambda expression", "System.Func<object, object>").WithLocation(11, 21),
+                // (11,44): warning CS8603: Possible null reference return.
+                //         var x2 = F1(object (object? x2) => x2);
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x2").WithLocation(11, 44),
+                // (12,21): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+                //         var x3 = F1(object? (object x3) => x3);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "object? (object x3) => x3").WithArguments("lambda expression", "System.Func<object, object>").WithLocation(12, 21),
+                // (15,21): warning CS8622: Nullability of reference types in type of parameter 'y2' of 'lambda expression' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+                //         var y2 = F2(object (object? y2) => y2);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "object (object? y2) => y2").WithArguments("y2", "lambda expression", "System.Func<object, object>").WithLocation(15, 21),
+                // (15,44): warning CS8603: Possible null reference return.
+                //         var y2 = F2(object (object? y2) => y2);
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y2").WithLocation(15, 44),
+                // (16,21): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<object, object>' (possibly because of nullability attributes).
+                //         var y3 = F2(object? (object y3) => y3);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "object? (object y3) => y3").WithArguments("lambda expression", "System.Func<object, object>").WithLocation(16, 21),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         x4.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(21, 9),
+                // (25,9): warning CS8602: Dereference of a possibly null reference.
+                //         y4.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y4").WithLocation(25, 9));
+        }
+
+        [Fact]
+        public void Variance_01()
+        {
+            var source =
+@"using System;
 class Program
 {
     static void Main()
@@ -5722,12 +6296,33 @@ class Program
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,29): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
+                // (8,29): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
                 //         Action<string> a3 = (object o) => { };
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(9, 29),
-                // (9,37): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(8, 29),
+                // (8,37): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
                 //         Action<string> a3 = (object o) => { };
-                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(9, 37));
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(8, 37));
+        }
+
+        [Fact]
+        public void Variance_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Func<object> f1 = () => string.Empty;
+        Func<object> f2 = string () => string.Empty;
+        Func<object> f3 = (Func<string>)(() => string.Empty);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,27): error CS8934: Cannot convert lambda expression to type 'Func<object>' because the return type does not match the delegate return type
+                //         Func<object> f2 = string () => string.Empty;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "string () => string.Empty").WithArguments("lambda expression", "System.Func<object>").WithLocation(7, 27));
         }
 
         [Fact]
@@ -7504,18 +8099,17 @@ delegate void D2(object x, ref object y);
 delegate void D4(out object x, ref object y);
 class Program
 {
+    static void M(Delegate d) { Report(d); }
+    static void M(D2 d) { Report(d); }
+    static void M(D4 d) { Report(d); }
     static void F1(ref object x, object y) { }
     static void F2(object x, ref object y) { }
     static void Main()
     {
-        var d1 = F1;
-        D2 d2 = F2;
-        var d3 = (ref object x, out object y) => { y = null; };
-        D4 d4 = (out object x, ref object y) => { x = null; };
-        Report(d1);
-        Report(d2);
-        Report(d3);
-        Report(d4);
+        M(F1);
+        M(F2);
+        M((ref object x, out object y) => { y = null; });
+        M((out object x, ref object y) => { x = null; });
     }
     static void Report(Delegate d) => Console.WriteLine(d.GetType());
 }";
@@ -7553,6 +8147,698 @@ D4");
             Assert.Equal(expectedSymbol, symbol.ToTestDisplayString());
             var type = model.GetTypeInfo(variable).Type;
             Assert.Equal(expectedType, type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ClassifyConversionFromExpression()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        object o = () => 1;
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var funcOfT = comp.GetWellKnownType(WellKnownType.System_Func_T);
+            var tree = comp.SyntaxTrees[0];
+            var expr = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+            model = ((CSharpSemanticModel)model).GetMemberModel(expr);
+
+            verifyConversions(model, expr, comp.GetSpecialType(SpecialType.System_MulticastDelegate).GetPublicSymbol(), ConversionKind.FunctionType, ConversionKind.FunctionType);
+            verifyConversions(model, expr, comp.GetWellKnownType(WellKnownType.System_Linq_Expressions_Expression).GetPublicSymbol(), ConversionKind.FunctionType, ConversionKind.FunctionType);
+            verifyConversions(model, expr, getFunctionType(funcOfT.Construct(comp.GetSpecialType(SpecialType.System_Int32))), ConversionKind.FunctionType, ConversionKind.FunctionType);
+            verifyConversions(model, expr, getFunctionType(funcOfT.Construct(comp.GetSpecialType(SpecialType.System_Object))), ConversionKind.NoConversion, ConversionKind.NoConversion);
+
+            static ITypeSymbol getFunctionType(NamedTypeSymbol delegateType)
+            {
+                return new FunctionTypeSymbol_PublicModel(new FunctionTypeSymbol(delegateType));
+            }
+
+            static void verifyConversions(SemanticModel model, ExpressionSyntax expr, ITypeSymbol destination, ConversionKind expectedImplicitKind, ConversionKind expectedExplicitKind)
+            {
+                Assert.Equal(expectedImplicitKind, model.ClassifyConversion(expr, destination, isExplicitInSource: false).Kind);
+                Assert.Equal(expectedExplicitKind, model.ClassifyConversion(expr, destination, isExplicitInSource: true).Kind);
+            }
+        }
+
+        private sealed class FunctionTypeSymbol_PublicModel : Symbols.PublicModel.TypeSymbol
+        {
+            private readonly FunctionTypeSymbol _underlying;
+
+            internal FunctionTypeSymbol_PublicModel(FunctionTypeSymbol underlying) :
+                base(nullableAnnotation: default)
+            {
+                _underlying = underlying;
+            }
+
+            internal override TypeSymbol UnderlyingTypeSymbol => _underlying;
+            internal override NamespaceOrTypeSymbol UnderlyingNamespaceOrTypeSymbol => _underlying;
+            internal override Symbol UnderlyingSymbol => _underlying;
+
+            protected override void Accept(SymbolVisitor visitor) => throw new NotImplementedException();
+            protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor) => throw new NotImplementedException();
+            protected override ITypeSymbol WithNullableAnnotation(CodeAnalysis.NullableAnnotation nullableAnnotation) => this;
+        }
+
+        [WorkItem(56407, "https://github.com/dotnet/roslyn/issues/56407")]
+        [Fact]
+        public void UserDefinedConversions_01()
+        {
+            var source =
+@"using System.Linq.Expressions;
+
+public class Program
+{
+    public static void Main()
+    {
+        SomeMethod((Employee e) => e.Name);
+    }
+
+    public static void SomeMethod(Field field) { }
+
+    public class Employee
+    {
+        public string Name {  get; set; }
+    }
+
+    public class Field
+    {
+        public static implicit operator Field(Expression expression) => null;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,20): error CS1660: Cannot convert lambda expression to type 'Program.Field' because it is not a delegate type
+                //         SomeMethod((Employee e) => e.Name);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(Employee e) => e.Name").WithArguments("lambda expression", "Program.Field").WithLocation(7, 20)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UserDefinedConversions_Implicit_01()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C1
+{
+    public static implicit operator C1(Func<int> f) { Console.WriteLine(""operator C1(Func<int> f)""); return new C1(); }
+}
+class C2
+{
+    public static implicit operator C2(Expression<Func<int>> e) { Console.WriteLine(""operator C2(Expression<Func<int>> e)""); return new C2(); }
+}
+class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        C1 c1 = () => 1;
+        C2 c2 = () => 2;
+        c1 = F;
+        _ = (C1)(() => 1);
+        _ = (C2)(() => 2);
+        _ = (C1)F;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (16,17): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                //         C1 c1 = () => 1;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(16, 17),
+                // (17,17): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                //         C2 c2 = () => 2;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(17, 17),
+                // (18,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C1'. Did you intend to invoke the method?
+                //         c1 = F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C1").WithLocation(18, 14)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UserDefinedConversions_Implicit_02()
+        {
+            var source =
+@"using System;
+class C1
+{
+    public static implicit operator C1(object o) { Console.WriteLine(""operator C1(object o)""); return new C1(); }
+}
+class C2
+{
+    public static implicit operator C2(ICloneable c) { Console.WriteLine(""operator C2(ICloneable c)""); return new C2(); }
+}
+class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        C1 c1 = () => 1;
+        C2 c2 = () => 2;
+        c1 = F;
+        c2 = F;
+        _ = (C1)(() => 1);
+        _ = (C2)(() => 2);
+        _ = (C1)F;
+        _ = (C2)F;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,37): error CS0553: 'C1.implicit operator C1(object)': user-defined conversions to or from a base type are not allowed
+                //     public static implicit operator C1(object o) { Console.WriteLine("operator C1(object o)"); return new C1(); }
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "C1").WithArguments("C1.implicit operator C1(object)").WithLocation(4, 37),
+                // (8,37): error CS0552: 'C2.implicit operator C2(ICloneable)': user-defined conversions to or from an interface are not allowed
+                //     public static implicit operator C2(ICloneable c) { Console.WriteLine("operator C2(ICloneable c)"); return new C2(); }
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "C2").WithArguments("C2.implicit operator C2(System.ICloneable)").WithLocation(8, 37),
+                // (15,17): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                //         C1 c1 = () => 1;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(15, 17),
+                // (16,17): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                //         C2 c2 = () => 2;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(16, 17),
+                // (17,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C1'. Did you intend to invoke the method?
+                //         c1 = F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C1").WithLocation(17, 14),
+                // (18,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C2'. Did you intend to invoke the method?
+                //         c2 = F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C2").WithLocation(18, 14),
+                // (19,18): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                //         _ = (C1)(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(19, 18),
+                // (20,18): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                //         _ = (C2)(() => 2);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(20, 18),
+                // (21,13): error CS0030: Cannot convert type 'method' to 'C1'
+                //         _ = (C1)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(21, 13),
+                // (22,13): error CS0030: Cannot convert type 'method' to 'C2'
+                //         _ = (C2)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C2)F").WithArguments("method", "C2").WithLocation(22, 13)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UserDefinedConversions_Implicit_03()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C1
+{
+    public static implicit operator C1(Delegate d) { Console.WriteLine(""operator C1(Delegate d)""); return new C1(); }
+}
+class C2
+{
+    public static implicit operator C2(MulticastDelegate d) { Console.WriteLine(""operator C2(MulticastDelegate d)""); return new C2(); }
+}
+class C3
+{
+    public static implicit operator C3(Expression e) { Console.WriteLine(""operator C3(Expression e)""); return new C3(); }
+}
+class C4
+{
+    public static implicit operator C4(LambdaExpression e) { Console.WriteLine(""operator C4(LambdaExpression e)""); return new C4(); }
+}
+class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        C1 c1 = () => 1;
+        C2 c2 = () => 2;
+        C3 c3 = () => 3;
+        C4 c4 = () => 4;
+        c1 = F;
+        c2 = F;
+        _ = (C1)(() => 1);
+        _ = (C2)(() => 2);
+        _ = (C3)(() => 3);
+        _ = (C4)(() => 4);
+        _ = (C1)F;
+        _ = (C2)F;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (24,17): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                //         C1 c1 = () => 1;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(24, 17),
+                // (25,17): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                //         C2 c2 = () => 2;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(25, 17),
+                // (26,17): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
+                //         C3 c3 = () => 3;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C3").WithLocation(26, 17),
+                // (27,17): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
+                //         C4 c4 = () => 4;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C4").WithLocation(27, 17),
+                // (28,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C1'. Did you intend to invoke the method?
+                //         c1 = F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C1").WithLocation(28, 14),
+                // (29,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C2'. Did you intend to invoke the method?
+                //         c2 = F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C2").WithLocation(29, 14),
+                // (30,18): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                //         _ = (C1)(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(30, 18),
+                // (31,18): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                //         _ = (C2)(() => 2);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(31, 18),
+                // (32,18): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
+                //         _ = (C3)(() => 3);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C3").WithLocation(32, 18),
+                // (33,18): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
+                //         _ = (C4)(() => 4);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C4").WithLocation(33, 18),
+                // (34,13): error CS0030: Cannot convert type 'method' to 'C1'
+                //         _ = (C1)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(34, 13),
+                // (35,13): error CS0030: Cannot convert type 'method' to 'C2'
+                //         _ = (C2)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C2)F").WithArguments("method", "C2").WithLocation(35, 13)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UserDefinedConversions_Implicit_04()
+        {
+            var source =
+@"using System;
+class C<T>
+{
+    public static implicit operator C<T>(T t) { Console.WriteLine(""operator C<{0}>({0} t)"", typeof(T).FullName); return new C<T>(); }
+}
+class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        C<object> c1 = () => 1;
+        C<ICloneable> c2 = () => 2;
+        c1 = F;
+        c2 = F;
+        _ = (C<object>)(() => 1);
+        _ = (C<ICloneable>)(() => 2);
+        _ = (C<object>)F;
+        _ = (C<ICloneable>)F;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,24): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
+                //         C<object> c1 = () => 1;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<object>").WithLocation(11, 24),
+                // (12,28): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
+                //         C<ICloneable> c2 = () => 2;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(12, 28),
+                // (13,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C<object>'. Did you intend to invoke the method?
+                //         c1 = F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C<object>").WithLocation(13, 14),
+                // (14,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C<ICloneable>'. Did you intend to invoke the method?
+                //         c2 = F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C<System.ICloneable>").WithLocation(14, 14),
+                // (15,25): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
+                //         _ = (C<object>)(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<object>").WithLocation(15, 25),
+                // (16,29): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
+                //         _ = (C<ICloneable>)(() => 2);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(16, 29),
+                // (17,13): error CS0030: Cannot convert type 'method' to 'C<object>'
+                //         _ = (C<object>)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<object>)F").WithArguments("method", "C<object>").WithLocation(17, 13),
+                // (18,13): error CS0030: Cannot convert type 'method' to 'C<ICloneable>'
+                //         _ = (C<ICloneable>)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<ICloneable>)F").WithArguments("method", "C<System.ICloneable>").WithLocation(18, 13)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UserDefinedConversions_Implicit_05()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C<T>
+{
+    public static implicit operator C<T>(T t) { Console.WriteLine(""operator C<{0}>({0} t)"", typeof(T).FullName); return new C<T>(); }
+}
+class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        C<Delegate> c1 = () => 1;
+        C<MulticastDelegate> c2 = () => 2;
+        C<Expression> c3 = () => 3;
+        C<LambdaExpression> c4 = () => 4;
+        c1 = F;
+        c2 = F;
+        _ = (C<Delegate>)(() => 1);
+        _ = (C<MulticastDelegate>)(() => 2);
+        _ = (C<Expression>)(() => 3);
+        _ = (C<LambdaExpression>)(() => 4);
+        _ = (C<Delegate>)F;
+        _ = (C<MulticastDelegate>)F;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (12,26): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
+                //         C<Delegate> c1 = () => 1;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(12, 26),
+                // (13,35): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
+                //         C<MulticastDelegate> c2 = () => 2;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(13, 35),
+                // (14,28): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
+                //         C<Expression> c3 = () => 3;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(14, 28),
+                // (15,34): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
+                //         C<LambdaExpression> c4 = () => 4;
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(15, 34),
+                // (16,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C<Delegate>'. Did you intend to invoke the method?
+                //         c1 = F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C<System.Delegate>").WithLocation(16, 14),
+                // (17,14): error CS0428: Cannot convert method group 'F' to non-delegate type 'C<MulticastDelegate>'. Did you intend to invoke the method?
+                //         c2 = F;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "C<System.MulticastDelegate>").WithLocation(17, 14),
+                // (18,27): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
+                //         _ = (C<Delegate>)(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(18, 27),
+                // (19,36): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
+                //         _ = (C<MulticastDelegate>)(() => 2);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(19, 36),
+                // (20,29): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
+                //         _ = (C<Expression>)(() => 3);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(20, 29),
+                // (21,35): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
+                //         _ = (C<LambdaExpression>)(() => 4);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(21, 35),
+                // (22,13): error CS0030: Cannot convert type 'method' to 'C<Delegate>'
+                //         _ = (C<Delegate>)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<Delegate>)F").WithArguments("method", "C<System.Delegate>").WithLocation(22, 13),
+                // (23,13): error CS0030: Cannot convert type 'method' to 'C<MulticastDelegate>'
+                //         _ = (C<MulticastDelegate>)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<MulticastDelegate>)F").WithArguments("method", "C<System.MulticastDelegate>").WithLocation(23, 13)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UserDefinedConversions_Explicit_01()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C1
+{
+    public static explicit operator C1(Func<int> f) { Console.WriteLine(""operator C1(Func<int> f)""); return new C1(); }
+}
+class C2
+{
+    public static explicit operator C2(Expression<Func<int>> e) { Console.WriteLine(""operator C2(Expression<Func<int>> e)""); return new C2(); }
+}
+class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        _ = (C1)(() => 1);
+        _ = (C2)(() => 2);
+        _ = (C1)F;
+    }
+}";
+
+            string expectedOutput =
+@"operator C1(Func<int> f)
+operator C2(Expression<Func<int>> e)
+operator C1(Func<int> f)
+";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void UserDefinedConversions_Explicit_02()
+        {
+            var source =
+@"using System;
+class C1
+{
+    public static explicit operator C1(object o) { Console.WriteLine(""operator C1(object o)""); return new C1(); }
+}
+class C2
+{
+    public static explicit operator C2(ICloneable c) { Console.WriteLine(""operator C2(ICloneable c)""); return new C2(); }
+}
+class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        _ = (C1)(() => 1);
+        _ = (C2)(() => 2);
+        _ = (C1)F;
+        _ = (C2)F;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (4,37): error CS0553: 'C1.explicit operator C1(object)': user-defined conversions to or from a base type are not allowed
+                //     public static explicit operator C1(object o) { Console.WriteLine("operator C1(object o)"); return new C1(); }
+                Diagnostic(ErrorCode.ERR_ConversionWithBase, "C1").WithArguments("C1.explicit operator C1(object)").WithLocation(4, 37),
+                // (8,37): error CS0552: 'C2.explicit operator C2(ICloneable)': user-defined conversions to or from an interface are not allowed
+                //     public static explicit operator C2(ICloneable c) { Console.WriteLine("operator C2(ICloneable c)"); return new C2(); }
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "C2").WithArguments("C2.explicit operator C2(System.ICloneable)").WithLocation(8, 37),
+                // (15,18): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                //         _ = (C1)(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(15, 18),
+                // (16,18): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                //         _ = (C2)(() => 2);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(16, 18),
+                // (17,13): error CS0030: Cannot convert type 'method' to 'C1'
+                //         _ = (C1)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(17, 13),
+                // (18,13): error CS0030: Cannot convert type 'method' to 'C2'
+                //         _ = (C2)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C2)F").WithArguments("method", "C2").WithLocation(18, 13)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UserDefinedConversions_Explicit_03()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C1
+{
+    public static explicit operator C1(Delegate d) { Console.WriteLine(""operator C1(Delegate d)""); return new C1(); }
+}
+class C2
+{
+    public static explicit operator C2(MulticastDelegate d) { Console.WriteLine(""operator C2(MulticastDelegate d)""); return new C2(); }
+}
+class C3
+{
+    public static explicit operator C3(Expression e) { Console.WriteLine(""operator C3(Expression e)""); return new C3(); }
+}
+class C4
+{
+    public static explicit operator C4(LambdaExpression e) { Console.WriteLine(""operator C4(LambdaExpression e)""); return new C4(); }
+}
+class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        _ = (C1)(() => 1);
+        _ = (C2)(() => 2);
+        _ = (C3)(() => 3);
+        _ = (C4)(() => 4);
+        _ = (C1)F;
+        _ = (C2)F;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (24,18): error CS1660: Cannot convert lambda expression to type 'C1' because it is not a delegate type
+                //         _ = (C1)(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C1").WithLocation(24, 18),
+                // (25,18): error CS1660: Cannot convert lambda expression to type 'C2' because it is not a delegate type
+                //         _ = (C2)(() => 2);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C2").WithLocation(25, 18),
+                // (26,18): error CS1660: Cannot convert lambda expression to type 'C3' because it is not a delegate type
+                //         _ = (C3)(() => 3);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C3").WithLocation(26, 18),
+                // (27,18): error CS1660: Cannot convert lambda expression to type 'C4' because it is not a delegate type
+                //         _ = (C4)(() => 4);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C4").WithLocation(27, 18),
+                // (28,13): error CS0030: Cannot convert type 'method' to 'C1'
+                //         _ = (C1)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C1)F").WithArguments("method", "C1").WithLocation(28, 13),
+                // (29,13): error CS0030: Cannot convert type 'method' to 'C2'
+                //         _ = (C2)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C2)F").WithArguments("method", "C2").WithLocation(29, 13)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UserDefinedConversions_Explicit_04()
+        {
+            var source =
+@"using System;
+class C<T>
+{
+    public static explicit operator C<T>(T t) { Console.WriteLine(""operator C<{0}>({0} t)"", typeof(T).FullName); return new C<T>(); }
+}
+class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        _ = (C<object>)(() => 1);
+        _ = (C<ICloneable>)(() => 2);
+        _ = (C<object>)F;
+        _ = (C<ICloneable>)F;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,25): error CS1660: Cannot convert lambda expression to type 'C<object>' because it is not a delegate type
+                //         _ = (C<object>)(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<object>").WithLocation(11, 25),
+                // (12,29): error CS1660: Cannot convert lambda expression to type 'C<ICloneable>' because it is not a delegate type
+                //         _ = (C<ICloneable>)(() => 2);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.ICloneable>").WithLocation(12, 29),
+                // (13,13): error CS0030: Cannot convert type 'method' to 'C<object>'
+                //         _ = (C<object>)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<object>)F").WithArguments("method", "C<object>").WithLocation(13, 13),
+                // (14,13): error CS0030: Cannot convert type 'method' to 'C<ICloneable>'
+                //         _ = (C<ICloneable>)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<ICloneable>)F").WithArguments("method", "C<System.ICloneable>").WithLocation(14, 13)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UserDefinedConversions_Explicit_05()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class C<T>
+{
+    public static explicit operator C<T>(T t) { Console.WriteLine(""operator C<{0}>({0} t)"", typeof(T).FullName); return new C<T>(); }
+}
+class Program
+{
+    static int F() => 0;
+    static void Main()
+    {
+        _ = (C<Delegate>)(() => 1);
+        _ = (C<MulticastDelegate>)(() => 2);
+        _ = (C<Expression>)(() => 3);
+        _ = (C<LambdaExpression>)(() => 4);
+        _ = (C<Delegate>)F;
+        _ = (C<MulticastDelegate>)F;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (12,27): error CS1660: Cannot convert lambda expression to type 'C<Delegate>' because it is not a delegate type
+                //         _ = (C<Delegate>)(() => 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "C<System.Delegate>").WithLocation(12, 27),
+                // (13,36): error CS1660: Cannot convert lambda expression to type 'C<MulticastDelegate>' because it is not a delegate type
+                //         _ = (C<MulticastDelegate>)(() => 2);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 2").WithArguments("lambda expression", "C<System.MulticastDelegate>").WithLocation(13, 36),
+                // (14,29): error CS1660: Cannot convert lambda expression to type 'C<Expression>' because it is not a delegate type
+                //         _ = (C<Expression>)(() => 3);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 3").WithArguments("lambda expression", "C<System.Linq.Expressions.Expression>").WithLocation(14, 29),
+                // (15,35): error CS1660: Cannot convert lambda expression to type 'C<LambdaExpression>' because it is not a delegate type
+                //         _ = (C<LambdaExpression>)(() => 4);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 4").WithArguments("lambda expression", "C<System.Linq.Expressions.LambdaExpression>").WithLocation(15, 35),
+                // (16,13): error CS0030: Cannot convert type 'method' to 'C<Delegate>'
+                //         _ = (C<Delegate>)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<Delegate>)F").WithArguments("method", "C<System.Delegate>").WithLocation(16, 13),
+                // (17,13): error CS0030: Cannot convert type 'method' to 'C<MulticastDelegate>'
+                //         _ = (C<MulticastDelegate>)F;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(C<MulticastDelegate>)F").WithArguments("method", "C<System.MulticastDelegate>").WithLocation(17, 13)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
