@@ -24,8 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 {
     internal class InheritanceMarginViewMargin : ForegroundThreadAffinitizedObject, IWpfTextViewMargin
     {
-        // Same size as the Glyph Margin
-        private const double HeightAndWidthOfMargin = 17;
+        // 16 (width of the crisp image) + 2 * 1 (width of the border) = 18
+        private const double HeightAndWidthOfMargin = 18;
         private readonly IWpfTextView _textView;
         private readonly ITagAggregator<InheritanceMarginTag> _tagAggregator;
         private readonly IOptionService _optionService;
