@@ -10,27 +10,49 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Options;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal static class SerializationExtensions
     {
-        public static ProjectStateChecksums GetCheckSum(this ProjectInfo projectInfo, ISerializerService serializer)
+        public static ProjectStateChecksums GetChecksum(this ProjectInfo projectInfo, ISerializerService serializer)
         {
-            var infoChecksum = projectInfo.Attributes.GetCheckSum();
-            var compilationChecksum = Checksum.Create(WellKnownSynchronizationKind.CompilationOptions, projectInfo.CompilationOptions, serializer);
-            var parseOptionsChecksum = Checksum.Create(WellKnownSynchronizationKind.ParseOptions, projectInfo.ParseOptions, serializer);
+            var infoChecksum = serializer.CreateChecksum(projectInfo.Attributes, default);
+            var compilationOptionsChecksum = ChecksumCache.GetOrCreate(projectInfo.CompilationOptions!, _ => serializer.CreateChecksum(projectInfo.CompilationOptions!, default));
 
-            var projectReferenceChecksums = new ProjectReferenceChecksumCollection(projectInfo.ProjectReferences.SelectAsArray(pr => serializer.CreateChecksum(pr, default)).ToArray());
-            var metadataReferenceChecksums = new MetadataReferenceChecksumCollection(projectInfo.MetadataReferences.SelectAsArray(mr => serializer.CreateChecksum(mr, default)).ToArray());
-            var analyzerReferenceChecksums = new AnalyzerReferenceChecksumCollection(projectInfo.AnalyzerReferences.SelectAsArray(ar => serializer.CreateChecksum(ar, default)).ToArray());
+            var parseOptionsChecksum = serializer.CreateChecksum(projectInfo.ParseOptions!, default);
 
-            var documentChecksums = new DocumentChecksumCollection(projectInfo.Documents.SelectAsArray(di => di.GetCheckSum()).ToArray());
-            var additionalChecksums = new TextDocumentChecksumCollection(projectInfo.AdditionalDocuments.SelectAsArray(di => di.GetCheckSum()).ToArray());
-            var analyzerConfigDocumentChecksums = new AnalyzerConfigDocumentChecksumCollection(projectInfo.AnalyzerConfigDocuments.SelectAsArray(di => di.GetCheckSum()).ToArray());
+            var projectReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(projectInfo.ProjectReferences, _ => new ChecksumCollection(projectInfo.ProjectReferences.Select(r => serializer.CreateChecksum(r, default)).ToArray()));
+            var metadataReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(projectInfo.MetadataReferences, _ => new ChecksumCollection(projectInfo.MetadataReferences.Select(r => serializer.CreateChecksum(r, default)).ToArray()));
+            var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(projectInfo.AnalyzerReferences, _ => new ChecksumCollection(projectInfo.AnalyzerReferences.Select(r => serializer.CreateChecksum(r, default)).ToArray()));
+
+            var documentChecksums = new ChecksumCollection(projectInfo.Documents.SelectAsArray(documentInfo =>
+            {
+                var infoChecksum = serializer.CreateChecksum(documentInfo.Attributes, default);
+                var sourceText = SourceText.From(File.OpenRead(documentInfo.FilePath));
+                var textChecksum = serializer.CreateChecksum(sourceText, default);
+                return new DocumentStateChecksums(infoChecksum, textChecksum);
+            }).ToArray());
+
+            var additionalChecksums = new ChecksumCollection(projectInfo.AdditionalDocuments.SelectAsArray(documentInfo =>
+            {
+                var infoChecksum = serializer.CreateChecksum(documentInfo.Attributes, default);
+                var sourceText = SourceText.From(File.OpenRead(documentInfo.FilePath));
+                var textChecksum = serializer.CreateChecksum(sourceText, default);
+                return new DocumentStateChecksums(infoChecksum, textChecksum);
+            }).ToArray());
+
+            var analyzerConfigDocumentChecksums = new ChecksumCollection(projectInfo.AdditionalDocuments.SelectAsArray(documentInfo =>
+            {
+                var infoChecksum = serializer.CreateChecksum(documentInfo.Attributes, default);
+                var sourceText = SourceText.From(File.OpenRead(documentInfo.FilePath));
+                var textChecksum = serializer.CreateChecksum(sourceText, default);
+                return new DocumentStateChecksums(infoChecksum, textChecksum);
+            }).ToArray());
 
             return new ProjectStateChecksums(infoChecksum,
-                                             compilationChecksum,
+                                             compilationOptionsChecksum,
                                              parseOptionsChecksum,
                                              documentChecksums,
                                              projectReferenceChecksums,
@@ -38,30 +60,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                                              analyzerReferenceChecksums,
                                              additionalChecksums,
                                              analyzerConfigDocumentChecksums);
-        }
-
-        public static Checksum GetCheckSum(this DocumentInfo documentInfo)
-        {
-            return documentInfo.Attributes.GetCheckSum();
-        }
-
-        public static Checksum GetCheckSum<T>(this T @object)
-            where T : IObjectWritable
-        {
-            return @object switch
-            {
-                ProjectChecksumCollection x => Checksum.Create(WellKnownSynchronizationKind.Projects, x),
-                DocumentChecksumCollection x => Checksum.Create(WellKnownSynchronizationKind.Documents, x),
-                TextDocumentChecksumCollection x => Checksum.Create(WellKnownSynchronizationKind.TextDocuments, x),
-                AnalyzerConfigDocumentChecksumCollection x => Checksum.Create(WellKnownSynchronizationKind.AnalyzerConfigDocuments, x),
-                ProjectReferenceChecksumCollection x => Checksum.Create(WellKnownSynchronizationKind.ProjectReferences, x),
-                MetadataReferenceChecksumCollection x => Checksum.Create(WellKnownSynchronizationKind.MetadataReferences, x),
-                AnalyzerReferenceChecksumCollection x => Checksum.Create(WellKnownSynchronizationKind.AnalyzerReferences, x),
-                SolutionInfo.SolutionAttributes x => Checksum.Create(WellKnownSynchronizationKind.SolutionAttributes, x),
-                ProjectInfo.ProjectAttributes x => Checksum.Create(WellKnownSynchronizationKind.ProjectAttributes, x),
-                DocumentInfo.DocumentAttributes x => Checksum.Create(WellKnownSynchronizationKind.DocumentAttributes, x),
-                _ => throw new InvalidOperationException()
-            };
         }
     }
 }

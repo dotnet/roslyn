@@ -17,33 +17,32 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private async Task<ImmutableArray<Project>> UpdateProjectsAsync(ImmutableArray<ProjectInfo> newProjectInfos)
         {
-            using (_serializationLock.DisposableWait())
+            using var _1 = ArrayBuilder<ProjectId>.GetInstance(out var updatedProjectIds);
+
+            var serialization = this.Services.GetRequiredService<ISerializerService>();
+            foreach (var projectInfo in newProjectInfos)
             {
-                var serialization = this.Services.GetRequiredService<ISerializerService>();
-                var updatedProjectIds = TemporaryArray<ProjectId>.Empty;
-                var oldSolution = this.CurrentSolution;
-                var solution = oldSolution;
-                foreach (var projectInfo in newProjectInfos)
+                _ = SetCurrentSolution((solution) =>
                 {
                     var projectToUpdate = solution.GetProject(projectInfo.Id);
                     RoslynDebug.AssertNotNull(projectToUpdate);
-                    var oldCheckSum = await projectToUpdate.State.GetStateChecksumsAsync(default).ConfigureAwait(false);
-                    var newCheckSum = projectInfo.GetCheckSum(serialization);
-                    var newProject = await UpdateProjectAsync(projectToUpdate, projectInfo, oldCheckSum, newCheckSum).ConfigureAwait(false);
+                    var oldCheckSum = projectToUpdate.State.GetStateChecksumsAsync(default).WaitAndGetResult(default);
+                    var newCheckSum = projectInfo.GetChecksum(serialization);
+                    var newProject = UpdateProjectAsync(projectToUpdate, projectInfo, oldCheckSum, newCheckSum).WaitAndGetResult(default);
                     solution = AdjustReloadedProject(projectToUpdate, newProject).Solution;
                     updatedProjectIds.Add(newProject.Id);
-                }
-
-                this.SetCurrentSolution(solution);
-                using var _1 = ArrayBuilder<Project>.GetInstance(out var updatedProjects);
-                foreach (var projectId in updatedProjectIds)
-                {
-                    _ = this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectReloaded, oldSolution, solution, projectId);
-                    updatedProjects.Add(solution.GetProject(projectId)!);
-                }
-
-                return updatedProjects.ToImmutableAndFree();
+                    return solution;
+                }, WorkspaceChangeKind.ProjectReloaded);
             }
+
+            using var _2 = ArrayBuilder<Project>.GetInstance(out var updatedProjects);
+            var solution = CurrentSolution;
+            foreach (var projectId in updatedProjectIds)
+            {
+                updatedProjects.Add(solution.GetProject(projectId)!);
+            }
+
+            return updatedProjects.ToImmutableAndFree();
         }
 
         private static async Task<Project> UpdateProjectAsync(Project project, ProjectInfo newProjectInfo, ProjectStateChecksums oldCheckSum, ProjectStateChecksums newCheckSum)
