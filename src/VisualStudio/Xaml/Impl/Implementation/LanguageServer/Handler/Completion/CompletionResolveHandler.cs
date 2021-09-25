@@ -51,10 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return completionItem;
             }
 
-            CompletionResolveData data;
+            CompletionResolveData? data;
             if (completionItem.Data is JToken token)
             {
                 data = token.ToObject<CompletionResolveData>();
+                Assumes.Present(data);
             }
             else
             {

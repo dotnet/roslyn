@@ -613,15 +613,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !MakeExplicitParameterTypeInferences((BoundTupleLiteral)argument, target, kind, ref useSiteInfo))
             {
                 // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let's try to infer from argument type
-                if (IsReallyAType(argument.GetTypeOrFunctionType()))
+                var argumentType = _extensions.GetTypeWithAnnotations(argument);
+                if (IsReallyAType(argumentType.Type))
                 {
-                    ExactOrBoundsInference(kind, _extensions.GetTypeWithAnnotations(argument), target, ref useSiteInfo);
+                    ExactOrBoundsInference(kind, argumentType, target, ref useSiteInfo);
                 }
                 else if (IsUnfixedTypeParameter(target) && kind is ExactOrBoundsKind.LowerBound)
                 {
                     var ordinal = ((TypeParameterSymbol)target.Type).Ordinal;
-                    var typeWithAnnotations = _extensions.GetTypeWithAnnotations(argument);
-                    _nullableAnnotationLowerBounds[ordinal] = _nullableAnnotationLowerBounds[ordinal].Join(typeWithAnnotations.NullableAnnotation);
+                    _nullableAnnotationLowerBounds[ordinal] = _nullableAnnotationLowerBounds[ordinal].Join(argumentType.NullableAnnotation);
                 }
             }
         }
@@ -2835,7 +2835,7 @@ OuterBreak:
                 return false;
             }
 
-            return conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).Exists;
+            return conversions.ClassifyImplicitConversionFromTypeWhenNeitherOrBothFunctionTypes(source, destination, ref useSiteInfo).Exists;
         }
 #nullable disable
 
