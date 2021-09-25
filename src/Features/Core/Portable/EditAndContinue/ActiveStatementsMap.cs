@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static bool TryGetUpToDateSpan(ManagedActiveStatementDebugInfo activeStatementInfo, ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> remapping, out LinePositionSpan newSpan)
         {
             // Drop stale active statements - their location in the current snapshot is unknown.
-            if (activeStatementInfo.Flags.HasFlag(ActiveStatementFlags.IsStale))
+            if (activeStatementInfo.Flags.HasFlag(ActiveStatementFlags.Stale))
             {
                 newSpan = default;
                 return false;

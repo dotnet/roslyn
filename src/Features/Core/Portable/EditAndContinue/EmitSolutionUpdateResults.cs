@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     var severity = descriptor.DefaultSeverity switch
                     {
-                        DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.RudeEdit,
+                        DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.RestartRequired,
                         DiagnosticSeverity.Warning => ManagedHotReloadDiagnosticSeverity.Warning,
                         _ => throw ExceptionUtilities.UnexpectedValue(descriptor.DefaultSeverity)
                     };

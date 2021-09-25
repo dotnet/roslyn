@@ -11074,11 +11074,11 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2, flags: new[]
             {
-                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsLeafFrame,
-                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsNonLeafFrame,
-                ActiveStatementFlags.IsLeafFrame,
-                ActiveStatementFlags.IsNonLeafFrame,
-                ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame,
+                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.NonLeafFrame,
+                ActiveStatementFlags.LeafFrame,
+                ActiveStatementFlags.NonLeafFrame,
+                ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.LeafFrame
             });
 
             edits.VerifyRudeDiagnostics(active,
@@ -11109,7 +11109,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2, flags: new[]
             {
-                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame
             });
 
             edits.VerifyRudeDiagnostics(active,
@@ -11137,7 +11137,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2, flags: new[]
             {
-                ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame
+                ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.LeafFrame
             });
 
             edits.VerifyRudeDiagnostics(active,

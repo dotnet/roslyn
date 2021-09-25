@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -36,6 +37,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         }
 
         private void WorkspaceDocumentOpened(object? sender, DocumentEventArgs e)
+        {
+            if (!DebuggerContractVersionCheck.IsRequiredDebuggerContractVersionAvailable())
+            {
+                return;
+            }
+
+            WorkspaceDocumentOpenedImpl(e);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void WorkspaceDocumentOpenedImpl(DocumentEventArgs e)
         {
             var proxy = new RemoteEditAndContinueServiceProxy(e.Document.Project.Solution.Workspace);
             _ = Task.Run(() => proxy.OnSourceFileUpdatedAsync(e.Document, CancellationToken.None)).ReportNonFatalErrorAsync();
