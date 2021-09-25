@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.UnitTests;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Aggregator
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Ag
     public class SettingsAggregatorTests
     {
         public static Workspace CreateWorkspace(params Type[]? additionalParts)
-            => new AdhocWorkspace(EditorTestCompositions.EditorFeatures.AddParts(additionalParts).GetHostServices(), WorkspaceKind.Host);
+            => new AdhocWorkspace(VisualStudioTestCompositions.LanguageServices.AddParts(additionalParts).GetHostServices(), WorkspaceKind.Host);
 
         private static Workspace CreateWorkspaceWithProjectAndDocuments()
         {
