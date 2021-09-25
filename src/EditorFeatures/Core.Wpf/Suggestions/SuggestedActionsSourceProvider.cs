@@ -90,10 +90,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             if (textBuffer.IsInLspEditorContext())
                 return null;
 
-            var asyncEnabled = _globalOptions.GetOption(SuggestionsOptions.Asynchronous) ??
-                               _globalOptions.GetOption(SuggestionsOptions.AsynchronousFeatureFlag);
+            var asyncEnabled = _globalOptions.GetOption(SuggestionsOptions.Asynchronous) is bool b ? b : _globalOptions.GetOption(SuggestionsOptions.AsynchronousFeatureFlag);
 
-            return asyncEnabled == true
+            return asyncEnabled
                 ? new AsyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry)
                 : new SyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry);
         }
