@@ -243,21 +243,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         }
                         break;
                     case SymbolKind.NamedType:
-                        // Make sure any nested types are also processed
-                        foreach (var member in symbol.GetMembers())
-                        {
-                            if (member.Kind is SymbolKind.NamedType)
-                            {
-                                namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
-                            }
-                        }
-
                         // Now process this type
                         Debug.Assert(debugDocuments.Count == 0);
                         Debug.Assert(methodDocumentList.Count == 0);
 
                         var typeDefinition = (Cci.ITypeDefinition)symbol.GetCciAdapter();
-                        GetDocumentsForMethods(methodDocumentList, typeDefinition, context);
+                        GetDocumentsForMethodsAndNestedTypes(methodDocumentList, typeDefinition, context);
 
                         foreach (var loc in symbol.Locations)
                         {
@@ -269,7 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             var span = loc.GetLineSpan();
                             var debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: null);
 
-                            // If we have a debug document that is already referenced by method debug info then we don't need to include it
+                            // If we have a debug document that is already referenced by method debug info in this type, or a nested type,
+                            // then we don't need to include it
                             if (debugDocument is not null && !methodDocumentList.Contains(debugDocument))
                             {
                                 debugDocuments.Add(debugDocument);
@@ -297,23 +289,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>
         /// Gets a list of documents from the method definitions in this type
         /// </summary>
-        private static void GetDocumentsForMethods(PooledHashSet<Cci.DebugSourceDocument> documentList, Cci.ITypeDefinition typeDefinition, EmitContext context)
+        private static void GetDocumentsForMethodsAndNestedTypes(PooledHashSet<Cci.DebugSourceDocument> documentList, Cci.ITypeDefinition typeDefinition, EmitContext context)
         {
-            var typeMethods = typeDefinition.GetMethods(context);
+            var typesToProcess = ArrayBuilder<Cci.ITypeDefinition>.GetInstance();
+            typesToProcess.Push(typeDefinition);
 
-            foreach (var method in typeMethods)
+            while (typesToProcess.Count > 0)
             {
-                var body = method.GetBody(context);
-                if (body is null)
+                var definition = typesToProcess.Pop();
+
+                var typeMethods = definition.GetMethods(context);
+                foreach (var method in typeMethods)
                 {
-                    continue;
+                    var body = method.GetBody(context);
+                    if (body is null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var point in body.SequencePoints)
+                    {
+                        documentList.Add(point.Document);
+                    }
                 }
 
-                foreach (var point in body.SequencePoints)
+                var nestedTypes = definition.GetNestedTypes(context);
+                foreach (var nestedTypeDefinition in nestedTypes)
                 {
-                    documentList.Add(point.Document);
+                    typesToProcess.Push(nestedTypeDefinition);
                 }
             }
+
+            typesToProcess.Free();
         }
 
         public sealed override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()

@@ -38,10 +38,46 @@ Class C
     End Class
 End Class
 "
-            TestTypeDefinitionDocuments({source},
-                              ("C", "1.vb"))
+            TestTypeDefinitionDocuments({source})
         End Sub
 
+        <Fact>
+        Public Sub MultiNestedClassWithMethod()
+            Dim source As String = "
+Class C
+    Class N
+        Class N2
+            Public Shared Sub A()
+                System.Console.WriteLine()
+            End Sub
+        End Class
+    End Class
+End Class
+"
+            TestTypeDefinitionDocuments({source})
+        End Sub
+
+        <Fact>
+        Public Sub PartialMultiNestedClassWithMethod()
+            Dim source1 As String = "
+Partial Class C
+    Partial Class N
+        Public Shared Sub A()
+            System.Console.WriteLine()
+        End Sub
+    End Class
+End Class
+"
+
+            Dim source2 As String = "
+Partial Class C
+    Partial Class N
+    End Class
+End Class
+"
+            TestTypeDefinitionDocuments({source1, source2},
+                              ("C", "2.vb"))
+        End Sub
 
         <Fact>
         Public Sub EmptyClass()
@@ -62,8 +98,21 @@ Class O
 End Class
 "
             TestTypeDefinitionDocuments({source},
-                              ("O", "1.vb"),
-                              ("N", "1.vb"))
+                              ("O", "1.vb"))
+        End Sub
+
+        <Fact>
+        Public Sub EmptyMultiNestedClass()
+            Dim source As String = "
+Class O
+    Class N
+        Class N2
+        End Class
+    End Class
+End Class
+"
+            TestTypeDefinitionDocuments({source},
+                              ("O", "1.vb"))
         End Sub
 
         <Fact>

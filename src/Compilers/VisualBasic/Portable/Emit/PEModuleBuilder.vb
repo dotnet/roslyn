@@ -669,19 +669,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         End If
 
                     Case SymbolKind.NamedType
-                        ' Make sure any nested types are also processed
-                        For Each member In symbol.GetMembers()
-                            If member.Kind = SymbolKind.NamedType Then
-                                namespacesAndTypesToProcess.Push(DirectCast(member, NamespaceOrTypeSymbol))
-                            End If
-                        Next
-
                         'Now process this type
                         Debug.Assert(debugDocuments.Count = 0)
                         Debug.Assert(methodDocumentList.Count = 0)
 
                         Dim typeDefinition = DirectCast(symbol.GetCciAdapter(), Cci.ITypeDefinition)
-                        GetDocumentsForMethods(methodDocumentList, typeDefinition, context)
+                        GetDocumentsForMethodsAndNestedTypes(methodDocumentList, typeDefinition, context)
 
                         For Each loc In symbol.Locations
                             If Not loc.IsInSource Then
@@ -711,19 +704,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             methodDocumentList.Free()
         End Function
 
-        Private Shared Sub GetDocumentsForMethods(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typeDefinition As Cci.ITypeDefinition, context As EmitContext)
-            Dim typeMethods = typeDefinition.GetMethods(context)
+        Private Shared Sub GetDocumentsForMethodsAndNestedTypes(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typeDefinition As Cci.ITypeDefinition, context As EmitContext)
+            Dim typesToProcess = ArrayBuilder(Of Cci.ITypeDefinition).GetInstance()
+            typesToProcess.Push(typeDefinition)
 
-            For Each method In typeMethods
-                Dim body = method.GetBody(context)
-                If body Is Nothing Then
-                    Continue For
-                End If
+            While typesToProcess.Count > 0
+                Dim definition = typesToProcess.Pop()
 
-                For Each point In body.SequencePoints
-                    documentList.Add(point.Document)
+                Dim typeMethods = definition.GetMethods(context)
+                For Each method In typeMethods
+                    Dim body = method.GetBody(context)
+                    If body Is Nothing Then
+                        Continue For
+                    End If
+
+                    For Each point In body.SequencePoints
+                        documentList.Add(point.Document)
+                    Next
                 Next
-            Next
+
+                Dim nestedTypes = definition.GetNestedTypes(context)
+                For Each nestedTypeDefinition In nestedTypes
+                    typesToProcess.Push(nestedTypeDefinition)
+                Next
+            End While
+
+            typesToProcess.Free()
         End Sub
 
         Public Sub SetDisableJITOptimization(methodSymbol As MethodSymbol)

@@ -49,8 +49,56 @@ class C
     }
 }
 ";
-            TestTypeDefinitionDocuments(new[] { source },
-                ("C", "1.cs"));
+            TestTypeDefinitionDocuments(new[] { source });
+        }
+
+        [Fact]
+        public void MultiNestedClassWithMethod()
+        {
+            string source = @"
+class C
+{
+    class N
+    {
+        class N2
+        {
+            public static void A()
+            {
+                System.Console.WriteLine();
+            }
+        }
+    }
+}
+";
+            TestTypeDefinitionDocuments(new[] { source });
+        }
+
+
+        [Fact]
+        public void PartialNestedClassWithMethod()
+        {
+            string source1 = @"
+partial class C
+{
+    partial class N
+    {
+        public static void A()
+        {
+            System.Console.WriteLine();
+        }
+    }
+}
+";
+            string source2 = @"
+partial class C
+{
+    partial class N
+    {
+    }
+}
+";
+            TestTypeDefinitionDocuments(new[] { source1, source2 },
+                ("C", "2.cs"));
         }
 
         [Fact]
@@ -77,8 +125,25 @@ class O
 }
 ";
             TestTypeDefinitionDocuments(new[] { source },
-                ("O", "1.cs"),
-                ("N", "1.cs"));
+                ("O", "1.cs"));
+        }
+
+        [Fact]
+        public void EmptyMultiNestedClass()
+        {
+            string source = @"
+class O
+{
+    class N
+    {
+        class N2
+        {
+        }
+    }
+}
+";
+            TestTypeDefinitionDocuments(new[] { source },
+                ("O", "1.cs"));
         }
 
         [Fact]
