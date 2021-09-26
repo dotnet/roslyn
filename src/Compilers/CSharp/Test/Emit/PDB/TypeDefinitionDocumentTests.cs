@@ -65,7 +65,6 @@ class O
                 ("O", "1.cs"));
         }
 
-
         [Fact]
         public void EmptyNestedClass()
         {
@@ -392,7 +391,8 @@ class F
             TestTypeDefinitionDocuments(new[] { source },
                 ("C", "1.cs"),
                 ("D", "1.cs"),
-                ("F", "F.cs"));
+                ("E", "1.cs"),
+                ("F", "1.cs"));
         }
 
         private static void TestTypeDefinitionDocuments(string[] sources, params (string typeName, string documentName)[] expected)

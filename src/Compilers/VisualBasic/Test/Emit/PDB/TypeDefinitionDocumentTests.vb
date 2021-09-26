@@ -289,7 +289,8 @@ End Class
             TestTypeDefinitionDocuments({source},
                               ("C", "1.vb"),
                               ("D", "1.vb"),
-                              ("F", "F.vb"))
+                              ("E", "1.vb"),
+                              ("F", "1.vb"))
         End Sub
 
         Public Shared Sub TestTypeDefinitionDocuments(sources As String(), ParamArray expected As (String, String)())
