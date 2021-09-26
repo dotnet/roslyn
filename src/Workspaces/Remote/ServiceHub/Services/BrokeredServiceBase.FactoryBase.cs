@@ -53,22 +53,32 @@ namespace Microsoft.CodeAnalysis.Remote
                IServiceBroker serviceBroker,
                AuthorizationServiceClient? authorizationServiceClient)
             {
-                // Dispose the AuthorizationServiceClient since we won't be using it
-                authorizationServiceClient?.Dispose();
-
-                // First request determines the default culture:
-                // TODO: Flow culture explicitly where needed https://github.com/dotnet/roslyn/issues/43670
-                if (Interlocked.CompareExchange(ref s_cultureInitialized, 1, 0) == 0)
+                // Exception from IServiceHubServiceFactory.CreateAsync are not propagated to the client.
+                // Intercept the exception here and report it to the log.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1410923
+                try
                 {
-                    CultureInfo.DefaultThreadCurrentUICulture = serviceActivationOptions.ClientUICulture;
-                    CultureInfo.DefaultThreadCurrentCulture = serviceActivationOptions.ClientCulture;
-                }
+                    // Dispose the AuthorizationServiceClient since we won't be using it
+                    authorizationServiceClient?.Dispose();
 
-                return Task.FromResult((object)Create(
-                    stream.UsePipe(),
-                    hostProvidedServices,
-                    serviceActivationOptions,
-                    serviceBroker));
+                    // First request determines the default culture:
+                    // TODO: Flow culture explicitly where needed https://github.com/dotnet/roslyn/issues/43670
+                    if (Interlocked.CompareExchange(ref s_cultureInitialized, 1, 0) == 0)
+                    {
+                        CultureInfo.DefaultThreadCurrentUICulture = serviceActivationOptions.ClientUICulture;
+                        CultureInfo.DefaultThreadCurrentCulture = serviceActivationOptions.ClientCulture;
+                    }
+
+                    return Task.FromResult((object)Create(
+                        stream.UsePipe(),
+                        hostProvidedServices,
+                        serviceActivationOptions,
+                        serviceBroker));
+                }
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
 
             object IFactory.Create(IDuplexPipe pipe, IServiceProvider hostProvidedServices, ServiceActivationOptions serviceActivationOptions, IServiceBroker serviceBroker)
