@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             //
             // Which would obviously be wonky.  So in this case, we just use the
             // spanof the block alone, without consideration for the case clause.
-            if (parentKind == SyntaxKind.Block || parentKind == SyntaxKind.SwitchSection)
+            if (parentKind is SyntaxKind.Block or SyntaxKind.SwitchSection)
             {
                 var type = GetType(node.Parent);
 

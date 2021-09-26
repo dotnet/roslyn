@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                 symbol = symbol.ContainingType;
             }
 
-            if (node is QualifiedNameSyntax || node is AliasQualifiedNameSyntax)
+            if (node is QualifiedNameSyntax or AliasQualifiedNameSyntax)
             {
                 SyntaxAnnotation aliasAnnotationInfo = null;
 

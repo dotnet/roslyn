@@ -2208,6 +2208,7 @@
          is null before type inference, and it is replaced by a BoundDiscardExpression with a non-null
          type after inference. -->
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundThrowExpression" Base="BoundExpression">

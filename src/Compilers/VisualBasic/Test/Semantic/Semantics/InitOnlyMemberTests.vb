@@ -3030,7 +3030,7 @@ BC30937: Member 'CL1.P' that matches this signature cannot be implemented becaus
             Assert.NotEmpty(p.ExplicitInterfaceImplementations.Single().TypeCustomModifiers)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56665")>
         Public Sub LateBound_01()
 
             Dim csSource =
@@ -3102,7 +3102,7 @@ End Class
             CompileAndVerify(comp2, expectedOutput:=expectedOutput).VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56665")>
         Public Sub LateBound_02()
 
             Dim csSource =

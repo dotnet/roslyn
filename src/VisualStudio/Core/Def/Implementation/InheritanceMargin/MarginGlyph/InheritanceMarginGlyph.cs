@@ -2,22 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -25,8 +22,12 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
 {
-    internal partial class InheritanceMarginGlyph
+    internal class InheritanceMarginGlyph : Button
     {
+        private const string ToolTipStyleKey = "ToolTipStyle";
+
+        private static readonly object s_toolTipPlaceholder = new();
+
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly IUIThreadOperationExecutor _operationExecutor;
@@ -50,53 +51,83 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _operationExecutor = operationExecutor;
             _textView = textView;
             _listener = listener;
-            InitializeComponent();
+
+            Background = Brushes.Transparent;
+            BorderBrush = Brushes.Transparent;
+
+            Click += InheritanceMargin_OnClick;
+            MouseEnter += InheritanceMargin_OnMouseEnter;
+            MouseLeave += InheritanceMargin_OnMouseLeave;
+            KeyUp += OnKeyUp;
+
+            Resources.Add(ToolTipStyleKey, new Style(typeof(ToolTip))
+            {
+                Setters =
+                {
+                    new Setter(BackgroundProperty, new DynamicResourceExtension(EnvironmentColors.ToolTipBrushKey)),
+                    new Setter(BorderBrushProperty, new DynamicResourceExtension(EnvironmentColors.ToolTipBorderBrushKey)),
+                    new Setter(ForegroundProperty, new DynamicResourceExtension(EnvironmentColors.ToolTipTextBrushKey)),
+                },
+            });
 
             var viewModel = InheritanceMarginGlyphViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
+            SetValue(AutomationProperties.NameProperty, viewModel.AutomationName);
+
+            // Control template only shows the image
+            var templateBorder = new FrameworkElementFactory(typeof(Border), "Border");
+            templateBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1));
+            templateBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(BackgroundProperty));
+            templateBorder.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(BorderBrushProperty));
+
+            var templateImage = new FrameworkElementFactory(typeof(CrispImage));
+            templateImage.SetValue(CrispImage.MonikerProperty, viewModel.ImageMoniker);
+            templateImage.SetValue(CrispImage.ScaleFactorProperty, viewModel.ScaleFactor);
+            templateBorder.AppendChild(templateImage);
+
+            Template = new ControlTemplate { VisualTree = templateBorder };
             DataContext = viewModel;
-            ContextMenu.DataContext = viewModel;
-            ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource("ToolTipStyle") };
+
+            // Add the context menu and tool tip as placeholders
+            ContextMenu = new ContextMenu();
+            ToolTip = s_toolTipPlaceholder;
+        }
+
+        protected override void OnToolTipOpening(ToolTipEventArgs e)
+        {
+            if (ToolTip == s_toolTipPlaceholder)
+            {
+                var viewModel = (InheritanceMarginGlyphViewModel)DataContext;
+                ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource(ToolTipStyleKey) };
+            }
+
+            base.OnToolTipOpening(e);
+        }
+
+        protected override void OnContextMenuOpening(ContextMenuEventArgs e)
+        {
+            LazyInitializeContextMenu();
+            base.OnContextMenuOpening(e);
+        }
+
+        private void LazyInitializeContextMenu()
+        {
+            if (ContextMenu is not InheritanceMarginContextMenu)
+            {
+                var viewModel = (InheritanceMarginGlyphViewModel)DataContext;
+
+                ContextMenu = new InheritanceMarginContextMenu(_threadingContext, _streamingFindUsagesPresenter, _operationExecutor, _workspace, _listener);
+                ContextMenu.DataContext = viewModel;
+                ContextMenu.ItemsSource = viewModel.MenuItemViewModels;
+                ContextMenu.Opened += ContextMenu_OnOpen;
+                ContextMenu.Closed += ContextMenu_OnClose;
+            }
         }
 
         private void InheritanceMargin_OnClick(object sender, RoutedEventArgs e)
         {
-            if (this.ContextMenu != null)
-            {
-                this.ContextMenu.IsOpen = true;
-                e.Handled = true;
-            }
-        }
-
-        private void TargetMenuItem_OnClick(object sender, RoutedEventArgs e)
-        {
-            if (e.OriginalSource is MenuItem { DataContext: TargetMenuItemViewModel viewModel })
-            {
-                Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget, KeyValueLogMessage.Create(LogType.UserAction));
-
-                var token = _listener.BeginAsyncOperation(nameof(TargetMenuItem_OnClick));
-                TargetMenuItem_OnClickAsync(viewModel).CompletesAsyncOperation(token);
-            }
-        }
-
-        private async Task TargetMenuItem_OnClickAsync(TargetMenuItemViewModel viewModel)
-        {
-            using var context = _operationExecutor.BeginExecute(
-                title: EditorFeaturesResources.Navigating,
-                defaultDescription: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
-                allowCancellation: true,
-                showProgress: false);
-
-            var cancellationToken = context.UserCancellationToken;
-            var rehydrated = await viewModel.DefinitionItem.TryRehydrateAsync(cancellationToken).ConfigureAwait(false);
-            if (rehydrated == null)
-                return;
-
-            await _streamingFindUsagesPresenter.TryNavigateToOrPresentItemsAsync(
-                _threadingContext,
-                _workspace,
-                string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
-                ImmutableArray.Create<DefinitionItem>(rehydrated),
-                cancellationToken).ConfigureAwait(false);
+            LazyInitializeContextMenu();
+            ContextMenu.IsOpen = true;
+            e.Handled = true;
         }
 
         private void ChangeBorderToHoveringColor()
@@ -127,9 +158,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 ResetBorderToInitialColor();
             }
-            // Move the focus back to textView when the context menu is closed.
-            // It ensures the focus won't be left at the margin
-            ResetFocus();
         }
 
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
@@ -155,15 +183,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             }
         }
 
-        private void TargetsSubmenu_OnOpen(object sender, RoutedEventArgs e)
-        {
-            Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
-        }
-
         private void ResetBorderToInitialColor()
         {
             this.Background = Brushes.Transparent;
             this.BorderBrush = Brushes.Transparent;
+        }
+
+        private void OnKeyUp(object sender, KeyEventArgs e)
+        {
+            // Move the focus back to textView when the Esc is pressed
+            // It ensures the focus won't be left at the margin
+            if (e.Key == Key.Escape)
+            {
+                ResetFocus();
+            }
         }
 
         private void ResetFocus()

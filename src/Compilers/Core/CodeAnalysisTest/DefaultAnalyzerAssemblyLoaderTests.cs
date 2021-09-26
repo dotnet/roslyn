@@ -434,6 +434,71 @@ Delta: Epsilon: Test E
                 allReferenceSimpleNames.Free();
             }
         }
+
+        [Fact]
+        public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesSystemCollectionsImmutable()
+        {
+            // Create a separate ALC as the compiler context, load the compiler assembly and a modified version of S.C.I into it,
+            // then use that to load and run `AssemblyLoadingInNonDefaultContextHelper1` below. We expect the analyzer running in
+            // its own `DirectoryLoadContext` would use the bogus S.C.I loaded in the compiler load context instead of the real one
+            // in the default context.
+            var compilerContext = new System.Runtime.Loader.AssemblyLoadContext("compilerContext");
+            _ = compilerContext.LoadFromAssemblyPath(_testFixture.UserSystemCollectionsImmutable.Path);
+            _ = compilerContext.LoadFromAssemblyPath(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
+
+            var testAssembly = compilerContext.LoadFromAssemblyPath(typeof(DefaultAnalyzerAssemblyLoaderTests).GetTypeInfo().Assembly.Location);
+            var testObject = testAssembly.CreateInstance(typeof(DefaultAnalyzerAssemblyLoaderTests).FullName!,
+                ignoreCase: false, BindingFlags.Default, binder: null, args: new object[] { _output, _testFixture }, null, null)!;
+
+            StringBuilder sb = new StringBuilder();
+            testObject.GetType().GetMethod(nameof(AssemblyLoadingInNonDefaultContextHelper1), BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(testObject, new object[] { sb });
+            Assert.Equal("42", sb.ToString());
+        }
+
+        // This helper does the same thing as in `AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_01` test above except the assertions.
+        private void AssemblyLoadingInNonDefaultContextHelper1(StringBuilder sb)
+        {
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(_testFixture.UserSystemCollectionsImmutable.Path);
+            loader.AddDependencyLocation(_testFixture.AnalyzerReferencesSystemCollectionsImmutable1.Path);
+
+            Assembly analyzerAssembly = loader.LoadFromPath(_testFixture.AnalyzerReferencesSystemCollectionsImmutable1.Path);
+            var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
+            analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
+        }
+
+        [Fact]
+        public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesNonCompilerAssemblyUsedByDefaultContext()
+        {
+            // Load the V2 of Delta to default ALC, then create a separate ALC for compiler and load compiler assembly.
+            // Next use compiler context to load and run `AssemblyLoadingInNonDefaultContextHelper2` below. We expect the analyzer running in
+            // its own `DirectoryLoadContext` would load and use Delta V1 located in its directory instead of V2 already loaded in the default context.
+            _ = System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(_testFixture.Delta2.Path);
+            var compilerContext = new System.Runtime.Loader.AssemblyLoadContext("compilerContext");
+            _ = compilerContext.LoadFromAssemblyPath(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
+
+            var testAssembly = compilerContext.LoadFromAssemblyPath(typeof(DefaultAnalyzerAssemblyLoaderTests).GetTypeInfo().Assembly.Location);
+            var testObject = testAssembly.CreateInstance(typeof(DefaultAnalyzerAssemblyLoaderTests).FullName!,
+                ignoreCase: false, BindingFlags.Default, binder: null, args: new object[] { _output, _testFixture }, null, null)!;
+
+            StringBuilder sb = new StringBuilder();
+            testObject.GetType().GetMethod(nameof(AssemblyLoadingInNonDefaultContextHelper2), BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(testObject, new object[] { sb });
+            Assert.Equal(
+@"Delta: Hello
+",
+                sb.ToString());
+        }
+
+        private void AssemblyLoadingInNonDefaultContextHelper2(StringBuilder sb)
+        {
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(_testFixture.AnalyzerReferencesDelta1.Path);
+            loader.AddDependencyLocation(_testFixture.Delta1.Path);
+
+            Assembly analyzerAssembly = loader.LoadFromPath(_testFixture.AnalyzerReferencesDelta1.Path);
+            var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
+            analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
+        }
 #endif
     }
 }

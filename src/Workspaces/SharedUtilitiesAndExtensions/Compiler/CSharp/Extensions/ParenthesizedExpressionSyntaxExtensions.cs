@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (expression is StackAllocArrayCreationExpressionSyntax ||
-                expression is ImplicitStackAllocArrayCreationExpressionSyntax)
+            if (expression is StackAllocArrayCreationExpressionSyntax or
+                ImplicitStackAllocArrayCreationExpressionSyntax)
             {
                 // var span = (stackalloc byte[8]);
                 // https://github.com/dotnet/roslyn/issues/44629
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // If the expression's precedence is the same as its parent, and both are binary expressions,
                 // check for associativity and commutability.
 
-                if (!(expression is BinaryExpressionSyntax || expression is AssignmentExpressionSyntax))
+                if (expression is not (BinaryExpressionSyntax or AssignmentExpressionSyntax))
                 {
                     // If the expression is not a binary expression, association never changes.
                     return false;
@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //
             // you can safely convert to `not ... or not ...`
             var patternPrecedence = pattern.GetOperatorPrecedence();
-            if (patternPrecedence == OperatorPrecedence.Primary || patternPrecedence == OperatorPrecedence.Unary)
+            if (patternPrecedence is OperatorPrecedence.Primary or OperatorPrecedence.Unary)
                 return true;
 
             // We're parenthesized and are inside a parenthesized pattern.  We can remove our parens.

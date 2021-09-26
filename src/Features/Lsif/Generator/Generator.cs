@@ -150,9 +150,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var documentLocalSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(lsifJsonWriter, semanticModel.Compilation, idFactory);
             var symbolResultsTracker = new DelegatingResultSetTracker(symbol =>
             {
-                if (symbol.Kind == SymbolKind.Local ||
-                    symbol.Kind == SymbolKind.RangeVariable ||
-                    symbol.Kind == SymbolKind.Label)
+                if (symbol.Kind is SymbolKind.Local or
+                    SymbolKind.RangeVariable or
+                    SymbolKind.Label)
                 {
                     // These symbols can go in the document local one because they can't escape methods
                     return documentLocalSymbolsResultSetTracker;
@@ -260,9 +260,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         private static bool IncludeSymbolInReferences(ISymbol symbol)
         {
             // Skip some type of symbols that don't really make sense
-            if (symbol.Kind == SymbolKind.ArrayType ||
-                symbol.Kind == SymbolKind.Discard ||
-                symbol.Kind == SymbolKind.ErrorType)
+            if (symbol.Kind is SymbolKind.ArrayType or
+                SymbolKind.Discard or
+                SymbolKind.ErrorType)
             {
                 return false;
             }

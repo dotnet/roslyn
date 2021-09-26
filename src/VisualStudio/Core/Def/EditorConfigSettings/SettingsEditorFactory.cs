@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             pgrfCDW = 0;
             pbstrEditorCaption = null;
 
-            if (!_workspace.CurrentSolution.Projects.Any(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic))
+            if (!_workspace.CurrentSolution.Projects.Any(p => p.Language is LanguageNames.CSharp or LanguageNames.VisualBasic))
             {
                 // If there are no VB or C# projects loaded in the solution (so an editorconfig file in a C++ project) then we want their
                 // editorfactory to present the file instead of use showing ours

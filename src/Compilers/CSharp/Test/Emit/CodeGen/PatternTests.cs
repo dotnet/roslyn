@@ -2072,6 +2072,56 @@ public class C {
 }");
         }
 
+        [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
+        public void PropertyOverrideLacksAccessor()
+        {
+            var source = @"
+#nullable enable
+
+class Base
+{
+  public virtual bool IsOk { get { return true; } set { } }
+}
+
+class C : Base
+{
+  public override bool IsOk { set { } }
+  public string? Value { get; }
+
+  public string M()
+  {
+    switch (this)
+    {
+      case { IsOk: true }:
+        return Value;
+      default:
+        return Value;
+    }
+  }
+}
+";
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0013
+  IL_0005:  ldloc.0
+  IL_0006:  callvirt   ""bool Base.IsOk.get""
+  IL_000b:  pop
+  IL_000c:  ldarg.0
+  IL_000d:  call       ""string C.Value.get""
+  IL_0012:  ret
+  IL_0013:  ldarg.0
+  IL_0014:  call       ""string C.Value.get""
+  IL_0019:  ret
+}");
+        }
+
         [Fact, WorkItem(20641, "https://github.com/dotnet/roslyn/issues/20641")]
         public void PatternsVsAs01()
         {
