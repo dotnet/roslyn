@@ -67,7 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             _heightAndWidthOfTheGlyph = heightAndWidthOfTheGlyph;
             _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
-            // _glyphToTaggedSpan = new Dictionary<InheritanceMarginGlyph, SnapshotSpan>();
             _glyphDataTree = new SimpleIntervalTree<GlyphData, GlyphDataIntrospector>(new GlyphDataIntrospector(), values: null);
             UpdateBackgroundColor();
         }
