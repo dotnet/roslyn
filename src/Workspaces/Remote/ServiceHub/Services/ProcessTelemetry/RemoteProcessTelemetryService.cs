@@ -51,6 +51,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 var telemetrySession = new TelemetrySession(serializedSession);
                 telemetrySession.Start();
 
+                // adds property to each event reported from this session
+                telemetrySession.SetSharedProperty("VS.Core.Version", Environment.GetEnvironmentVariable("VisualStudioVersion"));
+
                 telemetryService.InitializeTelemetrySession(telemetrySession);
                 telemetryService.RegisterUnexpectedExceptionLogger(TraceLogger);
 
