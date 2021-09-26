@@ -3412,6 +3412,74 @@ _ = a is null or { Length: >= 0};
         }
 
         [Fact]
+        public void LengthPattern_IsIncomplete_()
+        {
+            // TODO2
+            var src = @"
+int[] a = null;
+//_ = a is null or { Length: >= 0};
+_ = a switch // 1
+{
+    null => 0,
+    { Length: > -1 and < 3 } => 1,
+};
+_ = a switch
+{
+    null => 0,
+    { Length: > -1 and < 3 } => 1,
+    { Length: >= 3 } => 1,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 3 }' is not covered.
+                // _ = a switch // 1
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 3 }").WithLocation(4, 7)
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_IsIncomplete_2()
+        {
+            // TODO2
+            var src = @"
+int[] a = null;
+//_ = a is null or { Length: >= 0};
+_ = a switch
+{
+    null => 0,
+    { Length: 0 } => 1,
+    { Length: > 0 } => 1,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void LengthPattern_IsIncomplete_3()
+        {
+            // TODO2
+            var src = @"
+int[] a = null;
+//_ = a is null or { Length: >= 0};
+_ = a switch
+{
+    null => 0,
+    { Length: 0 } => 1,
+    { Length: > 1 } => 1,
+};
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,7): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Length: 1 }' is not covered.
+                // _ = a switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Length: 1 }").WithLocation(4, 7)
+                );
+        }
+
+        [Fact]
         public void LengthPattern_Evaluation()
         {
             var source = @"
