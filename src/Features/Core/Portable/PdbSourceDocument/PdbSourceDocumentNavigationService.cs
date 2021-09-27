@@ -297,17 +297,17 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             {
                 var cdi = pdbReader.GetCustomDebugInformation(cdiHandle);
                 var guid = pdbReader.GetGuid(cdi.Kind);
-                //if (guid == PortableCustomDebugInfoKinds.TypeDocuments)
-                //{
-                //    if (((TypeDefinitionHandle)cdi.Parent).Equals(typeDefHandle))
-                //    {
-                //        var reader = pdbReader.GetBlobReader(cdi.Value);
-                //        while (reader.RemainingBytes > 0)
-                //        {
-                //            docList.Add(MetadataTokens.DocumentHandle(reader.ReadCompressedInteger()));
-                //        }
-                //    }
-                //}
+                if (guid == PortableCustomDebugInfoKinds.TypeDefinitionDocuments)
+                {
+                    if (((TypeDefinitionHandle)cdi.Parent).Equals(typeDefHandle))
+                    {
+                        var reader = pdbReader.GetBlobReader(cdi.Value);
+                        while (reader.RemainingBytes > 0)
+                        {
+                            docList.Add(MetadataTokens.DocumentHandle(reader.ReadCompressedInteger()));
+                        }
+                    }
+                }
             }
 
             // We don't necessarily have all of the documents associated with the type
