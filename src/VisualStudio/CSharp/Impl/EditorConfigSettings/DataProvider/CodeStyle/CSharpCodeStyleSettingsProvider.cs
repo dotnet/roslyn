@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
@@ -121,6 +119,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 description: ServicesVSResources.Prefer_simple_using_statement,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
+
+            yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferBraces,
+                description: ServicesVSResources.Prefer_braces,
+                enumValues: new[] { PreferBracesPreference.Always, PreferBracesPreference.None, PreferBracesPreference.WhenMultiline },
+                valueDescriptions: new[] { ServicesVSResources.Yes, ServicesVSResources.No, CSharpVSResources.When_on_multiple_lines },
+                editorConfigOptions: editorConfigOptions, visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
+
+            yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.NamespaceDeclarations,
+                description: ServicesVSResources.Namespace_declarations,
+                enumValues: new[] { NamespaceDeclarationPreference.BlockScoped, NamespaceDeclarationPreference.FileScoped },
+                valueDescriptions: new[] { CSharpVSResources.Block_scoped, CSharpVSResources.File_scoped },
+                editorConfigOptions: editorConfigOptions, visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
+
         }
 
         private IEnumerable<CodeStyleSetting> GetExpressionCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
@@ -130,6 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, description: ServicesVSResources.Prefer_local_function_over_anonymous_function, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferIndexOperator, description: ServicesVSResources.Prefer_index_operator, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferRangeOperator, description: ServicesVSResources.Prefer_range_operator, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, description: CSharpVSResources.Prefer_implicit_object_creation_when_type_is_apparent, editorConfigOptions, visualStudioOptions, updaterService, FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetPatternMatchingCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
@@ -220,6 +232,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 description: ServicesVSResources.Avoid_expression_statements_that_implicitly_ignore_value,
                 enumValues,
                 new[] { CSharpVSResources.Unused_local, CSharpVSResources.Discard },
+                editorConfigOptions,
+                visualStudioOptions,
+                updaterService, FileName);
+
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine,
+                description: CSharpVSResources.Allow_embedded_statements_on_same_line,
+                editorConfigOptions,
+                visualStudioOptions,
+                updaterService, FileName);
+
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLinesBetweenConsecutiveBraces,
+                description: CSharpVSResources.Allow_blank_lines_between_consecutive_braces,
+                editorConfigOptions,
+                visualStudioOptions,
+                updaterService, FileName);
+
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer,
+                description: CSharpVSResources.Allow_bank_line_after_colon_in_constructor_initializer,
                 editorConfigOptions,
                 visualStudioOptions,
                 updaterService, FileName);

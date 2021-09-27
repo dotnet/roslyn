@@ -67,6 +67,11 @@
         <target state="translated">Permitir una instrucción inmediatamente después del bloque</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always">
+        <source>Always</source>
+        <target state="new">Always</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
         <target state="translated">Siempre por claridad</target>
@@ -125,6 +130,11 @@
       <trans-unit id="Background_analysis_scope_colon">
         <source>Background analysis scope:</source>
         <target state="translated">Ámbito de análisis en segundo plano:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Beginning_of_line">
+        <source>Beginning of line</source>
+        <target state="new">Beginning of line</target>
         <note />
       </trans-unit>
       <trans-unit id="Bitness32">
@@ -347,6 +357,11 @@
         <target state="translated">Habilitado</target>
         <note />
       </trans-unit>
+      <trans-unit id="End_of_line">
+        <source>End of line</source>
+        <target state="new">End of line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
         <source>Enter a call site value or choose a different value injection kind</source>
         <target state="translated">Escriba un valor de sitio de llamada o elija otro tipo de inserción de valor.</target>
@@ -385,6 +400,11 @@
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Finalizar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_non_interface_members">
+        <source>For non interface members</source>
+        <target state="new">For non interface members</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document">
@@ -757,6 +777,11 @@
         <target state="translated">Navegar a "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="new">Never</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Nunca si es innecesario</target>
@@ -797,6 +822,11 @@
         <target state="translated">NONE</target>
         <note />
       </trans-unit>
+      <trans-unit id="Omit_if_default">
+        <source>Omit if default</source>
+        <target state="new">Omit if default</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Omit_only_for_optional_parameters">
         <source>Omit (only for optional parameters)</source>
         <target state="translated">Omitir (solo para parámetros opcionales)</target>
@@ -805,6 +835,11 @@
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="translated">Documentos abiertos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="new">Operator placement when wrapping</target>
         <note />
       </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
@@ -912,6 +947,11 @@
         <target state="translated">Preferir operador de índice</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_namespace_and_folder_match_structure">
+        <source>Prefer namespace and folder match structure</source>
+        <target state="new">Prefer namespace and folder match structure</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
         <target state="translated">Preferir operador de intervalo</target>
@@ -930,6 +970,11 @@
       <trans-unit id="Prefer_simplified_boolean_expressions">
         <source>Prefer simplified boolean expressions</source>
         <target state="translated">Preferir expresiones booleanas simplificadas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_interpolation">
+        <source>Prefer simplified interpolation</source>
+        <target state="new">Prefer simplified interpolation</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
@@ -990,6 +1035,11 @@
       <trans-unit id="Repository">
         <source>Repository</source>
         <target state="translated">Repositorio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_accessibility_modifiers">
+        <source>Require accessibility modifiers</source>
+        <target state="new">Require accessibility modifiers</target>
         <note />
       </trans-unit>
       <trans-unit id="Require_colon">
