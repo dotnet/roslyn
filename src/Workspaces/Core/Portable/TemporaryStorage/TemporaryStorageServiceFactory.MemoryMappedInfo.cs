@@ -58,8 +58,6 @@ namespace Microsoft.CodeAnalysis.Host
             /// new view is created.</para>
             ///
             /// <para>This view is read-only, so it is only used by <see cref="CreateReadableStream"/>.</para>
-            ///
-            /// <para>Access should be synchronized on <see langword="this"/>.</para>
             /// </remarks>
             private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _weakReadAccessor;
 
@@ -102,12 +100,7 @@ namespace Microsoft.CodeAnalysis.Host
                 // Note: TryAddReference behaves according to its documentation even if the target object has been
                 // disposed. If it returns non-null, then the object will not be disposed before the returned
                 // reference is disposed (see comments on _memoryMappedFile and TryAddReference).
-                ReferenceCountedDisposable<MemoryMappedViewAccessor>? streamAccessor;
-                lock (this)
-                {
-                    streamAccessor = _weakReadAccessor.TryAddReference();
-                }
-
+                var streamAccessor = _weakReadAccessor.TryAddReference();
                 if (streamAccessor == null)
                 {
                     var rawAccessor = RunWithCompactingGCFallback(
@@ -121,10 +114,7 @@ namespace Microsoft.CodeAnalysis.Host
                         },
                         this);
                     streamAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>(rawAccessor);
-                    lock (this)
-                    {
-                        _weakReadAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
-                    }
+                    _weakReadAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
                 }
 
                 Debug.Assert(streamAccessor.Target.CanRead);
