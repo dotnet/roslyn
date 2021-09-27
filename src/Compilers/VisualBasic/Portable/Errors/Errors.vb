@@ -1757,6 +1757,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_OverridingInitOnlyProperty = 37312
         ERR_PropertyDoesntImplementInitOnly = 37313
 
+        ERR_BadAbstractStaticMemberAccess = 37314
+        ERR_UnimplementedSharedMember = 37315
+
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_InvalidOverrideDueToTupleNames2 = 40001

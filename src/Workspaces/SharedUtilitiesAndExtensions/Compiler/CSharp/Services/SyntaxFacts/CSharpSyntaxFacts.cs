@@ -29,7 +29,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 {
-    internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
+    internal class CSharpSyntaxFacts : ISyntaxFacts
     {
         internal static readonly CSharpSyntaxFacts Instance = new();
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxTrivia ElasticCarriageReturnLineFeed
             => SyntaxFactory.ElasticCarriageReturnLineFeed;
 
-        public override ISyntaxKinds SyntaxKinds { get; } = CSharpSyntaxKinds.Instance;
+        public ISyntaxKinds SyntaxKinds { get; } = CSharpSyntaxKinds.Instance;
 
         public bool SupportsIndexingInitializer(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp6;
@@ -231,11 +231,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsMethodBody([NotNullWhen(true)] SyntaxNode? node)
         {
-            if (node is BlockSyntax ||
-                node is ArrowExpressionClauseSyntax)
+            if (node is BlockSyntax or
+                ArrowExpressionClauseSyntax)
             {
-                return node.Parent is BaseMethodDeclarationSyntax ||
-                       node.Parent is AccessorDeclarationSyntax;
+                return node.Parent is BaseMethodDeclarationSyntax or
+                       AccessorDeclarationSyntax;
             }
 
             return false;
@@ -455,45 +455,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token)
             => token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken);
 
-        public bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent)
-        {
-            var typedToken = token;
-            var typedParent = parent;
-
-            if (typedParent.IsKind(SyntaxKind.IdentifierName))
-            {
-                TypeSyntax? declaredType = null;
-                if (typedParent.IsParentKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? varDecl))
-                {
-                    declaredType = varDecl.Type;
-                }
-                else if (typedParent.IsParentKind(SyntaxKind.FieldDeclaration, out FieldDeclarationSyntax? fieldDecl))
-                {
-                    declaredType = fieldDecl.Declaration.Type;
-                }
-
-                return declaredType == typedParent && typedToken.ValueText == "var";
-            }
-
-            return false;
-        }
-
-        public bool IsTypeNamedDynamic(SyntaxToken token, [NotNullWhen(true)] SyntaxNode? parent)
-        {
-
-            if (parent is ExpressionSyntax typedParent)
-            {
-                if (SyntaxFacts.IsInTypeOnlyContext(typedParent) &&
-                    typedParent.IsKind(SyntaxKind.IdentifierName) &&
-                    token.ValueText == "dynamic")
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public bool IsBindableToken(SyntaxToken token)
         {
             if (this.IsWord(token) || this.IsLiteral(token) || this.IsOperator(token))
@@ -611,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return root
                 .FindToken(position)
                 .GetAncestors<SyntaxNode>()
-                .FirstOrDefault(n => n is BaseTypeDeclarationSyntax || n is DelegateDeclarationSyntax);
+                .FirstOrDefault(n => n is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
         }
 
         public SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node)
@@ -705,17 +666,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsMethodLevelMember([NotNullWhen(true)] SyntaxNode? node)
         {
-            return node is BaseMethodDeclarationSyntax ||
-                node is BasePropertyDeclarationSyntax ||
-                node is EnumMemberDeclarationSyntax ||
-                node is BaseFieldDeclarationSyntax;
+            return node is BaseMethodDeclarationSyntax or
+                BasePropertyDeclarationSyntax or
+                EnumMemberDeclarationSyntax or
+                BaseFieldDeclarationSyntax;
         }
 
         public bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node)
         {
-            return node is BaseNamespaceDeclarationSyntax ||
-                   node is TypeDeclarationSyntax ||
-                   node is EnumDeclarationSyntax;
+            return node is BaseNamespaceDeclarationSyntax or
+                   TypeDeclarationSyntax or
+                   EnumDeclarationSyntax;
         }
 
         private const string dotToken = ".";
@@ -1018,7 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 }
 
                 // If this node is not parented by a name, we're done.
-                if (!(parent is NameSyntax))
+                if (parent is not NameSyntax)
                 {
                     break;
                 }
@@ -1231,8 +1192,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                node.Parent.IsKind(SyntaxKind.AttributeList, out AttributeListSyntax? attributeList) &&
                attributeList.Target?.Identifier.Kind() == attributeTarget;
 
-        private static bool IsMemberDeclaration(SyntaxNode node)
+        public bool IsDeclaration(SyntaxNode? node)
         {
+            if (node is null)
+                return false;
+
+            if (SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()))
+                return true;
+
             // From the C# language spec:
             // class-member-declaration:
             //    constant-declaration
@@ -1274,9 +1241,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     return false;
             }
         }
-
-        public bool IsDeclaration(SyntaxNode node)
-            => SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind()) || IsMemberDeclaration(node);
 
         public bool IsTypeDeclaration(SyntaxNode node)
             => SyntaxFacts.IsTypeDeclaration(node.Kind());
@@ -1360,17 +1324,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
             var tupleExpression = (TupleExpressionSyntax)node;
             openParen = tupleExpression.OpenParenToken;
-            arguments = (SeparatedSyntaxList<TArgumentSyntax>)(SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
+            arguments = (SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
             closeParen = tupleExpression.CloseParenToken;
         }
 
-        public SyntaxNode? GetNextExecutableStatement(SyntaxNode statement)
-            => ((StatementSyntax)statement).GetNextStatement();
-
-        public override bool IsPreprocessorDirective(SyntaxTrivia trivia)
+        public bool IsPreprocessorDirective(SyntaxTrivia trivia)
             => SyntaxFacts.IsPreprocessorDirective(trivia.Kind());
 
-        protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
+        public bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
             => token.ContainsInterleavedDirective(span, cancellationToken);
 
         public SyntaxTokenList GetModifiers(SyntaxNode? node)
@@ -1447,14 +1408,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return null;
         }
 
-        public override SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode? node)
+        public SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode? node)
             => node.GetAttributeLists();
 
-        public override bool IsParameterNameXmlElementSyntax([NotNullWhen(true)] SyntaxNode? node)
+        public bool IsParameterNameXmlElementSyntax([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.XmlElement, out XmlElementSyntax? xmlElement) &&
             xmlElement.StartTag.Name.LocalName.ValueText == DocumentationCommentXmlNames.ParameterElementName;
 
-        public override SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
+        public SyntaxList<SyntaxNode> GetContentFromDocumentationCommentTriviaSyntax(SyntaxTrivia trivia)
         {
             if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationCommentTrivia)
             {

@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis
 
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
-                Debug.Assert(symbol.Kind == SymbolKind.Assembly ||
-                             symbol.Kind == SymbolKind.NetModule ||
-                             symbol.Kind == SymbolKind.DynamicType);
+                Debug.Assert(symbol.Kind is SymbolKind.Assembly or
+                             SymbolKind.NetModule or
+                             SymbolKind.DynamicType);
                 var state = this.ReadState();
 
                 var unrootedSymbolSet = (state as FinalState)?.UnrootedSymbolSet;

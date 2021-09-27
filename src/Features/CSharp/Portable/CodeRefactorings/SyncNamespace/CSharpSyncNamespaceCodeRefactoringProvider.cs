@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace
             var position = span.Start;
 
             var compilationUnit = (CompilationUnitSyntax)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var namespaceDecls = compilationUnit.DescendantNodes(n => n is CompilationUnitSyntax || n is BaseNamespaceDeclarationSyntax)
+            var namespaceDecls = compilationUnit.DescendantNodes(n => n is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax)
                 .OfType<BaseNamespaceDeclarationSyntax>().ToImmutableArray();
 
             if (namespaceDecls.Length == 1 && compilationUnit.Members.Count == 1)

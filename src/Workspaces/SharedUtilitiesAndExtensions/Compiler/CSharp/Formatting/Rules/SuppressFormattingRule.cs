@@ -208,8 +208,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            if (node is AnonymousFunctionExpressionSyntax ||
-                node is LocalFunctionStatementSyntax)
+            if (node is AnonymousFunctionExpressionSyntax or
+                LocalFunctionStatementSyntax)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list,
                     node.GetFirstToken(includeZeroWidth: true),

@@ -18,7 +18,7 @@ using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
-    public class FormattingEngineTests : CSharpFormattingTestBase
+    public class FormattingTests : CSharpFormattingTestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task Format1()
@@ -10113,6 +10113,181 @@ class C { }
 namespace NS;
 
     class C { }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInImplicitObjectCreation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M()
+    {
+        string v = new();
+    }
+}
+",
+                code: @"
+class C
+{
+    void M() {
+        string  v     =    new   ();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInTupleArrayCreation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M()
+    {
+        var v = new (int, int)[];
+    }
+}
+",
+                code: @"
+class C
+{
+    void M() {
+        var  v     =    new   (int,   int)  [ ];
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInArrayCreation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M()
+    {
+        var v = new int[1];
+    }
+}
+",
+                code: @"
+class C
+{
+    void M() {
+        var  v     =    new   int  [  1  ];
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInImplicitArrayCreation()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M()
+    {
+        var v = new[] { 1, 2, 3 };
+    }
+}
+",
+                code: @"
+class C
+{
+    void M() {
+        var  v     =    new     [ ] {  1,  2,  3 };
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewInConstructorConstraint()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    void M<T>() where T : new()
+    {
+    }
+}
+",
+                code: @"
+class C
+{
+    void M<T>()   where   T   :   new    (   ) {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewMethodOverloadWithTupleReturnType()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    new (int, int) M() { }
+}
+",
+                code: @"
+class C
+{
+    new  (int, int) M() { }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewPropertyWithTupleReturnType()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    new (int, int) Property { get; set; }
+}
+",
+                code: @"
+class C
+{
+    new  (int, int) Property { get; set; }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(56498, "https://github.com/dotnet/roslyn/issues/56498")]
+        public async Task NewIndexerWithTupleReturnType()
+        {
+            await AssertFormatAsync(
+                expected: @"
+class C
+{
+    new (int, int) this[int i] { get => throw null; }
+}
+",
+                code: @"
+class C
+{
+    new  (int, int) this[int i] { get => throw null; }
+}
 ");
         }
     }

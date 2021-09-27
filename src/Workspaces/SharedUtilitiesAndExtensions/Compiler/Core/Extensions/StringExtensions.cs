@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             foreach (var ch in text)
             {
-                if (ch == '\n' || ch == '\r')
+                if (ch is '\n' or '\r')
                 {
                     return true;
                 }
