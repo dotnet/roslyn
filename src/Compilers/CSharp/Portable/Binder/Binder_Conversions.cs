@@ -569,6 +569,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             conversion = Conversions.ClassifyConversionFromExpression(source, delegateType, ref useSiteInfo);
+            bool warnOnMethodGroupConversion =
+                source.Kind == BoundKind.MethodGroup &&
+                !isCast &&
+                conversion.Exists &&
+                destination.SpecialType == SpecialType.System_Object;
             BoundExpression expr;
             if (!conversion.Exists)
             {
@@ -584,6 +589,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!conversion.Exists)
             {
                 GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);
+            }
+            else if (warnOnMethodGroupConversion)
+            {
+                Error(diagnostics, ErrorCode.WRN_MethGrpToNonDel, syntax, ((BoundMethodGroup)source).Name, destination);
             }
 
             diagnostics.Add(syntax, useSiteInfo);

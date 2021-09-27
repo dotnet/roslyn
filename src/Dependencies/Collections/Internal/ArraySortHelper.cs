@@ -19,7 +19,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 #endif
 
-#if !NET5_0 && !NET5_0_OR_GREATER
+#if !NET5_0_OR_GREATER
 using Half = System.Single;
 #endif
 

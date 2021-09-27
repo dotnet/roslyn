@@ -67,14 +67,15 @@ namespace Microsoft.CodeAnalysis.Editor
 
             public override void HandleException(object provider, Exception exception)
             {
-                if (provider is CodeFixProvider || provider is FixAllProvider || provider is CodeRefactoringProvider)
+                if (provider is CodeFixProvider or FixAllProvider or CodeRefactoringProvider)
                 {
                     if (!IsIgnored(provider) &&
                         _optionsService.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))
                     {
                         base.HandleException(provider, exception);
 
-                        _errorReportingService?.ShowGlobalErrorInfo(String.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled, provider.GetType().Name),
+                        _errorReportingService?.ShowGlobalErrorInfo(string.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled, provider.GetType().Name),
+                            exception,
                             new InfoBarUI(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink, () => ShowDetailedErrorInfo(exception), closeAfterAction: false),
                             new InfoBarUI(WorkspacesResources.Enable, InfoBarUI.UIKind.Button, () =>
                             {

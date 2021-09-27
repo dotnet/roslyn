@@ -7,19 +7,11 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Rebuild;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Metadata.Tools;
@@ -287,7 +279,6 @@ namespace BuildValidator
 
             static void createDiffArtifacts(string debugPath, string assemblyFileName, BuildInfo originalInfo, BuildInfo rebuildInfo, Compilation compilation)
             {
-                var assemblyName = Path.GetFileNameWithoutExtension(assemblyFileName);
                 var originalDataFiles = createBuildArtifacts(Path.Combine(debugPath, "original"), assemblyFileName, originalInfo);
                 var rebuildDataFiles = createBuildArtifacts(Path.Combine(debugPath, "rebuild"), assemblyFileName, rebuildInfo);
 
@@ -365,7 +356,7 @@ namespace BuildValidator
                     Arguments = $@"{assemblyFilePath} /all /out={buildDataFiles.ILFilePath}",
                     UseShellExecute = false,
                     CreateNoWindow = true
-                }).WaitForExit();
+                })!.WaitForExit();
 
                 return buildDataFiles;
             }

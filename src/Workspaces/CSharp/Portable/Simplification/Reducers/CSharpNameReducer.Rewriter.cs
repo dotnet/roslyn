@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
             {
-                var isOrAsNode = node.Kind() == SyntaxKind.AsExpression || node.Kind() == SyntaxKind.IsExpression;
+                var isOrAsNode = node.Kind() is SyntaxKind.AsExpression or SyntaxKind.IsExpression;
 
                 var result = (ExpressionSyntax)base.VisitBinaryExpression(node);
 

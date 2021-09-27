@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private HashSet<string> _namesOfTopLevelTypes;
 
         internal readonly TModuleCompilationState CompilationState;
-        public Cci.RootModuleType RootModuleType { get; } = new Cci.RootModuleType();
+        private readonly Cci.RootModuleType _rootModuleType;
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
@@ -582,7 +582,10 @@ namespace Microsoft.CodeAnalysis.Emit
             Compilation = compilation;
             SourceModule = sourceModule;
             this.CompilationState = compilationState;
+            _rootModuleType = new Cci.RootModuleType(this);
         }
+
+        public Cci.RootModuleType RootModuleType => _rootModuleType;
 
         internal sealed override void CompilationFinished()
         {

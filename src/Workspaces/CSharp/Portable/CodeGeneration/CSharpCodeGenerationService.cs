@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode declaration, ITypeSymbol newType, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            if (!(declaration is CSharpSyntaxNode syntaxNode))
+            if (declaration is not CSharpSyntaxNode syntaxNode)
             {
                 return declaration;
             }
