@@ -670,7 +670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         End If
 
                     Case SymbolKind.NamedType
-                        ' We only process top level types in this method, And only return documents for types if there are no
+                        ' We only process top level types in this method, and only return documents for types if there are no
                         ' methods that would refer to the same document, either in the type or in any nested type.
                         Debug.Assert(debugDocuments.Count = 0)
                         Debug.Assert(methodDocumentList.Count = 0)
