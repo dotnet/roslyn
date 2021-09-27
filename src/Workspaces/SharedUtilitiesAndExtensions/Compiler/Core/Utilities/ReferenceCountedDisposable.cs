@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -315,6 +316,7 @@ namespace Roslyn.Utilities
             /// <remarks>
             /// DO NOT DISPOSE OF THE TARGET.
             /// </remarks>
+            [DisallowNull]
             public WeakReference<T>? _weakInstance;
 
             public int _referenceCount;
