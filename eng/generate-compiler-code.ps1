@@ -22,7 +22,7 @@ function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProje
   $errorFileName = if ($language -eq "CSharp") { "ErrorCode.cs" } else { "Errors.vb" }
   $errorFilePath = Join-Path $languageDir "Errors\$errorFileName"
   $errorGeneratedFilePath = Join-Path $generatedDir "ErrorFacts.Generated.$($languageSuffix)"
-  $targetFramework = "netcoreapp3.1"
+  $targetFramework = "net6.0"
 
   Create-Directory $generatedDir
   Create-Directory $generatedTestDir
