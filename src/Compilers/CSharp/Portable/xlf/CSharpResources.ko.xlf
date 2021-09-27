@@ -1437,6 +1437,16 @@
         <target state="translated">InterpolatedStringHandlerArgument는 람다 매개 변수에 적용할 때 효과가 없으며 호출 사이트에서 무시됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MethGrpToNonDel">
+        <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
+        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MethGrpToNonDel_Title">
+        <source>Converting method group to non-delegate type</source>
+        <target state="new">Converting method group to non-delegate type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">매개 변수 '{1}'이(가) null이 아니므로 매개 변수 '{0}'은(는) 종료할 때 null이 아닌 값을 가져야 합니다.</target>
