@@ -2684,12 +2684,12 @@ public class Bar
         }
 
         [WpfFact]
-        public void TestSwitchExpression()
+        public void TestSwitchExpression1()
         {
             Test(@"
 public class Bar
 {
-    public void Foo(int c)
+    public void Goo(int c)
     {
         var d = c switch
         {
@@ -2700,9 +2700,34 @@ public class Bar
                 @"
 public class Bar
 {
-    public void Foo(int c)
+    public void Goo(int c)
     {
-        var d = c swi$$tch
+        var d = c swi$$tch$$
+    }
+}");
+
+        }
+
+        [WpfFact]
+        public void TestSwitchExpression2()
+        {
+            Test(@"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = (c + 1) switch
+        {
+            $$
+        }
+    }
+}",
+                @"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = (c + 1) swi$$tch$$
     }
 }");
 

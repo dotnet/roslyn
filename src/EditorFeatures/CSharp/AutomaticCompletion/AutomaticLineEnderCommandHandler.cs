@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             //      Consider code like so: try {|}
             //      With auto brace completion on, user types `{` and `Return` in a hurry.
             //      During typing, it is possible that shift was still down and not released after typing `{`.
-            //      So we've got an unintentional `shift + enter` and also we have nothing to complete this,
+            //      So we've got an unintentional `shift + enter` and also we have nothing to complete this, 
             //      so we put in a newline,
-            //      which generates code like so : try { }
+            //      which generates code like so : try { } 
             //                                     |
             //      which is not useful as : try {
             //                                  |
@@ -592,19 +592,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         {
             if (node is SwitchStatementSyntax switchStatementNode)
             {
-                if (switchStatementNode.OpenParenToken.IsMissing && switchStatementNode.CloseParenToken.IsMissing)
+                // There is no parenthesis pair in the switchStatementNode, and the node before 'switch' is an expression
+                // e.g.
+                // void Foo(int i)
+                // {
+                //    var c = (i + 1) swit$$ch
+                // }
+                // Consider this as a SwitchExpression, add the brace after 'switch'
+                if (switchStatementNode.OpenParenToken.IsMissing
+                    && switchStatementNode.CloseParenToken.IsMissing
+                    && IsTokenPartOfExpresion(switchStatementNode.GetFirstToken().GetPreviousToken()))
                 {
-                    // There is no parenthesis pair in the switchStatementNode,
-                    // e.g.
-                    // void Foo(int i)
-                    // {
-                    //    var c = i swit$$ch
-                    // }
-                    // Consider this as a SwitchExpression, add the brace after 'switch'
                     return switchStatementNode.SwitchKeyword.Span.End;
                 }
 
-                // In all other case, think it is a switch statement, add brace after the clos parenthesis.
+                // In all other case, think it is a switch statement, add brace after the close parenthesis.
                 return switchStatementNode.CloseParenToken.Span.End;
             }
 
@@ -617,6 +619,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 FinallyClauseSyntax finallyClauseNode => finallyClauseNode.Block.SpanStart,
                 _ => throw ExceptionUtilities.Unreachable,
             };
+        }
+
+        private static bool IsTokenPartOfExpresion(SyntaxToken syntaxToken)
+        {
+            if (syntaxToken.IsMissing || syntaxToken.IsKind(SyntaxKind.None))
+            {
+                return false;
+            }
+
+            return !syntaxToken.GetAncestors<ExpressionSyntax>().IsEmpty();
         }
 
         private static string GetBracePairString(IEditorOptions editorOptions)

@@ -589,9 +589,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         // and the last close brace of 'Bar' would be thought as a part of Main()
         // So for these case, just check if the open brace is missing.
         private static bool ShouldAddBraceForSwitchStatement(SwitchStatementSyntax switchStatementNode)
-        // Only check if the open braceToken is missing because when the text is
-        // 'switch', parser would think it is SwitchStatement.
-        // But it could also be switch expression.
             => !switchStatementNode.SwitchKeyword.IsMissing && switchStatementNode.OpenBraceToken.IsMissing;
 
         private static bool ShouldAddBraceForTryStatement(TryStatementSyntax tryStatementNode, int caretPosition)
