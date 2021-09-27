@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -150,6 +151,11 @@ Delta: Gamma: Beta: Test B
             Assert.Equal(@"", actual);
         }
 
+        private static void VerifyAssemblies(IEnumerable<Assembly> assemblies, params (string simpleName, string version, string path)[] expected)
+        {
+            Assert.Equal(expected, assemblies.Select(assembly => (assembly.GetName().Name!, assembly.GetName().Version!.ToString(), assembly.Location)).Order());
+        }
+
         [ConditionalFact(typeof(CoreClrOnly))]
         public void AssemblyLoading_DependencyInDifferentDirectory()
         {
@@ -170,6 +176,17 @@ Delta: Gamma: Beta: Test B
             var actual = sb.ToString();
             Assert.Equal(@"Delta: Gamma: Test G
 ", actual);
+
+#if NETCOREAPP
+            var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
+            Assert.Equal(1, alcs.Length);
+
+            VerifyAssemblies(
+                alcs[0].Assemblies,
+                ("Delta", "1.0.0.0", deltaFile.Path),
+                ("Gamma", "0.0.0.0", _testFixture.Gamma.Path)
+            );
+#endif
         }
 
         [Fact]
@@ -195,15 +212,16 @@ Delta: Gamma: Beta: Test B
             var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
             Assert.Equal(2, alcs.Length);
 
-            Assert.Equal(new[] {
+            VerifyAssemblies(
+                alcs[0].Assemblies,
                 ("Delta", "1.0.0.0", _testFixture.Delta1.Path),
                 ("Gamma", "0.0.0.0", _testFixture.Gamma.Path)
-            }, alcs[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+            );
 
-            Assert.Equal(new[] {
+            VerifyAssemblies(
+                alcs[1].Assemblies,
                 ("Delta", "2.0.0.0", _testFixture.Delta2.Path),
-                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path)
-            }, alcs[1].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path));
 #endif
 
             var actual = sb.ToString();
@@ -243,10 +261,10 @@ Delta: Epsilon: Test E
             var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
             Assert.Equal(1, alcs.Length);
 
-            Assert.Equal(new[] {
+            VerifyAssemblies(
+                alcs[0].Assemblies,
                 ("Delta", "3.0.0.0", _testFixture.Delta3.Path),
-                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path)
-            }, alcs[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path));
 #endif
 
             var actual = sb.ToString();
@@ -285,10 +303,10 @@ Delta: Epsilon: Test E
             var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
             Assert.Equal(1, alcs.Length);
 
-            Assert.Equal(new[] {
+            VerifyAssemblies(
+                alcs[0].Assemblies,
                 ("Delta", "2.0.0.0", _testFixture.Delta2.Path),
-                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path)
-            }, alcs[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path));
 #endif
 
             var actual = sb.ToString();
@@ -326,10 +344,10 @@ Delta: Epsilon: Test E
             var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
             Assert.Equal(1, alcs.Length);
 
-            Assert.Equal(new[] {
+            VerifyAssemblies(
+                alcs[0].Assemblies,
                 ("Delta", "2.0.0.0", _testFixture.Delta2B.Path),
-                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path)
-            }, alcs[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path));
 #endif
 
             var actual = sb.ToString();
@@ -372,10 +390,10 @@ Delta: Epsilon: Test E
             var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
             Assert.Equal(1, alcs.Length);
 
-            Assert.Equal(new[] {
+            VerifyAssemblies(
+                alcs[0].Assemblies,
                 ("Delta", "1.0.0.0", delta1File.Path),
-                ("Epsilon", "0.0.0.0", epsilonFile.Path)
-            }, alcs[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+                ("Epsilon", "0.0.0.0", epsilonFile.Path));
 #endif
 
             var actual = sb.ToString();
@@ -410,18 +428,18 @@ Delta: Epsilon: Test E
             var alcs1 = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader1);
             Assert.Equal(1, alcs1.Length);
 
-            Assert.Equal(new[] {
+            VerifyAssemblies(
+                alcs1[0].Assemblies,
                 ("Delta", "1.0.0.0", _testFixture.Delta1.Path),
-                ("Gamma", "0.0.0.0", _testFixture.Gamma.Path)
-            }, alcs1[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+                ("Gamma", "0.0.0.0", _testFixture.Gamma.Path));
 
             var alcs2 = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader2);
             Assert.Equal(1, alcs2.Length);
 
-            Assert.Equal(new[] {
+            VerifyAssemblies(
+                alcs2[0].Assemblies,
                 ("Delta", "2.0.0.0", _testFixture.Delta2.Path),
-                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path)
-            }, alcs2[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path));
 #endif
 
             var actual = sb.ToString();
