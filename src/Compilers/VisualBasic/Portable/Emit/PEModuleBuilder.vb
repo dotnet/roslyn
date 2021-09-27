@@ -638,14 +638,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Public Overrides Iterator Function GetTypeToDebugDocumentMap(context As EmitContext) As IEnumerable(Of (Cci.ITypeDefinition, ImmutableArray(Of Cci.DebugSourceDocument)))
+            Dim typesToProcess = ArrayBuilder(Of Cci.ITypeDefinition).GetInstance()
             Dim debugDocuments = ArrayBuilder(Of Cci.DebugSourceDocument).GetInstance()
             Dim methodDocumentList = PooledHashSet(Of Cci.DebugSourceDocument).GetInstance()
 
-            Dim namespacesAndTypesToProcess = ArrayBuilder(Of NamespaceOrTypeSymbol).GetInstance()
-            namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace)
+            Dim namespacesAndTopLevelTypesToProcess = ArrayBuilder(Of NamespaceOrTypeSymbol).GetInstance()
+            namespacesAndTopLevelTypesToProcess.Push(SourceModule.GlobalNamespace)
 
-            While namespacesAndTypesToProcess.Count > 0
-                Dim symbol = namespacesAndTypesToProcess.Pop()
+            While namespacesAndTopLevelTypesToProcess.Count > 0
+                Dim symbol = namespacesAndTopLevelTypesToProcess.Pop()
 
                 If symbol.Locations.Length = 0 Then
                     Continue While
@@ -661,7 +662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             For Each member In symbol.GetMembers()
                                 Select Case member.Kind
                                     Case SymbolKind.Namespace, SymbolKind.NamedType
-                                        namespacesAndTypesToProcess.Push(DirectCast(member, NamespaceOrTypeSymbol))
+                                        namespacesAndTopLevelTypesToProcess.Push(DirectCast(member, NamespaceOrTypeSymbol))
                                     Case Else
                                         Throw ExceptionUtilities.UnexpectedValue(member.Kind)
                                 End Select
@@ -669,12 +670,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         End If
 
                     Case SymbolKind.NamedType
-                        'Now process this type
+                        ' We only process top level types in this method, And only return documents for types if there are no
+                        ' methods that would refer to the same document, either in the type or in any nested type.
                         Debug.Assert(debugDocuments.Count = 0)
                         Debug.Assert(methodDocumentList.Count = 0)
+                        Debug.Assert(typesToProcess.Count = 0)
 
                         Dim typeDefinition = DirectCast(symbol.GetCciAdapter(), Cci.ITypeDefinition)
-                        GetDocumentsForMethodsAndNestedTypes(methodDocumentList, typeDefinition, context)
+                        typesToProcess.Push(typeDefinition)
+                        GetDocumentsForMethodsAndNestedTypes(methodDocumentList, typesToProcess, context)
 
                         For Each loc In symbol.Locations
                             If Not loc.IsInSource Then
@@ -699,15 +703,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 End Select
             End While
 
-            namespacesAndTypesToProcess.Free()
+            namespacesAndTopLevelTypesToProcess.Free()
             debugDocuments.Free()
             methodDocumentList.Free()
+            typesToProcess.Free()
         End Function
 
-        Private Shared Sub GetDocumentsForMethodsAndNestedTypes(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typeDefinition As Cci.ITypeDefinition, context As EmitContext)
-            Dim typesToProcess = ArrayBuilder(Of Cci.ITypeDefinition).GetInstance()
-            typesToProcess.Push(typeDefinition)
-
+        Private Shared Sub GetDocumentsForMethodsAndNestedTypes(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typesToProcess As ArrayBuilder(Of Cci.ITypeDefinition), context As EmitContext)
             While typesToProcess.Count > 0
                 Dim definition = typesToProcess.Pop()
 
@@ -728,8 +730,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     typesToProcess.Push(nestedTypeDefinition)
                 Next
             End While
-
-            typesToProcess.Free()
         End Sub
 
         Public Sub SetDisableJITOptimization(methodSymbol As MethodSymbol)

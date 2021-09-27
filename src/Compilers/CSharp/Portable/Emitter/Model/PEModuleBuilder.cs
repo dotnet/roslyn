@@ -210,14 +210,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public sealed override IEnumerable<(Cci.ITypeDefinition, ImmutableArray<Cci.DebugSourceDocument>)> GetTypeToDebugDocumentMap(EmitContext context)
         {
+            var typesToProcess = ArrayBuilder<Cci.ITypeDefinition>.GetInstance();
             var debugDocuments = ArrayBuilder<Cci.DebugSourceDocument>.GetInstance();
             var methodDocumentList = PooledHashSet<Cci.DebugSourceDocument>.GetInstance();
 
-            var namespacesAndTypesToProcess = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
-            namespacesAndTypesToProcess.Push(SourceModule.GlobalNamespace);
-            while (namespacesAndTypesToProcess.Count > 0)
+            var namespacesAndTopLevelTypesToProcess = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+            namespacesAndTopLevelTypesToProcess.Push(SourceModule.GlobalNamespace);
+            while (namespacesAndTopLevelTypesToProcess.Count > 0)
             {
-                var symbol = namespacesAndTypesToProcess.Pop();
+                var symbol = namespacesAndTopLevelTypesToProcess.Pop();
 
                 switch (symbol.Kind)
                 {
@@ -234,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                 {
                                     case SymbolKind.Namespace:
                                     case SymbolKind.NamedType:
-                                        namespacesAndTypesToProcess.Push((NamespaceOrTypeSymbol)member);
+                                        namespacesAndTopLevelTypesToProcess.Push((NamespaceOrTypeSymbol)member);
                                         break;
                                     default:
                                         throw ExceptionUtilities.UnexpectedValue(member.Kind);
@@ -243,12 +244,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         }
                         break;
                     case SymbolKind.NamedType:
-                        // Now process this type
                         Debug.Assert(debugDocuments.Count == 0);
                         Debug.Assert(methodDocumentList.Count == 0);
+                        Debug.Assert(typesToProcess.Count == 0);
 
                         var typeDefinition = (Cci.ITypeDefinition)symbol.GetCciAdapter();
-                        GetDocumentsForMethodsAndNestedTypes(methodDocumentList, typeDefinition, context);
+                        typesToProcess.Push(typeDefinition);
+                        GetDocumentsForMethodsAndNestedTypes(methodDocumentList, typesToProcess, context);
 
                         foreach (var loc in symbol.Locations)
                         {
@@ -261,7 +263,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             var debugDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath: null);
 
                             // If we have a debug document that is already referenced by method debug info in this type, or a nested type,
-                            // then we don't need to include it
+                            // then we don't need to include it. Since its impossible to declare a nested type without also including
+                            // a declaration for its containing type, we don't need to consider nested types in this method itself.
                             if (debugDocument is not null && !methodDocumentList.Contains(debugDocument))
                             {
                                 debugDocuments.Add(debugDocument);
@@ -281,19 +284,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
             }
 
-            namespacesAndTypesToProcess.Free();
+            namespacesAndTopLevelTypesToProcess.Free();
             debugDocuments.Free();
             methodDocumentList.Free();
+            typesToProcess.Free();
         }
 
         /// <summary>
-        /// Gets a list of documents from the method definitions in this type
+        /// Gets a list of documents from the method definitions in the types in <paramref name="typesToProcess"/> or any
+        /// nested types of those types.
         /// </summary>
-        private static void GetDocumentsForMethodsAndNestedTypes(PooledHashSet<Cci.DebugSourceDocument> documentList, Cci.ITypeDefinition typeDefinition, EmitContext context)
+        private static void GetDocumentsForMethodsAndNestedTypes(PooledHashSet<Cci.DebugSourceDocument> documentList, ArrayBuilder<Cci.ITypeDefinition> typesToProcess, EmitContext context)
         {
-            var typesToProcess = ArrayBuilder<Cci.ITypeDefinition>.GetInstance();
-            typesToProcess.Push(typeDefinition);
-
             while (typesToProcess.Count > 0)
             {
                 var definition = typesToProcess.Pop();
@@ -319,8 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     typesToProcess.Push(nestedTypeDefinition);
                 }
             }
-
-            typesToProcess.Free();
         }
 
         public sealed override MultiDictionary<Cci.DebugSourceDocument, Cci.DefinitionWithLocation> GetSymbolToLocationMap()
