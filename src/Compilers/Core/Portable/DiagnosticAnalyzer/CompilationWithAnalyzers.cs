@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Get the mapped model and invoke GetDiagnostics for the given filter span, if any.
                 // Limiting the GetDiagnostics scope to the filter span ensures we only generate compilation events
-                // for the required symbols whose delcaration intersects with this span, instead of all symbols in the tree.
+                // for the required symbols whose declaration intersects with this span, instead of all symbols in the tree.
                 var mappedModel = _compilation.GetSemanticModel(analysisScope.FilterFileOpt!.Value.SourceTree!);
                 _ = mappedModel.GetDiagnostics(analysisScope.FilterSpanOpt, cancellationToken);
             }
