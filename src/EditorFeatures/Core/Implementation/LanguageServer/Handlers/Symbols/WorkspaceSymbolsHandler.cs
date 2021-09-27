@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     ContainerName = result.AdditionalInformation,
                     Kind = ProtocolConversions.NavigateToKindToSymbolKind(result.Kind),
                     Location = location,
-                    Icon = ProtocolConversions.GetImageIdFromGlyph(result.NavigableItem.Glyph)
+                    Icon = VSLspExtensionConversions.GetImageIdFromGlyph(result.NavigableItem.Glyph)
                 });
             }
 
