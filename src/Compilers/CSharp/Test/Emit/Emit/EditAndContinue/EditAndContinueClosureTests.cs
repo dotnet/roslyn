@@ -1088,10 +1088,10 @@ class C
                 Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(6, TableIndex.Param, EditAndContinueOperation.Default),
@@ -1174,7 +1174,7 @@ class C
                 Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(15, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(5, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(6, TableIndex.Param, EditAndContinueOperation.Default),
@@ -1348,8 +1348,8 @@ class C
                 Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(3, TableIndex.Param, EditAndContinueOperation.Default),
@@ -1430,7 +1430,7 @@ class C
                 Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(3, TableIndex.Param, EditAndContinueOperation.Default),
@@ -2329,9 +2329,9 @@ public class C
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var reader0 = md0.MetadataReader;
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c__DisplayClass0_0", "<>c");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".ctor", "<F>b__1", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
-            CheckNames(reader0, reader0.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__0_0");
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c", "<>c__DisplayClass0_0");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0", ".ctor", "<F>b__1", "<F>b__2");
+            CheckNames(reader0, reader0.GetFieldDefNames(), "<>9", "<>9__0_0", "<>4__this", "a");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
@@ -2342,8 +2342,8 @@ public class C
             var reader1 = diff1.GetMetadata().Reader;
 
             CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>c__DisplayClass0#1_0#1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), ".ctor", "F", ".ctor", "<F>b__1#1", "<F>b__2#1", "<F>b__0#1_0#1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "<>4__this", "a", "<>9__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), ".ctor", "F", "<F>b__0#1_0#1", ".ctor", "<F>b__1#1", "<F>b__2#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "<>9__0#1_0#1", "<>4__this", "a");
 
             diff1.VerifySynthesizedMembers(
                 "C: {<>c, <>c__DisplayClass0#1_0#1}",
@@ -2358,8 +2358,8 @@ public class C
             var reader2 = diff2.GetMetadata().Reader;
 
             CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>c__DisplayClass1#2_0#2");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), ".ctor", "F", ".ctor", "<F>b__1#2", "<F>b__2#2", "<F>b__1#2_0#2");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "<>4__this", "a", "<>9__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), ".ctor", "F", "<F>b__1#2_0#2", ".ctor", "<F>b__1#2", "<F>b__2#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "<>9__1#2_0#2", "<>4__this", "a");
         }
 
         [Fact]
@@ -2446,9 +2446,9 @@ public class C
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
             var reader0 = md0.MetadataReader;
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c__DisplayClass0_0`1", "<>c__0`1");
-            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".ctor", "<F>b__1", "<F>b__2", ".cctor", ".ctor", "<F>b__0_0");
-            CheckNames(reader0, reader0.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__0_0");
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>c__0`1", "<>c__DisplayClass0_0`1");
+            CheckNames(reader0, reader0.GetMethodDefNames(), "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0", ".ctor", "<F>b__1", "<F>b__2");
+            CheckNames(reader0, reader0.GetFieldDefNames(), "<>9", "<>9__0_0", "<>4__this", "a");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
             var diff1 = compilation1.EmitDifference(
@@ -2458,9 +2458,9 @@ public class C
 
             var reader1 = diff1.GetMetadata().Reader;
 
-            CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>c__DisplayClass0#1_0#1`1", "<>c__0#1`1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), "F", ".ctor", "<F>b__1#1", "<F>b__2#1", ".cctor", ".ctor", "<F>b__0#1_0#1");
-            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__0#1_0#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>c__0#1`1", "<>c__DisplayClass0#1_0#1`1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetMethodDefNames(), "F", ".cctor", ".ctor", "<F>b__0#1_0#1", ".ctor", "<F>b__1#1", "<F>b__2#1");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetFieldDefNames(), "<>9", "<>9__0#1_0#1", "<>4__this", "a");
 
             diff1.VerifySynthesizedMembers(
                 "C.<>c__0#1<T>: {<>9__0#1_0#1, <F>b__0#1_0#1}",
@@ -2474,9 +2474,9 @@ public class C
 
             var reader2 = diff2.GetMetadata().Reader;
 
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>c__DisplayClass1#2_0#2`1", "<>c__1#2`1");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), "F", ".ctor", "<F>b__1#2", "<F>b__2#2", ".cctor", ".ctor", "<F>b__1#2_0#2");
-            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "<>4__this", "a", "<>9", "<>9__1#2_0#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>c__1#2`1", "<>c__DisplayClass1#2_0#2`1");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetMethodDefNames(), "F", ".cctor", ".ctor", "<F>b__1#2_0#2", ".ctor", "<F>b__1#2", "<F>b__2#2");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetFieldDefNames(), "<>9", "<>9__1#2_0#2", "<>4__this", "a");
         }
 
         [Fact]

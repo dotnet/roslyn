@@ -439,11 +439,11 @@ End Module
                 Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
         End Sub
 
         <WorkItem(1067140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067140")>

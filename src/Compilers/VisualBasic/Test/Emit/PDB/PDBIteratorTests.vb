@@ -244,7 +244,7 @@ End Module
         End Sub
 
         <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop, AlwaysSkip:="TODO2")>
         Public Sub LocalCapturedAndHoisted()
             Dim source =
 <compilation>
@@ -280,7 +280,7 @@ End Class
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_Hoisted" name="MoveNext">
             <customDebugInfo>
-                <hoistedLocalScopes format="portable">
+                <hoistedLocalScopes>
                     <slot startOffset="0x19" endOffset="0x98"/>
                 </hoistedLocalScopes>
             </customDebugInfo>
@@ -295,12 +295,6 @@ End Class
                 <entry offset="0x85" startLine="13" startColumn="9" endLine="13" endColumn="21" document="1"/>
                 <entry offset="0x96" startLine="14" startColumn="5" endLine="14" endColumn="17" document="1"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x98">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
-                <scope startOffset="0x19" endOffset="0x97">
-                    <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x19" il_end="0x97" attributes="0"/>
-                </scope>
-            </scope>
         </method>
     </methods>
 </symbols>)
@@ -349,7 +343,9 @@ End Class
                 <entry offset="0x54" startLine="12" startColumn="5" endLine="12" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x56">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Collections.Generic" importlevel="file"/>
+                <currentnamespace name=""/>
                 <scope startOffset="0x19" endOffset="0x55">
                     <local name="$VB$Closure_0" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
                 </scope>

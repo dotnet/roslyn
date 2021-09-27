@@ -399,7 +399,7 @@ End Module
         End Sub
 
         <WorkItem(827337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827337"), WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")>
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop, AlwaysSkip:="TODO2")>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Debug()
             Dim source =
 <compilation>
@@ -436,10 +436,6 @@ End Class
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
             <customDebugInfo>
-                <hoistedLocalScopes format="portable">
-                    <slot startOffset="0x0" endOffset="0x139"/>
-                    <slot startOffset="0x0" endOffset="0x139"/>
-                </hoistedLocalScopes>
                 <encLocalSlotMap>
                     <slot kind="27" offset="-1"/>
                     <slot kind="33" offset="118"/>
@@ -467,7 +463,9 @@ End Class
                 <entry offset="0x12c" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x139">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
                 <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x0" il_end="0x139" attributes="0"/>
                 <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x0" il_end="0x139" attributes="0"/>
             </scope>
@@ -480,7 +478,7 @@ End Class
 </symbols>)
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop, AlwaysSkip:="TODO2")>
         Public Sub LocalCapturedInBetweenSuspensionPoints_Release()
             Dim source =
 <compilation>
@@ -516,11 +514,6 @@ End Class
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
-            <customDebugInfo>
-                <hoistedLocalScopes format="portable">
-                    <slot startOffset="0x0" endOffset="0x10f"/>
-                </hoistedLocalScopes>
-            </customDebugInfo>
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="1"/>
                 <entry offset="0x7" hidden="true" document="1"/>
@@ -538,7 +531,9 @@ End Class
                 <entry offset="0x103" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10f">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
                 <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x0" il_end="0x10f" attributes="0"/>
             </scope>
             <asyncInfo>

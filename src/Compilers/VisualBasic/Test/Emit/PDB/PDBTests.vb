@@ -3868,98 +3868,98 @@ End Module
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugDll)
 
             compilation.VerifyPdb(
-<symbols>
-    <files>
-        <file id="1" name="" language="VB"/>
-    </files>
-    <methods>
-        <method containingType="M" name=".cctor">
-            <customDebugInfo>
-                <encLambdaMap>
-                    <methodOrdinal>0</methodOrdinal>
-                    <closure offset="-84"/>
-                    <lambda offset="-243"/>
-                    <lambda offset="-182"/>
-                    <lambda offset="-84"/>
-                    <lambda offset="-72" closure="0"/>
-                </encLambdaMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="13" endLine="7" endColumn="21" document="1"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x16">
-                <namespace name="System" importlevel="file"/>
-                <currentnamespace name=""/>
-            </scope>
-        </method>
-        <method containingType="M+_Closure$__0-0" name="_Lambda$__3" parameterNames="y">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="21" offset="-72"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="96" endLine="5" endColumn="107" document="1"/>
-                <entry offset="0x1" startLine="5" startColumn="108" endLine="5" endColumn="112" document="1"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x17">
-                <importsforward declaringType="M" methodName=".cctor"/>
-            </scope>
-        </method>
-        <method containingType="M+_Closure$__" name="_Lambda$__0-0" parameterNames="x">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="21" offset="-243"/>
-                    <slot kind="0" offset="-214"/>
-                    <slot kind="0" offset="-151"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="46" endLine="3" endColumn="57" document="1"/>
-                <entry offset="0x1" startLine="4" startColumn="17" endLine="4" endColumn="62" document="1"/>
-                <entry offset="0x26" startLine="5" startColumn="17" endLine="5" endColumn="112" document="1"/>
-                <entry offset="0x4b" startLine="6" startColumn="13" endLine="6" endColumn="33" document="1"/>
-                <entry offset="0x5b" startLine="7" startColumn="9" endLine="7" endColumn="21" document="1"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x5d">
-                <importsforward declaringType="M" methodName=".cctor"/>
-                <local name="f" il_index="1" il_start="0x0" il_end="0x5d" attributes="0"/>
-                <local name="g" il_index="2" il_start="0x0" il_end="0x5d" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="M+_Closure$__" name="_Lambda$__0-1" parameterNames="o">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="21" offset="-182"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="49" endLine="4" endColumn="60" document="1"/>
-                <entry offset="0x1" startLine="4" startColumn="61" endLine="4" endColumn="62" document="1"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward declaringType="M" methodName=".cctor"/>
-            </scope>
-        </method>
-        <method containingType="M+_Closure$__" name="_Lambda$__0-2" parameterNames="h">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="30" offset="-84"/>
-                    <slot kind="21" offset="-84"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="84" endLine="5" endColumn="95" document="1"/>
-                <entry offset="0x1" hidden="true" document="1"/>
-                <entry offset="0xe" startLine="5" startColumn="96" endLine="5" endColumn="112" document="1"/>
-            </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x1f">
-                <importsforward declaringType="M" methodName=".cctor"/>
-                <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
-            </scope>
-        </method>
-    </methods>
-</symbols>)
+ <symbols>
+     <files>
+         <file id="1" name="" language="VB"/>
+     </files>
+     <methods>
+         <method containingType="M" name=".cctor">
+             <customDebugInfo>
+                 <encLambdaMap>
+                     <methodOrdinal>0</methodOrdinal>
+                     <closure offset="-84"/>
+                     <lambda offset="-243"/>
+                     <lambda offset="-182"/>
+                     <lambda offset="-84"/>
+                     <lambda offset="-72" closure="0"/>
+                 </encLambdaMap>
+             </customDebugInfo>
+             <sequencePoints>
+                 <entry offset="0x0" startLine="3" startColumn="13" endLine="7" endColumn="21" document="1"/>
+             </sequencePoints>
+             <scope startOffset="0x0" endOffset="0x16">
+                 <namespace name="System" importlevel="file"/>
+                 <currentnamespace name=""/>
+             </scope>
+         </method>
+         <method containingType="M+_Closure$__" name="_Lambda$__0-0" parameterNames="x">
+             <customDebugInfo>
+                 <encLocalSlotMap>
+                     <slot kind="21" offset="-243"/>
+                     <slot kind="0" offset="-214"/>
+                     <slot kind="0" offset="-151"/>
+                 </encLocalSlotMap>
+             </customDebugInfo>
+             <sequencePoints>
+                 <entry offset="0x0" startLine="3" startColumn="46" endLine="3" endColumn="57" document="1"/>
+                 <entry offset="0x1" startLine="4" startColumn="17" endLine="4" endColumn="62" document="1"/>
+                 <entry offset="0x26" startLine="5" startColumn="17" endLine="5" endColumn="112" document="1"/>
+                 <entry offset="0x4b" startLine="6" startColumn="13" endLine="6" endColumn="33" document="1"/>
+                 <entry offset="0x5b" startLine="7" startColumn="9" endLine="7" endColumn="21" document="1"/>
+             </sequencePoints>
+             <scope startOffset="0x0" endOffset="0x5d">
+                 <importsforward declaringType="M" methodName=".cctor"/>
+                 <local name="f" il_index="1" il_start="0x0" il_end="0x5d" attributes="0"/>
+                 <local name="g" il_index="2" il_start="0x0" il_end="0x5d" attributes="0"/>
+             </scope>
+         </method>
+         <method containingType="M+_Closure$__" name="_Lambda$__0-1" parameterNames="o">
+             <customDebugInfo>
+                 <encLocalSlotMap>
+                     <slot kind="21" offset="-182"/>
+                 </encLocalSlotMap>
+             </customDebugInfo>
+             <sequencePoints>
+                 <entry offset="0x0" startLine="4" startColumn="49" endLine="4" endColumn="60" document="1"/>
+                 <entry offset="0x1" startLine="4" startColumn="61" endLine="4" endColumn="62" document="1"/>
+             </sequencePoints>
+             <scope startOffset="0x0" endOffset="0x7">
+                 <importsforward declaringType="M" methodName=".cctor"/>
+             </scope>
+         </method>
+         <method containingType="M+_Closure$__" name="_Lambda$__0-2" parameterNames="h">
+             <customDebugInfo>
+                 <encLocalSlotMap>
+                     <slot kind="30" offset="-84"/>
+                     <slot kind="21" offset="-84"/>
+                 </encLocalSlotMap>
+             </customDebugInfo>
+             <sequencePoints>
+                 <entry offset="0x0" startLine="5" startColumn="84" endLine="5" endColumn="95" document="1"/>
+                 <entry offset="0x1" hidden="true" document="1"/>
+                 <entry offset="0xe" startLine="5" startColumn="96" endLine="5" endColumn="112" document="1"/>
+             </sequencePoints>
+             <scope startOffset="0x0" endOffset="0x1f">
+                 <importsforward declaringType="M" methodName=".cctor"/>
+                 <local name="$VB$Closure_0" il_index="0" il_start="0x0" il_end="0x1f" attributes="0"/>
+             </scope>
+         </method>
+         <method containingType="M+_Closure$__0-0" name="_Lambda$__3" parameterNames="y">
+             <customDebugInfo>
+                 <encLocalSlotMap>
+                     <slot kind="21" offset="-72"/>
+                 </encLocalSlotMap>
+             </customDebugInfo>
+             <sequencePoints>
+                 <entry offset="0x0" startLine="5" startColumn="96" endLine="5" endColumn="107" document="1"/>
+                 <entry offset="0x1" startLine="5" startColumn="108" endLine="5" endColumn="112" document="1"/>
+             </sequencePoints>
+             <scope startOffset="0x0" endOffset="0x17">
+                 <importsforward declaringType="M" methodName=".cctor"/>
+             </scope>
+         </method>
+     </methods>
+ </symbols>)
         End Sub
 
         <WorkItem(846228, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846228")>
@@ -4500,7 +4500,7 @@ End Class
 </symbols>)
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop, AlwaysSkip:="TODO2")>
         Public Sub ImportsInAsync()
             Dim source =
 "Imports System.Linq
@@ -4520,7 +4520,7 @@ End Class"
     <methods>
         <method containingType="C+VB$StateMachine_1_F" name="MoveNext">
             <customDebugInfo>
-                <hoistedLocalScopes format="portable">
+                <hoistedLocalScopes>
                     <slot startOffset="0x0" endOffset="0x8b"/>
                 </hoistedLocalScopes>
                 <encLocalSlotMap>
@@ -4539,10 +4539,6 @@ End Class"
                 <entry offset="0x74" startLine="7" startColumn="5" endLine="7" endColumn="17" document="1"/>
                 <entry offset="0x7e" hidden="true" document="1"/>
             </sequencePoints>
-            <scope startOffset="0x0" endOffset="0x8b">
-                <importsforward declaringType="C+_Closure$__" methodName="_Lambda$__1-0" parameterNames="i"/>
-                <local name="$VB$ResumableLocal_c$0" il_index="0" il_start="0x0" il_end="0x8b" attributes="0"/>
-            </scope>
             <asyncInfo>
                 <kickoffMethod declaringType="C" methodName="F"/>
             </asyncInfo>
