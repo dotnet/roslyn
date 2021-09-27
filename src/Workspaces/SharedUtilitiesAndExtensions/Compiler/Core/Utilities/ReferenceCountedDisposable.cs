@@ -222,6 +222,9 @@ namespace Roslyn.Utilities
         /// Represents a weak reference to a <see cref="ReferenceCountedDisposable{T}"/> which is capable of
         /// obtaining a new counted reference up until the point when the object is no longer accessible.
         /// </summary>
+        /// <remarks>
+        /// This value type holds a single field, which is not subject to torn reads/writes.
+        /// </remarks>
         public struct WeakReference
         {
             private readonly BoxedReferenceCount? _boxedReferenceCount;
@@ -241,13 +244,18 @@ namespace Roslyn.Utilities
                     // The specified reference is already not valid. This case is supported by WeakReference (not
                     // unlike `new System.WeakReference(null)`), but we return early to avoid an unnecessary
                     // allocation in this case.
+                    //
+                    // ⚠ Note that in cases where referenceCount._weakInstance is already non-null, it would be
+                    // possible to reconstruct a strong reference even though the current reference instance was
+                    // disposed. This case is intentionally not supported (by checking 'instance' before checking
+                    // 'referenceCount._weakInstance'), since it would be confusing semantics if this constructor
+                    // sometimes worked from a disposed reference and sometimes did not.
                     return;
                 }
 
-                if (referenceCount._weakInstance is null)
-                {
-                    Interlocked.CompareExchange(ref referenceCount._weakInstance, new WeakReference<T>(instance), null);
-                }
+                // We only need to allocate a new WeakReference<T> for this reference if one has not already been
+                // created for it.
+                LazyInitialization.EnsureInitialized(ref referenceCount._weakInstance, static instance => new WeakReference<T>(instance), instance);
 
                 _boxedReferenceCount = referenceCount;
             }
@@ -269,15 +277,24 @@ namespace Roslyn.Utilities
             /// already been disposed.</returns>
             public ReferenceCountedDisposable<T>? TryAddReference()
             {
+                // Ensure 'this' is only read once by this method.
                 var referenceCount = _boxedReferenceCount;
                 if (referenceCount == null)
                 {
+                    // This is either a default(WeakReference), or the current instance was constructed from a reference
+                    // that was already disposed. No target is available.
                     return null;
                 }
 
                 var weakInstance = referenceCount._weakInstance;
-                if (weakInstance == null || !weakInstance.TryGetTarget(out var target))
+
+                // _weakInstance is initialized by the constructor before assigning a value to _boxedReferenceCount.
+                // Since it latches in a non-null state, it cannot be null at this point.
+                Contract.ThrowIfNull(weakInstance);
+
+                if (!weakInstance.TryGetTarget(out var target))
                 {
+                    // The weak reference has already been collected, so the target is no longer available.
                     return null;
                 }
 
@@ -291,8 +308,13 @@ namespace Roslyn.Utilities
         private sealed class BoxedReferenceCount
         {
             /// <summary>
-            /// DO NOT DISPOSE OF THE TARGET.
+            /// Holds the weak reference used by instances of <see cref="WeakReference"/> to obtain a reference-counted
+            /// reference to the original object. This field is initialized the first time a weak reference is obtained
+            /// for the instance, and latches in a non-null state once initialized.
             /// </summary>
+            /// <remarks>
+            /// DO NOT DISPOSE OF THE TARGET.
+            /// </remarks>
             public WeakReference<T>? _weakInstance;
 
             public int _referenceCount;
