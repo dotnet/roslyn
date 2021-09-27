@@ -17,12 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
         // List of parsers to use. Order is important because
         // take the result from the first parser that returns 
         // success.
-        private static readonly IStackFrameParser[] Parsers = new IStackFrameParser[]
-        {
+        private static readonly ImmutableArray<IStackFrameParser> Parsers = ImmutableArray.Create<IStackFrameParser>(
             new DotnetStackFrameParser(),
             new VSDebugCallstackParser(),
             new DefaultStackParser()
-        };
+        );
 
         internal static Task<StackTraceAnalysisResult> AnalyzeAsync(string callstack, CancellationToken _)
         {

@@ -14,9 +14,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
-    internal class ParsedFrameWithFile : ParsedStackFrame
+    internal sealed class ParsedFrameWithFile : ParsedStackFrame
     {
-        public TextSpan FileSpan { get; set; }
+        public TextSpan FileSpan { get; }
 
         public ParsedFrameWithFile(
             string originalLine,

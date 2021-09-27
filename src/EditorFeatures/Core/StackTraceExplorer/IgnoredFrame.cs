@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
-    internal class IgnoredFrame : ParsedFrame
+    internal sealed class IgnoredFrame : ParsedFrame
     {
         public IgnoredFrame(string originalText) : base(originalText)
         {

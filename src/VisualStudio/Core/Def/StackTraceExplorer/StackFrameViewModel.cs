@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Classification;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
@@ -51,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         public void NavigateToClass()
         {
             var cancellationToken = _threadingContext.DisposalToken;
-            Task.Run(() => NavigateToClassAsync(cancellationToken), cancellationToken);
+            Task.Run(() => NavigateToClassAsync(cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
         }
 
         public async Task NavigateToClassAsync(CancellationToken cancellationToken)
@@ -84,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         public void NavigateToSymbol()
         {
             var cancellationToken = _threadingContext.DisposalToken;
-            Task.Run(() => NavigateToMethodAsync(cancellationToken), cancellationToken);
+            Task.Run(() => NavigateToMethodAsync(cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
         }
 
         public async Task NavigateToMethodAsync(CancellationToken cancellationToken)
@@ -124,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         public void NavigateToFile()
         {
             var cancellationToken = _threadingContext.DisposalToken;
-            Task.Run(() => NavigateToFileAsync(cancellationToken), cancellationToken);
+            Task.Run(() => NavigateToFileAsync(cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
         }
 
         public async Task NavigateToFileAsync(CancellationToken cancellationToken)
