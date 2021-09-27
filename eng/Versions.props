@@ -33,11 +33,7 @@
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.0.0-3.final</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.10.230</VisualStudioEditorPackagesVersion>
-<<<<<<< HEAD
-    <VisualStudioEditorNewPackagesVersion>17.0.325-preview</VisualStudioEditorNewPackagesVersion>
-=======
     <VisualStudioEditorNewPackagesVersion>17.0.391-preview-g5e248c9073</VisualStudioEditorNewPackagesVersion>
->>>>>>> df70ff2e2ce6faa14848f2e7f029c3f300f5e286
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.0.4129-g0e33707768</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
