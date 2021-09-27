@@ -226,7 +226,7 @@ namespace Roslyn.Utilities
         /// <remarks>
         /// This value type holds a single field, which is not subject to torn reads/writes.
         /// </remarks>
-        public struct WeakReference
+        public readonly struct WeakReference
         {
             private readonly BoxedReferenceCount? _boxedReferenceCount;
 
