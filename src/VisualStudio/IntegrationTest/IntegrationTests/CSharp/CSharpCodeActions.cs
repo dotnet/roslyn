@@ -511,12 +511,12 @@ namespace NS
             var expectedItems = new[]
             {
                 "Rename 'P2' to 'Foober'",
-                "Goober - using N;",
                 "Generate type 'Foober'",
                 "Generate class 'Foober' in new file",
                 "Generate class 'Foober'",
                 "Generate nested class 'Foober'",
                 "Generate new type...",
+                "Goober - using N;",
                 "Suppress or Configure issues",
                 "Suppress CS0168",
                 "in Source",
