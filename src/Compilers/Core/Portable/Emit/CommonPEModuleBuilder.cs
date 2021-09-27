@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (NestedTypes != null)
                 {
-                    foreach (var type in NestedTypes.OrderBy(t => t.Name))
+                    foreach (var type in NestedTypes.OrderBy(t => t.Name, StringComparer.Ordinal))
                     {
                         builder.Add(type.GetInternalSymbol());
                     }
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (_synthesizedTypeMembers.TryGetValue(container, out var defs))
             {
-                compileEmitTypes = defs.NestedTypes; //?.OrderBy(t => t.Name); // TODO2
+                compileEmitTypes = defs.NestedTypes?.OrderBy(t => t.Name, StringComparer.Ordinal); // TODO2
             }
 
             if (declareTypes == null)
