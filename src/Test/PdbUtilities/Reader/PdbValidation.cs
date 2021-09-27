@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                  e.Name == "dynamicLocals" ||
                                  e.Name == "using" ||
                                  e.Name == "currentnamespace" ||
-                                 e.Name == "defaultnamespace" ||
+                                 (e.Name == "defaultnamespace" && e.Parent?.Name == "scope") ||
                                  e.Name == "importsforward" ||
                                  e.Name == "xmlnamespace" ||
                                  e.Name == "alias" ||
