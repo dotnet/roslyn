@@ -4345,6 +4345,41 @@ class Program
         }
 
         [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        public void LambdaAttributes_NullableAttributes_AnonymousFunctionConversion_Parameter_WithoutType()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+delegate void D1(object o);
+delegate void D2([AllowNull] object o);
+delegate void D3([DisallowNull] object? o);
+
+class Program
+{
+    static void Main()
+    {
+        Action<object> x1 = (o) => { o.ToString(); };
+        Action<object?> x2 = (o) => { o.ToString(); }; // 1
+        D1 x3 = (o) => { o.ToString(); };
+        D2 x4 = (o) => { o.ToString(); };
+        D3 x5 = (o) => { o.ToString(); }; // 2
+    }
+}";
+            // Missing lambda conversion warnings tracked by https://github.com/dotnet/roslyn/issues/56668
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (14,39): warning CS8602: Dereference of a possibly null reference.
+                //         Action<object?> x2 = (o) => { o.ToString(); }; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(14, 39),
+                // (17,26): warning CS8602: Dereference of a possibly null reference.
+                //         D3 x5 = (o) => { o.ToString(); }; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(17, 26)
+                );
+        }
+
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
         public void LambdaAttributes_NullableAttributes_AnonymousFunctionConversion_Parameter_ConditionalAttributes()
         {
             var source =
@@ -4545,7 +4580,7 @@ class Program
         Action a2 = [DoesNotReturn] () => throw new Exception();
     }
 }";
-            var comp = CreateCompilation(new[] { source, DoesNotReturnAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(new[] { source, DoesNotReturnAttributeDefinition });
             comp.VerifyDiagnostics(
                 // (9,43): warning CS8763: A method marked [DoesNotReturn] should not return.
                 //         Action a1 = [DoesNotReturn] () => { };
@@ -4559,6 +4594,36 @@ class Program
             var lambdas = exprs.SelectAsArray(e => GetLambdaSymbol(model, e));
             Assert.Equal(FlowAnalysisAnnotations.DoesNotReturn, lambdas[0].FlowAnalysisAnnotations);
             Assert.Equal(FlowAnalysisAnnotations.DoesNotReturn, lambdas[1].FlowAnalysisAnnotations);
+        }
+
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        public void LambdaAttributes_DoesNotReturn_OnDelegateType()
+        {
+            var source = @"
+#nullable enable
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+[return: DoesNotReturn] delegate void DoesNotReturnDelegate();
+class Program
+{
+    static void Main()
+    {
+        DoesNotReturnDelegate a1 = [DoesNotReturn] () => { }; // 1
+        DoesNotReturnDelegate a2 = [DoesNotReturn] () => throw new Exception();
+        DoesNotReturnDelegate a3 = () => { };
+        DoesNotReturnDelegate a4 = () => throw new Exception();
+    }
+}";
+            var comp = CreateCompilation(new[] { source, DoesNotReturnAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (6,10): error CS0592: Attribute 'DoesNotReturn' is not valid on this declaration type. It is only valid on 'method' declarations.
+                // [return: DoesNotReturn] delegate void DoesNotReturnDelegate();
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "DoesNotReturn").WithArguments("DoesNotReturn", "method").WithLocation(6, 10),
+                // (11,58): warning CS8763: A method marked [DoesNotReturn] should not return.
+                //         DoesNotReturnDelegate a1 = [DoesNotReturn] () => { }; // 1
+                Diagnostic(ErrorCode.WRN_ShouldNotReturn, "{ }").WithLocation(11, 58)
+                );
         }
 
         [Fact]
