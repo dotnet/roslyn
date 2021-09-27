@@ -10,12 +10,12 @@ using Microsoft.VisualStudio.Text.Classification;
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
     [Export]
-    internal class ClassificationTypeMap : AbstractClassificationTypeMap
+    internal class SyntacticClassificationTypeMap : AbstractClassificationTypeMap
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ClassificationTypeMap(
-            IClassificationTypeRegistryService registryService) : base(registryService, ClassificationLayer.Default)
+        public SyntacticClassificationTypeMap(IClassificationTypeRegistryService registryService)
+            : base(registryService, ClassificationLayer.Syntactic)
         {
         }
     }

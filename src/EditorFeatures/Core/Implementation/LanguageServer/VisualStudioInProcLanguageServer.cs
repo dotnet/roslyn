@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         private readonly AsyncBatchingWorkQueue<DocumentId> _diagnosticsWorkQueue;
         private readonly IDiagnosticService? _diagnosticService;
 
+        private readonly ImmutableArray<string> _supportedLanguages;
+
         internal VisualStudioInProcLanguageServer(
             AbstractRequestDispatcherFactory requestDispatcherFactory,
             JsonRpc jsonRpc,
@@ -52,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             string telemetryServerTypeName)
             : base(requestDispatcherFactory, jsonRpc, capabilitiesProvider, workspaceRegistrationService, globalOptions, listenerProvider, logger, supportedLanguages, clientName, userVisibleServerName, telemetryServerTypeName)
         {
+            _supportedLanguages = supportedLanguages;
             _diagnosticService = diagnosticService;
 
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
@@ -161,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     return;
 
                 // Only publish document diagnostics for the languages this provider supports.
-                if (document.Project.Language is not CodeAnalysis.LanguageNames.CSharp and not CodeAnalysis.LanguageNames.VisualBasic)
+                if (!_supportedLanguages.Contains(document.Project.Language))
                     return;
 
                 _diagnosticsWorkQueue.AddWork(document.Id);

@@ -1835,4 +1835,34 @@ Additional information: {1}</value>
   <data name="Prefer_tuple_swap" xml:space="preserve">
     <value>Prefer tuple swap</value>
   </data>
+  <data name="Always" xml:space="preserve">
+    <value>Always</value>
+  </data>
+  <data name="For_non_interface_members" xml:space="preserve">
+    <value>For non interface members</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="Omit_if_default" xml:space="preserve">
+    <value>Omit if default</value>
+  </data>
+  <data name="Operator_placement_when_wrapping" xml:space="preserve">
+    <value>Operator placement when wrapping</value>
+  </data>
+  <data name="Prefer_namespace_and_folder_match_structure" xml:space="preserve">
+    <value>Prefer namespace and folder match structure</value>
+  </data>
+  <data name="Prefer_simplified_interpolation" xml:space="preserve">
+    <value>Prefer simplified interpolation</value>
+  </data>
+  <data name="Require_accessibility_modifiers" xml:space="preserve">
+    <value>Require accessibility modifiers</value>
+  </data>
+  <data name="Beginning_of_line" xml:space="preserve">
+    <value>Beginning of line</value>
+  </data>
+  <data name="End_of_line" xml:space="preserve">
+    <value>End of line</value>
+  </data>
 </root>
