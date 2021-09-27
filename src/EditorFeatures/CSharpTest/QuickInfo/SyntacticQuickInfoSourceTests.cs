@@ -388,7 +388,7 @@ if (true)
 @$"
 #if DEBUG
 #elif RELEASE
-#end$$if", "#if DEBUG#elif RELEASE");
+#end$$if", "#elif RELEASE");
         }
 
         [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
@@ -411,7 +411,7 @@ if (true)
 #if DEBUG
 #elif RELEASE
 #el$$se
-#endif", "#if DEBUG#elif RELEASE");
+#endif", "#elif RELEASE");
         }
 
         [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
@@ -424,7 +424,7 @@ if (true)
 #elif RELEASE
 #elif DEMO
 #el$$se
-#endif", "#if DEBUG#elif RELEASE#elif DEMO");
+#endif", "#elif DEMO");
         }
 
         [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
@@ -485,7 +485,7 @@ if (true)
 #elif RELEASE
 #if DEMO
 #endif
-#end$$if", "#if DEBUG#elif RELEASE");
+#end$$if", "#elif RELEASE");
         }
 
         [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]

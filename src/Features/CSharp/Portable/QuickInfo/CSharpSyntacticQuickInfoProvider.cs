@@ -156,23 +156,13 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             {
                 var directiveTrivia = (DirectiveTriviaSyntax)token.Parent;
                 var matchingDirectives = directiveTrivia.GetMatchingConditionalDirectives(cancellationToken);
-                using var _ = ArrayBuilder<TextSpan>.GetInstance(matchingDirectives.Count, out var builder);
-                foreach (var match in matchingDirectives)
+                var lastMatchBefore = matchingDirectives
+                    .Where(d => d is IfDirectiveTriviaSyntax or ElifDirectiveTriviaSyntax)
+                    .TakeWhile(d => d.SpanStart < directiveTrivia.SpanStart)
+                    .LastOrDefault();
+                if (lastMatchBefore is not null)
                 {
-                    if (match.SpanStart >= directiveTrivia.SpanStart)
-                    {
-                        break;
-                    }
-
-                    if (match is IfDirectiveTriviaSyntax or ElifDirectiveTriviaSyntax)
-                    {
-                        builder.Add(match.Span);
-                    }
-                }
-
-                if (builder.Count > 0)
-                {
-                    return QuickInfoItem.Create(token.Span, relatedSpans: builder.ToImmutableArray());
+                    return QuickInfoItem.Create(token.Span, relatedSpans: ImmutableArray.Create(lastMatchBefore.Span));
                 }
             }
 
