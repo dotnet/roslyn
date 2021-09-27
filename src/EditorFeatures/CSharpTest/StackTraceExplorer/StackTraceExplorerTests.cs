@@ -216,6 +216,21 @@ namespace ConsoleApp4
         }
 
         [Fact]
+        public async Task TestLineAndFileParsing()
+        {
+            var stackLine = @" at ConsoleApp4.MyClass.ThrowAtOne() in test1.cs:line 26";
+            var result = await StackTraceAnalyzer.AnalyzeAsync(stackLine, CancellationToken.None);
+
+            var parsedFrameWithFile = result.ParsedFrames[0] as ParsedFrameWithFile;
+            AssertEx.NotNull(parsedFrameWithFile);
+
+            var workspace = CreateWorkspace();
+            var (document, lineNumber) = parsedFrameWithFile.GetDocumentAndLine(workspace.CurrentSolution);
+            AssertEx.NotNull(document);
+            Assert.Equal(26, lineNumber);
+        }
+
+        [Fact]
         public async Task TestActivityLog()
         {
             var activityLogException = @"Exception occurred while loading solution options: System.Runtime.InteropServices.COMException (0x8000FFFF): Catastrophic failure (Exception from HRESULT: 0x8000FFFF (E_UNEXPECTED))&#x000D;&#x000A;   at System.Runtime.InteropServices.Marshal.ThrowExceptionForHRInternal(Int32 errorCode, IntPtr errorInfo)&#x000D;&#x000A;   at Microsoft.VisualStudio.Shell.Package.Initialize()&#x000D;&#x000A;--- End of stack trace from previous location where exception was thrown ---&#x000D;&#x000A;   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw&lt;string&gt;()&#x000D;&#x000A;   at Microsoft.VisualStudio.Telemetry.WindowsErrorReporting.WatsonReport.GetClrWatsonExceptionInfo(Exception exceptionObject)";

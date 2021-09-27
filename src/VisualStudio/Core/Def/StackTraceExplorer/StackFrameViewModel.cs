@@ -4,29 +4,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.StackTraceExplorer;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
@@ -152,6 +142,10 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
                     var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
+                    // If the line number is larger than the total lines in the file
+                    // then just go to the end of the file (lines count). This can happen
+                    // if the file changed between the stack trace being looked at and the current
+                    // version of the file.
                     lineNumber = Math.Min(sourceText.Lines.Count, lineNumber);
 
                     var navigationService = _workspace.Services.GetService<IDocumentNavigationService>();

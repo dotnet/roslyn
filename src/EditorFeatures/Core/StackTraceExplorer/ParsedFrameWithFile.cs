@@ -67,16 +67,17 @@ namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
         private ImmutableArray<Document> GetFileMatches(Solution solution, out int lineNumber)
         {
             var fileText = GetFileText();
-            Debug.Assert(fileText.Contains(':'));
+            var regex = new Regex(@"(?<fileName>.+):(line)\s*(?<lineNumber>[0-9]+)");
+            var match = regex.Match(fileText);
+            Debug.Assert(match.Success);
 
-            var splitIndex = fileText.LastIndexOf(':');
+            var fileNameGroup = match.Groups["fileName"];
+            var lineNumberGroup = match.Groups["lineNumber"];
 
-            var fileName = fileText[..splitIndex];
-            var lineNumberText = fileText[(splitIndex + 1)..];
+            lineNumber = int.Parse(lineNumberGroup.Value);
 
-            var numberRegex = new Regex("[0-9]+");
-            var match = numberRegex.Match(lineNumberText);
-            lineNumber = int.Parse(match.Value);
+            var fileName = fileNameGroup.Value;
+            Debug.Assert(!string.IsNullOrEmpty(fileName));
 
             var documentName = Path.GetFileName(fileName);
             var potentialMatches = new HashSet<Document>();
