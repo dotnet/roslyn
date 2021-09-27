@@ -271,6 +271,25 @@ class C
             Assert.True(Enumerable.SequenceEqual(rawTokens.Data, editsToTokens));
         }
 
+        [Fact]
+        public async Task TestGetSemanticTokensEdits_EmptyFileAsync()
+        {
+            var updatedText = @"";
+
+            using var testLspServer = CreateTestLspServer(s_standardCase, out var locations);
+            var caretLocation = locations["caret"].First();
+            await RunGetSemanticTokensAsync(testLspServer, caretLocation);
+            UpdateDocumentText(updatedText, testLspServer.TestWorkspace);
+
+            var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "10");
+
+            // Make sure we're returned SemanticTokens instead of SemanticTokensEdits.
+            Assert.True(results.Value is LSP.SemanticTokens);
+
+            // We went from non-empty file ->empty file. Our result should be empty.
+            Assert.Empty(results.First.Data);
+        }
+
         private static int[] ApplySemanticTokensEdits(int[]? originalTokens, LSP.SemanticTokensDelta edits)
         {
             var data = originalTokens.ToList();
