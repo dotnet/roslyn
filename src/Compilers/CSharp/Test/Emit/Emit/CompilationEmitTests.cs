@@ -932,6 +932,7 @@ public class C
             }
         }
 
+#if NET472
         [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
         public void RefAssembly_InvariantToResourceChanges()
@@ -996,7 +997,7 @@ public class C
                 return comp.EmitToArray(refonlyOptions, metadataPEStream: null, manifestResources: manifestResources);
             }
         }
-
+#endif
         [Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
         public void RefAssembly_CryptoHashFailedIsOnlyReportedOnce()
         {
