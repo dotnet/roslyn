@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
     public class UseReturnValueFromImmutableObjectMethodTests
     {
         [Fact]
-        public async Task CSharpVerifyDiagnostics()
+        public async Task CSharpVerifyDiagnosticsAsync()
         {
             var source = @"
 using Microsoft.CodeAnalysis;
@@ -45,7 +45,7 @@ class TestSimple
         }
 
         [Fact]
-        public async Task CSharp_VerifyDiagnosticOnExtensionMethod()
+        public async Task CSharp_VerifyDiagnosticOnExtensionMethodAsync()
         {
             var source = @"
 using Microsoft.CodeAnalysis;
@@ -64,7 +64,7 @@ class TestExtensionMethodTrivia
         }
 
         [Fact]
-        public async Task CSharp_VerifyNoDiagnostic()
+        public async Task CSharp_VerifyNoDiagnosticAsync()
         {
             var source = @"
 using Microsoft.CodeAnalysis;

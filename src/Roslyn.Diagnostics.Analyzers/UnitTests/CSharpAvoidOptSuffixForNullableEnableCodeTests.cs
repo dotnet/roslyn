@@ -13,7 +13,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class CSharpAvoidOptSuffixForNullableEnableCodeTests
     {
         [Fact]
-        public async Task RS0046_CSharp8_NullableEnabledCode_Diagnostic()
+        public async Task RS0046_CSharp8_NullableEnabledCode_DiagnosticAsync()
         {
             await new VerifyCS.Test
             {
@@ -55,7 +55,7 @@ public class Class1
         }
 
         [Fact]
-        public async Task RS0046_CSharp8_NullableEnabledCodeNonNullableType_NoDiagnostic()
+        public async Task RS0046_CSharp8_NullableEnabledCodeNonNullableType_NoDiagnosticAsync()
         {
             await new VerifyCS.Test
             {
@@ -79,7 +79,7 @@ public class Class1
         }
 
         [Fact]
-        public async Task RS0046_CSharp8_NullableEnabledCodeValueType_Diagnostic()
+        public async Task RS0046_CSharp8_NullableEnabledCodeValueType_DiagnosticAsync()
         {
             await new VerifyCS.Test
             {
@@ -125,7 +125,7 @@ public class Class1
         }
 
         [Fact]
-        public async Task RS0046_CSharp8_NullableEnabledCodeNonNullableValueType_NoDiagnostic()
+        public async Task RS0046_CSharp8_NullableEnabledCodeNonNullableValueType_NoDiagnosticAsync()
         {
             await new VerifyCS.Test
             {
@@ -151,7 +151,7 @@ public class Class1
         }
 
         [Fact]
-        public async Task RS0046_CSharp8_NonNullableEnabledCode_NoDiagnostic()
+        public async Task RS0046_CSharp8_NonNullableEnabledCode_NoDiagnosticAsync()
         {
             await new VerifyCS.Test
             {
@@ -173,7 +173,7 @@ public class Class1
         }
 
         [Fact]
-        public async Task RS0046_CSharp8_NullableDisabledCode_NoDiagnostic()
+        public async Task RS0046_CSharp8_NullableDisabledCode_NoDiagnosticAsync()
         {
             await new VerifyCS.Test
             {
@@ -197,7 +197,7 @@ public class Class1
         }
 
         [Fact]
-        public async Task RS0046_PriorToCSharp8_NoDiagnostic()
+        public async Task RS0046_PriorToCSharp8_NoDiagnosticAsync()
         {
             await new VerifyCS.Test
             {
@@ -219,7 +219,7 @@ public class Class1
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/3707")]
-        public async Task RS0046_CSharp8_VariableWithoutOptAlreadyExists_DiagnosticButNoCodeFix()
+        public async Task RS0046_CSharp8_VariableWithoutOptAlreadyExists_DiagnosticButNoCodeFixAsync()
         {
             await new VerifyCS.Test
             {
@@ -258,7 +258,7 @@ public class Class1
         }
 
         [Fact]
-        public async Task RS0046_CSharp8_UnknownType_DiagnosticAndCodeFix()
+        public async Task RS0046_CSharp8_UnknownType_DiagnosticAndCodeFixAsync()
         {
             await new VerifyCS.Test
             {
@@ -295,7 +295,7 @@ public class Class1
         }
 
         [Fact, WorkItem(3813, "https://github.com/dotnet/roslyn-analyzers/issues/3813")]
-        public async Task RS0046_CSharp8_NullableEnabledCode_InterfaceImplementation_NoDiagnostic()
+        public async Task RS0046_CSharp8_NullableEnabledCode_InterfaceImplementation_NoDiagnosticAsync()
         {
             await new VerifyCS.Test
             {
@@ -345,7 +345,7 @@ public class Class1 : ISomething
         }
 
         [Fact, WorkItem(3813, "https://github.com/dotnet/roslyn-analyzers/issues/3813")]
-        public async Task RS0046_CSharp8_NullableEnabledCode_Override_NoDiagnostic()
+        public async Task RS0046_CSharp8_NullableEnabledCode_Override_NoDiagnosticAsync()
         {
             await new VerifyCS.Test
             {

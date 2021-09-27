@@ -99,7 +99,7 @@ public class MyDerivedCodeActionWithEquivalenceKey : MyAbstractCodeActionWithEqu
         }
 
         [Fact]
-        public async Task CSharp_CodeActionCreate_VerifyDiagnostics()
+        public async Task CSharp_CodeActionCreate_VerifyDiagnosticsAsync()
         {
             var source = @"
 using System;
@@ -156,7 +156,7 @@ class C1 : CodeFixProvider
         }
 
         [Fact]
-        public async Task CSharp_CodeActionCreate_NoDiagnostics()
+        public async Task CSharp_CodeActionCreate_NoDiagnosticsAsync()
         {
             var source = @"
 using System;
@@ -218,7 +218,7 @@ class C1 : CodeFixProvider
         }
 
         [Fact]
-        public async Task CSharp_CodeActionCreate_NoDiagnosticsOnSubType()
+        public async Task CSharp_CodeActionCreate_NoDiagnosticsOnSubTypeAsync()
         {
             var source = @"
 using System;
@@ -256,7 +256,7 @@ class C1 : CodeFixProvider
         }
 
         [Fact]
-        public async Task CSharp_CodeActionCreate_DiagnosticsOnAbstractType()
+        public async Task CSharp_CodeActionCreate_DiagnosticsOnAbstractTypeAsync()
         {
             var source = @"
 using System;
@@ -298,7 +298,7 @@ abstract class C1 : CodeFixProvider
         }
 
         [Fact]
-        public async Task CSharp_CustomCodeAction_VerifyDiagnostics()
+        public async Task CSharp_CustomCodeAction_VerifyDiagnosticsAsync()
         {
             var source = @"
 using System;
@@ -337,7 +337,7 @@ class C1 : CodeFixProvider
         }
 
         [Fact]
-        public async Task CSharp_CustomCodeAction_NoDiagnostics()
+        public async Task CSharp_CustomCodeAction_NoDiagnosticsAsync()
         {
             var source = @"
 using System;
@@ -378,7 +378,7 @@ class C1 : CodeFixProvider
         }
 
         [Fact, WorkItem(3475, "https://github.com/dotnet/roslyn-analyzers/issues/3475")]
-        public async Task CSharp_CodeActionCreateNestedActions_NoDiagnostics()
+        public async Task CSharp_CodeActionCreateNestedActions_NoDiagnosticsAsync()
         {
             await new VerifyCS.Test
             {
@@ -509,7 +509,7 @@ End Class
         }
 
         [Fact]
-        public async Task VisualBasic_CodeActionCreate_VerifyDiagnostics()
+        public async Task VisualBasic_CodeActionCreate_VerifyDiagnosticsAsync()
         {
             var source = @"
 Imports System
@@ -564,7 +564,7 @@ Class C1
         }
 
         [Fact]
-        public async Task VisualBasic_CodeActionCreate_NoDiagnostics()
+        public async Task VisualBasic_CodeActionCreate_NoDiagnosticsAsync()
         {
             var source = @"
 Imports System
@@ -621,7 +621,7 @@ Class C1
         }
 
         [Fact]
-        public async Task VisualBasic_CodeActionCreate_NoDiagnosticsOnSubType()
+        public async Task VisualBasic_CodeActionCreate_NoDiagnosticsOnSubTypeAsync()
         {
             var source = @"
 Imports System
@@ -659,7 +659,7 @@ Class C1
         }
 
         [Fact]
-        public async Task VisualBasic_CodeActionCreate_DiagnosticsOnAbstractType()
+        public async Task VisualBasic_CodeActionCreate_DiagnosticsOnAbstractTypeAsync()
         {
             var source = @"
 Imports System
@@ -702,7 +702,7 @@ MustInherit Class C1
         }
 
         [Fact]
-        public async Task VisualBasic_CustomCodeAction_VerifyDiagnostics()
+        public async Task VisualBasic_CustomCodeAction_VerifyDiagnosticsAsync()
         {
             var source = @"
 Imports System
@@ -738,7 +738,7 @@ Class C1
         }
 
         [Fact]
-        public async Task VisualBasic_CustomCodeAction_NoDiagnostics()
+        public async Task VisualBasic_CustomCodeAction_NoDiagnosticsAsync()
         {
             var source = @"
 Imports System

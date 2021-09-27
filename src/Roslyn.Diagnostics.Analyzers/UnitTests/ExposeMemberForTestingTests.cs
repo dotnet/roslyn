@@ -12,7 +12,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
     public class ExposeMemberForTestingTests
     {
         [Fact]
-        public async Task ExposeFieldCSharp()
+        public async Task ExposeFieldCSharpAsync()
         {
             var source = @"class TestClass {
     private int _field;
@@ -52,7 +52,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task ExposeFieldVisualBasic()
+        public async Task ExposeFieldVisualBasicAsync()
         {
             var source = @"Class TestClass
     Private Dim _field As Integer
@@ -97,7 +97,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExposeReadOnlyFieldCSharp()
+        public async Task ExposeReadOnlyFieldCSharpAsync()
         {
             var source = @"class TestClass {
     private readonly int _field;
@@ -137,7 +137,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExposeReadOnlyFieldVisualBasic()
+        public async Task ExposeReadOnlyFieldVisualBasicAsync()
         {
             var source = @"Class TestClass
     Private ReadOnly _field As Integer
@@ -179,7 +179,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExposePropertyCSharp()
+        public async Task ExposePropertyCSharpAsync()
         {
             var source = @"class TestClass {
     private int Property { get; set; }
@@ -224,7 +224,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExposePropertyVisualBasic()
+        public async Task ExposePropertyVisualBasicAsync()
         {
             var source = @"Class TestClass
     Private Property TestProperty As Integer
@@ -269,7 +269,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExposeReadOnlyPropertyCSharp()
+        public async Task ExposeReadOnlyPropertyCSharpAsync()
         {
             var source = @"class TestClass {
     private int Property { get; }
@@ -309,7 +309,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExposeReadOnlyPropertyVisualBasic()
+        public async Task ExposeReadOnlyPropertyVisualBasicAsync()
         {
             var source = @"Class TestClass
     Private ReadOnly Property TestProperty As Integer
@@ -351,7 +351,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExposeWriteOnlyPropertyCSharp()
+        public async Task ExposeWriteOnlyPropertyCSharpAsync()
         {
             var source = @"class TestClass {
     private int Property { set { } }
@@ -391,7 +391,7 @@ End Class";
         }
 
         [Fact]
-        public async Task ExposeWriteOnlyPropertyVisualBasic()
+        public async Task ExposeWriteOnlyPropertyVisualBasicAsync()
         {
             var source = @"Class TestClass
     Private WriteOnly Property TestProperty As Integer

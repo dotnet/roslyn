@@ -17,7 +17,7 @@ namespace Text.Analyzers.UnitTests
     public class EnumsShouldHavePluralNamesTests
     {
         [Fact]
-        public async Task CA1714_CA1717_Test_EnumWithNoFlags_SingularName()
+        public async Task CA1714_CA1717_Test_EnumWithNoFlags_SingularNameAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
                             public class A 
@@ -45,7 +45,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact]
-        public async Task CA1714_CA1717__Test_EnumWithNoFlags_PluralName()
+        public async Task CA1714_CA1717__Test_EnumWithNoFlags_PluralNameAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
                             public class A 
@@ -74,7 +74,7 @@ namespace Text.Analyzers.UnitTests
         }
 
         [Fact, WorkItem(1432, "https://github.com/dotnet/roslyn-analyzers/issues/1432")]
-        public async Task CA1714_CA1717__Test_EnumWithNoFlags_PluralName_Internal()
+        public async Task CA1714_CA1717__Test_EnumWithNoFlags_PluralName_InternalAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 class A 
@@ -139,7 +139,7 @@ End Class
         }
 
         [Fact]
-        public async Task CA1714_CA1717__Test_EnumWithNoFlags_PluralName_UpperCase()
+        public async Task CA1714_CA1717__Test_EnumWithNoFlags_PluralName_UpperCaseAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
                             public class A 
@@ -168,7 +168,7 @@ End Class
         }
 
         [Fact]
-        public async Task CA1714_CA1717_Test_EnumWithFlags_SingularName()
+        public async Task CA1714_CA1717_Test_EnumWithFlags_SingularNameAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
                             public class A 
@@ -197,7 +197,7 @@ End Class
         }
 
         [Fact, WorkItem(1432, "https://github.com/dotnet/roslyn-analyzers/issues/1432")]
-        public async Task CA1714_CA1717_Test_EnumWithFlags_SingularName_Internal()
+        public async Task CA1714_CA1717_Test_EnumWithFlags_SingularName_InternalAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 class A 
@@ -268,7 +268,7 @@ End Class
         }
 
         [Fact]
-        public async Task CA1714_CA1717_Test_EnumWithFlags_PluralName()
+        public async Task CA1714_CA1717_Test_EnumWithFlags_PluralNameAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
                             public class A 
@@ -295,7 +295,7 @@ End Class
         }
 
         [Fact]
-        public async Task CA1714_CA1717_Test_EnumWithFlags_PluralName_UpperCase()
+        public async Task CA1714_CA1717_Test_EnumWithFlags_PluralName_UpperCaseAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
                             public class A 
@@ -322,7 +322,7 @@ End Class
         }
 
         [Fact, WorkItem(1323, "https://github.com/dotnet/roslyn-analyzers/issues/1323")]
-        public async Task CA1714_CA1717_Test_EnumWithFlags_NonPluralNameEndsWithS()
+        public async Task CA1714_CA1717_Test_EnumWithFlags_NonPluralNameEndsWithSAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
                             public class A 
@@ -351,7 +351,7 @@ End Class
         }
 
         [Fact, WorkItem(1323, "https://github.com/dotnet/roslyn-analyzers/issues/1323")]
-        public async Task CA1714_CA1717_Test_EnumWithFlags_PluralNameEndsWithS()
+        public async Task CA1714_CA1717_Test_EnumWithFlags_PluralNameEndsWithSAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
                             public class A 
@@ -378,7 +378,7 @@ End Class
         }
 
         [Fact, WorkItem(1323, "https://github.com/dotnet/roslyn-analyzers/issues/1323")]
-        public async Task CA1714_CA1717_Test_EnumWithFlags_PluralName_NotEndingWithS()
+        public async Task CA1714_CA1717_Test_EnumWithFlags_PluralName_NotEndingWithSAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
                             public class A 
@@ -405,7 +405,7 @@ End Class
         }
 
         [Fact, WorkItem(1323, "https://github.com/dotnet/roslyn-analyzers/issues/1323")]
-        public async Task CA1714_CA1717_Test_EnumWithNoFlags_PluralWord_NotEndingWithS()
+        public async Task CA1714_CA1717_Test_EnumWithNoFlags_PluralWord_NotEndingWithSAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
                             public class A 
@@ -432,7 +432,7 @@ End Class
         }
 
         [Fact, WorkItem(1323, "https://github.com/dotnet/roslyn-analyzers/issues/1323")]
-        public async Task CA1714_CA1717_Test_EnumWithNoFlags_irregularPluralWord_EndingWith_ae()
+        public async Task CA1714_CA1717_Test_EnumWithNoFlags_irregularPluralWord_EndingWith_aeAsync()
         {
             // Humanizer does not recognize 'formulae' as plural, but we skip words ending with 'ae'
             await VerifyCS.VerifyAnalyzerAsync(@"
@@ -460,7 +460,7 @@ End Class
         }
 
         [Fact, WorkItem(1323, "https://github.com/dotnet/roslyn-analyzers/issues/1323")]
-        public async Task CA1714_CA1717_Test_EnumWithNoFlags_irregularPluralWord_EndingWith_i()
+        public async Task CA1714_CA1717_Test_EnumWithNoFlags_irregularPluralWord_EndingWith_iAsync()
         {
             // Humanizer does not recognize 'trophi' as plural, but we skip words ending with 'i'
             await VerifyCS.VerifyAnalyzerAsync(@"
@@ -488,7 +488,7 @@ End Class
         }
 
         [Fact, WorkItem(1323, "https://github.com/dotnet/roslyn-analyzers/issues/1323")]
-        public async Task CA1714_CA1717_Test_EnumWithNoFlags_NonAscii()
+        public async Task CA1714_CA1717_Test_EnumWithNoFlags_NonAsciiAsync()
         {
             // We skip non-ASCII names.
             await VerifyCS.VerifyAnalyzerAsync(@"
@@ -521,7 +521,7 @@ End Class
         [InlineData("pl-PL")]
         [InlineData("fi-FI")]
         [InlineData("de-DE")]
-        public async Task CA1714_CA1717__Test_EnumWithNoFlags_PluralName_MultipleCultures(string culture)
+        public async Task CA1714_CA1717__Test_EnumWithNoFlags_PluralName_MultipleCulturesAsync(string culture)
         {
             var currentCulture = CultureInfo.DefaultThreadCurrentCulture;
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.GetCultureInfo(culture);

@@ -4,6 +4,7 @@
     <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <NonShipping>true</NonShipping>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Test.Utilities\Test.Utilities.csproj" />

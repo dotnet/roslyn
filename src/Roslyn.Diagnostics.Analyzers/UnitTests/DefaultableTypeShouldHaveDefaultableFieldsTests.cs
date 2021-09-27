@@ -62,7 +62,7 @@ namespace Roslyn.Utilities {
 
         [Theory]
         [MemberData(nameof(NonDefaultableTypes))]
-        public async Task TestNonDefaultableStructWithNonDefaultableTypeField(string nonDefaultableType)
+        public async Task TestNonDefaultableStructWithNonDefaultableTypeFieldAsync(string nonDefaultableType)
         {
             var code = $@"
 #nullable enable
@@ -92,7 +92,7 @@ struct NonDefaultableTestStruct {{
 
         [Theory]
         [MemberData(nameof(NonDefaultableTypes))]
-        public async Task TestNonDefaultableStructWithNonDefaultableTypeNullableDisableField(string nonDefaultableType)
+        public async Task TestNonDefaultableStructWithNonDefaultableTypeNullableDisableFieldAsync(string nonDefaultableType)
         {
             var code = $@"
 #nullable disable
@@ -122,7 +122,7 @@ struct NonDefaultableTestStruct {{
 
         [Theory]
         [MemberData(nameof(DefaultableTypes))]
-        public async Task TestNonDefaultableStructWithDefaultableTypeField(string defaultableType)
+        public async Task TestNonDefaultableStructWithDefaultableTypeFieldAsync(string defaultableType)
         {
             var code = $@"
 #nullable enable
@@ -149,7 +149,7 @@ struct NonDefaultableTestStruct {{
 
         [Theory]
         [MemberData(nameof(DefaultableTypesNullableDisableContext))]
-        public async Task TestNonDefaultableStructWithDefaultableTypeNullableDisableField(string defaultableType)
+        public async Task TestNonDefaultableStructWithDefaultableTypeNullableDisableFieldAsync(string defaultableType)
         {
             var code = $@"
 #nullable disable
@@ -176,7 +176,7 @@ struct NonDefaultableTestStruct {{
 
         [Theory]
         [MemberData(nameof(DefaultableTypes))]
-        public async Task TestDefaultableStructWithDefaultableTypeField(string defaultableType)
+        public async Task TestDefaultableStructWithDefaultableTypeFieldAsync(string defaultableType)
         {
             var code = $@"
 #nullable enable
@@ -201,7 +201,7 @@ struct DefaultableStruct {{
 
         [Theory]
         [MemberData(nameof(DefaultableTypes))]
-        public async Task TestClassWithDefaultableTypeField(string defaultableType)
+        public async Task TestClassWithDefaultableTypeFieldAsync(string defaultableType)
         {
             var code = $@"
 #nullable enable
@@ -226,7 +226,7 @@ class TestClass {{
 
         [Theory]
         [MemberData(nameof(DefaultableTypesNullableDisableContext))]
-        public async Task TestClassWithDefaultableTypeNullableDisableField(string defaultableType)
+        public async Task TestClassWithDefaultableTypeNullableDisableFieldAsync(string defaultableType)
         {
             var code = $@"
 #nullable disable
@@ -251,7 +251,7 @@ class TestClass {{
 
         [Theory]
         [MemberData(nameof(NonDefaultableTypes))]
-        public async Task TestDefaultableStructWithNonDefaultableTypeField(string nonDefaultableType)
+        public async Task TestDefaultableStructWithNonDefaultableTypeFieldAsync(string nonDefaultableType)
         {
             var code = $@"
 #nullable enable
@@ -280,7 +280,7 @@ struct DefaultableStruct {{
 
         [Theory]
         [MemberData(nameof(NonDefaultableTypes))]
-        public async Task TestDefaultableStructWithNonDefaultableTypeNullableDisableField(string nonDefaultableType)
+        public async Task TestDefaultableStructWithNonDefaultableTypeNullableDisableFieldAsync(string nonDefaultableType)
         {
             var code = $@"
 #nullable disable

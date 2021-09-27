@@ -157,7 +157,7 @@ End Class
         #region No Diagnostic Tests
 
         [Fact]
-        public async Task NoDiagnosticCases_SingleMefAttribute()
+        public async Task NoDiagnosticCases_SingleMefAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -187,7 +187,7 @@ End Class
         }
 
         [Fact]
-        public async Task NoDiagnosticCases_SingleMefAttributeAndValidMetadataAttribute()
+        public async Task NoDiagnosticCases_SingleMefAttributeAndValidMetadataAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -221,7 +221,7 @@ End Class
         }
 
         [Fact]
-        public async Task NoDiagnosticCases_SingleMefAttributeAndAnotherExportAttribute()
+        public async Task NoDiagnosticCases_SingleMefAttributeAndAnotherExportAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -267,7 +267,7 @@ End Namespace
         }
 
         [Fact]
-        public async Task NoDiagnosticCases_SingleMefAttributeOnTypeAndValidMefAttributeOnMember()
+        public async Task NoDiagnosticCases_SingleMefAttributeOnTypeAndValidMefAttributeOnMemberAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -322,7 +322,7 @@ End Class
         }
 
         [Fact]
-        public async Task NoDiagnosticCases_UnresolvedTypes()
+        public async Task NoDiagnosticCases_UnresolvedTypesAsync()
         {
             await new VerifyCS.Test
             {
@@ -370,7 +370,7 @@ End Class
         }
 
         [Fact]
-        public async Task NoDiagnosticCases_MultiMefMetadataAttribute()
+        public async Task NoDiagnosticCases_MultiMefMetadataAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -410,7 +410,7 @@ End Namespace
         #region Diagnostic Tests
 
         [Fact]
-        public async Task DiagnosticCases_BadMetadataAttribute()
+        public async Task DiagnosticCases_BadMetadataAttributeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -452,7 +452,7 @@ End Class
         }
 
         [Fact]
-        public async Task DiagnosticCases_BadMefAttributeOnMember()
+        public async Task DiagnosticCases_BadMefAttributeOnMemberAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;
@@ -525,7 +525,7 @@ End Class
         }
 
         [Fact]
-        public async Task DiagnosticCases_BadMefAttributeOnParameter()
+        public async Task DiagnosticCases_BadMefAttributeOnParameterAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System;

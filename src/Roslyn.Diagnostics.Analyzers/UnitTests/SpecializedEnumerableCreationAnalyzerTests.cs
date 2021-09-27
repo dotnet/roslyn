@@ -48,7 +48,7 @@ End Namespace
 #pragma warning restore RS0030 // Do not used banned APIs
 
         [Fact]
-        public async Task ReturnEmptyArrayCSharp()
+        public async Task ReturnEmptyArrayCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -65,7 +65,7 @@ class C
         }
 
         [Fact]
-        public async Task ReturnSingletonArrayCSharp()
+        public async Task ReturnSingletonArrayCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -84,7 +84,7 @@ class C
         }
 
         [Fact]
-        public async Task ReturnLinqEmptyEnumerableCSharp()
+        public async Task ReturnLinqEmptyEnumerableCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -99,7 +99,7 @@ class C
         }
 
         [Fact(Skip = "855425")]
-        public async Task ReturnArrayWithinExpressionCSharp()
+        public async Task ReturnArrayWithinExpressionCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -116,7 +116,7 @@ class C
         }
 
         [Fact]
-        public async Task ReturnLinqEmptyEnumerableWithinExpressionCSharp()
+        public async Task ReturnLinqEmptyEnumerableWithinExpressionCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -133,7 +133,7 @@ class C
         }
 
         [Fact]
-        public async Task ReturnMultiElementArrayCSharp()
+        public async Task ReturnMultiElementArrayCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -149,7 +149,7 @@ class C
         }
 
         [Fact]
-        public async Task ReturnJaggedArrayCSharp()
+        public async Task ReturnJaggedArrayCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -165,7 +165,7 @@ class C
         }
 
         [Fact(Skip = "855425")]
-        public async Task ImplicitConversionToNestedEnumerableCSharp()
+        public async Task ImplicitConversionToNestedEnumerableCSharpAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Generic;
@@ -180,7 +180,7 @@ class C
         }
 
         [Fact]
-        public async Task ReturnEmptyArrayBasic()
+        public async Task ReturnEmptyArrayBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -199,7 +199,7 @@ End Class
         }
 
         [Fact]
-        public async Task ReturnLinqEmptyEnumerableBasic()
+        public async Task ReturnLinqEmptyEnumerableBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -215,7 +215,7 @@ End Class
         }
 
         [Fact]
-        public async Task ReturnSingletonArrayBasic()
+        public async Task ReturnSingletonArrayBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -234,7 +234,7 @@ End Class
         }
 
         [Fact(Skip = "855425")]
-        public async Task ReturnArrayWithinExpressionBasic()
+        public async Task ReturnArrayWithinExpressionBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -254,7 +254,7 @@ End Class
         }
 
         [Fact]
-        public async Task ReturnLinqEmptyEnumerableWithinExpressionBasic()
+        public async Task ReturnLinqEmptyEnumerableWithinExpressionBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -274,7 +274,7 @@ End Class
         }
 
         [Fact]
-        public async Task ReturnMultiElementArrayBasic()
+        public async Task ReturnMultiElementArrayBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -291,7 +291,7 @@ End Class
         }
 
         [Fact]
-        public async Task ReturnJaggedArrayBasic()
+        public async Task ReturnJaggedArrayBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
@@ -312,7 +312,7 @@ End Class
         }
 
         [Fact(Skip = "855425")]
-        public async Task ImplicitConversionToNestedEnumerableBasic()
+        public async Task ImplicitConversionToNestedEnumerableBasicAsync()
         {
             await VerifyVB.VerifyAnalyzerAsync(@"
 Imports System.Collections.Generic
