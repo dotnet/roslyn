@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -39,6 +40,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 // priority when using server GC.
                 Process.GetCurrentProcess().TrySetPriorityClass(ProcessPriorityClass.BelowNormal);
             }
+
+            // Make encodings that is by default present in desktop framework but not in corefx available to runtime.
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 #if DEBUG
             // Make sure debug assertions in ServiceHub result in exceptions instead of the assertion UI

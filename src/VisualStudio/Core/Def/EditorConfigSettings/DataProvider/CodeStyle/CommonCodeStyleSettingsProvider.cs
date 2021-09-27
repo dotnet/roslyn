@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeStyle
 {
@@ -80,15 +81,15 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
         private IEnumerable<CodeStyleSetting> GetPredefinedTypesCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
-                description: EditorFeaturesResources.For_locals_parameters_and_members,
-                trueValueDescription: EditorFeaturesResources.Prefer_predefined_type,
-                falseValueDescription: EditorFeaturesResources.Prefer_framework_type,
+                description: ServicesVSResources.For_locals_parameters_and_members,
+                trueValueDescription: ServicesVSResources.Prefer_predefined_type,
+                falseValueDescription: ServicesVSResources.Prefer_framework_type,
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
-                description: EditorFeaturesResources.For_member_access_expressions,
-                trueValueDescription: EditorFeaturesResources.Prefer_predefined_type,
-                falseValueDescription: EditorFeaturesResources.Prefer_framework_type,
+                description: ServicesVSResources.For_member_access_expressions,
+                trueValueDescription: ServicesVSResources.Prefer_predefined_type,
+                falseValueDescription: ServicesVSResources.Prefer_framework_type,
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }
@@ -96,11 +97,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
         private IEnumerable<CodeStyleSetting> GetNullCheckingCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferCoalesceExpression,
-                description: EditorFeaturesResources.Prefer_coalesce_expression,
+                description: ServicesVSResources.Prefer_coalesce_expression,
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferNullPropagation,
-                description: EditorFeaturesResources.Prefer_null_propagation,
+                description: ServicesVSResources.Prefer_null_propagation,
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod,
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
         private IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferReadonly,
-                description: EditorFeaturesResources.Prefer_readonly_fields,
+                description: ServicesVSResources.Prefer_readonly_fields,
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }
@@ -120,32 +121,32 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
         private IEnumerable<CodeStyleSetting> GetCodeBlockCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferAutoProperties,
-                description: EditorFeaturesResources.analyzer_Prefer_auto_properties,
+                description: ServicesVSResources.analyzer_Prefer_auto_properties,
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.PreferSystemHashCode,
-                description: EditorFeaturesResources.Prefer_System_HashCode_in_GetHashCode,
+                description: ServicesVSResources.Prefer_System_HashCode_in_GetHashCode,
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetExpressionCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferObjectInitializer, description: EditorFeaturesResources.Prefer_object_initializer, options, visualStudioOptions, updater, FileName);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCollectionInitializer, description: EditorFeaturesResources.Prefer_collection_initializer, options, visualStudioOptions, updater, FileName);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, description: EditorFeaturesResources.Prefer_simplified_boolean_expressions, options, visualStudioOptions, updater, FileName);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, description: EditorFeaturesResources.Prefer_conditional_expression_over_if_with_assignments, options, visualStudioOptions, updater, FileName);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferConditionalExpressionOverReturn, description: EditorFeaturesResources.Prefer_conditional_expression_over_if_with_returns, options, visualStudioOptions, updater, FileName);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferExplicitTupleNames, description: EditorFeaturesResources.Prefer_explicit_tuple_name, options, visualStudioOptions, updater, FileName);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferInferredTupleNames, description: EditorFeaturesResources.Prefer_inferred_tuple_names, options, visualStudioOptions, updater, FileName);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, description: EditorFeaturesResources.Prefer_inferred_anonymous_type_member_names, options, visualStudioOptions, updater, FileName);
-            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCompoundAssignment, description: EditorFeaturesResources.Prefer_compound_assignments, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferObjectInitializer, description: ServicesVSResources.Prefer_object_initializer, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCollectionInitializer, description: ServicesVSResources.Prefer_collection_initializer, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferSimplifiedBooleanExpressions, description: ServicesVSResources.Prefer_simplified_boolean_expressions, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferConditionalExpressionOverAssignment, description: ServicesVSResources.Prefer_conditional_expression_over_if_with_assignments, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferConditionalExpressionOverReturn, description: ServicesVSResources.Prefer_conditional_expression_over_if_with_returns, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferExplicitTupleNames, description: ServicesVSResources.Prefer_explicit_tuple_name, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferInferredTupleNames, description: ServicesVSResources.Prefer_inferred_tuple_names, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferInferredAnonymousTypeMemberNames, description: ServicesVSResources.Prefer_inferred_anonymous_type_member_names, options, visualStudioOptions, updater, FileName);
+            yield return CodeStyleSetting.Create(CodeStyleOptions2.PreferCompoundAssignment, description: ServicesVSResources.Prefer_compound_assignments, options, visualStudioOptions, updater, FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetParenthesesCodeStyleOptions(AnalyzerConfigOptions options, OptionSet visualStudioOptions, OptionUpdater updater)
         {
             var enumValues = new[] { ParenthesesPreference.AlwaysForClarity, ParenthesesPreference.NeverIfUnnecessary };
-            var valueDescriptions = new[] { EditorFeaturesResources.Always_for_clarity, EditorFeaturesResources.Never_if_unnecessary };
+            var valueDescriptions = new[] { ServicesVSResources.Always_for_clarity, ServicesVSResources.Never_if_unnecessary };
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.ArithmeticBinaryParentheses,
                 description: EditorFeaturesResources.In_arithmetic_binary_operators,
                 enumValues: enumValues,
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
 
             yield return CodeStyleSetting.Create(option: CodeStyleOptions2.OtherParentheses,
-                description: EditorFeaturesResources.In_other_operators,
+                description: ServicesVSResources.In_other_operators,
                 enumValues: enumValues,
                 valueDescriptions: valueDescriptions,
                 editorConfigOptions: options,
@@ -180,9 +181,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
         {
             yield return CodeStyleSetting.Create(
                 option: CodeStyleOptions2.UnusedParameters,
-                description: EditorFeaturesResources.Avoid_unused_parameters,
+                description: ServicesVSResources.Avoid_unused_parameters,
                 enumValues: new[] { UnusedParametersPreference.NonPublicMethods, UnusedParametersPreference.AllMethods },
-                new[] { EditorFeaturesResources.Non_public_methods, EditorFeaturesResources.All_methods },
+                new[] { ServicesVSResources.Non_public_methods, ServicesVSResources.All_methods },
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater, fileName: FileName);
         }

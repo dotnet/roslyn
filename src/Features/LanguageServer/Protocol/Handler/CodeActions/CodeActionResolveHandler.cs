@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CodeAction request)
-            => ((JToken)request.Data!).ToObject<CodeActionResolveData>().TextDocument;
+            => ((JToken)request.Data!).ToObject<CodeActionResolveData>()?.TextDocument;
 
         public async Task<LSP.CodeAction> HandleRequestAsync(LSP.CodeAction codeAction, RequestContext context, CancellationToken cancellationToken)
         {
@@ -57,6 +57,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(document);
 
             var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
+            Assumes.Present(data);
+
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 _codeActionsCache,
                 document,

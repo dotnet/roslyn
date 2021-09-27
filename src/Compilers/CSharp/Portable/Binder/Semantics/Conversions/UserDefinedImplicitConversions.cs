@@ -606,6 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Not "standard".
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
+                case ConversionKind.FunctionType:
 
                 // Not implicit.
                 case ConversionKind.ExplicitNumeric:
