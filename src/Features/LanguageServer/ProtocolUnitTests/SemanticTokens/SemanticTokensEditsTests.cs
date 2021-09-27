@@ -283,10 +283,9 @@ class C
 
             var results = await RunGetSemanticTokensEditsAsync(testLspServer, caretLocation, previousResultId: "10");
 
-            // Make sure we're returned SemanticTokens instead of SemanticTokensEdits.
+            // Ensure we're returned SemanticTokens instead of SemanticTokensEdits.
             Assert.True(results.Value is LSP.SemanticTokens);
 
-            // We went from non-empty file ->empty file. Our result should be empty.
             Assert.Empty(results.First.Data);
         }
 
