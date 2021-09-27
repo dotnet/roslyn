@@ -2734,6 +2734,32 @@ public class Bar
         }
 
         [WpfFact]
+        public void TestSwitchStatementWithOnlyOpenParenthesis()
+        {
+            // This test is to make sure {} will be added to the switch statement,
+            // but our formatter now can't format the case when the CloseParenthesis token is missing.
+            // If any future formatter improvement can handle this case, this test can be modified safely
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        switch (
+{
+            $$
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        swi$$tch ($$
+    }
+}");
+        }
+
+        [WpfFact]
         public void TestSwitchStatement()
         {
             Test(@"
