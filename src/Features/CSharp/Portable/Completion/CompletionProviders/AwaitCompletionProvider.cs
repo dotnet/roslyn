@@ -7,10 +7,8 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -50,6 +48,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
-            => token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
+        {
+            var node = token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
+            // For local functions, make sure we either have arrow token or open brace token.
+            // Consider the following scenario:
+            // void Method()
+            // {
+            //     aw$$ AnotherMethodCall(); // NOTE: Here, the compiler produces LocalFunctionStatementSyntax.
+            // }
+            // For this case, we're interested in putting async in front of Method()
+            if (node is LocalFunctionStatementSyntax { ExpressionBody: null, Body: null })
+            {
+                return node.Parent?.FirstAncestorOrSelf<SyntaxNode>(node => node.IsAsyncSupportingFunctionSyntax());
+            }
+
+            return node;
+        }
     }
 }

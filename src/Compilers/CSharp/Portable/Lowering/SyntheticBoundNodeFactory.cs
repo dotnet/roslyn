@@ -308,13 +308,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Property(BoundExpression? receiverOpt, PropertySymbol property)
         {
             Debug.Assert((receiverOpt is null) == property.IsStatic);
-            return Call(receiverOpt, property.GetMethod); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
-        }
-
-        public BoundExpression Indexer(BoundExpression? receiverOpt, PropertySymbol property, BoundExpression arg0)
-        {
-            Debug.Assert((receiverOpt is null) == property.IsStatic);
-            return Call(receiverOpt, property.GetMethod, arg0); // TODO: should we use property.GetBaseProperty().GetMethod to ensure we generate a call to the overridden method?
+            var accessor = property.GetOwnOrInheritedGetMethod();
+            Debug.Assert(accessor is not null);
+            return Call(receiverOpt, accessor);
         }
 
         public NamedTypeSymbol SpecialType(SpecialType st)
@@ -550,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SynthesizedLocalWithValEscape(
                 CurrentFunction,
                 TypeWithAnnotations.Create(type),
-                SynthesizedLocalKind.InterpolatedStringHandler,
+                SynthesizedLocalKind.LoweringTemp,
                 valEscapeScope,
                 syntax
 #if DEBUG

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -90,6 +92,46 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var optionSet = optionService.GetOptions();
             var option = new Option<bool>("Test Feature", "Test Name", false);
             Assert.False(optionSet.GetOption(option));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void GlobalOptions()
+        {
+            using var workspace = new AdhocWorkspace();
+            var optionService = TestOptionService.GetGlobalOptionService(workspace.Services);
+            var option1 = new Option<int>("Feature1", "Name1", defaultValue: 1);
+            var option2 = new Option<int>("Feature2", "Name2", defaultValue: 2);
+            var option3 = new Option<int>("Feature3", "Name3", defaultValue: 3);
+
+            var changedOptions = new List<OptionChangedEventArgs>();
+
+            var handler = new EventHandler<OptionChangedEventArgs>((_, e) => changedOptions.Add(e));
+            optionService.OptionChanged += handler;
+
+            var values = optionService.GetOptions(ImmutableArray.Create<OptionKey>(option1, option2));
+            Assert.Equal(1, values[0]);
+            Assert.Equal(2, values[1]);
+
+            optionService.SetGlobalOptions(
+                ImmutableArray.Create<OptionKey>(option1, option2, option3),
+                ImmutableArray.Create<object?>(5, 6, 3));
+
+            AssertEx.Equal(new[]
+            {
+                "Name1=5",
+                "Name2=6",
+            }, changedOptions.Select(e => $"{e.OptionKey.Option.Name}={e.Value}"));
+
+            values = optionService.GetOptions(ImmutableArray.Create<OptionKey>(option1, option2, option3));
+            Assert.Equal(5, values[0]);
+            Assert.Equal(6, values[1]);
+            Assert.Equal(3, values[2]);
+
+            Assert.Equal(5, optionService.GetOption(option1));
+            Assert.Equal(6, optionService.GetOption(option2));
+            Assert.Equal(3, optionService.GetOption(option3));
+
+            optionService.OptionChanged -= handler;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

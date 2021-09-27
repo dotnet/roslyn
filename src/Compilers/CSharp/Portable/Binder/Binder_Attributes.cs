@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Binder> binders,
             ImmutableArray<AttributeSyntax> attributesToBind,
             ImmutableArray<NamedTypeSymbol> boundAttributeTypes,
-            CSharpAttributeData?[] attributesBuilder,
+            CSharpAttributeData?[] attributeDataArray,
+            BoundAttribute?[]? boundAttributeArray,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(binders.Any());
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(boundAttributeTypes.Any());
             Debug.Assert(binders.Length == attributesToBind.Length);
             Debug.Assert(boundAttributeTypes.Length == attributesToBind.Length);
-            RoslynDebug.Assert(attributesBuilder != null);
+            RoslynDebug.Assert(attributeDataArray != null);
 
             for (int i = 0; i < attributesToBind.Length; i++)
             {
@@ -70,13 +71,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol boundAttributeType = boundAttributeTypes[i];
                 Binder binder = binders[i];
 
-                var attribute = (SourceAttributeData?)attributesBuilder[i];
+                var attribute = (SourceAttributeData?)attributeDataArray[i];
                 if (attribute == null)
                 {
-                    attributesBuilder[i] = binder.GetAttribute(attributeSyntax, boundAttributeType, diagnostics);
+                    (attributeDataArray[i], var boundAttribute) = binder.GetAttribute(attributeSyntax, boundAttributeType, diagnostics);
+                    if (boundAttributeArray is not null)
+                    {
+                        boundAttributeArray[i] = boundAttribute;
+                    }
                 }
                 else
                 {
+                    Debug.Assert(boundAttributeArray is null || boundAttributeArray[i] is not null);
+
                     // attributesBuilder might contain some early bound well-known attributes, which had no errors.
                     // We don't rebind the early bound attributes, but need to compute isConditionallyOmitted.
                     // Note that AttributeData.IsConditionallyOmitted is required only during emit, but must be computed here as
@@ -87,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
                     bool isConditionallyOmitted = binder.IsAttributeConditionallyOmitted(attribute.AttributeClass, attributeSyntax.SyntaxTree, ref useSiteInfo);
                     diagnostics.Add(attributeSyntax, useSiteInfo);
-                    attributesBuilder[i] = attribute.WithOmittedCondition(isConditionallyOmitted);
+                    attributeDataArray[i] = attribute.WithOmittedCondition(isConditionallyOmitted);
                 }
             }
         }
@@ -96,11 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Bind Single Attribute
 
-        internal CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, BindingDiagnosticBag diagnostics)
+        internal (CSharpAttributeData, BoundAttribute) GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, BindingDiagnosticBag diagnostics)
         {
             var boundAttribute = new ExecutableCodeBinder(node, this.ContainingMemberOrLambda, this).BindAttribute(node, boundAttributeType, diagnostics);
 
-            return GetAttribute(boundAttribute, diagnostics);
+            return (GetAttribute(boundAttribute, diagnostics), boundAttribute);
         }
 
         internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
@@ -205,11 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             RoslynDebug.Assert((object)attributeType != null);
             Debug.Assert(boundAttribute.Syntax.Kind() == SyntaxKind.Attribute);
-
-            if (diagnostics.DiagnosticBag is object)
-            {
-                NullableWalker.AnalyzeIfNeeded(this, boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
-            }
 
             bool hasErrors = boundAttribute.HasAnyErrors;
 

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -23,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal sealed class VisualStudioWorkspaceServiceHubConnector : IEventListener<object>, IEventListenerStoppable
     {
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+        private readonly IGlobalOptionService _globalOptions;
 
         private GlobalNotificationRemoteDeliveryService? _globalNotificationDelivery;
         private Task<RemoteHostClient?>? _remoteClientInitializationTask;
@@ -33,21 +35,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioWorkspaceServiceHubConnector(IAsynchronousOperationListenerProvider listenerProvider)
+        public VisualStudioWorkspaceServiceHubConnector(
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _listenerProvider = listenerProvider;
+            _globalOptions = globalOptions;
             _disposalCancellationSource = new CancellationTokenSource();
         }
 
         public void StartListening(Workspace workspace, object serviceOpt)
         {
-            if (!(workspace is VisualStudioWorkspace) || IVsShellExtensions.IsInCommandLineMode)
+            if (workspace is not VisualStudioWorkspace || IVsShellExtensions.IsInCommandLineMode)
             {
                 return;
             }
 
             // only push solution snapshot from primary (VS) workspace:
-            _checksumUpdater = new SolutionChecksumUpdater(workspace, _listenerProvider, _disposalCancellationSource.Token);
+            _checksumUpdater = new SolutionChecksumUpdater(workspace, _globalOptions, _listenerProvider, _disposalCancellationSource.Token);
 
             _globalNotificationDelivery = new GlobalNotificationRemoteDeliveryService(workspace.Services, _disposalCancellationSource.Token);
 

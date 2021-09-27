@@ -1703,16 +1703,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets a copy of the solution isolated from the original so that they do not share computed state.
-        /// 
-        /// Use isolated solutions when doing operations that are likely to access a lot of text,
-        /// syntax trees or compilations that are unlikely to be needed again after the operation is done. 
-        /// When the isolated solution is reclaimed so will the computed state.
+        /// Formerly, returned a copy of the solution isolated from the original so that they do not share computed state. It now does nothing.
         /// </summary>
+        [Obsolete("This method no longer produces a Solution that does not share state and is no longer necessary to call.", error: false)]
         public Solution GetIsolatedSolution()
         {
-            var newState = _state.GetIsolatedSolution();
-            return new Solution(newState);
+            // To maintain compat, just return ourself, which will be functionally identical.
+            return this;
         }
 
         /// <summary>

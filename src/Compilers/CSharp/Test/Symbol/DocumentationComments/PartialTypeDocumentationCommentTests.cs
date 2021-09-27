@@ -66,7 +66,11 @@ partial class Goo
         public void TestSummaryOfMethodWithNoImplementation()
         {
             var method = _gooClass.GetMembers("MethodWithNoImplementation").Single();
-            Assert.Equal(string.Empty, method.GetDocumentationCommentXml()); //Matches what would be written to an XML file.
+            Assert.Equal(
+@"<member name=""M:Goo.MethodWithNoImplementation"">
+    <summary>Summary on MethodWithNoImplementation.</summary>
+</member>
+", method.GetDocumentationCommentXml());
         }
 
         [Fact]

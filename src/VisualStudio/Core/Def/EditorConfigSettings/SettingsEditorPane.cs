@@ -5,11 +5,13 @@
 using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Editor;
@@ -92,6 +94,19 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 {
                     _ = linkCapableUndoMgr.AdviseLinkedUndoClient(this);
                 }
+            }
+
+            var statusService = _workspace.Services.GetService<IWorkspaceStatusService>();
+            if (statusService is not null)
+            {
+                // This will show the 'Waiting for Intellisense to initalize' message until the workspace is loaded.
+                _threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    if (!await statusService.IsFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false))
+                    {
+                        await statusService.WaitUntilFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
+                    }
+                });
             }
 
             // hook up our panel

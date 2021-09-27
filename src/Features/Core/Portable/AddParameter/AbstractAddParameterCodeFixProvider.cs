@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 // Not supported if this is "new { ... }" (as there are no parameters at all.
                 var typeNode = syntaxFacts.IsImplicitObjectCreationExpression(node)
                     ? node
-                    : syntaxFacts.GetObjectCreationType(objectCreation);
+                    : syntaxFacts.GetTypeOfObjectCreationExpression(objectCreation);
                 if (typeNode == null)
                 {
                     return new RegisterFixData<TArgumentSyntax>();

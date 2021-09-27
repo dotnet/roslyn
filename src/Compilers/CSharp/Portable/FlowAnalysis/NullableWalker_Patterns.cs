@@ -228,16 +228,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // visit switch header
-            Visit(node.Expression);
-            var expressionState = ResultType;
-
             DeclareLocals(node.InnerLocals);
             foreach (var section in node.SwitchSections)
             {
                 // locals can be alive across jumps in the switch sections, so we declare them early.
                 DeclareLocals(section.Locals);
             }
+
+            // visit switch header
+            Visit(node.Expression);
+            var expressionState = ResultType;
 
             var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
             foreach (var section in node.SwitchSections)

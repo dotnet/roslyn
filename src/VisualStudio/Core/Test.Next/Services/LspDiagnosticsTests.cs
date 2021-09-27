@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -407,14 +408,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
 
+                var globalOptions = workspace.GetService<IGlobalOptionService>();
+
                 var languageServer = new VisualStudioInProcLanguageServer(
                     dispatcherFactory,
                     jsonRpc,
                     capabilitiesProvider,
                     lspWorkspaceRegistrationService,
+                    globalOptions,
                     listenerProvider,
                     NoOpLspLogger.Instance,
                     mockDiagnosticService,
+                    ProtocolConstants.RoslynLspLanguages,
                     clientName: null,
                     userVisibleServerName: string.Empty,
                     telemetryServerTypeName: string.Empty);
@@ -478,7 +483,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     diagnostic.DefaultSeverity,
                     diagnostic.Descriptor.IsEnabledByDefault,
                     diagnostic.WarningLevel,
-                    diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                    diagnostic.Descriptor.ImmutableCustomTags(),
                     diagnostic.Properties,
                     document.Project.Id,
                     GetDataLocation(document, mappedFilePath),
@@ -587,6 +592,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     Contract.ThrowIfTrue(_currentNumberOfCallbacks > _expectedNumberOfCallbacks, "received too many callbacks");
 
                     var diagnosticParams = input.ToObject<LSP.PublishDiagnosticParams>();
+                    Assumes.Present(diagnosticParams);
+
                     Results.Add(diagnosticParams);
 
                     if (_currentNumberOfCallbacks == _expectedNumberOfCallbacks)
@@ -604,7 +611,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             {
             }
 
+            protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
+
             public override string Name => nameof(LspDiagnosticsTests);
+
+            public override bool ShowNotificationOnInitializeFailed => false;
 
             public override LSP.ServerCapabilities GetCapabilities(LSP.ClientCapabilities clientCapabilities) => new();
         }

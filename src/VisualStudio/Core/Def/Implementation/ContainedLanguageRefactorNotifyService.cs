@@ -78,10 +78,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 return ContainedLanguageRenameType.CLRT_CLASS;
             }
-            else if (symbol.Kind == SymbolKind.Event ||
-                symbol.Kind == SymbolKind.Field ||
-                symbol.Kind == SymbolKind.Method ||
-                symbol.Kind == SymbolKind.Property)
+            else if (symbol.Kind is SymbolKind.Event or
+                SymbolKind.Field or
+                SymbolKind.Method or
+                SymbolKind.Property)
             {
                 return ContainedLanguageRenameType.CLRT_CLASSMEMBER;
             }

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 {
@@ -3820,6 +3822,417 @@ public class TestClass : VBInterface
     </Project>
 </Workspace>";
             await TestQuickActionNotProvidedAsync(input);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestPullMethodWithToClassWithAddUsingsInsideNamespaceViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace N
+{
+    public class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+namespace N
+{
+    public class Derived : Base
+    {
+        public Uri En[||]dpoint()
+        {
+            return new Uri(""http://localhost"");
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace N
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint()
+        {
+            return new Uri(""http://localhost"");
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+namespace N
+{
+    public class Derived : Base
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(
+                testText,
+                expected,
+                options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace, CodeStyle.NotificationOption2.Silent));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestPullMethodWithToClassWithAddUsingsSystemUsingsLastViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace N1
+{
+    public class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using N2;
+
+namespace N1
+{
+    public class Derived : Base
+    {
+        public Goo Ge[||]tGoo()
+        {
+            return new Goo(String.Empty);
+        }
+    }
+}
+
+namespace N2
+{
+    public class Goo
+    {
+        public Goo(String s)
+        {
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using N2;
+using System;
+
+namespace N1
+{
+    public class Base
+    {
+        public Goo GetGoo()
+        {
+            return new Goo(String.Empty);
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using N2;
+
+namespace N1
+{
+    public class Derived : Base
+    {
+    }
+}
+
+namespace N2
+{
+    public class Goo
+    {
+        public Goo(String s)
+        {
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(
+                testText,
+                expected,
+                options: new(GetLanguage())
+                {
+                    { GenerationOptions.PlaceSystemNamespaceFirst, false },
+                });
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullMethodToClassWithDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public void G[||]oo() { }
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public void Goo() { }
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullMethodToClassBeforeDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public void H[||]ello() { }
+    #region Hello
+    public void Goo() { }
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public void Hello() { }
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public void Goo() { }
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullMethodToClassBeforeDirective2()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public void Hello() { }
+
+    #region Hello
+    public void G[||]oo() { }
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+
+    public void Goo() { }
+}
+
+public class Bar : BaseClass
+{
+    public void Hello() { }
+
+    #region Hello
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullFieldToClassBeforeDirective1()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public int ba[||]r = 10;
+    #region Hello
+    public int Goo = 10;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int bar = 10;
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int Goo = 10;
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullFieldToClassBeforeDirective2()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public int bar = 10;
+    #region Hello
+    public int Go[||]o = 10;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 10;
+}
+
+public class Bar : BaseClass
+{
+    public int bar = 10;
+
+    #region Hello
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullFieldToClassBeforeDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int G[||]oo = 100, Hoo;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 100;
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int Hoo;
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullEventToClassBeforeDirective()
+        {
+            var text = @"
+using System;
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public event EventHandler e[||]1;
+    #endregion
+}";
+            var expected = @"
+using System;
+public class BaseClass
+{
+    public event EventHandler e1;
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullPropertyToClassBeforeDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int Go[||]o => 1;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo => 1;
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestInRegularAndScriptAsync(text, expected);
         }
 
         #endregion Quick Action

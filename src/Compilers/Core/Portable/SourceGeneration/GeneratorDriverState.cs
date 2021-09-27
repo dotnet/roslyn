@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,8 +18,8 @@ namespace Microsoft.CodeAnalysis
                                       ImmutableArray<AdditionalText> additionalTexts,
                                       ImmutableArray<GeneratorState> generatorStates,
                                       DriverStateTable stateTable,
-                                      bool enableIncremental,
-                                      IncrementalGeneratorOutputKind disabledOutputs)
+                                      IncrementalGeneratorOutputKind disabledOutputs,
+                                      TimeSpan runtime)
         {
             Generators = sourceGenerators;
             IncrementalGenerators = incrementalGenerators;
@@ -27,8 +28,8 @@ namespace Microsoft.CodeAnalysis
             ParseOptions = parseOptions;
             OptionsProvider = optionsProvider;
             StateTable = stateTable;
-            EnableIncremental = enableIncremental;
             DisabledOutputs = disabledOutputs;
+            RunTime = runtime;
             Debug.Assert(Generators.Length == GeneratorStates.Length);
             Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
         }
@@ -78,17 +79,11 @@ namespace Microsoft.CodeAnalysis
         internal readonly DriverStateTable StateTable;
 
         /// <summary>
-        /// Should this driver run incremental generators or not
-        /// </summary>
-        /// <remarks>
-        /// Only used during preview period when incremental generators are enabled/disabled by preview flag
-        /// </remarks>
-        internal readonly bool EnableIncremental;
-
-        /// <summary>
         /// A bit field containing the output kinds that should not be produced by this generator driver.
         /// </summary>
         internal readonly IncrementalGeneratorOutputKind DisabledOutputs;
+
+        internal readonly TimeSpan RunTime;
 
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,
@@ -98,7 +93,8 @@ namespace Microsoft.CodeAnalysis
             DriverStateTable? stateTable = null,
             ParseOptions? parseOptions = null,
             AnalyzerConfigOptionsProvider? optionsProvider = null,
-            IncrementalGeneratorOutputKind? disabledOutputs = null)
+            IncrementalGeneratorOutputKind? disabledOutputs = null,
+            TimeSpan? runTime = null)
         {
             return new GeneratorDriverState(
                 parseOptions ?? this.ParseOptions,
@@ -108,8 +104,8 @@ namespace Microsoft.CodeAnalysis
                 additionalTexts ?? this.AdditionalTexts,
                 generatorStates ?? this.GeneratorStates,
                 stateTable ?? this.StateTable,
-                this.EnableIncremental,
-                disabledOutputs ?? this.DisabledOutputs
+                disabledOutputs ?? this.DisabledOutputs,
+                runTime ?? this.RunTime
                 );
         }
     }

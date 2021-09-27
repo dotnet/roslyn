@@ -26,9 +26,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             Return SpecializedTasks.True
         End Function
 
-        Public Function WouldNavigateToSymbol(definitionItem As DefinitionItem, solution As Solution, cancellationToken As CancellationToken, ByRef filePath As String, ByRef lineNumber As Integer, ByRef charOffset As Integer) As Boolean Implements ISymbolNavigationService.WouldNavigateToSymbol
+        Public Function WouldNavigateToSymbolAsync(definitionItem As DefinitionItem, cancellationToken As CancellationToken) As Task(Of (filePath As String, lineNumber As Integer, charOffset As Integer)?) Implements ISymbolNavigationService.WouldNavigateToSymbolAsync
             _wouldNavigateToSymbol = True
-            Return True
+            Return Task.FromResult(Of (filePath As String, lineNumber As Integer, charOffset As Integer)?)(Nothing)
         End Function
     End Class
 End Namespace

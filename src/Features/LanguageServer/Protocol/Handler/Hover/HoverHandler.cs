@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(Methods.TextDocumentHoverName)]
     internal class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
     {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             HostLanguageServices languageServices,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(semanticModel.Language == LanguageNames.CSharp || semanticModel.Language == LanguageNames.VisualBasic);
+            Debug.Assert(semanticModel.Language is LanguageNames.CSharp or LanguageNames.VisualBasic);
 
             // Get the quick info service to compute quick info.
             // This code path is only invoked for C# and VB, so we can directly cast to QuickInfoServiceWithProviders.
@@ -90,10 +90,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             if (supportsVSExtensions)
             {
-                var context = document != null
-                    ? new IntellisenseQuickInfoBuilderContext(document, threadingContext: null, streamingPresenter: null)
-                    : null;
-                return new VSHover
+                var context = document == null
+                    ? null
+                    : new IntellisenseQuickInfoBuilderContext(
+                        document,
+                        threadingContext: null,
+                        operationExecutor: null,
+                        asynchronousOperationListener: null,
+                        streamingPresenter: null);
+                return new VSInternalHover
                 {
                     Range = ProtocolConversions.TextSpanToRange(info.Span, text),
                     Contents = new SumType<SumType<string, MarkedString>, SumType<string, MarkedString>[], MarkupContent>(string.Empty),

@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var hasPrivateField = false;
             foreach (var member in type.GetMembers())
             {
-                if (!(member is IFieldSymbol fieldSymbol))
+                if (member is not IFieldSymbol fieldSymbol)
                 {
                     continue;
                 }

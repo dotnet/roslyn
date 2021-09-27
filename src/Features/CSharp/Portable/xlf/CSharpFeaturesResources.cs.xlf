@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="Use_recursive_patterns">
         <source>Use recursive patterns</source>
-        <target state="new">Use recursive patterns</target>
+        <target state="translated">Použít rekurzivní vzory</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified</source>
-        <target state="translated">Název se dá zjednodušit.</target>
+        <target state="translated">Název může být zjednodušený.</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
@@ -409,7 +409,7 @@
       </trans-unit>
       <trans-unit id="record_struct">
         <source>record struct</source>
-        <target state="new">record struct</target>
+        <target state="translated">struktura záznamu</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

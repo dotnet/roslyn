@@ -23,6 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly string _scriptClassName;
         private readonly bool _isSubmission;
 
+        /// <summary>
+        /// Any special attributes we may be referencing through a using alias in the file.
+        /// For example <c>using X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c>.
+        /// </summary>
+        private QuickAttributes _nonGlobalAliasedQuickAttributes;
+
         private DeclarationTreeBuilder(SyntaxTree syntaxTree, string scriptClassName, bool isSubmission)
         {
             _syntaxTree = syntaxTree;
@@ -61,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isIterator = false;
             bool hasReturnWithExpression = false;
             GlobalStatementSyntax firstGlobalStatement = null;
-            bool hasNonEmptyGlobalSatement = false;
+            bool hasNonEmptyGlobalStatement = false;
 
             var childrenBuilder = ArrayBuilder<SingleNamespaceOrTypeDeclaration>.GetInstance();
             foreach (var member in members)
@@ -79,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!topLevelStatement.IsKind(SyntaxKind.EmptyStatement))
                     {
-                        hasNonEmptyGlobalSatement = true;
+                        hasNonEmptyGlobalStatement = true;
                     }
 
                     if (!hasAwaitExpressions)
@@ -108,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var diagnostics = ImmutableArray<Diagnostic>.Empty;
 
-                if (!hasNonEmptyGlobalSatement)
+                if (!hasNonEmptyGlobalStatement)
                 {
                     var bag = DiagnosticBag.GetInstance();
                     bag.Add(ErrorCode.ERR_SimpleProgramIsEmpty, ((EmptyStatementSyntax)firstGlobalStatement.Statement).SemicolonToken.GetLocation());
@@ -144,24 +150,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nameLocation: new SourceLocation(container),
                 memberNames: memberNames,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
-                diagnostics: ImmutableArray<Diagnostic>.Empty);
+                diagnostics: ImmutableArray<Diagnostic>.Empty,
+                quickAttributes: QuickAttributes.None);
         }
 
         private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator, bool hasReturnWithExpression, ImmutableArray<Diagnostic> diagnostics)
         {
             return new SingleTypeDeclaration(
-                kind: DeclarationKind.SimpleProgram,
+                kind: DeclarationKind.Class,
                 name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
                 arity: 0,
-                modifiers: DeclarationModifiers.Internal | DeclarationModifiers.Partial | DeclarationModifiers.Static,
+                modifiers: DeclarationModifiers.Partial,
                 declFlags: (hasAwaitExpressions ? SingleTypeDeclaration.TypeDeclarationFlags.HasAwaitExpressions : SingleTypeDeclaration.TypeDeclarationFlags.None) |
                            (isIterator ? SingleTypeDeclaration.TypeDeclarationFlags.IsIterator : SingleTypeDeclaration.TypeDeclarationFlags.None) |
-                           (hasReturnWithExpression ? SingleTypeDeclaration.TypeDeclarationFlags.HasReturnWithExpression : SingleTypeDeclaration.TypeDeclarationFlags.None),
+                           (hasReturnWithExpression ? SingleTypeDeclaration.TypeDeclarationFlags.HasReturnWithExpression : SingleTypeDeclaration.TypeDeclarationFlags.None) |
+                           SingleTypeDeclaration.TypeDeclarationFlags.IsSimpleProgram,
                 syntaxReference: firstGlobalStatement.SyntaxTree.GetReference(firstGlobalStatement.Parent),
                 nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
                 memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
-                diagnostics: diagnostics);
+                diagnostics: diagnostics,
+                quickAttributes: QuickAttributes.None);
         }
 
         /// <summary>
@@ -247,7 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nameLocation: new SourceLocation(parentReference),
                 memberNames: memberNames,
                 children: children,
-                diagnostics: ImmutableArray<Diagnostic>.Empty);
+                diagnostics: ImmutableArray<Diagnostic>.Empty,
+                quickAttributes: QuickAttributes.None);
 
             for (int i = fullName.Length - 2; i >= 0; i--)
             {
@@ -264,6 +274,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return decl;
         }
 
+        private static QuickAttributes GetQuickAttributes(
+            SyntaxList<UsingDirectiveSyntax> usings, bool global)
+        {
+            var result = QuickAttributes.None;
+
+            foreach (var directive in usings)
+            {
+                if (directive.Alias == null)
+                {
+                    continue;
+                }
+
+                var isGlobal = directive.GlobalKeyword.Kind() != SyntaxKind.None;
+                if (isGlobal != global)
+                {
+                    continue;
+                }
+
+                result |= QuickAttributeHelpers.GetQuickAttributes(directive.Name.GetUnqualifiedName().Identifier.ValueText, inAttribute: false);
+            }
+
+            return result;
+        }
+
         public override SingleNamespaceOrTypeDeclaration VisitCompilationUnit(CompilationUnitSyntax compilationUnit)
         {
             if (_syntaxTree.Options.Kind != SourceCodeKind.Regular)
@@ -271,9 +305,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateScriptRootDeclaration(compilationUnit);
             }
 
+            _nonGlobalAliasedQuickAttributes = GetNonGlobalAliasedQuickAttributes(compilationUnit);
+
             var children = VisitNamespaceChildren(compilationUnit, compilationUnit.Members, ((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members);
 
             return CreateRootSingleNamespaceDeclaration(compilationUnit, children, isForScript: false);
+        }
+
+        private static QuickAttributes GetNonGlobalAliasedQuickAttributes(CompilationUnitSyntax compilationUnit)
+        {
+            var result = GetQuickAttributes(compilationUnit.Usings, global: false);
+            foreach (var member in compilationUnit.Members)
+            {
+                if (member is BaseNamespaceDeclarationSyntax @namespace)
+                {
+                    result |= GetNonGlobalAliasedQuickAttributes(@namespace);
+                }
+            }
+
+            return result;
+        }
+
+        private static QuickAttributes GetNonGlobalAliasedQuickAttributes(BaseNamespaceDeclarationSyntax @namespace)
+        {
+            var result = GetQuickAttributes(@namespace.Usings, global: false);
+            foreach (var member in @namespace.Members)
+            {
+                if (member is BaseNamespaceDeclarationSyntax child)
+                {
+                    result |= GetNonGlobalAliasedQuickAttributes(child);
+                }
+            }
+
+            return result;
         }
 
         private RootSingleNamespaceDeclaration CreateRootSingleNamespaceDeclaration(CompilationUnitSyntax compilationUnit, ImmutableArray<SingleNamespaceOrTypeDeclaration> children, bool isForScript)
@@ -301,6 +365,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            var globalAliasedQuickAttributes = GetQuickAttributes(compilationUnit.Usings, global: true);
+
             return new RootSingleNamespaceDeclaration(
                 hasGlobalUsings: hasGlobalUsings,
                 hasUsings: hasUsings,
@@ -309,7 +375,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 children: children,
                 referenceDirectives: isForScript ? GetReferenceDirectives(compilationUnit) : ImmutableArray<ReferenceDirective>.Empty,
                 hasAssemblyAttributes: compilationUnit.AttributeLists.Any(),
-                diagnostics: diagnostics.ToReadOnlyAndFree());
+                diagnostics: diagnostics.ToReadOnlyAndFree(),
+                globalAliasedQuickAttributes);
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
@@ -527,18 +594,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
+            var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(
                 kind: kind,
                 name: node.Identifier.ValueText,
-                modifiers: modifiers,
                 arity: node.Arity,
+                modifiers: modifiers,
                 declFlags: declFlags,
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: memberNames,
                 children: VisitTypeChildren(node),
-                diagnostics: diagnostics.ToReadOnlyAndFree());
+                diagnostics: diagnostics.ToReadOnlyAndFree(),
+                _nonGlobalAliasedQuickAttributes | quickAttributes);
         }
 
         private ImmutableArray<SingleTypeDeclaration> VisitTypeChildren(TypeDeclarationSyntax node)
@@ -552,10 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var member in node.Members)
             {
                 var typeDecl = Visit(member) as SingleTypeDeclaration;
-                if (typeDecl != null)
-                {
-                    children.Add(typeDecl);
-                }
+                children.AddIfNotNull(typeDecl);
             }
 
             return children.ToImmutableAndFree();
@@ -576,18 +642,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
+            var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Delegate,
                 name: node.Identifier.ValueText,
+                arity: node.Arity,
                 modifiers: modifiers,
                 declFlags: declFlags,
-                arity: node.Arity,
                 syntaxReference: _syntaxTree.GetReference(node),
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: ImmutableSegmentedDictionary<string, VoidResult>.Empty,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
-                diagnostics: diagnostics.ToReadOnlyAndFree());
+                diagnostics: diagnostics.ToReadOnlyAndFree(),
+                _nonGlobalAliasedQuickAttributes | quickAttributes);
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitEnumDeclaration(EnumDeclarationSyntax node)
@@ -607,6 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
+            var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Enum,
@@ -618,7 +687,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nameLocation: new SourceLocation(node.Identifier),
                 memberNames: memberNames,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
-                diagnostics: diagnostics.ToReadOnlyAndFree());
+                diagnostics: diagnostics.ToReadOnlyAndFree(),
+                _nonGlobalAliasedQuickAttributes | quickAttributes);
+        }
+
+        private static QuickAttributes GetQuickAttributes(SyntaxList<AttributeListSyntax> attributeLists)
+        {
+            var result = QuickAttributes.None;
+            foreach (var attributeList in attributeLists)
+            {
+                foreach (var attribute in attributeList.Attributes)
+                {
+                    result |= QuickAttributeHelpers.GetQuickAttributes(attribute.Name.GetUnqualifiedName().Identifier.ValueText, inAttribute: true);
+                }
+            }
+
+            return result;
         }
 
         private static readonly ObjectPool<ImmutableSegmentedDictionary<string, VoidResult>.Builder> s_memberNameBuilderPool =

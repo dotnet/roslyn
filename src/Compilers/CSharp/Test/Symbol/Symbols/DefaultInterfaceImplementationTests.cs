@@ -7003,7 +7003,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: TargetFramework.Net60);
 
             compilation1.VerifyDiagnostics(
                 // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -10976,9 +10976,9 @@ public interface I1
             Assert.False(p01.IsOverride);
             Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
 
-            VaidateP01Accessor(p01.GetMethod);
-            VaidateP01Accessor(p01.SetMethod);
-            void VaidateP01Accessor(MethodSymbol accessor)
+            ValidateP01Accessor(p01.GetMethod);
+            ValidateP01Accessor(p01.SetMethod);
+            void ValidateP01Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -12210,7 +12210,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: TargetFramework.Net60);
 
             compilation1.VerifyDiagnostics(
                 // (4,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
@@ -19208,9 +19208,9 @@ public interface I19{ int this[int x] { get; private protected set;} }
             Assert.False(p01.IsOverride);
             Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
 
-            VaidateP01Accessor(p01.GetMethod);
-            VaidateP01Accessor(p01.SetMethod);
-            void VaidateP01Accessor(MethodSymbol accessor)
+            ValidateP01Accessor(p01.GetMethod);
+            ValidateP01Accessor(p01.SetMethod);
+            void ValidateP01Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -24285,9 +24285,9 @@ public interface I1
             Assert.False(p01.IsOverride);
             Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
 
-            VaidateP01Accessor(p01.AddMethod);
-            VaidateP01Accessor(p01.RemoveMethod);
-            void VaidateP01Accessor(MethodSymbol accessor)
+            ValidateP01Accessor(p01.AddMethod);
+            ValidateP01Accessor(p01.RemoveMethod);
+            void ValidateP01Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -24527,9 +24527,9 @@ public interface I1
             Assert.False(p14.IsOverride);
             Assert.Equal(Accessibility.ProtectedAndInternal, p14.DeclaredAccessibility);
 
-            VaidateP14Accessor(p14.AddMethod);
-            VaidateP14Accessor(p14.RemoveMethod);
-            void VaidateP14Accessor(MethodSymbol accessor)
+            ValidateP14Accessor(p14.AddMethod);
+            ValidateP14Accessor(p14.RemoveMethod);
+            void ValidateP14Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -25379,7 +25379,7 @@ class Test2 : I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: TargetFramework.Net60);
 
             compilation1.VerifyDiagnostics(
                 // (8,46): error CS0073: An add or remove accessor must have a body
@@ -44313,7 +44313,7 @@ public interface I1
         public void RuntimeFeature_02()
         {
             var compilation1 = CreateCompilation("", options: TestOptions.DebugDll,
-                                                 references: new[] { TestMetadata.NetCoreApp.SystemRuntime },
+                                                 references: new[] { NetCoreApp.SystemRuntime },
                                                  targetFramework: TargetFramework.Empty);
 
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -45507,7 +45507,7 @@ public interface ITest33
 " + NoPiaAttributes;
 
             var pia2Compilation = CreateCompilation(pia2, options: TestOptions.ReleaseDll);
-            var pia2Refernce = pia2Compilation.EmitToImageReference();
+            var pia2Reference = pia2Compilation.EmitToImageReference();
 
             foreach (var reference1 in new[] { piaCompilation.ToMetadataReference(embedInteropTypes: true), piaCompilation.EmitToImageReference(embedInteropTypes: true) })
             {
@@ -45515,7 +45515,7 @@ public interface ITest33
 
                 foreach (var reference2 in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
                 {
-                    var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Refernce }, targetFramework: TargetFramework.StandardLatest);
+                    var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe, references: new[] { reference2, pia2Reference }, targetFramework: TargetFramework.StandardLatest);
                     CompileAndVerify(compilation2, expectedOutput: "Test.M1");
                 }
             }
@@ -55886,7 +55886,7 @@ public class C0 : I1
         {
             var windowsRuntimeRef = CompilationExtensions.CreateWindowsRuntimeMetadataReference();
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 BuildAssemblyExternClause(windowsRuntimeRef) +
 @"
 .class public auto ansi sealed Event
@@ -56136,7 +56136,7 @@ class C1 : I1, Interface
         public void ExplicitlyImplementedViaAccessors_01()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56466,7 +56466,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_02()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56627,7 +56627,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_03()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -56788,7 +56788,7 @@ class Test4 : C1, I1
         public void ExplicitlyImplementedViaAccessors_04()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57087,7 +57087,7 @@ class C3 : C2, I1
         public void ExplicitlyImplementedViaAccessors_06()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57331,7 +57331,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_07()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57442,7 +57442,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_08()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57553,7 +57553,7 @@ interface I3 : I2
         public void ExplicitlyImplementedViaAccessors_09()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57668,7 +57668,7 @@ interface I3 : I2
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_01()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57743,7 +57743,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_02()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57822,7 +57822,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_03()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
@@ -57896,7 +57896,7 @@ class C2 : C1, I1
         public void CheckForImplementationOfCorrespondingPropertyOrEvent_04()
         {
             var ilSource =
-BuildAssemblyExternClause(TestMetadata.NetCoreApp.SystemRuntime) +
+BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {

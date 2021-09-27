@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -20,6 +21,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DeclarationModifiers _modifiers;
         private readonly ImmutableArray<SingleTypeDeclaration> _children;
 
+        /// <summary>
+        /// Any special attributes we may be referencing directly as an attribute on this type or
+        /// through a using alias in the file. For example
+        /// <c>using X = System.Runtime.CompilerServices.TypeForwardedToAttribute</c> or
+        /// <c>[TypeForwardedToAttribute]</c>.  Can be used to avoid having to go back to source
+        /// to retrieve attributes whtn there is no chance they would bind to attribute of interest.
+        /// </summary>
+        public QuickAttributes QuickAttributes { get; }
+
         [Flags]
         internal enum TypeDeclarationFlags : ushort
         {
@@ -31,19 +41,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasAnyNontypeMembers = 1 << 5,
 
             /// <summary>
-            /// Simple program uses await expressions. Set only for <see cref="DeclarationKind.SimpleProgram"/>
+            /// Simple program uses await expressions. Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
             /// </summary>
             HasAwaitExpressions = 1 << 6,
 
             /// <summary>
-            /// Set only for <see cref="DeclarationKind.SimpleProgram"/>
+            /// Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
             /// </summary>
             IsIterator = 1 << 7,
 
             /// <summary>
-            /// Set only for <see cref="DeclarationKind.SimpleProgram"/>
+            /// Set only in conjunction with <see cref="TypeDeclarationFlags.IsSimpleProgram"/>
             /// </summary>
             HasReturnWithExpression = 1 << 8,
+
+            IsSimpleProgram = 1 << 9,
         }
 
         internal SingleTypeDeclaration(
@@ -56,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceLocation nameLocation,
             ImmutableSegmentedDictionary<string, VoidResult> memberNames,
             ImmutableArray<SingleTypeDeclaration> children,
-            ImmutableArray<Diagnostic> diagnostics)
+            ImmutableArray<Diagnostic> diagnostics,
+            QuickAttributes quickAttributes)
             : base(name, syntaxReference, nameLocation, diagnostics)
         {
             Debug.Assert(kind != DeclarationKind.Namespace);
@@ -67,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberNames = memberNames;
             _children = children;
             _flags = declFlags;
+            QuickAttributes = quickAttributes;
         }
 
         public override DeclarationKind Kind
@@ -164,6 +178,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return (_flags & TypeDeclarationFlags.IsIterator) != 0;
+            }
+        }
+
+        public bool IsSimpleProgram
+        {
+            get
+            {
+                return (_flags & TypeDeclarationFlags.IsSimpleProgram) != 0;
             }
         }
 

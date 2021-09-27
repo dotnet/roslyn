@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         }
 
         public override bool IsTriggerCharacter(char ch)
-            => ch == '<' || ch == ',';
+            => ch is '<' or ',';
 
         public override bool IsRetriggerCharacter(char ch)
             => ch == '>';
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            if (!(genericIdentifier.Parent is SimpleNameSyntax simpleName))
+            if (genericIdentifier.Parent is not SimpleNameSyntax simpleName)
             {
                 return null;
             }
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 
             var accessibleSymbols =
                 symbols.WhereAsArray(s => s.GetArity() > 0)
-                       .WhereAsArray(s => s is INamedTypeSymbol || s is IMethodSymbol)
+                       .WhereAsArray(s => s is INamedTypeSymbol or IMethodSymbol)
                        .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
                        .Sort(semanticModel, genericIdentifier.SpanStart);
 

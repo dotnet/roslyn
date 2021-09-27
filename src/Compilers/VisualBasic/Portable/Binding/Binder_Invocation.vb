@@ -857,7 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 hasErrors = CheckSharedSymbolAccess(target, methodOrProperty.IsShared, receiver, group.QualificationKind, diagnostics)  ' give diagnostics if sharedness is wrong.
             End If
 
-            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, methodOrProperty, node)
+            ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, methodOrProperty, node)
 
             hasErrors = hasErrors Or group.HasErrors
 
@@ -3125,11 +3125,6 @@ ProduceBoundNode:
                     Dim callerArgumentExpressionParameterIndex As Integer = param.CallerArgumentExpressionParameterIndex
 
                     Dim isCallerArgumentExpression = callerArgumentExpressionParameterIndex > -1 OrElse (reducedExtensionReceiverOpt IsNot Nothing AndAlso callerArgumentExpressionParameterIndex > -2)
-
-                    If isCallerArgumentExpression AndAlso Not SyntaxTree.Options.Features.ContainsKey(InternalSyntax.GetFeatureFlag(InternalSyntax.Feature.CallerArgumentExpression)) Then
-                        ' Silently require feature flag for this feature until Aleksey approves.
-                        isCallerArgumentExpression = False
-                    End If
 
                     If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath OrElse isCallerArgumentExpression Then
                         Dim callerInfoValue As ConstantValue = Nothing

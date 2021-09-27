@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 return syntaxRoot
                     .DescendantNodes(n => !syntaxFacts.IsDeclaration(n))
-                    .Where(n => syntaxFacts.IsNamespaceDeclaration(n))
+                    .Where(n => syntaxFacts.IsBaseNamespaceDeclaration(n))
                     .ToImmutableArray();
             }
         }
@@ -606,7 +606,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             var namesToImport = GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace);
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
             var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
 
             var documentWithAddedImports = await AddImportsInContainersAsync(
@@ -614,7 +613,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 addImportService,
                 containersToAddImports,
                 namesToImport,
-                placeSystemNamespaceFirst,
                 allowInHiddenRegions,
                 cancellationToken).ConfigureAwait(false);
 
@@ -651,7 +649,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     .ConfigureAwait(false);
 
             var optionSet = await documentWithRefFixed.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, documentWithRefFixed.Project.Language);
             var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
 
             var documentWithAdditionalImports = await AddImportsInContainersAsync(
@@ -659,7 +656,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 addImportService,
                 containers,
                 ImmutableArray.Create(newNamespace),
-                placeSystemNamespaceFirst,
                 allowInHiddenRegions,
                 cancellationToken).ConfigureAwait(false);
 
@@ -732,8 +728,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     }
                 }
 
+                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 // Use a dummy import node to figure out which container the new import will be added to.
-                var container = addImportService.GetImportContainer(root, refNode, dummyImport);
+                var container = addImportService.GetImportContainer(root, refNode, dummyImport, options);
                 containers.Add(container);
             }
 
@@ -811,7 +808,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             IAddImportsService addImportService,
             ImmutableArray<SyntaxNode> containers,
             ImmutableArray<string> names,
-            bool placeSystemNamespaceFirst,
             bool allowInHiddenRegions,
             CancellationToken cancellationToken)
         {
@@ -821,6 +817,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             {
                 containers = containers.Sort(SyntaxNodeSpanStartComparer.Instance);
             }
+
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var imports = CreateImports(document, names, withFormatterAnnotation: true);
             foreach (var container in containers)
@@ -835,7 +833,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-                root = addImportService.AddImports(compilation, root, contextLocation, imports, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
+                root = addImportService.AddImports(compilation, root, contextLocation, imports, generator, options, allowInHiddenRegions, cancellationToken);
                 document = document.WithSyntaxRoot(root);
             }
 

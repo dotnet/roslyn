@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!oldStates.TryGetState(id, out var oldState))
                 {
-                    // document was removed
+                    // document was added
                     continue;
                 }
 
