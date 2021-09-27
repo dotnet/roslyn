@@ -66,6 +66,76 @@ public class [|C|]
         }
 
         [Theory]
+        [InlineData("Outer.C")]
+        [InlineData("Outer.C..ctor")]
+        public async Task NestedClass_FromTypeDefinitionDocument(string symbolName)
+        {
+            var source = @"
+public class Outer
+{
+    public class [|C|]
+    {
+        // this is a comment that wouldn't appear in decompiled source
+    }
+}";
+            await TestAsync(source, c => c.GetMember(symbolName));
+        }
+
+        [Theory]
+        [InlineData("Outer")]
+        [InlineData("Outer..ctor")]
+        public async Task Class_FromTypeDefinitionDocumentOfNestedClass(string symbolName)
+        {
+            var source = @"
+public class [|Outer|]
+{
+    public class C
+    {
+        // this is a comment that wouldn't appear in decompiled source
+    }
+}";
+            await TestAsync(source, c => c.GetMember(symbolName));
+        }
+
+        [Theory]
+        [InlineData("Outer.C")]
+        [InlineData("Outer.C..ctor")]
+        public async Task NestedClass_FromMethodDocument(string symbolName)
+        {
+            var source = @"
+public class Outer
+{
+    public class [|C|]
+    {
+        public void M()
+        {
+            // this is a comment that wouldn't appear in decompiled source
+        }
+    }
+}";
+            await TestAsync(source, c => c.GetMember(symbolName));
+        }
+
+        [Theory]
+        [InlineData("Outer")]
+        [InlineData("Outer..ctor")]
+        public async Task Class_FromMethodDocumentOfNestedClass(string symbolName)
+        {
+            var source = @"
+public class [|Outer|]
+{
+    public class C
+    {
+        public void M()
+        {
+            // this is a comment that wouldn't appear in decompiled source
+        }
+    }
+}";
+            await TestAsync(source, c => c.GetMember(symbolName));
+        }
+
+        [Theory]
         [InlineData("C")]
         [InlineData("C..ctor")]
         public async Task Class_FromMethodDocument(string symbolName)
