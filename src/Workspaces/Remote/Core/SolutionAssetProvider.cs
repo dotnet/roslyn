@@ -4,19 +4,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.IO.Pipelines;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -106,8 +101,5 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
         }
-
-        public ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_services.GetRequiredService<IExperimentationService>().IsExperimentEnabled(experimentName));
     }
 }

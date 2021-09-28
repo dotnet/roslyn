@@ -344,6 +344,9 @@ class X
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
                         case ErrorCode.WRN_IsPatternAlways:
                         case ErrorCode.WRN_AnalyzerReferencesFramework:
+                        case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
+                        case ErrorCode.WRN_CompileTimeCheckedOverflow:
+                        case ErrorCode.WRN_MethGrpToNonDel:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -431,7 +434,7 @@ class X
                     ErrorCode.WRN_UnreadRecordParameter,
                     ErrorCode.WRN_DoNotCompareFunctionPointers,
                     ErrorCode.WRN_PartialMethodTypeDifference,
-                    ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter,
+                    ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);

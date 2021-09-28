@@ -23,12 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             _presentItemsWithValuesCallback = presentItemsWithValuesCallback
         End Sub
 
-        Public Sub RaiseDropDownFocused()
-            RaiseEvent DropDownFocused(Nothing, EventArgs.Empty)
-        End Sub
-
         Public Event CaretMoved As EventHandler(Of CaretPositionChangedEventArgs) Implements INavigationBarPresenter.CaretMoved
-        Public Event DropDownFocused As EventHandler Implements INavigationBarPresenter.DropDownFocused
         Public Event ItemSelected As EventHandler(Of NavigationBarItemSelectedEventArgs) Implements INavigationBarPresenter.ItemSelected
         Public Event ViewFocused As EventHandler(Of EventArgs) Implements INavigationBarPresenter.ViewFocused
 

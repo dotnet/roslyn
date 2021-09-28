@@ -29,6 +29,7 @@ This document provides guidance for thinking about language interactions and tes
     - GetOperation (`IOperation`)
     - GetCFG (`ControlFlowGraph`)
 - VB/F# interop
+- C++/CLI interop (particularly for metadata format changes, e.g. DIMs, static abstracts in interfaces, or generic attributes)
 - Performance and stress testing
 - Can build VS
 - Check that `Obsolete` is honored for members used in binding/lowering
@@ -41,7 +42,7 @@ This document provides guidance for thinking about language interactions and tes
 - properties (including get/set/init accessors)
 - events (including add/remove accessors)
 - Parameter modifiers (ref, out, in, params)
-- Attributes (including security attribute)
+- Attributes (including generic attributes and security attributes)
 - Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
 - Default and constant values
 - Partial classes
@@ -135,6 +136,8 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
 - Edit-and-continue
 
 - Live Unit Testing (instrumentation)
+
+- Engage with VS Templates team (if applicable)
 
 # Eric's cheatsheet
 
@@ -318,6 +321,7 @@ __makeref( x )
 - Tuple
 - Default literal
 - Implicit object creation (target-typed new)
+- Function type (in type inference comparing function types of lambdas or method groups)
 
 ## Types 
 

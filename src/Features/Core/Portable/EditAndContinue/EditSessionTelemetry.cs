@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -17,10 +16,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             public readonly ImmutableArray<(ushort EditKind, ushort SyntaxKind)> RudeEdits;
             public readonly ImmutableArray<string> EmitErrorIds;
+            public readonly EditAndContinueCapabilities Capabilities;
             public readonly bool HadCompilationErrors;
             public readonly bool HadRudeEdits;
             public readonly bool HadValidChanges;
             public readonly bool HadValidInsignificantChanges;
+            public readonly bool InBreakState;
+            public readonly bool IsEmpty;
 
             public Data(EditSessionTelemetry telemetry)
             {
@@ -30,30 +32,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 HadRudeEdits = telemetry._hadRudeEdits;
                 HadValidChanges = telemetry._hadValidChanges;
                 HadValidInsignificantChanges = telemetry._hadValidInsignificantChanges;
+                InBreakState = telemetry._inBreakState;
+                Capabilities = telemetry._capabilities;
+                IsEmpty = telemetry.IsEmpty;
             }
-
-            public bool IsEmpty => !(HadCompilationErrors || HadRudeEdits || HadValidChanges || HadValidInsignificantChanges);
         }
 
         private readonly object _guard = new();
 
-        private readonly HashSet<(ushort, ushort)> _rudeEdits;
-        private readonly HashSet<string> _emitErrorIds;
+        private readonly HashSet<(ushort, ushort)> _rudeEdits = new();
+        private readonly HashSet<string> _emitErrorIds = new();
 
         private bool _hadCompilationErrors;
         private bool _hadRudeEdits;
         private bool _hadValidChanges;
         private bool _hadValidInsignificantChanges;
+        private bool _inBreakState;
 
-        public EditSessionTelemetry()
-        {
-            _rudeEdits = new HashSet<(ushort, ushort)>();
-            _emitErrorIds = new HashSet<string>();
-            _hadCompilationErrors = false;
-            _hadRudeEdits = false;
-            _hadValidChanges = false;
-            _hadValidInsignificantChanges = false;
-        }
+        private EditAndContinueCapabilities _capabilities;
 
         public Data GetDataAndClear()
         {
@@ -66,15 +62,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _hadRudeEdits = false;
                 _hadValidChanges = false;
                 _hadValidInsignificantChanges = false;
+                _inBreakState = false;
+                _capabilities = EditAndContinueCapabilities.None;
                 return data;
             }
         }
 
-        public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, ImmutableArray<string> errorsIds)
+        public bool IsEmpty => !(_hadCompilationErrors || _hadRudeEdits || _hadValidChanges || _hadValidInsignificantChanges);
+
+        public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, ImmutableArray<string> errorsIds, bool inBreakState)
         {
             lock (_guard)
             {
                 _emitErrorIds.AddRange(errorsIds);
+                _inBreakState = inBreakState;
 
                 switch (summary)
                 {
@@ -103,8 +104,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, ImmutableArray<Diagnostic> emitDiagnostics)
-            => LogProjectAnalysisSummary(summary, emitDiagnostics.SelectAsArray(d => d.Severity == DiagnosticSeverity.Error, d => d.Id));
+        public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, ImmutableArray<Diagnostic> emitDiagnostics, bool inBreakState)
+            => LogProjectAnalysisSummary(summary, emitDiagnostics.SelectAsArray(d => d.Severity == DiagnosticSeverity.Error, d => d.Id), inBreakState);
 
         public void LogRudeEditDiagnostics(ImmutableArray<RudeEditDiagnostic> diagnostics)
         {
@@ -114,6 +115,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     _rudeEdits.Add(((ushort)diagnostic.Kind, diagnostic.SyntaxKind));
                 }
+            }
+        }
+
+        public void LogRuntimeCapabilities(EditAndContinueCapabilities capabilities)
+        {
+            lock (_guard)
+            {
+                Debug.Assert(_capabilities == EditAndContinueCapabilities.None || _capabilities == capabilities);
+                _capabilities = capabilities;
             }
         }
     }

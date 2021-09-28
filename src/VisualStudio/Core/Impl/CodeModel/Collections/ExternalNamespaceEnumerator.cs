@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                 throw Exceptions.ThrowEFail();
             }
 
-            if (!(namespaceSymbolId.Resolve(project.GetCompilationAsync().Result).Symbol is INamespaceSymbol namespaceSymbol))
+            if (namespaceSymbolId.Resolve(project.GetCompilationAsync().Result).Symbol is not INamespaceSymbol namespaceSymbol)
             {
                 throw Exceptions.ThrowEFail();
             }

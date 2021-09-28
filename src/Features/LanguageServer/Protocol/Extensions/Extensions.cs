@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -20,22 +21,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal static class Extensions
     {
         public static Uri GetURI(this TextDocument document)
-        {
-            return ProtocolConversions.GetUriFromFilePath(document.FilePath);
-        }
+            => ProtocolConversions.GetUriFromFilePath(document.FilePath);
+
+        public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)
+            => ProtocolConversions.TryGetUriFromFilePath(document.FilePath, context);
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
-        {
-            return GetDocuments(solution, documentUri, clientName: null);
-        }
+            => GetDocuments(solution, documentUri, clientName: null, logger: null);
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, string? clientName)
+            => GetDocuments(solution, documentUri, clientName, logger: null);
+
+        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, string? clientName, ILspLogger? logger)
         {
             var documentIds = GetDocumentIds(solution, documentUri);
 
             var documents = documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
 
-            return FilterDocumentsByClientName(documents, clientName);
+            return FilterDocumentsByClientName(documents, clientName, logger);
         }
 
         public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documentIds;
         }
 
-        private static ImmutableArray<Document> FilterDocumentsByClientName(ImmutableArray<Document> documents, string? clientName)
+        private static ImmutableArray<Document> FilterDocumentsByClientName(ImmutableArray<Document> documents, string? clientName, ILspLogger? logger)
         {
             // If we don't have a client name, then we're done filtering
             if (clientName == null)
@@ -70,7 +73,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 // Allows the razor lsp server to return results only for razor documents.
                 // This workaround should be removed when https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1106064/
                 // is fixed (so that the razor language server is only asked about razor buffers).
-                return Equals(documentPropertiesService?.DiagnosticsLspClientName, clientName);
+                var documentClientName = documentPropertiesService?.DiagnosticsLspClientName;
+                var clientNameMatch = Equals(documentClientName, clientName);
+                if (!clientNameMatch && logger is not null)
+                {
+                    logger.TraceInformation($"Found matching document but it's client name '{documentClientName}' is not a match.");
+                }
+
+                return clientNameMatch;
             });
         }
 
@@ -79,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier, string? clientName)
         {
-            var documents = solution.GetDocuments(documentIdentifier.Uri, clientName);
+            var documents = solution.GetDocuments(documentIdentifier.Uri, clientName, logger: null);
             if (documents.Length == 0)
             {
                 return null;
@@ -129,7 +139,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static bool HasVisualStudioLspCapability(this ClientCapabilities? clientCapabilities)
         {
-            if (clientCapabilities is VSClientCapabilities vsClientCapabilities)
+            if (clientCapabilities is VSInternalClientCapabilities vsClientCapabilities)
             {
                 return vsClientCapabilities.SupportsVisualStudioExtensions;
             }
@@ -167,7 +177,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     return "vb";
                 case LanguageNames.FSharp:
                     return "fsharp";
-                case "TypeScript":
+                case InternalLanguageNames.TypeScript:
                     return "typescript";
                 default:
                     throw new ArgumentException(string.Format("Document project language {0} is not valid", document.Project.Language));
@@ -185,9 +195,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return spanMapper != null;
         }
 
-        private static bool TryGetVSCompletionListSetting(ClientCapabilities clientCapabilities, [NotNullWhen(returnValue: true)] out VSCompletionListSetting? completionListSetting)
+        private static bool TryGetVSCompletionListSetting(ClientCapabilities clientCapabilities, [NotNullWhen(returnValue: true)] out VSInternalCompletionListSetting? completionListSetting)
         {
-            if (clientCapabilities is not VSClientCapabilities vsClientCapabilities)
+            if (clientCapabilities is not VSInternalClientCapabilities vsClientCapabilities)
             {
                 completionListSetting = null;
                 return false;
@@ -200,7 +210,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return false;
             }
 
-            if (textDocumentCapability.Completion is not VSCompletionSetting vsCompletionSetting)
+            if (textDocumentCapability.Completion is not VSInternalCompletionSetting vsCompletionSetting)
             {
                 completionListSetting = null;
                 return false;

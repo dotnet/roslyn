@@ -404,16 +404,6 @@ namespace Microsoft.Cci
         /// </summary>
         protected abstract void PopulatePropertyMapTableRows();
 
-        /// <summary>
-        /// Populate EncLog table.
-        /// </summary>
-        protected abstract void PopulateEncLogTableRows(ImmutableArray<int> rowCounts);
-
-        /// <summary>
-        /// Populate EncMap table.
-        /// </summary>
-        protected abstract void PopulateEncMapTableRows(ImmutableArray<int> rowCounts);
-
         protected abstract void ReportReferencesToAddedSymbols();
 
         // If true, it is allowed to have methods not have bodies (for emitting metadata-only
@@ -1120,8 +1110,7 @@ namespace Microsoft.Cci
 
         internal BlobHandle GetMethodSignatureHandle(IMethodReference methodReference)
         {
-            ImmutableArray<byte> signatureBlob;
-            return GetMethodSignatureHandleAndBlob(methodReference, out signatureBlob);
+            return GetMethodSignatureHandleAndBlob(methodReference, out _);
         }
 
         internal byte[] GetMethodSignature(IMethodReference methodReference)
@@ -1729,6 +1718,8 @@ namespace Microsoft.Cci
                 out Blob mvidStringFixup);
 
             var typeSystemRowCounts = metadata.GetRowCounts();
+            Debug.Assert(typeSystemRowCounts[(int)TableIndex.EncLog] == 0);
+            Debug.Assert(typeSystemRowCounts[(int)TableIndex.EncMap] == 0);
             PopulateEncTables(typeSystemRowCounts);
 
             Debug.Assert(mappedFieldDataBuilder.Count == 0);
@@ -1807,13 +1798,18 @@ namespace Microsoft.Cci
 
                 DefineModuleImportScope();
 
+                EmbedTypeDefinitionDocumentInformation(module);
+
                 if (module.SourceLinkStreamOpt != null)
                 {
                     EmbedSourceLink(module.SourceLinkStreamOpt);
                 }
 
-                EmbedCompilationOptions(module);
-                EmbedMetadataReferenceInformation(module);
+                if (!module.IsEncDelta)
+                {
+                    EmbedCompilationOptions(module);
+                    EmbedMetadataReferenceInformation(module);
+                }
             }
 
             int[] methodBodyOffsets;
@@ -1844,13 +1840,8 @@ namespace Microsoft.Cci
             PopulateTypeSystemTables(methodBodyOffsets, mappedFieldDataBuilder, managedResourceDataBuilder, dynamicAnalysisDataOpt, out mvidFixup);
         }
 
-        public void PopulateEncTables(ImmutableArray<int> typeSystemRowCounts)
+        public virtual void PopulateEncTables(ImmutableArray<int> typeSystemRowCounts)
         {
-            Debug.Assert(typeSystemRowCounts[(int)TableIndex.EncLog] == 0);
-            Debug.Assert(typeSystemRowCounts[(int)TableIndex.EncMap] == 0);
-
-            PopulateEncLogTableRows(typeSystemRowCounts);
-            PopulateEncMapTableRows(typeSystemRowCounts);
         }
 
         public MetadataRootBuilder GetRootBuilder()
@@ -2931,7 +2922,10 @@ namespace Microsoft.Cci
 
                 if (_debugMetadataOpt != null)
                 {
-                    SerializeMethodDebugInfo(body, methodRid, localSignatureHandleOpt, ref lastLocalVariableHandle, ref lastLocalConstantHandle);
+                    // methodRid is based on this delta but for async state machine debug info we need the "real" row number
+                    // of the method aggregated across generations
+                    var aggregateMethodRid = MetadataTokens.GetRowNumber(GetMethodDefinitionHandle(method));
+                    SerializeMethodDebugInfo(body, methodRid, aggregateMethodRid, localSignatureHandleOpt, ref lastLocalVariableHandle, ref lastLocalConstantHandle);
                 }
 
                 _dynamicAnalysisDataWriterOpt?.SerializeMethodDynamicAnalysisData(body);

@@ -11,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -80,6 +81,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         protected SimplifyTypeNamesDiagnosticAnalyzerBase()
         {
         }
+
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
         public bool OpenFileOnly(OptionSet options)
         {
@@ -173,7 +176,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             }
 
             var tree = model.SyntaxTree;
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            var builder = ImmutableDictionary.CreateBuilder<string, string?>();
             builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
             var diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());

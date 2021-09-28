@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<Guid, ManagedEditAndContinueAvailability>? IsEditAndContinueAvailable;
         public Dictionary<Guid, ManagedEditAndContinueAvailability>? LoadedModules;
         public Func<ImmutableArray<ManagedActiveStatementDebugInfo>>? GetActiveStatementsImpl;
+        public Func<ImmutableArray<string>>? GetCapabilitiesImpl;
 
         public Task<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
             => Task.FromResult(GetActiveStatementsImpl?.Invoke() ?? ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         public Task<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
+            => Task.FromResult(GetCapabilitiesImpl?.Invoke() ?? ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"));
 
         public Task PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
             => Task.CompletedTask;

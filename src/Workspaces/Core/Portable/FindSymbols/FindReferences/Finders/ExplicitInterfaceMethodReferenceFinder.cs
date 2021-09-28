@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,29 +10,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal class ExplicitInterfaceMethodReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
+    internal sealed class ExplicitInterfaceMethodReferenceFinder : AbstractReferenceFinder<IMethodSymbol>
     {
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind == MethodKind.ExplicitInterfaceImplementation;
 
-        protected override Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
+        protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IMethodSymbol symbol,
-            Solution solution,
-            IImmutableSet<Project>? projects,
-            FindReferencesSearchOptions options,
-            FindReferencesCascadeDirection cascadeDirection,
-            CancellationToken cancellationToken)
-        {
-            if (!cascadeDirection.HasFlag(FindReferencesCascadeDirection.Up))
-                return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>();
-
-            // An explicit interface method will cascade to all the methods that it implements in the up direction.
-            return Task.FromResult(
-                symbol.ExplicitInterfaceImplementations.SelectAsArray(m => ((ISymbol)m, FindReferencesCascadeDirection.Up)));
-        }
-
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            IMethodSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
             IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
@@ -41,8 +27,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
-        protected override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IMethodSymbol symbol,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,

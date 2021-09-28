@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
     internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
         : AbstractAddAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
     {
-        private static CSharpSyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
-
         protected override void ProcessCompilationUnit(
             SyntaxTreeAnalysisContext context,
             CodeStyleOption2<AccessibilityModifiersRequired> option, CompilationUnitSyntax compilationUnit)
@@ -62,76 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             }
 #endif
 
-            // Have to have a name to report the issue on.
-            var name = member.GetNameToken();
-            if (name.Kind() == SyntaxKind.None)
-            {
+            if (!CSharpAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, member, option.Value, out var name))
                 return;
-            }
-
-            // Certain members never have accessibility. Don't bother reporting on them.
-            if (!SyntaxFacts.CanHaveAccessibility(member))
-            {
-                return;
-            }
-
-            // This analyzer bases all of its decisions on the accessibility
-            var accessibility = SyntaxFacts.GetAccessibility(member);
-
-            // Omit will flag any accessibility values that exist and are default
-            // The other options will remove or ignore accessibility
-            var isOmit = option.Value == AccessibilityModifiersRequired.OmitIfDefault;
-
-            if (isOmit)
-            {
-                if (accessibility == Accessibility.NotApplicable)
-                {
-                    return;
-                }
-
-                var parentKind = member.GetRequiredParent().Kind();
-                switch (parentKind)
-                {
-                    // Check for default modifiers in namespace and outside of namespace
-                    case SyntaxKind.CompilationUnit:
-                    case SyntaxKind.FileScopedNamespaceDeclaration:
-                    case SyntaxKind.NamespaceDeclaration:
-                        {
-                            // Default is internal
-                            if (accessibility != Accessibility.Internal)
-                            {
-                                return;
-                            }
-                        }
-
-                        break;
-
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.RecordDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.RecordStructDeclaration:
-                        {
-                            // Inside a type, default is private
-                            if (accessibility != Accessibility.Private)
-                            {
-                                return;
-                            }
-                        }
-
-                        break;
-
-                    default:
-                        return; // Unknown parent kind, don't do anything
-                }
-            }
-            else
-            {
-                // Mode is always, so we have to flag missing modifiers
-                if (accessibility != Accessibility.NotApplicable)
-                {
-                    return;
-                }
-            }
 
             // Have an issue to flag, either add or remove. Report issue to user.
             var additionalLocations = ImmutableArray.Create(member.GetLocation());

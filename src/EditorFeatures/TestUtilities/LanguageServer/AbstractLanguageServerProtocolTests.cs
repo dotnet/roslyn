@@ -20,11 +20,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -38,36 +38,8 @@ namespace Roslyn.Test.Utilities
     {
         // TODO: remove WPF dependency (IEditorInlineRenameService)
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
-            .AddParts(typeof(TestLspWorkspaceRegistrationService))
             .AddParts(typeof(TestDocumentTrackingService))
-            .AddParts(typeof(TestExperimentationService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
-
-        [Export(typeof(ILspWorkspaceRegistrationService)), PartNotDiscoverable]
-        internal class TestLspWorkspaceRegistrationService : ILspWorkspaceRegistrationService
-        {
-            private Workspace? _workspace;
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public TestLspWorkspaceRegistrationService()
-            {
-            }
-
-            public ImmutableArray<Workspace> GetAllRegistrations()
-            {
-                Contract.ThrowIfNull(_workspace, "No workspace has been registered");
-
-                return ImmutableArray.Create(_workspace);
-            }
-
-            public void Register(Workspace workspace)
-            {
-                Contract.ThrowIfTrue(_workspace != null);
-
-                _workspace = workspace;
-            }
-        }
 
         private class TestSpanMapperProvider : IDocumentServiceProvider
         {
@@ -188,7 +160,7 @@ namespace Roslyn.Test.Utilities
                 Kind = kind,
                 Name = name,
                 Location = location,
-                Icon = new ImageElement(glyph.GetImageId()),
+                Icon = VSLspExtensionConversions.GetImageIdFromGlyph(glyph)
             };
 
             if (containerName != null)
@@ -206,7 +178,7 @@ namespace Roslyn.Test.Utilities
             if (projectContext != null)
             {
                 documentIdentifier.ProjectContext =
-                    new LSP.ProjectContext { Id = ProtocolConversions.ProjectIdToProjectContextId(projectContext) };
+                    new LSP.VSProjectContext { Id = ProtocolConversions.ProjectIdToProjectContextId(projectContext) };
             }
 
             return documentIdentifier;
@@ -228,14 +200,14 @@ namespace Roslyn.Test.Utilities
 
         protected static LSP.CompletionParams CreateCompletionParams(
             LSP.Location caret,
-            LSP.VSCompletionInvokeKind invokeKind,
+            LSP.VSInternalCompletionInvokeKind invokeKind,
             string triggerCharacter,
             LSP.CompletionTriggerKind triggerKind)
             => new LSP.CompletionParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
-                Context = new LSP.VSCompletionContext()
+                Context = new LSP.VSInternalCompletionContext()
                 {
                     InvokeKind = invokeKind,
                     TriggerCharacter = triggerCharacter,
@@ -243,7 +215,7 @@ namespace Roslyn.Test.Utilities
                 }
             };
 
-        protected static async Task<LSP.VSCompletionItem> CreateCompletionItemAsync(
+        protected static async Task<LSP.VSInternalCompletionItem> CreateCompletionItemAsync(
             string label,
             LSP.CompletionItemKind kind,
             string[] tags,
@@ -262,7 +234,7 @@ namespace Roslyn.Test.Utilities
             var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(
                 request.Context, document, position, CancellationToken.None).ConfigureAwait(false);
 
-            var item = new LSP.VSCompletionItem()
+            var item = new LSP.VSInternalCompletionItem()
             {
                 TextEdit = textEdit,
                 InsertText = insertText,
@@ -400,13 +372,15 @@ namespace Roslyn.Test.Utilities
         private static RequestDispatcher CreateRequestDispatcher(TestWorkspace workspace)
         {
             var factory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
-            return factory.CreateRequestDispatcher();
+            return factory.CreateRequestDispatcher(ProtocolConstants.RoslynLspLanguages);
         }
 
         private static RequestExecutionQueue CreateRequestQueue(TestWorkspace workspace)
         {
-            var registrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
-            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, serverName: "Tests", "TestClient");
+            var registrationService = workspace.GetService<ILspWorkspaceRegistrationService>();
+            var globalOptions = workspace.GetService<IGlobalOptionService>();
+            var lspMiscFilesWorkspace = new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance);
+            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, lspMiscFilesWorkspace, globalOptions, ProtocolConstants.RoslynLspLanguages, serverName: "Tests", "TestClient");
         }
 
         private static string GetDocumentFilePathFromName(string documentName)
@@ -475,11 +449,16 @@ namespace Roslyn.Test.Utilities
                     _executionQueue, methodName, request, clientCapabilities, clientName, cancellationToken);
             }
 
-            public async Task OpenDocumentAsync(Uri documentUri)
+            public async Task OpenDocumentAsync(Uri documentUri, string? text = null)
             {
-                // LSP open files don't care about the project context, just the file contents with the URI.
-                // So pick any of the linked documents to get the text from.
-                var text = await TestWorkspace.CurrentSolution.GetDocuments(documentUri).First().GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+                if (text == null)
+                {
+                    // LSP open files don't care about the project context, just the file contents with the URI.
+                    // So pick any of the linked documents to get the text from.
+                    var sourceText = await TestWorkspace.CurrentSolution.GetDocuments(documentUri).First().GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+                    text = sourceText.ToString();
+                }
+
                 var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, text.ToString());
                 await ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(LSP.Methods.TextDocumentDidOpenName,
                            didOpenParams, new LSP.ClientCapabilities(), null, CancellationToken.None);

@@ -11331,7 +11331,7 @@ void local()
 
             var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.UnsafeReleaseExe);
             Assert.False(verifier.HasLocalsInit("<top-level-statements-entry-point>"));
-            Assert.False(verifier.HasLocalsInit("<Program>$.<<Main>$>g__local|0_0"));
+            Assert.False(verifier.HasLocalsInit("Program.<<Main>$>g__local|0_0"));
         }
 
         [Fact, WorkItem(49434, "https://github.com/dotnet/roslyn/issues/49434")]
@@ -11350,7 +11350,7 @@ void local()
 
             var verifier = CompileAndVerifyWithSkipLocalsInit(source, TestOptions.UnsafeReleaseExe, verify: Verification.Passes);
             Assert.True(verifier.HasLocalsInit("<top-level-statements-entry-point>"));
-            Assert.True(verifier.HasLocalsInit("<Program>$.<<Main>$>g__local|0_0"));
+            Assert.True(verifier.HasLocalsInit("Program.<<Main>$>g__local|0_0"));
         }
 
         [Fact]

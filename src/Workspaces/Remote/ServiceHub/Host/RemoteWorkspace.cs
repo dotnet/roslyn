@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Guards updates to <see cref="_primaryBranchSolutionWithChecksum"/> and <see cref="_lastRequestedSolutionWithChecksum"/>.
         /// </summary>
-        private readonly SemaphoreSlim _availableSolutionsGate = new SemaphoreSlim(initialCount: 1);
+        private readonly SemaphoreSlim _availableSolutionsGate = new(initialCount: 1);
 
         /// <summary>
         /// The last solution for the the primary branch fetched from the client.
@@ -40,9 +42,14 @@ namespace Microsoft.CodeAnalysis.Remote
         private volatile Tuple<Checksum, Solution>? _lastRequestedSolutionWithChecksum;
 
         /// <summary>
+        /// The last partial solution snapshot corresponding to a particular project-cone requested by a service.
+        /// </summary>
+        private readonly ConcurrentDictionary<ProjectId, StrongBox<(Checksum checksum, Solution solution)>> _lastRequestedProjectIdToSolutionWithChecksum = new();
+
+        /// <summary>
         /// Guards setting current workspace solution.
         /// </summary>
-        private readonly object _currentSolutionGate = new object();
+        private readonly object _currentSolutionGate = new();
 
         /// <summary>
         /// Used to make sure we never move remote workspace backward.
@@ -89,8 +96,47 @@ namespace Microsoft.CodeAnalysis.Remote
 
             using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var solution = await CreateSolution_NoLockAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion, currentSolution, cancellationToken).ConfigureAwait(false);
+                var solution = await CreateFullSolution_NoLockAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion, currentSolution, cancellationToken).ConfigureAwait(false);
                 _primaryBranchSolutionWithChecksum = Tuple.Create(solutionChecksum, solution);
+            }
+        }
+
+        public ValueTask<Solution> GetSolutionAsync(
+            AssetProvider assetProvider,
+            Checksum solutionChecksum,
+            bool fromPrimaryBranch,
+            int workspaceVersion,
+            ProjectId? projectId,
+            CancellationToken cancellationToken)
+        {
+            return projectId == null
+                ? GetFullSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch, workspaceVersion, cancellationToken)
+                : GetProjectSubsetSolutionAsync(assetProvider, solutionChecksum, projectId, cancellationToken);
+        }
+
+        private async ValueTask<Solution> GetFullSolutionAsync(AssetProvider assetProvider, Checksum solutionChecksum, bool fromPrimaryBranch, int workspaceVersion, CancellationToken cancellationToken)
+        {
+            var availableSolution = TryGetAvailableSolution(solutionChecksum);
+            if (availableSolution != null)
+                return availableSolution;
+
+            // make sure there is always only one that creates a new solution
+            using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            {
+                availableSolution = TryGetAvailableSolution(solutionChecksum);
+                if (availableSolution != null)
+                    return availableSolution;
+
+                var solution = await CreateFullSolution_NoLockAsync(
+                    assetProvider,
+                    solutionChecksum,
+                    fromPrimaryBranch,
+                    workspaceVersion,
+                    CurrentSolution,
+                    cancellationToken).ConfigureAwait(false);
+
+                _lastRequestedSolutionWithChecksum = new(solutionChecksum, solution);
+                return solution;
             }
         }
 
@@ -116,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// these 2 are complimentary to each other. #1 makes OOP's primary solution to be ready for next call (push), #2 makes OOP's primary
         /// solution be not stale as much as possible. (pull)
         /// </summary>
-        private async Task<Solution> CreateSolution_NoLockAsync(
+        private async Task<Solution> CreateFullSolution_NoLockAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
             bool fromPrimaryBranch,
@@ -188,39 +234,61 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async ValueTask<Solution> GetSolutionAsync(
+        private ValueTask<Solution> GetProjectSubsetSolutionAsync(
             AssetProvider assetProvider,
             Checksum solutionChecksum,
-            bool fromPrimaryBranch,
-            int workspaceVersion,
+            ProjectId projectId,
             CancellationToken cancellationToken)
         {
-            var availableSolution = TryGetAvailableSolution(solutionChecksum);
-            if (availableSolution != null)
+            // Attempt to just read without incurring any other costs.
+            if (_lastRequestedProjectIdToSolutionWithChecksum.TryGetValue(projectId, out var box) &&
+                box.Value.checksum == solutionChecksum)
             {
-                return availableSolution;
+                return new(box.Value.Item2);
             }
 
-            // make sure there is always only one that creates a new solution
-            using (await _availableSolutionsGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            return GetProjectSubsetSolutionSlowAsync(box?.Value.solution ?? CurrentSolution, assetProvider, solutionChecksum, projectId, cancellationToken);
+
+            async ValueTask<Solution> GetProjectSubsetSolutionSlowAsync(
+                Solution baseSolution,
+                AssetProvider assetProvider,
+                Checksum solutionChecksum,
+                ProjectId projectId,
+                CancellationToken cancellationToken)
             {
-                availableSolution = TryGetAvailableSolution(solutionChecksum);
-                if (availableSolution != null)
+                try
                 {
-                    return availableSolution;
+                    var updater = new SolutionCreator(Services.HostServices, assetProvider, baseSolution, cancellationToken);
+
+                    // check whether solution is update to the given base solution
+                    Solution result;
+                    if (await updater.IsIncrementalUpdateAsync(solutionChecksum).ConfigureAwait(false))
+                    {
+                        // create updated solution off the baseSolution
+                        result = await updater.CreateSolutionAsync(solutionChecksum).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // we need new solution. bulk sync all asset for the solution first.
+                        await assetProvider.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                        // get new solution info and options
+                        var (solutionInfo, options) = await assetProvider.CreateSolutionInfoAndOptionsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+
+                        var workspace = new TemporaryWorkspace(Services.HostServices, WorkspaceKind.RemoteTemporaryWorkspace, solutionInfo, options);
+                        result = workspace.CurrentSolution;
+                    }
+
+                    // Cache the result of our computation.  Note: this is simply a last caller wins strategy.  However,
+                    // in general this should be fine as we're primarily storing this to make future calls to synchronize
+                    // this project cone fast.
+                    _lastRequestedProjectIdToSolutionWithChecksum[projectId] = new((solutionChecksum, result));
+                    return result;
                 }
-
-                var solution = await CreateSolution_NoLockAsync(
-                    assetProvider,
-                    solutionChecksum,
-                    fromPrimaryBranch,
-                    workspaceVersion,
-                    CurrentSolution,
-                    cancellationToken).ConfigureAwait(false);
-
-                _lastRequestedSolutionWithChecksum = Tuple.Create(solutionChecksum, solution);
-
-                return solution;
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
         }
 
@@ -247,6 +315,19 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 OnSolutionAdded(solutionInfo);
 
+                // The call to SetOptions will ensure that the options get pushed into the remote IOptionService
+                // store.  However, we still update our current solution with the options passed in.  This is
+                // due to the fact that the option store will ignore any options it considered unchanged to what
+                // it currently knows about.  This will prevent it from actually going and writing those unchanged
+                // values into Solution.Options.  This is not a correctness issue, but it impacts how checksums and
+                // syncing work in oop.  Currently, the checksum is based off Solution.Options and the values
+                // loaded into it.  If one side has loaded a default value and the other has not, then they will
+                // disagree on their checksum.  This ensures the remote side agrees with the host.
+                //
+                // A better fix in the future is to make all options pure data and remove the general concept of
+                // any part of the system eliding information about any options that have their 'default' value.
+                // https://github.com/dotnet/roslyn/issues/55728
+                this.SetCurrentSolution(this.CurrentSolution.WithOptions(options));
                 SetOptions(options);
 
                 solution = CurrentSolution;

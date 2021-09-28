@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     {
         public static readonly TraceLogger Instance = new();
 
-        private readonly Func<FunctionId, bool> _loggingChecker;
+        private readonly Func<FunctionId, bool> _isEnabledPredicate;
 
         public TraceLogger()
             : this((Func<FunctionId, bool>)null)
@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         {
         }
 
-        public TraceLogger(Func<FunctionId, bool> loggingChecker)
-            => _loggingChecker = loggingChecker;
+        public TraceLogger(Func<FunctionId, bool> isEnabledPredicate)
+            => _isEnabledPredicate = isEnabledPredicate;
 
         public bool IsEnabled(FunctionId functionId)
-            => _loggingChecker == null || _loggingChecker(functionId);
+            => _isEnabledPredicate == null || _isEnabledPredicate(functionId);
 
         public void Log(FunctionId functionId, LogMessage logMessage)
             => Trace.WriteLine(string.Format("[{0}] {1} - {2}", Environment.CurrentManagedThreadId, functionId.ToString(), logMessage.GetMessage()));

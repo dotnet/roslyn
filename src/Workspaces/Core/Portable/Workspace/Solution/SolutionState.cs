@@ -53,6 +53,12 @@ namespace Microsoft.CodeAnalysis
         // Checksums for this solution state
         private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
 
+        /// <summary>
+        /// Mapping from project-id to the checksums needed to synchronize it (and the projects it depends on) over 
+        /// to an OOP host.  Lock this specific field before reading/writing to it.
+        /// </summary>
+        private readonly Dictionary<ProjectId, ValueSource<SolutionStateChecksums>> _lazyProjectChecksums = new();
+
         // holds on data calculated based on the AnalyzerReferences list
         private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
@@ -98,7 +104,8 @@ namespace Microsoft.CodeAnalysis
             _frozenSourceGeneratedDocumentState = frozenSourceGeneratedDocument;
 
             // when solution state is changed, we recalculate its checksum
-            _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
+            _lazyChecksums = new AsyncLazy<SolutionStateChecksums>(
+                c => ComputeChecksumsAsync(projectsToInclude: null, Options, c), cacheResult: true);
 
             CheckInvariants();
 
@@ -235,7 +242,7 @@ namespace Microsoft.CodeAnalysis
             idToProjectStateMap ??= _projectIdToProjectStateMap;
             remoteSupportedProjectLanguages ??= _remoteSupportedLanguages;
             Debug.Assert(remoteSupportedProjectLanguages.SetEquals(GetRemoteSupportedProjectLanguages(idToProjectStateMap)));
-            options ??= Options.WithLanguages(remoteSupportedProjectLanguages);
+            options ??= Options.UnionWithLanguages(remoteSupportedProjectLanguages);
             analyzerReferences ??= AnalyzerReferences;
             projectIdToTrackerMap ??= _projectIdToTrackerMap;
             filePathToDocumentIdsMap ??= _filePathToDocumentIdsMap;
@@ -1577,14 +1584,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ProjectId>? dependencies = null;
 
             foreach (var (id, tracker) in _projectIdToTrackerMap)
-            {
-                if (!tracker.HasCompilation)
-                {
-                    continue;
-                }
-
                 builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState));
-            }
 
             return builder.ToImmutable();
 
@@ -1610,22 +1610,6 @@ namespace Microsoft.CodeAnalysis
                 dependencies ??= dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(changedProjectId);
                 return !dependencies.Contains(id);
             }
-        }
-
-        /// <summary>
-        /// Gets a copy of the solution isolated from the original so that they do not share computed state.
-        ///
-        /// Use isolated solutions when doing operations that are likely to access a lot of text,
-        /// syntax trees or compilations that are unlikely to be needed again after the operation is done.
-        /// When the isolated solution is reclaimed so will the computed state.
-        /// </summary>
-        public SolutionState GetIsolatedSolution()
-        {
-            var forkedMap = ImmutableDictionary.CreateRange(
-                _projectIdToTrackerMap.Where(kvp => kvp.Value.HasCompilation)
-                                     .Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.Clone())));
-
-            return this.Branch(projectIdToTrackerMap: forkedMap);
         }
 
         public SolutionState WithOptions(SerializableOptionSet options)
@@ -1943,84 +1927,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return state.GetPartialMetadataReference(fromProject, projectReference);
-        }
-
-        public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, string name, SymbolFilter filter, CancellationToken cancellationToken)
-        {
-            var result = GetCompilationTracker(id).ContainsSymbolsWithNameFromDeclarationOnlyCompilation(name, filter, cancellationToken);
-            if (result.HasValue)
-            {
-                return result.Value;
-            }
-
-            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
-            var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
-            if (compilation == null)
-            {
-                // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
-                return false;
-            }
-
-            return compilation.ContainsSymbolsWithName(name, filter, cancellationToken);
-        }
-
-        public async Task<bool> ContainsSymbolsWithNameAsync(ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-        {
-            var result = GetCompilationTracker(id).ContainsSymbolsWithNameFromDeclarationOnlyCompilation(predicate, filter, cancellationToken);
-            if (result.HasValue)
-            {
-                return result.Value;
-            }
-
-            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
-            var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
-            if (compilation == null)
-            {
-                // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
-                return false;
-            }
-
-            return compilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
-        }
-
-        public async Task<ImmutableArray<DocumentState>> GetDocumentsWithNameAsync(
-            ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
-        {
-            // this will be used to find documents that contain declaration information in IDE cache such as DeclarationSyntaxTreeInfo for "NavigateTo"
-            var trees = GetCompilationTracker(id).GetSyntaxTreesWithNameFromDeclarationOnlyCompilation(predicate, filter, cancellationToken);
-            if (trees != null)
-            {
-                return ConvertTreesToDocuments(id, trees);
-            }
-
-            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
-            var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
-            if (compilation == null)
-            {
-                // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
-                return ImmutableArray<DocumentState>.Empty;
-            }
-
-            return ConvertTreesToDocuments(
-                id, compilation.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree)));
-        }
-
-        private ImmutableArray<DocumentState> ConvertTreesToDocuments(ProjectId id, IEnumerable<SyntaxTree> trees)
-        {
-            var result = ArrayBuilder<DocumentState>.GetInstance();
-            foreach (var tree in trees)
-            {
-                var document = GetDocumentState(tree, id);
-                if (document == null)
-                {
-                    // ignore trees that are not known to solution such as VB synthesized trees made by compilation.
-                    continue;
-                }
-
-                result.Add(document);
-            }
-
-            return result.ToImmutableAndFree();
         }
 
         /// <summary>

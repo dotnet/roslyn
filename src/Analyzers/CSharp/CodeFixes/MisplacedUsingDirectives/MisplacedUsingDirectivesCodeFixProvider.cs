@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             foreach (var diagnostic in context.Diagnostics)
             {
                 context.RegisterCodeFix(
-                    new MoveMisplacedUsingsCodeAction(token => GetTransformedDocumentAsync(document, compilationUnit, placement, token)),
+                    new MoveMisplacedUsingsCodeAction(token => GetTransformedDocumentAsync(document, compilationUnit, GetAllUsingDirectives(compilationUnit), placement, token)),
                     diagnostic);
             }
         }
@@ -101,22 +101,38 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
                 return document;
             }
 
-            return await GetTransformedDocumentAsync(document, compilationUnit, placement, cancellationToken).ConfigureAwait(false);
+            // We are called from a diagnostic, but also for all new documents, so check if there are any usings at all
+            // otherwise there is nothing to do.
+            var allUsingDirectives = GetAllUsingDirectives(compilationUnit);
+            if (allUsingDirectives.Count == 0)
+            {
+                return document;
+            }
+
+            return await GetTransformedDocumentAsync(document, compilationUnit, allUsingDirectives, placement, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static ImmutableList<UsingDirectiveSyntax> GetAllUsingDirectives(CompilationUnitSyntax compilationUnit)
+        {
+            return compilationUnit
+                .DescendantNodes(node => node is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax)
+                .OfType<UsingDirectiveSyntax>().ToImmutableList();
         }
 
         private static async Task<Document> GetTransformedDocumentAsync(
             Document document,
             CompilationUnitSyntax compilationUnit,
+            IEnumerable<UsingDirectiveSyntax> allUsingDirectives,
             AddImportPlacement placement,
             CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
 
             // Expand usings so that they can be properly simplified after they are relocated.
-            var compilationUnitWithExpandedUsings = await ExpandUsingDirectivesAsync(document, compilationUnit, cancellationToken).ConfigureAwait(false);
+            var compilationUnitWithExpandedUsings = await ExpandUsingDirectivesAsync(document, compilationUnit, allUsingDirectives, cancellationToken).ConfigureAwait(false);
 
             // Remove the file header from the compilation unit so that we do not lose it when making changes to usings.
-            var (compilationUnitWithoutHeader, fileHeader) = RemoveFileHeader(compilationUnitWithExpandedUsings, syntaxFactsService);
+            var (compilationUnitWithoutHeader, fileHeader) = RemoveFileHeader(compilationUnitWithExpandedUsings, bannerService);
 
             // A blanket warning that this codefix may change code so that it does not compile.
             var warningAnnotation = WarningAnnotation.Create(CSharpAnalyzersResources.Warning_colon_Moving_using_directives_may_change_code_meaning);
@@ -134,13 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             return await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, options, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<CompilationUnitSyntax> ExpandUsingDirectivesAsync(Document document, CompilationUnitSyntax containerNode, CancellationToken cancellationToken)
+        private static async Task<CompilationUnitSyntax> ExpandUsingDirectivesAsync(Document document, CompilationUnitSyntax containerNode, IEnumerable<UsingDirectiveSyntax> allUsingDirectives, CancellationToken cancellationToken)
         {
-            // Get all using directives so they can be expanded at one time.
-            var allUsingDirectives = containerNode
-                .DescendantNodes(node => node is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax)
-                .OfType<UsingDirectiveSyntax>();
-
             // Create a map between the original node and the future expanded node.
             var expandUsingDirectiveTasks = allUsingDirectives.ToDictionary(
                 usingDirective => (SyntaxNode)usingDirective,
@@ -386,9 +397,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         }
 
         private static (CompilationUnitSyntax compilationUnitWithoutHeader, ImmutableArray<SyntaxTrivia> header) RemoveFileHeader(
-            CompilationUnitSyntax syntaxRoot, ISyntaxFactsService syntaxFactsService)
+            CompilationUnitSyntax syntaxRoot, IFileBannerFactsService bannerService)
         {
-            var fileHeader = syntaxFactsService.GetFileBanner(syntaxRoot);
+            var fileHeader = bannerService.GetFileBanner(syntaxRoot);
             var leadingTrivia = syntaxRoot.GetLeadingTrivia();
 
             for (var i = fileHeader.Length - 1; i >= 0; i--)

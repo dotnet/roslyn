@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             void RemoveStatement(StatementSyntax statement)
             {
                 editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-                if (statement.Parent is BlockSyntax || statement.Parent is SwitchSectionSyntax)
+                if (statement.Parent is BlockSyntax or SwitchSectionSyntax)
                 {
                     statementParentScopes.Add(statement.Parent);
                 }

@@ -137,11 +137,6 @@
         <target state="translated">偵測到衝突。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_container_async">
-        <source>Make container 'async'</source>
-        <target state="new">Make container 'async'</target>
-        <note>{Locked="async"} "async" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
         <target state="translated">若可能的話，請將私用欄位設定為唯讀</target>
@@ -185,6 +180,11 @@
       <trans-unit id="Unseal_class_0">
         <source>Unseal class '{0}'</source>
         <target state="translated">為類別 '{0}' 解密</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">使用遞迴模式</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -302,21 +302,6 @@
         <target state="translated">無效的選取範圍。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">選取範圍沒有包含有效的語彙基元。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">沒有可執行擷取的有效選取範圍。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">沒有根節點可供擷取。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Contains_invalid_selection">
         <source>Contains invalid selection.</source>
         <target state="translated">包含無效的選取範圍。</target>
@@ -424,7 +409,7 @@
       </trans-unit>
       <trans-unit id="record_struct">
         <source>record struct</source>
-        <target state="new">record struct</target>
+        <target state="translated">記錄結構</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

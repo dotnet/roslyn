@@ -22,7 +22,8 @@ Friend Class GoToHelpers
             Dim documentWithCursor = workspace.DocumentWithCursor
             Dim position = documentWithCursor.CursorPosition.Value
 
-            Dim document = workspace.CurrentSolution.GetDocument(documentWithCursor.Id)
+            Dim solution = workspace.CurrentSolution
+            Dim document = solution.GetDocument(documentWithCursor.Id)
 
             Dim context = New SimpleFindUsagesContext()
             Await testingMethod(document, position, context)
@@ -30,10 +31,13 @@ Friend Class GoToHelpers
             If Not shouldSucceed Then
                 Assert.NotNull(context.Message)
             Else
-                Dim actualDefinitions = context.GetDefinitions().
-                                                SelectMany(Function(d) d.SourceSpans).
-                                                Select(Function(ss) New FilePathAndSpan(ss.Document.FilePath, ss.SourceSpan)).
-                                                ToList()
+                Dim actualDefinitions = New List(Of FilePathAndSpan)
+
+                For Each definition In context.GetDefinitions()
+                    For Each sourceSpan In definition.SourceSpans
+                        actualDefinitions.Add(New FilePathAndSpan(sourceSpan.Document.FilePath, sourceSpan.SourceSpan))
+                    Next
+                Next
                 actualDefinitions.Sort()
 
                 Dim expectedDefinitions = workspace.Documents.SelectMany(

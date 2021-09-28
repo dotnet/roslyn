@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var token = context.TargetToken;
 
             return
-                token.Kind() == SyntaxKind.ImplicitKeyword ||
-                token.Kind() == SyntaxKind.ExplicitKeyword;
+                token.Kind() is SyntaxKind.ImplicitKeyword or
+                SyntaxKind.ExplicitKeyword;
         }
     }
 }

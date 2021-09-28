@@ -93,6 +93,28 @@ build_metadata.Compile.ToRetrieve = ghi789
             );
         }
 
+        [Fact]
+        [WorkItem(52469, "https://github.com/dotnet/roslyn/issues/52469")]
+        public void CanGetSectionsWithSpecialCharacters()
+        {
+            var config = ParseConfigFile(@"is_global = true
+
+[/home/foo/src/\{releaseid\}.cs]
+build_metadata.Compile.ToRetrieve = abc123
+
+[/home/foo/src/Pages/\#foo/HomePage.cs]
+build_metadata.Compile.ToRetrieve = def456
+");
+
+            var set = AnalyzerConfigSet.Create(ImmutableArray.Create(config));
+
+            var sectionOptions = set.GetOptionsForSourcePath("/home/foo/src/{releaseid}.cs");
+            Assert.Equal("abc123", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+
+            sectionOptions = set.GetOptionsForSourcePath("/home/foo/src/Pages/#foo/HomePage.cs");
+            Assert.Equal("def456", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+        }
+
         [ConditionalFact(typeof(WindowsOnly))]
         public void WindowsPath()
         {

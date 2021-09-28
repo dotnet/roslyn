@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode CreateNamespaceDeclaration(
             INamespaceSymbol @namespace, CodeGenerationDestination destination, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            return NamespaceGenerator.GenerateNamespaceDeclaration(this, @namespace, options, cancellationToken);
+            return NamespaceGenerator.GenerateNamespaceDeclaration(this, @namespace, destination, options, options?.ParseOptions, cancellationToken);
         }
 
         private static TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, Func<SyntaxTokenList, SyntaxTokenList> computeNewModifiersList)
@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode declaration, ITypeSymbol newType, CodeGenerationOptions options, CancellationToken cancellationToken)
         {
-            if (!(declaration is CSharpSyntaxNode syntaxNode))
+            if (declaration is not CSharpSyntaxNode syntaxNode)
             {
                 return declaration;
             }

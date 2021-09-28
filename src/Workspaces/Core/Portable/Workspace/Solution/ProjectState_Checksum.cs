@@ -23,10 +23,13 @@ namespace Microsoft.CodeAnalysis
         public Task<ProjectStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
             => _lazyChecksums.GetValueAsync(cancellationToken);
 
-        public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
+        public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
         {
-            var collection = await _lazyChecksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return collection.Checksum;
+            return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
+                static (lazyChecksums, cancellationToken) => new ValueTask<ProjectStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
+                static (projectStateChecksums, _) => projectStateChecksums.Checksum,
+                _lazyChecksums,
+                cancellationToken).AsTask();
         }
 
         public Checksum GetParseOptionsChecksum()

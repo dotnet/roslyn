@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class ParenthesizedLambdaExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<ParenthesizedLambdaExpressionSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             ParenthesizedLambdaExpressionSyntax lambdaExpression,
             ref TemporaryArray<BlockSpan> spans,
             BlockStructureOptionProvider optionProvider,
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
-            if (!(lambdaExpression.Body is BlockSyntax lambdaBlock) ||
+            if (lambdaExpression.Body is not BlockSyntax lambdaBlock ||
                 lambdaBlock.OpenBraceToken.IsMissing ||
                 lambdaBlock.CloseBraceToken.IsMissing)
             {

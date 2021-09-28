@@ -12,7 +12,6 @@ using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Settings;
@@ -23,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// <summary>
     /// Serializes settings marked with <see cref="RoamingProfileStorageLocation"/> to and from the user's roaming profile.
     /// </summary>
-    internal sealed class RoamingVisualStudioProfileOptionPersister : ForegroundThreadAffinitizedObject, IOptionPersister
+    internal sealed class RoamingVisualStudioProfileOptionPersister : IOptionPersister
     {
         // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
@@ -43,8 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// <remarks>
         /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>
         /// </remarks>
-        public RoamingVisualStudioProfileOptionPersister(IThreadingContext threadingContext, IGlobalOptionService globalOptionService, ISettingsManager? settingsManager)
-            : base(threadingContext, assertIsForeground: true)
+        public RoamingVisualStudioProfileOptionPersister(IGlobalOptionService globalOptionService, ISettingsManager? settingsManager)
         {
             Contract.ThrowIfNull(globalOptionService);
 
@@ -197,7 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 // code uses object to hold onto any value which will use boxing on value types.
                 // see boxing on nullable types - https://msdn.microsoft.com/en-us/library/ms228597.aspx
-                return (value is bool) || (value == null);
+                return value is bool or null;
             }
             else if (value != null && optionKey.Option.Type != value.GetType())
             {

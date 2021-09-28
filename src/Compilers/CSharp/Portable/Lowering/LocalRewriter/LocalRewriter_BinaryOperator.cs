@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -111,6 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression VisitBinaryOperator(BoundBinaryOperator node, BoundUnaryOperator? applyParentUnaryOperator)
         {
+            if (node.InterpolatedStringHandlerData is InterpolatedStringHandlerData data)
+            {
+                Debug.Assert(node.Type.SpecialType == SpecialType.System_String, "Non-string binary addition should have been handled by VisitConversion or VisitArguments");
+                ImmutableArray<BoundExpression> parts = CollectBinaryOperatorInterpolatedStringParts(node);
+                return LowerPartsToString(data, parts, node.Syntax, node.Type);
+            }
+
             // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
             // such as a + b + c + d ...
             // To avoid blowing the call stack, we make an explicit stack of the binary operators to the left, 
@@ -120,6 +126,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (BoundBinaryOperator? current = node; current != null && current.ConstantValue == null; current = current.Left as BoundBinaryOperator)
             {
+                // The regular visit mechanism will handle this.
+                if (current.InterpolatedStringHandlerData is not null)
+                {
+                    Debug.Assert(stack.Count >= 1);
+                    break;
+                }
+
                 stack.Push(current);
             }
 
@@ -134,6 +147,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             stack.Free();
             return loweredLeft;
+        }
+
+        private static ImmutableArray<BoundExpression> CollectBinaryOperatorInterpolatedStringParts(BoundBinaryOperator node)
+        {
+            Debug.Assert(node.OperatorKind == BinaryOperatorKind.StringConcatenation);
+            Debug.Assert(node.InterpolatedStringHandlerData is not null);
+            var partsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+            node.VisitBinaryOperatorInterpolatedString(partsBuilder,
+                static (BoundInterpolatedString interpolatedString, ArrayBuilder<BoundExpression> partsBuilder) =>
+                {
+                    partsBuilder.AddRange(interpolatedString.Parts);
+                    return true;
+                });
+            return partsBuilder.ToImmutableAndFree();
         }
 
         private BoundExpression MakeBinaryOperator(

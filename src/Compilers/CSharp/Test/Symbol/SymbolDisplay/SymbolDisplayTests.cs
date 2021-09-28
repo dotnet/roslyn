@@ -4823,6 +4823,35 @@ public class C
                 SymbolDisplayPartKind.FieldName);
         }
 
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void TupleCollapseTupleTypes()
+        {
+            var text = @"
+public class C
+{
+    public (int, string) f;
+}
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.
+                GetTypeMembers("C").Single().
+                GetMembers("f").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType, miscellaneousOptions: SymbolDisplayMiscellaneousOptions.CollapseTupleTypes);
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            var global = comp.GlobalNamespace;
+            var symbol = findSymbol(global);
+            var description = symbol.ToDisplayParts(format);
+
+            var firstPart = description[0];
+            Assert.True(((ITypeSymbol)firstPart.Symbol).IsTupleType);
+            Assert.Equal(SymbolDisplayPartKind.StructName, firstPart.Kind);
+
+            Assert.Equal(SymbolDisplayPartKind.Space, description[1].Kind);
+            Assert.Equal(SymbolDisplayPartKind.FieldName, description[2].Kind);
+        }
+
         [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
         [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void TupleWith1Arity()
@@ -7805,6 +7834,52 @@ class A {
                 findSymbol,
                 format,
                 "delegate*<in Int32, ref readonly String>");
+        }
+
+        [Fact]
+        public void TestSynthesizedAnonymousDelegateType1()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var v = (ref int i) => i.ToString();
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var syntaxTree = semanticModel.SyntaxTree;
+
+            var declaration = (LocalDeclarationStatementSyntax)semanticModel.SyntaxTree.GetRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.LocalDeclarationStatement);
+            var type = semanticModel.GetTypeInfo(declaration.Declaration.Type).Type;
+
+            Verify(type.ToDisplayParts(), "<anonymous delegate>",
+                SymbolDisplayPartKind.DelegateName);
+
+            var format = new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
+                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+                kindOptions: SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword);
+
+            Verify(type.ToDisplayParts(format), "delegate string <anonymous delegate>(ref int)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation);
+
         }
     }
 }

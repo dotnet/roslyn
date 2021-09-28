@@ -932,6 +932,7 @@ public class C
             }
         }
 
+#if NET472
         [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
         public void RefAssembly_InvariantToResourceChanges()
@@ -996,7 +997,7 @@ public class C
                 return comp.EmitToArray(refonlyOptions, metadataPEStream: null, manifestResources: manifestResources);
             }
         }
-
+#endif
         [Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")]
         public void RefAssembly_CryptoHashFailedIsOnlyReportedOnce()
         {
@@ -5101,10 +5102,10 @@ class C4
                 var expectedNames = new[]
                     {
                         "<Module>",
-                        "<>A{00000004}`3",
-                        "<>A{00000018}`5",
-                        "<>F{00000004}`5",
-                        "<>F{00000008}`5",
+                        "<>A{00000010}`3",
+                        "<>A{00000140}`5",
+                        "<>F{00000010}`5",
+                        "<>F{00000040}`5",
                         "C1",
                         "C2",
                         "C3",
@@ -5172,7 +5173,7 @@ public class X
 
         [Fact]
         [WorkItem(9308, "https://github.com/dotnet/roslyn/issues/9308")]
-        public void FailingEmitterAllowsCancelationExceptionsThrough()
+        public void FailingEmitterAllowsCancellationExceptionsThrough()
         {
             string source = @"
 public class X

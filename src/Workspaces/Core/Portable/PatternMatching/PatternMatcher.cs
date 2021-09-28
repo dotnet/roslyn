@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             for (var i = 0; i < text.Length; i++)
             {
                 var ch = text[i];
-                if (ch == ' ' || ch == '*')
+                if (ch is ' ' or '*')
                 {
                     return true;
                 }
