@@ -18,7 +18,7 @@ Friend Class MockNamespaceSymbol
 
     Private _container As NamespaceSymbol
     Private ReadOnly _extent As NamespaceExtent
-    Private _children As ImmutableArray(Of Symbol)
+    Private ReadOnly _children As ImmutableArray(Of Symbol)
     Private ReadOnly _name As String
 
     Public Sub New(name As String, extent As NamespaceExtent, children As IEnumerable(Of Symbol))
@@ -123,7 +123,7 @@ Friend Class MockNamedTypeSymbol
 
     Private ReadOnly _name As String
     Private ReadOnly _kind As TypeKind
-    Private _children As ImmutableArray(Of Symbol)
+    Private ReadOnly _children As ImmutableArray(Of Symbol)
     Private _container As NamespaceOrTypeSymbol
 
     Public Sub New(name As String, children As IEnumerable(Of Symbol), Optional kind As TypeKind = TypeKind.Class)
