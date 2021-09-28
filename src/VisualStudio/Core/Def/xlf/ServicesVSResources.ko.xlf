@@ -242,11 +242,6 @@
         <target state="translated">설명</target>
         <note />
       </trans-unit>
-      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
-        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
-        <target state="translated">빠른 작업을 비동기적으로 컴퓨팅(실험적, 다시 시작해야 함)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">포함하는 멤버</target>
@@ -482,14 +477,14 @@
         <target state="translated">상속 여백</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Diagnostics_experimental">
-        <source>Inline Diagnostics (experimental)</source>
-        <target state="new">Inline Diagnostics (experimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
         <target state="translated">상속된 인터페이스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="new">Inline Diagnostics (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">
