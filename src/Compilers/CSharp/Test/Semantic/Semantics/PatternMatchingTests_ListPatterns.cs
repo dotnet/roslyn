@@ -3039,5 +3039,102 @@ class C
             verifier.VerifyIL("C.Test1", expectedIl);
             verifier.VerifyIL("C.Test2", expectedIl);
         }
+
+        [Fact, WorkItem(51801, "https://github.com/dotnet/roslyn/issues/51801")]
+        public void IndexerOverrideLacksAccessor()
+        {
+            var source = @"
+#nullable enable
+using System.Runtime.CompilerServices;
+
+class Base
+{
+    public virtual object this[int i] { get { return 1; } set { } }
+}
+
+class C : Base
+{
+    public override object this[int i] { set { } }
+    public int Length => 2;
+
+    public string? Value { get; }
+
+    public string M()
+    {
+        switch (this)
+        {
+            case [1, 1]:
+                return Value;
+            default:
+                return Value;
+        }
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size      105 (0x69)
+  .maxstack  2
+  .locals init (C V_0,
+                int V_1,
+                object V_2,
+                int V_3,
+                object V_4,
+                int V_5,
+                C V_6,
+                string V_7)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_6
+  IL_0004:  ldloc.s    V_6
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_005c
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   ""int C.Length.get""
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.1
+  IL_0012:  ldc.i4.2
+  IL_0013:  bne.un.s   IL_005c
+  IL_0015:  ldloc.0
+  IL_0016:  ldc.i4.0
+  IL_0017:  callvirt   ""object Base.this[int].get""
+  IL_001c:  stloc.2
+  IL_001d:  ldloc.2
+  IL_001e:  isinst     ""int""
+  IL_0023:  brfalse.s  IL_005c
+  IL_0025:  ldloc.2
+  IL_0026:  unbox.any  ""int""
+  IL_002b:  stloc.3
+  IL_002c:  ldloc.3
+  IL_002d:  ldc.i4.1
+  IL_002e:  bne.un.s   IL_005c
+  IL_0030:  ldloc.0
+  IL_0031:  ldc.i4.1
+  IL_0032:  callvirt   ""object Base.this[int].get""
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldloc.s    V_4
+  IL_003b:  isinst     ""int""
+  IL_0040:  brfalse.s  IL_005c
+  IL_0042:  ldloc.s    V_4
+  IL_0044:  unbox.any  ""int""
+  IL_0049:  stloc.s    V_5
+  IL_004b:  ldloc.s    V_5
+  IL_004d:  ldc.i4.1
+  IL_004e:  beq.s      IL_0052
+  IL_0050:  br.s       IL_005c
+  IL_0052:  ldarg.0
+  IL_0053:  call       ""string C.Value.get""
+  IL_0058:  stloc.s    V_7
+  IL_005a:  br.s       IL_0066
+  IL_005c:  ldarg.0
+  IL_005d:  call       ""string C.Value.get""
+  IL_0062:  stloc.s    V_7
+  IL_0064:  br.s       IL_0066
+  IL_0066:  ldloc.s    V_7
+  IL_0068:  ret
+}");
+        }
     }
 }

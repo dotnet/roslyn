@@ -313,6 +313,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Call(receiverOpt, accessor);
         }
 
+        public BoundExpression Indexer(BoundExpression? receiverOpt, PropertySymbol property, BoundExpression arg0)
+        {
+            Debug.Assert((receiverOpt is null) == property.IsStatic);
+            var accessor = property.GetOwnOrInheritedGetMethod();
+            Debug.Assert(accessor is not null);
+            return Call(receiverOpt, accessor, arg0);
+        }
+
         public NamedTypeSymbol SpecialType(SpecialType st)
         {
             NamedTypeSymbol specialType = Compilation.GetSpecialType(st);
