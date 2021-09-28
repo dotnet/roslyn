@@ -205,7 +205,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "version": "1.0.*",
+      "version": "4.1.*",
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "main",
