@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                             isAbstract ? FeaturesResources.Generate_abstract_method_1_0 : FeaturesResources.Generate_method_1_0;
 
                         var name = state.IdentifierToken.ValueText;
-                        var destination = state.TypeToGenerateIn.Name;
-                        return string.Format(text, name, destination);
+                        return string.Format(text, name);
                     case MethodGenerationKind.ImplicitConversion:
                         return _service.GetImplicitConversionDisplayText(_state);
                     case MethodGenerationKind.ExplicitConversion:
