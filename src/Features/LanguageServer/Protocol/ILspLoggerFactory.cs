@@ -4,10 +4,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServer;
 using StreamJsonRpc;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
+namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal interface ILspLoggerFactory
     {

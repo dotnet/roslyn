@@ -850,6 +850,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0}은(는) 읽기 및 검색 작업을 지원하는 스트림을 반환해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Miscellaneous_Files">
+        <source>Miscellaneous Files</source>
+        <target state="new">Miscellaneous Files</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Missing_control_character">
         <source>Missing control character</source>
         <target state="translated">제어 문자가 없습니다.</target>
@@ -953,6 +958,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Move_file_to_project_root_folder">
         <source>Move file to project root folder</source>
         <target state="translated">파일을 프로젝트 루트 폴더로 이동</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type">
+        <source>Move static members to another type...</source>
+        <target state="new">Move static members to another type...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1156,11 +1166,11 @@ This option is recommended if you know that backtracking will not succeed. Preve
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
         <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">균형 조정 그룹 정의는 이전에 정의된 그룹의 정의를 삭제하고, 이전에 정의된 그룹과 현재 그룹 사이의 간격을 현재 그룹에 저장합니다.
+        <target state="needs-review-translation">균형 조정 그룹 정의는 이전에 정의된 그룹의 정의를 삭제하고, 이전에 정의된 그룹과 현재 그룹 사이의 간격을 현재 그룹에 저장합니다.
     
 'name1'은 현재 그룹이고(선택 사항), 'name2'는 이전에 정의된 그룹이며, 'subexpression'은 유효한 정규식 패턴입니다. 균형 조정 그룹 정의는 name2의 정의를 삭제하고 name2와 name1 사이의 간격을 name1에 저장합니다. name2 그룹이 정의되어 있지 않으면 일치에서 역추적합니다. name2의 마지막 정의를 삭제하면 name2의 이전 정의가 표시되므로 이 구문을 통해 name2 그룹에 대한 캡처 스택을 괄호 또는 여는 대괄호 및 닫는 대괄호와 같은 중첩 구문을 추적하기 위한 카운터로 사용할 수 있습니다.
 
@@ -2300,6 +2310,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">)가 너무 많습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="new">Types:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">소스 파일 '{0}' 또는 포함하는 프로젝트에 대해 빌드된 PDB를 읽을 수 없습니다. 디버그하는 동안 이 파일의 변경된 모든 내용은 해당 콘텐츠가 빌드된 소스와 일치할 때까지 적용되지 않습니다.</target>
@@ -3348,11 +3363,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">'{0}'에 대한 쿼리 변수 지정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">익명 형식:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">
