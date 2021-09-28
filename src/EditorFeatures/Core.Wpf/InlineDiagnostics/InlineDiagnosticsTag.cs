@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         public double Width => double.NaN;
 
         public double Height => double.NaN;
-        
+
         public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap,
             IClassificationFormatMapService classificationFormatMapService, IClassificationTypeRegistryService classificationTypeRegistryService,
             InlineDiagnosticsLocations location, INavigateToLinkService navigateToLinkService)
