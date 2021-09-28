@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
     public class DoNotUseCompilationGetSemanticModelTests
     {
         [Fact]
-        public async Task CallInInitialize()
+        public async Task CallInInitializeAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Immutable;
@@ -61,7 +61,7 @@ End Class",
         }
 
         [Fact]
-        public async Task CallInSeparateMethod()
+        public async Task CallInSeparateMethodAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Immutable;
@@ -117,7 +117,7 @@ End Class",
         }
 
         [Fact]
-        public async Task CastedCall()
+        public async Task CastedCallAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Immutable;
@@ -167,7 +167,7 @@ End Class",
         }
 
         [Fact]
-        public async Task CallInNonDiagnosticAnalyzerClass()
+        public async Task CallInNonDiagnosticAnalyzerClassAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using System.Collections.Immutable;

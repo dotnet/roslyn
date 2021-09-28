@@ -14,7 +14,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [Theory]
         [InlineData("default")]
         [InlineData("default(object)")]
-        public async Task PreferNullLiteral_Class(string defaultValueExpression)
+        public async Task PreferNullLiteral_ClassAsync(string defaultValueExpression)
         {
             var source = $@"
 class Type
@@ -39,7 +39,7 @@ class Type
         }
 
         [Fact]
-        public async Task UnresolvedType()
+        public async Task UnresolvedTypeAsync()
         {
             var source = @"
 class Type
@@ -62,7 +62,7 @@ class Type
         [InlineData("default", "null")]
         [InlineData("default(object)", "((object?)null)")]
         [InlineData("default(object?)", "((object?)null)")]
-        public async Task ReturnFromNullableContext(string defaultValueExpression, string fixedExpression)
+        public async Task ReturnFromNullableContextAsync(string defaultValueExpression, string fixedExpression)
         {
             var source = $@"
 #nullable enable
@@ -100,7 +100,7 @@ class Type
         [InlineData("[|default(object?)|]!", "((object?)null)!")]
         [InlineData("[|default(object)|]", "(object?)null")]
         [InlineData("[|default(object?)|]", "(object?)null")]
-        public async Task InvocationInNullableContext(string defaultValueExpression, string fixedExpression)
+        public async Task InvocationInNullableContextAsync(string defaultValueExpression, string fixedExpression)
         {
             var source = $@"
 #nullable enable
@@ -142,7 +142,7 @@ class Type
         }
 
         [Fact]
-        public async Task NullPointer()
+        public async Task NullPointerAsync()
         {
             var source = @"
 unsafe class Type
@@ -173,7 +173,7 @@ unsafe class Type
         }
 
         [Fact]
-        public async Task PointerInNullableContext()
+        public async Task PointerInNullableContextAsync()
         {
             var source = @"
 #nullable enable
@@ -215,7 +215,7 @@ unsafe class Type
         [Theory]
         [InlineData("default")]
         [InlineData("default(object)")]
-        public async Task PreferNullLiteral_DefaultParameterValue(string defaultValueExpression)
+        public async Task PreferNullLiteral_DefaultParameterValueAsync(string defaultValueExpression)
         {
             var source = $@"
 class Type
@@ -238,7 +238,7 @@ class Type
         }
 
         [Fact]
-        public async Task PreferNullLiteral_ArgumentFormatting()
+        public async Task PreferNullLiteral_ArgumentFormattingAsync()
         {
             var source = $@"
 class Type
@@ -283,7 +283,7 @@ class Type
         }
 
         [Fact]
-        public async Task PreferNullLiteral_OverloadResolution()
+        public async Task PreferNullLiteral_OverloadResolutionAsync()
         {
             var source = @"
 using System;
@@ -328,7 +328,7 @@ class Type
         }
 
         [Fact]
-        public async Task PreferNullLiteral_ParenthesizeWhereNecessary()
+        public async Task PreferNullLiteral_ParenthesizeWhereNecessaryAsync()
         {
             var source = @"
 using System;
@@ -373,7 +373,7 @@ class Type
         }
 
         [Fact]
-        public async Task PreferNullLiteral_Struct()
+        public async Task PreferNullLiteral_StructAsync()
         {
             var source = @"
 class Type
@@ -389,7 +389,7 @@ class Type
         }
 
         [Fact]
-        public async Task PreferNullLiteral_StructConvertedToReferenceType()
+        public async Task PreferNullLiteral_StructConvertedToReferenceTypeAsync()
         {
             var source = @"
 class Type
@@ -405,7 +405,7 @@ class Type
         }
 
         [Fact]
-        public async Task PreferNullLiteral_UnconstrainedGeneric()
+        public async Task PreferNullLiteral_UnconstrainedGenericAsync()
         {
             var source = @"
 class Type
@@ -421,7 +421,7 @@ class Type
         }
 
         [Fact]
-        public async Task PreferNullLiteral_GenericConstrainedToReferenceType()
+        public async Task PreferNullLiteral_GenericConstrainedToReferenceTypeAsync()
         {
             var source = @"
 class Type
@@ -448,7 +448,7 @@ class Type
         }
 
         [Fact]
-        public async Task PreferNullLiteral_GenericConstrainedToInterface()
+        public async Task PreferNullLiteral_GenericConstrainedToInterfaceAsync()
         {
             var source = @"
 class Type
@@ -465,7 +465,7 @@ class Type
         }
 
         [Fact]
-        public async Task PreferNullLiteral_GenericConstrainedToValueType()
+        public async Task PreferNullLiteral_GenericConstrainedToValueTypeAsync()
         {
             var source = @"
 class Type
@@ -484,7 +484,7 @@ class Type
         [Theory]
         [InlineData("object")]
         [InlineData("int?")]
-        public async Task IgnoreDefaultParameters(string defaultParameterType)
+        public async Task IgnoreDefaultParametersAsync(string defaultParameterType)
         {
             var source = $@"
 class Type

@@ -16,7 +16,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         [InlineData("A", "")]
         [InlineData("", "A")]
         [InlineData("A", "A")]
-        public async Task MoveTraitToType_MovesSecond_CSharp(string name, string value)
+        public async Task MoveTraitToType_MovesSecond_CSharpAsync(string name, string value)
         {
             var source = $@"
 using Xunit;
@@ -55,7 +55,7 @@ class C
         [InlineData("A", "")]
         [InlineData("", "A")]
         [InlineData("A", "A")]
-        public async Task MoveTraitToType_MovesSecond_VisualBasic(string name, string value)
+        public async Task MoveTraitToType_MovesSecond_VisualBasicAsync(string name, string value)
         {
             var source = $@"
 Imports Xunit
@@ -96,7 +96,7 @@ End Class
         [InlineData("A", "")]
         [InlineData("", "A")]
         [InlineData("A", "A")]
-        public async Task MoveTraitToType_MovesOnlyFirst_CSharp(string name, string value)
+        public async Task MoveTraitToType_MovesOnlyFirst_CSharpAsync(string name, string value)
         {
             var source = $@"
 using Xunit;
@@ -135,7 +135,7 @@ class C
         [InlineData("A", "")]
         [InlineData("", "A")]
         [InlineData("A", "A")]
-        public async Task MoveTraitToType_MovesOnlyFirst_VisualBasic(string name, string value)
+        public async Task MoveTraitToType_MovesOnlyFirst_VisualBasicAsync(string name, string value)
         {
             var source = $@"
 Imports Xunit
