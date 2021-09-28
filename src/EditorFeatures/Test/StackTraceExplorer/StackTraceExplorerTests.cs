@@ -110,9 +110,9 @@ namespace ConsoleApp4
         [InlineData(@"   at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26", "ConsoleApp4.MyClass.ThrowAtOne()")]
         [InlineData(@"at ConsoleApp4.MyClass.ThrowAtOne()", "ConsoleApp4.MyClass.ThrowAtOne()")]
         [InlineData(@"at ConsoleApp4.MyOtherClass.ThrowGeneric<string>(string.Empty)", "ConsoleApp4.MyOtherClass.ThrowGeneric<T>(T)")]
-        [InlineData(@"at ConsoleApp4.GenericClass<T, U>.Throw<T>()", "ConsoleApp4.GenericClass`2.Throw<T>(T)")]
-        [InlineData(@"at ConsoleApp4.GenericClass<T, U>.Throw<T, U>()", "ConsoleApp4.GenericClass`2.Throw<T, U>(T, U)")]
-        [InlineData(@"at ConsoleApp4.GenericClass<T, U>.Throw<T, U, V>(V v)", "ConsoleApp4.GenericClass`2.Throw<T, U, V>(T, U, V)")]
+        [InlineData(@"at ConsoleApp4.GenericClass<T, U>.Throw<T>(T)", "ConsoleApp4.GenericClass`2.Throw<T>(T)")]
+        [InlineData(@"at ConsoleApp4.GenericClass<T, U>.Throw<T, U>(T, U)", "ConsoleApp4.GenericClass`2.Throw<T, U>(T, U)")]
+        [InlineData(@"at ConsoleApp4.GenericClass<T, U>.Throw<T, U, V>(T, U, V)", "ConsoleApp4.GenericClass`2.Throw<T, U, V>(T, U, V)")]
         public async Task TestSymbolFound(string inputLine, string symbolText)
         {
             var workspace = CreateWorkspace();
@@ -141,23 +141,23 @@ namespace ConsoleApp4
             Assert.Equal(5, result.ParsedFrames.Length);
 
             var symbol = await GetSymbolAsync(result.ParsedFrames[0], workspace.CurrentSolution, CancellationToken.None);
-            var method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowAtOne", workspace);
+            var method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowAtOne()", workspace);
             Assert.Equal(method, symbol);
 
             symbol = await GetSymbolAsync(result.ParsedFrames[1], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowReferenceOne", workspace);
+            method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowReferenceOne()", workspace);
             Assert.Equal(method, symbol);
 
             symbol = await GetSymbolAsync(result.ParsedFrames[2], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.MyClass.ToString", workspace);
+            method = await GetSymbolAsync("ConsoleApp4.MyClass.ToString()", workspace);
             Assert.Equal(method, symbol);
 
             symbol = await GetSymbolAsync(result.ParsedFrames[3], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.MyOtherClass.ThrowForNewMyClass", workspace);
+            method = await GetSymbolAsync("ConsoleApp4.MyOtherClass.ThrowForNewMyClass()", workspace);
             Assert.Equal(method, symbol);
 
             symbol = await GetSymbolAsync(result.ParsedFrames[4], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.Program.Main", workspace);
+            method = await GetSymbolAsync("ConsoleApp4.Program.Main(string[])", workspace);
             Assert.Equal(method, symbol);
         }
 
@@ -181,23 +181,23 @@ namespace ConsoleApp4
             AssertEx.SetEqual(result.ParsedFrames, fileLineResults);
 
             var symbol = await GetSymbolAsync(fileLineResults[0], workspace.CurrentSolution, CancellationToken.None);
-            var method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowAtOne", workspace);
+            var method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowAtOne()", workspace);
             Assert.Equal(method, symbol);
 
             symbol = await GetSymbolAsync(fileLineResults[1], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowReferenceOne", workspace);
+            method = await GetSymbolAsync("ConsoleApp4.MyClass.ThrowReferenceOne()", workspace);
             Assert.Equal(method, symbol);
 
             symbol = await GetSymbolAsync(fileLineResults[2], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.MyClass.ToString", workspace);
+            method = await GetSymbolAsync("ConsoleApp4.MyClass.ToString()", workspace);
             Assert.Equal(method, symbol);
 
             symbol = await GetSymbolAsync(fileLineResults[3], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.MyOtherClass.ThrowForNewMyClass", workspace);
+            method = await GetSymbolAsync("ConsoleApp4.MyOtherClass.ThrowForNewMyClass()", workspace);
             Assert.Equal(method, symbol);
 
             symbol = await GetSymbolAsync(fileLineResults[4], workspace.CurrentSolution, CancellationToken.None);
-            method = await GetSymbolAsync("ConsoleApp4.Program.Main", workspace);
+            method = await GetSymbolAsync("ConsoleApp4.Program.Main(string[])", workspace);
             Assert.Equal(method, symbol);
         }
 
@@ -206,6 +206,8 @@ namespace ConsoleApp4
         [InlineData("at alksjdlfjasdlkfj")]
         [InlineData("line 26")]
         [InlineData("alksdjflkjsadf.cs:line 26")]
+        [InlineData("This,that.A,,,,,,,,,b()")]
+        [InlineData("ConsoleWriteLine()")]
         public async Task TestFailureCases(string line)
         {
             var result = await StackTraceAnalyzer.AnalyzeAsync(line, CancellationToken.None);
@@ -213,6 +215,27 @@ namespace ConsoleApp4
 
             var ignoredFrames = result.ParsedFrames.OfType<IgnoredFrame>();
             AssertEx.SetEqual(result.ParsedFrames, ignoredFrames);
+        }
+
+        /// <summary>
+        /// Tests cases where the text will technically parse and look like a symbol, but does not point to
+        /// a symbol in the solution. 
+        /// </summary>
+        [Theory]
+        [InlineData("at __.__._()")]
+        [InlineData("abcd!__.__._()")]
+        [InlineData("at <><>.<><>()")]
+        [InlineData("at 897098.70987__ ()")]
+        [InlineData("at jlksdjf . kljsldkjf () in aklsjdflkj")]
+        public async Task TestInvalidSymbol(string line)
+        {
+            using var workspace = CreateWorkspace();
+            var result = await StackTraceAnalyzer.AnalyzeAsync(line, CancellationToken.None);
+            Assert.Equal(1, result.ParsedFrames.Length);
+
+            var parsedFame = result.ParsedFrames.OfType<ParsedStackFrame>().Single();
+            var symbol = await parsedFame.ResolveSymbolAsync(workspace.CurrentSolution, CancellationToken.None);
+            Assert.Null(symbol);
         }
 
         [Fact]
