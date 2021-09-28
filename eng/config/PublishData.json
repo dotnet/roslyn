@@ -193,31 +193,32 @@
         "Shipping",
         "NonShipping"
       ],
-      "version": "4.0.*",
+      "version": "5.0.*",
       "packageFeeds": "default",
       "channels": [],
-      "vsBranch": "rel/d17.0",
+      "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17p4]"
+      "insertionTitlePrefix": "[d17p5]"
     },
     "main-vs-deps": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
-      "version": "4.0.*",
+      "version": "1.0.*",
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]"
     },
     "main": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
-      "version": "4.0.*",
+      "version": "1.0.*",
       "packageFeeds": "arcade",
       "channels": [],
       "vsBranch": "main",
