@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
             if (result.Length > 0)
             {
                 Logger.Log(FunctionId.SolutionCreator_AssetDifferences, result);
-                Debug.Fail("Differences detected in solution checksum: " + result);
+                // Debug.Fail("Differences detected in solution checksum: " + result);
             }
 
             static void AppendMismatch(List<KeyValuePair<Checksum, object>> items, string title, StringBuilder stringBuilder)

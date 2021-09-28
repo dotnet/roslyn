@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -16,17 +17,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
     internal class VisualStudioCloudCacheStorageService : AbstractCloudCachePersistentStorageService
     {
-        private readonly IAsyncServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
 
-        public VisualStudioCloudCacheStorageService(IAsyncServiceProvider serviceProvider, IThreadingContext threadingContext, IPersistentStorageConfiguration configuration)
+        public VisualStudioCloudCacheStorageService(IThreadingContext threadingContext, IPersistentStorageConfiguration configuration)
             : base(configuration)
         {
-            _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
         }
 
-        protected sealed override void DisposeCacheService(ICacheService cacheService)
+        private void DisposeCacheService(ICacheService cacheService)
         {
             if (cacheService is IAsyncDisposable asyncDisposable)
             {
@@ -39,18 +38,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             }
         }
 
-        protected sealed override async ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
+        protected sealed override async ValueTask<WrappedCacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
         {
-            var serviceContainer = await _serviceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
-            var serviceBroker = serviceContainer.GetFullAccessServiceBroker();
+            var hubClient = new HubClient();
 
 #pragma warning disable ISB001 // Dispose of proxies
             // cache service will be disposed inside VisualStudioCloudCachePersistentStorage.Dispose
-            var cacheService = await serviceBroker.GetProxyAsync<ICacheService>(VisualStudioServices.VS2019_10.CacheService, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var cacheService = await hubClient.GetProxyAsync<ICacheService>(VisualStudioServices.VS2019_10.CacheService, cancellationToken: cancellationToken).ConfigureAwait(false);
 #pragma warning restore ISB001 // Dispose of proxies
 
             Contract.ThrowIfNull(cacheService);
-            return cacheService;
+            return new WrappedCacheService(hubClient, cacheService, this.DisposeCacheService);
         }
     }
 }

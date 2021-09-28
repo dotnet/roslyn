@@ -31,10 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
             _disposeCacheService = disposeCacheService;
         }
 
-        protected override void DisposeCacheService(ICacheService cacheService)
-            => _disposeCacheService(cacheService);
-
-        protected override async ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
+        protected override async ValueTask<WrappedCacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
         {
             // Directly access VS' CacheService through their library and not as a brokered service. Then create our
             // wrapper CloudCacheService directly on that instance.
@@ -55,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
             var pool = new SqliteConnectionPool();
             var activeContext = await pool.ActivateContextAsync(someContext, default);
             var cacheService = new CacheService(activeContext, serviceBroker, authorizationServiceClient, pool);
-            return cacheService;
+            return new WrappedCacheService(null, cacheService, _disposeCacheService);
         }
     }
 }

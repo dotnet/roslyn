@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote.Host;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
+using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
@@ -21,29 +22,23 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
     [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), WorkspaceKind.RemoteWorkspace), Shared]
     internal class RemoteCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
     {
-        private readonly IGlobalServiceBroker _globalServiceBroker;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteCloudCacheStorageServiceFactory(IGlobalServiceBroker globalServiceBroker)
+        public RemoteCloudCacheStorageServiceFactory()
         {
-            _globalServiceBroker = globalServiceBroker;
         }
 
         public AbstractPersistentStorageService Create(IPersistentStorageConfiguration configuration)
-            => new RemoteCloudCachePersistentStorageService(_globalServiceBroker, configuration);
+            => new RemoteCloudCachePersistentStorageService(configuration);
 
         private class RemoteCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
         {
-            private readonly IGlobalServiceBroker _globalServiceBroker;
-
-            public RemoteCloudCachePersistentStorageService(IGlobalServiceBroker globalServiceBroker, IPersistentStorageConfiguration configuration)
+            public RemoteCloudCachePersistentStorageService(IPersistentStorageConfiguration configuration)
                 : base(configuration)
             {
-                _globalServiceBroker = globalServiceBroker;
             }
 
-            protected override void DisposeCacheService(ICacheService cacheService)
+            private void DisposeCacheService(ICacheService cacheService)
             {
                 if (cacheService is IAsyncDisposable asyncDisposable)
                 {
@@ -55,17 +50,17 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
                 }
             }
 
-            protected override async ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
+            protected override async ValueTask<WrappedCacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
             {
-                var serviceBroker = _globalServiceBroker.Instance;
+                using var hubClient = new HubClient();
 
 #pragma warning disable ISB001 // Dispose of proxies
                 // cache service will be disposed inside RemoteCloudCacheService.Dispose
-                var cacheService = await serviceBroker.GetProxyAsync<ICacheService>(VisualStudioServices.VS2019_10.CacheService, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var cacheService = await hubClient.GetProxyAsync<ICacheService>(VisualStudioServices.VS2019_10.CacheService, cancellationToken: cancellationToken).ConfigureAwait(false);
 #pragma warning restore ISB001 // Dispose of proxies
 
                 Contract.ThrowIfNull(cacheService);
-                return cacheService;
+                return new WrappedCacheService(hubClient, cacheService, this.DisposeCacheService);
             }
         }
     }

@@ -17,6 +17,7 @@
     <Compile Include="..\..\VisualStudio\Core\Def\Storage\AbstractCloudCachePersistentStorageService.cs" Link="CloudCache\AbstractCloudCachePersistentStorageService.cs" />
     <Compile Include="..\..\VisualStudio\Core\Def\Storage\CloudCachePersistentStorage.cs" Link="CloudCache\CloudCachePersistentStorage.cs" />
     <Compile Include="..\..\VisualStudio\Core\Def\Storage\ProjectContainerKeyCache.cs" Link="CloudCache\ProjectContainerKeyCache.cs" />
+    <Compile Include="..\..\VisualStudio\Core\Def\Storage\WrappedCacheService.cs" Link="CloudCache\WrappedCacheService.cs" />
     <Compile Include="..\..\VisualStudio\CSharp\Test\PersistentStorage\Mocks\AuthorizationServiceMock.cs" Link="CloudCache\AuthorizationServiceMock.cs" />
     <Compile Include="..\..\VisualStudio\CSharp\Test\PersistentStorage\Mocks\FileSystemServiceMock.cs" Link="CloudCache\FileSystemServiceMock.cs" />
     <Compile Include="..\..\VisualStudio\CSharp\Test\PersistentStorage\Mocks\MockCloudCachePersistentStorageService.cs" Link="CloudCache\MockCloudCachePersistentStorageService.cs" />

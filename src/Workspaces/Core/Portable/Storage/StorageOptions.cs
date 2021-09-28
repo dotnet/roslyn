@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Storage
         private const string FeatureName = "FeatureManager/Storage";
 
         public static readonly Option<StorageDatabase> Database = new(
-            FeatureName, nameof(Database), defaultValue: StorageDatabase.SQLite,
+            FeatureName, nameof(Database), defaultValue: StorageDatabase.CloudCache,
             new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Database)));
 
         public static readonly Option<bool> CloudCacheFeatureFlag = new(

@@ -16,20 +16,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
     [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), ServiceLayer.Host), Shared]
     internal class VisualStudioCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
     {
-        private readonly IAsyncServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioCloudCacheStorageServiceFactory(
-            IThreadingContext threadingContext,
-            SVsServiceProvider serviceProvider)
+            IThreadingContext threadingContext)
         {
             _threadingContext = threadingContext;
-            _serviceProvider = (IAsyncServiceProvider)serviceProvider;
         }
 
         public AbstractPersistentStorageService Create(IPersistentStorageConfiguration locationService)
-            => new VisualStudioCloudCacheStorageService(_serviceProvider, _threadingContext, locationService);
+            => new VisualStudioCloudCacheStorageService(_threadingContext, locationService);
     }
 }
