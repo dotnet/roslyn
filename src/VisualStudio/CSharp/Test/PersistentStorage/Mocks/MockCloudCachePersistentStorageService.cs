@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
     internal class MockCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
     {
         private readonly string _relativePathBase;
-        private readonly Action<ICacheService> _disposeCacheService;
 
         public MockCloudCachePersistentStorageService(
             IPersistentStorageConfiguration configuration,
@@ -28,11 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
             : base(configuration)
         {
             _relativePathBase = relativePathBase;
-            _disposeCacheService = disposeCacheService;
         }
-
-        protected override void DisposeCacheService(ICacheService cacheService)
-            => _disposeCacheService(cacheService);
 
         protected override async ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
         {

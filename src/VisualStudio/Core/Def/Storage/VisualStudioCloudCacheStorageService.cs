@@ -26,19 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             _threadingContext = threadingContext;
         }
 
-        protected sealed override void DisposeCacheService(ICacheService cacheService)
-        {
-            if (cacheService is IAsyncDisposable asyncDisposable)
-            {
-                _threadingContext.JoinableTaskFactory.Run(
-                    () => asyncDisposable.DisposeAsync().AsTask());
-            }
-            else if (cacheService is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
-        }
-
         protected sealed override async ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
         {
             var serviceContainer = await _serviceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);

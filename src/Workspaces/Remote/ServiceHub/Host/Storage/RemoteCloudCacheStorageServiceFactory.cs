@@ -43,18 +43,6 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
                 _globalServiceBroker = globalServiceBroker;
             }
 
-            protected override void DisposeCacheService(ICacheService cacheService)
-            {
-                if (cacheService is IAsyncDisposable asyncDisposable)
-                {
-                    asyncDisposable.DisposeAsync().AsTask().Wait();
-                }
-                else if (cacheService is IDisposable disposable)
-                {
-                    disposable.Dispose();
-                }
-            }
-
             protected override async ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
             {
                 var serviceBroker = _globalServiceBroker.Instance;

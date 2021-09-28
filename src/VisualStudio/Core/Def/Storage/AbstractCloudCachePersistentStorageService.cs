@@ -22,7 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         {
         }
 
-        protected abstract void DisposeCacheService(ICacheService cacheService);
         protected abstract ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken);
 
         protected sealed override string GetDatabaseFilePath(string workingFolderPath)
@@ -45,8 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             if (string.IsNullOrEmpty(relativePathBase))
                 return null;
 
-            return new CloudCachePersistentStorage(
-                cacheService, solutionKey, workingFolderPath, relativePathBase, databaseFilePath, this.DisposeCacheService);
+            return new CloudCachePersistentStorage(cacheService, solutionKey, workingFolderPath, relativePathBase, databaseFilePath);
         }
     }
 }
