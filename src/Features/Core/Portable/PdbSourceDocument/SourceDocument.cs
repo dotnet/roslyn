@@ -6,8 +6,15 @@ using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
-    internal interface IPdbSourceDocumentLoaderService
+    internal sealed class SourceDocument
     {
-        TextLoader? LoadSourceDocument(SourceDocument sourceDocument, MetadataReader pdbReader);
+        public readonly DocumentHandle Handle;
+        public readonly string FilePath;
+
+        public SourceDocument(DocumentHandle handle, string filePath)
+        {
+            Handle = handle;
+            FilePath = filePath;
+        }
     }
 }

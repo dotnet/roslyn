@@ -14,6 +14,7 @@ using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -24,7 +25,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     [ExportWorkspaceService(typeof(IPdbSourceDocumentNavigationService), ServiceLayer.Host), Shared]
-    internal class PdbSourceDocumentNavigationService : IPdbSourceDocumentNavigationService
+    internal partial class PdbSourceDocumentNavigationService : IPdbSourceDocumentNavigationService
     {
         private MetadataAsSourceWorkspace? _workspace;
         private readonly IPdbFileLocatorService _pdbFileLocatorService;
@@ -112,11 +113,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var parseOptions = arguments.ParseOptions;
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
 
-            var documentInfos = filePaths.Select(filePath => DocumentInfo.Create(
+            var documentInfos = filePaths.Select(sourceDocument => DocumentInfo.Create(
                 DocumentId.CreateNewId(projectId),
-                Path.GetFileName(filePath),
-                filePath: filePath,
-                loader: _pdbSourceDocumentLoaderService.LoadSourceFile(filePath)));
+                Path.GetFileName(sourceDocument.FilePath),
+                filePath: sourceDocument.FilePath,
+                loader: _pdbSourceDocumentLoaderService.LoadSourceDocument(sourceDocument, pdbReader)));
 
             var projectInfo = ProjectInfo.Create(
                 projectId,
@@ -188,11 +189,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             };
 
         // TODO: Move everything below this point to a service? Or just a static class?
-        private static string[] GetSourcePaths(ISymbol symbol, MetadataReader dllReader, MetadataReader pdbReader)
+        private static SourceDocument[] GetSourcePaths(ISymbol symbol, MetadataReader dllReader, MetadataReader pdbReader)
         {
             var documentHandles = FindSourceDocuments(symbol, dllReader, pdbReader);
 
-            var result = documentHandles.Select(h => pdbReader.GetString(pdbReader.GetDocument(h).Name)).ToArray();
+            var result = documentHandles.Select(h => new SourceDocument(h, pdbReader.GetString(pdbReader.GetDocument(h).Name))).ToArray();
             return result;
         }
 
@@ -360,6 +361,19 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     }
                 }
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal class TestAccessor
+        {
+            private PdbSourceDocumentNavigationService _service;
+
+            public TestAccessor(PdbSourceDocumentNavigationService service)
+                => _service = service;
+
+            public MetadataAsSourceWorkspace? Workspace => _service._workspace;
         }
     }
 }

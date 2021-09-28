@@ -352,12 +352,18 @@ public class C
 
             AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");
 
-            var actual = File.ReadAllText(file!.FilePath);
+            var masWorkspace = ((PdbSourceDocumentNavigationService) service).GetTestAccessor().Workspace;
+
+            AssertEx.NotNull(masWorkspace, "The workspace is null");
+
+            var document = masWorkspace.CurrentSolution.Projects.First().Documents.First();
+
+            var actual = await document.GetTextAsync();
             var actualSpan = file.IdentifierLocation.SourceSpan;
 
             // Compare exact texts and verify that the location returned is exactly that
             // indicated by expected
-            AssertEx.EqualOrDiff(input, actual);
+            AssertEx.EqualOrDiff(input, actual.ToString());
             Assert.Equal(expectedSpan.Start, actualSpan.Start);
             Assert.Equal(expectedSpan.End, actualSpan.End);
         }
