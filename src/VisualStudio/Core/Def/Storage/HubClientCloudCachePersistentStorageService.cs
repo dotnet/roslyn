@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             // cache service will be disposed inside WrappedCacheService.Dispose
             var cacheService = await hubClient.GetProxyAsync<ICacheService>(
                 VisualStudioServices.VS2019_10.CacheService,
-                new ServiceActivationOptions { ActivationArguments = new Dictionary<string, string> { { "foo", solutionFolder } } },
+                new ServiceActivationOptions { ActivationArguments = new Dictionary<string, string> { { "RelativePathBase", solutionFolder } } },
                 cancellationToken).ConfigureAwait(false);
 #pragma warning restore ISB001 // Dispose of proxies
 
