@@ -161,13 +161,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (options != null)
                 {
                     // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                    operations = GetOperationsAsync(actionWithOptions, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                    operations = this.ThreadingContext.JoinableTaskFactory.Run(
+                        () => GetOperationsAsync(actionWithOptions, options, cancellationToken));
                 }
             }
             else
             {
                 // Note: we want to block the UI thread here so the user cannot modify anything while the codefix applies
-                operations = GetOperationsAsync(progressTracker, cancellationToken).WaitAndGetResult(cancellationToken);
+                operations = this.ThreadingContext.JoinableTaskFactory.Run(
+                    () => GetOperationsAsync(progressTracker, cancellationToken));
             }
 
             if (operations != null)
