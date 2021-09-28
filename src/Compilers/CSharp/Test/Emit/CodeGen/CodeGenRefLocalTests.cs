@@ -3476,6 +3476,41 @@ unsafe
         }
 
         [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection_03()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    int i1 = 0;
+    ref int i2 = ref i1;
+    ref int i3 = ref i2 = ref *(int*)0;
+    Console.WriteLine(""run"");
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "run");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (int V_0) //i1
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  conv.i
+  IL_0004:  pop
+  IL_0005:  ldstr      ""run""
+  IL_000a:  call       ""void System.Console.WriteLine(string)""
+  IL_000f:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
         public void TestRefOnPointerArrayAccess()
         {
             var code = @"
