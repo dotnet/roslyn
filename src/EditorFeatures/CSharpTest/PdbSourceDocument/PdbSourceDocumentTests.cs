@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,8 +26,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
     [UseExportProvider]
     public class PdbSourceDocumentTests
     {
-        [Fact]
-        public async Task Method()
+        public enum SourceLocation
+        {
+            OnDisk,
+            Embedded
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task Method(SourceLocation location)
         {
             var source = @"
 public class C
@@ -35,11 +44,27 @@ public class C
         // this is a comment that wouldn't appear in decompiled source
     }
 }";
-            await TestAsync(source, c => c.GetMember("C.M"));
+            await TestAsync(location, source, c => c.GetMember("C.M"));
         }
 
-        [Fact]
-        public async Task Parameter()
+        [Theory]
+        [CombinatorialData]
+        public async Task Constructor(SourceLocation location)
+        {
+            var source = @"
+public class C
+{
+    public [|C|]()
+    {
+        // this is a comment that wouldn't appear in decompiled source
+    }
+}";
+            await TestAsync(location, source, c => c.GetMember("C..ctor"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task Parameter(SourceLocation location)
         {
             var source = @"
 public class C
@@ -49,26 +74,27 @@ public class C
         // this is a comment that wouldn't appear in decompiled source
     }
 }";
-            await TestAsync(source, c => c.GetMember<IMethodSymbol>("C.M").Parameters.First());
+            await TestAsync(location, source, c => c.GetMember<IMethodSymbol>("C.M").Parameters.First());
         }
 
         [Theory]
-        [InlineData("C")]
-        [InlineData("C..ctor")]
-        public async Task Class_FromTypeDefinitionDocument(string symbolName)
+        [CombinatorialData]
+        public async Task Class_FromTypeDefinitionDocument(SourceLocation location)
         {
             var source = @"
 public class [|C|]
 {
     // this is a comment that wouldn't appear in decompiled source
 }";
-            await TestAsync(source, c => c.GetMember(symbolName));
+
+            await TestAsync(location, source, c => c.GetMember("C"));
+
+            await TestAsync(location, source, c => c.GetMember("C..ctor"));
         }
 
         [Theory]
-        [InlineData("Outer.C")]
-        [InlineData("Outer.C..ctor")]
-        public async Task NestedClass_FromTypeDefinitionDocument(string symbolName)
+        [CombinatorialData]
+        public async Task NestedClass_FromTypeDefinitionDocument(SourceLocation location)
         {
             var source = @"
 public class Outer
@@ -78,13 +104,14 @@ public class Outer
         // this is a comment that wouldn't appear in decompiled source
     }
 }";
-            await TestAsync(source, c => c.GetMember(symbolName));
+            await TestAsync(location, source, c => c.GetMember("Outer.C"));
+
+            await TestAsync(location, source, c => c.GetMember("Outer.C..ctor"));
         }
 
         [Theory]
-        [InlineData("Outer")]
-        [InlineData("Outer..ctor")]
-        public async Task Class_FromTypeDefinitionDocumentOfNestedClass(string symbolName)
+        [CombinatorialData]
+        public async Task Class_FromTypeDefinitionDocumentOfNestedClass(SourceLocation location)
         {
             var source = @"
 public class [|Outer|]
@@ -94,13 +121,15 @@ public class [|Outer|]
         // this is a comment that wouldn't appear in decompiled source
     }
 }";
-            await TestAsync(source, c => c.GetMember(symbolName));
+            await TestAsync(location, source, c => c.GetMember("Outer"));
+
+            await TestAsync(location, source, c => c.GetMember("Outer..ctor"));
+
         }
 
         [Theory]
-        [InlineData("Outer.C")]
-        [InlineData("Outer.C..ctor")]
-        public async Task NestedClass_FromMethodDocument(string symbolName)
+        [CombinatorialData]
+        public async Task NestedClass_FromMethodDocument(SourceLocation location)
         {
             var source = @"
 public class Outer
@@ -113,13 +142,14 @@ public class Outer
         }
     }
 }";
-            await TestAsync(source, c => c.GetMember(symbolName));
+            await TestAsync(location, source, c => c.GetMember("Outer.C"));
+
+            await TestAsync(location, source, c => c.GetMember("Outer.C..ctor"));
         }
 
         [Theory]
-        [InlineData("Outer")]
-        [InlineData("Outer..ctor")]
-        public async Task Class_FromMethodDocumentOfNestedClass(string symbolName)
+        [CombinatorialData]
+        public async Task Class_FromMethodDocumentOfNestedClass(SourceLocation location)
         {
             var source = @"
 public class [|Outer|]
@@ -132,13 +162,14 @@ public class [|Outer|]
         }
     }
 }";
-            await TestAsync(source, c => c.GetMember(symbolName));
+            await TestAsync(location, source, c => c.GetMember("Outer"));
+
+            await TestAsync(location, source, c => c.GetMember("Outer..ctor"));
         }
 
         [Theory]
-        [InlineData("C")]
-        [InlineData("C..ctor")]
-        public async Task Class_FromMethodDocument(string symbolName)
+        [CombinatorialData]
+        public async Task Class_FromMethodDocument(SourceLocation location)
         {
             var source = @"
 public class [|C|]
@@ -148,55 +179,62 @@ public class [|C|]
         // this is a comment that wouldn't appear in decompiled source
     }
 }";
-            await TestAsync(source, c => c.GetMember(symbolName));
+            await TestAsync(location, source, c => c.GetMember("C"));
+
+            await TestAsync(location, source, c => c.GetMember("C..ctor"));
         }
 
-        [Fact]
-        public async Task Field()
+        [Theory]
+        [CombinatorialData]
+        public async Task Field(SourceLocation location)
         {
             var source = @"
 public class C
 {
     public int [|f|];
 }";
-            await TestAsync(source, c => c.GetMember("C.f"));
+            await TestAsync(location, source, c => c.GetMember("C.f"));
         }
 
-        [Fact]
-        public async Task Property()
+        [Theory]
+        [CombinatorialData]
+        public async Task Property(SourceLocation location)
         {
             var source = @"
 public class C
 {
     public int [|P|] { get; set; }
 }";
-            await TestAsync(source, c => c.GetMember("C.P"));
+            await TestAsync(location, source, c => c.GetMember("C.P"));
         }
 
-        [Fact]
-        public async Task Property_WithBody()
+        [Theory]
+        [CombinatorialData]
+        public async Task Property_WithBody(SourceLocation location)
         {
             var source = @"
 public class C
 {
     public int [|P|] { get { return 1; } }
 }";
-            await TestAsync(source, c => c.GetMember("C.P"));
+            await TestAsync(location, source, c => c.GetMember("C.P"));
         }
 
-        [Fact]
-        public async Task EventField()
+        [Theory]
+        [CombinatorialData]
+        public async Task EventField(SourceLocation location)
         {
             var source = @"
 public class C
 {
     public event System.EventHandler [|E|];
 }";
-            await TestAsync(source, c => c.GetMember("C.E"));
+            await TestAsync(location, source, c => c.GetMember("C.E"));
         }
 
-        [Fact]
-        public async Task EventField_WithMethod()
+        [Theory]
+        [CombinatorialData]
+        public async Task EventField_WithMethod(SourceLocation location)
         {
             var source = @"
 public class C
@@ -208,59 +246,75 @@ public class C
         // this is a comment that wouldn't appear in decompiled source
     }
 }";
-            await TestAsync(source, c => c.GetMember("C.E"));
+            await TestAsync(location, source, c => c.GetMember("C.E"));
         }
 
-        [Fact]
-        public async Task Event()
+        [Theory]
+        [CombinatorialData]
+        public async Task Event(SourceLocation location)
         {
             var source = @"
 public class C
 {
     public event System.EventHandler [|E|] { add { } remove { } }
 }";
-            await TestAsync(source, c => c.GetMember("C.E"));
+            await TestAsync(location, source, c => c.GetMember("C.E"));
         }
 
-        private static async Task TestAsync(string metadataSource, Func<Compilation, ISymbol> symbolMatcher)
+        private static async Task TestAsync(SourceLocation location, string metadataSource, Func<Compilation, ISymbol> symbolMatcher)
         {
             MarkupTestFile.GetSpan(metadataSource, out var input, out var expectedSpan);
 
+            var assemblyName = "ReferencedAssembly";
             var path = Path.Combine(Path.GetTempPath(), nameof(PdbSourceDocumentTests));
             var sourceCodePath = Path.Combine(path, "source.cs");
-            var dllFilePath = Path.Combine(path, "reference.dll");
-            var pdbFilePath = Path.Combine(path, "reference.pdb");
-            var assemblyName = "ReferencedAssembly";
-            try
-            {
-                Directory.CreateDirectory(path);
 
-                File.WriteAllText(sourceCodePath, input);
-
-                var workspace = TestWorkspace.Create(@$"
+            var workspace = TestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
 </Workspace>");
-                var project = workspace.CurrentSolution.Projects.First();
+            var project = workspace.CurrentSolution.Projects.First();
 
-                var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
-                var compilationFactory = languageServices.GetRequiredService<ICompilationFactoryService>();
-                var options = compilationFactory.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
-                var parseOptions = project.ParseOptions;
+            var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
+            var compilationFactory = languageServices.GetRequiredService<ICompilationFactoryService>();
+            var options = compilationFactory.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
+            var parseOptions = project.ParseOptions;
 
-                var compilation = compilationFactory
-                    .CreateCompilation(assemblyName, options)
-                    .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(input, options: parseOptions, path: sourceCodePath, encoding: Encoding.UTF8))
-                    .AddReferences(project.MetadataReferences);
+            var compilation = compilationFactory
+                .CreateCompilation(assemblyName, options)
+                .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(input, options: parseOptions, path: sourceCodePath, encoding: Encoding.UTF8))
+                .AddReferences(project.MetadataReferences);
 
-                using var pdbStream = new MemoryStream();
-                var peBlob = compilation.EmitToArray(new Emit.EmitOptions(debugInformationFormat: Emit.DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
+            try
+            {
+                if (location == SourceLocation.OnDisk)
+                {
+                    using var pdbStream = new MemoryStream();
+                    var peBlob = compilation.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
 
-                File.WriteAllBytes(dllFilePath, peBlob.ToArray());
-                File.WriteAllBytes(pdbFilePath, pdbStream.ToArray());
+                    var dllFilePath = Path.Combine(path, "reference.dll");
+                    var pdbFilePath = Path.Combine(path, "reference.pdb");
+                    Directory.CreateDirectory(path);
 
-                project = project.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
+                    File.WriteAllText(sourceCodePath, input);
+
+                    File.WriteAllBytes(dllFilePath, peBlob.ToArray());
+                    File.WriteAllBytes(pdbFilePath, pdbStream.ToArray());
+
+                    project = project.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
+                }
+                else
+                {
+                    var embeddedTexts = ImmutableArray<EmbeddedText>.Empty;
+                    if (location == SourceLocation.Embedded)
+                    {
+                        embeddedTexts = embeddedTexts.Add(EmbeddedText.FromSource(sourceCodePath, compilation.SyntaxTrees.First().GetText()));
+                    }
+
+                    var peBlob = compilation.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded), embeddedTexts: embeddedTexts);
+                    project = project.AddMetadataReference(MetadataReference.CreateFromImage(peBlob));
+                }
 
                 var mainCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
 
@@ -284,7 +338,10 @@ public class C
             }
             finally
             {
-                Directory.Delete(path, recursive: true);
+                if (Directory.Exists(path))
+                {
+                    Directory.Delete(path, recursive: true);
+                }
             }
         }
     }
