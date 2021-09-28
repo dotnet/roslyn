@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             var checkpoint = new Checkpoint();
 
-            var typeMap = workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>();
+            var typeMap = workspace.ExportProvider.GetExportedValue<SyntacticClassificationTypeMap>();
 
             var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
                 new SyntacticClassificationTaggerProvider(

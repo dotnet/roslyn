@@ -2684,6 +2684,82 @@ public class Bar
         }
 
         [WpfFact]
+        public void TestSwitchExpression1()
+        {
+            Test(@"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = c switch
+        {
+            $$
+        }
+    }
+}",
+                @"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = c swi$$tch$$
+    }
+}");
+
+        }
+
+        [WpfFact]
+        public void TestSwitchExpression2()
+        {
+            Test(@"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = (c + 1) switch
+        {
+            $$
+        }
+    }
+}",
+                @"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = (c + 1) swi$$tch$$
+    }
+}");
+
+        }
+
+        [WpfFact]
+        public void TestSwitchStatementWithOnlyOpenParenthesis()
+        {
+            // This test is to make sure {} will be added to the switch statement,
+            // but our formatter now can't format the case when the CloseParenthesis token is missing.
+            // If any future formatter improvement can handle this case, this test can be modified safely
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        switch (
+{
+            $$
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        swi$$tch ($$
+    }
+}");
+        }
+
+        [WpfFact]
         public void TestSwitchStatement()
         {
             Test(@"
