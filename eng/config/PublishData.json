@@ -193,7 +193,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "version": "5.0.*",
+      "version": "4.0.*",
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "main",
