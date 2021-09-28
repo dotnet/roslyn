@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -126,7 +127,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var assemblyPath = Path.Combine(Directory, simpleName + ".dll");
-                if (!_loader.IsKnownDependencyLocation(assemblyPath))
+                var paths = _loader.GetPaths(simpleName);
+                if (paths is null)
                 {
                     // The analyzer didn't explicitly register this dependency. Most likely the
                     // assembly we're trying to load here is netstandard or a similar framework
@@ -136,14 +138,46 @@ namespace Microsoft.CodeAnalysis
                     return _compilerLoadContext.LoadFromAssemblyName(assemblyName);
                 }
 
-                var pathToLoad = _loader.GetPathToLoad(assemblyPath);
-                return LoadFromAssemblyPath(pathToLoad);
+                Debug.Assert(paths.Any());
+                // A matching assembly in this directory was specified via /analyzer.
+                if (paths.Contains(assemblyPath))
+                {
+                    return LoadFromAssemblyPath(_loader.GetPathToLoad(assemblyPath));
+                }
+
+                AssemblyName? bestCandidateName = null;
+                string? bestCandidatePath = null;
+                // The assembly isn't expected to be found at 'assemblyPath',
+                // but some assembly with the same simple name is known to the loader.
+                foreach (var candidatePath in paths)
+                {
+                    // Note: we assume that the assembly really can be found at 'candidatePath'
+                    // (without 'GetPathToLoad'), and that calling GetAssemblyName doesn't cause us
+                    // to hold a lock on the file. This prevents unnecessary shadow copies.
+                    var candidateName = AssemblyName.GetAssemblyName(candidatePath);
+                    // Checking FullName ensures that version and PublicKeyToken match exactly.
+                    if (candidateName.FullName.Equals(assemblyName.FullName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return LoadFromAssemblyPath(_loader.GetPathToLoad(candidatePath));
+                    }
+                    else if (bestCandidateName is null || bestCandidateName.Version < candidateName.Version)
+                    {
+                        bestCandidateName = candidateName;
+                        bestCandidatePath = candidatePath;
+                    }
+                }
+
+                Debug.Assert(bestCandidateName != null);
+                Debug.Assert(bestCandidatePath != null);
+
+                return LoadFromAssemblyPath(_loader.GetPathToLoad(bestCandidatePath));
             }
 
             protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
             {
                 var assemblyPath = Path.Combine(Directory, unmanagedDllName + ".dll");
-                if (!_loader.IsKnownDependencyLocation(assemblyPath))
+                var paths = _loader.GetPaths(unmanagedDllName);
+                if (paths is null || !paths.Contains(assemblyPath))
                 {
                     return IntPtr.Zero;
                 }

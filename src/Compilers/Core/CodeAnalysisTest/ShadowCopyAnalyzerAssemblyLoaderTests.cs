@@ -110,5 +110,37 @@ Delta: Epsilon: Test E
 ",
                 actual);
         }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void AssemblyLoading_DependencyInDifferentDirectory_Delete()
+        {
+            StringBuilder sb = new StringBuilder();
+            var loader = new ShadowCopyAnalyzerAssemblyLoader();
+
+            var tempDir1 = Temp.CreateDirectory();
+            var tempDir2 = Temp.CreateDirectory();
+            var tempDir3 = Temp.CreateDirectory();
+
+            var delta1File = tempDir1.CreateFile("Delta.dll").CopyContentFrom(_testFixture.Delta1.Path);
+            var delta2File = tempDir2.CreateFile("Delta.dll").CopyContentFrom(_testFixture.Delta2.Path);
+            var gammaFile = tempDir3.CreateFile("Gamma.dll").CopyContentFrom(_testFixture.Gamma.Path);
+
+            loader.AddDependencyLocation(delta1File.Path);
+            loader.AddDependencyLocation(delta2File.Path);
+            loader.AddDependencyLocation(gammaFile.Path);
+            Assembly gamma = loader.LoadFromPath(gammaFile.Path);
+
+            var b = gamma.CreateInstance("Gamma.G")!;
+            var writeMethod = b.GetType().GetMethod("Write")!;
+            writeMethod.Invoke(b, new object[] { sb, "Test G" });
+
+            File.Delete(delta1File.Path);
+            File.Delete(delta2File.Path);
+            File.Delete(gammaFile.Path);
+
+            var actual = sb.ToString();
+            Assert.Equal(@"Delta: Gamma: Test G
+", actual);
+        }
     }
 }
