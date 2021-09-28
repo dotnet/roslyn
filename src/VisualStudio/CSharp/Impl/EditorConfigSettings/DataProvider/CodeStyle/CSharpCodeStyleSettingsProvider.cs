@@ -142,6 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferIndexOperator, description: ServicesVSResources.Prefer_index_operator, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferRangeOperator, description: ServicesVSResources.Prefer_range_operator, editorConfigOptions, visualStudioOptions, updaterService, FileName);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, description: CSharpVSResources.Prefer_implicit_object_creation_when_type_is_apparent, editorConfigOptions, visualStudioOptions, updaterService, FileName);
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferTupleSwap, description: ServicesVSResources.Prefer_tuple_swap, editorConfigOptions, visualStudioOptions, updaterService, FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetPatternMatchingCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
