@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public sealed partial class ReferenceAssemblies
     {
-        private const string ReferenceAssembliesPackageVersion = "1.0.0";
+        private const string ReferenceAssembliesPackageVersion = "1.0.2";
 
         private static readonly FileSystemSemaphore Semaphore = new FileSystemSemaphore(Path.Combine(Path.GetTempPath(), "test-packages", ".lock"));
 
@@ -577,6 +577,26 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 public static ReferenceAssemblies WindowsForms { get; }
                     = Default.AddAssemblies(ImmutableArray.Create("System.Drawing", "System.Windows.Forms"));
+            }
+
+            public static class Net35
+            {
+                public static ReferenceAssemblies Default { get; }
+                    = new ReferenceAssemblies(
+                        "net35",
+                        new PackageIdentity(
+                            "Microsoft.NETFramework.ReferenceAssemblies.net35",
+                            ReferenceAssembliesPackageVersion),
+                        Path.Combine("build", ".NETFramework", "v3.5"))
+                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                    .AddAssemblies(ImmutableArray.Create("mscorlib", "System", "System.Core", "System.Data", "System.Data.DataSetExtensions", "System.Xml", "System.Xml.Linq"))
+                    .AddLanguageSpecificAssemblies(LanguageNames.VisualBasic, ImmutableArray.Create("Microsoft.VisualBasic"));
+
+                public static ReferenceAssemblies WindowsForms { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("System.Deployment", "System.Drawing", "System.Windows.Forms"));
+
+                public static ReferenceAssemblies Wpf { get; }
+                    = Default.AddAssemblies(ImmutableArray.Create("PresentationCore", "PresentationFramework", "WindowsBase"));
             }
 
             public static class Net40
