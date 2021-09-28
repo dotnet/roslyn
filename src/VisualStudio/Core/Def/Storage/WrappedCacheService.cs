@@ -11,6 +11,10 @@ using Microsoft.VisualStudio.RpcContracts.Caching;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
+    /// <summary>
+    /// Wraps a <see cref="ICacheService"/> and a HubClient so that the client is kept alive until
+    /// we're done with the cache service.
+    /// </summary>
     internal class WrappedCacheService : ICacheService, IDisposable
     {
         private readonly IDisposable? _hubClient;
