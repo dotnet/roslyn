@@ -218,7 +218,7 @@
         "Shipping",
         "NonShipping"
       ],
-      "version": "1.0.*",
+      "version": "4.1.*",
       "packageFeeds": "arcade",
       "channels": [],
       "vsBranch": "main",
