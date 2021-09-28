@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         internal override AbstractPersistentStorageService GetStorageService(
             IMefHostExportProvider exportProvider, IPersistentStorageConfiguration configuration, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
         {
-            var threadingContext = exportProvider.GetExports<IThreadingContext>().Single().Value;
             return new MockCloudCachePersistentStorageService(configuration, relativePathBase);
         }
     }
