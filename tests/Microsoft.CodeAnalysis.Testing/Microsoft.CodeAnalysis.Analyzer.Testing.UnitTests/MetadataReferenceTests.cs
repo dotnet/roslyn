@@ -30,6 +30,30 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
+        public async Task ResolveReferenceAssemblies_Net35()
+        {
+            var referenceAssemblies = ReferenceAssemblies.NetFramework.Net35.Default;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+        }
+
+        [Fact]
+        public async Task ResolveReferenceAssemblies_Net35_WindowsForms()
+        {
+            var referenceAssemblies = ReferenceAssemblies.NetFramework.Net35.WindowsForms;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+        }
+
+        [Fact]
+        public async Task ResolveReferenceAssemblies_Net35_Wpf()
+        {
+            var referenceAssemblies = ReferenceAssemblies.NetFramework.Net35.Wpf;
+            var resolved = await referenceAssemblies.ResolveAsync(LanguageNames.CSharp, CancellationToken.None);
+            Assert.NotEmpty(resolved);
+        }
+
+        [Fact]
         public async Task ResolveReferenceAssemblies_Net40()
         {
             var referenceAssemblies = ReferenceAssemblies.NetFramework.Net40.Default;
@@ -550,6 +574,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Theory]
+        [InlineData("net35")]
         [InlineData("net40")]
         [InlineData("net45")]
         [InlineData("net451")]
@@ -608,6 +633,7 @@ class TestClass {
             return targetFramework switch
             {
                 "net20" => ReferenceAssemblies.NetFramework.Net20.Default,
+                "net35" => ReferenceAssemblies.NetFramework.Net35.Default,
                 "net40" => ReferenceAssemblies.NetFramework.Net40.Default,
                 "net45" => ReferenceAssemblies.NetFramework.Net45.Default,
                 "net451" => ReferenceAssemblies.NetFramework.Net451.Default,
