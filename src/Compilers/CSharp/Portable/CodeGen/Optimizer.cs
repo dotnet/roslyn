@@ -1924,6 +1924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     internal sealed class StackOptimizerPass2 : BoundTreeRewriterWithStackGuard
     {
         private int _nodeCounter;
+        private bool _isStackScheduledRefAssignment = false;
         private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _info;
 
         private StackOptimizerPass2(Dictionary<LocalSymbol, LocalDefUseInfo> info)
@@ -1944,14 +1945,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // rewriting constants may undo constant folding and make thing worse.
             // so we will not go into constant nodes. 
             // CodeGen will not do that either.
-            var asExpression = node as BoundExpression;
-            if (asExpression != null && asExpression.ConstantValue != null)
+            if (node is BoundExpression { ConstantValue: not null })
             {
                 result = node;
             }
             else
             {
+                var previousIsStackScheduledRefAssignment = _isStackScheduledRefAssignment;
+
+                // For cases like `x = ref boolValue ? ref *(int*)0 : ref *(int*)1`, we need to see through the ternary to
+                // know that the pointer indirection actually doesn't occur. However, we don't want to see through _all_ nodes:
+                // for example, we don't want to see through `x = ref M(*pointerValue)`.
+                if (node is not (BoundConditionalOperator or BoundPointerIndirectionOperator))
+                {
+                    _isStackScheduledRefAssignment = false;
+                }
+
                 result = base.Visit(node);
+                _isStackScheduledRefAssignment = previousIsStackScheduledRefAssignment;
             }
 
             _nodeCounter += 1;
@@ -2071,6 +2082,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // fake visiting of left
             _nodeCounter += 1;
 
+            Debug.Assert(!_isStackScheduledRefAssignment);
+            _isStackScheduledRefAssignment = node.IsRef;
+
             // visit right
             var right = (BoundExpression)Visit(node.Right);
 
@@ -2093,6 +2107,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
 #nullable enable
+        public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
+        {
+            if (_isStackScheduledRefAssignment)
+            {
+                // When doing `x = ref *(int*)0` or similar when `x` is scheduled to the stack, we actually
+                // see through the indirection to just push `(int*)0` onto the stack.
+                return Visit(node.Operand);
+            }
+
+            return base.VisitPointerIndirectionOperator(node)!;
+        }
+
         public override BoundNode VisitCall(BoundCall node)
         {
             BoundExpression? receiverOpt = node.ReceiverOpt;

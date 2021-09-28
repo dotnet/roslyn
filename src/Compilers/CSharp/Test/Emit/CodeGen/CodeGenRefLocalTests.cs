@@ -3410,5 +3410,102 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new ref[
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(text, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection_01()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    ref int x = ref *(int*)0;
+    Console.WriteLine(""run"");
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "run");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  pop
+  IL_0003:  ldstr      ""run""
+  IL_0008:  call       ""void System.Console.WriteLine(string)""
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection_02()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    ref int x = ref *(int*)0;
+    Console.WriteLine((int)(int*)x);
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  .locals init (int* V_0)
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  ldind.i4
+  IL_0006:  conv.i
+  IL_0007:  conv.i4
+  IL_0008:  call       ""void System.Console.WriteLine(int)""
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerArrayAccess()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    ref int x = ref ((int*)0)[1];
+    Console.WriteLine(""run"");
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "run");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  .locals init (int& V_0) //x
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  ldc.i4.4
+  IL_0003:  add
+  IL_0004:  stloc.0
+  IL_0005:  ldstr      ""run""
+  IL_000a:  call       ""void System.Console.WriteLine(string)""
+  IL_000f:  ret
+}
+");
+        }
     }
 }

@@ -499,5 +499,147 @@ public class C
   IL_0026:  ret
 }");
         }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    M(ref *(int*)0);
+    void M(ref int i) => Console.WriteLine(""run"");
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "run");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  call       ""void Program.<<Main>$>g__M|0_0(ref int)""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection_ThroughTernary_01()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    bool b = true;
+    M(ref b ? ref *(int*)0 : ref *(int*)1);
+    void M(ref int i) => Console.WriteLine(""run"");
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "run");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  brtrue.s   IL_0007
+  IL_0003:  ldc.i4.1
+  IL_0004:  conv.i
+  IL_0005:  br.s       IL_0009
+  IL_0007:  ldc.i4.0
+  IL_0008:  conv.i
+  IL_0009:  call       ""void Program.<<Main>$>g__M|0_0(ref int)""
+  IL_000e:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection_ThroughTernary_02()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    int i1 = 0;
+    int* p1 = &i1;
+    bool b = true;
+    M2(ref b ? ref *M1(*p1) : ref i1);
+
+    int* M1(int i)
+    {
+        Console.Write(i);
+        return (int*)0;
+    }
+
+    void M2(ref int i) => Console.WriteLine(""run"");
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0run");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (int V_0, //i1
+                int* V_1) //p1
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  conv.u
+  IL_0005:  stloc.1
+  IL_0006:  ldc.i4.1
+  IL_0007:  brtrue.s   IL_000d
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  br.s       IL_0014
+  IL_000d:  ldloc.1
+  IL_000e:  ldind.i4
+  IL_000f:  call       ""int* Program.<<Main>$>g__M1|0_0(int)""
+  IL_0014:  call       ""void Program.<<Main>$>g__M2|0_1(ref int)""
+  IL_0019:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerArrayAccess()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    M(ref ((int*)0)[1]);
+    void M(ref int i) => Console.WriteLine(""run"");
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "run");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldc.i4.0
+  IL_0001:  conv.i
+  IL_0002:  ldc.i4.4
+  IL_0003:  add
+  IL_0004:  call       ""void Program.<<Main>$>g__M|0_0(ref int)""
+  IL_0009:  ret
+}
+");
+        }
     }
 }

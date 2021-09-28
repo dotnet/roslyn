@@ -1202,5 +1202,90 @@ class C
                );
         }
 
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection_ThroughTernary_01()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    bool b = true;
+    ref int x = ref b ? ref *(int*)0 : ref *(int*)1;
+    Console.WriteLine(""run"");
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "run");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  brtrue.s   IL_0008
+  IL_0003:  ldc.i4.1
+  IL_0004:  conv.i
+  IL_0005:  pop
+  IL_0006:  br.s       IL_000b
+  IL_0008:  ldc.i4.0
+  IL_0009:  conv.i
+  IL_000a:  pop
+  IL_000b:  ldstr      ""run""
+  IL_0010:  call       ""void System.Console.WriteLine(string)""
+  IL_0015:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
+        public void TestRefOnPointerIndirection_ThroughTernary_02()
+        {
+            var code = @"
+using System;
+
+unsafe
+{
+    int i1 = 0;
+    int* p1 = &i1;
+    bool b = true;
+    ref int x = ref b ? ref *M(*p1) : ref i1;
+    Console.WriteLine(""run"");
+
+    int* M(int i)
+    {
+        Console.Write(i);
+        return (int*)0;
+    }
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "0run");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  1
+  .locals init (int V_0, //i1
+                int* V_1) //p1
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  conv.u
+  IL_0005:  stloc.1
+  IL_0006:  ldc.i4.1
+  IL_0007:  brfalse.s  IL_0011
+  IL_0009:  ldloc.1
+  IL_000a:  ldind.i4
+  IL_000b:  call       ""int* Program.<<Main>$>g__M|0_0(int)""
+  IL_0010:  pop
+  IL_0011:  ldstr      ""run""
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  ret
+}
+");
+        }
     }
 }
