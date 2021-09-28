@@ -176,6 +176,7 @@ Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net35
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net40
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net45
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net451
@@ -267,6 +268,9 @@ static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp30.g
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetCore.NetCoreApp31.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net20.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net35.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net35.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
+static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net35.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net40.Default.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net40.WindowsForms.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 static Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.NetFramework.Net40.Wpf.get -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
