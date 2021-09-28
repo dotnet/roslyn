@@ -4,7 +4,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
     internal sealed class DefaultStackParser : IStackFrameParser
     {

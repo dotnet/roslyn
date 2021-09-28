@@ -6,7 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
     internal class StackTraceAnalysisResult
     {

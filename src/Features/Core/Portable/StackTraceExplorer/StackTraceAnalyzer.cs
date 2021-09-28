@@ -9,7 +9,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
     internal static class StackTraceAnalyzer
 

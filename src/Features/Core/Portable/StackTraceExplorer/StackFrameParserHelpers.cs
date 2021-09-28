@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
     internal class StackFrameParserHelpers
     {

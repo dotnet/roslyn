@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
     /// <summary>
     /// A line of text that was parsed by <see cref="StackTraceAnalyzer" />
