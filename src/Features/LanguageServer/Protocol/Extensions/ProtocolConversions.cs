@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -571,16 +570,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 default:
                     return Glyph.None;
             }
-        }
-
-        public static LSP.VSImageId GetImageIdFromGlyph(Glyph glyph)
-        {
-            var imageId = glyph.GetImageId();
-            return new LSP.VSImageId
-            {
-                Guid = imageId.Guid,
-                Id = imageId.Id
-            };
         }
 
         // The mappings here are roughly based off of SymbolUsageInfoExtensions.ToSymbolReferenceKinds.
