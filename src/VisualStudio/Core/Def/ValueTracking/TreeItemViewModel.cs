@@ -44,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public ImmutableArray<ClassifiedSpan> ClassifiedSpans { get; }
 
         public ImmutableArray<Inline> Inlines => CalculateInlines();
+        public override string AutomationName => _sourceText.ToString(TextSpan);
 
         public TreeItemViewModel(
             TextSpan textSpan,
