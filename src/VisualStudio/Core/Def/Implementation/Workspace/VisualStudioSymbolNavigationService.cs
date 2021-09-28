@@ -40,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly IGlobalOptionService _globalOptions;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly IPdbSourceDocumentNavigationService _pdbSourceDocumentNavigationService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -48,13 +49,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IVsEditorAdaptersFactoryService editorAdaptersFactory,
-            IMetadataAsSourceFileService metadataAsSourceFileService)
+            IMetadataAsSourceFileService metadataAsSourceFileService,
+            IPdbSourceDocumentNavigationService pdbSourceDocumentNavigationService)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             _globalOptions = globalOptions;
             _editorAdaptersFactory = editorAdaptersFactory;
             _metadataAsSourceFileService = metadataAsSourceFileService;
+            _pdbSourceDocumentNavigationService = pdbSourceDocumentNavigationService;
         }
 
         public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet? options, CancellationToken cancellationToken)
@@ -116,15 +119,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // Note: we'll fallback to Metadata-As-Source if we fail to get IVsNavInfo, but that should never happen.
             }
 
-            MetadataAsSourceFile? result = null;
-
             // First try loading the file from information stored in the PDB. This could give us the actual source, so is a better
             // result that metadata
-            var pdbSourceDocumentNavigationService = project.GetLanguageService<IPdbSourceDocumentNavigationService>();
-            if (pdbSourceDocumentNavigationService is not null)
-            {
-                result = pdbSourceDocumentNavigationService.GetPdbSourceDocumentAsync(project, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
-            }
+            var result = _pdbSourceDocumentNavigationService.GetPdbSourceDocumentAsync(project, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
 
             // Otherwise lets generate a source file
             if (result is null)
