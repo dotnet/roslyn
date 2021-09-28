@@ -5047,7 +5047,10 @@ tryAgain:
 
                     SyntaxToken refKeyword = null;
                     if (isLocal && !isConst &&
-                        this.CurrentToken.Kind == SyntaxKind.RefKeyword)
+                        this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                        // check for lambda expression with explicit ref return type: `ref int () => { ... }`
+                        !this.IsPossibleLambdaExpression(Precedence.Expression)
+                        )
                     {
                         refKeyword = this.EatToken();
                         refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
