@@ -5,6 +5,8 @@
 using System;
 using System.Composition;
 using System.IO;
+using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -33,8 +35,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // 
             // Most of this info comes from the CodeView Debug Directory from the dll
 
+            // The simplest possible thing is that the PDB happens to be right next to the DLL
             var pdbPath = Path.ChangeExtension(dllPath, ".pdb");
-
             if (File.Exists(pdbPath))
             {
                 return Task.FromResult<Stream?>(File.OpenRead(pdbPath));
