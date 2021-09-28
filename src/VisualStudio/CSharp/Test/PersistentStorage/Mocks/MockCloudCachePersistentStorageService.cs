@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
             _disposeCacheService = disposeCacheService;
         }
 
-        protected override async ValueTask<WrappedCacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
+        protected override async ValueTask<WrappedCacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
         {
             // Directly access VS' CacheService through their library and not as a brokered service. Then create our
             // wrapper CloudCacheService directly on that instance.

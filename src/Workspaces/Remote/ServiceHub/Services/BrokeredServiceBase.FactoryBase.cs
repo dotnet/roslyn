@@ -7,11 +7,9 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Pipelines;
-using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Remote.Host;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
 using Nerdbank.Streams;
@@ -92,10 +90,6 @@ namespace Microsoft.CodeAnalysis.Remote
                ServiceActivationOptions serviceActivationOptions,
                IServiceBroker serviceBroker)
             {
-                // Register this service broker globally (if it's the first we encounter) so it can be used by other
-                // global services that need it.
-                GlobalServiceBroker.RegisterServiceBroker(serviceBroker);
-
                 var descriptor = ServiceDescriptors.Instance.GetServiceDescriptorForServiceFactory(typeof(TService));
                 var serviceHubTraceSource = (TraceSource)hostProvidedServices.GetService(typeof(TraceSource));
                 var serverConnection = descriptor.WithTraceSource(serviceHubTraceSource).ConstructRpcConnection(pipe);

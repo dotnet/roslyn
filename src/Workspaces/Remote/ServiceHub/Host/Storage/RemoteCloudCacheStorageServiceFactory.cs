@@ -3,15 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote.Host;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.ServiceHub.Client;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
@@ -50,13 +51,16 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
                 }
             }
 
-            protected override async ValueTask<WrappedCacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
+            protected override async ValueTask<WrappedCacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
             {
                 using var hubClient = new HubClient();
 
 #pragma warning disable ISB001 // Dispose of proxies
                 // cache service will be disposed inside RemoteCloudCacheService.Dispose
-                var cacheService = await hubClient.GetProxyAsync<ICacheService>(VisualStudioServices.VS2019_10.CacheService, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var cacheService = await hubClient.GetProxyAsync<ICacheService>(
+                    VisualStudioServices.VS2019_10.CacheService,
+                    new ServiceActivationOptions { ActivationArguments = new Dictionary<string, string> { { "foo", solutionFolder } } },
+                    cancellationToken).ConfigureAwait(false);
 #pragma warning restore ISB001 // Dispose of proxies
 
                 Contract.ThrowIfNull(cacheService);
