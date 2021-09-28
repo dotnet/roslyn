@@ -279,19 +279,31 @@ if (true)
         [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [InlineData("$$#endregion")]
         [InlineData("#$$endregion")]
-        [InlineData("# $$ endregion")]
         [InlineData("#endregion$$ ")]
+        [InlineData("#endregion$$\r\n")]
         [InlineData("#endregion$$ End")]
-        [InlineData("#endregion $$End")]
-        [InlineData("#endregion En$$d")]
-        [InlineData("#endregion $$")]
-        [InlineData("#endregion\r\n$$")]
         public async Task RegionEndShowsStartRegionMessageAtDifferentPositions(string endRegion)
         {
             await TestAsync(
 @$"
 #region Start
 {endRegion}", "#region Start");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("#endregion$$")]
+        [InlineData("# $$ endregion")]
+        [InlineData("#endregion $$End")]
+        [InlineData("#endregion En$$d")]
+        [InlineData("#endregion $$")]
+        [InlineData("#endregion\r\n$$")]
+        public async Task RegionEndQuickInfoIsNotOfferedAtDifferentPositions(string endRegion)
+        {
+            await TestAsync(
+@$"
+#region Start
+{endRegion}", "");
         }
 
         [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
@@ -508,6 +520,31 @@ if (true)
 #if DEBUG
 #endif
 #end$$if", "");
+        }
+
+        [WorkItem(56507, "https://github.com/dotnet/roslyn/issues/56507")]
+        [Theory, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [InlineData("#$$elif RELEASE")]
+        [InlineData("#elif$$ RELEASE")]
+        [InlineData("#elif $$RELEASE")]
+        [InlineData("#elif RELE$$ASE")]
+        [InlineData("#elif RELEASE$$")]
+        [InlineData("#elif (REL$$EASE == true)")]
+        [InlineData("#elif (RELEASE =$$= true)")]
+        [InlineData("#elif (RELEASE !$$= true)")]
+        [InlineData("#elif (RELEASE == $$true)")]
+        [InlineData("#elif (RELEASE == $$false)")]
+        [InlineData("#elif RELEASE |$$| DEMO")]
+        [InlineData("#elif RELEASE &$$& DEMO")]
+        [InlineData("#elif ($$ RELEASE && DEMO)")]
+        [InlineData("#elif (RELEASE && DEMO $$)")]
+        public async Task ElifHasQuickinfoAtDifferentPositions(string elif)
+        {
+            await TestAsync(
+@$"
+#if DEBUG
+{elif}
+#endif", "#if DEBUG");
         }
 
         private static QuickInfoProvider CreateProvider()
