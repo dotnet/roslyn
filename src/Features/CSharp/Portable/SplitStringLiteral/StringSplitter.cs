@@ -11,15 +11,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
+using Microsoft.CodeAnalysis.Indentation;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
+namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral
 {
-    using Microsoft.CodeAnalysis.Indentation;
-
     internal partial class SplitStringLiteralCommandHandler
     {
-        private abstract class StringSplitter
+        internal abstract class StringSplitter
         {
             protected static readonly SyntaxAnnotation RightNodeAnnotation = new();
 
@@ -36,13 +34,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             protected readonly bool UseTabs;
             protected readonly CancellationToken CancellationToken;
 
-            private readonly IndentStyle _indentStyle;
+            private readonly FormattingOptions.IndentStyle _indentStyle;
 
             public StringSplitter(
                 Document document, int position,
                 SyntaxNode root, SourceText sourceText,
                 bool useTabs, int tabSize,
-                IndentStyle indentStyle, CancellationToken cancellationToken)
+                FormattingOptions.IndentStyle indentStyle,
+                CancellationToken cancellationToken)
             {
                 Document = document;
                 CursorPosition = position;
@@ -54,12 +53,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 CancellationToken = cancellationToken;
             }
 
-            public static StringSplitter Create(
+            public static StringSplitter TryCreate(
                 Document document, int position,
-                SyntaxNode root, SourceText sourceText,
-                bool useTabs, int tabSize, IndentStyle indentStyle,
+                bool useTabs, int tabSize, FormattingOptions.IndentStyle indentStyle,
                 CancellationToken cancellationToken)
             {
+                var root = document.GetSyntaxRootSynchronously(cancellationToken);
+                var sourceText = root.SyntaxTree.GetText(cancellationToken);
+
                 var token = root.FindToken(position);
 
                 if (token.IsKind(SyntaxKind.StringLiteralToken))
@@ -110,31 +111,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             protected abstract BinaryExpressionSyntax CreateSplitString();
 
-            public int? TrySplit()
+            public bool TrySplit(out Document newDocument, out int newPosition)
             {
                 var nodeToReplace = GetNodeToReplace();
 
                 if (CursorPosition <= nodeToReplace.SpanStart || CursorPosition >= nodeToReplace.Span.End)
                 {
-                    return null;
+                    newDocument = null;
+                    newPosition = 0;
+                    return false;
                 }
 
                 if (!CheckToken())
                 {
-                    return null;
+                    newDocument = null;
+                    newPosition = 0;
+                    return false;
                 }
 
-                return SplitWorker();
-            }
-
-            private int SplitWorker()
-            {
-                var (newDocument, finalCaretPosition) = SplitString();
-
-                var workspace = Document.Project.Solution.Workspace;
-                workspace.TryApplyChanges(newDocument.Project.Solution);
-
-                return finalCaretPosition;
+                (newDocument, newPosition) = SplitString();
+                return true;
             }
 
             private (Document document, int caretPosition) SplitString()

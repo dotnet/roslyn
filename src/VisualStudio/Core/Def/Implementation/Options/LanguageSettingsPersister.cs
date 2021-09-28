@@ -23,6 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// <summary>
     /// An <see cref="IOptionPersister"/> that syncs core language settings against the settings that exist for all languages
     /// in Visual Studio and whose backing store is provided by the shell. This includes things like default tab size, tabs vs. spaces, etc.
+    /// 
+    /// TODO: replace with free-threaded impl: https://github.com/dotnet/roslyn/issues/56815
     /// </summary>
     internal sealed class LanguageSettingsPersister : ForegroundThreadAffinitizedObject, IVsTextManagerEvents4, IOptionPersister
     {
