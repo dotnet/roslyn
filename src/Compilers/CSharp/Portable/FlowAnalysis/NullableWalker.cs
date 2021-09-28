@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 EnforceDoesNotReturn(syntaxOpt: null);
                 enforceMemberNotNull(syntaxOpt: null, this.State);
-                enforceNotNull(null, this.State);
+                EnforceParameterNotNullOnExit(syntaxOpt: null, this.State);
 
                 foreach (var pendingReturn in pendingReturns)
                 {
@@ -489,8 +489,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (pendingReturn.Branch is BoundReturnStatement returnStatement)
                     {
-                        enforceNotNull(returnStatement.Syntax, pendingReturn.State);
-                        enforceNotNullWhenForPendingReturn(pendingReturn, returnStatement);
+                        EnforceParameterNotNullOnExit(returnStatement.Syntax, pendingReturn.State);
+                        EnforceNotNullWhenForPendingReturn(pendingReturn, returnStatement);
                         enforceMemberNotNullWhenForPendingReturn(pendingReturn, returnStatement);
                     }
                 }
@@ -825,95 +825,134 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void enforceNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement)
+            int getSlotForFieldOrPropertyOrEvent(Symbol member)
             {
-                var parameters = this.MethodParameters;
-
-                if (!parameters.IsEmpty)
+                if (member.Kind != SymbolKind.Field &&
+                    member.Kind != SymbolKind.Property &&
+                    member.Kind != SymbolKind.Event)
                 {
-                    if (pendingReturn.IsConditionalState)
+                    return -1;
+                }
+
+                int containingSlot = 0;
+                if (!member.IsStatic)
+                {
+                    if (MethodThisParameter is null)
                     {
-                        if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
-                        {
-                            enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
-                            return;
-                        }
-
-                        if (!pendingReturn.StateWhenTrue.Reachable || !pendingReturn.StateWhenFalse.Reachable)
-                        {
-                            return;
-                        }
-
-                        foreach (var parameter in parameters)
-                        {
-                            // For non-constant values, only complain if we were able to analyze a difference for this parameter between two branches
-                            if (GetOrCreateSlot(parameter) is > 0 and var slot && pendingReturn.StateWhenTrue[slot] != pendingReturn.StateWhenFalse[slot])
-                            {
-                                reportParameterIfBadConditionalState(returnStatement.Syntax, parameter, sense: true, stateWhen: pendingReturn.StateWhenTrue);
-                                reportParameterIfBadConditionalState(returnStatement.Syntax, parameter, sense: false, stateWhen: pendingReturn.StateWhenFalse);
-                            }
-                        }
+                        return -1;
                     }
-                    else if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                    containingSlot = GetOrCreateSlot(MethodThisParameter);
+                    if (containingSlot < 0)
                     {
-                        // example: return (bool)true;
-                        enforceParameterNotNullWhen(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
+                        return -1;
+                    }
+                    Debug.Assert(containingSlot > 0);
+                }
+
+                return GetOrCreateSlot(member, containingSlot);
+            }
+        }
+
+        private void EnforceNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement)
+        {
+            var parameters = this.MethodParameters;
+
+            if (!parameters.IsEmpty)
+            {
+                if (pendingReturn.IsConditionalState)
+                {
+                    if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                    {
+                        EnforceParameterNotNullWhenOnExit(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
                         return;
                     }
-                }
-            }
 
-            void reportParameterIfBadConditionalState(SyntaxNode syntax, ParameterSymbol parameter, bool sense, LocalState stateWhen)
-            {
-                if (parameterHasBadConditionalState(parameter, sense, stateWhen))
-                {
-                    // Parameter '{name}' must have a non-null value when exiting with '{sense}'.
-                    Diagnostics.Add(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
-                }
-            }
-
-            void enforceNotNull(SyntaxNode? syntaxOpt, LocalState state)
-            {
-                if (!state.Reachable)
-                {
-                    return;
-                }
-
-                foreach (var parameter in this.MethodParameters)
-                {
-                    var slot = GetOrCreateSlot(parameter);
-                    if (slot <= 0)
+                    if (!pendingReturn.StateWhenTrue.Reachable || !pendingReturn.StateWhenFalse.Reachable)
                     {
-                        continue;
+                        return;
                     }
 
-                    var annotations = parameter.FlowAnalysisAnnotations;
-                    var hasNotNull = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
-                    var parameterState = state[slot];
-                    if (hasNotNull && parameterState.MayBeNull())
+                    foreach (var parameter in parameters)
                     {
-                        // Parameter '{name}' must have a non-null value when exiting.
-                        Diagnostics.Add(ErrorCode.WRN_ParameterDisallowsNull, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), parameter.Name);
+                        // For non-constant values, only complain if we were able to analyze a difference for this parameter between two branches
+                        if (GetOrCreateSlot(parameter) is > 0 and var slot && pendingReturn.StateWhenTrue[slot] != pendingReturn.StateWhenFalse[slot])
+                        {
+                            ReportParameterIfBadConditionalState(returnStatement.Syntax, parameter, sense: true, stateWhen: pendingReturn.StateWhenTrue);
+                            ReportParameterIfBadConditionalState(returnStatement.Syntax, parameter, sense: false, stateWhen: pendingReturn.StateWhenFalse);
+                        }
+                    }
+                }
+                else if (returnStatement.ExpressionOpt is { ConstantValue: { IsBoolean: true, BooleanValue: bool value } })
+                {
+                    // example: return (bool)true;
+                    EnforceParameterNotNullWhenOnExit(returnStatement.Syntax, parameters, sense: value, stateWhen: pendingReturn.State);
+                    return;
+                }
+            }
+        }
+
+        private void EnforceParameterNotNullOnExit(SyntaxNode? syntaxOpt, LocalState state)
+        {
+            if (!state.Reachable)
+            {
+                return;
+            }
+
+            foreach (var parameter in this.MethodParameters)
+            {
+                var slot = GetOrCreateSlot(parameter);
+                if (slot <= 0)
+                {
+                    continue;
+                }
+
+                var annotations = parameter.FlowAnalysisAnnotations;
+                var hasNotNull = (annotations & FlowAnalysisAnnotations.NotNull) == FlowAnalysisAnnotations.NotNull;
+                var parameterState = state[slot];
+                if (hasNotNull && parameterState.MayBeNull())
+                {
+                    Location location;
+                    if (syntaxOpt is BlockSyntax blockSyntax)
+                    {
+                        location = blockSyntax.CloseBraceToken.GetLocation();
                     }
                     else
                     {
-                        EnforceNotNullIfNotNull(syntaxOpt, state, this.MethodParameters, parameter.NotNullIfParameterNotNull, parameterState, parameter);
+                        location = syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation();
                     }
+
+                    // Parameter '{name}' must have a non-null value when exiting.
+                    Diagnostics.Add(ErrorCode.WRN_ParameterDisallowsNull, location, parameter.Name);
+                }
+                else
+                {
+                    EnforceNotNullIfNotNull(syntaxOpt, state, this.MethodParameters, parameter.NotNullIfParameterNotNull, parameterState, parameter);
                 }
             }
+        }
 
-            void enforceParameterNotNullWhen(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense, LocalState stateWhen)
+        private void EnforceParameterNotNullWhenOnExit(SyntaxNode syntax, ImmutableArray<ParameterSymbol> parameters, bool sense, LocalState stateWhen)
+        {
+            if (!stateWhen.Reachable)
             {
-                if (!stateWhen.Reachable)
-                {
-                    return;
-                }
-
-                foreach (var parameter in parameters)
-                {
-                    reportParameterIfBadConditionalState(syntax, parameter, sense, stateWhen);
-                }
+                return;
             }
+
+            foreach (var parameter in parameters)
+            {
+                ReportParameterIfBadConditionalState(syntax, parameter, sense, stateWhen);
+            }
+        }
+
+
+        private void ReportParameterIfBadConditionalState(SyntaxNode syntax, ParameterSymbol parameter, bool sense, LocalState stateWhen)
+        {
+            if (parameterHasBadConditionalState(parameter, sense, stateWhen))
+            {
+                // Parameter '{name}' must have a non-null value when exiting with '{sense}'.
+                Diagnostics.Add(ErrorCode.WRN_ParameterConditionallyDisallowsNull, syntax.Location, parameter.Name, sense ? "true" : "false");
+            }
+            return;
 
             bool parameterHasBadConditionalState(ParameterSymbol parameter, bool sense, LocalState stateWhen)
             {
@@ -951,33 +990,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return false;
             }
-
-            int getSlotForFieldOrPropertyOrEvent(Symbol member)
-            {
-                if (member.Kind != SymbolKind.Field &&
-                    member.Kind != SymbolKind.Property &&
-                    member.Kind != SymbolKind.Event)
-                {
-                    return -1;
-                }
-
-                int containingSlot = 0;
-                if (!member.IsStatic)
-                {
-                    if (MethodThisParameter is null)
-                    {
-                        return -1;
-                    }
-                    containingSlot = GetOrCreateSlot(MethodThisParameter);
-                    if (containingSlot < 0)
-                    {
-                        return -1;
-                    }
-                    Debug.Assert(containingSlot > 0);
-                }
-
-                return GetOrCreateSlot(member, containingSlot);
-            }
         }
 
         private void EnforceNotNullIfNotNull(SyntaxNode? syntaxOpt, LocalState state, ImmutableArray<ParameterSymbol> parameters, ImmutableHashSet<string> inputParamNames, NullableFlowState outputState, ParameterSymbol? outputParam)
@@ -1011,8 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnforceDoesNotReturn(SyntaxNode? syntaxOpt)
         {
-            // DoesNotReturn is only supported in member methods
-            if (CurrentSymbol is MethodSymbol { ContainingSymbol: TypeSymbol _ } method &&
+            if (CurrentSymbol is MethodSymbol method &&
                 ((method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn) &&
                 this.IsReachable())
             {
@@ -2555,7 +2566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!method.IsAsync)
             {
-                annotations = delegateOrMethod.ReturnTypeFlowAnalysisAnnotations;
+                annotations = method.ReturnTypeFlowAnalysisAnnotations;
                 type = ApplyUnconditionalAnnotations(returnType, annotations);
                 return true;
             }
@@ -2699,7 +2710,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!useDelegateInvokeParameterTypes || delegateInvokeMethod is object);
             Debug.Assert(!useDelegateInvokeReturnType || delegateInvokeMethod is object);
 
-            var oldSymbol = this.CurrentSymbol;
+            var oldSymbol = this._symbol;
+            this._symbol = lambdaOrFunctionSymbol;
+            var oldCurrentSymbol = this.CurrentSymbol;
             this.CurrentSymbol = lambdaOrFunctionSymbol;
 
             var oldDelegateInvokeMethod = _delegateInvokeMethod;
@@ -2733,8 +2746,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 VisitAlways(lambdaOrFunction.Body);
+                EnforceDoesNotReturn(syntaxOpt: null);
+                EnforceParameterNotNullOnExit(null, this.State);
+
                 RestorePending(oldPending2); // process any forward branches within the lambda body
+
                 ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
+                foreach (var pendingReturn in pendingReturns)
+                {
+                    if (pendingReturn.Branch is BoundReturnStatement returnStatement)
+                    {
+                        EnforceParameterNotNullOnExit(returnStatement.Syntax, pendingReturn.State);
+                        EnforceNotNullWhenForPendingReturn(pendingReturn, returnStatement);
+                    }
+                }
+
                 RestorePending(oldPending);
             }
             finally
@@ -2748,7 +2774,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _useDelegateInvokeReturnType = oldUseDelegateInvokeReturnType;
             _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
             _delegateInvokeMethod = oldDelegateInvokeMethod;
-            this.CurrentSymbol = oldSymbol;
+            this.CurrentSymbol = oldCurrentSymbol;
+            this._symbol = oldSymbol;
         }
 
         protected override void VisitLocalFunctionUse(
@@ -6832,6 +6859,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(delegateType is object);
+            if (unboundLambda.Syntax is LambdaExpressionSyntax lambdaSyntax)
+            {
+                int start = lambdaSyntax.SpanStart;
+                location = Location.Create(lambdaSyntax.SyntaxTree, new Text.TextSpan(start, lambdaSyntax.ArrowToken.Span.End - start));
+            }
 
             if (unboundLambda.HasExplicitReturnType(out _, out var returnType) &&
                 IsNullabilityMismatch(invoke.ReturnTypeWithAnnotations, returnType, requireIdentity: true))
