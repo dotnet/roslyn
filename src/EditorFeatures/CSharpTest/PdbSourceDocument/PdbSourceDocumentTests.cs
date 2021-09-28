@@ -290,11 +290,12 @@ public class C
 
             MarkupTestFile.GetSpan(metadataSource, out var input, out var expectedSpan);
 
-            var workspace = TestWorkspace.Create(@$"
+            using var workspace = TestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
 </Workspace>");
+
             var project = workspace.CurrentSolution.Projects.First();
 
             var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
@@ -352,12 +353,16 @@ public class C
 
             AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");
 
-            var actual = File.ReadAllText(file!.FilePath);
-            var actualSpan = file.IdentifierLocation.SourceSpan;
+            var masWorkspace = ((PdbSourceDocumentNavigationService)service).GetTestAccessor().Workspace;
+
+            var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First();
+
+            var actual = await document.GetTextAsync();
+            var actualSpan = file!.IdentifierLocation.SourceSpan;
 
             // Compare exact texts and verify that the location returned is exactly that
             // indicated by expected
-            AssertEx.EqualOrDiff(input, actual);
+            AssertEx.EqualOrDiff(input, actual.ToString());
             Assert.Equal(expectedSpan.Start, actualSpan.Start);
             Assert.Equal(expectedSpan.End, actualSpan.End);
         }

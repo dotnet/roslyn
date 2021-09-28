@@ -24,11 +24,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     [Export(typeof(IPdbSourceDocumentNavigationService)), Shared]
-    internal class PdbSourceDocumentNavigationService : IPdbSourceDocumentNavigationService
+    internal partial class PdbSourceDocumentNavigationService : IPdbSourceDocumentNavigationService
     {
         private MetadataAsSourceWorkspace? _workspace;
         private readonly IPdbFileLocatorService _pdbFileLocatorService;
         private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
+
+        private readonly Dictionary<string, ProjectId> _assemblyToProject = new();
+        private readonly Dictionary<string, DocumentInfo> _fileToDocument = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -101,8 +104,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 _workspace = new MetadataAsSourceWorkspace(null!, project.Solution.Workspace.Services.HostServices);
             }
 
+            var assemblyName = symbol.ContainingAssembly.Identity.Name;
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
-            var projectId = ProjectId.CreateNewId();
             var languageServices = _workspace.Services.GetLanguageServices(languageName!);
 
             var parser = languageServices.GetRequiredService<ICommandLineParserService>();
@@ -110,32 +113,60 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             var compilationOptions = arguments.CompilationOptions;
             var parseOptions = arguments.ParseOptions;
-            var assemblyName = symbol.ContainingAssembly.Identity.Name;
 
-            var documentInfos = filePaths.Select(filePath => DocumentInfo.Create(
-                DocumentId.CreateNewId(projectId),
-                Path.GetFileName(filePath),
-                filePath: filePath,
-                loader: _pdbSourceDocumentLoaderService.LoadSourceFile(filePath)));
+            // If we don't already have a project for this assembly, we need to create one
+            if (!_assemblyToProject.TryGetValue(assemblyName, out var projectId))
+            {
+                projectId = ProjectId.CreateNewId();
+                var projectInfo = ProjectInfo.Create(
+                    projectId,
+                    VersionStamp.Default,
+                    name: assemblyName + "_FromPdb", // To distinguish it from a Metadata as Source project it might get
+                    assemblyName: assemblyName,
+                    language: languageName,
+                    compilationOptions: compilationOptions,
+                    parseOptions: parseOptions,
+                    metadataReferences: project.MetadataReferences.ToImmutableArray());
 
-            var projectInfo = ProjectInfo.Create(
-                projectId,
-                VersionStamp.Default,
-                name: assemblyName,
-                assemblyName: assemblyName,
-                language: languageName,
-                compilationOptions: compilationOptions,
-                parseOptions: parseOptions,
-                documents: documentInfos,
-                metadataReferences: project.MetadataReferences.ToImmutableArray());
+                _workspace.OnProjectAdded(projectInfo);
 
-            var temporarySolution = _workspace.CurrentSolution.AddProject(projectInfo);
-            var temporaryProject = temporarySolution.GetRequiredProject(projectId);
+                _assemblyToProject.Add(assemblyName, projectId);
+            }
 
-            var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryProject.Documents.First(), cancellationToken).ConfigureAwait(false);
-            var navigateDocument = temporaryProject.GetDocument(navigateLocation.SourceTree);
+            var newDocumentInfos = GetNewDocumentInfos(pdbReader, filePaths, projectId);
+            _workspace.OnDocumentsAdded(newDocumentInfos);
+            foreach (var document in newDocumentInfos)
+            {
+                _fileToDocument.Add(document.FilePath!, document);
+            }
+
+            var navigateProject = _workspace.CurrentSolution.GetRequiredProject(projectId);
+            var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, navigateProject.Documents.First(), cancellationToken).ConfigureAwait(false);
+            var navigateDocument = navigateProject.GetDocument(navigateLocation.SourceTree);
 
             return new MetadataAsSourceFile(navigateDocument!.FilePath, navigateLocation, navigateDocument!.Name + " [from PDB]", navigateDocument.FilePath);
+        }
+
+        private ImmutableArray<DocumentInfo> GetNewDocumentInfos(MetadataReader pdbReader, SourceDocument[] filePaths, ProjectId projectId)
+        {
+            using var _ = ArrayBuilder<DocumentInfo>.GetInstance(out var documents);
+
+            foreach (var sourceDocument in filePaths)
+            {
+                // If a document has multiple symbols then we'll already know about it
+                if (_fileToDocument.ContainsKey(sourceDocument.FilePath))
+                {
+                    continue;
+                }
+
+                documents.Add(DocumentInfo.Create(
+                     DocumentId.CreateNewId(projectId),
+                     Path.GetFileName(sourceDocument.FilePath),
+                     filePath: sourceDocument.FilePath,
+                     loader: _pdbSourceDocumentLoaderService.LoadSourceDocument(sourceDocument, pdbReader)));
+            }
+
+            return documents.ToImmutable();
         }
 
         private static IEnumerable<string> RetreiveCompilerOptions(MetadataReader pdbReader, out string? languageName)
@@ -188,11 +219,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             };
 
         // TODO: Move everything below this point to a service? Or just a static class?
-        private static string[] GetSourcePaths(ISymbol symbol, MetadataReader dllReader, MetadataReader pdbReader)
+        private static SourceDocument[] GetSourcePaths(ISymbol symbol, MetadataReader dllReader, MetadataReader pdbReader)
         {
             var documentHandles = FindSourceDocuments(symbol, dllReader, pdbReader);
 
-            var result = documentHandles.Select(h => pdbReader.GetString(pdbReader.GetDocument(h).Name)).ToArray();
+            var result = documentHandles.Select(h => new SourceDocument(h, pdbReader.GetString(pdbReader.GetDocument(h).Name))).ToArray();
             return result;
         }
 
@@ -360,6 +391,19 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     }
                 }
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal class TestAccessor
+        {
+            private readonly PdbSourceDocumentNavigationService _service;
+
+            public TestAccessor(PdbSourceDocumentNavigationService service)
+                => _service = service;
+
+            public MetadataAsSourceWorkspace? Workspace => _service._workspace;
         }
     }
 }
