@@ -4244,6 +4244,47 @@ class Program
 
         [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
         [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
+        public void LambdaAttributes_NullableAttributes_AnonymousFunctionConversion_Return_Suppressed()
+        {
+            var source =
+@"#nullable enable
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+delegate object D1();
+[return: MaybeNull] delegate object D2();
+[return: NotNull] delegate object? D3();
+
+class Program
+{
+    static void Main()
+    {
+        Func<object> f1 = ([return: MaybeNull] () => null)!;
+        D1 f2 = ([return: MaybeNull] () => null)!;
+        D3 f4 = ([return: MaybeNull] () => null)!;
+
+        D2 f7 = ([return: NotNull] () => null)!;
+
+        Func<object?> f9 = ([return: NotNull] () => null)!;
+        D2 f11 = ([return: NotNull] object? () => null)!;
+    }
+}";
+            var comp = CreateCompilation(new[] { source, MaybeNullAttributeDefinition, NotNullAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (17,42): warning CS8603: Possible null reference return.
+                //         D2 f7 = ([return: NotNull] () => null)!;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(17, 42),
+                // (19,53): warning CS8603: Possible null reference return.
+                //         Func<object?> f9 = ([return: NotNull] () => null)!;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(19, 53),
+                // (20,51): warning CS8603: Possible null reference return.
+                //         D2 f11 = ([return: NotNull] object? () => null)!;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(20, 51)
+                );
+        }
+
+        [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
+        [WorkItem(56668, "https://github.com/dotnet/roslyn/issues/56668")]
         public void LambdaAttributes_NullableAttributes_DelegateCreation_Return()
         {
             var source =
