@@ -4545,8 +4545,8 @@ class Program
         Func<object?, object> f1 = [return: NotNullIfNotNull(""o"")] (object? o) => null; // 1
         D1 f2 = [return: NotNullIfNotNull(""o"")] (object? o) => null;
         D2 f3 = [return: NotNullIfNotNull(""o"")] (object? o) => null;
-        D3 f4 = [return: NotNullIfNotNull(""o"")] (object? o) => null; // 2, 3
-        D4 f5 = [return: NotNullIfNotNull(""o"")] (object? o) => null;
+        D3 f4 = [return: NotNullIfNotNull(""o"")] (object? o) => null; // 2
+        D4 f5 = [return: NotNullIfNotNull(""o"")] (object? o) => null; // 3
     }
 }";
             var comp = CreateCompilation(new[] { source, NotNullIfNotNullAttributeDefinition, NotNullAttributeDefinition });
@@ -4555,10 +4555,10 @@ class Program
                 //         Func<object?, object> f1 = [return: NotNullIfNotNull("o")] (object? o) => null; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(14, 83),
                 // (17,17): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'D3' (possibly because of nullability attributes).
-                //         D3 f4 = [return: NotNullIfNotNull("o")] (object? o) => null; // 2, 3
+                //         D3 f4 = [return: NotNullIfNotNull("o")] (object? o) => null; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, @"[return: NotNullIfNotNull(""o"")] (object? o) =>").WithArguments("lambda expression", "D3").WithLocation(17, 17),
                 // (18,64): warning CS8603: Possible null reference return.
-                //         D4 f5 = [return: NotNullIfNotNull("o")] (object? o) => null;
+                //         D4 f5 = [return: NotNullIfNotNull("o")] (object? o) => null; // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(18, 64)
                 );
         }

@@ -6836,7 +6836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     arg.targetType);
             }
 
-            void reportBadDelegateParameter(BindingDiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol parameter, int _, bool topLevel, (TypeSymbol targetType, Location location) arg)
+            void reportBadDelegateParameter(BindingDiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol parameter, bool topLevel, (TypeSymbol targetType, Location location) arg)
             {
                 ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, arg.location,
                     GetParameterAsDiagnosticArgument(parameter),
@@ -6848,11 +6848,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ReportNullabilityMismatchWithTargetDelegate(Location location, NamedTypeSymbol delegateType, BoundLambda lambda)
         {
             MethodSymbol? targetInvokeMethod = delegateType.DelegateInvokeMethod;
-            LambdaSymbol sourceInvokeMethod = lambda.Symbol;
+            LambdaSymbol sourceMethod = lambda.Symbol;
             UnboundLambda unboundLambda = lambda.UnboundLambda;
 
             if (targetInvokeMethod is null ||
-                targetInvokeMethod.ParameterCount != sourceInvokeMethod.ParameterCount)
+                targetInvokeMethod.ParameterCount != sourceMethod.ParameterCount)
             {
                 return;
             }
@@ -6860,6 +6860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Parameter nullability is expected to match exactly. This corresponds to the behavior of initial binding.
             //    Action<string> x = (object o) => { }; // error CS1661: Cannot convert lambda expression to delegate type 'Action<string>' because the parameter types do not match the delegate parameter types
             //    Action<object> y = (object? o) => { }; // warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'Action<object>'.
+            // We check that by calling CheckValidNullableMethodOverride in both directions.
             // https://github.com/dotnet/roslyn/issues/35564: Consider relaxing and allow implicit conversions of nullability (as we do for method group conversions).
 
             if (lambda.Syntax is LambdaExpressionSyntax lambdaSyntax)
@@ -6871,7 +6872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 compilation,
                 targetInvokeMethod,
-                sourceInvokeMethod,
+                sourceMethod,
                 new BindingDiagnosticBag(Diagnostics),
                 reportBadDelegateReturn,
                 reportBadDelegateParameter,
@@ -6883,7 +6884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 compilation,
-                sourceInvokeMethod,
+                sourceMethod,
                 targetInvokeMethod,
                 new BindingDiagnosticBag(Diagnostics),
                 reportBadDelegateReturn,
@@ -6898,10 +6899,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     delegateType);
             }
 
-            void reportBadDelegateParameter(BindingDiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol _, int parameterIndex, bool topLevel, Location location)
+            void reportBadDelegateParameter(BindingDiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol parameterSymbol, bool topLevel, Location location)
             {
                 ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
-                    unboundLambda.ParameterName(parameterIndex),
+                    unboundLambda.ParameterName(parameterSymbol.Ordinal),
                     unboundLambda.MessageID.Localize(),
                     delegateType);
             }
