@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -22,14 +21,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
 
         public MockCloudCachePersistentStorageService(
             IPersistentStorageConfiguration configuration,
-            string relativePathBase,
-            Action<ICacheService> disposeCacheService)
+            string relativePathBase)
             : base(configuration)
         {
             _relativePathBase = relativePathBase;
         }
 
-        protected override async ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
+        protected override async ValueTask<ICacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
         {
             // Directly access VS' CacheService through their library and not as a brokered service. Then create our
             // wrapper CloudCacheService directly on that instance.
