@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -12,7 +11,6 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Cache;
 using Microsoft.VisualStudio.Cache.SQLite;
 using Microsoft.VisualStudio.LanguageServices.Storage;
-using Microsoft.VisualStudio.RpcContracts.Caching;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
 {

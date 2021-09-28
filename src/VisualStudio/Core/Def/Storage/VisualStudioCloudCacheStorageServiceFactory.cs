@@ -4,29 +4,23 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
-using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
     [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), ServiceLayer.Host), Shared]
     internal class VisualStudioCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
     {
-        private readonly IThreadingContext _threadingContext;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioCloudCacheStorageServiceFactory(
-            IThreadingContext threadingContext)
+        public VisualStudioCloudCacheStorageServiceFactory()
         {
-            _threadingContext = threadingContext;
         }
 
-        public AbstractPersistentStorageService Create(IPersistentStorageConfiguration locationService)
-            => new VisualStudioCloudCacheStorageService(_threadingContext, locationService);
+        public AbstractPersistentStorageService Create(IPersistentStorageConfiguration configuration)
+            => new HubClientCloudCachePersistentStorageService(configuration);
     }
 }
