@@ -75,20 +75,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position, findInsideTrivia);
-            var span = findInsideTrivia
-                ? token.FullSpan
-                : token.Span;
-            if ((span.Contains(position) || span.End == position) && predicate(token))
+
+            if ((token.Span.Contains(position) || token.Span.End == position) && predicate(token))
             {
                 return token;
             }
 
             token = token.GetPreviousToken();
-            span = findInsideTrivia
-                ? token.FullSpan
-                : token.Span;
 
-            if (span.End == position && predicate(token))
+            if (token.Span.End == position && predicate(token))
             {
                 return token;
             }
