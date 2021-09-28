@@ -290,7 +290,37 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             ProcessTypeDef(typeDefHandle, dllReader, pdbReader, docList);
         }
 
-        private static void ProcessTypeDef(TypeDefinitionHandle typeDefHandle, MetadataReader dllReader, MetadataReader pdbReader, HashSet<DocumentHandle> docList)
+        private static void ProcessTypeDef(TypeDefinitionHandle typeDefHandle, MetadataReader dllReader, MetadataReader pdbReader, HashSet<DocumentHandle> docList, bool processContainingType = true)
+        {
+            AddDocumentsFromTypeDefinitionDocuments(typeDefHandle, pdbReader, docList);
+
+            // We don't necessarily have all of the documents associated with the type
+            var typeDef = dllReader.GetTypeDefinition(typeDefHandle);
+            foreach (var methodDefHandle in typeDef.GetMethods())
+            {
+                ProcessMethodDef(methodDefHandle, dllReader, pdbReader, docList, processDeclaringType: false);
+            }
+
+            if (processContainingType)
+            {
+                // If this is a nested type, then we want to check the outer type too
+                var containingType = typeDef.GetDeclaringType();
+                if (!containingType.IsNil)
+                {
+                    ProcessTypeDef(containingType, dllReader, pdbReader, docList);
+                }
+            }
+
+            // And of course if this is an outer type, the only document info might be from methods in
+            // nested types
+            var nestedTypes = typeDef.GetNestedTypes();
+            foreach (var nestedType in nestedTypes)
+            {
+                ProcessTypeDef(nestedType, dllReader, pdbReader, docList, processContainingType: false);
+            }
+        }
+
+        private static void AddDocumentsFromTypeDefinitionDocuments(TypeDefinitionHandle typeDefHandle, MetadataReader pdbReader, HashSet<DocumentHandle> docList)
         {
             var handles = pdbReader.GetCustomDebugInformation(typeDefHandle);
             foreach (var cdiHandle in handles)
@@ -308,13 +338,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                         }
                     }
                 }
-            }
-
-            // We don't necessarily have all of the documents associated with the type
-            var typeDef = dllReader.GetTypeDefinition(typeDefHandle);
-            foreach (var methodDefHandle in typeDef.GetMethods())
-            {
-                ProcessMethodDef(methodDefHandle, dllReader, pdbReader, docList, processDeclaringType: false);
             }
         }
     }
