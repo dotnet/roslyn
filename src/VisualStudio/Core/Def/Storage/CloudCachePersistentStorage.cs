@@ -60,7 +60,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             => _cacheService.Dispose();
 
         public sealed override ValueTask DisposeAsync()
-            => _cacheService.DisposeAsync();
+        {
+            _cacheService.Dispose();
+            return ValueTaskFactory.CompletedTask;
+        }
 
         /// <summary>
         /// Maps our own roslyn key to the appropriate key to use for the cloud cache system.  To avoid lots of

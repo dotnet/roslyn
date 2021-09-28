@@ -39,18 +39,6 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
             {
             }
 
-            private void DisposeCacheService(ICacheService cacheService)
-            {
-                if (cacheService is IAsyncDisposable asyncDisposable)
-                {
-                    asyncDisposable.DisposeAsync().AsTask().Wait();
-                }
-                else if (cacheService is IDisposable disposable)
-                {
-                    disposable.Dispose();
-                }
-            }
-
             protected override async ValueTask<WrappedCacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
             {
                 using var hubClient = new HubClient();
@@ -64,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
 #pragma warning restore ISB001 // Dispose of proxies
 
                 Contract.ThrowIfNull(cacheService);
-                return new WrappedCacheService(hubClient, cacheService, this.DisposeCacheService);
+                return new WrappedCacheService(hubClient, cacheService);
             }
         }
     }

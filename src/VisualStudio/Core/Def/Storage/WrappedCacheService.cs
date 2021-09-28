@@ -8,44 +8,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.RpcContracts;
 using Microsoft.VisualStudio.RpcContracts.Caching;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
-    internal class WrappedCacheService : ICacheService, IAsyncDisposable, IDisposable
+    internal class WrappedCacheService : ICacheService, IDisposable
     {
         private readonly IDisposable? _hubClient;
         private readonly ICacheService _cacheService;
-        private readonly Action<ICacheService> _disposeCacheService;
 
-        public WrappedCacheService(IDisposable? hubClient, ICacheService cacheService, Action<ICacheService> disposeCacheService)
+        public WrappedCacheService(IDisposable? hubClient, ICacheService cacheService)
         {
             _hubClient = hubClient;
             _cacheService = cacheService;
-            _disposeCacheService = disposeCacheService;
         }
 
         public void Dispose()
         {
-            _disposeCacheService(_cacheService);
+            (_cacheService as IDisposable)?.Dispose();
             _hubClient?.Dispose();
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await DisposeCacheServiceAsync().ConfigureAwait(false);
-            _hubClient?.Dispose();
-        }
-
-        private ValueTask DisposeCacheServiceAsync()
-        {
-            if (_cacheService is IAsyncDisposable asyncDisposable)
-                return asyncDisposable.DisposeAsync();
-
-            if (_cacheService is IDisposable disposable)
-                disposable.Dispose();
-
-            return ValueTaskFactory.CompletedTask;
         }
 
         public ValueTask<string> GetRelativePathBaseAsync(CancellationToken cancellationToken)

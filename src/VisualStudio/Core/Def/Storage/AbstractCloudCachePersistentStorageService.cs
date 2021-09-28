@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
-using Microsoft.VisualStudio.RpcContracts.Caching;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage

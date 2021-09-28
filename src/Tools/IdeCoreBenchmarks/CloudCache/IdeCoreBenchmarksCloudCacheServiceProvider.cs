@@ -25,17 +25,7 @@ namespace CloudCache
         public AbstractPersistentStorageService Create(IPersistentStorageConfiguration configuration)
         {
             return new MockCloudCachePersistentStorageService(
-                configuration, @"C:\github\roslyn", cs =>
-                {
-                    if (cs is IAsyncDisposable asyncDisposable)
-                    {
-                        asyncDisposable.DisposeAsync().AsTask().Wait();
-                    }
-                    else if (cs is IDisposable disposable)
-                    {
-                        disposable.Dispose();
-                    }
-                });
+                configuration, @"C:\github\roslyn");
         }
     }
 }

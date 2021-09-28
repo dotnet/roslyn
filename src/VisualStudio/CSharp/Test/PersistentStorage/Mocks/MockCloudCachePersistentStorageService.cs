@@ -19,16 +19,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
     internal class MockCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
     {
         private readonly string _relativePathBase;
-        private readonly Action<ICacheService> _disposeCacheService;
 
         public MockCloudCachePersistentStorageService(
             IPersistentStorageConfiguration configuration,
-            string relativePathBase,
-            Action<ICacheService> disposeCacheService)
+            string relativePathBase)
             : base(configuration)
         {
             _relativePathBase = relativePathBase;
-            _disposeCacheService = disposeCacheService;
         }
 
         protected override async ValueTask<WrappedCacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
@@ -52,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
             var pool = new SqliteConnectionPool();
             var activeContext = await pool.ActivateContextAsync(someContext, default);
             var cacheService = new CacheService(activeContext, serviceBroker, authorizationServiceClient, pool);
-            return new WrappedCacheService(null, cacheService, _disposeCacheService);
+            return new WrappedCacheService(null, cacheService);
         }
     }
 }

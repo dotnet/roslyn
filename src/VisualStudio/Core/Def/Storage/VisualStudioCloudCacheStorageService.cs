@@ -25,19 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             _threadingContext = threadingContext;
         }
 
-        private void DisposeCacheService(ICacheService cacheService)
-        {
-            if (cacheService is IAsyncDisposable asyncDisposable)
-            {
-                _threadingContext.JoinableTaskFactory.Run(
-                    () => asyncDisposable.DisposeAsync().AsTask());
-            }
-            else if (cacheService is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
-        }
-
         protected sealed override async ValueTask<WrappedCacheService> CreateCacheServiceAsync(string solutionFolder, CancellationToken cancellationToken)
         {
             var hubClient = new HubClient();
@@ -51,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 #pragma warning restore ISB001 // Dispose of proxies
 
             Contract.ThrowIfNull(cacheService);
-            return new WrappedCacheService(hubClient, cacheService, this.DisposeCacheService);
+            return new WrappedCacheService(hubClient, cacheService);
         }
     }
 }
