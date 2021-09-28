@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
@@ -50,17 +51,37 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 return null;
 
             using var pdbStream = await _pdbFileLocatorService.GetPdbPathAsync(dllPath, cancellationToken).ConfigureAwait(false);
-            if (pdbStream is null)
-                return null;
+
+            MetadataReader dllReader;
+            MetadataReader pdbReader;
 
             using var dllStream = File.OpenRead(dllPath);
+            if (pdbStream is null)
+            {
+                // Otherwise lets see if its an embedded PDB. We'll need to read the DLL to get info
+                // for the debugger anyway
+                var peReader = new PEReader(dllStream, PEStreamOptions.LeaveOpen);
 
-            using var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream, MetadataStreamOptions.LeaveOpen);
-            var pdbReader = pdbReaderProvider.GetMetadataReader();
+                var entry = peReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                if (entry.Type == DebugDirectoryEntryType.Unknown)
+                {
+                    return null;
+                }
 
-            //using var dllReaderProvider = MetadataReaderProvider.FromMetadataStream(dllStream, leaveOpen: true);   // TODO: Fails with "System.BadImageFormatException : Invalid COR20 header signature.", from tests at least
-            using var dllReaderProvider = ModuleMetadata.CreateFromStream(dllStream, leaveOpen: true);
-            var dllReader = dllReaderProvider.GetMetadataReader();
+                using var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
+                pdbReader = provider.GetMetadataReader();
+
+                dllReader = peReader.GetMetadataReader();
+            }
+            else
+            {
+                //using var dllReaderProvider = MetadataReaderProvider.FromMetadataStream(dllStream, leaveOpen: true);   // TODO: Fails with "System.BadImageFormatException : Invalid COR20 header signature.", from tests at least
+                using var dllReaderProvider = ModuleMetadata.CreateFromStream(dllStream, leaveOpen: true);
+                dllReader = dllReaderProvider.GetMetadataReader();
+
+                using var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream, MetadataStreamOptions.LeaveOpen);
+                pdbReader = pdbReaderProvider.GetMetadataReader();
+            }
 
             var filePaths = GetSourcePaths(symbol, dllReader, pdbReader);
             if (filePaths.Length == 0)
