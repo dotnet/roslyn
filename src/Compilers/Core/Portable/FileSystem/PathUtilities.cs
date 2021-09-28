@@ -773,6 +773,31 @@ namespace Roslyn.Utilities
         public static string NormalizeWithForwardSlash(string p)
             => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
 
+        /// <summary>
+        /// Takes a normalized full path from <see cref="NormalizeWithForwardSlash(string)"/> and expands any '..' or '.'
+        /// into their equivalent representation.
+        /// </summary>
+        /// <returns>An equivalent path that does not contain any '..' or '.' path parts.</returns>
+        public static string ExpandNormalizedFullPathWithRelativeParts(string p)
+        {
+            Debug.Assert(p.StartsWith("/"));
+
+            var parts = GetPathParts(p);
+            Stack<string> resolvedParts = new Stack<string>();
+            foreach (var part in parts)
+            {
+                if (!part.Equals(ParentRelativeDirectory))
+                {
+                    resolvedParts.Push(part);
+                }
+                else if (resolvedParts.Count > 0)
+                {
+                    resolvedParts.Pop();
+                }
+            }
+            return string.Join("/", resolvedParts.Reverse());
+        }
+
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 
         private class PathComparer : IEqualityComparer<string?>
