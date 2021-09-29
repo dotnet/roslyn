@@ -1308,7 +1308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DictionaryInitializerInExpressionTree = 8074,
         ERR_ExtensionCollectionElementInitializerInExpressionTree = 8075,
         ERR_UnclosedExpressionHole = 8076,
-        ERR_SingleLineCommentInExpressionHole = 8077,
+        // It is now legal to have single line comments in expression holes.
+        // ERR_SingleLineCommentInExpressionHole = 8077,
         ERR_InsufficientStack = 8078,
         ERR_UseDefViolationProperty = 8079,
         ERR_AutoPropertyMustOverrideSet = 8080,
@@ -1990,7 +1991,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadCallerArgumentExpressionParamWithoutDefaultValue = 8964,
         WRN_CallerArgumentExpressionAttributeSelfReferential = 8965,
         WRN_CallerArgumentExpressionParamForUnconsumedLocation = 8966,
-        ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString = 8967,
+        // It is now legal to have newlines in expression holes.
+        // ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString = 8967,
         ERR_AttrTypeArgCannotBeTypeVar = 8968,
         // WRN_AttrDependentTypeNotAllowed = 8969, // Backed out of of warning wave 6, may be reintroduced later
         ERR_AttrDependentTypeNotAllowed = 8970,
