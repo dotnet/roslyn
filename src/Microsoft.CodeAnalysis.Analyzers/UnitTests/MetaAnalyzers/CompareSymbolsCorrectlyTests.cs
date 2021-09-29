@@ -1,6 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpSecurityCodeFixVerifier<
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsEquals_CSharp(string symbolType)
+        public async Task CompareTwoSymbolsEquals_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -227,7 +229,7 @@ class TestClass {{
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsEquals_NoComparer_CSharp(string symbolType)
+        public async Task CompareTwoSymbolsEquals_NoComparer_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -252,7 +254,7 @@ class TestClass {{
         [WorkItem(2335, "https://github.com/dotnet/roslyn-analyzers/issues/2335")]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsByIdentity_CSharp(string symbolType)
+        public async Task CompareTwoSymbolsByIdentity_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -274,7 +276,7 @@ class TestClass {{
 
         [Fact]
         [WorkItem(2336, "https://github.com/dotnet/roslyn-analyzers/issues/2336")]
-        public async Task CompareTwoSymbolImplementations_CSharp()
+        public async Task CompareTwoSymbolImplementations_CSharpAsync()
         {
             var source = $@"
 class TestClass {{
@@ -294,7 +296,7 @@ class TestClass {{
         [WorkItem(2336, "https://github.com/dotnet/roslyn-analyzers/issues/2336")]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareSymbolImplementationWithInterface_CSharp(string symbolType)
+        public async Task CompareSymbolImplementationWithInterface_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -323,7 +325,7 @@ class TestClass {{
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareSymbolImplementationWithInterface_NoComparer_CSharp(string symbolType)
+        public async Task CompareSymbolImplementationWithInterface_NoComparer_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -351,7 +353,7 @@ class TestClass {{
 
         [Theory]
         [CombinatorialData]
-        public async Task CompareSymbolWithNull_CSharp(
+        public async Task CompareSymbolWithNull_CSharpAsync(
             [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
             [CombinatorialValues("==", "!=")] string @operator,
             [CombinatorialValues("null", "default", "default(ISymbol)")] string value)
@@ -375,7 +377,7 @@ class TestClass {{
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareSymbolWithNullPattern_CSharp(string symbolType)
+        public async Task CompareSymbolWithNullPattern_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -392,7 +394,7 @@ class TestClass {{
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsEquals_VisualBasic(string symbolType)
+        public async Task CompareTwoSymbolsEquals_VisualBasicAsync(string symbolType)
         {
             var source = $@"
 Imports Microsoft.CodeAnalysis
@@ -421,7 +423,7 @@ End Class
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsEquals_NoComparer_VisualBasic(string symbolType)
+        public async Task CompareTwoSymbolsEquals_NoComparer_VisualBasicAsync(string symbolType)
         {
             var source = $@"
 Imports Microsoft.CodeAnalysis
@@ -447,7 +449,7 @@ End Class
         [WorkItem(2335, "https://github.com/dotnet/roslyn-analyzers/issues/2335")]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareTwoSymbolsByIdentity_VisualBasic(string symbolType)
+        public async Task CompareTwoSymbolsByIdentity_VisualBasicAsync(string symbolType)
         {
             var source = $@"
 Imports Microsoft.CodeAnalysis
@@ -464,7 +466,7 @@ End Class
         [Theory]
         [WorkItem(2336, "https://github.com/dotnet/roslyn-analyzers/issues/2336")]
         [CombinatorialData]
-        public async Task CompareTwoSymbolImplementations_VisualBasic(
+        public async Task CompareTwoSymbolImplementations_VisualBasicAsync(
             [CombinatorialValues("Symbol", nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
             [CombinatorialValues("=", "<>", "Is", "IsNot")] string @operator)
         {
@@ -489,7 +491,7 @@ End Class
 
         [Theory]
         [CombinatorialData]
-        public async Task CompareSymbolWithNull_VisualBasic(
+        public async Task CompareSymbolWithNull_VisualBasicAsync(
             [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
             [CombinatorialValues("Is", "IsNot")] string @operator)
         {
@@ -511,7 +513,7 @@ End Class
 
         [Theory]
         [CombinatorialData]
-        public async Task CompareSymbolFromInstanceEquals_VisualBasic(
+        public async Task CompareSymbolFromInstanceEquals_VisualBasicAsync(
             [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
             [CombinatorialValues("", "Not ")] string @operator)
         {
@@ -542,7 +544,7 @@ End Class
 
         [Theory]
         [CombinatorialData]
-        public async Task CompareSymbolFromInstanceEquals_CSharp(
+        public async Task CompareSymbolFromInstanceEquals_CSharpAsync(
             [CombinatorialValues(nameof(ISymbol), nameof(INamedTypeSymbol))] string symbolType,
             [CombinatorialValues("", "!")] string @operator)
         {
@@ -576,7 +578,7 @@ class TestClass
         }
 
         [Fact]
-        public async Task CompareSymbolFromInstanceEqualsWithConditionalAccess_VisualBasic()
+        public async Task CompareSymbolFromInstanceEqualsWithConditionalAccess_VisualBasicAsync()
         {
             var source = @"
 Imports Microsoft.CodeAnalysis
@@ -604,7 +606,7 @@ End Class
         }
 
         [Fact]
-        public async Task CompareSymbolFromInstanceEqualsWithNullConditionalAccess_CSharp()
+        public async Task CompareSymbolFromInstanceEqualsWithNullConditionalAccess_CSharpAsync()
         {
             var source = @"
 using Microsoft.CodeAnalysis;
@@ -636,7 +638,7 @@ class TestClass
         }
 
         [Fact]
-        public async Task CompareSymbolFromInstanceEqualsWithChainConditionalAccess_VisualBasic()
+        public async Task CompareSymbolFromInstanceEqualsWithChainConditionalAccess_VisualBasicAsync()
         {
             var source = @"
 Imports Microsoft.CodeAnalysis
@@ -684,7 +686,7 @@ End Class
         }
 
         [Fact]
-        public async Task CompareSymbolFromInstanceEqualsWithChainNullConditionalAccess_CSharp()
+        public async Task CompareSymbolFromInstanceEqualsWithChainNullConditionalAccess_CSharpAsync()
         {
             var source = @"
 using Microsoft.CodeAnalysis;
@@ -740,7 +742,7 @@ class TestClass
         }
 
         [Fact]
-        public async Task CompareSymbolFromInstanceEqualsWithChain_CSharp()
+        public async Task CompareSymbolFromInstanceEqualsWithChain_CSharpAsync()
         {
             var source = @"
 using Microsoft.CodeAnalysis;
@@ -800,7 +802,7 @@ class TestClass
         [Theory]
         [InlineData(nameof(ISymbol))]
         [InlineData(nameof(INamedTypeSymbol))]
-        public async Task CompareSymbolImplementationWithInterface_EqualsComparison_CSharp(string symbolType)
+        public async Task CompareSymbolImplementationWithInterface_EqualsComparison_CSharpAsync(string symbolType)
         {
             var source = $@"
 using Microsoft.CodeAnalysis;
@@ -827,7 +829,7 @@ class TestClass {{
         }
 
         [Fact, WorkItem(2493, "https://github.com/dotnet/roslyn-analyzers/issues/2493")]
-        public async Task GetHashCode_Diagnostic()
+        public async Task GetHashCode_DiagnosticAsync()
         {
             await VerifyCS.VerifyAnalyzerAsync(@"
 using Microsoft.CodeAnalysis;
@@ -850,7 +852,7 @@ End Class");
         }
 
         [Fact, WorkItem(2493, "https://github.com/dotnet/roslyn-analyzers/issues/2493")]
-        public async Task CollectionConstructorsKnownToRequireComparer_Diagnostic()
+        public async Task CollectionConstructorsKnownToRequireComparer_DiagnosticAsync()
         {
             await new VerifyCS.Test
             {
@@ -914,7 +916,7 @@ End Class",
         }
 
         [Fact, WorkItem(2493, "https://github.com/dotnet/roslyn-analyzers/issues/2493")]
-        public async Task CollectionMethodsKnownToRequireComparer_Diagnostic()
+        public async Task CollectionMethodsKnownToRequireComparer_DiagnosticAsync()
         {
             await new VerifyCS.Test
             {
@@ -1050,7 +1052,7 @@ End Class",
         }
 
         [Fact, WorkItem(4469, "https://github.com/dotnet/roslyn-analyzers/issues/4469")]
-        public async Task RS1024_SymbolEqualityComparerDefault()
+        public async Task RS1024_SymbolEqualityComparerDefaultAsync()
         {
             await new VerifyCS.Test
             {
@@ -1085,7 +1087,7 @@ public class C
         [Fact]
         [WorkItem(4470, "https://github.com/dotnet/roslyn-analyzers/issues/4470")]
         [WorkItem(4568, "https://github.com/dotnet/roslyn-analyzers/issues/4568")]
-        public async Task RS1024_InvocationArgumentTypeIsNull()
+        public async Task RS1024_InvocationArgumentTypeIsNullAsync()
         {
             await new VerifyCS.Test
             {
@@ -1110,7 +1112,7 @@ public class C
         }
 
         [Fact, WorkItem(4413, "https://github.com/dotnet/roslyn-analyzers/issues/4413")]
-        public async Task RS1024_SourceCollectionIsSymbolButLambdaIsNot()
+        public async Task RS1024_SourceCollectionIsSymbolButLambdaIsNotAsync()
         {
             await new VerifyCS.Test
             {
@@ -1141,5 +1143,118 @@ public class C
                 },
             }.RunAsync();
         }
+
+        [Fact, WorkItem(4956, "https://github.com/dotnet/roslyn-analyzers/issues/4956")]
+        public async Task RS1024_StringGetHashCodeAsync()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        ReadOnlySpan<char> testROS = default;
+        int hashCode = string.GetHashCode(testROS, StringComparison.OrdinalIgnoreCase);
+    }
+}"
+                        , SymbolEqualityComparerStubCSharp
+                    },
+                    ReferenceAssemblies = CreateNetCoreReferenceAssemblies()
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task RS1024_GetHashCodeOnInt64Async()
+        {
+            var code = @"
+using System;
+using Microsoft.CodeAnalysis;
+
+static class HashCodeHelper
+{
+    public static Int32 GetHashCode(Int64 x) => 0;
+    public static Int32 GetHashCode(ISymbol symbol) => [|symbol.GetHashCode()|];
+}
+
+public class C
+{
+    public int GetHashCode(Int64 obj)
+    {
+        return HashCodeHelper.GetHashCode(obj);
+    }
+
+    public int GetHashCode(ISymbol symbol)
+    {
+        return HashCodeHelper.GetHashCode(symbol);
+    }
+
+    public int GetHashCode(object o)
+    {
+        if (o is ISymbol symbol)
+        {
+            return [|HashCode.Combine(symbol)|];
+        }
+
+        return HashCode.Combine(o);
+    }
+
+    public int GetHashCode(object o1, object o2)
+    {
+        if (o1 is ISymbol symbol1 && o2 is ISymbol symbol2)
+        {
+            return [|HashCode.Combine(symbol1, symbol2)|];
+        }
+
+        if (o1 is ISymbol symbolFirst)
+        {
+            return [|HashCode.Combine(symbolFirst, o2)|];
+        }
+
+        if (o2 is ISymbol symbolSecond)
+        {
+            return [|HashCode.Combine(o1, symbolSecond)|];
+        }
+
+        return HashCode.Combine(o1, o2);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        code, SymbolEqualityComparerStubCSharp
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        code, SymbolEqualityComparerStubCSharp
+                    },
+                    MarkupHandling = Testing.MarkupMode.Allow
+                },
+                ReferenceAssemblies = CreateNetCoreReferenceAssemblies()
+            }.RunAsync();
+        }
+
+        private static ReferenceAssemblies CreateNetCoreReferenceAssemblies()
+            => ReferenceAssemblies.NetCore.NetCoreApp31.AddPackages(ImmutableArray.Create(
+                new PackageIdentity("Microsoft.CodeAnalysis", "3.0.0"),
+                new PackageIdentity("System.Runtime.Serialization.Formatters", "4.3.0"),
+                new PackageIdentity("System.Configuration.ConfigurationManager", "4.7.0"),
+                new PackageIdentity("System.Security.Cryptography.Cng", "4.7.0"),
+                new PackageIdentity("System.Security.Permissions", "4.7.0"),
+                new PackageIdentity("Microsoft.VisualBasic", "10.3.0")));
     }
 }

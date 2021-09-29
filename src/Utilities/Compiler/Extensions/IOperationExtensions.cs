@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #if HAS_IOPERATION
 
@@ -672,6 +672,23 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
+        /// <summary>
+        /// Walks down consecutive conversion operations that satisfy <paramref name="predicate"/> until an operand is reached that
+        /// either isn't a conversion or doesn't satisfy <paramref name="predicate"/>.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <param name="predicate">A predicate to filter conversion operations.</param>
+        /// <returns>The first operation that either isn't a conversion or doesn't satisfy <paramref name="predicate"/>.</returns>
+        public static IOperation WalkDownConversion(this IOperation operation, Func<IConversionOperation, bool> predicate)
+        {
+            while (operation is IConversionOperation conversionOperation && predicate(conversionOperation))
+            {
+                operation = conversionOperation.Operand;
+            }
+
+            return operation;
+        }
+
         [return: NotNullIfNotNull("operation")]
         public static IOperation? WalkUpConversion(this IOperation? operation)
         {
@@ -988,18 +1005,16 @@ namespace Analyzer.Utilities.Extensions
             {
                 return ValueUsageInfo.Write;
             }
-            else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation)
+            else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation &&
+                variableInitializerOperation.Parent is IVariableDeclaratorOperation variableDeclaratorOperation)
             {
-                if (variableInitializerOperation.Parent is IVariableDeclaratorOperation variableDeclaratorOperation)
+                switch (variableDeclaratorOperation.Symbol.RefKind)
                 {
-                    switch (variableDeclaratorOperation.Symbol.RefKind)
-                    {
-                        case RefKind.Ref:
-                            return ValueUsageInfo.ReadableWritableReference;
+                    case RefKind.Ref:
+                        return ValueUsageInfo.ReadableWritableReference;
 
-                        case RefKind.RefReadOnly:
-                            return ValueUsageInfo.ReadableReference;
-                    }
+                    case RefKind.RefReadOnly:
+                        return ValueUsageInfo.ReadableReference;
                 }
             }
 

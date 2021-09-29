@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             : base(data1, data2, data1.CoreAnalysisData,
                   data2.CoreAnalysisData, data1.IsReachableBlockData, coreDataAnalysisDomain)
         {
-            Debug.Assert(data1.IsReachableBlockData == data1.IsReachableBlockData);
+            Debug.Assert(data1.IsReachableBlockData == data2.IsReachableBlockData);
 
             CoreAnalysisData = coreDataAnalysisDomain.Merge(data1.CoreAnalysisData, data2.CoreAnalysisData);
         }

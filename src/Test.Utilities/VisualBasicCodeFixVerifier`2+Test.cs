@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -20,25 +20,9 @@ namespace Test.Utilities
             public Test()
             {
                 ReferenceAssemblies = AdditionalMetadataReferences.Default;
-
-                SolutionTransforms.Add((solution, projectId) =>
-                {
-                    if (AnalyzerConfigDocument is not null)
-                    {
-                        solution = solution.AddAnalyzerConfigDocument(
-                            DocumentId.CreateNewId(projectId, debugName: ".editorconfig"),
-                            ".editorconfig",
-                            SourceText.From($"is_global = true" + Environment.NewLine + AnalyzerConfigDocument),
-                            filePath: @"/.editorconfig");
-                    }
-
-                    return solution;
-                });
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic15_5;
-
-            public string? AnalyzerConfigDocument { get; set; }
 
             protected override ParseOptions CreateParseOptions()
             {

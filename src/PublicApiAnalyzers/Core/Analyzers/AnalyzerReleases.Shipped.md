@@ -1,6 +1,7 @@
 ## Release 2.9.8
 
 ### New Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS0016 | ApiDesign | Warning | DeclarePublicApiAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md)
@@ -14,6 +15,7 @@ RS0027 | ApiDesign | Warning | DeclarePublicApiAnalyzer, [Documentation](https:/
 ## Release 3.3.0
 
 ### New Rules
+
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS0036 | ApiDesign | Warning | DeclarePublicApiAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md)

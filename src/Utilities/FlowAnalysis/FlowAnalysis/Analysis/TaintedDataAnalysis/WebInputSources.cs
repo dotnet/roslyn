@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
@@ -33,6 +33,29 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                                                                 WellKnownTypeNames.MicrosoftAspNetCoreMvcFromServicesAttribute);
 
             var sourceInfosBuilder = PooledHashSet<SourceInfo>.GetInstance();
+
+            sourceInfosBuilder.AddSourceInfo(
+                WellKnownTypeNames.MicrosoftAspNetCoreHttpHttpRequest,
+                isInterface: false,
+                taintedProperties: new string[] {
+                    "Body",
+                    "ContentType",
+                    "Cookies",
+                    "Form",
+                    "Headers",
+                    "Host",
+                    "Method",
+                    "Path",
+                    "PathBase",
+                    "Protocol",
+                    "Query",
+                    "QueryString",
+                    "RouteValues",
+                    "Scheme",
+                },
+                taintedMethods: new string[] {
+                    "ReadFormAsync",
+                });
 
             sourceInfosBuilder.AddSourceInfoSpecifyingTaintedTargets(
                 WellKnownTypeNames.SystemWebHttpServerUtility,

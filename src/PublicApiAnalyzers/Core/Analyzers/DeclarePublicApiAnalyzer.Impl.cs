@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -86,8 +86,6 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
         private sealed class Impl
         {
-            private const char ObliviousMarker = '~';
-
             private static readonly ImmutableArray<MethodKind> s_ignorableMethodKinds
                 = ImmutableArray.Create(MethodKind.EventAdd, MethodKind.EventRemove);
 
@@ -329,15 +327,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                             // RS0026: Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.
                             var overloadHasOptionalParams = overload.HasOptionalParameters();
-                            if (overloadHasOptionalParams)
+                            // Flag only if 'method' is a new unshipped API with optional parameters.
+                            if (overloadHasOptionalParams && !isMethodShippedApi)
                             {
-                                // Flag only if 'method' is a new unshipped API with optional parameters.
-                                if (!isMethodShippedApi)
-                                {
-                                    string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
-                                    reportDiagnosticAtLocations(AvoidMultipleOverloadsWithOptionalParameters, ImmutableDictionary<string, string>.Empty, errorMessageName, AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri);
-                                    break;
-                                }
+                                string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
+                                reportDiagnosticAtLocations(AvoidMultipleOverloadsWithOptionalParameters, ImmutableDictionary<string, string>.Empty, errorMessageName, AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri);
+                                break;
                             }
 
                             // RS0027: Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.
@@ -536,7 +531,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         {
                             if (sibling.IsImplicitlyDeclared)
                             {
-                                if (!sibling.IsConstructor())
+                                if (sibling is not IMethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.PropertyGet or MethodKind.PropertySet })
                                 {
                                     continue;
                                 }
@@ -656,22 +651,18 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 {
                     foreach (var attribute in compilation.Assembly.GetAttributes())
                     {
-                        if (attribute.AttributeClass.Equals(typeForwardedToAttribute))
+                        if (attribute.AttributeClass.Equals(typeForwardedToAttribute) &&
+                            attribute.AttributeConstructor.Parameters.Length == 1 &&
+                            attribute.ConstructorArguments.Length == 1 &&
+                            attribute.ConstructorArguments[0].Value is INamedTypeSymbol forwardedType)
                         {
-                            if (attribute.AttributeConstructor.Parameters.Length == 1 &&
-                                attribute.ConstructorArguments.Length == 1)
+                            var obsoleteAttribute = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemObsoleteAttribute);
+                            if (forwardedType.IsUnboundGenericType)
                             {
-                                if (attribute.ConstructorArguments[0].Value is INamedTypeSymbol forwardedType)
-                                {
-                                    var obsoleteAttribute = compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemObsoleteAttribute);
-                                    if (forwardedType.IsUnboundGenericType)
-                                    {
-                                        forwardedType = forwardedType.ConstructedFrom;
-                                    }
-
-                                    VisitForwardedTypeRecursively(forwardedType, reportDiagnostic, obsoleteAttribute, attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken).GetLocation(), cancellationToken);
-                                }
+                                forwardedType = forwardedType.ConstructedFrom;
                             }
+
+                            VisitForwardedTypeRecursively(forwardedType, reportDiagnostic, obsoleteAttribute, attribute.ApplicationSyntaxReference.GetSyntax(cancellationToken).GetLocation(), cancellationToken);
                         }
                     }
                 }
@@ -840,21 +831,17 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 /// <summary>This is visiting type references, not type definitions (that's done elsewhere).</summary>
                 public override bool VisitNamedType(INamedTypeSymbol symbol)
                 {
-                    if (!_ignoreTopLevelNullability)
+                    if (!_ignoreTopLevelNullability &&
+                        symbol.IsReferenceType &&
+                        symbol.NullableAnnotation() == NullableAnnotation.None)
                     {
-                        if (symbol.IsReferenceType &&
-                            symbol.NullableAnnotation() == NullableAnnotation.None)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
 
-                    if (symbol.ContainingType is INamedTypeSymbol containing)
+                    if (symbol.ContainingType is INamedTypeSymbol containing &&
+                        IgnoreTopLevelNullabilityInstance.Visit(containing))
                     {
-                        if (IgnoreTopLevelNullabilityInstance.Visit(containing))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
 
                     foreach (var typeArgument in symbol.TypeArguments)

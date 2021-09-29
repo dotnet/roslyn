@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #if NET_ANALYZERS || TEXT_ANALYZERS
 
@@ -60,6 +60,7 @@ namespace Analyzer.Utilities
                     RuleLevel.IdeHidden_BulkConfigurable => (DiagnosticSeverity.Hidden, true),
                     RuleLevel.Disabled => (DiagnosticSeverity.Warning, false),
                     RuleLevel.CandidateForRemoval => (DiagnosticSeverity.Warning, false),
+                    RuleLevel.BuildError => (DiagnosticSeverity.Error, true),
                     _ => throw new System.NotImplementedException(),
                 };
             }

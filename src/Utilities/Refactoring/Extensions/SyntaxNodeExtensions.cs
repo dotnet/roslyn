@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Analyzer.Utilities.Extensions
 {
-    internal static class SyntaxNodeExtensions
+    internal static partial class SyntaxNodeExtensions
     {
         /// <summary>
         /// Look inside a trivia list for a skipped token that contains the given position.
@@ -129,16 +129,14 @@ namespace Analyzer.Utilities.Extensions
         {
             foreach (var trivia in triviaList)
             {
-                if (trivia.HasStructure)
+                if (trivia.HasStructure &&
+                    trivia.GetStructure() is ISkippedTokensTriviaSyntax skippedTokensTrivia)
                 {
-                    if (trivia.GetStructure() is ISkippedTokensTriviaSyntax skippedTokensTrivia)
+                    foreach (var token in skippedTokensTrivia.Tokens)
                     {
-                        foreach (var token in skippedTokensTrivia.Tokens)
+                        if (!token.Span.IsEmpty && position <= token.Span.End)
                         {
-                            if (!token.Span.IsEmpty && position <= token.Span.End)
-                            {
-                                return token;
-                            }
+                            return token;
                         }
                     }
                 }
@@ -154,16 +152,14 @@ namespace Analyzer.Utilities.Extensions
         {
             foreach (var trivia in triviaList.Reverse())
             {
-                if (trivia.HasStructure)
+                if (trivia.HasStructure &&
+                    trivia.GetStructure() is ISkippedTokensTriviaSyntax skippedTokensTrivia)
                 {
-                    if (trivia.GetStructure() is ISkippedTokensTriviaSyntax skippedTokensTrivia)
+                    foreach (var token in skippedTokensTrivia.Tokens)
                     {
-                        foreach (var token in skippedTokensTrivia.Tokens)
+                        if (!token.Span.IsEmpty && token.SpanStart <= position)
                         {
-                            if (!token.Span.IsEmpty && token.SpanStart <= position)
-                            {
-                                return token;
-                            }
+                            return token;
                         }
                     }
                 }

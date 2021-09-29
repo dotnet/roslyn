@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 #nullable disable warnings
 
@@ -249,13 +249,10 @@ namespace Analyzer.Utilities.Extensions
                     {
                         attributes.Add(attribute);
                     }
-                    else if (!onlyIncludeInherited)
+                    else if (!onlyIncludeInherited &&
+                        (attribute.AttributeClass.Inherits(exportAttributeV1) || attribute.AttributeClass.Inherits(exportAttributeV2)))
                     {
-                        if (attribute.AttributeClass.Inherits(exportAttributeV1)
-                            || attribute.AttributeClass.Inherits(exportAttributeV2))
-                        {
-                            attributes.Add(attribute);
-                        }
+                        attributes.Add(attribute);
                     }
                 }
 

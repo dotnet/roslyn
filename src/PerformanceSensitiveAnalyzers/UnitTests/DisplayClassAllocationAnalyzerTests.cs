@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers;
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
     public class DisplayClassAllocationAnalyzerTests
     {
         [Fact]
-        public async Task DisplayClassAllocation_AnonymousMethodExpressionSyntax()
+        public async Task DisplayClassAllocation_AnonymousMethodExpressionSyntaxAsync()
         {
             var sampleProgram =
 @"using System;
@@ -53,7 +53,7 @@ class Test
         }
 
         [Fact]
-        public async Task DisplayClassAllocation_SimpleLambdaExpressionSyntax()
+        public async Task DisplayClassAllocation_SimpleLambdaExpressionSyntaxAsync()
         {
             var sampleProgram =
 @"using System.Collections.Generic;
@@ -84,7 +84,7 @@ public class Testing<T>
         }
 
         [Fact]
-        public async Task DisplayClassAllocation_ParenthesizedLambdaExpressionSyntax()
+        public async Task DisplayClassAllocation_ParenthesizedLambdaExpressionSyntaxAsync()
         {
             var sampleProgram =
 @"using System.Collections.Generic;
@@ -117,7 +117,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task DisplayClassAllocation_DoNotReportForNonCapturingAnonymousMethod()
+        public async Task DisplayClassAllocation_DoNotReportForNonCapturingAnonymousMethodAsync()
         {
             var sampleProgram =
 @"using System;
@@ -135,7 +135,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task DisplayClassAllocation_DoNotReportForNonCapturingLambda()
+        public async Task DisplayClassAllocation_DoNotReportForNonCapturingLambdaAsync()
         {
             var sampleProgram =
 @"using System;
@@ -153,7 +153,7 @@ public class MyClass
         }
 
         [Fact]
-        public async Task DisplayClassAllocation_ReportForCapturingAnonymousMethod()
+        public async Task DisplayClassAllocation_ReportForCapturingAnonymousMethodAsync()
         {
             var sampleProgram =
 @"using System;

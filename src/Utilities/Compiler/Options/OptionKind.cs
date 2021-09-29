@@ -1,9 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 namespace Analyzer.Utilities
 {
     /// <summary>
-    /// Kind of option to fetch from <see cref="AnalyzerOptionsExtensions"/>.
+    /// Kind of option to fetch from <see cref="ICategorizedAnalyzerConfigOptions"/>.
     /// </summary>
     internal enum OptionKind
     {

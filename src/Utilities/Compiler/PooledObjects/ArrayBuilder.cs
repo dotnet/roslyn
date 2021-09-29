@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ namespace Analyzer.Utilities.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
     [DebuggerTypeProxy(typeof(ArrayBuilder<>.DebuggerProxy))]
-    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>, IDisposable
+    internal sealed partial class ArrayBuilder<T> : IReadOnlyList<T>, IDisposable
     {
         #region DebuggerProxy
 #pragma warning disable CA1812 // ArrayBuilder<T>.DebuggerProxy is an internal class that is apparently never instantiated - used in DebuggerTypeProxy attribute above.
