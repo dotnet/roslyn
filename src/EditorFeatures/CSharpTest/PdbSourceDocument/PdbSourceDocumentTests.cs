@@ -89,7 +89,17 @@ public class [|C|]
 }";
 
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C"));
+        }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task Constructor_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
+        {
+            var source = @"
+public class [|C|]
+{
+    // this is a comment that wouldn't appear in decompiled source
+}";
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C..ctor"));
         }
 
@@ -106,7 +116,20 @@ public class Outer
     }
 }";
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C"));
+        }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task NestedClassConstructor_FromTypeDefinitionDocument(Location pdbLocation, Location sourceLocation)
+        {
+            var source = @"
+public class Outer
+{
+    public class [|C|]
+    {
+        // this is a comment that wouldn't appear in decompiled source
+    }
+}";
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C..ctor"));
         }
 
@@ -123,7 +146,20 @@ public class [|Outer|]
     }
 }";
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer"));
+        }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task Constructor_FromTypeDefinitionDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
+        {
+            var source = @"
+public class [|Outer|]
+{
+    public class C
+    {
+        // this is a comment that wouldn't appear in decompiled source
+    }
+}";
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer..ctor"));
 
         }
@@ -144,6 +180,23 @@ public class Outer
     }
 }";
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task NestedClassConstructor_FromMethodDocument(Location pdbLocation, Location sourceLocation)
+        {
+            var source = @"
+public class Outer
+{
+    public class [|C|]
+    {
+        public void M()
+        {
+            // this is a comment that wouldn't appear in decompiled source
+        }
+    }
+}";
 
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer.C..ctor"));
         }
@@ -163,7 +216,25 @@ public class [|Outer|]
         }
     }
 }";
+
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task Constructor_FromMethodDocumentOfNestedClass(Location pdbLocation, Location sourceLocation)
+        {
+            var source = @"
+public class [|Outer|]
+{
+    public class C
+    {
+        public void M()
+        {
+            // this is a comment that wouldn't appear in decompiled source
+        }
+    }
+}";
 
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("Outer..ctor"));
         }
@@ -181,7 +252,20 @@ public class [|C|]
     }
 }";
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C"));
+        }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task Constructor_FromMethodDocument(Location pdbLocation, Location sourceLocation)
+        {
+            var source = @"
+public class [|C|]
+{
+    public void M()
+    {
+        // this is a comment that wouldn't appear in decompiled source
+    }
+}";
             await TestAsync(pdbLocation, sourceLocation, source, c => c.GetMember("C..ctor"));
         }
 
