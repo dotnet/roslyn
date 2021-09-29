@@ -1992,8 +1992,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CallerArgumentExpressionParamForUnconsumedLocation = 8966,
         ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString = 8967,
         ERR_AttrTypeArgCannotBeTypeVar = 8968,
-        WRN_AttrDependentTypeNotAllowed = 8969,
+        // WRN_AttrDependentTypeNotAllowed = 8969, // Backed out of of warning wave 6, may be reintroduced later
         ERR_AttrDependentTypeNotAllowed = 8970,
+        WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters = 8971,
+        ERR_LambdaWithAttributesToExpressionTree = 8972,
+
+        WRN_CompileTimeCheckedOverflow = 8973,
+        WRN_MethGrpToNonDel = 8974,
 
         #endregion
 

@@ -2429,7 +2429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     || !learnFromOperator(binary))
                 {
                     Unsplit();
-                    Visit(binary.Right);
+                    VisitRvalue(binary.Right);
                 }
 
                 if (stack.Count == 0)
@@ -2502,15 +2502,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected void VisitBinaryInterpolatedStringAddition(BoundBinaryOperator node)
         {
             Debug.Assert(node.InterpolatedStringHandlerData.HasValue);
-            var stack = ArrayBuilder<BoundInterpolatedString>.GetInstance();
+            var parts = ArrayBuilder<BoundInterpolatedString>.GetInstance();
             var data = node.InterpolatedStringHandlerData.GetValueOrDefault();
 
-            while (PushBinaryOperatorInterpolatedStringChildren(node, stack) is { } next)
-            {
-                node = next;
-            }
+            node.VisitBinaryOperatorInterpolatedString(
+                (parts, @this: this),
+                stringCallback: static (BoundInterpolatedString interpolatedString, (ArrayBuilder<BoundInterpolatedString> parts, AbstractFlowPass<TLocalState, TLocalFunctionState> @this) arg) =>
+                {
+                    arg.parts.Add(interpolatedString);
+                    return true;
+                },
+                binaryOperatorCallback: (op, arg) => arg.@this.VisitInterpolatedStringBinaryOperatorNode(op));
 
-            Debug.Assert(stack.Count >= 2);
+            Debug.Assert(parts.Count >= 2);
 
             VisitRvalue(data.Construction);
 
@@ -2519,9 +2523,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasConditionalEvaluation = data.UsesBoolReturns || hasTrailingHandlerValidityParameter;
             TLocalState? shortCircuitState = hasConditionalEvaluation ? State.Clone() : default;
 
-            while (stack.TryPop(out var currentString))
+            foreach (var part in parts)
             {
-                visitedFirst |= VisitInterpolatedStringHandlerParts(currentString, data.UsesBoolReturns, firstPartIsConditional: visitedFirst || hasTrailingHandlerValidityParameter, ref shortCircuitState);
+                visitedFirst |= VisitInterpolatedStringHandlerParts(part, data.UsesBoolReturns, firstPartIsConditional: visitedFirst || hasTrailingHandlerValidityParameter, ref shortCircuitState);
             }
 
             if (hasConditionalEvaluation)
@@ -2529,23 +2533,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Join(ref State, ref shortCircuitState);
             }
 
-            stack.Free();
+            parts.Free();
         }
 
-        protected virtual BoundBinaryOperator? PushBinaryOperatorInterpolatedStringChildren(BoundBinaryOperator node, ArrayBuilder<BoundInterpolatedString> stack)
-        {
-            stack.Push((BoundInterpolatedString)node.Right);
-            switch (node.Left)
-            {
-                case BoundBinaryOperator next:
-                    return next;
-                case BoundInterpolatedString @string:
-                    stack.Push(@string);
-                    return null;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Left.Kind);
-            }
-        }
+        protected virtual void VisitInterpolatedStringBinaryOperatorNode(BoundBinaryOperator node) { }
 
         protected virtual bool VisitInterpolatedStringHandlerParts(BoundInterpolatedStringBase node, bool usesBoolReturns, bool firstPartIsConditional, ref TLocalState? shortCircuitState)
         {

@@ -205,7 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (code)
             {
                 case ErrorCode.WRN_PartialMethodTypeDifference:
-                case ErrorCode.WRN_AttrDependentTypeNotAllowed:
                     // Warning level 6 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 6 (C# 10) and that can be reported for pre-existing code.
                     return 6;
@@ -484,6 +483,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                 case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
+                case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
+                case ErrorCode.WRN_CompileTimeCheckedOverflow:
+                case ErrorCode.WRN_MethGrpToNonDel:
                     return 1;
                 default:
                     return 0;

@@ -407,11 +407,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
 
+                var globalOptions = workspace.GetService<IGlobalOptionService>();
+
                 var languageServer = new VisualStudioInProcLanguageServer(
                     dispatcherFactory,
                     jsonRpc,
                     capabilitiesProvider,
                     lspWorkspaceRegistrationService,
+                    globalOptions,
                     listenerProvider,
                     NoOpLspLogger.Instance,
                     mockDiagnosticService,
@@ -479,7 +482,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                     diagnostic.DefaultSeverity,
                     diagnostic.Descriptor.IsEnabledByDefault,
                     diagnostic.WarningLevel,
-                    diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                    diagnostic.Descriptor.ImmutableCustomTags(),
                     diagnostic.Properties,
                     document.Project.Id,
                     GetDataLocation(document, mappedFilePath),

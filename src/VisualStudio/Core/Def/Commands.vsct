@@ -451,7 +451,7 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>DefaultDisabled</CommandFlag>
         <Strings>
-          <ButtonText>Remove &amp;Unused References...</ButtonText>
+          <ButtonText>Remove Unused References...</ButtonText>
           <CommandName>RemoveUnusedReferences</CommandName>
           <CanonicalName>RemoveUnusedReferences</CanonicalName>
           <LocCanonicalName>RemoveUnusedReferences</LocCanonicalName>
@@ -606,7 +606,7 @@
     <CommandPlacement guid="guidRoslynGrpId" id="cmdidSyncNamespaces" priority="0xF200">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_SOLUTION_ADD" />
     </CommandPlacement>
-  
+
     <CommandPlacement guid="guidRoslynGrpId" id="cmdidshowValueTracking" priority="0xF200">
       <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
     </CommandPlacement>
@@ -704,7 +704,7 @@
       <IDSymbol name="cmdidRunCodeAnalysisForProject"  value="0x0201" />
 
       <IDSymbol name="cmdidRemoveUnusedReferences" value="0x202" />
-    
+
       <IDSymbol name="cmdidshowValueTracking"  value="0x0203" />
 
       <IDSymbol name="cmdidSyncNamespaces" value="0x204" />

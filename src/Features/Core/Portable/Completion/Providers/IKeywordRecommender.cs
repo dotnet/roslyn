@@ -4,10 +4,12 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal interface IKeywordRecommender<TContext>
+        where TContext : SyntaxContext
     {
         ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, TContext context, CancellationToken cancellationToken);
     }

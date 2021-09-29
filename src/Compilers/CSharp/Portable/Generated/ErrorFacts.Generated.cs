@@ -276,7 +276,9 @@
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                 case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
-                case ErrorCode.WRN_AttrDependentTypeNotAllowed:
+                case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
+                case ErrorCode.WRN_CompileTimeCheckedOverflow:
+                case ErrorCode.WRN_MethGrpToNonDel:
                     return true;
                 default:
                     return false;

@@ -32,7 +32,7 @@ namespace BuildBoss
         public bool Check(TextWriter textWriter)
         {
             var allGood = true;
-            if (ProjectType == ProjectFileType.CSharp || ProjectType == ProjectFileType.Basic)
+            if (ProjectType is ProjectFileType.CSharp or ProjectFileType.Basic)
             {
                 if (!_projectUtil.IsNewSdk)
                 {
@@ -128,12 +128,12 @@ namespace BuildBoss
             var allGood = true;
             foreach (var packageRef in _projectUtil.GetPackageReferences())
             {
-                var allowedPackageVersons = GetAllowedPackageReferenceVersions(packageRef).ToList();
+                var allowedPackageVersions = GetAllowedPackageReferenceVersions(packageRef).ToList();
 
-                if (!allowedPackageVersons.Contains(packageRef.Version))
+                if (!allowedPackageVersions.Contains(packageRef.Version))
                 {
                     textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
-                    textWriter.WriteLine($"Allowed values are " + string.Join(" or", allowedPackageVersons));
+                    textWriter.WriteLine($"Allowed values are " + string.Join(" or", allowedPackageVersions));
                     allGood = false;
                 }
             }

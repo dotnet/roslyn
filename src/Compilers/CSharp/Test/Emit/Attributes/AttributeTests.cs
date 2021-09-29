@@ -10100,7 +10100,7 @@ class C1
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
             comp.VerifyEmitDiagnostics();
         }
 

@@ -50,13 +50,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // Because we use frozen-partial documents for semantic classification, we may end up with incomplete
             // semantics (esp. during solution load).  Because of this, we also register to hear when the full
             // compilation is available so that reclassify and bring ourselves up to date.
+            // Note: Also generate tags when FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin is changed,
+            // because we want to refresh the glyphs in indicator margin.
             => new CompilationAvailableTaggerEventSource(
                 subjectBuffer,
                 AsyncListener,
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ShowInheritanceMargin));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ShowInheritanceMargin),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin));
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
         {
@@ -97,7 +100,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
             // response. (Since the full load might take a long time)
             // We also subscribe to CompilationAvailableTaggerEventSource, so this will finally reach the correct state.
-            var inheritanceMarginInfoService = document.WithFrozenPartialSemantics(cancellationToken).GetLanguageService<IInheritanceMarginService>();
+            document = document.WithFrozenPartialSemantics(cancellationToken);
+            var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
             if (inheritanceMarginInfoService == null)
             {
                 return;

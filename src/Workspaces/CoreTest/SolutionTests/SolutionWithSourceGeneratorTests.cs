@@ -15,6 +15,8 @@ using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
+using static Microsoft.CodeAnalysis.UnitTests.SolutionUtilities;
+using static Microsoft.CodeAnalysis.UnitTests.WorkspaceTestUtilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -166,7 +168,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task PartialCompilationsIncludeGeneratedFilesAfterFullGeneration()
         {
-            using var workspace = CreateWorkspace();
+            using var workspace = CreateWorkspaceWithPartalSemantics();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
                 .AddAnalyzerReference(analyzerReference)
@@ -178,6 +180,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(2, fullCompilation.SyntaxTrees.Count());
 
             var partialProject = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None).Project;
+            Assert.NotSame(partialProject, project);
             var partialCompilation = await partialProject.GetRequiredCompilationAsync(CancellationToken.None);
 
             Assert.Same(fullCompilation, partialCompilation);
@@ -301,7 +304,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task GetDocumentWithGeneratedTreeForInProgressReturnsGeneratedDocument()
         {
-            using var workspace = CreateWorkspace();
+            using var workspace = CreateWorkspaceWithPartalSemantics();
             var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
             var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
                 .AddAnalyzerReference(analyzerReference)
@@ -554,6 +557,39 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.False(workspace.IsDocumentOpen(generatedDocumentIdentity.DocumentId));
             Assert.Null(differentOpenTextContainer.CurrentText.GetOpenDocumentInCurrentContextWithChanges());
+        }
+
+        [Theory, CombinatorialData]
+        public async Task FreezingSolutionEnsuresGeneratorsDoNotRun(bool forkBeforeFreeze)
+        {
+            var generatorRan = false;
+            var generator = new CallbackGenerator(onInit: _ => { }, onExecute: _ => { generatorRan = true; });
+
+            using var workspace = CreateWorkspaceWithPartalSemantics();
+            var analyzerReference = new TestGeneratorReference(generator);
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+            Assert.True(workspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
+
+            var documentToFreeze = workspace.CurrentSolution.Projects.Single().Documents.Single();
+
+            // The generator shouldn't have ran before any of this since we didn't do anything that would ask for a compilation
+            Assert.False(generatorRan);
+
+            if (forkBeforeFreeze)
+            {
+                // Forking before freezing means we'll have to do extra work to produce the final compilation, but we should still
+                // not be running generators
+                documentToFreeze = documentToFreeze.WithText(SourceText.From("// Changed Source File"));
+            }
+
+            var frozenDocument = documentToFreeze.WithFrozenPartialSemantics(CancellationToken.None);
+            Assert.NotSame(frozenDocument, documentToFreeze);
+            await frozenDocument.GetSemanticModelAsync(CancellationToken.None);
+
+            Assert.False(generatorRan);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
         }
 
         public override bool ShouldUpdateAccessibilityModifier(
-            ISyntaxFacts syntaxFacts,
+            IAccessibilityFacts accessibilityFacts,
             MemberDeclarationSyntax member,
             AccessibilityModifiersRequired option,
             out SyntaxToken name)
@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                 return false;
 
             // Certain members never have accessibility. Don't bother reporting on them.
-            if (!syntaxFacts.CanHaveAccessibility(member))
+            if (!accessibilityFacts.CanHaveAccessibility(member))
                 return false;
 
             // This analyzer bases all of its decisions on the accessibility
-            var accessibility = syntaxFacts.GetAccessibility(member);
+            var accessibility = accessibilityFacts.GetAccessibility(member);
 
             // Omit will flag any accessibility values that exist and are default
             // The other options will remove or ignore accessibility

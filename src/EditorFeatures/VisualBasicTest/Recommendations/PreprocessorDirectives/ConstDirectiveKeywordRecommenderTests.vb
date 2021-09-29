@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class ConstDirectiveKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashConstInFileTest()
             VerifyRecommendationsContain(<File>|</File>, "#Const")

@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (!(textView is IObjectWithSite objectWithSite))
+            if (textView is not IObjectWithSite objectWithSite)
             {
                 return null;
             }

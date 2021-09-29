@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -127,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc);
         protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract Document AddImports(Document document, int position, XElement snippetNode, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken);
+        internal abstract Document AddImports(Document document, OptionSet options, int position, XElement snippetNode, bool allowInHiddenRegions, CancellationToken cancellationToken);
         protected abstract string FallbackDefaultLiteral { get; }
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
@@ -1049,10 +1050,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var documentOptions = documentWithImports.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
             var allowInHiddenRegions = documentWithImports.CanAddImportsInHiddenRegions();
 
-            documentWithImports = AddImports(documentWithImports, position, snippetNode, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
+            documentWithImports = AddImports(documentWithImports, documentOptions, position, snippetNode, allowInHiddenRegions, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
         }
 
@@ -1083,7 +1083,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     continue;
                 }
 
-                if (!(workspace is VisualStudioWorkspaceImpl visualStudioWorkspace) ||
+                if (workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace ||
                     !visualStudioWorkspace.TryAddReferenceToProject(projectId, assemblyName))
                 {
                     failedReferenceAdditions.Add(assemblyName);
@@ -1103,7 +1103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         protected static bool TryAddImportsToContainedDocument(Document document, IEnumerable<string> memberImportsNamespaces)
         {
-            if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl vsWorkspace))
+            if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl vsWorkspace)
             {
                 return false;
             }

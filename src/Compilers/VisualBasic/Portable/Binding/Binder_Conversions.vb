@@ -1129,7 +1129,7 @@ DoneWithDiagnostics:
 
             ReportUseSite(diagnostics, tree, convKind.Value)
 
-            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, convKind.Value, tree)
+            ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, convKind.Value, tree)
 
             Debug.Assert(convKind.Value.IsUserDefinedOperator())
             If Me.ContainingMember Is convKind.Value Then

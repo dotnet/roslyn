@@ -542,6 +542,7 @@ namespace System
                 var symbol = comp.GetSpecialTypeMember(special);
                 if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor)
                 {

@@ -17,7 +17,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     /// <summary>
-    /// Computes the semantic tokens edits for a file. An edit request is received every 500ms,
+    /// Computes the semantic tokens edits for a file. Clients may make edit requests on a timer,
     /// or every time an edit is made by the user.
     /// </summary>
     internal class SemanticTokensEditsHandler : IRequestHandler<LSP.SemanticTokensDeltaParams, SumType<LSP.SemanticTokens, LSP.SemanticTokensDelta>>
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // Even though we want to ultimately pass edits back to LSP, we still need to compute all semantic tokens,
             // both for caching purposes and in order to have a baseline comparison when computing the edits.
-            var newSemanticTokensData = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
+            var (newSemanticTokensData, isFinalized) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 context.Document, SemanticTokensCache.TokenTypeToIndex,
                 range: null, cancellationToken).ConfigureAwait(false);
 
@@ -64,25 +64,48 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             if (oldSemanticTokensData == null)
             {
                 var newResultId = _tokensCache.GetNextResultId();
-                return new LSP.SemanticTokens { ResultId = newResultId, Data = newSemanticTokensData };
+                var updatedTokens = new RoslynSemanticTokens
+                {
+                    ResultId = newResultId,
+                    Data = newSemanticTokensData,
+                    IsFinalized = isFinalized,
+                };
+
+                if (newSemanticTokensData.Length > 0)
+                {
+                    await _tokensCache.UpdateCacheAsync(
+                        request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
+                }
+
+                return updatedTokens;
             }
 
-            var resultId = request.PreviousResultId;
             var editArray = ComputeSemanticTokensEdits(oldSemanticTokensData, newSemanticTokensData);
+            var resultId = request.PreviousResultId;
 
             // If we have edits, generate a new ResultId. Otherwise, re-use the previous one.
             if (editArray.Length != 0)
             {
                 resultId = _tokensCache.GetNextResultId();
-                var updatedTokens = new LSP.SemanticTokens { ResultId = resultId, Data = newSemanticTokensData };
-                await _tokensCache.UpdateCacheAsync(
-                    request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
+                if (newSemanticTokensData.Length > 0)
+                {
+                    var updatedTokens = new RoslynSemanticTokens
+                    {
+                        ResultId = resultId,
+                        Data = newSemanticTokensData,
+                        IsFinalized = isFinalized
+                    };
+
+                    await _tokensCache.UpdateCacheAsync(
+                        request.TextDocument.Uri, updatedTokens, cancellationToken).ConfigureAwait(false);
+                }
             }
 
-            var edits = new SemanticTokensDelta
+            var edits = new RoslynSemanticTokensDelta
             {
+                ResultId = resultId,
                 Edits = editArray,
-                ResultId = resultId
+                IsFinalized = isFinalized
             };
 
             return edits;
@@ -106,22 +129,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // edits we send back to the client.
             var edits = LongestCommonSemanticTokensSubsequence.GetEdits(oldSemanticTokens, newSemanticTokens);
 
-            var processedEdits = ProcessEdits(newSemanticTokens, edits);
+            var processedEdits = ProcessEdits(newSemanticTokens, edits.ToArray());
             return processedEdits;
         }
 
         private static LSP.SemanticTokensEdit[] ProcessEdits(
             int[] newSemanticTokens,
-            IEnumerable<SequenceEdit> edits)
+            SequenceEdit[] edits)
         {
             using var _ = ArrayBuilder<RoslynSemanticTokensEdit>.GetInstance(out var results);
             var insertIndex = 0;
 
-            // Go through and attempt to combine individual edits into larger edits. The edits
-            // passed into this method have already been ordered from smallest original index ->
-            // largest original index.
-            foreach (var edit in edits)
+            // Go through and attempt to combine individual edits into larger edits. By default,
+            // edits are returned from Roslyn's LCS ordered from largest -> smallest index.
+            // However, to simplify computation, we process edits ordered from smallest -> largest
+            // index.
+            for (var i = edits.Length - 1; i >= 0; i--)
             {
+                var edit = edits[i];
+
                 // Retrieve the most recent edit to see if it can be expanded.
                 var editInProgress = results.Count > 0 ? results[^1] : null;
 
@@ -208,10 +234,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 {
                     var edits = s_instance.GetEdits(
                         oldSemanticTokens, oldSemanticTokens.Length, newSemanticTokens, newSemanticTokens.Length);
-
-                    // By default, edits are returned largest -> smallest index. For computation purposes later on,
-                    // we can want to have the edits ordered smallest -> largest index.
-                    return edits.Reverse();
+                    return edits;
                 }
                 catch (OutOfMemoryException e) when (FatalError.ReportAndCatch(e))
                 {

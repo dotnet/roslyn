@@ -329,6 +329,35 @@ namespace Microsoft.CodeAnalysis
                 _ => throw ExceptionUtilities.Unreachable
             };
 
+#if DEBUG
+            public override string ToString()
+            {
+                if (IsSingle)
+                {
+                    return $"{GetItem(0)}: {GetState(0)}";
+                }
+                else
+                {
+                    var sb = PooledStringBuilder.GetInstance();
+                    sb.Builder.Append("{");
+                    for (int i = 0; i < Count; i++)
+                    {
+                        if (i > 0)
+                        {
+                            sb.Builder.Append(',');
+                        }
+                        sb.Builder.Append(" (");
+                        sb.Builder.Append(GetItem(i));
+                        sb.Builder.Append(':');
+                        sb.Builder.Append(GetState(i));
+                        sb.Builder.Append(')');
+                    }
+                    sb.Builder.Append(" }");
+                    return sb.ToStringAndFree();
+                }
+            }
+#endif
+
             public sealed class Builder
             {
                 private readonly ArrayBuilder<T> _items = ArrayBuilder<T>.GetInstance();

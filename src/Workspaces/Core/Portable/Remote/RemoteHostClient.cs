@@ -60,8 +60,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public abstract RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
             where T : class;
 
-        public abstract Task<RemoteServiceConnection> CreateConnectionAsync(RemoteServiceName serviceName, object? callbackTarget, CancellationToken cancellationToken);
-
         // no solution, no callback:
 
         public async ValueTask<bool> TryInvokeAsync<TService>(
@@ -251,23 +249,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using var connection = CreateConnection<TService>(callbackTarget: null);
             return await connection.TryInvokeAsync(project, invocation, reader, cancellationToken).ConfigureAwait(false);
-        }
-
-        // legacy services:
-
-        public async Task RunRemoteAsync(RemoteServiceName serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
-        {
-            using var connection = await CreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            await connection.RunRemoteAsync(targetName, solution, arguments, cancellationToken).ConfigureAwait(false);
-        }
-
-        public Task<T> RunRemoteAsync<T>(RemoteServiceName serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, CancellationToken cancellationToken)
-            => RunRemoteAsync<T>(serviceName, targetName, solution, arguments, callbackTarget, dataReader: null, cancellationToken);
-
-        public async Task<T> RunRemoteAsync<T>(RemoteServiceName serviceName, string targetName, Solution? solution, IReadOnlyList<object?> arguments, object? callbackTarget, Func<Stream, CancellationToken, Task<T>>? dataReader, CancellationToken cancellationToken)
-        {
-            using var connection = await CreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
-            return await connection.RunRemoteAsync(targetName, solution, arguments, dataReader, cancellationToken).ConfigureAwait(false);
         }
     }
 }

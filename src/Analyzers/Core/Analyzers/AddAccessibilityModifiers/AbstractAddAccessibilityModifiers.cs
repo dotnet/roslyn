@@ -11,18 +11,18 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
         where TMemberDeclarationSyntax : SyntaxNode
     {
         public bool ShouldUpdateAccessibilityModifier(
-            ISyntaxFacts syntaxFacts,
+            IAccessibilityFacts accessibilityFacts,
             SyntaxNode member,
             AccessibilityModifiersRequired option,
             out SyntaxToken name)
         {
             name = default;
             return member is TMemberDeclarationSyntax memberDecl &&
-                ShouldUpdateAccessibilityModifier(syntaxFacts, memberDecl, option, out name);
+                ShouldUpdateAccessibilityModifier(accessibilityFacts, memberDecl, option, out name);
         }
 
         public abstract bool ShouldUpdateAccessibilityModifier(
-            ISyntaxFacts syntaxFacts,
+            IAccessibilityFacts accessibilityFacts,
             TMemberDeclarationSyntax member,
             AccessibilityModifiersRequired option,
             out SyntaxToken name);
