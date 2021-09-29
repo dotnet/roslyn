@@ -9,8 +9,6 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
-using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Debugging;
@@ -30,8 +28,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         private readonly IPdbFileLocatorService _pdbFileLocatorService;
         private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
 
-        private readonly Dictionary<string, ProjectId> _assemblyToProject = new();
-        private readonly Dictionary<string, DocumentInfo> _fileToDocument = new();
+        private readonly Dictionary<string, ProjectId> _assemblyToProjectMap = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -61,14 +58,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var (dllReader, pdbReader) = readers.Value;
 
             // Try to find some actual document information from the PDB
-            var filePaths = GetSourcePaths(symbol, dllReader, pdbReader);
-            if (filePaths.Length == 0)
-                return null;
-
-            // If we have something to navigate to, then we need to construct a project etc. so for that we'll need compiler options
-            var commandLineArguments = RetreiveCompilerOptions(pdbReader, out var languageName);
-
-            if (languageName is null)
+            var sourceDocuments = SymbolSourceDocumentFinder.FindSourceDocuments(symbol, dllReader, pdbReader);
+            if (sourceDocuments.Length == 0)
                 return null;
 
             // Each assembly gets its own project, so we need a workspace
@@ -79,38 +70,24 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
-            var languageServices = _workspace.Services.GetLanguageServices(languageName!);
 
-            var parser = languageServices.GetRequiredService<ICommandLineParserService>();
-            var arguments = parser.Parse(commandLineArguments, baseDirectory: null, isInteractive: false, sdkDirectory: null);
-
-            var compilationOptions = arguments.CompilationOptions;
-            var parseOptions = arguments.ParseOptions;
-
-            // If we don't already have a project for this assembly, we need to create one
-            if (!_assemblyToProject.TryGetValue(assemblyName, out var projectId))
+            if (!_assemblyToProjectMap.TryGetValue(assemblyName, out var projectId))
             {
-                projectId = ProjectId.CreateNewId();
-                var projectInfo = ProjectInfo.Create(
-                    projectId,
-                    VersionStamp.Default,
-                    name: assemblyName + "_FromPdb", // To distinguish it from a Metadata as Source project it might get
-                    assemblyName: assemblyName,
-                    language: languageName,
-                    compilationOptions: compilationOptions,
-                    parseOptions: parseOptions,
-                    metadataReferences: project.MetadataReferences.ToImmutableArray());
+                var projectInfo = CreateProjectInfo(project, pdbReader, assemblyName);
+
+                if (projectInfo is null)
+                    return null;
+
+                projectId = projectInfo.Id;
 
                 _workspace.OnProjectAdded(projectInfo);
-
-                _assemblyToProject.Add(assemblyName, projectId);
+                _assemblyToProjectMap.Add(assemblyName, projectInfo.Id);
             }
 
-            var newDocumentInfos = GetNewDocumentInfos(pdbReader, filePaths, projectId);
-            _workspace.OnDocumentsAdded(newDocumentInfos);
-            foreach (var document in newDocumentInfos)
+            var documentInfos = CreateDocumentInfos(sourceDocuments, projectId, pdbReader);
+            if (documentInfos.Length > 0)
             {
-                _fileToDocument.Add(document.FilePath!, document);
+                _workspace.OnDocumentsAdded(documentInfos);
             }
 
             var navigateProject = _workspace.CurrentSolution.GetRequiredProject(projectId);
@@ -120,21 +97,51 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return new MetadataAsSourceFile(navigateDocument!.FilePath, navigateLocation, navigateDocument!.Name + " [from PDB]", navigateDocument.FilePath);
         }
 
-        private ImmutableArray<DocumentInfo> GetNewDocumentInfos(MetadataReader pdbReader, SourceDocument[] filePaths, ProjectId projectId)
+        private ProjectInfo? CreateProjectInfo(Project project, MetadataReader pdbReader, string assemblyName)
         {
+            // If we don't already have a project for this assembly, we need to create one, and we want to use
+            // the same compiler options for it that the DLL was created with.
+            var commandLineArguments = RetreiveCompilerOptions(pdbReader, out var languageName);
+
+            // TODO: Find language another way for non portable PDBs
+            if (languageName is null)
+                return null;
+
+            var parser = _workspace!.Services.GetLanguageServices(languageName).GetRequiredService<ICommandLineParserService>();
+            var arguments = parser.Parse(commandLineArguments, baseDirectory: null, isInteractive: false, sdkDirectory: null);
+
+            var compilationOptions = arguments.CompilationOptions;
+            var parseOptions = arguments.ParseOptions;
+
+            var projectId = ProjectId.CreateNewId();
+            return ProjectInfo.Create(
+                projectId,
+                VersionStamp.Default,
+                name: assemblyName + "_FromPdb", // To distinguish it from a Metadata as Source project it might get
+                assemblyName: assemblyName,
+                language: languageName,
+                compilationOptions: compilationOptions,
+                parseOptions: parseOptions,
+                metadataReferences: project.MetadataReferences.ToImmutableArray());
+        }
+
+        private ImmutableArray<DocumentInfo> CreateDocumentInfos(ImmutableArray<SourceDocument> filePaths, ProjectId projectId, MetadataReader pdbReader)
+        {
+            var project = _workspace!.CurrentSolution.GetRequiredProject(projectId);
+
             using var _ = ArrayBuilder<DocumentInfo>.GetInstance(out var documents);
 
             foreach (var sourceDocument in filePaths)
             {
                 // If a document has multiple symbols then we'll already know about it
-                if (_fileToDocument.ContainsKey(sourceDocument.FilePath))
+                if (project.Documents.Contains(doc => doc.FilePath?.Equals(sourceDocument.FilePath, StringComparison.OrdinalIgnoreCase) ?? false))
                     continue;
 
                 documents.Add(DocumentInfo.Create(
-                     DocumentId.CreateNewId(projectId),
-                     Path.GetFileName(sourceDocument.FilePath),
-                     filePath: sourceDocument.FilePath,
-                     loader: _pdbSourceDocumentLoaderService.LoadSourceDocument(sourceDocument, pdbReader)));
+                    DocumentId.CreateNewId(projectId),
+                    Path.GetFileName(sourceDocument.FilePath),
+                    filePath: sourceDocument.FilePath,
+                    loader: _pdbSourceDocumentLoaderService.LoadSourceDocument(sourceDocument, pdbReader)));
             }
 
             return documents.ToImmutable();
