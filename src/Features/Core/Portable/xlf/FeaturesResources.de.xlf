@@ -850,6 +850,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">"{0}" muss einen Datenstrom zurückgeben, der Lese- und Suchvorgänge unterstützt.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Miscellaneous_Files">
+        <source>Miscellaneous Files</source>
+        <target state="new">Miscellaneous Files</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Missing_control_character">
         <source>Missing control character</source>
         <target state="translated">Fehlendes Steuerzeichen</target>
@@ -953,6 +958,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Move_file_to_project_root_folder">
         <source>Move file to project root folder</source>
         <target state="translated">Datei in den Stammordner des Projekts verschieben</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type">
+        <source>Move static members to another type...</source>
+        <target state="new">Move static members to another type...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1156,11 +1166,11 @@ Diese Option empfiehlt sich, wenn Sie wissen, dass die Rückverfolgung nicht zum
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
         <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">Eine Ausgleichsgruppendefinition löscht die Definition einer zuvor definierten Gruppe und speichert in der aktuellen Gruppe das Intervall zwischen der zuvor definierten Gruppe und der aktuellen Gruppe.
+        <target state="needs-review-translation">Eine Ausgleichsgruppendefinition löscht die Definition einer zuvor definierten Gruppe und speichert in der aktuellen Gruppe das Intervall zwischen der zuvor definierten Gruppe und der aktuellen Gruppe.
     
 "name1" ist die aktuelle Gruppe (optional), "name2" ist eine zuvor definierte Gruppe, und "teilausdruck" ist ein beliebiges gültiges Muster für reguläre Ausdrücke. Die Ausgleichsgruppendefinition löscht die Definition von "name2" und speichert das Intervall zwischen "name2" und "name1" in "name1". Wenn keine Gruppe "name2" definiert ist, wird für die Übereinstimmung eine Rückverfolgung durchgeführt. Weil durch das Löschen der letzten Definition von "name2" die vorherige Definition von "name2" angezeigt wird, können Sie mithilfe dieses Konstrukts den Stapel von Erfassungen für die Gruppe "name2" als Zähler für die Nachverfolgung geschachtelter Konstrukte wie z. B. öffnende und schließende Klammern verwenden.
 
@@ -2300,6 +2310,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Zu viele )-Zeichen.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="new">Types:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Die Quelldatei "{0}" oder die für das enthaltende Projekt kompilierte PDB-Datei kann nicht gelesen werden. Alle Änderungen, die während des Debuggens an dieser Datei vorgenommen wurden, werden erst angewendet, wenn der Inhalt dem kompilierten Quellcode entspricht.</target>
@@ -3348,11 +3363,6 @@ Bei Verwendung des Formatbezeichners "M" ohne weitere benutzerdefinierte Formatb
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">Abfragevariable für "{0}" bereitstellen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">Anonyme Typen:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">

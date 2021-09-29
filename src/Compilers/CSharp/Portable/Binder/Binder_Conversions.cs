@@ -108,6 +108,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Obsolete diagnostics for method group are reported as part of creating the method group conversion.
                 ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
+                if (conversion.Method is not null)
+                {
+                    ReportUseSite(conversion.Method, diagnostics, syntax.Location);
+                }
                 CheckConstraintLanguageVersionAndRuntimeSupportForConversion(syntax, conversion, diagnostics);
 
                 if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
@@ -115,15 +119,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
                 }
 
-            if (conversion.Kind == ConversionKind.FunctionType)
-            {
-                return CreateFunctionTypeConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
-            }
+                if (conversion.Kind == ConversionKind.FunctionType)
+                {
+                    return CreateFunctionTypeConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
+                }
 
-            if (conversion.IsStackAlloc)
-            {
-                return CreateStackAllocConversion(syntax, source, conversion, isCast, conversionGroupOpt, destination, diagnostics);
-            }
+                if (conversion.IsStackAlloc)
+                {
+                    return CreateStackAllocConversion(syntax, source, conversion, isCast, conversionGroupOpt, destination, diagnostics);
+                }
 
                 if (conversion.IsTupleLiteralConversion ||
                     (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))

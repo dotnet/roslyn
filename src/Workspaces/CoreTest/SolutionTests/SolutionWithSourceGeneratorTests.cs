@@ -363,6 +363,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var generatedTreeAfterChange = await Assert.Single(await project.GetSourceGeneratedDocumentsAsync()).GetSyntaxTreeAsync();
 
             Assert.NotSame(generatedTreeBeforeChange, generatedTreeAfterChange);
+            Assert.Equal(DocumentationMode.Diagnose, generatedTreeAfterChange!.Options.DocumentationMode);
         }
 
         [Theory, CombinatorialData]
