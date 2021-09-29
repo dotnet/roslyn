@@ -23,7 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 ERRID.ERR_CannotUseGenericBaseTypeAcrossAssemblyBoundaries, ' Not reported. See ImportsBinder.ShouldReportUseSiteErrorForAlias.
                 ERRID.ERR_NextAvailable,
                 ERRID.WRN_NextAvailable,
-                ERRID.HDN_NextAvailable
+                ERRID.HDN_NextAvailable,
+                ERRID.IDS_NextAvailable
             }
             For Each id As ERRID In [Enum].GetValues(GetType(ERRID))
                 If Array.IndexOf(excludedIds, id) >= 0 Then
