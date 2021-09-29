@@ -400,15 +400,7 @@ namespace BuildActionTelemetryTable
             public static FullNameTypeComparer Instance { get; } = new FullNameTypeComparer();
 
             public bool Equals(Type? x, Type? y)
-            {
-                return (x, y) switch
-                {
-                    (null, null) => true,
-                    (Type _, null) => false,
-                    (null, Type _) => false,
-                    (Type t1, Type t2) => t1.FullName!.Equals(t2.FullName)
-                };
-            }
+                => Equals(x?.FullName, y?.FullName);
 
             public int GetHashCode([DisallowNull] Type obj)
             {
