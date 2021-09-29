@@ -4105,6 +4105,7 @@ class Program
     {
         var c = new C();
         c.M(F);
+        c.M(delegate () { return 1; });
     }
 }
 class C
@@ -4116,16 +4117,21 @@ static class E
     public static void M(this object o, Func<int> a) { Console.WriteLine(""E.M""); }
 }";
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: @"E.M");
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput:
+@"E.M
+E.M");
 
             var expectedDiagnostics = new[]
             {
                 // (9,13): error CS0428: Cannot convert method group 'F' to non-delegate type 'Expression'. Did you intend to invoke the method?
                 //         c.M(F);
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "System.Linq.Expressions.Expression").WithLocation(9, 13),
+                // (10,13): error CS1946: An anonymous method expression cannot be converted to an expression tree
+                //         c.M(delegate () { return 1; });
+                Diagnostic(ErrorCode.ERR_AnonymousMethodToExpressionTree, "delegate () { return 1; }").WithLocation(10, 13)
             };
 
-            // Breaking change from C#9 which binds to E.M.
+            // Breaking change from C#9 which binds to E.M in each case.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(expectedDiagnostics);
             comp = CreateCompilation(source);
