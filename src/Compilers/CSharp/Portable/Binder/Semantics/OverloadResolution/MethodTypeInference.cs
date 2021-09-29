@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ExactOrBoundsInference(kind, argumentType, target, ref useSiteInfo);
                 }
-                else if (IsUnfixedTypeParameter(target) && kind is ExactOrBoundsKind.LowerBound)
+                else if (IsUnfixedTypeParameter(target) && !target.NullableAnnotation.IsAnnotated() && kind is ExactOrBoundsKind.LowerBound)
                 {
                     var ordinal = ((TypeParameterSymbol)target.Type).Ordinal;
                     _nullableAnnotationLowerBounds[ordinal] = _nullableAnnotationLowerBounds[ordinal].Join(argumentType.NullableAnnotation);
