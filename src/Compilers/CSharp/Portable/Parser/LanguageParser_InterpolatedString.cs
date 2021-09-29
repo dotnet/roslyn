@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             using (var tempLexer = new Lexer(Text.SourceText.From(parsedText), this.Options, allowPreprocessorDirectives: false, interpolationFollowedByColon: interpolation.HasColon))
             {
                 // TODO: some of the trivia in the interpolation maybe should be trailing trivia of the openBraceToken
-                using var tempParser = new LanguageParser(tempLexer, null, null);
+                using var tempParser = new LanguageParser(tempLexer, oldTree: null, changes: null);
 
                 tempParser.ParseInterpolationStart(out openBraceToken, out expression, out var commaToken, out var alignmentExpression);
                 if (alignmentExpression != null)
