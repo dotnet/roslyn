@@ -779,7 +779,7 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="new">Never</target>
+        <target state="translated">Mai</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
