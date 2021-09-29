@@ -6869,11 +6869,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 location = Location.Create(lambdaSyntax.SyntaxTree, new Text.TextSpan(start, lambdaSyntax.ArrowToken.Span.End - start));
             }
 
+            var diagnostics = new BindingDiagnosticBag(Diagnostics);
             if (SourceMemberContainerTypeSymbol.CheckValidNullableMethodOverride(
                 compilation,
                 targetInvokeMethod,
                 sourceMethod,
-                new BindingDiagnosticBag(Diagnostics),
+                diagnostics,
                 reportBadDelegateReturn,
                 reportBadDelegateParameter,
                 extraArgument: location,
@@ -6886,7 +6887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 sourceMethod,
                 targetInvokeMethod,
-                new BindingDiagnosticBag(Diagnostics),
+                diagnostics,
                 reportBadDelegateReturn,
                 reportBadDelegateParameter,
                 extraArgument: location,
