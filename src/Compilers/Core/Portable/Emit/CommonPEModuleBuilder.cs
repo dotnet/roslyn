@@ -733,6 +733,11 @@ namespace Microsoft.CodeAnalysis.Emit
             public ConcurrentQueue<Cci.IPropertyDefinition> Properties;
             public ConcurrentQueue<Cci.IFieldDefinition> Fields;
 
+            // Nested types may be queued from concurrent threads, but we need to emit them
+            // in a deterministic order.
+            internal IEnumerable<Cci.INestedTypeDefinition> DeterministicNestedTypes
+                => NestedTypes?.OrderBy(t => t.Name, StringComparer.Ordinal);
+
             public ImmutableArray<ISymbolInternal> GetAllMembers()
             {
                 var builder = ArrayBuilder<ISymbolInternal>.GetInstance();
@@ -763,7 +768,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (NestedTypes != null)
                 {
-                    foreach (var type in NestedTypes.OrderBy(t => t.Name, StringComparer.Ordinal))
+                    foreach (var type in DeterministicNestedTypes)
                     {
                         builder.Add(type.GetInternalSymbol());
                     }
@@ -790,7 +795,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (_synthesizedTypeMembers.TryGetValue(container, out var defs))
             {
-                compileEmitTypes = defs.NestedTypes?.OrderBy(t => t.Name, StringComparer.Ordinal);
+                compileEmitTypes = defs.DeterministicNestedTypes;
             }
 
             if (declareTypes == null)
