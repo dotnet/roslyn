@@ -168,7 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             {
                 var matchingDirectives = directiveTrivia.GetMatchingConditionalDirectives(cancellationToken);
                 var lastMatchBefore = matchingDirectives
-                    .Where(d => d is IfDirectiveTriviaSyntax or ElifDirectiveTriviaSyntax)
                     .TakeWhile(d => d.SpanStart < directiveTrivia.SpanStart)
                     .Select(d => d.Span)
                     .ToImmutableArray();
