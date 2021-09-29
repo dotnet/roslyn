@@ -875,7 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                         Debug.Assert(receiverRefKind != null && receiverType is not null);
-                        refKind = receiverRefKind.GetValueOrDefault();
+                        refKind = RefKind.None;
                         placeholderType = receiverType;
                         break;
                     case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
