@@ -1216,10 +1216,7 @@ unsafe
 }
 ";
 
-            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "run");
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+            verify(TestOptions.UnsafeReleaseExe, @"
 {
   // Code size       22 (0x16)
   .maxstack  1
@@ -1237,6 +1234,39 @@ unsafe
   IL_0015:  ret
 }
 ");
+
+            verify(TestOptions.UnsafeDebugExe, @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (bool V_0, //b
+                int& V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  brtrue.s   IL_000a
+  IL_0006:  ldc.i4.1
+  IL_0007:  conv.i
+  IL_0008:  br.s       IL_000c
+  IL_000a:  ldc.i4.0
+  IL_000b:  conv.i
+  IL_000c:  stloc.1
+  IL_000d:  ldstr      ""run""
+  IL_0012:  call       ""void System.Console.WriteLine(string)""
+  IL_0017:  nop
+  IL_0018:  nop
+  IL_0019:  ret
+}
+");
+
+            void verify(CSharpCompilationOptions options, string expectedIL)
+            {
+                var comp = CreateCompilation(code, options: options);
+                var verifier = CompileAndVerify(comp, expectedOutput: "run");
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+            }
         }
 
         [Fact, WorkItem(53113, "https://github.com/dotnet/roslyn/issues/53113")]
@@ -1261,10 +1291,7 @@ unsafe
 }
 ";
 
-            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "0run");
-            verifier.VerifyDiagnostics();
-            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+            verify(TestOptions.UnsafeReleaseExe, @"
 {
   // Code size       28 (0x1c)
   .maxstack  1
@@ -1286,6 +1313,47 @@ unsafe
   IL_001b:  ret
 }
 ");
+
+            verify(TestOptions.UnsafeDebugExe, @"
+{
+  // Code size       38 (0x26)
+  .maxstack  1
+  .locals init (int V_0, //i1
+                int* V_1, //p1
+                bool V_2, //b
+                int& V_3) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  conv.u
+  IL_0006:  stloc.1
+  IL_0007:  ldc.i4.1
+  IL_0008:  stloc.2
+  IL_0009:  ldloc.2
+  IL_000a:  brtrue.s   IL_0010
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  br.s       IL_0017
+  IL_0010:  ldloc.1
+  IL_0011:  ldind.i4
+  IL_0012:  call       ""int* Program.<<Main>$>g__M|0_0(int)""
+  IL_0017:  stloc.3
+  IL_0018:  ldstr      ""run""
+  IL_001d:  call       ""void System.Console.WriteLine(string)""
+  IL_0022:  nop
+  IL_0023:  nop
+  IL_0024:  nop
+  IL_0025:  ret
+}
+");
+
+            void verify(CSharpCompilationOptions options, string expectedIL)
+            {
+                var comp = CreateCompilation(code, options: options);
+                var verifier = CompileAndVerify(comp, expectedOutput: "0run");
+                verifier.VerifyDiagnostics();
+                verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+            }
         }
     }
 }

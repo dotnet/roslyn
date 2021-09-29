@@ -675,8 +675,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitPointerIndirectionOperator(BoundPointerIndirectionOperator expression, bool used)
         {
-            EmitExpression(expression.Operand, used: true);
-            EmitLoadIndirect(expression.Type, expression.Syntax);
+            if (expression.IsAssignmentAddress)
+            {
+                EmitAddress(expression, AddressKind.Writeable);
+            }
+            else
+            {
+                EmitExpression(expression.Operand, used: true);
+                EmitLoadIndirect(expression.Type, expression.Syntax);
+            }
+
             EmitPopIfUnused(used);
         }
 

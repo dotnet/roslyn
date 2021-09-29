@@ -2087,6 +2087,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // visit right
             var right = (BoundExpression)Visit(node.Right);
+            _isStackScheduledRefAssignment = false;
 
             // do actual assignment
 
@@ -2109,14 +2110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 #nullable enable
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
-            if (_isStackScheduledRefAssignment)
-            {
-                // When doing `x = ref *(int*)0` or similar when `x` is scheduled to the stack, we actually
-                // see through the indirection to just push `(int*)0` onto the stack.
-                return Visit(node.Operand);
-            }
-
-            return base.VisitPointerIndirectionOperator(node)!;
+            var result = ((BoundPointerIndirectionOperator)base.VisitPointerIndirectionOperator(node)!);
+            return result.Update(result.Operand, _isStackScheduledRefAssignment, result.Type);
         }
 
         public override BoundNode VisitCall(BoundCall node)

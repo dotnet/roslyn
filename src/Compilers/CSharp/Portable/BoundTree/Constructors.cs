@@ -725,4 +725,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Update(operatorKind, operand, methodOpt, constrainedToTypeOpt, operandConversion, resultConversion, resultKind, this.OriginalUserDefinedOperatorsOpt, type);
         }
     }
+
+    internal partial class BoundPointerIndirectionOperator
+    {
+        public BoundPointerIndirectionOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, operand, isAssignmentAddress: false, type, hasErrors)
+        {
+        }
+
+        public BoundPointerIndirectionOperator Update(BoundExpression operand, TypeSymbol type) => Update(operand, IsAssignmentAddress, type);
+    }
 }

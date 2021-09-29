@@ -342,6 +342,8 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>
+    <!-- Used by emit to determine whether this pointer indirection is by value or by ref -->
+    <Field Name="IsAssignmentAddress" Type="bool"/>
   </Node>
   <Node Name="BoundPointerElementAccess" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
