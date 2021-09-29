@@ -653,12 +653,12 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,21): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                //       string s = $"x { /* comment } y";
+                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(6, 21),
                 // (6,24): error CS1035: End-of-file found, '*/' expected
                 //       string s = $"x { /* comment } y";
                 Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(6, 24),
-                // (9,1): error CS1035: End-of-file found, '*/' expected
-                // 
-                Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(9, 1),
                 // (9,1): error CS1733: Expected expression
                 // 
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(9, 1),
@@ -688,12 +688,12 @@ public class Test
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test,
+                // (6,21): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                //       string s = $"x { /* comment
+                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(6, 21),
                 // (6,24): error CS1035: End-of-file found, '*/' expected
                 //       string s = $"x { /* comment
                 Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(6, 24),
-                // (10,1): error CS1035: End-of-file found, '*/' expected
-                // 
-                Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(10, 1),
                 // (10,1): error CS1733: Expected expression
                 // 
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(10, 1),

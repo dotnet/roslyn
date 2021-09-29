@@ -674,17 +674,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void ScanInterpolatedStringLiteralNestedComment()
             {
+                var start = _lexer.TextWindow.Position;
                 Debug.Assert(_lexer.TextWindow.PeekChar() == '/');
                 _lexer.TextWindow.AdvanceChar();
                 Debug.Assert(_lexer.TextWindow.PeekChar() == '*');
                 _lexer.TextWindow.AdvanceChar();
                 while (true)
                 {
+                    // Note: if we reach the end of the file without hitting */ just bail out.  It's not necessary for
+                    // us to report any issues, as this code is just being used to find the end of teh interpolation hole.
+                    // When the full parse happens, the lexer will grab the string inside the interpolation hole and 
+                    // pass it to the regular parser.  This parser will then see the unterminated /* and will report the
+                    // error for it.
                     if (IsAtEnd(allowNewline: true))
-                    {
-                        this.TrySetUnrecoverableError(_lexer.MakeError(_lexer.TextWindow.Position, 1, ErrorCode.ERR_OpenEndedComment));
                         return;
-                    }
 
                     var ch = _lexer.TextWindow.PeekChar();
                     _lexer.TextWindow.AdvanceChar();
