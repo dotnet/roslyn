@@ -110,6 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     var lastSpan = i == quickInfoItem.RelatedSpans.Length - 1;
                     if (!lastSpan)
                     {
+                        // If there is more than one relatedSpan, the single spans need to be separated.
+                        // This marker is used to track, where the separator needs to be inserted.
                         classifiedSpanList.Add(new ClassifiedSpan(span, RelatedSpanSeparatorClassification));
                     }
                 }
@@ -120,8 +122,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var textRuns = spans.Select(s =>
                 {
                     return s.ClassificationType == RelatedSpanSeparatorClassification
-                                        ? new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, "\r\n")
-                                        : new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont);
+                        ? new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, "\r\n")
+                        : new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont);
                 });
 
                 if (textRuns.Any())
