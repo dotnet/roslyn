@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis
 
 
         // <Caravela>
-        // TODO: We might want to use FileSystem to work with this path.
         private readonly string _workingDirectory;
         // </Caravela>
 
