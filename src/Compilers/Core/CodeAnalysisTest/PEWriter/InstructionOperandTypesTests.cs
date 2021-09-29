@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
                 }
             }
 
-            AssertEx.Equal(OneByteOperandTypes, InstructionOperandTypes.OneByte);
-            AssertEx.Equal(TwoByteOperandTypes, InstructionOperandTypes.TwoByte);
+            AssertEx.Equal(OneByteOperandTypes, InstructionOperandTypes.OneByte.ToArray());
+            AssertEx.Equal(TwoByteOperandTypes, InstructionOperandTypes.TwoByte.ToArray());
         }
     }
 }
