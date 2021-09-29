@@ -3460,7 +3460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verify(source, TestOptions.Regular9);
             verify(source);
 
-            void verify(string source, ParseOptions parseOptions = null)
+            void verify(string source, ParseOptions? parseOptions = null)
             {
                 UsingExpression(source, parseOptions,
                     // (1,1): error CS1073: Unexpected token 'delegate'
@@ -3500,7 +3500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verify(source, TestOptions.Regular9);
             verify(source);
 
-            void verify(string source, ParseOptions parseOptions = null)
+            void verify(string source, ParseOptions? parseOptions = null)
             {
                 UsingExpression(source, parseOptions,
                     // (1,1): error CS1073: Unexpected token 'delegate'
@@ -3543,7 +3543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verify(source, TestOptions.Regular9);
             verify(source);
 
-            void verify(string source, ParseOptions parseOptions = null)
+            void verify(string source, ParseOptions? parseOptions = null)
             {
                 UsingStatement(source, parseOptions,
                     // (1,1): error CS1073: Unexpected token 'delegate'
