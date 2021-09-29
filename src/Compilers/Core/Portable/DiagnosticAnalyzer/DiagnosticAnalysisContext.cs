@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Optional filter span for which to compute diagnostics.
         /// </summary>
-        internal TextSpan? FilterSpan { get; set; }
+        internal TextSpan? FilterSpan { get; }
 
         public SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
             : this(semanticModel, options, reportDiagnostic, isSupportedDiagnostic, filterSpan: null, cancellationToken)

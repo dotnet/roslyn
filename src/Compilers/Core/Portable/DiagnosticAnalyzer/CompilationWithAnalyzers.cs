@@ -369,7 +369,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // PERF: Compute whole compilation diagnostics without doing any partial analysis state tracking.
             await ComputeAnalyzerDiagnosticsWithoutStateTrackingAsync(cancellationToken).ConfigureAwait(false);
 
-            return _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
+            var hasAllAnalyzers = analyzers.Length == Analyzers.Length;
+            var analysisScope = new AnalysisScope(_compilation, _analysisOptions.Options, analyzers, hasAllAnalyzers, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
+            return _analysisResultBuilder.ToAnalysisResult(analyzers, analysisScope, cancellationToken);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsWithoutStateTrackingAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
@@ -568,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var analysisScope = new AnalysisScope(analyzers, file, filterSpan: null, isSyntacticSingleFileAnalysis: true, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             await ComputeAnalyzerSyntaxDiagnosticsAsync(analysisScope, cancellationToken).ConfigureAwait(false);
-            return _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
+            return _analysisResultBuilder.ToAnalysisResult(analyzers, analysisScope, cancellationToken);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSyntaxDiagnosticsCoreAsync(SyntaxTree tree, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
@@ -663,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var analysisScope = new AnalysisScope(analyzers, new SourceOrAdditionalFile(model.SyntaxTree), filterSpan, isSyntacticSingleFileAnalysis: false, concurrentAnalysis: _analysisOptions.ConcurrentAnalysis, categorizeDiagnostics: true);
             await ComputeAnalyzerSemanticDiagnosticsAsync(model, analysisScope, cancellationToken).ConfigureAwait(false);
-            return _analysisResultBuilder.ToAnalysisResult(analyzers, cancellationToken);
+            return _analysisResultBuilder.ToAnalysisResult(analyzers, analysisScope, cancellationToken);
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAnalyzerSemanticDiagnosticsCoreAsync(SemanticModel model, TextSpan? filterSpan, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)

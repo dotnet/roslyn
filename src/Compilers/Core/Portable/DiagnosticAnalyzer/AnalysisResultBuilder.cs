@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal AnalysisResult ToAnalysisResult(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
+        internal AnalysisResult ToAnalysisResult(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalysisScope analysisScope, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -364,10 +364,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzersSet = analyzers.ToImmutableHashSet();
             lock (_gate)
             {
-                localSyntaxDiagnostics = GetImmutable(analyzersSet, _localSyntaxDiagnosticsOpt);
-                localSemanticDiagnostics = GetImmutable(analyzersSet, _localSemanticDiagnosticsOpt);
-                localAdditionalFileDiagnostics = GetImmutable(analyzersSet, _localAdditionalFileDiagnosticsOpt);
-                nonLocalDiagnostics = GetImmutable(analyzersSet, _nonLocalDiagnosticsOpt);
+                localSyntaxDiagnostics = GetImmutable(analyzersSet, analysisScope, _localSyntaxDiagnosticsOpt);
+                localSemanticDiagnostics = GetImmutable(analyzersSet, analysisScope, _localSemanticDiagnosticsOpt);
+                localAdditionalFileDiagnostics = GetImmutable(analyzersSet, analysisScope, _localAdditionalFileDiagnosticsOpt);
+                nonLocalDiagnostics = GetImmutable(analyzersSet, analysisScope, _nonLocalDiagnosticsOpt);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -377,6 +377,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static ImmutableDictionary<TKey, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetImmutable<TKey>(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
+            AnalysisScope analysisScope,
             Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnosticsOpt)
             where TKey : class
         {
@@ -395,7 +396,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     if (analyzers.Contains(diagnosticsByAnalyzer.Key))
                     {
-                        perTreeBuilder.Add(diagnosticsByAnalyzer.Key, diagnosticsByAnalyzer.Value.ToImmutable());
+                        var diagnostics = diagnosticsByAnalyzer.Value.Where(analysisScope.ShouldInclude).ToImmutableArray();
+                        if (!diagnostics.IsEmpty)
+                        {
+                            perTreeBuilder.Add(diagnosticsByAnalyzer.Key, diagnostics);
+                        }
                     }
                 }
 
@@ -408,6 +413,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> GetImmutable(
             ImmutableHashSet<DiagnosticAnalyzer> analyzers,
+            AnalysisScope analysisScope,
             Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? nonLocalDiagnosticsOpt)
         {
             if (nonLocalDiagnosticsOpt == null)
@@ -420,7 +426,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (analyzers.Contains(diagnosticsByAnalyzer.Key))
                 {
-                    builder.Add(diagnosticsByAnalyzer.Key, diagnosticsByAnalyzer.Value.ToImmutable());
+                    var diagnostics = diagnosticsByAnalyzer.Value.Where(analysisScope.ShouldInclude).ToImmutableArray();
+                    if (!diagnostics.IsEmpty)
+                    {
+                        builder.Add(diagnosticsByAnalyzer.Key, diagnostics);
+                    }
                 }
             }
 
