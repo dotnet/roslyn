@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     {
         private const string FeatureName = "SuggestionsOptions";
 
-        public static readonly Option2<bool?> Asynchronous = new(FeatureName, nameof(Asynchronous), defaultValue: null,
+        public static readonly Option2<bool> Asynchronous = new(FeatureName, nameof(Asynchronous), defaultValue: true,
             new RoamingProfileStorageLocation("TextEditor.Specific.Suggestions.Asynchronous2"));
 
         public static readonly Option2<bool> AsynchronousQuickActionsDisableFeatureFlag = new(FeatureName, nameof(AsynchronousQuickActionsDisableFeatureFlag), defaultValue: false,
