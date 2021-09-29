@@ -9686,6 +9686,26 @@ X = 1,
         {
             var code = @"class C
 {
+    void M([My][My]  int x)
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M([My][My] int x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute_Multiple2()
+        {
+            var code = @"class C
+{
     void M([My] [My]  int x)
     {
     }
@@ -9693,6 +9713,28 @@ X = 1,
             var expectedCode = @"class C
 {
     void M([My][My] int x)
+    {
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, WorkItem(41022, "https://github.com/dotnet/roslyn/issues/41022")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingAfterAttribute_MultipleOnDeclaration()
+        {
+            var code = @"class C
+{
+    [My] [My]  void M()
+    {
+    }
+}";
+            var expectedCode = @"class C
+{
+    [My]
+    [My]
+    void M()
     {
     }
 }";
