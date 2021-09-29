@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     break;
 
-                case CompilationUnitCompletedEvent compilationUnitCompletedEvent:
+                case CompilationUnitCompletedEvent compilationUnitCompletedEvent when !compilationUnitCompletedEvent.FilterSpan.HasValue:
                     SemanticModelProvider.ClearCache(compilationUnitCompletedEvent.CompilationUnit, compilationUnitCompletedEvent.Compilation);
                     break;
 
@@ -1796,6 +1796,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var (analyzer, semanticModelActions) in _lazySemanticModelActions)
                 {
                     if (!analysisScope.Contains(analyzer))
+                    {
+                        continue;
+                    }
+
+                    // Only compiler analyzer supports span-based semantic model action callbacks.
+                    if (completedEvent.FilterSpan.HasValue && !IsCompilerAnalyzer(analyzer))
                     {
                         continue;
                     }
