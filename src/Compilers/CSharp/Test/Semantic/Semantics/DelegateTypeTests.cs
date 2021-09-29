@@ -8093,7 +8093,7 @@ class Program
         }
 
         /// <summary>
-        /// Synthesized delegate types should only be emitted if used.
+        /// Synthesized delegate types should only be emitted if referenced in the assembly.
         /// </summary>
         [Fact]
         [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
@@ -8134,6 +8134,56 @@ D4");
 
                 // https://github.com/dotnet/roslyn/issues/55896: Should not include <>A{00000004}`2 or <>A{00000006}`2.
                 string[] expectedTypes = new[] { "<Module>", "<>A{00000001}`2", "<>A{00000004}`2", "<>A{00000006}`2", "<>A{00000009}`2", "D2", "D4", "Program", "<>c", };
+                AssertEx.Equal(expectedTypes, actualTypes);
+            }
+        }
+
+        /// <summary>
+        /// Synthesized delegate types should only be emitted if referenced in the assembly.
+        /// </summary>
+        [Fact]
+        [WorkItem(55896, "https://github.com/dotnet/roslyn/issues/55896")]
+        public void SynthesizedDelegateTypes_22()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T M<T>(T t) => t;
+    static int F(ref object x) => 1;
+    static void Main()
+    {
+        M(() => { });
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var syntaxTree = comp.SyntaxTrees[0];
+
+            var model = comp.GetSemanticModel(syntaxTree);
+            var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            int position = syntax.SpanStart;
+            speculate(model, position, "M(F);", "<>F{00000001}<System.Object, System.Int32>");
+            speculate(model, position, "M((out object y) => { y = null; return 2; });", "<>F{00000002}<System.Object, System.Int32>");
+
+            var verifier = CompileAndVerify(comp, validator: validator);
+
+            static void speculate(SemanticModel? model, int position, string text, string expectedDelegateType)
+            {
+                var stmt = SyntaxFactory.ParseStatement(text);
+                Assert.True(model.TryGetSpeculativeSemanticModel(position, stmt, out model));
+                var expr = ((ExpressionStatementSyntax)stmt).Expression;
+                var type = model!.GetTypeInfo(expr).Type;
+                Assert.Equal(expectedDelegateType, type.ToTestDisplayString());
+            }
+
+            static void validator(PEAssembly assembly)
+            {
+                var reader = assembly.GetMetadataReader();
+                var actualTypes = reader.GetTypeDefNames().Select(h => reader.GetString(h)).ToArray();
+
+                // https://github.com/dotnet/roslyn/issues/55896: Should not include <>F{00000001}`2 or <>F{00000002}`2.
+                string[] expectedTypes = new[] { "<Module>", "<>F{00000001}`2", "<>F{00000002}`2", "Program", "<>c", };
                 AssertEx.Equal(expectedTypes, actualTypes);
             }
         }
