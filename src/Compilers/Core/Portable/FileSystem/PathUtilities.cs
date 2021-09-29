@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
@@ -780,22 +782,37 @@ namespace Roslyn.Utilities
         /// <returns>An equivalent path that does not contain any '..' or '.' path parts.</returns>
         public static string ExpandNormalizedFullPathWithRelativeParts(string p)
         {
-            Debug.Assert(p.StartsWith("/"));
+            if (!IsAbsolute(p))
+            {
+                // if this isn't an absolute path we can't expand it correctly without a root path
+                return p;
+            }
 
+            // GetPathParts also removes any instances of '.'
             var parts = GetPathParts(p);
-            Stack<string> resolvedParts = new Stack<string>();
-            foreach (var part in parts)
+
+            // On windows we need to skip the volume specifier, but remember it for re-joining later
+            var volumeSpecifier = (!IsUnixLikePlatform) ? string.Empty : p.Substring(0, 2);
+
+            // Skip the root directory
+            var toSkip = IsUnixLikePlatform ? 1 : 2;
+            Debug.Assert(parts[toSkip - 1] == string.Empty);
+
+            var resolvedParts = ArrayBuilder<string>.GetInstance();
+            foreach (var part in parts.Skip(toSkip))
             {
                 if (!part.Equals(ParentRelativeDirectory))
                 {
                     resolvedParts.Push(part);
                 }
+                // /../../file is considered equal to /file, so we only process the parent relative directory info if there is actually a parent
                 else if (resolvedParts.Count > 0)
                 {
                     resolvedParts.Pop();
                 }
             }
-            return string.Join("/", resolvedParts.Reverse());
+
+            return volumeSpecifier + '/' + string.Join("/", resolvedParts.ToArrayAndFree());
         }
 
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();

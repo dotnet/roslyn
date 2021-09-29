@@ -2492,6 +2492,16 @@ global_level = abc
         [InlineData("/dir1/dir3/dir4/../dir2/file.cs", false)]
         [InlineData("file.cs", false)]
         [InlineData("", false)]
+        [InlineData("/../../dir1/dir2/file.cs", true)]
+        [InlineData("/./../dir1/dir2/file.cs", true)]
+        [InlineData("/dir1/../../dir1/dir2/file.cs", true)]
+        [InlineData("/..", false)]
+        [InlineData("/../file.cs", false)]
+        [InlineData("/dir1/../file.cs", false)]
+        [InlineData("./dir1/dir2/file.cs", false)]
+        [InlineData("././../.././dir1/dir2/file.cs", false)]
+        [InlineData("./dir1/../file.cs", false)]
+        [InlineData("../dir1/dir2.cs", false)]
         public void EquivalentSourcePathNames(string sourcePath, bool shouldMatch)
         {
             string sectionName = "/dir1/dir2/file.cs";
