@@ -91,7 +91,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             }
 
             var navigateProject = _workspace.CurrentSolution.GetRequiredProject(projectId);
-            var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, navigateProject.Documents.First(), cancellationToken).ConfigureAwait(false);
+
+            var firstDocument = sourceDocuments.First().FilePath;
+            var document = navigateProject.Documents.FirstOrDefault(d => d.FilePath?.Equals(firstDocument, StringComparison.OrdinalIgnoreCase) ?? false);
+
+            var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
             var navigateDocument = navigateProject.GetDocument(navigateLocation.SourceTree);
 
             return new MetadataAsSourceFile(navigateDocument!.FilePath, navigateLocation, navigateDocument!.Name + " [from PDB]", navigateDocument.FilePath);
