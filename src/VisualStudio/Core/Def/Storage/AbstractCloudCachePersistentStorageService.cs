@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
         {
             var solutionFolder = IOUtilities.PerformIO(() => Path.GetDirectoryName(solutionKey.FilePath));
-            if (solutionFolder == null || solutionFolder == "")
+            if (RoslynString.IsNullOrEmpty(solutionFolder))
                 return null;
 
             var cacheService = await this.CreateCacheServiceAsync(solutionFolder, cancellationToken).ConfigureAwait(false);
