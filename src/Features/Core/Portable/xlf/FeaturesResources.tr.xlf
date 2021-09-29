@@ -452,7 +452,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="new">Convert to tuple</target>
+        <target state="translated">Başlığa dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">

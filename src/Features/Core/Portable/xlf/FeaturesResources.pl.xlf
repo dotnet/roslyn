@@ -452,7 +452,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="new">Convert to tuple</target>
+        <target state="translated">Konwertuj na spójną kolekcję</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">
