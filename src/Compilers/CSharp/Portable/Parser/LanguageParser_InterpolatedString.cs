@@ -171,29 +171,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             using (var tempLexer = new Lexer(Text.SourceText.From(parsedText), this.Options, allowPreprocessorDirectives: false, interpolationFollowedByColon: interpolation.HasColon))
             {
                 // TODO: some of the trivia in the interpolation maybe should be trailing trivia of the openBraceToken
-                using (var tempParser = new LanguageParser(tempLexer, null, null))
-                {
-                    SyntaxToken commaToken = null;
-                    ExpressionSyntax alignmentExpression = null;
-                    tempParser.ParseInterpolationStart(out openBraceToken, out expression, out commaToken, out alignmentExpression);
-                    if (alignmentExpression != null)
-                    {
-                        alignment = SyntaxFactory.InterpolationAlignmentClause(commaToken, alignmentExpression);
-                    }
+                using var tempParser = new LanguageParser(tempLexer, null, null);
 
-                    var extraTrivia = tempParser.CurrentToken.GetLeadingTrivia();
-                    if (interpolation.HasColon)
-                    {
-                        var colonToken = SyntaxFactory.Token(SyntaxKind.ColonToken).TokenWithLeadingTrivia(extraTrivia);
-                        var formatText = Substring(text, interpolation.ColonPosition + 1, interpolation.FormatEndPosition);
-                        var formatString = MakeStringToken(formatText, formatText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
-                        format = SyntaxFactory.InterpolationFormatClause(colonToken, formatString);
-                    }
-                    else
-                    {
-                        // Move the leading trivia from the insertion's EOF token to the following token.
-                        closeBraceToken = closeBraceToken.TokenWithLeadingTrivia(extraTrivia);
-                    }
+                SyntaxToken commaToken = null;
+                ExpressionSyntax alignmentExpression = null;
+                tempParser.ParseInterpolationStart(out openBraceToken, out expression, out commaToken, out alignmentExpression);
+                if (alignmentExpression != null)
+                {
+                    alignment = SyntaxFactory.InterpolationAlignmentClause(commaToken, alignmentExpression);
+                }
+
+                var extraTrivia = tempParser.CurrentToken.GetLeadingTrivia();
+                if (interpolation.HasColon)
+                {
+                    var colonToken = SyntaxFactory.Token(SyntaxKind.ColonToken).TokenWithLeadingTrivia(extraTrivia);
+                    var formatText = Substring(text, interpolation.ColonPosition + 1, interpolation.FormatEndPosition);
+                    var formatString = MakeStringToken(formatText, formatText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);
+                    format = SyntaxFactory.InterpolationFormatClause(colonToken, formatString);
+                }
+                else
+                {
+                    // Move the leading trivia from the insertion's EOF token to the following token.
+                    closeBraceToken = closeBraceToken.TokenWithLeadingTrivia(extraTrivia);
                 }
             }
 
