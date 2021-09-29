@@ -49,16 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 case SyntaxKind.ElseKeyword:
                 case SyntaxKind.ElifKeyword:
                 case SyntaxKind.EndOfDirectiveToken:
-                // Allowed tokens in #elif condition 
-                case SyntaxKind.IdentifierToken:
-                case SyntaxKind.AmpersandAmpersandToken:
-                case SyntaxKind.BarBarToken:
-                case SyntaxKind.EqualsEqualsToken:
-                case SyntaxKind.ExclamationEqualsToken:
-                case SyntaxKind.TrueKeyword:
-                case SyntaxKind.FalseKeyword:
-                case SyntaxKind.OpenParenToken:
-                case SyntaxKind.CloseParenToken:
                     return BuildQuickInfoDirectives(token, cancellationToken);
                 default:
                     return null;
@@ -153,11 +143,10 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
         private static QuickInfoItem? BuildQuickInfoDirectives(SyntaxToken token, CancellationToken cancellationToken)
         {
-            var directiveTrivia = token.Parent?.AncestorsAndSelf(ascendOutOfTrivia: false).FirstOrDefault(n =>
-                n is EndRegionDirectiveTriviaSyntax or ElifDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax) as DirectiveTriviaSyntax;
-            if (directiveTrivia is EndRegionDirectiveTriviaSyntax endRegionDirectiveTrivia)
+            var directiveTrivia = token.Parent as DirectiveTriviaSyntax;
+            if (directiveTrivia is EndRegionDirectiveTriviaSyntax)
             {
-                var regionStart = endRegionDirectiveTrivia.GetMatchingDirective(cancellationToken);
+                var regionStart = directiveTrivia.GetMatchingDirective(cancellationToken);
                 if (regionStart is not null)
                 {
                     return QuickInfoItem.Create(token.Span, relatedSpans: ImmutableArray.Create(regionStart.Span));
@@ -167,13 +156,13 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             if (directiveTrivia is ElifDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax or EndIfDirectiveTriviaSyntax)
             {
                 var matchingDirectives = directiveTrivia.GetMatchingConditionalDirectives(cancellationToken);
-                var lastMatchBefore = matchingDirectives
+                var matchesBefore = matchingDirectives
                     .TakeWhile(d => d.SpanStart < directiveTrivia.SpanStart)
                     .Select(d => d.Span)
                     .ToImmutableArray();
-                if (lastMatchBefore.Length > 0)
+                if (matchesBefore.Length > 0)
                 {
-                    return QuickInfoItem.Create(token.Span, relatedSpans: lastMatchBefore);
+                    return QuickInfoItem.Create(token.Span, relatedSpans: matchesBefore);
                 }
             }
 
