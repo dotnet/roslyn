@@ -94,6 +94,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         internal ITableManager TableManager { get; }
 
-        protected abstract ImmutableArray<string> Columns { get; }
+        internal abstract ImmutableArray<string> Columns { get; }
     }
 }

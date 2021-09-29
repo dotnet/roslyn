@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
         }
 
-        protected override ImmutableArray<string> Columns { get; } = ImmutableArray.Create(
+        internal override ImmutableArray<string> Columns { get; } = ImmutableArray.Create(
             StandardTableColumnDefinitions.ErrorSeverity,
             StandardTableColumnDefinitions.ErrorCode,
             StandardTableColumnDefinitions.Text,

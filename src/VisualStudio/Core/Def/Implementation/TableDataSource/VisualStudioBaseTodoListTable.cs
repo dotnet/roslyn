@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             AddInitialTableSource(workspace.CurrentSolution, _source);
         }
 
-        protected override ImmutableArray<string> Columns { get; } = ImmutableArray.Create(
+        internal override ImmutableArray<string> Columns { get; } = ImmutableArray.Create(
             StandardTableColumnDefinitions.Priority,
             StandardTableColumnDefinitions.Text,
             StandardTableColumnDefinitions.ProjectName,
