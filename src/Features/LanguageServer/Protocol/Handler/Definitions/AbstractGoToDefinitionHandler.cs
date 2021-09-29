@@ -134,14 +134,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // Try IFindDefinitionService first. Until partners implement this, it could fail to find a service, so fall back if it's null.
                 var findDefinitionService = document.GetLanguageService<IFindDefinitionService>();
-                if (findDefinitionService != null)
-                {
-                    return await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
-                }
-
-                // Removal of this codepath is tracked by https://github.com/dotnet/roslyn/issues/50391.
-                var goToDefinitionsService = document.GetRequiredLanguageService<IGoToDefinitionService>();
-                return await goToDefinitionsService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
+                return findDefinitionService != null
+                    ? await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false)
+                    // Some partners may implement the old IGoToDefinitionService, but currently we only support C# and VB definitions from the LSP server.
+                    // To support other languages from here, https://github.com/dotnet/roslyn/issues/50391 would need to be completed.
+                    : null;
             }
         }
     }

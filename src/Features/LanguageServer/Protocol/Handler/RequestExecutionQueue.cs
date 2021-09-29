@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly DocumentChangeTracker _documentChangeTracker;
         private readonly RequestTelemetryLogger _requestTelemetryLogger;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly LspMiscellaneousFilesWorkspace _lspMiscellaneousFilesWorkspace;
 
         // This dictionary is used to cache our forked LSP solution so we don't have to
         // recompute it for each request. We don't need to worry about threading because they are only
@@ -84,6 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public RequestExecutionQueue(
             ILspLogger logger,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
+            LspMiscellaneousFilesWorkspace lspMiscellaneousFilesWorkspace,
             IGlobalOptionService globalOptions,
             ImmutableArray<string> supportedLanguages,
             string serverName,
@@ -91,13 +93,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             _logger = logger;
             _workspaceRegistrationService = workspaceRegistrationService;
+            _lspMiscellaneousFilesWorkspace = lspMiscellaneousFilesWorkspace;
             _globalOptions = globalOptions;
             _supportedLanguages = supportedLanguages;
             _serverName = serverName;
 
             _queue = new AsyncQueue<QueueItem>();
             _cancelSource = new CancellationTokenSource();
-            _documentChangeTracker = new DocumentChangeTracker();
+            _documentChangeTracker = new DocumentChangeTracker(lspMiscellaneousFilesWorkspace, workspaceRegistrationService);
 
             // Pass the language client instance type name to the telemetry logger to ensure we can
             // differentiate between the different C# LSP servers that have the same client name.
@@ -301,6 +304,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _requestTelemetryLogger,
                 queueItem.ClientCapabilities,
                 _workspaceRegistrationService,
+                _lspMiscellaneousFilesWorkspace,
                 _lspSolutionCache,
                 trackerToUse,
                 _supportedLanguages,
