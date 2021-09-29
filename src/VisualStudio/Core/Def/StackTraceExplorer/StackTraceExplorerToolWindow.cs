@@ -6,6 +6,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Imaging;
@@ -17,6 +18,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using static Microsoft.VisualStudio.VSConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
@@ -29,10 +31,17 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         public StackTraceExplorerToolWindow() : base(null)
         {
             Caption = ServicesVSResources.Stack_Trace_Explorer;
-            Content = new DockPanel
+            var dockPanel = new DockPanel
             {
                 LastChildFill = true
             };
+
+            dockPanel.CommandBindings.Add(new CommandBinding(ApplicationCommands.Paste, (s, e) =>
+            {
+                Root?.OnPaste();
+            }));
+
+            Content = dockPanel;
         }
 
         public void InitializeIfNeeded(RoslynPackage roslynPackage)
@@ -95,17 +104,17 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            //if ((nCmdID & (uint)OLECMDID.OLECMDID_PASTE) != 0 ||
-            //    (nCmdID & (uint)OLECMDID.OLECMDID_PASTESPECIAL) != 0)
-            //{
-            //    ViewModel?.OnPaste();
-            //}
+            if (pguidCmdGroup == GUID_VSStandardCommandSet97)
+            {
+                var command = (VSStd97CmdID)nCmdID;
+                switch (command)
+                {
+                    case VSStd97CmdID.Paste:
+                        Root?.OnPaste();
+                        break;
+                }
+            }
 
-            return VSConstants.S_OK;
-        }
-
-        int IOleCommandTarget.QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
-        {
             return VSConstants.S_OK;
         }
     }
