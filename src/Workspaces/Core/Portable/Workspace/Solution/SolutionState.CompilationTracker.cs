@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis
                     Compilation compilationWithGenerators;
 
                     // <Caravela>
-                    // Caravela TODO: We have disabled the compilation reusing. We should analyze the behavior and enable it again.
+                    // Caravela TODO #29156: We have disabled the compilation reusing. We should analyze the behavior and enable it again.
                     authoritativeGeneratedDocuments = null;
                     var compilationFactory = this.ProjectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
                     // </Caravela>
