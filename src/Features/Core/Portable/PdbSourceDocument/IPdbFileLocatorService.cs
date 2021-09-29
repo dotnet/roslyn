@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +11,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     internal interface IPdbFileLocatorService
     {
-        Task<Stream?> GetPdbPathAsync(string dllPath, CancellationToken cancellationToken);
+        Task<(MetadataReader dllReader, MetadataReader pdbReader)?> GetMetadataReadersAsync(string dllPath, CancellationToken cancellationToken);
     }
 }

@@ -53,39 +53,14 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (dllPath is null)
                 return null;
 
-            using var pdbStream = await _pdbFileLocatorService.GetPdbPathAsync(dllPath, cancellationToken).ConfigureAwait(false);
+            // We know we have a DLL, call and see if we can find metadata readers for it, and for the PDB (whereever it may be)
+            var readers = await _pdbFileLocatorService.GetMetadataReadersAsync(dllPath, cancellationToken).ConfigureAwait(false);
+            if (readers is null)
+                return null;
 
-            MetadataReader dllReader;
-            MetadataReader pdbReader;
+            var (dllReader, pdbReader) = readers.Value;
 
-            using var dllStream = File.OpenRead(dllPath);
-            if (pdbStream is null)
-            {
-                // Otherwise lets see if its an embedded PDB. We'll need to read the DLL to get info
-                // for the debugger anyway
-                var peReader = new PEReader(dllStream, PEStreamOptions.LeaveOpen);
-
-                var entry = peReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
-                if (entry.Type == DebugDirectoryEntryType.Unknown)
-                {
-                    return null;
-                }
-
-                using var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
-                pdbReader = provider.GetMetadataReader();
-
-                dllReader = peReader.GetMetadataReader();
-            }
-            else
-            {
-                //using var dllReaderProvider = MetadataReaderProvider.FromMetadataStream(dllStream, leaveOpen: true);   // TODO: Fails with "System.BadImageFormatException : Invalid COR20 header signature.", from tests at least
-                using var dllReaderProvider = ModuleMetadata.CreateFromStream(dllStream, leaveOpen: true);
-                dllReader = dllReaderProvider.GetMetadataReader();
-
-                using var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream, MetadataStreamOptions.LeaveOpen);
-                pdbReader = pdbReaderProvider.GetMetadataReader();
-            }
-
+            // Try to find some actual document information from the PDB
             var filePaths = GetSourcePaths(symbol, dllReader, pdbReader);
             if (filePaths.Length == 0)
                 return null;
@@ -96,9 +71,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (languageName is null)
                 return null;
 
-            // TODO: Do we need our own workspace? - No, use metadata as source
-            //       We should probably cache things from the same document? - yes, and assembly etc.
-            //       Does each assembly get its own project added to that workspace? - each assembly gets its own project, and has to be distinct from the MAS project it might get
+            // Each assembly gets its own project, so we need a workspace
             if (_workspace == null)
             {
                 _workspace = new MetadataAsSourceWorkspace(null!, project.Solution.Workspace.Services.HostServices);
@@ -155,9 +128,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             {
                 // If a document has multiple symbols then we'll already know about it
                 if (_fileToDocument.ContainsKey(sourceDocument.FilePath))
-                {
                     continue;
-                }
 
                 documents.Add(DocumentInfo.Create(
                      DocumentId.CreateNewId(projectId),
