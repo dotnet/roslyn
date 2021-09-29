@@ -225,8 +225,8 @@
   <data name="Generate_all" xml:space="preserve">
     <value>Generate all</value>
   </data>
-  <data name="Generate_enum_member_1_0" xml:space="preserve">
-    <value>Generate enum member '{1}.{0}'</value>
+  <data name="Generate_enum_member_0" xml:space="preserve">
+    <value>Generate enum member '{0}'</value>
   </data>
   <data name="Generate_constant_1_0" xml:space="preserve">
     <value>Generate constant '{1}.{0}'</value>
