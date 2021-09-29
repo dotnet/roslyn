@@ -175,8 +175,7 @@
                      ERRID.WRN_GeneratorFailedDuringGeneration,
                      ERRID.WRN_AnalyzerReferencesFramework,
                      ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential,
-                     ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName,
-                     ERRID.WRN_NextAvailable
+                     ERRID.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName
                     Return True
                 Case Else
                     Return False
@@ -204,8 +203,7 @@
         Public Function IsHidden(code as ERRID) As Boolean
             Select Case code
                 Case ERRID.HDN_UnusedImportClause,
-                     ERRID.HDN_UnusedImportStatement,
-                     ERRID.HDN_NextAvailable
+                     ERRID.HDN_UnusedImportStatement
                     Return True
                 Case Else
                     Return False

@@ -2002,6 +2002,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         HDN_UnusedImportStatement = 50001
         INF_UnableToLoadSomeTypesInAnalyzer = 50002
 
+        HDN_NextAvailable = 50003
+
         ' // AVAILABLE                             50003 - 54999   
 
         ' Adding diagnostic arguments from resx file
@@ -2018,7 +2020,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IDS_LangVersions = 56010
         IDS_ToolName = 56011
 
-        HDN_NextAvailable = 56012
+        IDS_NextAvailable = 56012
 
         ' Feature codes
         FEATURE_AutoProperties
