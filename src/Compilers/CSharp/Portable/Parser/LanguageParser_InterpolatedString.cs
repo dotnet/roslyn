@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // Add a token for text following the last interpolation
-                var lastText = Substring(originalText, interpolations[interpolations.Count - 1].CloseBracePosition + 1, closeQuoteIndex - 1);
+                var lastText = Substring(originalText, interpolations[^1].CloseBracePosition + 1, closeQuoteIndex - 1);
                 if (lastText.Length > 0)
                 {
                     var token = MakeStringToken(lastText, lastText, isVerbatim, SyntaxKind.InterpolatedStringTextToken);

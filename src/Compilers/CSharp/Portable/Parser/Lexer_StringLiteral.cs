@@ -674,7 +674,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             private void ScanInterpolatedStringLiteralNestedComment()
             {
-                var start = _lexer.TextWindow.Position;
                 Debug.Assert(_lexer.TextWindow.PeekChar() == '/');
                 _lexer.TextWindow.AdvanceChar();
                 Debug.Assert(_lexer.TextWindow.PeekChar() == '*');
