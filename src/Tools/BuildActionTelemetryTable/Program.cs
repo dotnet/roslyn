@@ -359,7 +359,6 @@ namespace BuildActionTelemetryTable
         internal static string GenerateKustoDatatable(ImmutableArray<TelemetryInfo> telemetryInfos)
         {
             var missingDescriptions = new List<string>();
-            var processesActionTypes = new HashSet<string>();
 
             var table = new StringBuilder();
 
@@ -368,8 +367,7 @@ namespace BuildActionTelemetryTable
 
             foreach (var (actionTypeName, fnvHash) in telemetryInfos)
             {
-                if (IgnoredCodeActions.Contains(actionTypeName) ||
-                    processesActionTypes.Contains(actionTypeName))
+                if (IgnoredCodeActions.Contains(actionTypeName))
                 {
                     continue;
                 }
@@ -381,8 +379,6 @@ namespace BuildActionTelemetryTable
                 }
 
                 table.AppendLine(@$"  ""{description}"", ""{actionTypeName}"", ""{fnvHash}"",");
-
-                processesActionTypes.Add(actionTypeName);
             }
 
             table.Append("];");
