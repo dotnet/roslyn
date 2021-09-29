@@ -11254,7 +11254,11 @@ System.NotImplementedException: 28
 
                 if (fileName.StartsWith("csc") ||
                     fileName.StartsWith("System.") ||
-                    fileName.StartsWith("Microsoft.") && !fileName.StartsWith("Microsoft.DiaSymReader.Native"))
+                    fileName.StartsWith("Microsoft.") && !fileName.StartsWith("Microsoft.DiaSymReader.Native")
+                    // <Caravela>
+                    || fileName.StartsWith("Caravela.")
+                    // </Caravela>
+                    )
                 {
                     dir.CopyFile(filePath);
                 }

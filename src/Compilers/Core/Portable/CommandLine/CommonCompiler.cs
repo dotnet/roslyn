@@ -1243,9 +1243,8 @@ namespace Microsoft.CodeAnalysis
                 }
 
             }
-            
 
-            
+            compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
             if (HasUnsuppressableErrors(diagnostics))
             {
                 return;
