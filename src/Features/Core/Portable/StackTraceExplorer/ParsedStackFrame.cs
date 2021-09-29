@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -46,32 +47,52 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
         public virtual async Task<ISymbol?> ResolveSymbolAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var className = OriginalText[ClassSpan.Start..ClassSpan.End];
-            var methodName = OriginalText[MethodSpan.Start..MethodSpan.End];
-
-            var symbolName = $"{className}.{methodName}";
+            var className = GetClassText(includeTrailingDot: false);
+            var methodName = GetMethodText();
 
             foreach (var project in solution.Projects)
             {
-                var foundSymbols = await FindSymbols.DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
-                    project,
-                    symbolName,
-                    SymbolFilter.Member,
-                    cancellationToken).ConfigureAwait(false);
-
-                // Only use the first symbol for now. 
-                // todo: should we return multiple and let a user decide? 
-                var foundSymbol = foundSymbols.Length == 1
-                    ? foundSymbols[0]
-                    : null;
-
-                if (foundSymbol is not null)
+                var service = project.GetLanguageService<IStackTraceExplorerService>();
+                if (service is null)
                 {
-                    return foundSymbol;
+                    continue;
+                }
+
+                var metadataName = service.GetClassMetadataName(className);
+                var memberName = service.GetMethodSymbolName(methodName);
+
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var type = compilation.GetTypeByMetadataName(metadataName);
+                if (type is null)
+                {
+                    continue;
+                }
+
+                var members = type.GetMembers();
+                var matchingMembers = members.WhereAsArray(m => MemberMatchesMethodName(m, memberName));
+                if (matchingMembers.Length == 0)
+                {
+                    continue;
+                }
+
+                if (matchingMembers.Length == 1)
+                {
+                    return matchingMembers[0];
                 }
             }
 
             return null;
+
+            static bool MemberMatchesMethodName(ISymbol member, string memberToSearchFor)
+            {
+                var displayName = member.ToDisplayString();
+                var dotIndex = displayName.LastIndexOf(".");
+                var memberName = dotIndex >= 0
+                    ? displayName[(dotIndex + 1)..]
+                    : displayName;
+
+                return string.Equals(memberName, memberToSearchFor, System.StringComparison.OrdinalIgnoreCase);
+            }
         }
 
         /// <summary>
@@ -86,9 +107,9 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         /// <summary>
         /// Gets the text representing the fully qualified class name
         /// </summary>
-        public string GetClassText()
+        public string GetClassText(bool includeTrailingDot = true)
         {
-            return OriginalText[ClassSpan.Start..ClassSpan.End];
+            return OriginalText[ClassSpan.Start..(includeTrailingDot ? ClassSpan.End : ClassSpan.End - 1)];
         }
 
         /// <summary>

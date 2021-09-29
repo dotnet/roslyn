@@ -64,7 +64,7 @@ namespace ConsoleApp4
         public static void ThrowGeneric<T>(T value) => throw new Exception();
     }
 
-    static class GenericClass<T, U> 
+    static class GenericClass<A, B> 
     {
         public static void Throw<T>(T t) => throw new Exception();
         public static void Throw<T, U>(T t, U u) => throw new Exception();
@@ -109,10 +109,10 @@ namespace ConsoleApp4
         [InlineData("ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#", "ConsoleApp4.MyClass.ThrowAtOne()")]
         [InlineData(@"   at ConsoleApp4.MyClass.ThrowAtOne() in C:\repos\ConsoleApp4\ConsoleApp4\Program.cs:line 26", "ConsoleApp4.MyClass.ThrowAtOne()")]
         [InlineData(@"at ConsoleApp4.MyClass.ThrowAtOne()", "ConsoleApp4.MyClass.ThrowAtOne()")]
-        [InlineData(@"at ConsoleApp4.MyOtherClass.ThrowGeneric<string>(string.Empty)", "ConsoleApp4.MyOtherClass.ThrowGeneric<T>(T)")]
-        [InlineData(@"at ConsoleApp4.GenericClass<T, U>.Throw<T>(T)", "ConsoleApp4.GenericClass`2.Throw<T>(T)")]
-        [InlineData(@"at ConsoleApp4.GenericClass<T, U>.Throw<T, U>(T, U)", "ConsoleApp4.GenericClass`2.Throw<T, U>(T, U)")]
-        [InlineData(@"at ConsoleApp4.GenericClass<T, U>.Throw<T, U, V>(T, U, V)", "ConsoleApp4.GenericClass`2.Throw<T, U, V>(T, U, V)")]
+        [InlineData(@"at ConsoleApp4.MyOtherClass.ThrowGeneric<T>(T t)", "ConsoleApp4.MyOtherClass.ThrowGeneric<T>(T)")]
+        [InlineData(@"at ConsoleApp4.GenericClass<A, B>.Throw<T>(T t)", "ConsoleApp4.GenericClass`2.Throw<T>(T)")]
+        [InlineData(@"at ConsoleApp4.GenericClass<A, B>.Throw<T, U>(T t, U u)", "ConsoleApp4.GenericClass`2.Throw<T, U>(T, U)")]
+        [InlineData(@"at ConsoleApp4.GenericClass<A, B>.Throw<T, U, V>(T t, U u, V v)", "ConsoleApp4.GenericClass`2.Throw<T, U, V>(T, U, V)")]
         public async Task TestSymbolFound(string inputLine, string symbolText)
         {
             var workspace = CreateWorkspace();
