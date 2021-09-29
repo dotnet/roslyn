@@ -170,10 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
                 var lastMatchBefore = matchingDirectives
                     .Where(d => d is IfDirectiveTriviaSyntax or ElifDirectiveTriviaSyntax)
                     .TakeWhile(d => d.SpanStart < directiveTrivia.SpanStart)
-                    .LastOrDefault();
-                if (lastMatchBefore is not null)
+                    .Select(d => d.Span)
+                    .ToImmutableArray();
+                if (lastMatchBefore.Length > 0)
                 {
-                    return QuickInfoItem.Create(token.Span, relatedSpans: ImmutableArray.Create(lastMatchBefore.Span));
+                    return QuickInfoItem.Create(token.Span, relatedSpans: lastMatchBefore);
                 }
             }
 
