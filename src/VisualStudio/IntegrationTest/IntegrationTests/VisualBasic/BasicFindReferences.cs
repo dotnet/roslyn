@@ -109,6 +109,11 @@ End Class
                         Assert.Equal(expected: 34, actual: reference.Column);
                     }
                 });
+
+            VisualStudio.FindReferencesWindow.NavigateTo(activeWindowCaption, results[0], isPreview: false);
+            // Assert we are in the right file now
+            VisualStudio.Editor.Activate();
+            Assert.Equal("Class1.vb", VisualStudio.Shell.GetActiveWindowCaption());
         }
     }
 }
