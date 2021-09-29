@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 {
                     case MethodGenerationKind.Member:
                         var text = generateProperty ?
-                            isAbstract ? FeaturesResources.Generate_abstract_property_1_0 : FeaturesResources.Generate_property_1_0 :
-                            isAbstract ? FeaturesResources.Generate_abstract_method_1_0 : FeaturesResources.Generate_method_1_0;
+                            isAbstract ? FeaturesResources.Generate_abstract_property_0 : FeaturesResources.Generate_property_0 :
+                            isAbstract ? FeaturesResources.Generate_abstract_method_0 : FeaturesResources.Generate_method_0;
 
                         var name = state.IdentifierToken.ValueText;
                         return string.Format(text, name);

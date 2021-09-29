@@ -346,9 +346,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
                 parameterOptions: SymbolDisplayParameterOptions.None,
-                memberOptions: methodToUpdate.IsConstructor()
-                    ? SymbolDisplayMemberOptions.None
-                    : SymbolDisplayMemberOptions.None));
+                memberOptions: SymbolDisplayMemberOptions.None));
 
             var parameters = methodToUpdate.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
             var signature = includeParameters
