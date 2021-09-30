@@ -113,6 +113,7 @@ namespace RunTests
         <DotNetCliVersion>" + globalJson.sdk.version + @"</DotNetCliVersion>
         <DotNetCliPackageType>sdk</DotNetCliPackageType>
         <EnableAzurePipelinesReporter>" + (isAzureDevOpsRun ? "true" : "false") + @"</EnableAzurePipelinesReporter>
+        <HelixBaseUri>https://helix.int-dot.net</HelixBaseUri>
     </PropertyGroup>
 
     <ItemGroup>
