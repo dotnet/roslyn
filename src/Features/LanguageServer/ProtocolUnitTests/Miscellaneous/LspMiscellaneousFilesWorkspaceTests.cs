@@ -188,9 +188,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
     {
         var result = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
             CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
-
         Contract.ThrowIfNull(result);
-
         return result;
     }
 }
