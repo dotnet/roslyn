@@ -2228,7 +2228,7 @@ class C
                 Assert.Equal("CS0219", diagnostic.Id)
 
                 ' Verify no diagnostics outside the local decl span
-                span = localDecl.GetLastToken().GetNextToken().Span
+                span = localDecl.GetLastToken().GetNextToken().GetNextToken().Span
                 diagnostics.Clear()
                 Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
                 Assert.Empty(diagnostics)
