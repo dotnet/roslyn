@@ -26,7 +26,6 @@ static class C { }";
 
             using var testLspServer = CreateTestLspServer(markup, out var locations);
             var results = await RunGetSemanticTokensAsync(testLspServer, locations["caret"].First());
-            Contract.ThrowIfNull(results);
 
             var expectedResults = new LSP.SemanticTokens
             {
