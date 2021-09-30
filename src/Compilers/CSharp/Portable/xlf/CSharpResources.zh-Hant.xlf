@@ -1437,6 +1437,16 @@
         <target state="translated">InterpolatedStringHandlerArgument 在套用至 Lambda 參數時沒有效果，將於呼叫網站忽略。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_MethGrpToNonDel">
+        <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
+        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MethGrpToNonDel_Title">
+        <source>Converting method group to non-delegate type</source>
+        <target state="new">Converting method group to non-delegate type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">因為參數 '{1}' 不是 null，所以參數 '{0}' 在結束時必須具有非 Null 值。</target>

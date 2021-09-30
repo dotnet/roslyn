@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.TypeParameters, builder.ToImmutable());
             }
 
-            if (TryGetGroupText(SymbolDescriptionGroups.AnonymousTypes, out var anonymousTypesText))
+            if (TryGetGroupText(SymbolDescriptionGroups.StructuralTypes, out var anonymousTypesText))
             {
                 var builder = ImmutableArray.CreateBuilder<TaggedText>();
                 builder.AddLineBreak();

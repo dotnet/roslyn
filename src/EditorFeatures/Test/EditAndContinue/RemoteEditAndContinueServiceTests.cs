@@ -35,19 +35,6 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
     [UseExportProvider]
     public class RemoteEditAndContinueServiceTests
     {
-        [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService), ServiceLayer.Test), Shared]
-        internal sealed class MockEncServiceFactory : IWorkspaceServiceFactory
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public MockEncServiceFactory()
-            {
-            }
-
-            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-                => new MockEditAndContinueWorkspaceService();
-        }
-
         private static string Inspect(DiagnosticData d)
             => $"[{d.ProjectId}] {d.Severity} {d.Id}:" +
                 (d.DataLocation != null ? $" {d.DataLocation.OriginalFilePath}({d.DataLocation.OriginalStartLine}, {d.DataLocation.OriginalStartColumn}, {d.DataLocation.OriginalEndLine}, {d.DataLocation.OriginalEndColumn}):" : "") +
@@ -59,7 +46,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var localComposition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
             if (testHost == TestHost.InProcess)
             {
-                localComposition = localComposition.AddParts(typeof(MockEncServiceFactory));
+                localComposition = localComposition.AddParts(typeof(MockEditAndContinueWorkspaceService));
             }
 
             using var localWorkspace = new TestWorkspace(composition: localComposition);
@@ -77,7 +64,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             else
             {
                 Assert.NotNull(clientProvider);
-                clientProvider!.AdditionalRemoteParts = new[] { typeof(MockEncServiceFactory) };
+                clientProvider!.AdditionalRemoteParts = new[] { typeof(MockEditAndContinueWorkspaceService) };
 
                 var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace).ConfigureAwait(false);
                 var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
@@ -170,13 +157,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // BreakStateChanged
 
-            mockEncService.BreakStateChangesImpl = (bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze) =>
+            mockEncService.BreakStateOrCapabilitiesChangedImpl = (bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze) =>
             {
                 Assert.True(inBreakState);
                 documentsToReanalyze = ImmutableArray.Create(document.Id);
             };
 
-            await sessionProxy.BreakStateChangedAsync(mockDiagnosticService, inBreakState: true, CancellationToken.None).ConfigureAwait(false);
+            await sessionProxy.BreakStateOrCapabilitiesChangedAsync(mockDiagnosticService, inBreakState: true, CancellationToken.None).ConfigureAwait(false);
             VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
 
             var activeStatement = (await remoteDebuggeeModuleMetadataProvider!.GetActiveStatementsAsync(CancellationToken.None).ConfigureAwait(false)).Single();

@@ -850,6 +850,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">{0} okuma ve arama işlemlerini destekleyen bir akış döndürmelidir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Miscellaneous_Files">
+        <source>Miscellaneous Files</source>
+        <target state="new">Miscellaneous Files</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Missing_control_character">
         <source>Missing control character</source>
         <target state="translated">Eksik denetim karakteri</target>
@@ -953,6 +958,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="Move_file_to_project_root_folder">
         <source>Move file to project root folder</source>
         <target state="translated">Dosyayı proje kök klasörüne taşı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type">
+        <source>Move static members to another type...</source>
+        <target state="new">Move static members to another type...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1156,11 +1166,11 @@ Bu seçenek, geri izlemenin başarısız olacağını biliyorsanız önerilir. N
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
         <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">Bir dengeleme grubu tanımı, geçerli grupta, önceden tanımlanmış grup ile geçerli grup arasındaki aralıkta, önceden tanımlanmış bir grubun ve depoların tanımını siler.
+        <target state="needs-review-translation">Bir dengeleme grubu tanımı, geçerli grupta, önceden tanımlanmış grup ile geçerli grup arasındaki aralıkta, önceden tanımlanmış bir grubun ve depoların tanımını siler.
     
 'name1' geçerli grup (isteğe bağlı), 'name2' önceden tanımlanmış bir grup ve 'subexpression' ise herhangi bir geçerli normal ifade desenidir. Dengeleme grubu tanımı name2'nin tanımını siler ve name2 ile name1 arasındaki aralığı name1'e depolar. Bir name2 grubu tanımlanmamışsa, eşleşme geri iz sürer. name2'nin son tanımını silmek, name2'nin önceki tanımını ortaya çıkardığından, bu yapı name2 grubu için yakalama yığınını, parantez veya açma ve kapama ayracı gibi iç içe yapıları izlemek için bir sayaç olarak kullanmanıza olanak sağlar.
 
@@ -2300,6 +2310,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Çok fazla)'s</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="new">Types:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">'{0}' kaynak dosyası veya içeren proje için oluşturulan PDB okunamıyor. Hata ayıklama sırasında bu dosyada yapılan değişiklikler, dosyanın içeriği oluşturulan kaynakla eşleşene kadar uygulanmaz.</target>
@@ -3348,11 +3363,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">'{0}' için sorgu değişkenini ortaya çıkar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">Anonim Türler:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">

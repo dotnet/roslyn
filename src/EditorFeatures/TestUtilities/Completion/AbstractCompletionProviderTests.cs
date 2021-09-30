@@ -610,12 +610,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected Task VerifyItemWithMetadataReferenceAsync(string markup, string metadataReferenceCode, string expectedItem, int expectedSymbols,
+        protected async Task VerifyItemWithMetadataReferenceAsync(string markup, string metadataReferenceCode, string expectedItem, int expectedSymbols,
                                                            string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
         {
             var xmlString = CreateMarkupForProjectWithMetadataReference(markup, metadataReferenceCode, sourceLanguage, referencedLanguage);
 
-            return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
+            await VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
         }
 
         protected static string GetMarkupWithReference(string currentFile, string referencedFile, string sourceLanguage, string referenceLanguage, bool isProjectReference)
@@ -638,12 +638,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(metadataReferenceCode));
         }
 
-        protected Task VerifyItemWithAliasedMetadataReferencesAsync(string markup, string metadataAlias, string expectedItem, int expectedSymbols,
+        protected async Task VerifyItemWithAliasedMetadataReferencesAsync(string markup, string metadataAlias, string expectedItem, int expectedSymbols,
             string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
         {
             var xmlString = CreateMarkupForProjectWithAliasedMetadataReference(markup, metadataAlias, "", sourceLanguage, referencedLanguage);
 
-            return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
+            await VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
         }
 
         protected static string CreateMarkupForProjectWithAliasedMetadataReference(string markup, string metadataAlias, string referencedCode, string sourceLanguage, string referencedLanguage, bool hasGlobalAlias = true)
@@ -660,11 +660,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup), referencedLanguage, SecurityElement.Escape(aliases), SecurityElement.Escape(referencedCode));
         }
 
-        protected Task VerifyItemWithProjectReferenceAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
+        protected async Task VerifyItemWithProjectReferenceAsync(string markup, string referencedCode, string expectedItem, int expectedSymbols, string sourceLanguage, string referencedLanguage, bool hideAdvancedMembers)
         {
             var xmlString = CreateMarkupForProjectWithProjectReference(markup, referencedCode, sourceLanguage, referencedLanguage);
 
-            return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
+            await VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols, hideAdvancedMembers);
         }
 
         protected static string CreateMarkupForProjectWithAliasedProjectReference(string markup, string projectAlias, string referencedCode, string sourceLanguage, string referencedLanguage)
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        protected Task VerifyItemWithMscorlib45Async(string markup, string expectedItem, string expectedDescription, string sourceLanguage)
+        protected async Task VerifyItemWithMscorlib45Async(string markup, string expectedItem, string expectedDescription, string sourceLanguage)
         {
             var xmlString = string.Format(@"
 <Workspace>
@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
     </Project>
 </Workspace>", sourceLanguage, SecurityElement.Escape(markup));
 
-            return VerifyItemWithMscorlib45WorkerAsync(xmlString, expectedItem, expectedDescription);
+            await VerifyItemWithMscorlib45WorkerAsync(xmlString, expectedItem, expectedDescription);
         }
 
         private async Task VerifyItemWithMscorlib45WorkerAsync(
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        private protected Task VerifyAtPositionAsync(
+        private protected async Task VerifyAtPositionAsync(
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence,
@@ -893,14 +893,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             code = code.Substring(0, position) + insertText + code.Substring(position);
             position += insertText.Length;
 
-            return BaseVerifyWorkerAsync(code, position,
+            await BaseVerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
                 displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
-        private protected Task VerifyAtPositionAsync(
+        private protected async Task VerifyAtPositionAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
             List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
-            return VerifyAtPositionAsync(
+            await VerifyAtPositionAsync(
                 code, position, string.Empty, usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix,
@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
-        private protected Task VerifyAtPosition_ItemPartiallyWrittenAsync(
+        private protected async Task VerifyAtPosition_ItemPartiallyWrittenAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
@@ -947,14 +947,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
             List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
-            return VerifyAtPositionAsync(
+            await VerifyAtPositionAsync(
                 code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
                 displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
-        private protected Task VerifyAtEndOfFileAsync(
+        private protected async Task VerifyAtEndOfFileAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
@@ -962,13 +962,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
             List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
-            return VerifyAtEndOfFileAsync(code, position, string.Empty, usePreviousCharAsTrigger,
+            await VerifyAtEndOfFileAsync(code, position, string.Empty, usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
                 checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
                 displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
-        private protected Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
+        private protected async Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
             List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
-            return VerifyAtEndOfFileAsync(
+            await VerifyAtEndOfFileAsync(
                 code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,

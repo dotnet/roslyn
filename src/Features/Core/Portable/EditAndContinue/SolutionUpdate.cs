@@ -37,9 +37,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public static SolutionUpdate Blocked(
             ImmutableArray<(ProjectId, ImmutableArray<Diagnostic>)> diagnostics,
             ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic>)> documentsWithRudeEdits,
-            Diagnostic? syntaxError)
+            Diagnostic? syntaxError,
+            bool hasEmitErrors)
             => new(
-                new(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty),
+                new(syntaxError != null || hasEmitErrors ? ManagedModuleUpdateStatusEx.Blocked : ManagedModuleUpdateStatusEx.RestartRequired, ImmutableArray<ManagedModuleUpdate>.Empty),
                 ImmutableArray<(Guid, ImmutableArray<(ManagedModuleMethodId, NonRemappableRegion)>)>.Empty,
                 ImmutableArray<(ProjectId, EmitBaseline)>.Empty,
                 diagnostics,

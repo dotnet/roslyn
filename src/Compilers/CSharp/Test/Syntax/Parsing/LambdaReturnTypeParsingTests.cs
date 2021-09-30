@@ -2556,14 +2556,345 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.CloseParenToken);
                 }
                 N(SyntaxKind.EqualsGreaterThanToken);
-                N(SyntaxKind.RefExpression);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
                 {
-                    N(SyntaxKind.RefKeyword);
-                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    N(SyntaxKind.RefType);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.RefExpression);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_04()
+        {
+            string source = "(ref int () => x)";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_05()
+        {
+            string source = "ref int () => x";
+            UsingExpression(source);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.RefType);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_06()
+        {
+            string source = "d d1 = (ref int () => x);";
+            UsingDeclaration(source);
+
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d1");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ParenthesizedExpression);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.ParenthesizedLambdaExpression);
+                                {
+                                    N(SyntaxKind.RefType);
+                                    {
+                                        N(SyntaxKind.RefKeyword);
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                    }
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_07()
+        {
+            string source = "d d1 = ref int () => x;";
+            UsingDeclaration(source);
+
+            N(SyntaxKind.FieldDeclaration);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "d1");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_08()
+        {
+            string source = "d d1 = (ref int () => x);";
+            UsingTree(source);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d1");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ParenthesizedExpression);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.ParenthesizedLambdaExpression);
+                                        {
+                                            N(SyntaxKind.RefType);
+                                            {
+                                                N(SyntaxKind.RefKeyword);
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                            }
+                                            N(SyntaxKind.ParameterList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                            N(SyntaxKind.EqualsGreaterThanToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "x");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_09()
+        {
+            string source = "d d1 = ref int () => x;";
+            UsingTree(source);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d1");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                                    {
+                                        N(SyntaxKind.RefType);
+                                        {
+                                            N(SyntaxKind.RefKeyword);
+                                            N(SyntaxKind.PredefinedType);
+                                            {
+                                                N(SyntaxKind.IntKeyword);
+                                            }
+                                        }
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_10()
+        {
+            string source = "d1 = (ref int () => x)";
+            UsingExpression(source, options: TestOptions.Regular7);
+
+            N(SyntaxKind.SimpleAssignmentExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.EqualsToken);
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
                         }
                         N(SyntaxKind.ParameterList);
                         {
@@ -2571,15 +2902,723 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.RefExpression);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_11()
+        {
+            string source = "d1 = ref int () => x";
+            UsingExpression(source, options: TestOptions.Regular7);
+
+            N(SyntaxKind.SimpleAssignmentExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.EqualsToken);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_12()
+        {
+            string source = "d1((ref int () => x))";
+            UsingExpression(source);
+
+            N(SyntaxKind.InvocationExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                }
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_13()
+        {
+            string source = "d1(ref int () => x)";
+            UsingExpression(source);
+
+            N(SyntaxKind.InvocationExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.ParenthesizedLambdaExpression);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "x");
                             }
                         }
                     }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_14()
+        {
+            string source = "return (ref int () => x);";
+            UsingStatement(source);
+
+            N(SyntaxKind.ReturnStatement);
+            {
+                N(SyntaxKind.ReturnKeyword);
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_15()
+        {
+            string source = "return ref int () => x;";
+            UsingStatement(source);
+
+            N(SyntaxKind.ReturnStatement);
+            {
+                N(SyntaxKind.ReturnKeyword);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_16()
+        {
+            string source = "d1 ? (ref int () => x) : null";
+            UsingExpression(source);
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_17()
+        {
+            string source = "d1 ? ref int () => x :  null";
+            UsingExpression(source);
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_18()
+        {
+            string source = "d1 ? null : (ref int () => x)";
+            UsingExpression(source);
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_19()
+        {
+            string source = "d1 ? null : ref int () => x";
+            UsingExpression(source);
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_20()
+        {
+            string source = "d1 ? (ref int () => x) : (ref int () => y)";
+            UsingExpression(source);
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_21()
+        {
+            string source = "d1 ? ref int () => x : ref int () => y";
+            UsingExpression(source);
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_22()
+        {
+            string source = "d1 switch { null => (ref int () => x) }";
+            UsingExpression(source);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.NullLiteralExpression);
+                        {
+                            N(SyntaxKind.NullKeyword);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.ParenthesizedExpression);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.ParenthesizedLambdaExpression);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                            }
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_23()
+        {
+            string source = "d1 switch { null => ref int () => x }";
+            UsingExpression(source);
+
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.NullLiteralExpression);
+                        {
+                            N(SyntaxKind.NullKeyword);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.RefType);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_24()
+        {
+            string source = "d1(in int () => x)";
+            UsingExpression(source);
+
+            N(SyntaxKind.InvocationExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.ParenthesizedLambdaExpression);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Ref_25()
+        {
+            string source = "d1(out int () => x)";
+            UsingExpression(source);
+
+            N(SyntaxKind.InvocationExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "d1");
+                }
+                N(SyntaxKind.ArgumentList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.OutKeyword);
+                        N(SyntaxKind.ParenthesizedLambdaExpression);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
                 }
             }
             EOF();
