@@ -2002,6 +2002,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
+        ERR_NoAwaitOnAsyncEnumerable = 8975
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }

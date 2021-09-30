@@ -8023,5 +8023,28 @@ public static class Extensions
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123123");
         }
+
+        [Fact]
+        [WorkItem(53426, "https://github.com/dotnet/roslyn/issues/53426")]
+        public void TestAwaitAsyncEnumerableNoGetAwaiterErrorMessage()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+public class C 
+{
+    public async Task M(IAsyncEnumerable<int> e) 
+    {
+        await e; 
+    }
+}";
+
+            var expected = Diagnostic(ErrorCode.ERR_NoAwaitOnAsyncEnumerable, "await e")
+                .WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetAwaiter")
+                .WithLocation(8, 9);
+
+            CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular8)
+                .VerifyDiagnostics(expected);
+        }
     }
 }

@@ -832,6 +832,11 @@
         <target state="translated">Символы новой строки не разрешены в строках, которые интерполируются не буквально</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
+        <source>If you intend to iterate over an IAsyncEnumerable, then put the await statement before the loop statement. i.e. await foreach.</source>
+        <target state="new">If you intend to iterate over an IAsyncEnumerable, then put the await statement before the loop statement. i.e. await foreach.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
         <target state="translated">"{0}": тип, используемый в асинхронном операторе using, должен допускать неявное преобразование в тип "System.IAsyncDisposable" или реализовывать подходящий метод "DisposeAsync". Возможно, вы имели в виду "using", а не "await using"?</target>

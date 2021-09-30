@@ -832,6 +832,11 @@
         <target state="translated">改行は、非逐語的に補間された文字列内では使用できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
+        <source>If you intend to iterate over an IAsyncEnumerable, then put the await statement before the loop statement. i.e. await foreach.</source>
+        <target state="new">If you intend to iterate over an IAsyncEnumerable, then put the await statement before the loop statement. i.e. await foreach.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
         <target state="translated">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。'await using' ではなく 'using' ですか?</target>
