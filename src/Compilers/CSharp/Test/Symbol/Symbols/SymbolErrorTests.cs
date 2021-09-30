@@ -20925,5 +20925,88 @@ class X
                 //     private static Y(int i) {}
                 Diagnostic(ErrorCode.ERR_MemberNeedsType, "Y").WithLocation(4, 20));
         }
+
+        [Fact, WorkItem(56653, "https://github.com/dotnet/roslyn/issues/56653")]
+        public void DisallowLowerCaseTypeName()
+        {
+            var text = @"
+using zero = one;
+
+class one { }
+
+class @two { }
+
+namespace ns
+{
+    class nint { }
+}
+
+class @nint { }
+
+partial struct three { }
+partial struct @three { }
+
+partial interface four { }
+partial interface four { }
+
+partial class @five { }
+partial class five { }
+
+partial record @six { }
+partial record @six { }
+
+delegate void seven();
+
+enum eight { first, second }
+
+class C
+{
+    void nine() { }
+}
+
+class Ten { }
+class eleveN { }
+";
+            var expected = new[]
+            {
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using zero = one;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using zero = one;").WithLocation(2, 1),
+                // (4,1): warning CS8980: The type name 'one' is lower-cased. Such names may become reserved for the language.
+                // class one { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "class one { }").WithArguments("one").WithLocation(4, 1),
+                // (10,5): warning CS8980: The type name 'nint' is lower-cased. Such names may become reserved for the language.
+                //     class nint { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "class nint { }").WithArguments("nint").WithLocation(10, 5),
+                // (15,1): warning CS8980: The type name 'three' is lower-cased. Such names may become reserved for the language.
+                // partial struct three { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "partial struct three { }").WithArguments("three").WithLocation(15, 1),
+                // (18,1): warning CS8980: The type name 'four' is lower-cased. Such names may become reserved for the language.
+                // partial interface four { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "partial interface four { }").WithArguments("four").WithLocation(18, 1),
+                // (22,1): warning CS8980: The type name 'five' is lower-cased. Such names may become reserved for the language.
+                // partial class five { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "partial class five { }").WithArguments("five").WithLocation(22, 1),
+                // (27,1): warning CS8980: The type name 'seven' is lower-cased. Such names may become reserved for the language.
+                // delegate void seven();
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "delegate void seven();").WithArguments("seven").WithLocation(27, 1),
+                // (29,1): warning CS8980: The type name 'eight' is lower-cased. Such names may become reserved for the language.
+                // enum eight { first, second }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "enum eight { first, second }").WithArguments("eight").WithLocation(29, 1)
+            };
+
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(6));
+            comp.VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using zero = one;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using zero = one;").WithLocation(2, 1)
+                );
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugDll.WithWarningLevel(7));
+            comp.VerifyDiagnostics(expected);
+        }
     }
 }

@@ -204,6 +204,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (code)
             {
+                case ErrorCode.WRN_LowerCaseTypeName:
+                    // Warning level 7 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 7 (C# 11) and that can be reported for pre-existing code.
+                    return 7;
                 case ErrorCode.WRN_PartialMethodTypeDifference:
                     // Warning level 6 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 6 (C# 10) and that can be reported for pre-existing code.

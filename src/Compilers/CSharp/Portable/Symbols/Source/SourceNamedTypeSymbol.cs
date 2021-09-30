@@ -103,6 +103,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Nested types are never unified.
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.False;
             }
+
+            reportLowerCasedNameIfNeeded(declaration, diagnostics);
+            return;
+
+            static void reportLowerCasedNameIfNeeded(MergedTypeDeclaration declaration, BindingDiagnosticBag diagnostics)
+            {
+                if (!declaration.Name.IsEmpty() && declaration.Name.All(c => char.IsLower(c)))
+                {
+                    foreach (var decl in declaration.Declarations)
+                    {
+                        if (!GetName(decl.SyntaxReference.GetSyntax()).Text.StartsWith("@"))
+                        {
+                            diagnostics.Add(ErrorCode.WRN_LowerCaseTypeName, decl.Location, declaration.Name);
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
@@ -112,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Syntax
 
-        private static SyntaxToken GetName(CSharpSyntaxNode node)
+        private static SyntaxToken GetName(SyntaxNode node)
         {
             switch (node.Kind())
             {
