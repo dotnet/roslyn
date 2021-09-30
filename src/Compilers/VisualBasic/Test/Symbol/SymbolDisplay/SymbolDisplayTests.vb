@@ -5179,6 +5179,72 @@ End Class")
             Verify(description, "A.B", SymbolDisplayPartKind.AliasName, SymbolDisplayPartKind.Operator, SymbolDisplayPartKind.ClassName)
         End Sub
 
+        <Fact()>
+        Public Sub AnonymousDelegateType()
+            Dim source =
+"Class Program
+    Shared Sub Main()
+        Dim f = Function(ByRef x as Integer) x.ToString()
+    End Sub
+End Class"
+            Dim comp = CreateCompilation(source)
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim declarator = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().Single()
+            Dim type = DirectCast(model.GetDeclaredSymbol(declarator.Names(0)), ILocalSymbol).Type
+
+            Verify(
+                type.ToDisplayParts(),
+                "Function <generated method>(ByRef x As Integer) As String",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
+
+            Dim format = New SymbolDisplayFormat(
+                typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                delegateStyle:=SymbolDisplayDelegateStyle.NameAndSignature,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance Or SymbolDisplayGenericsOptions.IncludeTypeConstraints,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName Or SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+                kindOptions:=SymbolDisplayKindOptions.IncludeNamespaceKeyword Or SymbolDisplayKindOptions.IncludeTypeKeyword)
+
+            Verify(
+                type.ToDisplayParts(format),
+                "AnonymousType Function <generated method>(ByRef x As Integer) As String",
+                SymbolDisplayPartKind.AnonymousTypeIndicator,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword)
+        End Sub
+
 #Region "Helpers"
 
         Private Shared Sub TestSymbolDescription(
