@@ -9076,7 +9076,12 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
-            var verifier = CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, expectedOutput: "1literal:literal", symbolValidator: validator, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerify(
+                new[] { code, InterpolatedStringHandlerArgumentAttribute, handler },
+                expectedOutput: "1literal:literal",
+                symbolValidator: validator,
+                sourceSymbolValidator: validator,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
             verifier.VerifyIL("<top-level-statements-entry-point>", refness == "in" ? @"
 {
   // Code size       46 (0x2e)
@@ -9148,7 +9153,7 @@ public partial struct CustomHandler
 
         [Theory, CombinatorialData]
         [WorkItem(56624, "https://github.com/dotnet/roslyn/issues/56624")]
-        public void RefOrOutParameter_AsReceiver([CombinatorialValues("ref", "out")]string parameterRefness, [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
+        public void RefOrOutParameter_AsReceiver([CombinatorialValues("ref", "out")] string parameterRefness, [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
         {
             var code = @"
 using System;
